@@ -110,14 +110,11 @@ jest.mock('../../../../../locales/i18n', () => ({
     (
       key: string,
       params?: {
-        place?: string;
         code?: string;
         campaignName?: string;
         email?: string;
       },
     ) => {
-      if (key === 'rewards.campaign_winning.rank_label' && params?.place)
-        return `${params.place} place`;
       if (
         key === 'rewards.campaign_winning.mail_subject' &&
         params?.campaignName
@@ -161,7 +158,7 @@ const defaultProps: CampaignWinningViewProps = {
   winningCode: WINNING_CODE,
   hasOutcomeLoaded: true,
   isLoading: false,
-  renderRankSection: () => null,
+  rankDisplay: null,
 };
 
 describe('CampaignWinningView', () => {
@@ -192,19 +189,16 @@ describe('CampaignWinningView', () => {
     });
   });
 
-  it('renders the renderRankSection slot content', () => {
-    const { getByTestId } = render(
+  it('renders rank and result display when provided', () => {
+    const { getByText } = render(
       <CampaignWinningView
         {...defaultProps}
-        renderRankSection={() => (
-          <React.Fragment>
-            {/* eslint-disable-next-line react-native/no-inline-styles */}
-            <React.Fragment key="rank" />
-          </React.Fragment>
-        )}
+        rankDisplay="3rd"
+        resultDisplay="+12.34%"
       />,
     );
-    expect(getByTestId('test-winning-view')).toBeTruthy();
+    expect(getByText('3rd')).toBeTruthy();
+    expect(getByText('+12.34%')).toBeTruthy();
   });
 
   it('calls goBack when Skip for now is pressed', () => {

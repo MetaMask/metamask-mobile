@@ -4,6 +4,7 @@ import PerpsTradingCampaignWinningView, {
   PERPS_TRADING_CAMPAIGN_WINNING_VIEW_TEST_IDS,
 } from './PerpsTradingCampaignWinningView';
 import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
+import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
 import CampaignWinningView from './CampaignWinningView';
 
 jest.mock('./CampaignWinningView', () => {
@@ -11,20 +12,18 @@ jest.mock('./CampaignWinningView', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: jest.fn(
-      ({
-        testID,
-        renderRankSection,
-      }: {
-        testID: string;
-        renderRankSection: () => React.ReactNode;
-      }) => ReactActual.createElement(View, { testID }, renderRankSection?.()),
+    default: jest.fn(({ testID }: { testID: string }) =>
+      ReactActual.createElement(View, { testID }),
     ),
   };
 });
 
 jest.mock('../hooks/usePerpsTradingCampaignParticipantOutcome', () => ({
   usePerpsTradingCampaignParticipantOutcome: jest.fn(),
+}));
+
+jest.mock('../hooks/useGetPerpsTradingCampaignLeaderboardPosition', () => ({
+  useGetPerpsTradingCampaignLeaderboardPosition: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -40,17 +39,13 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   return { useTailwind: () => tw };
 });
 
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: { place?: string }) => {
-    if (key === 'rewards.campaign_winning.rank_label' && params?.place)
-      return `${params.place} place`;
-    return key;
-  }),
-}));
-
 const mockUseOutcome =
   usePerpsTradingCampaignParticipantOutcome as jest.MockedFunction<
     typeof usePerpsTradingCampaignParticipantOutcome
+  >;
+const mockUsePosition =
+  useGetPerpsTradingCampaignLeaderboardPosition as jest.MockedFunction<
+    typeof useGetPerpsTradingCampaignLeaderboardPosition
   >;
 const mockCampaignWinningView = CampaignWinningView as jest.MockedFunction<
   typeof CampaignWinningView
@@ -68,6 +63,21 @@ describe('PerpsTradingCampaignWinningView', () => {
       },
       isLoading: false,
       hasError: false,
+    });
+    mockUsePosition.mockReturnValue({
+      position: {
+        rank: 3,
+        pnl: 1500.25,
+        notionalVolume: 30000,
+        marginDeployed: 1200,
+        qualified: true,
+        neighbors: [],
+        computedAt: '2025-08-15T12:00:00.000Z',
+      },
+      isLoading: false,
+      hasError: false,
+      hasFetched: true,
+      refetch: jest.fn(),
     });
   });
 
@@ -90,6 +100,10 @@ describe('PerpsTradingCampaignWinningView', () => {
         winningCode: 'PERPS-WIN-99',
         hasOutcomeLoaded: true,
         isLoading: false,
+        rankDisplay: '3rd',
+        resultDisplay: '+$1,500.25',
+        isRankLoading: false,
+        isResultLoading: false,
       }),
       {},
     );
@@ -132,15 +146,39 @@ describe('PerpsTradingCampaignWinningView', () => {
     );
   });
 
-  it('renderRankSection shows rank when available', () => {
+  it('passes rankDisplay when rank is available', () => {
     render(<PerpsTradingCampaignWinningView />);
-    const { renderRankSection } = mockCampaignWinningView.mock.calls[0][0];
-    expect(renderRankSection).toBeDefined();
-    const section = renderRankSection();
-    expect(section).toBeTruthy();
+    expect(mockCampaignWinningView).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rankDisplay: '3rd',
+        isRankLoading: false,
+        isResultLoading: false,
+      }),
+      {},
+    );
   });
 
-  it('renderRankSection shows dash when outcome has no rank', () => {
+  it('passes rank from outcome and no result when position is unavailable', () => {
+    mockUsePosition.mockReturnValue({
+      position: null,
+      isLoading: false,
+      hasError: false,
+      hasFetched: true,
+      refetch: jest.fn(),
+    });
+    render(<PerpsTradingCampaignWinningView />);
+    expect(mockCampaignWinningView).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rankDisplay: '3rd',
+        resultDisplay: null,
+        isRankLoading: false,
+        isResultLoading: false,
+      }),
+      {},
+    );
+  });
+
+  it('does not pass rankDisplay when outcome has no rank', () => {
     mockUseOutcome.mockReturnValue({
       outcome: {
         subscriptionId: 'sub-1',
@@ -152,8 +190,12 @@ describe('PerpsTradingCampaignWinningView', () => {
       hasError: false,
     });
     render(<PerpsTradingCampaignWinningView />);
-    const { renderRankSection } = mockCampaignWinningView.mock.calls[0][0];
-    // When rank is null, rankDisplay = '—'
-    expect(renderRankSection).toBeDefined();
+    expect(mockCampaignWinningView).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rankDisplay: null,
+        isRankLoading: false,
+      }),
+      {},
+    );
   });
 });

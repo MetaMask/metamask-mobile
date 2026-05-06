@@ -12,14 +12,8 @@ jest.mock('./CampaignWinningView', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: jest.fn(
-      ({
-        testID,
-        renderRankSection,
-      }: {
-        testID: string;
-        renderRankSection: () => React.ReactNode;
-      }) => ReactActual.createElement(View, { testID }, renderRankSection?.()),
+    default: jest.fn(({ testID }: { testID: string }) =>
+      ReactActual.createElement(View, { testID }),
     ),
   };
 });
@@ -95,6 +89,10 @@ describe('OndoCampaignWinningView', () => {
         winningCode: 'ONDO-WIN-99',
         hasOutcomeLoaded: true,
         isLoading: false,
+        rankDisplay: null,
+        resultDisplay: null,
+        isRankLoading: false,
+        isResultLoading: false,
       }),
       {},
     );
@@ -136,27 +134,32 @@ describe('OndoCampaignWinningView', () => {
     );
   });
 
-  it('renderRankSection renders rank and rate when position is available', () => {
+  it('passes rank and result display when position is available', () => {
+    mockUseOutcome.mockReturnValue({
+      outcome: {
+        subscriptionId: 'sub-1',
+        outcomeStatus: 'pending',
+        winnerVerificationCode: 'ONDO-WIN-99',
+        tierRank: 3,
+      },
+      isLoading: false,
+      hasError: false,
+    });
     mockUsePosition.mockReturnValue({
-      position: { rank: 3, rateOfReturn: 0.1234 } as never,
+      position: { rank: 9, rateOfReturn: 0.1234 } as never,
       isLoading: false,
       hasError: false,
       hasFetched: true,
       refetch: jest.fn(),
     });
 
-    jest.mock('../../../../../locales/i18n', () => ({
-      strings: jest.fn((key: string, params?: { place?: string }) => {
-        if (key === 'rewards.campaign_winning.rank_label' && params?.place)
-          return `${params.place} place`;
-        return key;
-      }),
-    }));
-
     render(<OndoCampaignWinningView />);
     expect(mockCampaignWinningView).toHaveBeenCalledWith(
       expect.objectContaining({
-        renderRankSection: expect.any(Function),
+        rankDisplay: '3rd',
+        resultDisplay: '+12.34%',
+        isRankLoading: false,
+        isResultLoading: false,
       }),
       {},
     );

@@ -1,15 +1,8 @@
 import React, { useMemo } from 'react';
 import { useRoute, RouteProp } from '@react-navigation/native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Skeleton,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
 import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
-import { strings } from '../../../../../locales/i18n';
-import { formatOrdinalRank } from '../utils/formatUtils';
+import { formatOrdinalRank, formatSignedUsd } from '../utils/formatUtils';
+import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
 import CampaignWinningView from './CampaignWinningView';
 
 const PRIZE_EMAIL = 'perpscampaign@consensys.net';
@@ -27,7 +20,6 @@ export const PERPS_TRADING_CAMPAIGN_WINNING_VIEW_TEST_IDS = {
 } as const;
 
 const PerpsTradingCampaignWinningView: React.FC = () => {
-  const tw = useTailwind();
   const route =
     useRoute<
       RouteProp<
@@ -41,32 +33,20 @@ const PerpsTradingCampaignWinningView: React.FC = () => {
     usePerpsTradingCampaignParticipantOutcome(campaignId);
   const winningCode = outcome?.winnerVerificationCode ?? null;
 
+  const { position, isLoading: positionLoading } =
+    useGetPerpsTradingCampaignLeaderboardPosition(campaignId);
+
   const rankDisplay = useMemo(() => {
-    if (isOutcomeLoading && !outcome) {
+    if (!outcome?.rank) {
       return null;
     }
-    if (!outcome?.rank) {
-      return '—';
-    }
-    return strings('rewards.campaign_winning.rank_label', {
-      place: formatOrdinalRank(outcome.rank),
-    });
-  }, [outcome, isOutcomeLoading]);
+    return formatOrdinalRank(outcome.rank);
+  }, [outcome]);
 
-  const renderRankSection = () => {
-    if (rankDisplay === null) {
-      return <Skeleton style={tw.style('h-8 w-36 rounded-lg')} />;
-    }
-    return (
-      <Text
-        variant={TextVariant.HeadingMd}
-        color={TextColor.SuccessDefault}
-        twClassName="text-center"
-      >
-        {rankDisplay}
-      </Text>
-    );
-  };
+  const resultDisplay = useMemo(() => {
+    if (!position) return null;
+    return formatSignedUsd(position.pnl);
+  }, [position]);
 
   return (
     <CampaignWinningView
@@ -79,7 +59,10 @@ const PerpsTradingCampaignWinningView: React.FC = () => {
       winningCode={winningCode}
       hasOutcomeLoaded={Boolean(outcome)}
       isLoading={isOutcomeLoading}
-      renderRankSection={renderRankSection}
+      rankDisplay={rankDisplay}
+      resultDisplay={resultDisplay}
+      isRankLoading={isOutcomeLoading}
+      isResultLoading={positionLoading}
     />
   );
 };

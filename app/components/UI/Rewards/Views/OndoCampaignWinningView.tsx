@@ -1,16 +1,6 @@
 import React, { useMemo } from 'react';
 import { useRoute, RouteProp } from '@react-navigation/native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  BoxFlexDirection,
-  Skeleton,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
 import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
-import { strings } from '../../../../../locales/i18n';
 import { formatOrdinalRank, formatPercentChange } from '../utils/formatUtils';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import CampaignWinningView from './CampaignWinningView';
@@ -28,7 +18,6 @@ export const ONDO_CAMPAIGN_WINNING_VIEW_TEST_IDS = {
 } as const;
 
 const OndoCampaignWinningView: React.FC = () => {
-  const tw = useTailwind();
   const route =
     useRoute<
       RouteProp<OndoCampaignWinningRouteParams, 'RewardsOndoCampaignWinning'>
@@ -43,50 +32,14 @@ const OndoCampaignWinningView: React.FC = () => {
   const winningCode = outcome?.winnerVerificationCode ?? null;
 
   const rankDisplay = useMemo(() => {
-    if (!position) return null;
-    return strings('rewards.campaign_winning.rank_label', {
-      place: formatOrdinalRank(position.rank),
-    });
-  }, [position]);
+    if (!outcome?.tierRank) return null;
+    return formatOrdinalRank(outcome.tierRank);
+  }, [outcome]);
 
-  const rateDisplay = useMemo(() => {
+  const resultDisplay = useMemo(() => {
     if (!position) return null;
     return formatPercentChange(position.rateOfReturn);
   }, [position]);
-
-  const renderRankSection = () => {
-    if (!positionLoading && !position) return null;
-    return (
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        twClassName="items-center gap-1 w-full px-4"
-      >
-        {rankDisplay !== null ? (
-          <Text
-            variant={TextVariant.HeadingMd}
-            color={TextColor.SuccessDefault}
-            twClassName="text-center"
-          >
-            {rankDisplay}
-          </Text>
-        ) : (
-          <Skeleton style={tw.style('h-8 w-36 rounded-lg')} />
-        )}
-
-        {rateDisplay !== null ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.SuccessDefault}
-            twClassName="text-center"
-          >
-            {rateDisplay}
-          </Text>
-        ) : (
-          <Skeleton style={tw.style('h-6 w-28 rounded-lg')} />
-        )}
-      </Box>
-    );
-  };
 
   return (
     <CampaignWinningView
@@ -99,7 +52,10 @@ const OndoCampaignWinningView: React.FC = () => {
       winningCode={winningCode}
       hasOutcomeLoaded={Boolean(outcome)}
       isLoading={isOutcomeLoading}
-      renderRankSection={renderRankSection}
+      rankDisplay={rankDisplay}
+      resultDisplay={resultDisplay}
+      isRankLoading={isOutcomeLoading}
+      isResultLoading={positionLoading}
     />
   );
 };

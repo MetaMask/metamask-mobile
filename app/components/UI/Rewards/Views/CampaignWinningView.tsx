@@ -16,9 +16,11 @@ import {
   ButtonIcon,
   ButtonIconSize,
   IconName,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
@@ -41,7 +43,10 @@ export interface CampaignWinningViewProps {
   winningCode: string | null;
   hasOutcomeLoaded: boolean;
   isLoading: boolean;
-  renderRankSection: () => React.ReactNode;
+  rankDisplay: string | null;
+  resultDisplay?: string | null;
+  isRankLoading?: boolean;
+  isResultLoading?: boolean;
 }
 
 const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
@@ -54,7 +59,10 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
   winningCode,
   hasOutcomeLoaded,
   isLoading,
-  renderRankSection,
+  rankDisplay,
+  resultDisplay = null,
+  isRankLoading = false,
+  isResultLoading = false,
 }) => {
   const tw = useTailwind();
   const { height: windowHeight } = useWindowDimensions();
@@ -150,17 +158,48 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
 
           <Box
             flexDirection={BoxFlexDirection.Column}
-            twClassName="w-full gap-2 items-center px-4"
+            twClassName="w-full flex-1 gap-2 items-center px-4"
           >
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.HeadingMd}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
               twClassName="text-center"
             >
               {strings('rewards.campaign_winning.you_won')}
             </Text>
 
-            {renderRankSection()}
+            <Box
+              flexDirection={BoxFlexDirection.Column}
+              twClassName="items-center justify-center w-full flex-1 px-4"
+            >
+              {rankDisplay !== null ? (
+                <Text
+                  variant={TextVariant.HeadingMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                  style={tw.style('text-[64px] leading-[72px]')}
+                  twClassName="text-center"
+                >
+                  {rankDisplay}
+                </Text>
+              ) : isRankLoading ? (
+                <Skeleton style={tw.style('h-8 w-36 rounded-lg')} />
+              ) : null}
+
+              {resultDisplay !== null ? (
+                <Text
+                  variant={TextVariant.HeadingMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.SuccessDefault}
+                  twClassName="text-center"
+                >
+                  {resultDisplay}
+                </Text>
+              ) : isResultLoading ? (
+                <Skeleton style={tw.style('h-6 w-28 rounded-lg')} />
+              ) : null}
+            </Box>
 
             <Text
               variant={TextVariant.BodySm}
@@ -174,7 +213,6 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
 
             <Box twClassName="w-full max-w-md">
               <CopyableField
-                label={strings('rewards.campaign_winning.winning_code')}
                 value={winningCode}
                 valueLoading={isLoading}
                 onCopy={handleCopyWinningCode}
