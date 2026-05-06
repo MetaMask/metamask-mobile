@@ -15,9 +15,9 @@ const ANALYTICS_DEBOUNCE_MS = 1000;
 
 /**
  * Centralized error gate that renders a single PerpsConnectionErrorView when
- * the connection manager reports an error. Mounted once inside PerpsAlwaysOnProvider
- * so that regardless of how many PerpsConnectionProvider instances exist, only
- * one error view is ever displayed.
+ * the connection manager reports an error. Mounted once inside PerpsScreenStack
+ * so that regardless of how many PerpsConnectionProvider instances exist
+ * (including nested modal stacks), only one error view is ever displayed.
  *
  * Handles retry logic and debounces analytics events to prevent rapid
  * error→null→error flap cycles from emitting duplicate PERPS_SCREEN_VIEWED events.
