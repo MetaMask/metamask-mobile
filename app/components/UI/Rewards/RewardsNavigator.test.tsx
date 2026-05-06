@@ -255,14 +255,6 @@ jest.mock('./hooks/useReferralDetails', () => ({
   }),
 }));
 
-jest.mock('./hooks/useOndoOutcomeToast', () => ({
-  useOndoOutcomeToast: jest.fn(),
-}));
-
-jest.mock('./hooks/usePerpsTradingCampaignEndedOutcomeToast', () => ({
-  usePerpsTradingCampaignEndedOutcomeToast: jest.fn(),
-}));
-
 // Mock useRewardsNotificationsNudge hook
 const mockShowEnableNotificationsNudge = jest.fn(() => false);
 const mockCloseEnableNotificationsNudge = jest.fn();

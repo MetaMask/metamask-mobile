@@ -36,8 +36,6 @@ import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from './hooks/useReferralDetails';
 import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNudge';
 import useRewardsToast from './hooks/useRewardsToast';
-import { useOndoOutcomeToast } from './hooks/useOndoOutcomeToast';
-import { usePerpsTradingCampaignEndedOutcomeToast } from './hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { strings } from '../../../../locales/i18n';
 import PerpsTradingCampaignWinningView from './Views/PerpsTradingCampaignWinningView';
 
@@ -75,10 +73,6 @@ const RewardsNavigator: React.FC = () => {
 
   // Fetch referral details so referral code is available across all rewards screens
   useReferralDetails();
-
-  // Outcome toasts for all campaign types — mounted once so they are active regardless of which screen is focused
-  useOndoOutcomeToast();
-  usePerpsTradingCampaignEndedOutcomeToast();
 
   const { showToast, RewardsToastOptions } = useRewardsToast();
 
