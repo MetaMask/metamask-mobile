@@ -1,0 +1,118 @@
+# INFRA-3594 — Phase 2 verification probe (iOS).
+# macOS profiles cannot host a custom Dockerfile per Namespace. This probe
+# discovers what the stock Tahoe image ships so we can decide which iOS-side
+# skip guards in setup-e2e-env are safe to add.
+# Temporary: remove or gate behind `if: false` before merging the trial branch.
+
+name: Probe iOS image
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/probe-ios-image.yml
+
+permissions:
+  contents: read
+
+jobs:
+  probe-ios-build:
+    name: Discover metamask-ios-build image contents
+    runs-on: namespace-profile-metamask-ios-build
+    timeout-minutes: 15
+    steps:
+      - name: Diagnostics — runtime environment
+        run: |
+          set +e
+          echo "=== whoami / pwd ==="
+          whoami
+          pwd
+          uname -a
+          sw_vers || true
+          echo
+          echo "=== PATH ==="
+          printenv PATH | tr ':' '\n'
+          echo
+          echo "=== relevant env ==="
+          printenv | grep -iE '^(NSC_|JAVA_HOME|RUBY|BUNDLE|GEM_|PATH|HOME|XCODE)' | sort
+          echo
+          echo "=== mount table (filtered) ==="
+          mount | grep -E "(opt|usr/local|home)" || true
+          true
+
+      - name: Xcode — selected version + available SDKs
+        continue-on-error: true
+        run: |
+          set +e
+          echo "xcode-select -p:"
+          xcode-select -p
+          echo
+          echo "xcodebuild -version:"
+          xcodebuild -version
+          echo
+          echo "xcrun --show-sdk-path:"
+          xcrun --show-sdk-path
+          echo
+          echo "Installed Xcodes (if xcodes CLI present):"
+          which xcodes && xcodes installed || echo "(xcodes CLI not on PATH)"
+          echo
+          echo "/Applications/Xcode*.app:"
+          ls -d /Applications/Xcode*.app 2>&1 || true
+          true
+
+      - name: Ruby + RubyGems + Bundler + CocoaPods
+        continue-on-error: true
+        run: |
+          set +e
+          echo "which ruby:        $(which ruby)"
+          echo "ruby --version:    $(ruby --version)"
+          echo "which gem:         $(which gem)"
+          echo "gem --version:     $(gem --version)"
+          echo "which bundle:      $(which bundle)"
+          echo "bundle --version:  $(bundle --version 2>&1)"
+          echo "which pod:         $(which pod)"
+          echo "pod --version:     $(pod --version 2>&1)"
+          echo
+          echo "rbenv versions (if rbenv present):"
+          which rbenv && rbenv versions || echo "(no rbenv)"
+          echo
+          echo "Available rubies in /Library/Frameworks/Ruby.framework or /usr/local/bin:"
+          ls -d /Library/Frameworks/Ruby.framework/Versions/* 2>&1 | head -10 || true
+          ls /usr/local/bin/ruby* /opt/homebrew/bin/ruby* 2>&1 | head -10 || true
+          true
+
+      - name: Homebrew + applesimutils
+        continue-on-error: true
+        run: |
+          set +e
+          echo "which brew:    $(which brew)"
+          echo "brew --version: $(brew --version 2>&1 | head -1)"
+          echo
+          echo "applesimutils:"
+          which applesimutils && applesimutils --version || echo "(applesimutils not installed)"
+          true
+
+      - name: Simulator runtimes + booted devices
+        continue-on-error: true
+        run: |
+          set +e
+          echo "xcrun simctl list runtimes:"
+          xcrun simctl list runtimes 2>&1 | head -30
+          echo
+          echo "xcrun simctl list devices iPhone (first 30 lines):"
+          xcrun simctl list devices iPhone 2>&1 | head -30
+          echo
+          echo "currently booted (should be empty before any boot):"
+          xcrun simctl list devices booted 2>&1
+          true
+
+      - name: Node + Yarn (in case the macOS image ships any)
+        continue-on-error: true
+        run: |
+          set +e
+          echo "which node:    $(which node)"
+          echo "node --version: $(node --version 2>&1)"
+          echo "which yarn:    $(which yarn)"
+          echo "yarn --version: $(yarn --version 2>&1)"
+          echo "which corepack: $(which corepack)"
+          true
