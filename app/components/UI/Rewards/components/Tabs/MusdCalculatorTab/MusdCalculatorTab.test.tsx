@@ -122,7 +122,9 @@ describe('MusdCalculatorTab', () => {
   });
 
   it('updates amount and earnings when the track is pressed', async () => {
-    const { getByTestId, getByText } = render(<MusdCalculatorTab />);
+    const { getByTestId, getByText, queryByText } = render(
+      <MusdCalculatorTab />,
+    );
     const track = getByTestId('musd-slider-track');
 
     fireEvent(track, 'layout', {
@@ -138,6 +140,12 @@ describe('MusdCalculatorTab', () => {
       expect(getByTestId('musd-slider-amount-display')).toHaveTextContent(
         '$5,000',
       );
+      expect(
+        getByText(/rewards\.musd\.earnings_per_day_suffix/),
+      ).toBeOnTheScreen();
+      expect(
+        queryByText(/rewards\.musd\.earnings_per_month_suffix/),
+      ).toBeNull();
       expect(getByText(/\$0\.41/)).toBeOnTheScreen();
       expect(getByText(/\$150/)).toBeOnTheScreen();
     });

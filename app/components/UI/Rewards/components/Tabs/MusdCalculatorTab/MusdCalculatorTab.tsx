@@ -114,10 +114,6 @@ const MusdCalculatorTab: React.FC = () => {
   );
 
   const yearlyEarnings = useMemo(() => amount * MUSD_CALCULATOR_APY, [amount]);
-  const monthlyEarnings = useMemo(
-    () => (amount * MUSD_CALCULATOR_APY) / 12,
-    [amount],
-  );
   const dailyEarnings = useMemo(
     () => (amount * MUSD_CALCULATOR_APY) / 365,
     [amount],
@@ -306,14 +302,6 @@ const MusdCalculatorTab: React.FC = () => {
               justifyContent={BoxJustifyContent.Center}
               twClassName="gap-2"
             >
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
-              >
-                {formatCurrency(monthlyEarnings)}
-                {strings('rewards.musd.earnings_per_month_suffix')}
-              </Text>
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}

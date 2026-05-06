@@ -8409,9 +8409,9 @@
       "yearly_positive_prefix": "+",
       "earnings_per_year_suffix": "/yr",
       "earnings_per_month_suffix": "/mo",
-      "earnings_per_day_suffix": "/day",
+      "earnings_per_day_suffix": "/day claimable daily",
       "slider_amount_label": "Amount",
-      "disclaimer_calculator": "Calculation based on {{apy}}% APY. Bonus rate may change. Paid daily, claimable any time.",
+      "disclaimer_calculator": "Estimate based on 3% bonus. Rate may change. Claimable anytime.",
       "buy_button": "Buy mUSD",
       "swap_button": "Swap to mUSD"
     },
