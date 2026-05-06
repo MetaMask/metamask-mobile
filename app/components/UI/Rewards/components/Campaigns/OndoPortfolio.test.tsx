@@ -142,7 +142,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Please try again',
       'rewards.ondo_campaign_portfolio.retry': 'Retry',
       'rewards.ondo_campaign_portfolio.updated_at': `Updated: ${params?.time ?? ''}`,
-      'rewards.ondo_campaign_portfolio.position_units': `${params?.units ?? ''} units`,
     };
     return translations[key] ?? key;
   },
@@ -503,9 +502,9 @@ describe('OndoPortfolio', () => {
       portfolio: MOCK_PORTFOLIO,
     };
 
-    it('renders the units text', () => {
+    it('renders units with the uppercased ticker', () => {
       const { getByText } = render(<OndoPortfolio {...loadedProps} />);
-      expect(getByText('45.2 units')).toBeDefined();
+      expect(getByText('45.2 AAPLON')).toBeDefined();
     });
 
     it('renders positive PnL percent in green', () => {

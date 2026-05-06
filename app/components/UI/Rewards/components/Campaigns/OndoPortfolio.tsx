@@ -480,12 +480,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
                       variant={TextVariant.BodySm}
                       color={TextColor.TextAlternative}
                     >
-                      {strings(
-                        'rewards.ondo_campaign_portfolio.position_units',
-                        {
-                          units: row.units,
-                        },
-                      )}
+                      {`${row.units} ${row.tokenSymbol.toUpperCase()}`}
                     </Text>
                     {rowPnlPercent ? (
                       <Text variant={TextVariant.BodySm} color={rowPnlColor}>
