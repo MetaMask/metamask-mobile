@@ -85,9 +85,15 @@ function isIncomingNativeTransfer(
 function shouldSkipTransaction(
   address: string,
   transaction: V1TransactionByHashResponse,
+  excludedTxHashes?: Set<string>,
 ) {
   const rawFrom = transaction.from?.toLowerCase();
   const rawTo = transaction.to?.toLowerCase();
+  const hash = transaction.hash?.toLowerCase();
+
+  if (hash && excludedTxHashes?.has(hash)) {
+    return true;
+  }
 
   if (rawFrom !== address && rawTo !== address) {
     return true;
@@ -120,11 +126,12 @@ function shouldSkipTransaction(
 function transformTransactions(
   address: string,
   transactions: V1TransactionByHashResponse[],
+  excludedTxHashes?: Set<string>,
 ): TransactionViewModel[] {
   const filteredTransactions = [];
 
   for (const tx of transactions) {
-    if (shouldSkipTransaction(address, tx)) {
+    if (shouldSkipTransaction(address, tx, excludedTxHashes)) {
       continue;
     }
 
@@ -146,12 +153,18 @@ function transformTransactions(
   });
 }
 
-export function selectTransactions({ address }: { address: string }) {
+export function selectTransactions({
+  address,
+  excludedTxHashes,
+}: {
+  address: string;
+  excludedTxHashes?: Set<string>;
+}) {
   return (data: InfiniteData<V4MultiAccountTransactionsResponse>) => ({
     ...data,
     pages: data.pages.map((page) => ({
       ...page,
-      data: transformTransactions(address, page.data),
+      data: transformTransactions(address, page.data, excludedTxHashes),
     })),
   });
 }

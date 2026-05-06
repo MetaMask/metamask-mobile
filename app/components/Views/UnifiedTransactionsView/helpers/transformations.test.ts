@@ -75,4 +75,17 @@ describe('selectTransactions', () => {
 
     expect(result.pages[0].data).toHaveLength(0);
   });
+
+  it('filters out transactions with excluded hashes', () => {
+    const excluded = buildTransaction({ hash: '0xEXCLUDED' });
+    const normal = buildTransaction({ hash: '0xnormal' });
+
+    const result = selectTransactions({
+      address,
+      excludedTxHashes: new Set(['0xexcluded']),
+    })(buildData([excluded, normal]));
+
+    expect(result.pages[0].data).toHaveLength(1);
+    expect(result.pages[0].data[0].hash).toBe('0xnormal');
+  });
 });

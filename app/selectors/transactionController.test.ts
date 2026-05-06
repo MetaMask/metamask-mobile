@@ -4,7 +4,9 @@ import { TransactionType } from '@metamask/transaction-controller';
 import {
   selectTransactions,
   selectLastWithdrawTokenByType,
+  selectLocalTransactions,
   selectNonReplacedTransactions,
+  selectRequiredTransactionHashes,
   selectSwapsTransactions,
   selectTransactionMetadataById,
   selectSortedTransactions,
@@ -93,6 +95,87 @@ describe('TransactionController Selectors', () => {
         },
       } as unknown as RootState;
       expect(selectSwapsTransactions(state)).toStrictEqual({});
+    });
+  });
+
+  describe('selectRequiredTransactionHashes', () => {
+    it('returns hashes for required child transactions', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'parent',
+                  requiredTransactionIds: ['child'],
+                },
+                {
+                  id: 'child',
+                  hash: '0xABC',
+                },
+              ],
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectRequiredTransactionHashes(state)).toStrictEqual(
+        new Set(['0xabc']),
+      );
+    });
+  });
+
+  describe('selectLocalTransactions', () => {
+    it('filters required child transactions before nonce dedupe', () => {
+      const activeEvmAddress = '0x0000000000000000000000000000000000000001';
+      const state = {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: 'account-1',
+                accounts: {
+                  'account-1': {
+                    id: 'account-1',
+                    address: activeEvmAddress,
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'child',
+                  hash: '0xCHILD',
+                  chainId: '0x1',
+                  time: 200,
+                  txParams: {
+                    from: activeEvmAddress,
+                    nonce: '0x1',
+                  },
+                },
+                {
+                  id: 'parent',
+                  chainId: '0x1',
+                  requiredTransactionIds: ['child'],
+                  time: 100,
+                  type: TransactionType.predictDeposit,
+                  txParams: {
+                    from: activeEvmAddress,
+                    nonce: '0x1',
+                  },
+                },
+              ],
+            },
+          },
+        },
+        pendingSmartTransactionsForGroup: [],
+      } as unknown as RootState;
+
+      expect(selectLocalTransactions(state).map(({ id }) => id)).toStrictEqual([
+        'parent',
+      ]);
     });
   });
 

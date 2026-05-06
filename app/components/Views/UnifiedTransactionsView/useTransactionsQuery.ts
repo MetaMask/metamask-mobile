@@ -7,10 +7,12 @@ import { selectEvmAddress } from '../../../selectors/accountsController';
 import { selectEvmEnabledCaipNetworks } from '../../../selectors/networkEnablementController';
 import { selectTransactions } from './helpers/transformations';
 import { MINUTE } from '../../../constants/time';
+import { selectRequiredTransactionHashes } from '../../../selectors/transactionController';
 
 export const useTransactionsQuery = () => {
   const evmAddress = useSelector(selectEvmAddress) || '';
   const networks = useSelector(selectEvmEnabledCaipNetworks);
+  const excludedTxHashes = useSelector(selectRequiredTransactionHashes);
   const accountAddresses = evmAddress
     ? [toCaipAccountId(KnownCaipNamespace.Eip155, '0', evmAddress)]
     : [];
@@ -23,8 +25,8 @@ export const useTransactionsQuery = () => {
     });
 
   const selectFn = useMemo(
-    () => selectTransactions({ address: evmAddress }),
-    [evmAddress],
+    () => selectTransactions({ address: evmAddress, excludedTxHashes }),
+    [evmAddress, excludedTxHashes],
   );
 
   // @ts-expect-error apiClient returns v5 types, repo still in v4

@@ -93,6 +93,28 @@ const selectTransactionBatchesStrict = createSelector(
   (transactionControllerState) => transactionControllerState.transactionBatches,
 );
 
+export const selectRequiredTransactionIds = createSelector(
+  selectTransactionsStrict,
+  (transactions) =>
+    new Set(transactions.flatMap((tx) => tx.requiredTransactionIds ?? [])),
+);
+
+export const selectRequiredTransactions = createSelector(
+  [selectTransactionsStrict, selectRequiredTransactionIds],
+  (transactions, requiredTransactionIds) =>
+    transactions.filter((tx) => requiredTransactionIds.has(tx.id)),
+);
+
+export const selectRequiredTransactionHashes = createSelector(
+  selectRequiredTransactions,
+  (transactions) =>
+    new Set(
+      transactions
+        .map((tx) => tx.hash?.toLowerCase())
+        .filter((hash): hash is string => Boolean(hash)),
+    ),
+);
+
 export const selectTransactions = createDeepEqualSelector(
   selectTransactionsStrict,
   (transactions) => transactions,
@@ -168,9 +190,23 @@ export const selectLocalTransactions = createDeepEqualSelector(
     selectNonReplacedTransactions,
     selectPendingSmartTransactionsForSelectedAccountGroup,
     selectEvmAddress,
+    selectRequiredTransactionHashes,
   ],
-  (nonReplacedTransactions, pendingSmartTransactions, activeEvmAddress) => {
+  (
+    nonReplacedTransactions,
+    pendingSmartTransactions,
+    activeEvmAddress,
+    requiredTransactionHashes,
+  ) => {
     const transactions = nonReplacedTransactions.filter((transaction) => {
+      const hash =
+        'hash' in transaction && typeof transaction.hash === 'string'
+          ? transaction.hash.toLowerCase()
+          : undefined;
+      if (hash && requiredTransactionHashes.has(hash)) {
+        return false;
+      }
+
       const fromAddress = transaction.txParams?.from;
       if (!fromAddress || !activeEvmAddress) {
         return false;
@@ -181,6 +217,14 @@ export const selectLocalTransactions = createDeepEqualSelector(
 
     const pendingSmartTransactionsForActiveAddress =
       pendingSmartTransactions.filter((transaction) => {
+        const hash =
+          'hash' in transaction && typeof transaction.hash === 'string'
+            ? transaction.hash.toLowerCase()
+            : undefined;
+        if (hash && requiredTransactionHashes.has(hash)) {
+          return false;
+        }
+
         const fromAddress = transaction.txParams?.from;
         if (!fromAddress || !activeEvmAddress) {
           return false;
