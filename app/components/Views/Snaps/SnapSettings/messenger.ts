@@ -2,7 +2,11 @@ import { defineAllowedRouteCapabilities } from '../../../../messengers/helpers/r
 import type { RouteMessengerFromCapabilities } from '../../../../messengers/route-messenger';
 
 export const ALLOWED_CAPABILITIES = defineAllowedRouteCapabilities({
-  actions: ['SnapController:disconnectOrigin', 'SnapController:installSnaps'],
+  actions: [
+    'SnapController:disconnectOrigin',
+    'SnapController:installSnaps',
+    'SnapController:removeSnap',
+  ],
   events: [],
 });
 

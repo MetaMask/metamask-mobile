@@ -83,21 +83,34 @@ export class UIMessenger extends Messenger<
     super({ namespace: UI_MESSENGER_NAMESPACE, captureException });
   }
 
-  // @ts-expect-error This `call` is purposely not the same `call` from
-  // `Messenger`.
-  async call<ActionType extends UIMessengerActions['type']>(
-    actionType: ActionType,
-    ...params: ExtractActionParameters<UIMessengerActions, ActionType>
-  ): Promise<Awaited<ExtractActionResponse<UIMessengerActions, ActionType>>> {
+  /**
+   * Get the handler for a given action type.
+   *
+   * This is called when `call` is invoked on the messenger. We override it here
+   * to route all calls through the background connection, except for the
+   * excluded actions.
+   *
+   * @param actionType - The action type. This is a unique identifier for this
+   * action.
+   * @returns The handler for this action type, or undefined if this action type
+   * is excluded or not found.
+   */
+  protected override getAction(
+    actionType: UIMessengerActions['type'],
+  ): ActionConstraint['handler'] | undefined {
     const excludedActions: string[] = EXCLUDED_ACTIONS;
     const anyActionType: string = actionType;
 
-    if (!excludedActions.includes(anyActionType)) {
-      throw new Error(`Action '${actionType}' has not been exposed to the UI`);
+    if (excludedActions.includes(anyActionType)) {
+      throw new Error(
+        `The action "${actionType}" has not been exposed to the UI.`,
+      );
     }
 
-    // @ts-expect-error: Type of handler is not compatible.
-    return await Engine.controllerMessenger.call(actionType, ...params);
+    return (...args: unknown[]) =>
+      // @ts-expect-error: `unknown[]` is not assignable to `args`, but the type
+      // here is checked in `call`, so this is safe.
+      Engine.controllerMessenger.call(actionType, ...args);
   }
 
   /**
