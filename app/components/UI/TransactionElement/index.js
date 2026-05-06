@@ -26,7 +26,10 @@ import {
 } from '@metamask/transaction-controller';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectTickerByChainId } from '../../../selectors/networkController';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSelectedInternalAccountAddress,
+} from '../../../selectors/accountsController';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
 import {
@@ -56,7 +59,7 @@ import {
   selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
-import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
+import { selectTokensByChainIdAndWalletAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
 import {
   hasGasFeeTokenSelected,
@@ -225,6 +228,10 @@ class TransactionElement extends PureComponent {
      */
     txChainId: PropTypes.string,
     /**
+     * Selected wallet address for decoding and token map (optional override from parent)
+     */
+    selectedAddress: PropTypes.string,
+    /**
      * Ticker
      */
     ticker: PropTypes.string,
@@ -278,7 +285,8 @@ class TransactionElement extends PureComponent {
   componentDidUpdate(prevProps) {
     if (
       prevProps.txChainId !== this.props.txChainId ||
-      prevProps.swapsTransactions !== this.props.swapsTransactions
+      prevProps.swapsTransactions !== this.props.swapsTransactions ||
+      prevProps.selectedAddress !== this.props.selectedAddress
     ) {
       this.componentDidMount();
     }
@@ -738,21 +746,29 @@ class TransactionElement extends PureComponent {
   }
 }
 
-const mapStateToProps = (state, ownProps) => ({
-  selectedInternalAccount: selectSelectedInternalAccount(state),
-  selectSelectedAccountGroupInternalAccounts:
-    selectSelectedAccountGroupInternalAccounts(state),
-  primaryCurrency: selectPrimaryCurrency(state),
-  swapsTransactions: selectSwapsTransactions(state),
-  ticker: selectTickerByChainId(state, ownProps.txChainId),
-  conversionRate: selectConversionRateByChainId(state, ownProps.txChainId),
-  currencyRates: selectCurrencyRates(state),
-  contractExchangeRates: selectContractExchangeRatesByChainId(
-    state,
-    ownProps.txChainId,
-  ),
-  tokens: selectTokensByChainIdAndAddress(state, ownProps.txChainId),
-});
+const mapStateToProps = (state, ownProps) => {
+  const walletAddressForTokens =
+    ownProps.selectedAddress ?? selectSelectedInternalAccountAddress(state);
+  return {
+    selectedInternalAccount: selectSelectedInternalAccount(state),
+    selectSelectedAccountGroupInternalAccounts:
+      selectSelectedAccountGroupInternalAccounts(state),
+    primaryCurrency: selectPrimaryCurrency(state),
+    swapsTransactions: selectSwapsTransactions(state),
+    ticker: selectTickerByChainId(state, ownProps.txChainId),
+    conversionRate: selectConversionRateByChainId(state, ownProps.txChainId),
+    currencyRates: selectCurrencyRates(state),
+    contractExchangeRates: selectContractExchangeRatesByChainId(
+      state,
+      ownProps.txChainId,
+    ),
+    tokens: selectTokensByChainIdAndWalletAddress(
+      state,
+      ownProps.txChainId,
+      walletAddressForTokens,
+    ),
+  };
+};
 
 TransactionElement.contextType = ThemeContext;
 

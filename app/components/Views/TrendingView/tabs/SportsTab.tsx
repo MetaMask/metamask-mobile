@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   ActivityIndicator,
   TouchableOpacity,
@@ -36,6 +36,16 @@ import HorizontalCarousel from '../components/HorizontalCarousel';
 import PillRow from '../components/PillRow';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
+import {
+  trackExploreInteracted,
+  type ExploreSectionName,
+} from '../search/analytics';
+
+const SPORT_KEY_TO_SECTION: Record<string, ExploreSectionName> = {
+  soccer: 'predictions_football',
+  basketball: 'predictions_basketball',
+  tennis: 'predictions_tennis',
+};
 
 interface SportsListHeaderProps {
   showSportsPredictions: boolean;
@@ -47,10 +57,31 @@ interface SportsListHeaderProps {
   navigation: AppNavigationProp;
 }
 
-const renderPredictionItem: ListRenderItem<PredictMarketType> = ({ item }) => (
+const renderPredictionItem: ListRenderItem<PredictMarketType> = ({
+  item,
+  index,
+}) => (
   <PredictionCarouselRowItem
     market={item}
     testIdPrefix="predict-sports-market-row-item"
+    onCardPress={() =>
+      trackExploreInteracted({
+        interaction_type: 'section_item_tapped',
+        tab_name: 'Sports',
+        section_name: 'predictions_sports',
+        asset_type: 'prediction',
+        position: index,
+        item_clicked: item.id,
+      })
+    }
+    onBuyButtonPress={(marketId) =>
+      trackExploreInteracted({
+        interaction_type: 'prediction_voted',
+        tab_name: 'Sports',
+        section_name: 'predictions_sports',
+        item_clicked: marketId,
+      })
+    }
   />
 );
 
@@ -70,6 +101,8 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
           title={strings('trending.predictions')}
           onViewAll={() => navigateToPredictionsList(navigation, 'sports')}
           testID="section-header-view-all-sports_predictions"
+          tabName="Sports"
+          sectionName="predictions_sports"
         />
         <HorizontalCarousel<PredictMarketType>
           data={sportsPredictionsData}
@@ -81,39 +114,41 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
       </Box>
     )}
 
-    <SectionHeader
-      title={strings('trending.all_sports')}
-      testID="section-header-view-all-all_sports"
-    />
-    <Box twClassName="mt-2">
-      <PillRow
-        pills={sportsMarkets.pills}
-        activeKey={sportsMarkets.activeKey}
-        onSelect={sportsMarkets.select}
-        testIdPrefix="all-sports"
+    <Box>
+      <SectionHeader
+        title={strings('trending.all_sports')}
+        testID="section-header-view-all-all_sports"
       />
-    </Box>
-
-    {showAllSportsSkeleton && (
-      <Box twClassName="gap-2">
-        {[0, 1, 2].map((i) => (
-          <Box
-            key={`all-sports-skeleton-${i}`}
-            twClassName="h-[220px] w-full overflow-hidden rounded-2xl"
-          >
-            <PredictionsSkeleton />
-          </Box>
-        ))}
-      </Box>
-    )}
-
-    {showAllSportsEmpty && (
-      <Box twClassName="items-center py-8" testID="all-sports-empty-state">
-        <TabEmptyState
-          description={strings('trending.all_sports_no_markets')}
+      <Box twClassName="mt-2">
+        <PillRow
+          pills={sportsMarkets.pills}
+          activeKey={sportsMarkets.activeKey}
+          onSelect={sportsMarkets.select}
+          testIdPrefix="all-sports"
         />
       </Box>
-    )}
+
+      {showAllSportsSkeleton && (
+        <Box twClassName="gap-2">
+          {[0, 1, 2].map((i) => (
+            <Box
+              key={`all-sports-skeleton-${i}`}
+              twClassName="h-[220px] w-full overflow-hidden rounded-2xl"
+            >
+              <PredictionsSkeleton />
+            </Box>
+          ))}
+        </Box>
+      )}
+
+      {showAllSportsEmpty && (
+        <Box twClassName="items-center py-8" testID="all-sports-empty-state">
+          <TabEmptyState
+            description={strings('trending.all_sports_no_markets')}
+          />
+        </Box>
+      )}
+    </Box>
   </Box>
 );
 
@@ -126,16 +161,44 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const sportsPredictions = usePredictionsFeed({ variant: 'sports', refresh });
   const sportsMarkets = useSportsMarketsFeed({ refresh });
 
+  const { active, activeKey } = sportsMarkets;
+  const activeKeyRef = useRef(activeKey);
+  activeKeyRef.current = activeKey;
+
   const renderActiveMarketItem: ListRenderItem<PredictMarketType> = useCallback(
-    ({ item }) => <PredictMarket market={item} />,
+    ({ item, index }) => {
+      const sectionName =
+        SPORT_KEY_TO_SECTION[activeKeyRef.current] ?? 'predictions_football';
+      return (
+        <PredictMarket
+          market={item}
+          onCardPress={() =>
+            trackExploreInteracted({
+              interaction_type: 'section_item_tapped',
+              tab_name: 'Sports',
+              section_name: sectionName,
+              asset_type: 'prediction',
+              position: index,
+              item_clicked: item.id,
+            })
+          }
+          onBuyButtonPress={(marketId) =>
+            trackExploreInteracted({
+              interaction_type: 'prediction_voted',
+              tab_name: 'Sports',
+              section_name: sectionName,
+              item_clicked: marketId,
+            })
+          }
+        />
+      );
+    },
     [],
   );
 
   const showSportsPredictions =
     isPredictEnabled &&
     (sportsPredictions.isLoading || sportsPredictions.data.length > 0);
-
-  const { active, activeKey } = sportsMarkets;
   const showAllSportsSkeleton =
     active.isFetching && active.marketData.length === 0;
   const showAllSportsEmpty =

@@ -85,6 +85,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       enableDrawingTools = false,
       disabledFeatures = DEFAULT_DISABLED_FEATURES,
       onChartReady,
+      onSkeletonHidden,
       onError,
       onCrosshairMove,
       onChartInteracted,
@@ -123,6 +124,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     /** When non-null, `ohlcvData` is still the previous series' array; skip sync until the hook replaces it. */
     const ohlcvSeriesStaleSnapshotRef = useRef<OHLCVBar[] | null>(null);
     const tradingViewOpenInterceptRef = useRef(0);
+    const skeletonHiddenReportedRef = useRef(false);
 
     const htmlContent = useMemo(
       () =>
@@ -136,6 +138,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     // Reset all chart state when the WebView reloads due to htmlContent changes
     useEffect(() => {
+      skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
       setWebViewLoaded(false);
       activeIndicatorsRef.current.clear();
@@ -180,6 +183,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       if (ohlcvSeriesKey === undefined) {
         return;
       }
+      skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
       setWebViewLoaded(false);
       setLayoutSettling(false);
@@ -565,6 +569,31 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       });
     }, [lineChrome, chartReadyCount, postMessage]);
 
+    const showSkeleton = isLoading || !isChartReady || layoutSettling;
+
+    useEffect(() => {
+      if (webViewError) {
+        return;
+      }
+      if (!onSkeletonHidden) {
+        return;
+      }
+      if (isLoading || !isChartReady || layoutSettling) {
+        return;
+      }
+      if (skeletonHiddenReportedRef.current) {
+        return;
+      }
+      skeletonHiddenReportedRef.current = true;
+      onSkeletonHidden();
+    }, [
+      isLoading,
+      isChartReady,
+      layoutSettling,
+      webViewError,
+      onSkeletonHidden,
+    ]);
+
     // ---- Render ----
 
     if (webViewError) {
@@ -601,7 +630,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             androidLayerType="hardware"
             mixedContentMode="always"
           />
-          {(isLoading || !isChartReady || layoutSettling) && (
+          {showSkeleton && (
             <Skeleton
               height={height}
               width="100%"

@@ -14,7 +14,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { OndoGmCampaignOutcomeBanner } from '../components/Campaigns/OndoCampaignOutcomeBanners';
+import { CampaignOutcomeBanner } from '../components/Campaigns/CampaignOutcomeBanners';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
@@ -284,7 +284,7 @@ const OndoCampaignStatsView: React.FC = () => {
 
             {/* ── Outcome banner (campaign ended) ── */}
             {isCampaignComplete && participantOutcome && (
-              <OndoGmCampaignOutcomeBanner
+              <CampaignOutcomeBanner
                 outcomeStatus={participantOutcome.outcomeStatus}
                 winnerVerificationCode={
                   participantOutcome.winnerVerificationCode

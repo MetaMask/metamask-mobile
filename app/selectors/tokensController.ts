@@ -53,6 +53,34 @@ export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
     ) ?? {},
 );
 
+/**
+ * Like {@link selectTokensByChainIdAndAddress} but uses an explicit account
+ * address (e.g. the EVM address for the account group) instead of the globally
+ * selected account. Needed when the UI shows EVM activity while a non-EVM
+ * account is still selected.
+ */
+export const selectTokensByChainIdAndWalletAddress = createDeepEqualSelector(
+  getTokensControllerAllTokens,
+  (_state: RootState, chainId: Hex, _walletAddress: Hex | string | undefined) =>
+    chainId,
+  (_state: RootState, _chainId: Hex, walletAddress: Hex | string | undefined) =>
+    walletAddress,
+  (
+    allTokens: TokensControllerState['allTokens'],
+    chainId: Hex,
+    walletAddress: Hex | string | undefined,
+  ) =>
+    !walletAddress
+      ? {}
+      : (allTokens[chainId]?.[walletAddress as Hex]?.reduce(
+          (tokensMap: { [address: string]: Token }, token: Token) => ({
+            ...tokensMap,
+            [token.address]: token,
+          }),
+          {},
+        ) ?? {}),
+);
+
 export const selectTokensByAddress = createSelector(
   selectTokens,
   (tokens: Token[]) =>

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import {
-  selectRewardsSubscriptionId,
   selectCampaignParticipantOptedIn,
-} from '../../../../selectors/rewards';
-import { selectOndoCampaignActivityById } from '../../../../reducers/rewards/selectors';
+  selectOndoCampaignActivityById,
+} from '../../../../reducers/rewards/selectors';
 import { setOndoCampaignActivity } from '../../../../reducers/rewards';
 import type { OndoGmActivityEntryDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
