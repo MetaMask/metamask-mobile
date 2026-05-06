@@ -25,7 +25,8 @@ jest.mock('../custom-amount-info', () => ({
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string) =>
+    ({ 'confirm.title.money_account_add_money': 'Add money' })[key] ?? key,
 }));
 
 describe('MoneyAccountDepositInfo', () => {
@@ -48,9 +49,7 @@ describe('MoneyAccountDepositInfo', () => {
 
     render(<MoneyAccountDepositInfo />);
 
-    expect(useNavbar).toHaveBeenCalledWith(
-      'confirm.title.money_account_deposit',
-    );
+    expect(useNavbar).toHaveBeenCalledWith('Add money');
   });
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {
@@ -65,5 +64,15 @@ describe('MoneyAccountDepositInfo', () => {
         mockCustomAmountInfo.mock.calls.length - 1
       ][0];
     expect(lastCall.supportAccountSelection).toBe(true);
+  });
+
+  it('passes hasMax=true to CustomAmountInfo', () => {
+    render(<MoneyAccountDepositInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.hasMax).toBe(true);
   });
 });

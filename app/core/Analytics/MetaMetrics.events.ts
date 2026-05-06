@@ -645,6 +645,7 @@ enum EVENT_NAME {
   REWARDS_VERSION_GUARD_VIEWED = 'Rewards Version Guard Viewed',
   REWARDS_VERSION_GUARD_UPDATE_CLICKED = 'Rewards Version Guard Update Clicked',
   REWARDS_CAMPAIGN_OPT_IN_COMPLETED = 'Rewards Campaign Opt In Completed',
+  REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED = 'Rewards Campaign Reminder Subscribed',
   REWARDS_PAGE_VIEWED = 'Rewards Page Viewed',
 
   // Predict
@@ -661,6 +662,9 @@ enum EVENT_NAME {
 
   // Explore Search
   EXPLORE_SEARCH_INTERACTED = 'Explore Search Interacted',
+
+  // Explore
+  EXPLORE_INTERACTED = 'Explore Page Interacted',
 
   // Market Insights
   MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW = 'Market Insights Card Scrolled to View',
@@ -1750,6 +1754,9 @@ const events = {
   REWARDS_CAMPAIGN_OPT_IN_COMPLETED: generateOpt(
     EVENT_NAME.REWARDS_CAMPAIGN_OPT_IN_COMPLETED,
   ),
+  REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED: generateOpt(
+    EVENT_NAME.REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED,
+  ),
   REWARDS_PAGE_VIEWED: generateOpt(EVENT_NAME.REWARDS_PAGE_VIEWED),
   // Predict
   PREDICT_TRADE_TRANSACTION: generateOpt(EVENT_NAME.PREDICT_TRADE_TRANSACTION),
@@ -1767,6 +1774,8 @@ const events = {
   TRENDING_FEED_VIEWED: generateOpt(EVENT_NAME.TRENDING_FEED_VIEWED),
 
   EXPLORE_SEARCH_INTERACTED: generateOpt(EVENT_NAME.EXPLORE_SEARCH_INTERACTED),
+
+  EXPLORE_INTERACTED: generateOpt(EVENT_NAME.EXPLORE_INTERACTED),
 
   // Share
   SHARE_ACTION: generateOpt(EVENT_NAME.SHARE_ACTION),

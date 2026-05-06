@@ -1061,10 +1061,7 @@ const Wallet = ({
         MetaMetricsEvents.ACTIVITY_CLICKED,
       ).build(),
     );
-    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-      screen: Routes.TRANSACTIONS_VIEW,
-      params: { showBackButton: true },
-    });
+    navigation.navigate(Routes.TRANSACTIONS_VIEW);
   }, [navigation, trackEvent]);
 
   const getTokenAddedAnalyticsParams = useCallback(

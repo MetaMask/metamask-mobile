@@ -50,7 +50,12 @@ export const withLedgerKeyring = async <CallbackResult = void>(
   const keyringController = Engine.context.KeyringController;
   return await keyringController.withKeyringV2(
     { type: ExtendedKeyringTypes.ledger },
-    operation,
+    ({ keyring, metadata }) => {
+      if (!(keyring instanceof LedgerKeyring)) {
+        throw new Error('Expected LedgerKeyring');
+      }
+      return operation({ keyring, metadata });
+    },
     // TODO: Refactor this to stop creating the keyring on-demand
     // Instead create it only in response to an explicit user action, and do
     // not allow Ledger interactions until after that has been done.
