@@ -177,7 +177,9 @@ def ndkPath() {
 
 android {
     ndkVersion rootProject.ext.ndkVersion
-
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
