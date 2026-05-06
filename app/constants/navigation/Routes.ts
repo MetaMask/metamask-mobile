@@ -320,6 +320,7 @@ const Routes = {
       PRICE_IMPACT_MODAL: 'PriceImpactModal',
       MISSING_PRICE_MODAL: 'MissingPriceModal',
       TOKEN_WARNING_MODAL: 'TokenWarningModal',
+      HIGH_RATE_ALERT_MODAL: 'HighRateAlertModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
