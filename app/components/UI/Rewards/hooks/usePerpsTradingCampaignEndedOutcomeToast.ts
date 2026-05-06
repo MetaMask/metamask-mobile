@@ -11,9 +11,9 @@ export function usePerpsTradingCampaignEndedOutcomeToast(): void {
       route: Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW,
       params: { campaignId: campaign.id, campaignName: campaign.name ?? '' },
     }),
-    getNonWinnerNavigation: () => ({
-      route: Routes.REWARDS_CAMPAIGNS_VIEW,
-      params: {},
+    getNonWinnerNavigation: (campaign) => ({
+      route: Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+      params: { campaignId: campaign.id },
     }),
   });
 }

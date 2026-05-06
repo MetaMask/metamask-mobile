@@ -85,14 +85,14 @@ describe('usePerpsTradingCampaignEndedOutcomeToast', () => {
     });
   });
 
-  it('getNonWinnerNavigation returns campaigns view route', () => {
+  it('getNonWinnerNavigation returns Perps details view route', () => {
     renderHook(() => usePerpsTradingCampaignEndedOutcomeToast());
     const { getNonWinnerNavigation } =
       mockUseCampaignOutcomeToast.mock.calls[0][0];
     const nav = getNonWinnerNavigation(makeCampaign());
     expect(nav).toEqual({
-      route: Routes.REWARDS_CAMPAIGNS_VIEW,
-      params: {},
+      route: Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+      params: { campaignId: CAMPAIGN_ID },
     });
   });
 });
