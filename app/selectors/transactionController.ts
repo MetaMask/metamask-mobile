@@ -190,20 +190,16 @@ export const selectLocalTransactions = createDeepEqualSelector(
     selectNonReplacedTransactions,
     selectPendingSmartTransactionsForSelectedAccountGroup,
     selectEvmAddress,
-    selectRequiredTransactionHashes,
+    selectRequiredTransactionIds,
   ],
   (
     nonReplacedTransactions,
     pendingSmartTransactions,
     activeEvmAddress,
-    requiredTransactionHashes,
+    requiredTransactionIds,
   ) => {
     const transactions = nonReplacedTransactions.filter((transaction) => {
-      const hash =
-        'hash' in transaction && typeof transaction.hash === 'string'
-          ? transaction.hash.toLowerCase()
-          : undefined;
-      if (hash && requiredTransactionHashes.has(hash)) {
+      if (requiredTransactionIds.has(transaction.id)) {
         return false;
       }
 
@@ -217,14 +213,6 @@ export const selectLocalTransactions = createDeepEqualSelector(
 
     const pendingSmartTransactionsForActiveAddress =
       pendingSmartTransactions.filter((transaction) => {
-        const hash =
-          'hash' in transaction && typeof transaction.hash === 'string'
-            ? transaction.hash.toLowerCase()
-            : undefined;
-        if (hash && requiredTransactionHashes.has(hash)) {
-          return false;
-        }
-
         const fromAddress = transaction.txParams?.from;
         if (!fromAddress || !activeEvmAddress) {
           return false;
