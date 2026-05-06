@@ -123,7 +123,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
     >
       {isWhatsHappeningEnabled && (
-        <Box twClassName="-mx-4">
+        <Box twClassName="-mx-4" marginBottom={6}>
           <WhatsHappeningSection
             ref={whatsHappeningRef}
             sectionIndex={0}
