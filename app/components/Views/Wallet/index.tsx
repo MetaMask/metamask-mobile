@@ -1336,11 +1336,11 @@ const Wallet = ({
           receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
         />
 
+        {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+
         {isMoneyHomeScreenEnabled && isHomepageSectionsV1Enabled && (
           <MoneyBalanceCard />
         )}
-
-        {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
         {isHomepageSectionsV1Enabled ? (
           <>
