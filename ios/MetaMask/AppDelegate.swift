@@ -4,6 +4,7 @@ import React
 import ReactAppDependencyProvider
 import FirebaseCore
 import RNBranch
+import BrazeKit
 
 final class MetaMaskReactNativeDelegate: ExpoReactNativeFactoryDelegate {
   override func sourceURL(for bridge: RCTBridge) -> URL? {
@@ -25,6 +26,8 @@ class AppDelegate: ExpoAppDelegate {
 
   private var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   private var reactNativeFactory: RCTReactNativeFactory?
+
+  @objc static var braze: Braze?
 
   // Detox's `+[ReactNativeSupport reloadApp]` does
   // `[appDelegate valueForKey:@"rootViewFactory"]` to grab RN's RootViewFactory
@@ -62,6 +65,24 @@ class AppDelegate: ExpoAppDelegate {
 
     RNBranch.branch.checkPasteboardOnInstall()
     RNBranch.initSession(launchOptions: launchOptions, isReferrable: true)
+
+    // Setup Braze
+    if let brazeApiKey = Bundle.main.object(forInfoDictionaryKey: "braze_api_key") as? String,
+       let brazeEndpoint = Bundle.main.object(forInfoDictionaryKey: "braze_sdk_endpoint") as? String,
+       !brazeApiKey.isEmpty, !brazeEndpoint.isEmpty {
+      let configuration = Braze.Configuration(apiKey: brazeApiKey, endpoint: brazeEndpoint)
+      configuration.logger.level = .info
+      // push.automation handles APNs token registration and Braze-originated notification display.
+      // requestAuthorizationAtLaunch is false so the existing permission flow (Firebase/Notifee) is preserved.
+      configuration.push.automation = true
+      configuration.push.automation.requestAuthorizationAtLaunch = false
+      configuration.forwardUniversalLinks = true
+      // swiftlint:disable:next force_cast
+      let braze = BrazeHelperInit(configuration) as! Braze
+      braze.delegate = self
+      AppDelegate.braze = braze
+      BrazeHelperPopulateInitialPayload(launchOptions)
+    }
 
     factory.startReactNative(
       withModuleName: "MetaMask",
@@ -120,5 +141,28 @@ class AppDelegate: ExpoAppDelegate {
       didReceiveRemoteNotification: userInfo,
       fetchCompletionHandler: completionHandler
     )
+  }
+}
+
+// MARK: - BrazeDelegate
+
+extension AppDelegate: BrazeDelegate {
+  // Route Braze deep link URLs ourselves instead of letting BrazeKit open them
+  // via UIApplication.open (which would cause a duplicate delivery — once from
+  // the Braze RN bridge JS event and once from the system URL handler).
+  //
+  // Universal links (Branch domains) are forwarded to Branch for proper routing.
+  // All other URLs are suppressed here; they are handled exclusively through
+  // the JS PUSH_NOTIFICATION_EVENT, tagged with ORIGIN_BRAZE.
+  func braze(_ braze: Braze, shouldOpenURL context: Braze.URLContext) -> Bool {
+    if let host = context.url.host,
+       host.contains("app.link") ||
+       host.contains("test-app.link") ||
+       host.contains("link.metamask.io") ||
+       host.contains("link-test.metamask.io") {
+      Branch.getInstance().handleDeepLink(context.url)
+      return false
+    }
+    return false
   }
 }

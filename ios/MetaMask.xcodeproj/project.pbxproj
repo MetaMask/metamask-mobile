@@ -88,6 +88,9 @@
 		E4B580762E33A001008165E1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580752E33A001008165E1 /* AppDelegate.swift */; };
 		E4B580772E33A001008165E1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580752E33A001008165E1 /* AppDelegate.swift */; };
 		E4B580782E33A001008165E1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580752E33A001008165E1 /* AppDelegate.swift */; };
+		F0B2A3E101000001000000A1 /* BrazeHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F0B2A3E101000001000000A0 /* BrazeHelper.mm */; };
+		F0B2A3E101000001000000A2 /* BrazeHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F0B2A3E101000001000000A0 /* BrazeHelper.mm */; };
+		F0B2A3E101000001000000A3 /* BrazeHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F0B2A3E101000001000000A0 /* BrazeHelper.mm */; };
 		E83DB5522BBDF2AA00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
 		E83DB5532BBDF2AE00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
 		E83DB5542BBDF2AF00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
@@ -239,6 +242,7 @@
 		D3350113F0764105B1E60002 /* MMSans-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "MMSans-Bold.otf"; path = "../app/fonts/MMSans-Bold.otf"; sourceTree = "<group>"; };
 		E4B580712E32F462008165E1 /* Expo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		E4B580752E33A001008165E1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaMask/AppDelegate.swift; sourceTree = "<group>"; };
+		F0B2A3E101000001000000A0 /* BrazeHelper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MetaMask/BrazeHelper.mm; sourceTree = "<group>"; };
 		E7EEA32C976A46B991D55FD4 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-MetaMask-QA/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = MetaMask/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
 		E9629905BA1940ADA4189921 /* Feather.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Feather.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Feather.ttf"; sourceTree = "<group>"; };
@@ -329,6 +333,7 @@
 				158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				E4B580752E33A001008165E1 /* AppDelegate.swift */,
+				F0B2A3E101000001000000A0 /* BrazeHelper.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				FE3C9A2458A1416290DEDAD4 /* branch.json */,
@@ -1201,6 +1206,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E4B580762E33A001008165E1 /* AppDelegate.swift in Sources */,
+				F0B2A3E101000001000000A1 /* BrazeHelper.mm in Sources */,
 				2EF283322B17EC1A00D7B4B1 /* RNTar.m in Sources */,
 				654378B0243E2ADC00571B9C /* File.swift in Sources */,
 				2EF2832A2B17EBD600D7B4B1 /* RnTar.swift in Sources */,
@@ -1216,6 +1222,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E4B580772E33A001008165E1 /* AppDelegate.swift in Sources */,
+				F0B2A3E101000001000000A2 /* BrazeHelper.mm in Sources */,
 				2EF283342B17EC1A00D7B4B1 /* RNTar.m in Sources */,
 				2EF2825B2B0FF86900D7B4B1 /* File.swift in Sources */,
 				2EF2832C2B17EBD600D7B4B1 /* RnTar.swift in Sources */,
@@ -1233,6 +1240,7 @@
 				CFD8DFC828EDD4C800CC75F6 /* RCTScreenshotDetect.m in Sources */,
 				2EF283332B17EC1A00D7B4B1 /* RNTar.m in Sources */,
 				E4B580782E33A001008165E1 /* AppDelegate.swift in Sources */,
+				F0B2A3E101000001000000A3 /* BrazeHelper.mm in Sources */,
 				2EF2832B2B17EBD600D7B4B1 /* RnTar.swift in Sources */,
 				2EF283382B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */,
 				B339FF03289ABD70001B89FB /* File.swift in Sources */,
