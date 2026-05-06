@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   FontWeight,
+  HeaderBaseVariant,
   HeaderStandard,
   IconName,
   TextVariant,
@@ -18,6 +19,7 @@ interface MoneyHeaderProps {
 const MoneyHeader = ({ onMenuPress }: MoneyHeaderProps) => (
   <HeaderStandard
     testID={MoneyHeaderTestIds.CONTAINER}
+    variant={HeaderBaseVariant.Display}
     title={strings('money.title')}
     titleProps={{
       variant: TextVariant.HeadingLg,
