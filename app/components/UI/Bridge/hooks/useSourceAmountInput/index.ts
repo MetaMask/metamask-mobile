@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { getCurrencySymbol } from '../../../../../util/number';
+import { getCurrencySymbol } from '../../../../../util/number/bigint';
 import { MAX_INPUT_LENGTH } from '../../components/TokenInputArea';
 import { BridgeToken } from '../../types';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
