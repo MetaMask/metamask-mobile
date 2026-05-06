@@ -10,6 +10,7 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { getPerpsDisplaySymbol, type Order } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -46,6 +47,16 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
   const { styles } = useStyles(styleSheet, {});
 
   const { priceValue, labelKey } = resolveOrderDisplayPriceAndLabel(order);
+  DevLogger.log(
+    '[PR-29799] BUG_MARKER: compact order row uses PRICE_RANGES_MINIMAL_VIEW (max 2 decimals) for trigger/limit price',
+    {
+      priceValue,
+      formattedWithMinimal:
+        priceValue !== null
+          ? formatPerpsFiat(priceValue, { ranges: PRICE_RANGES_MINIMAL_VIEW })
+          : 'null',
+    },
+  );
   const formattedPrice =
     priceValue !== null
       ? formatPerpsFiat(priceValue, {
