@@ -327,6 +327,30 @@ describe('PerpsTradingCampaignStatsView', () => {
     ).toBeNull();
   });
 
+  it('hides volume and margin StatCells when campaign is complete (only PnL remains)', () => {
+    const completeCampaign = {
+      ...mockCampaign,
+      endDate: '2020-01-01T00:00:00Z',
+    };
+    mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) =>
+      selector({
+        rewards: { campaigns: [completeCampaign] },
+      }),
+    );
+    const { getByTestId, queryByTestId } = render(
+      <PerpsTradingCampaignStatsView />,
+    );
+    expect(
+      getByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_PNL),
+    ).toBeDefined();
+    expect(
+      queryByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME),
+    ).toBeNull();
+    expect(
+      queryByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARGIN),
+    ).toBeNull();
+  });
+
   it('hides qualification cards when campaign is complete and shows last-computed after performance when position exists', () => {
     const completeCampaign = {
       ...mockCampaign,

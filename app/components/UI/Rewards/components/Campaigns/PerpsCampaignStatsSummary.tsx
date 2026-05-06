@@ -133,18 +133,20 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
           testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.PNL}
         />
       </Box>
-      <Box flexDirection={BoxFlexDirection.Row}>
-        <StatCell
-          label={strings('rewards.perps_trading_campaign.label_volume')}
-          value={volumeDisplay}
-          testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOTIONAL_VOLUME}
-        />
-        <StatCell
-          label={strings('rewards.perps_trading_campaign.label_margin')}
-          value={marginDisplay}
-          testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARGIN_DEPLOYED}
-        />
-      </Box>
+      {!isCampaignComplete && (
+        <Box flexDirection={BoxFlexDirection.Row}>
+          <StatCell
+            label={strings('rewards.perps_trading_campaign.label_volume')}
+            value={volumeDisplay}
+            testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOTIONAL_VOLUME}
+          />
+          <StatCell
+            label={strings('rewards.perps_trading_campaign.label_margin')}
+            value={marginDisplay}
+            testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARGIN_DEPLOYED}
+          />
+        </Box>
+      )}
 
       {showQualifiedCard && (
         <Box

@@ -173,56 +173,61 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
             flexDirection={BoxFlexDirection.Column}
             twClassName="w-full flex-1 gap-2 items-center px-4"
           >
-            <Text
-              variant={TextVariant.HeadingMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              twClassName="text-center"
-            >
-              {strings('rewards.campaign_winning.you_won')}
-            </Text>
-
             <Box
               flexDirection={BoxFlexDirection.Column}
-              twClassName="items-center justify-center w-full flex-1 px-4"
+              twClassName="w-full flex-1 items-center justify-center gap-4 px-4"
             >
-              {rankDisplay !== null ? (
-                <Text
-                  variant={TextVariant.HeadingMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                  style={tw.style('text-[64px] leading-[72px]')}
-                  twClassName="text-center"
-                >
-                  {rankDisplay}
-                </Text>
-              ) : isRankLoading ? (
-                <Skeleton style={tw.style('h-8 w-36 rounded-lg')} />
-              ) : null}
+              <Text
+                variant={TextVariant.HeadingMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+                twClassName="text-center"
+              >
+                {strings('rewards.campaign_winning.you_won')}
+              </Text>
 
-              {resultDisplay !== null ? (
-                <Text
-                  variant={TextVariant.HeadingMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.SuccessDefault}
-                  twClassName="text-center"
-                >
-                  {resultDisplay}
-                </Text>
-              ) : isResultLoading ? (
-                <Skeleton style={tw.style('h-6 w-28 rounded-lg')} />
-              ) : null}
+              <Box
+                flexDirection={BoxFlexDirection.Column}
+                twClassName="items-center w-full"
+              >
+                {rankDisplay !== null ? (
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextDefault}
+                    style={tw.style('text-[64px] leading-[72px]')}
+                    twClassName="text-center"
+                  >
+                    {rankDisplay}
+                  </Text>
+                ) : isRankLoading ? (
+                  <Skeleton style={tw.style('h-8 w-36 rounded-lg')} />
+                ) : null}
+
+                {resultDisplay !== null ? (
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.SuccessDefault}
+                    twClassName="text-center"
+                  >
+                    {resultDisplay}
+                  </Text>
+                ) : isResultLoading ? (
+                  <Skeleton style={tw.style('h-6 w-28 rounded-lg')} />
+                ) : null}
+              </Box>
+
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                twClassName="text-center px-8"
+              >
+                {strings('rewards.campaign_winning.email_instructions', {
+                  email: prizeEmail,
+                })}
+              </Text>
             </Box>
-
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              twClassName="text-center px-8"
-            >
-              {strings('rewards.campaign_winning.email_instructions', {
-                email: prizeEmail,
-              })}
-            </Text>
 
             <Box twClassName="w-full max-w-md">
               <CopyableField

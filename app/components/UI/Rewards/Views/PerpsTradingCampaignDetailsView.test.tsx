@@ -139,6 +139,31 @@ jest.mock('../components/Campaigns/CampaignHowItWorks', () => {
   };
 });
 
+jest.mock('../components/Campaigns/CampaignOutcomeBanners', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Pressable, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    CampaignOutcomeBanner: ({
+      outcomeStatus,
+      winnerVerificationCode,
+      onWinnerPress,
+    }: {
+      outcomeStatus: string;
+      winnerVerificationCode: string | null | undefined;
+      onWinnerPress: () => void;
+    }) =>
+      ReactActual.createElement(
+        Pressable,
+        {
+          testID: `campaign-outcome-banner-${outcomeStatus}-${winnerVerificationCode ?? 'null'}`,
+          onPress: onWinnerPress,
+        },
+        ReactActual.createElement(Text, null, 'Campaign outcome'),
+      ),
+  };
+});
+
 jest.mock('../components/Campaigns/PerpsCampaignStatsSummary', () => {
   const ReactActual = jest.requireActual('react');
   const { Pressable, Text, View } = jest.requireActual('react-native');
@@ -179,6 +204,18 @@ jest.mock('../components/Campaigns/PerpsTradingCampaignPrizePool', () => {
     __esModule: true,
     default: () =>
       ReactActual.createElement(View, { testID: 'perps-prize-pool' }),
+  };
+});
+
+jest.mock('../components/Campaigns/PerpsTradingCampaignEndedStats', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'perps-campaign-ended-stats',
+      }),
   };
 });
 
@@ -347,6 +384,7 @@ function setupHooks(
     hasCampaignsError?: boolean;
     participant?: { optedIn: boolean };
     position?: { rank: number; neighbors: unknown[] } | null;
+    isPositionLoading?: boolean;
     totalParticipants?: number;
     outcome?: PerpsTradingCampaignParticipantOutcomeDto | null;
   } = {},
@@ -357,6 +395,7 @@ function setupHooks(
     hasCampaignsError = false,
     participant = { optedIn: false },
     position = null,
+    isPositionLoading = false,
     totalParticipants: totalParticipantsOverride,
     outcome = null,
   } = overrides;
@@ -394,7 +433,7 @@ function setupHooks(
 
   mockUseGetPerpsTradingCampaignLeaderboardPosition.mockReturnValue({
     position: toMockLeaderboardPosition(position),
-    isLoading: false,
+    isLoading: isPositionLoading,
     hasError: false,
     hasFetched: true,
     refetch: jest.fn(),
@@ -474,10 +513,10 @@ describe('PerpsTradingCampaignDetailsView', () => {
     expect(mockFetchCampaigns).toHaveBeenCalledTimes(1);
   });
 
-  it('renders header, campaign status, prize pool, leaderboard, and CTA for active campaign', () => {
-    const { getByTestId, getByText } = render(
-      <PerpsTradingCampaignDetailsView />,
-    );
+  it('renders header, campaign status, prize pool, leaderboard, and CTA for active opted-in campaign', () => {
+    setupHooks({ participant: { optedIn: true } });
+
+    const { getByTestId } = render(<PerpsTradingCampaignDetailsView />);
 
     expect(
       getByTestId(PERPS_CAMPAIGN_DETAILS_TEST_IDS.CONTAINER),
@@ -489,7 +528,12 @@ describe('PerpsTradingCampaignDetailsView', () => {
     expect(getByTestId('perps-trading-cta')).toBeDefined();
   });
 
-  it('hides How it works when the user has a leaderboard position', () => {
+  it('shows the prize pool section for active non-opted-in users', () => {
+    const { getByTestId } = render(<PerpsTradingCampaignDetailsView />);
+    expect(getByTestId('perps-prize-pool')).toBeDefined();
+  });
+
+  it('hides How it works when the user is opted in and has a leaderboard position', () => {
     setupHooks({
       campaigns: [
         buildPerpsCampaign({
@@ -510,7 +554,50 @@ describe('PerpsTradingCampaignDetailsView', () => {
     expect(queryByTestId('campaign-how-it-works')).toBeNull();
   });
 
-  it('shows How it works when active, user has no leaderboard position, and details include howItWorks', () => {
+  it('shows How it works when opted in, no position, and position not loading', () => {
+    setupHooks({
+      campaigns: [
+        buildPerpsCampaign({
+          details: {
+            howItWorks: {
+              title: 'How it works',
+              description: 'Test description',
+              steps: [],
+            },
+          },
+        }),
+      ],
+      participant: { optedIn: true },
+      position: null,
+    });
+
+    const { getByTestId } = render(<PerpsTradingCampaignDetailsView />);
+    expect(getByTestId('campaign-how-it-works')).toBeDefined();
+  });
+
+  it('hides How it works while the leaderboard position is still loading for an opted-in user', () => {
+    setupHooks({
+      campaigns: [
+        buildPerpsCampaign({
+          details: {
+            howItWorks: {
+              title: 'How it works',
+              description: 'Test description',
+              steps: [],
+            },
+          },
+        }),
+      ],
+      participant: { optedIn: true },
+      position: null,
+      isPositionLoading: true,
+    });
+
+    const { queryByTestId } = render(<PerpsTradingCampaignDetailsView />);
+    expect(queryByTestId('campaign-how-it-works')).toBeNull();
+  });
+
+  it('shows How it works when active, user is not opted in, and details include howItWorks', () => {
     setupHooks({
       campaigns: [
         buildPerpsCampaign({
@@ -572,7 +659,7 @@ describe('PerpsTradingCampaignDetailsView', () => {
     );
   });
 
-  it('complete campaign shows leaderboard without stats row and hides CTA', () => {
+  it('complete campaign for non-opted-in user shows leaderboard, prize pool, and ended stats and hides CTA', () => {
     setupHooks({
       campaigns: [
         buildPerpsCampaign({
@@ -588,8 +675,30 @@ describe('PerpsTradingCampaignDetailsView', () => {
 
     expect(getByTestId('perps-leaderboard')).toBeDefined();
     expect(queryByTestId('perps-campaign-stats-summary-container')).toBeNull();
-    expect(queryByTestId('perps-prize-pool')).toBeNull();
+    expect(getByTestId('perps-prize-pool')).toBeDefined();
+    expect(getByTestId('perps-campaign-ended-stats')).toBeDefined();
     expect(queryByTestId('perps-trading-cta')).toBeNull();
+  });
+
+  it('complete campaign for opted-in user (no leaderboard position) shows ended stats and prize pool', () => {
+    setupHooks({
+      campaigns: [
+        buildPerpsCampaign({
+          startDate: '2024-01-01T00:00:00.000Z',
+          endDate: '2025-01-01T00:00:00.000Z',
+        }),
+      ],
+      participant: { optedIn: true },
+      position: null,
+    });
+
+    const { getByTestId, queryByTestId } = render(
+      <PerpsTradingCampaignDetailsView />,
+    );
+
+    expect(getByTestId('perps-campaign-ended-stats')).toBeDefined();
+    expect(getByTestId('perps-prize-pool')).toBeDefined();
+    expect(queryByTestId('perps-campaign-stats-summary-container')).toBeNull();
   });
 
   it('shows outcome banner for completed opted-in participants and navigates winners to winning view', () => {
@@ -683,7 +792,7 @@ describe('PerpsTradingCampaignDetailsView', () => {
     );
   });
 
-  it('does not show outcome banner outside the stats summary section', () => {
+  it('shows outcome banner inside the ended stats section for opted-in users with no leaderboard position', () => {
     setupHooks({
       campaigns: [
         buildPerpsCampaign({
@@ -700,10 +809,13 @@ describe('PerpsTradingCampaignDetailsView', () => {
       },
     });
 
-    const { queryByTestId } = render(<PerpsTradingCampaignDetailsView />);
+    const { getByTestId, queryByTestId } = render(
+      <PerpsTradingCampaignDetailsView />,
+    );
 
     expect(queryByTestId('perps-campaign-stats-summary-container')).toBeNull();
-    expect(queryByTestId('campaign-outcome-banner-finalized-null')).toBeNull();
+    expect(getByTestId('perps-campaign-ended-stats')).toBeDefined();
+    expect(getByTestId('campaign-outcome-banner-finalized-null')).toBeDefined();
   });
 
   it('displays total participant count when the leaderboard reports participants', () => {

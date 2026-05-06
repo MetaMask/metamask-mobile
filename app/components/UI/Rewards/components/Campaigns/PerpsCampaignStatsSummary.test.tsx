@@ -184,6 +184,20 @@ describe('PerpsCampaignStatsSummary', () => {
     expect(queryByTestId(TEST_IDS.QUALIFY_FOR_RANK_CARD)).toBeNull();
   });
 
+  it('hides volume and margin StatCells when campaign is complete (only rank and PnL remain)', () => {
+    const { queryByTestId, getByTestId } = render(
+      <PerpsCampaignStatsSummary
+        leaderboardPosition={basePosition}
+        leaderboard={mockLeaderboard}
+        isCampaignComplete
+      />,
+    );
+    expect(getByTestId(TEST_IDS.RANK)).toBeDefined();
+    expect(getByTestId(TEST_IDS.PNL)).toBeDefined();
+    expect(queryByTestId(TEST_IDS.NOTIONAL_VOLUME)).toBeNull();
+    expect(queryByTestId(TEST_IDS.MARGIN_DEPLOYED)).toBeNull();
+  });
+
   it("hides You're qualified card when campaign is complete", () => {
     const { queryByTestId } = render(
       <PerpsCampaignStatsSummary

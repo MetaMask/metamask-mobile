@@ -159,6 +159,7 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
               isLoading={isLoading}
               showComputedAt={false}
               showPnl={false}
+              isCampaignComplete={isCampaignComplete}
             />
           </Box>
           <Box twClassName="my-1 border-b border-border-muted" />
@@ -178,22 +179,24 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
               <Box twClassName="flex-1" />
             </Box>
 
-            <Box flexDirection={BoxFlexDirection.Row}>
-              <StatCell
-                label={strings('rewards.perps_trading_campaign.label_volume')}
-                value={volumeValue}
-                isLoading={isLoading}
-                suffix={isQualified ? <CheckIcon /> : undefined}
-                testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME}
-              />
-              <StatCell
-                label={strings('rewards.perps_trading_campaign.label_margin')}
-                value={marginValue}
-                isLoading={isLoading}
-                suffix={isQualified ? <CheckIcon /> : undefined}
-                testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARGIN}
-              />
-            </Box>
+            {!isCampaignComplete && (
+              <Box flexDirection={BoxFlexDirection.Row}>
+                <StatCell
+                  label={strings('rewards.perps_trading_campaign.label_volume')}
+                  value={volumeValue}
+                  isLoading={isLoading}
+                  suffix={isQualified ? <CheckIcon /> : undefined}
+                  testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME}
+                />
+                <StatCell
+                  label={strings('rewards.perps_trading_campaign.label_margin')}
+                  value={marginValue}
+                  isLoading={isLoading}
+                  suffix={isQualified ? <CheckIcon /> : undefined}
+                  testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARGIN}
+                />
+              </Box>
+            )}
 
             {showQualifiedCard && (
               <Box

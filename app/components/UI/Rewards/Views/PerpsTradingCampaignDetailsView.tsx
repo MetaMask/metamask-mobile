@@ -33,6 +33,8 @@ import PerpsTradingCampaignLeaderboard, {
 import PerpsTradingCampaignPrizePool from '../components/Campaigns/PerpsTradingCampaignPrizePool';
 import PerpsTradingCampaignCTA from '../components/Campaigns/PerpsTradingCampaignCTA';
 import PerpsCampaignStatsSummary from '../components/Campaigns/PerpsCampaignStatsSummary';
+import PerpsTradingCampaignEndedStats from '../components/Campaigns/PerpsTradingCampaignEndedStats';
+import { CampaignOutcomeBanner } from '../components/Campaigns/CampaignOutcomeBanners';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetPerpsTradingCampaignLeaderboard } from '../hooks/useGetPerpsTradingCampaignLeaderboard';
@@ -114,9 +116,10 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
     refetch: refetchLeaderboard,
   } = useGetPerpsTradingCampaignLeaderboard(effectiveCampaignId || undefined);
 
-  const { position } = useGetPerpsTradingCampaignLeaderboardPosition(
-    isOptedIn ? effectiveCampaignId || undefined : undefined,
-  );
+  const { position, isLoading: isPositionLoading } =
+    useGetPerpsTradingCampaignLeaderboardPosition(
+      isOptedIn ? effectiveCampaignId || undefined : undefined,
+    );
   const { outcome: participantOutcome } =
     usePerpsTradingCampaignParticipantOutcome(
       isComplete && isOptedIn ? effectiveCampaignId || undefined : undefined,
@@ -145,6 +148,7 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
     showStatsSummarySection,
     showPrizePoolSection,
     showLeaderboardSection,
+    showCampaignEndedStats,
   } = useMemo(() => {
     if (!campaign) {
       return {
@@ -152,17 +156,32 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
         showStatsSummarySection: false,
         showPrizePoolSection: false,
         showLeaderboardSection: false,
+        showCampaignEndedStats: false,
       };
     }
 
+    const showEndedStats =
+      isComplete && !isParticipantStatusLoading && (!isOptedIn || !hasPosition);
+
     return {
       showHowItWorksSection:
-        Boolean(campaign.details?.howItWorks) && isActive && !hasPosition,
+        Boolean(campaign.details?.howItWorks) &&
+        isActive &&
+        (!isOptedIn || (!hasPosition && !isPositionLoading)),
       showStatsSummarySection: hasPosition,
-      showPrizePoolSection: isActive,
+      showPrizePoolSection: isActive || isComplete,
       showLeaderboardSection: true,
+      showCampaignEndedStats: showEndedStats,
     };
-  }, [campaign, isActive, hasPosition]);
+  }, [
+    campaign,
+    isActive,
+    isComplete,
+    isOptedIn,
+    isParticipantStatusLoading,
+    hasPosition,
+    isPositionLoading,
+  ]);
 
   const navigateToLeaderboard = useCallback(() => {
     if (!effectiveCampaignId) return;
@@ -275,6 +294,30 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                       campaign.details?.howItWorks as OndoCampaignHowItWorks
                     }
                   />
+                </Box>
+              )}
+
+              {showCampaignEndedStats && (
+                <Box twClassName="p-4 gap-4">
+                  <PerpsTradingCampaignEndedStats
+                    leaderboard={leaderboard}
+                    totalNotionalVolume={volume?.totalUsdVolume ?? null}
+                    isLeaderboardLoading={isLeaderboardLoading}
+                    isVolumeLoading={isVolumeLoading}
+                    hasLeaderboardError={hasLeaderboardError}
+                    hasVolumeError={hasVolumeError}
+                    onRetryLeaderboard={refetchLeaderboard}
+                    onRetryVolume={refetchVolume}
+                  />
+                  {isOptedIn && participantOutcome?.outcomeStatus != null && (
+                    <CampaignOutcomeBanner
+                      outcomeStatus={participantOutcome.outcomeStatus}
+                      winnerVerificationCode={
+                        participantOutcome.winnerVerificationCode ?? null
+                      }
+                      onWinnerPress={navigateToWinningView}
+                    />
+                  )}
                 </Box>
               )}
 
