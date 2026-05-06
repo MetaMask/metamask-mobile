@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import { apiClient } from '../../../core/apiClient';
 import { selectEvmAddress } from '../../../selectors/accountsController';
 import { selectEvmEnabledCaipNetworks } from '../../../selectors/networkEnablementController';
-import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { MINUTE } from '../../../constants/time';
 
@@ -32,10 +31,6 @@ jest.mock('../../../selectors/networkEnablementController', () => ({
   selectEvmEnabledCaipNetworks: jest.fn(),
 }));
 
-jest.mock('../../../selectors/preferencesController', () => ({
-  selectPrivacyMode: jest.fn(),
-}));
-
 const ADDRESS_MOCK = '0x1234567890123456789012345678901234567890';
 const NETWORKS_MOCK = ['eip155:1', 'eip155:137'];
 const QUERY_OPTIONS_MOCK = {
@@ -54,11 +49,9 @@ describe('useTransactionsQuery', () => {
   function setupSelectors({
     evmAddress = ADDRESS_MOCK,
     networks = NETWORKS_MOCK,
-    privacyMode = false,
   }: {
     evmAddress?: string;
     networks?: string[];
-    privacyMode?: boolean;
   } = {}) {
     useSelectorMock.mockImplementation((selector) => {
       if (selector === selectEvmAddress) {
@@ -66,9 +59,6 @@ describe('useTransactionsQuery', () => {
       }
       if (selector === selectEvmEnabledCaipNetworks) {
         return networks;
-      }
-      if (selector === selectPrivacyMode) {
-        return privacyMode;
       }
       return undefined;
     });

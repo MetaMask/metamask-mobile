@@ -1,5 +1,6 @@
 import { createApiPlatformClient } from '@metamask/core-backend';
 import Engine from './Engine';
+import './apiClient';
 
 jest.mock('@metamask/core-backend', () => ({
   createApiPlatformClient: jest.fn(() => ({ accounts: {} })),
@@ -20,9 +21,6 @@ const createApiPlatformClientMock = jest.mocked(createApiPlatformClient);
 const getBearerTokenMock = jest.mocked(
   Engine.context.AuthenticationController.getBearerToken,
 );
-
-// Import once so the module-level createApiPlatformClient call is captured.
-require('./apiClient');
 
 const [firstCallArgs] = createApiPlatformClientMock.mock.calls;
 const getBearerToken = firstCallArgs[0].getBearerToken as () => Promise<
