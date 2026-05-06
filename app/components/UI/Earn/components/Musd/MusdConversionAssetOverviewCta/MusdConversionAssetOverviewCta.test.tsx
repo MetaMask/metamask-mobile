@@ -21,8 +21,6 @@ import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetw
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { strings } from '../../../../../../../locales/i18n';
 import { MUSD_CONVERSION_APY } from '../../../constants/musd';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../types/musd.types';
-import { selectMusdQuickConvertEnabledFlag } from '../../../selectors/featureFlags';
 
 const createMockToken = (overrides: Partial<TokenI> = {}): TokenI => ({
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -49,14 +47,9 @@ describe('MusdConversionAssetOverviewCta', () => {
   const mockInitiateMaxConversion = jest.fn();
   const mockClearError = jest.fn();
   const mockLoggerError = jest.mocked(Logger.error);
-  const mockSelectMusdQuickConvertEnabledFlag =
-    selectMusdQuickConvertEnabledFlag as jest.MockedFunction<
-      typeof selectMusdQuickConvertEnabledFlag
-    >;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(false);
 
     jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW_MS);
 
@@ -245,7 +238,6 @@ describe('MusdConversionAssetOverviewCta', () => {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: '0x1',
           },
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
           navigationStack: Routes.EARN.ROOT,
         });
       });
@@ -497,56 +489,6 @@ describe('MusdConversionAssetOverviewCta', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: EVENT_LOCATIONS.ASSET_OVERVIEW,
         redirects_to: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
-        cta_type: MUSD_CTA_TYPES.TERTIARY,
-        cta_text: expectedCtaText,
-        network_chain_id: asset.chainId,
-        network_name: 'Ethereum Mainnet',
-        asset_symbol: asset.symbol,
-      });
-
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
-    });
-
-    it('tracks mUSD conversion CTA clicked event with QUICK_CONVERT_HOME_SCREEN when quick convert is enabled', async () => {
-      // Arrange
-      mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(true);
-      jest.mocked(useMusdConversion).mockReturnValue({
-        initiateMaxConversion: mockInitiateMaxConversion,
-        initiateCustomConversion: mockInitiateConversion,
-        clearError: mockClearError,
-        error: null,
-        hasSeenConversionEducationScreen: true,
-      });
-
-      const asset = createMockToken();
-
-      const { getByTestId } = renderWithProvider(
-        <MusdConversionAssetOverviewCta asset={asset} />,
-        { state: initialRootState },
-      );
-
-      // Act
-      await act(async () => {
-        fireEvent.press(
-          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
-        );
-      });
-
-      // Assert
-      const expectedCtaText = strings('earn.musd_conversion.bonus_title', {
-        percentage: MUSD_CONVERSION_APY,
-      });
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED,
-      );
-
-      expect(mockAddProperties).toHaveBeenCalledTimes(1);
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        location: EVENT_LOCATIONS.ASSET_OVERVIEW,
-        redirects_to: EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
         cta_type: MUSD_CTA_TYPES.TERTIARY,
         cta_text: expectedCtaText,
         network_chain_id: asset.chainId,

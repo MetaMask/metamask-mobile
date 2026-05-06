@@ -442,6 +442,8 @@ describe('ConnectionRegistry', () => {
           transport_type: TransportType.MWP,
           sdk_version: '2.0.0',
           sdk_platform: 'JavaScript',
+          dapp_name: 'Test DApp',
+          dapp_url: 'https://test.dapp',
         }),
       );
     });
@@ -583,6 +585,10 @@ describe('ConnectionRegistry', () => {
         expect.objectContaining({
           remote_session_id: mockConnectionRequest.sessionRequest.id,
           transport_type: TransportType.MWP,
+          sdk_version: '2.0.0',
+          sdk_platform: 'JavaScript',
+          dapp_name: 'Test DApp',
+          dapp_url: 'https://test.dapp',
           failure_reason: 'Connection failed',
         }),
       );

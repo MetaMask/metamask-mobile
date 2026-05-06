@@ -1,7 +1,7 @@
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { SmokeRamps } from '../../tags';
+import { SmokeMoney } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
 import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
@@ -13,7 +13,7 @@ import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-res
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import Assertions from '../../framework/Assertions';
 
-describe(SmokeRamps('OffRamps Deeplinks'), () => {
+describe(SmokeMoney('OffRamps Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });

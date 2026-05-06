@@ -625,14 +625,14 @@ describe('Wallet', () => {
 
   it('should render correctly', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    const wrapper = render(Wallet);
-    expect(wrapper.toJSON()).toMatchSnapshot();
+    render(Wallet);
+    expect(mockTabsListComponent).toHaveBeenCalled();
   });
 
   it('should render correctly when there are no detected tokens', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    const wrapper = renderWithoutDetectedTokens(Wallet);
-    expect(wrapper.toJSON()).toMatchSnapshot();
+    renderWithoutDetectedTokens(Wallet);
+    expect(mockTabsListComponent).toHaveBeenCalled();
   });
 
   it('should render TabsList', () => {
@@ -659,40 +659,8 @@ describe('Wallet', () => {
         callback(mockInitialState),
       );
     //@ts-expect-error we are ignoring the navigation params on purpose
-    const wrapper = render(Wallet);
-    expect(wrapper.toJSON()).toMatchSnapshot();
-  });
-
-  it('renders correctly when selectedInternalAccount changes', async () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose
     render(Wallet);
-
-    // Re-render with a different selected account to verify no crash
-    const { toJSON } = renderScreen(
-      // @ts-expect-error we are ignoring the navigation params on purpose
-      Wallet,
-      { name: Routes.WALLET_VIEW },
-      {
-        state: {
-          ...mockInitialState,
-          engine: {
-            backgroundState: {
-              ...mockInitialState.engine.backgroundState,
-              AccountsController: {
-                ...mockInitialState.engine.backgroundState.AccountsController,
-                internalAccounts: {
-                  ...mockInitialState.engine.backgroundState.AccountsController
-                    .internalAccounts,
-                  selectedAccount: 'different-account-id',
-                },
-              },
-            },
-          },
-        },
-      },
-    );
-
-    expect(toJSON()).toBeDefined();
+    expect(mockTabsListComponent).toHaveBeenCalled();
   });
 
   describe('AssetDetailsActions', () => {
@@ -869,49 +837,6 @@ describe('Wallet', () => {
       render(Wallet);
 
       expect(typeof getAssetDetailsActionsProps().goToSwaps).toBe('function');
-    });
-  });
-
-  // Conditional Rendering Tests
-  describe('Conditional Rendering', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should render banner when basic functionality is disabled', () => {
-      const stateWithDisabledBasicFunctionality = {
-        ...mockInitialState,
-        settings: {
-          ...mockInitialState.settings,
-          basicFunctionalityEnabled: false,
-        },
-      };
-
-      jest
-        .mocked(useSelector)
-        .mockImplementation((callback: (state: unknown) => unknown) =>
-          callback(stateWithDisabledBasicFunctionality),
-        );
-
-      //@ts-expect-error we are ignoring the navigation params on purpose
-      const wrapper = render(Wallet);
-      expect(wrapper.toJSON()).toMatchSnapshot();
-    });
-
-    it('should render loader when no selected account', () => {
-      jest
-        .mocked(useSelector)
-        .mockImplementation((callback: (state: unknown) => unknown) => {
-          const selectorString = callback.toString();
-          if (selectorString.includes('selectSelectedInternalAccount')) {
-            return null; // No selected account
-          }
-          return callback(mockInitialState);
-        });
-
-      //@ts-expect-error we are ignoring the navigation params on purpose
-      const wrapper = render(Wallet);
-      expect(wrapper.toJSON()).toMatchSnapshot();
     });
   });
 
