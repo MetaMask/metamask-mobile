@@ -21,7 +21,10 @@ export {
   type QRHardwareScanErrorOptions,
 };
 
-export { QRHardwareScanError } from './qrHardwareScanError';
+export {
+  QRHardwareScanError,
+  isQRHardwareScanError,
+} from './qrHardwareScanError';
 
 interface CreateQRHardwareScanErrorParams {
   errorType: QRHardwareScanErrorType;

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -35,6 +35,8 @@ import {
   formatUsd,
 } from '../utils/formatUtils';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
+import { CampaignOutcomeBanner } from '../components/Campaigns/CampaignOutcomeBanners';
+import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type PerpsTradingCampaignStatsRouteParams = {
@@ -113,6 +115,18 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
 
   const positionError = hasError && !position;
 
+  const { outcome: participantOutcome } =
+    usePerpsTradingCampaignParticipantOutcome(
+      isCampaignComplete && isOptedIn ? campaignId : undefined,
+    );
+
+  const navigateToWinningView = useCallback(() => {
+    navigation.navigate(Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW, {
+      campaignId,
+      campaignName: campaign?.name ?? '',
+    });
+  }, [navigation, campaignId, campaign]);
+
   return (
     <ErrorBoundary navigation={navigation} view="PerpsTradingCampaignStatsView">
       <SafeAreaView
@@ -145,6 +159,7 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
               isLoading={isLoading}
               showComputedAt={false}
               showPnl={false}
+              isCampaignComplete={isCampaignComplete}
             />
           </Box>
           <Box twClassName="my-1 border-b border-border-muted" />
@@ -164,22 +179,24 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
               <Box twClassName="flex-1" />
             </Box>
 
-            <Box flexDirection={BoxFlexDirection.Row}>
-              <StatCell
-                label={strings('rewards.perps_trading_campaign.label_volume')}
-                value={volumeValue}
-                isLoading={isLoading}
-                suffix={isQualified ? <CheckIcon /> : undefined}
-                testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME}
-              />
-              <StatCell
-                label={strings('rewards.perps_trading_campaign.label_margin')}
-                value={marginValue}
-                isLoading={isLoading}
-                suffix={isQualified ? <CheckIcon /> : undefined}
-                testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARGIN}
-              />
-            </Box>
+            {!isCampaignComplete && (
+              <Box flexDirection={BoxFlexDirection.Row}>
+                <StatCell
+                  label={strings('rewards.perps_trading_campaign.label_volume')}
+                  value={volumeValue}
+                  isLoading={isLoading}
+                  suffix={isQualified ? <CheckIcon /> : undefined}
+                  testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME}
+                />
+                <StatCell
+                  label={strings('rewards.perps_trading_campaign.label_margin')}
+                  value={marginValue}
+                  isLoading={isLoading}
+                  suffix={isQualified ? <CheckIcon /> : undefined}
+                  testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARGIN}
+                />
+              </Box>
+            )}
 
             {showQualifiedCard && (
               <Box
@@ -251,6 +268,17 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
                   time: formatRewardsTimeOnly(new Date(position.computedAt)),
                 })}
               </Text>
+            )}
+
+            {/* ── Outcome banner (campaign ended) ── */}
+            {isCampaignComplete && participantOutcome && (
+              <CampaignOutcomeBanner
+                outcomeStatus={participantOutcome.outcomeStatus}
+                winnerVerificationCode={
+                  participantOutcome.winnerVerificationCode
+                }
+                onWinnerPress={navigateToWinningView}
+              />
             )}
 
             {/* ── Error banner ── */}
