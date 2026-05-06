@@ -204,6 +204,13 @@ jobs:
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           key: ios-app-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
+      # Namespace runner profiles persist ~/Library/Developer/Xcode/DerivedData at the infrastructure
+      # level between runs (independent of nscloud-cache-action). Without clearing it, Xcode finds
+      # warm DerivedData, reports "nothing to rebuild" in ~22s, and produces no output in ios/build.
+      - name: Clear Xcode DerivedData for clean Namespace build
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        run: rm -rf ~/Library/Developer/Xcode/DerivedData
+
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
         if: ${{ steps.cache-restore.outputs.cache-hit != 'true' && steps.cache-restore-main.outputs.cache-hit != 'true' }}
