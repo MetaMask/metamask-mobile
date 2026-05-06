@@ -165,7 +165,9 @@ describe('AssetLogo', () => {
     const assetAvatar = UNSAFE_getByType(AvatarToken);
     expect(assetAvatar.props).toStrictEqual({
       name: 'TEST',
-      imageSource: undefined,
+      imageSource: {
+        uri: undefined,
+      },
       size: AvatarSize.Lg,
     });
   });

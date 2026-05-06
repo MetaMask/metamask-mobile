@@ -41,7 +41,7 @@ const AssetLogo = ({ asset }: { asset: TokenI }) => {
   return (
     <AvatarToken
       name={asset.symbol}
-      imageSource={imageUri ? { uri: imageUri } : undefined}
+      imageSource={{ uri: imageUri }}
       size={AvatarSize.Lg}
     />
   );
