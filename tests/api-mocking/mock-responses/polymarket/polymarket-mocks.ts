@@ -213,6 +213,7 @@ export const POLYMARKET_EVENT_DETAILS_MOCKS = async (mockServer: Mockttp) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(url?.includes('gamma-api.polymarket.com/events/'));
     })
+    .asPriority(PRIORITY.BASE)
     .thenCallback((request) => {
       const url = new URL(request.url).searchParams.get('url');
       const eventIdMatch = url?.match(/\/events\/([0-9]+)$/);

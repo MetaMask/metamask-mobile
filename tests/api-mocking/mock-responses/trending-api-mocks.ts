@@ -303,5 +303,13 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
       },
       priority: 1000,
     },
+    {
+      // CLOB prices fetched on prediction detail render. Empty object is
+      // safe for trending-feed which only renders the prediction row.
+      urlEndpoint: /https:\/\/clob\.polymarket\.com\/prices.*/,
+      responseCode: 200,
+      response: {},
+      priority: 1000,
+    },
   ],
 };
