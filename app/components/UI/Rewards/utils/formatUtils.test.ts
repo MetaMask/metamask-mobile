@@ -25,7 +25,7 @@ import {
   formatUsd,
   formatSignedUsd,
   formatCompactUsd,
-  sanitizeOndoTokenName,
+  formatOndoTokenName,
   formatOrdinalRank,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
@@ -1655,58 +1655,37 @@ describe('formatUtils', () => {
     });
   });
 
-  describe('sanitizeOndoTokenName', () => {
-    it('strips "(Ondo Tokenized)" suffix and trims', () => {
-      expect(sanitizeOndoTokenName('US Dollar (Ondo Tokenized)')).toBe(
-        'US Dollar',
+  describe('formatOndoTokenName', () => {
+    it('keeps the app-wide "(Ondo Tokenized)" suffix form unchanged', () => {
+      expect(formatOndoTokenName('US Dollar (Ondo Tokenized)')).toBe(
+        'US Dollar (Ondo Tokenized)',
       );
     });
 
-    it('strips "Ondo Tokenized " prefix (trending token API format)', () => {
-      expect(sanitizeOndoTokenName('Ondo Tokenized Apple')).toBe('Apple');
-    });
-
-    it('is case-insensitive for suffix form', () => {
-      expect(sanitizeOndoTokenName('Token (ondo tokenized)')).toBe('Token');
-    });
-
-    it('is case-insensitive for prefix form', () => {
-      expect(sanitizeOndoTokenName('ONDO TOKENIZED Apple')).toBe('Apple');
-    });
-
-    it('truncates to 28 characters with ellipsis', () => {
-      expect(sanitizeOndoTokenName('A Very Long Token Name That Exceeds')).toBe(
-        'A Very Long Token Name That...',
+    it('normalizes the "Ondo Tokenized " prefix form to the suffix form', () => {
+      expect(formatOndoTokenName('Ondo Tokenized Apple')).toBe(
+        'Apple (Ondo Tokenized)',
       );
     });
 
-    it('strips suffix then truncates with ellipsis', () => {
-      const long = 'Extremely Long Name Here That Keeps Going (Ondo Tokenized)';
-      expect(sanitizeOndoTokenName(long)).toBe(
-        'Extremely Long Name Here Tha...',
+    it('normalizes the "Tokenized Ondo " prefix form to the suffix form', () => {
+      expect(formatOndoTokenName('Tokenized Ondo Apple')).toBe(
+        'Apple (Ondo Tokenized)',
       );
     });
 
-    it('strips prefix then truncates with ellipsis', () => {
-      expect(
-        sanitizeOndoTokenName(
-          'Ondo Tokenized Extremely Long Name That Exceeds',
-        ),
-      ).toBe('Extremely Long Name That Exc...');
-    });
-
-    it('does not add ellipsis when exactly 28 characters', () => {
-      expect(sanitizeOndoTokenName('1234567890123456789012345678')).toBe(
-        '1234567890123456789012345678',
+    it('is case-insensitive', () => {
+      expect(formatOndoTokenName('token (ondo tokenized)')).toBe(
+        'token (Ondo Tokenized)',
       );
     });
 
-    it('leaves unrelated names unchanged', () => {
-      expect(sanitizeOndoTokenName('OUSG')).toBe('OUSG');
+    it('adds the suffix when the Ondo asset name has no marker', () => {
+      expect(formatOndoTokenName('Apple')).toBe('Apple (Ondo Tokenized)');
     });
 
     it('returns empty string for an empty input', () => {
-      expect(sanitizeOndoTokenName('')).toBe('');
+      expect(formatOndoTokenName('')).toBe('');
     });
   });
 });

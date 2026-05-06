@@ -41,7 +41,7 @@ import {
   groupPortfolioPositionsByAsset,
   formatPnlPercent,
   isPnlNonNegative,
-  sanitizeOndoTokenName,
+  formatOndoTokenName,
 } from './OndoPortfolio.utils';
 import { selectAllTokenBalances } from '../../../../../selectors/tokenBalancesController';
 import { selectAllTokens } from '../../../../../selectors/tokensController';
@@ -458,15 +458,20 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
                     justifyContent={BoxJustifyContent.Between}
                     alignItems={BoxAlignItems.Center}
                   >
+                    <Box twClassName="flex-1 min-w-0 pr-2">
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        fontWeight={FontWeight.Medium}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {formatOndoTokenName(row.tokenName)}
+                      </Text>
+                    </Box>
                     <Text
                       variant={TextVariant.BodyMd}
                       fontWeight={FontWeight.Medium}
-                    >
-                      {sanitizeOndoTokenName(row.tokenName)}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
+                      numberOfLines={1}
                     >
                       {formatUsd(row.currentValue)}
                     </Text>

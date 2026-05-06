@@ -39,7 +39,7 @@ import { getTrendingTokenImageUrl } from '../../Trending/utils/getTrendingTokenI
 import {
   parseCaip19,
   caipChainIdToHex,
-  sanitizeOndoTokenName,
+  formatOndoTokenName,
 } from '../utils/formatUtils';
 import { RWA_NETWORKS_LIST } from '../../Trending/utils/trendingNetworksList';
 import {
@@ -262,7 +262,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     sourceToken: srcBridgeToken,
   });
 
-  // Deduplicate by assetId and sanitize display names.
+  // Deduplicate by assetId and normalize names to the app-wide Ondo suffix form.
   // Use CAIP-19 assetId (not symbol) for deduplication — symbol comparison
   // is fragile when casing differs between chains.
   const tokens = useMemo((): TrendingAsset[] => {
@@ -274,18 +274,17 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
         seen.add(token.assetId);
         return true;
       })
-      .map((token) => ({ ...token, name: sanitizeOndoTokenName(token.name) }));
+      .map((token) => ({ ...token, name: formatOndoTokenName(token.name) }));
   }, [rwaTokens, srcTokenAsset]);
 
   const handleAssetSelect = useCallback(
     (asset: TrendingAsset) => {
       const parsed = parseCaip19(asset.assetId);
       if (!parsed) return;
-      const rawToken = rwaTokens.find((t) => t.assetId === asset.assetId);
       const destToken: BridgeToken = {
         address: parsed.assetReference,
         symbol: asset.symbol,
-        name: rawToken?.name ?? asset.name,
+        name: asset.name,
         decimals: asset.decimals,
         chainId: `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
         image: getTrendingTokenImageUrl(asset.assetId),
@@ -318,7 +317,6 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
       trackEvent,
       createEventBuilder,
       ondoUsdSrcToken,
-      rwaTokens,
     ],
   );
 

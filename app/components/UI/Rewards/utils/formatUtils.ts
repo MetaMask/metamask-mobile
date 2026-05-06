@@ -490,21 +490,17 @@ export const shortenAddress = (address: string): string => {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
 
-const MAX_ONDO_TOKEN_NAME_LENGTH = 28;
+const ONDO_TOKENIZED_SUFFIX = ' (Ondo Tokenized)';
+const ONDO_TOKENIZED_NAME_PATTERN =
+  /(?:^ondo\s+tokenized\s+|^tokenized\s+ondo\s+|\s*\(ondo\s+tokenized\))/gi;
 
 /**
- * Strips Ondo branding from a token name and truncates to
- * MAX_ONDO_TOKEN_NAME_LENGTH characters with an ellipsis if needed.
- *
- * Handles two forms: prefix ("Ondo Tokenized Apple" → "Apple") and
- * suffix ("US Dollar (Ondo Tokenized)" → "US Dollar").
+ * Formats Ondo RWA token names using the same suffix pattern used by the
+ * asset list, Explore, and Swaps token pickers.
  */
-export function sanitizeOndoTokenName(raw: string): string {
-  const cleaned = raw
-    .replace(/(?:^ondo\s+tokenized\s+|\s*\(ondo\s+tokenized\))/gi, '')
-    .trim();
-  if (cleaned.length <= MAX_ONDO_TOKEN_NAME_LENGTH) return cleaned;
-  return `${cleaned.slice(0, MAX_ONDO_TOKEN_NAME_LENGTH).trim()}...`;
+export function formatOndoTokenName(raw: string): string {
+  const cleaned = raw.replace(ONDO_TOKENIZED_NAME_PATTERN, '').trim();
+  return cleaned ? `${cleaned}${ONDO_TOKENIZED_SUFFIX}` : '';
 }
 
 export function getPortfolioReturnColor(

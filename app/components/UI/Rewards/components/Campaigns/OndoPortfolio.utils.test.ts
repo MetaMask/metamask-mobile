@@ -2,7 +2,7 @@ import {
   groupPortfolioPositionsByAsset,
   formatPnlPercent,
   isPnlNonNegative,
-  sanitizeOndoTokenName,
+  formatOndoTokenName,
 } from './OndoPortfolio.utils';
 
 describe('groupPortfolioPositionsByAsset', () => {
@@ -113,44 +113,30 @@ describe('isPnlNonNegative', () => {
   });
 });
 
-describe('sanitizeOndoTokenName', () => {
-  it('strips "(Ondo Tokenized)" suffix and trims', () => {
-    expect(sanitizeOndoTokenName('US Dollar (Ondo Tokenized)')).toBe(
-      'US Dollar',
+describe('formatOndoTokenName', () => {
+  it('keeps the app-wide "(Ondo Tokenized)" suffix form unchanged', () => {
+    expect(formatOndoTokenName('US Dollar (Ondo Tokenized)')).toBe(
+      'US Dollar (Ondo Tokenized)',
     );
   });
 
-  it('strips "Ondo Tokenized " prefix (trending token API format)', () => {
-    expect(sanitizeOndoTokenName('Ondo Tokenized Apple')).toBe('Apple');
-  });
-
-  it('is case-insensitive', () => {
-    expect(sanitizeOndoTokenName('Token (ondo tokenized)')).toBe('Token');
-  });
-
-  it('truncates to 28 characters with ellipsis', () => {
-    expect(sanitizeOndoTokenName('A Very Long Token Name That Exceeds')).toBe(
-      'A Very Long Token Name That...',
+  it('normalizes the "Ondo Tokenized " prefix form to the suffix form', () => {
+    expect(formatOndoTokenName('Ondo Tokenized Apple')).toBe(
+      'Apple (Ondo Tokenized)',
     );
   });
 
-  it('strips then truncates with ellipsis', () => {
-    const long = 'Extremely Long Name Here That Keeps Going (Ondo Tokenized)';
-    const result = sanitizeOndoTokenName(long);
-    expect(result).toBe('Extremely Long Name Here Tha...');
-  });
-
-  it('does not add ellipsis when exactly 28 characters', () => {
-    expect(sanitizeOndoTokenName('1234567890123456789012345678')).toBe(
-      '1234567890123456789012345678',
+  it('normalizes the "Tokenized Ondo " prefix form to the suffix form', () => {
+    expect(formatOndoTokenName('Tokenized Ondo Apple')).toBe(
+      'Apple (Ondo Tokenized)',
     );
   });
 
-  it('returns the name unchanged when no stripping or truncation is needed', () => {
-    expect(sanitizeOndoTokenName('OUSG')).toBe('OUSG');
+  it('adds the suffix when the Ondo asset name has no marker', () => {
+    expect(formatOndoTokenName('OUSG')).toBe('OUSG (Ondo Tokenized)');
   });
 
   it('handles empty string', () => {
-    expect(sanitizeOndoTokenName('')).toBe('');
+    expect(formatOndoTokenName('')).toBe('');
   });
 });

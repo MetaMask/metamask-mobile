@@ -8,7 +8,7 @@ export {
   getChainHex,
   shortenAddress,
   getAssetReference,
-  sanitizeOndoTokenName,
+  formatOndoTokenName,
 } from '../../utils/formatUtils';
 
 /**
