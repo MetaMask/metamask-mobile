@@ -86,28 +86,20 @@ export const useSourceAmountInput = ({
       return;
     }
 
-    const tokenAmountFromFiatInput = formatTokenInputAmountFromFiat({
-      fiatAmount,
-      tokenFiatRate: fiatRate,
-      tokenDecimals: sourceToken?.decimals,
-    });
-    if (tokenAmountFromFiatInput === sourceAmount) {
+    const nextFiatAmount = formatFiatInputAmount(sourceAmount, fiatRate);
+    if (nextFiatAmount === fiatAmount) {
       return;
     }
 
-    setFiatAmount(formatFiatInputAmount(sourceAmount, fiatRate));
+    setFiatAmount(nextFiatAmount);
     resetSourceAmountCursorPosition();
   }, [
     canToggle,
-    currentCurrency,
     fiatAmount,
     fiatRate,
     isFiatMode,
     resetSourceAmountCursorPosition,
     sourceAmount,
-    sourceToken?.address,
-    sourceToken?.chainId,
-    sourceToken?.decimals,
   ]);
 
   const syncFiatAmountToTokenAmount = useCallback(
