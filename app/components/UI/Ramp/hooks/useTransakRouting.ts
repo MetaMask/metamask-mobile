@@ -28,6 +28,7 @@ import useRampAccountAddress from './useRampAccountAddress';
 import { isHttpUnauthorized } from '../utils/isHttpUnauthorized';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
 import { useRampsOrders } from './useRampsOrders';
+import { closeSession, getSession } from '../headless/sessionRegistry';
 
 interface RampStackParamList {
   /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
@@ -99,6 +100,14 @@ interface UseTransakRoutingConfig {
 export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const baseRoute = config?.baseRoute;
   const baseRouteParams = config?.baseRouteParams;
+  // Headless-mode marker extracted from the caller's config. When the
+  // Host wires `baseRouteParams: { headlessSessionId }` through, this
+  // lets post-checkout success paths hand the orderId to the session's
+  // `onOrderCreated` callback and unwind the ramp stack instead of
+  // resetting to `RAMPS_ORDER_DETAILS`.
+  const headlessSessionId = (
+    baseRouteParams as { headlessSessionId?: string } | undefined
+  )?.headlessSessionId;
   // Composes the stack base entry used by `navigation.reset` calls below.
   // - When the caller didn't override `baseRoute`, we keep BuildQuote as the
   //   base and merge the per-call `amount` (so the input is pre-filled when
@@ -287,6 +296,26 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
   const navigateToOrderProcessingCallback = useCallback(
     ({ orderId }: { orderId: string }) => {
+      // Headless mode: fire `onOrderCreated`, close the session, and pop
+      // out of the ramp stack so the caller regains foreground. The
+      // consumer drives post-order UI themselves — no RAMPS_ORDER_DETAILS.
+      const session = getSession(headlessSessionId);
+      if (headlessSessionId && session) {
+        try {
+          session.callbacks.onOrderCreated(orderId);
+        } catch (callbackError) {
+          Logger.error(
+            callbackError as Error,
+            'useTransakRouting: onOrderCreated callback threw',
+          );
+        }
+        closeSession(headlessSessionId, { reason: 'completed' });
+        // @ts-expect-error `pop` exists on the parent stack navigator at
+        // runtime but is not surfaced on the generic `NavigationProp`
+        // type returned by `getParent()`.
+        navigation.getParent()?.pop();
+        return;
+      }
       navigation.reset({
         index: 0,
         routes: [
@@ -297,7 +326,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         ],
       });
     },
-    [navigation],
+    [navigation, headlessSessionId],
   );
 
   const navigateToAdditionalVerificationCallback = useCallback(
@@ -366,12 +395,18 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           paymentDetails: depositOrder.paymentDetails,
         });
 
-        showV2OrderToast({
-          orderId: rampsOrder.providerOrderId,
-          cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
-          cryptoAmount: rampsOrder.cryptoAmount,
-          status: rampsOrder.status,
-        });
+        // Suppress the toast when a headless session is driving this
+        // flow — the consumer handles its own notification UI. Keep
+        // `addOrder` and the analytics event in both modes so Redux
+        // state + telemetry parity is preserved.
+        if (!getSession(headlessSessionId)) {
+          showV2OrderToast({
+            orderId: rampsOrder.providerOrderId,
+            cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
+            cryptoAmount: rampsOrder.cryptoAmount,
+            status: rampsOrder.status,
+          });
+        }
 
         navigateToOrderProcessingCallback({
           orderId: rampsOrder.providerOrderId,
@@ -410,6 +445,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       navigateToOrderProcessingCallback,
       regionIsoCode,
       trackEvent,
+      headlessSessionId,
     ],
   );
 

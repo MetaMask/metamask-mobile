@@ -8,6 +8,7 @@ export const BUFFER_INITIAL_DEFAULT = 0.025;
 export const BUFFER_STEP_DEFAULT = 0.025;
 export const BUFFER_SUBSEQUENT_DEFAULT = 0.05;
 export const PAY_FIAT_ENABLED_DEFAULT = false;
+export const PAY_HARDWARE_ENABLED_DEFAULT = false;
 export const SLIPPAGE_DEFAULT = 0.005;
 export const STX_DISABLED_DEFAULT = false;
 
@@ -75,6 +76,10 @@ export interface GasFeeTokenFlags {
 }
 
 export interface MetaMaskPayFiatFlags {
+  enabled: boolean;
+}
+
+export interface MetaMaskPayHardwareFlags {
   enabled: boolean;
 }
 
@@ -247,6 +252,19 @@ export const selectMetaMaskPayFiatFlags = createSelector(
 
     return {
       enabled: (raw?.enabled as boolean) ?? PAY_FIAT_ENABLED_DEFAULT,
+    };
+  },
+);
+
+export const selectMetaMaskPayHardwareFlags = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): MetaMaskPayHardwareFlags => {
+    const raw = featureFlags?.confirmations_pay_hardware as
+      | Record<string, Json>
+      | undefined;
+
+    return {
+      enabled: (raw?.enabled as boolean) ?? PAY_HARDWARE_ENABLED_DEFAULT,
     };
   },
 );

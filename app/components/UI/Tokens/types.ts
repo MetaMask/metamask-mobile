@@ -1,5 +1,5 @@
 import { KeyringAccountType } from '@metamask/keyring-api';
-import { TokenRwaData } from '@metamask/assets-controllers';
+import { TokenRwaData, TokenSecurityData } from '@metamask/assets-controllers';
 
 export interface BrowserTab {
   id: string;
@@ -26,4 +26,5 @@ export interface TokenI {
   accountType?: KeyringAccountType;
   pricePercentChange1d?: number;
   rwaData?: TokenRwaData;
+  securityData?: TokenSecurityData;
 }

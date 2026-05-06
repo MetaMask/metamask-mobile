@@ -8,7 +8,7 @@ import { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useNetworkName } from '../../../hooks/useNetworkName';
-import { POLYGON_USDCE } from '../../../constants/predict';
+import { POLYGON_PUSD } from '../../../constants/predict';
 import { TransactionSummaryLine } from './transaction-summary-line';
 
 const HYPERLIQUID_EXPLORER_URL = 'https://app.hyperliquid.xyz/explorer/tx';
@@ -39,7 +39,7 @@ export function ReceiveSummaryLine({
     targetNetworkName = 'Hyperliquid';
     receiveChainId = CHAIN_IDS.ARBITRUM;
   } else if (isPredictDeposit) {
-    targetSymbol = POLYGON_USDCE.symbol;
+    targetSymbol = POLYGON_PUSD.symbol;
   }
 
   const title =

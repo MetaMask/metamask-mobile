@@ -94,6 +94,16 @@ export type PredictControllerTrackShareActionAction = {
   handler: PredictController['trackShareAction'];
 };
 
+/**
+ * Track Predict Betslip Dismissed analytics event
+ *
+ * @public
+ */
+export type PredictControllerTrackBetslipDismissedAction = {
+  type: `PredictController:trackBetslipDismissed`;
+  handler: PredictController['trackBetslipDismissed'];
+};
+
 export type PredictControllerPreviewOrderAction = {
   type: `PredictController:previewOrder`;
   handler: PredictController['previewOrder'];
@@ -268,6 +278,7 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackGeoBlockTriggeredAction
   | PredictControllerTrackFeedViewedAction
   | PredictControllerTrackShareActionAction
+  | PredictControllerTrackBetslipDismissedAction
   | PredictControllerPreviewOrderAction
   | PredictControllerPlaceOrderAction
   | PredictControllerClaimWithConfirmationAction
