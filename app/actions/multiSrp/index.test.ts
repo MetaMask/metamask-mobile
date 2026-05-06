@@ -99,6 +99,8 @@ jest.mock('../../core/Engine', () => ({
       getKeyringsByType: () => mockGetKeyringsByType(),
       withKeyring: (_selector: unknown, operation: (args: unknown) => void) =>
         operation({ keyring: hdKeyring, metadata: { id: '1234' } }),
+      withKeyringV2: (_selector: unknown, operation: (args: unknown) => void) =>
+        operation({ keyring: hdKeyring, metadata: { id: '1234' } }),
     },
     AccountsController: {
       getNextAvailableAccountName: jest.fn().mockReturnValue('Snap Account 1'),
