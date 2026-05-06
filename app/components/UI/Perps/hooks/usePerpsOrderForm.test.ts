@@ -782,6 +782,153 @@ describe('usePerpsOrderForm', () => {
     });
   });
 
+  describe('limit order price adjustment', () => {
+    it('uses limit price for maxPossibleAmount when order type is limit', () => {
+      // Use low-precision asset where price difference causes rounding differences
+      mockUsePerpsMarketData.mockReturnValue({
+        marketData: {
+          szDecimals: 0, // Low precision makes rounding impact visible
+          name: 'BTC',
+          maxLeverage: 10,
+          marginTableId: 1,
+        },
+        refetch: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      // Small balance so rounding matters
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '10',
+          withdrawableBalance: '10',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '10',
+        },
+        isInitialLoading: false,
+      });
+
+      // BTC at $50000 with szDecimals=0: position size rounding is per whole token
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: { price: '50000', timestamp: Date.now(), symbol: 'BTC' },
+      });
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialType: 'limit',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      const marketMax = result.current.maxPossibleAmount;
+
+      // Set limit price much lower — at $1, same USD buys many more whole tokens
+      act(() => {
+        result.current.setLimitPrice('1');
+      });
+
+      const limitMax = result.current.maxPossibleAmount;
+
+      // With szDecimals=0 and price=$1 vs $50000, the rounding impact is drastically different
+      expect(limitMax).not.toBe(marketMax);
+    });
+
+    it('falls back to market price when limit price is empty', () => {
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialType: 'limit',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      const maxWithoutLimit = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setLimitPrice('');
+      });
+
+      expect(result.current.maxPossibleAmount).toBe(maxWithoutLimit);
+    });
+
+    it('recalculates maxPossibleAmount when limit price changes', () => {
+      // Use low-precision asset where price difference causes rounding differences
+      mockUsePerpsMarketData.mockReturnValue({
+        marketData: {
+          szDecimals: 0,
+          name: 'BTC',
+          maxLeverage: 10,
+          marginTableId: 1,
+        },
+        refetch: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '10',
+          withdrawableBalance: '10',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '10',
+        },
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialType: 'limit',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      // $1 per token → 30 tokens max → rounding at whole-token level
+      act(() => {
+        result.current.setLimitPrice('1');
+      });
+
+      const maxAt1 = result.current.maxPossibleAmount;
+
+      // $50000 per token → 0 tokens max at szDecimals=0
+      act(() => {
+        result.current.setLimitPrice('50000');
+      });
+
+      const maxAt50k = result.current.maxPossibleAmount;
+
+      expect(maxAt1).not.toBe(maxAt50k);
+    });
+
+    it('uses market price for maxPossibleAmount when order type is market', () => {
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialType: 'market',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      const marketMax = result.current.maxPossibleAmount;
+
+      // Setting limit price when order type is market should not affect max
+      act(() => {
+        result.current.setLimitPrice('100000');
+      });
+
+      expect(result.current.maxPossibleAmount).toBe(marketMax);
+    });
+  });
+
   describe('empty amount handling', () => {
     it('should convert empty string to 0', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
