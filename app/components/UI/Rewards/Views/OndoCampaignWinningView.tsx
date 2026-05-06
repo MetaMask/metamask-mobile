@@ -4,6 +4,7 @@ import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParti
 import { formatOrdinalRank, formatPercentChange } from '../utils/formatUtils';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import CampaignWinningView from './CampaignWinningView';
+import Routes from '../../../../constants/navigation/Routes';
 
 const PRIZE_EMAIL = 'ondocampaign@consensys.net';
 
@@ -41,6 +42,14 @@ const OndoCampaignWinningView: React.FC = () => {
     return formatPercentChange(position.rateOfReturn);
   }, [position]);
 
+  const fallbackRoute = useMemo(
+    () => ({
+      route: Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+      params: { campaignId },
+    }),
+    [campaignId],
+  );
+
   return (
     <CampaignWinningView
       testID={ONDO_CAMPAIGN_WINNING_VIEW_TEST_IDS.CONTAINER}
@@ -56,6 +65,7 @@ const OndoCampaignWinningView: React.FC = () => {
       resultDisplay={resultDisplay}
       isRankLoading={isOutcomeLoading}
       isResultLoading={positionLoading}
+      fallbackRoute={fallbackRoute}
     />
   );
 };

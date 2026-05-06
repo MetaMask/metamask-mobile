@@ -13,9 +13,10 @@ jest.mock('../../../../images/rewards/campaign_winning.png', () => ({
 }));
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
@@ -235,7 +236,30 @@ describe('CampaignWinningView', () => {
     openSpy.mockRestore();
   });
 
-  it('calls goBack when outcome loads without a winning code', () => {
+  it('navigates to fallback route when outcome loads without a winning code', () => {
+    const fallbackRoute = {
+      route: 'CampaignDetails',
+      params: { campaignId: CAMPAIGN_ID },
+    };
+
+    render(
+      <CampaignWinningView
+        {...defaultProps}
+        winningCode={null}
+        hasOutcomeLoaded
+        isLoading={false}
+        fallbackRoute={fallbackRoute}
+      />,
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      fallbackRoute.route,
+      fallbackRoute.params,
+    );
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('falls back to goBack when outcome loads without a winning code and no fallback route is provided', () => {
     render(
       <CampaignWinningView
         {...defaultProps}

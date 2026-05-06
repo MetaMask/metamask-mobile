@@ -6,6 +6,7 @@ import OndoCampaignWinningView, {
 import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import CampaignWinningView from './CampaignWinningView';
+import Routes from '../../../../constants/navigation/Routes';
 
 jest.mock('./CampaignWinningView', () => {
   const ReactActual = jest.requireActual('react');
@@ -93,6 +94,10 @@ describe('OndoCampaignWinningView', () => {
         resultDisplay: null,
         isRankLoading: false,
         isResultLoading: false,
+        fallbackRoute: {
+          route: Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+          params: { campaignId: 'campaign-ondo-1' },
+        },
       }),
       {},
     );

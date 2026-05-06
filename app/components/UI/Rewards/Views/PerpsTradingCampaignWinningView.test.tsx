@@ -6,6 +6,7 @@ import PerpsTradingCampaignWinningView, {
 import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
 import CampaignWinningView from './CampaignWinningView';
+import Routes from '../../../../constants/navigation/Routes';
 
 jest.mock('./CampaignWinningView', () => {
   const ReactActual = jest.requireActual('react');
@@ -104,6 +105,10 @@ describe('PerpsTradingCampaignWinningView', () => {
         resultDisplay: '+$1,500.25',
         isRankLoading: false,
         isResultLoading: false,
+        fallbackRoute: {
+          route: Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+          params: { campaignId: 'campaign-perps-1' },
+        },
       }),
       {},
     );

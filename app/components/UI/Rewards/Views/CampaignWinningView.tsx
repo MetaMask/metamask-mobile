@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect } from 'react';
 import { Image, Linking, ScrollView, useWindowDimensions } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  type NavigationProp,
+  type ParamListBase,
+} from '@react-navigation/native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -47,6 +51,10 @@ export interface CampaignWinningViewProps {
   resultDisplay?: string | null;
   isRankLoading?: boolean;
   isResultLoading?: boolean;
+  fallbackRoute?: {
+    route: string;
+    params?: object;
+  };
 }
 
 const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
@@ -63,12 +71,13 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
   resultDisplay = null,
   isRankLoading = false,
   isResultLoading = false,
+  fallbackRoute,
 }) => {
   const tw = useTailwind();
   const { height: windowHeight } = useWindowDimensions();
   const heroHeight = windowHeight * HERO_HEIGHT_RATIO;
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   useTrackRewardsPageView({
@@ -78,9 +87,13 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
 
   useEffect(() => {
     if (!isLoading && hasOutcomeLoaded && winningCode === null) {
+      if (fallbackRoute) {
+        navigation.navigate(fallbackRoute.route, fallbackRoute.params);
+        return;
+      }
       navigation.goBack();
     }
-  }, [isLoading, hasOutcomeLoaded, winningCode, navigation]);
+  }, [isLoading, hasOutcomeLoaded, winningCode, fallbackRoute, navigation]);
 
   const onDismiss = useCallback(() => {
     navigation.goBack();

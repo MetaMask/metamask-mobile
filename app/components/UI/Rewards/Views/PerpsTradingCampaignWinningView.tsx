@@ -4,6 +4,7 @@ import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTrad
 import { formatOrdinalRank, formatSignedUsd } from '../utils/formatUtils';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
 import CampaignWinningView from './CampaignWinningView';
+import Routes from '../../../../constants/navigation/Routes';
 
 const PRIZE_EMAIL = 'perpscampaign@consensys.net';
 
@@ -48,6 +49,14 @@ const PerpsTradingCampaignWinningView: React.FC = () => {
     return formatSignedUsd(position.pnl);
   }, [position]);
 
+  const fallbackRoute = useMemo(
+    () => ({
+      route: Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+      params: { campaignId },
+    }),
+    [campaignId],
+  );
+
   return (
     <CampaignWinningView
       testID={PERPS_TRADING_CAMPAIGN_WINNING_VIEW_TEST_IDS.CONTAINER}
@@ -63,6 +72,7 @@ const PerpsTradingCampaignWinningView: React.FC = () => {
       resultDisplay={resultDisplay}
       isRankLoading={isOutcomeLoading}
       isResultLoading={positionLoading}
+      fallbackRoute={fallbackRoute}
     />
   );
 };
