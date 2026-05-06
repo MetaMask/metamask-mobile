@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
+  LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
   SafeAreaView,
@@ -55,7 +56,13 @@ const WhatsHappeningDetailView = () => {
     useWhatsHappening(MAX_ITEMS_DISPLAYED);
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [cardHeight, setCardHeight] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
+
+  const handleCarouselLayout = useCallback((e: LayoutChangeEvent) => {
+    const { height } = e.nativeEvent.layout;
+    if (height > 0) setCardHeight(height);
+  }, []);
 
   useEffect(() => {
     if (initialIndex > 0 && scrollViewRef.current && !isLoading) {
@@ -133,19 +140,20 @@ const WhatsHappeningDetailView = () => {
               snapToInterval={SNAP_INTERVAL}
               snapToAlignment="start"
               style={tw`flex-1`}
-              contentContainerStyle={tw.style(
-                `px-4 gap-3 items-stretch flex-grow`,
-              )}
+              contentContainerStyle={tw.style('px-4 gap-3')}
+              onLayout={handleCarouselLayout}
               onMomentumScrollEnd={handleScrollEnd}
               testID="whats-happening-detail-carousel"
             >
-              {items.map((item) => (
-                <WhatsHappeningExpandedCard
-                  key={item.id}
-                  item={item}
-                  cardWidth={CARD_WIDTH}
-                />
-              ))}
+              {cardHeight > 0 &&
+                items.map((item) => (
+                  <WhatsHappeningExpandedCard
+                    key={item.id}
+                    item={item}
+                    cardWidth={CARD_WIDTH}
+                    cardHeight={cardHeight}
+                  />
+                ))}
             </ScrollView>
 
             <PageIndicator count={items.length} activeIndex={currentIndex} />
