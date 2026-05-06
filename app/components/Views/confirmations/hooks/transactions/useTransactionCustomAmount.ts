@@ -7,7 +7,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useUpdateTokenAmount } from './useUpdateTokenAmount';
+import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
@@ -80,8 +80,7 @@ export function useTransactionCustomAmount({
     : payTokenFiatRate;
   const balanceUsd = useTokenBalance(tokenFiatRate);
 
-  const { updateTokenAmount: updateTokenAmountCallback } =
-    useUpdateTokenAmount();
+  const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
 
   const amountFiat = useMemo(() => {
     const targetAmountUsd = totals?.targetAmount.usd;
@@ -206,10 +205,10 @@ export function useTransactionCustomAmount({
     ],
   );
 
-  const updateTokenAmount = useCallback(() => {
-    updateTokenAmountCallback(amountHuman);
+  const updateTokenAmount = useCallback(async () => {
+    await updateTransactionPayAmount(amountHuman);
     setIsTokenAmountUpdated(true);
-  }, [amountHuman, updateTokenAmountCallback]);
+  }, [amountHuman, updateTransactionPayAmount]);
 
   useEffect(() => {
     if (isTokenAmountUpdated && (hasSourceAmount || isPostQuote)) {
@@ -258,14 +257,8 @@ function useTokenBalance(tokenUsdRate: number) {
 
   if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
     const perpsState = Engine.context.PerpsController?.state;
-    // Prefer `availableToTradeBalance` so Unified Account / Portfolio Margin
-    // users see the correct balance behind the percentage buttons. Falls back
-    // to `availableBalance` for Standard-mode accounts where the unified
-    // field isn't populated.
-    const availableBalance =
-      perpsState?.accountState?.availableToTradeBalance ??
-      perpsState?.accountState?.availableBalance;
-    return availableBalance ? parseFloat(availableBalance) : 0;
+    const withdrawableBalance = perpsState?.accountState?.withdrawableBalance;
+    return withdrawableBalance ? parseFloat(withdrawableBalance) : 0;
   }
 
   if (

@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useContext } from 'react';
+import { render } from '@testing-library/react-native';
+import { useContext, type ReactElement } from 'react';
 import { playNotification, NotificationMoment } from '../../../../util/haptics';
 import { mockTheme } from '../../../../util/theme';
 import useRewardsToast, { RewardsToastOptions } from './useRewardsToast';
@@ -20,6 +21,10 @@ jest.mock('../../../../util/haptics');
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     if (key === 'rewards.toast_dismiss') return 'Dismiss';
+    if (key === 'rewards.notifications_nudge.title') return "Don't miss out";
+    if (key === 'rewards.notifications_nudge.description') {
+      return 'Enable notifications to stay informed on campaigns';
+    }
     return key;
   }),
 }));
@@ -29,6 +34,29 @@ jest.mock('../../../../util/theme', () => {
   return {
     ...actualTheme,
     useAppThemeFromContext: () => actualTheme.mockTheme,
+  };
+});
+
+jest.mock('../../../../images/rewards/notification.svg', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, { testID: 'rewards-notification-svg' }),
+  };
+});
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    Box: ({ children }: { children?: React.ReactNode }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'rewards-nudge-start-accessory-box' },
+        children,
+      ),
   };
 });
 
@@ -78,6 +106,31 @@ describe('useRewardsToast', () => {
         hasNoTimeout: false,
       });
       expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Success);
+    });
+
+    it('strips hapticsType from payload passed to toastRef for enableNotificationsNudge', async () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const nudgeConfig =
+        result.current.RewardsToastOptions.enableNotificationsNudge({
+          label: 'Turn on',
+          onPress: jest.fn(),
+        });
+
+      await act(async () => {
+        result.current.showToast(nudgeConfig);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({ hapticsType: expect.anything() }),
+      );
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: ToastVariants.Plain,
+          hasNoTimeout: true,
+        }),
+      );
+      expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Warning);
     });
   });
 
@@ -213,6 +266,122 @@ describe('useRewardsToast', () => {
       });
     });
 
+    it('returns loading configuration with title only', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.loading('Loading...');
+
+      expect(config).toMatchObject({
+        variant: ToastVariants.Plain,
+        hasNoTimeout: true,
+        hapticsType: NotificationMoment.Warning,
+      });
+      expect(config.labelOptions).toEqual([
+        { label: 'Loading...', isBold: true },
+      ]);
+      expect(config.descriptionOptions).toBeUndefined();
+      expect(config.closeButtonOptions).toMatchObject({
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
+      });
+    });
+
+    it('returns loading configuration with title and subtitle', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.loading(
+        'Loading...',
+        'Please wait',
+      );
+
+      expect(config.labelOptions).toEqual([
+        { label: 'Loading...', isBold: true },
+      ]);
+      expect(config.descriptionOptions).toEqual({ description: 'Please wait' });
+    });
+
+    it('calls closeToast when loading close button is pressed', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.loading('Loading...');
+
+      config.closeButtonOptions?.onPress?.();
+
+      expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders startAccessory for loading config', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.loading('Loading...');
+
+      expect(config.startAccessory).toBeDefined();
+    });
+
+    it('returns enableNotificationsNudge configuration with Plain variant', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const onPress = jest.fn();
+      const config =
+        result.current.RewardsToastOptions.enableNotificationsNudge({
+          label: 'Turn on',
+          onPress,
+        });
+
+      expect(config).toMatchObject({
+        variant: ToastVariants.Plain,
+        hasNoTimeout: true,
+        hapticsType: NotificationMoment.Warning,
+        linkButtonOptions: { label: 'Turn on', onPress },
+      });
+      expect(config.labelOptions).toEqual([
+        { label: "Don't miss out", isBold: true },
+      ]);
+      expect(config.descriptionOptions).toEqual({
+        description: 'Enable notifications to stay informed on campaigns',
+      });
+      expect(config.closeButtonOptions).toMatchObject({
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
+      });
+    });
+
+    it('passes linkButtonOptions through to enableNotificationsNudge config', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const onPress = jest.fn();
+      const config =
+        result.current.RewardsToastOptions.enableNotificationsNudge({
+          label: 'Open settings',
+          onPress,
+        });
+
+      expect(config.linkButtonOptions).toEqual({
+        label: 'Open settings',
+        onPress,
+      });
+    });
+
+    it('renders startAccessory containing notification icon placeholder', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config =
+        result.current.RewardsToastOptions.enableNotificationsNudge({
+          label: 'Turn on',
+          onPress: jest.fn(),
+        });
+
+      expect(config.startAccessory).toBeDefined();
+      const { getByTestId } = render(config.startAccessory as ReactElement);
+      expect(getByTestId('rewards-notification-svg')).toBeDefined();
+    });
+
+    it('calls closeToast when enableNotificationsNudge close button is pressed', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config =
+        result.current.RewardsToastOptions.enableNotificationsNudge({
+          label: 'Turn on',
+          onPress: jest.fn(),
+        });
+
+      config.closeButtonOptions?.onPress?.();
+
+      expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    });
+
     it('calls closeToast when close button is pressed', () => {
       const { result } = renderHook(() => useRewardsToast());
       const config = result.current.RewardsToastOptions.success('Test Title');
@@ -345,6 +514,17 @@ describe('useRewardsToast', () => {
         result.current.RewardsToastOptions.entriesClosed('Entries closed');
 
       expect(config.hasNoTimeout).toBe(false);
+    });
+
+    it('uses persistent toast timeout for enableNotificationsNudge', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config =
+        result.current.RewardsToastOptions.enableNotificationsNudge({
+          label: 'Turn on',
+          onPress: jest.fn(),
+        });
+
+      expect(config.hasNoTimeout).toBe(true);
     });
   });
 
