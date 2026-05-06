@@ -9,6 +9,7 @@ import {
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
 import QuoteView from '../../page-objects/swaps/QuoteView';
+import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui';
 
 /* Scenario 6: Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3 */
 test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`, () => {
@@ -36,6 +37,12 @@ test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`
       await QuoteView.enterSourceTokenAmount('1');
 
       await swapTimer.measure(() => QuoteView.isQuoteDisplayed());
+
+      if (process.env.SUBMIT_SWAP === 'true') {
+        await QuoteView.dismissKeypad();
+        await QuoteView.tapConfirmSwap();
+        await checkSwapActivity('ETH', 'USDC');
+      }
 
       performanceTracker.addTimers(swapLoadTimer, swapTimer);
     },
