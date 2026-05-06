@@ -148,8 +148,8 @@ const OrderDetails = () => {
           callbackUrl,
         });
         setError(
-          normalizedError.message
-            ? normalizedError.message
+          fetchError instanceof Error && fetchError.message
+            ? fetchError.message
             : strings('ramps_order_details.error_message'),
         );
       } finally {

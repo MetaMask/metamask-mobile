@@ -391,6 +391,35 @@ describe('OrderDetails', () => {
     });
   });
 
+  it.each([
+    ['undefined', undefined],
+    ['plain object', { foo: 'bar' }],
+    ['string', 'oops'],
+    ['null', null],
+  ])(
+    'shows localized error when callback fetch rejects with non-Error value (%s)',
+    async (_label, rejectedValue) => {
+      mockUseParams.mockReturnValue({
+        callbackUrl: 'https://callback.example?x=1',
+        providerCode: 'moonpay',
+        walletAddress: '0x123',
+      });
+      mockGetOrderById.mockReturnValue(undefined);
+      mockGetOrderFromCallback.mockRejectedValue(rejectedValue);
+
+      const { getByText, queryByText } = render();
+
+      await waitFor(() => {
+        expect(
+          getByText('ramps_order_details.error_message'),
+        ).toBeOnTheScreen();
+      });
+      expect(queryByText('undefined')).toBeNull();
+      expect(queryByText('[object Object]')).toBeNull();
+      expect(queryByText('null')).toBeNull();
+    },
+  );
+
   it('shows error state with retry when initial callback fetch fails', async () => {
     mockUseParams.mockReturnValue({
       callbackUrl: 'metamask://on-ramp/providers/paypal?orderId=abc',
