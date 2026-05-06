@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -35,6 +35,9 @@ import PillScrollList from '../components/PillScrollList';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
+import WhatsHappeningSection from '../../Homepage/Sections/WhatsHappening';
+import type { SectionRefreshHandle } from '../../Homepage/types';
+import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 
 interface PerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -91,6 +94,14 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
+
+  const whatsHappeningRef = useRef<SectionRefreshHandle>(null);
+
+  useEffect(() => {
+    if (refresh.trigger === 0) return;
+    whatsHappeningRef.current?.refresh();
+  }, [refresh.trigger]);
 
   const predictions = usePredictionsFeed({ refresh });
   const cryptoMovers = useTokensFeed({ refresh });
@@ -159,6 +170,16 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       onRefresh={onRefresh}
       testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
     >
+      {isWhatsHappeningEnabled && (
+        <Box twClassName="-mx-4" marginBottom={6}>
+          <WhatsHappeningSection
+            ref={whatsHappeningRef}
+            sectionIndex={0}
+            totalSectionsLoaded={1}
+          />
+        </Box>
+      )}
+
       {showPredictions && (
         <Box>
           <SectionHeader
