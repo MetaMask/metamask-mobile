@@ -317,6 +317,16 @@ jobs:
           SECRETS_JSON: ${{ toJSON(secrets) }}
         run: node scripts/validate-secrets-from-config.js
 
+      - name: Restore CocoaPods specs cache (iOS)
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cocoapods/repos
+          key: ${{ runner.os }}-cocoapods-specs-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cocoapods-specs-
+        continue-on-error: true
+
       # iOS: Install Pods here so generated paths match this runner (setup-node-modules skips pod install with --no-install-pods).
       - name: Install CocoaPods dependencies (iOS)
         if: matrix.platform == 'ios'
