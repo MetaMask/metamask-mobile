@@ -1,7 +1,10 @@
+import { useMemo } from 'react';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useRwaTokens } from '../../../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
+
+const ETHEREUM_CAIP_CHAIN_ID = 'eip155:1';
 
 interface UseStocksFeedOptions {
   query?: string;
@@ -14,17 +17,22 @@ export interface UseStocksFeedResult {
   refetch: () => Promise<void>;
 }
 
-/** Tokenized stocks (RWAs on Ethereum mainnet). */
+/** Tokenized stocks (RWAs). Only Ethereum mainnet tokens are shown in the section. */
 export const useStocksFeed = ({
   query,
   refresh,
 }: UseStocksFeedOptions = {}): UseStocksFeedResult => {
   const { data, isLoading, refetch } = useRwaTokens({
     searchQuery: query,
-    ...(query ? {} : { chainIds: ['eip155:1'] }),
   });
+
+  const ethereumData = useMemo(
+    () =>
+      data.filter((asset) => asset.assetId.startsWith(ETHEREUM_CAIP_CHAIN_ID)),
+    [data],
+  );
 
   useFeedRefresh(refresh, refetch);
 
-  return { data, isLoading, refetch };
+  return { data: ethereumData, isLoading, refetch };
 };
