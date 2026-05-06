@@ -1,16 +1,22 @@
 import React, { useMemo } from 'react';
 import { ImageSourcePropType, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { Checkbox } from '@metamask/design-system-react-native';
+import {
+  Checkbox,
+  FontWeight,
+  Text,
+  TextColor as DSTextColor,
+  TextVariant as DSTextVariant,
+} from '@metamask/design-system-react-native';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import {
   formatChainIdToHex,
   isNativeAddress,
 } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
-import Text, {
+import {
   TextColor as ComponentLibraryTextColor,
-  TextVariant,
+  TextVariant as ComponentLibraryTextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { RootState } from '../../../../../reducers';
 import {
@@ -37,6 +43,10 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     minWidth: 0,
   },
+  tokenBalance: {
+    paddingHorizontal: 0,
+    textAlign: 'right',
+  },
 });
 
 function getPricePercentChangeText(
@@ -56,16 +66,16 @@ function getPricePercentChangeText(
 
 function getPricePercentChangeTextColor(
   pricePercentChange: number,
-): ComponentLibraryTextColor {
+): DSTextColor {
   if (pricePercentChange > 0) {
-    return ComponentLibraryTextColor.Success;
+    return DSTextColor.SuccessDefault;
   }
 
   if (pricePercentChange < 0) {
-    return ComponentLibraryTextColor.Error;
+    return DSTextColor.ErrorDefault;
   }
 
-  return ComponentLibraryTextColor.Alternative;
+  return DSTextColor.TextAlternative;
 }
 
 function getTokenPriceInFiat({
@@ -160,8 +170,9 @@ export function BatchSellTokenRow({
       <View style={styles.secondaryRow}>
         {tokenPriceText && (
           <Text
-            variant={TextVariant.BodySMMedium}
-            color={ComponentLibraryTextColor.Alternative}
+            variant={DSTextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={DSTextColor.TextAlternative}
             numberOfLines={1}
             style={styles.priceText}
           >
@@ -170,15 +181,17 @@ export function BatchSellTokenRow({
         )}
         {tokenPriceText && pricePercentChangeText && (
           <Text
-            variant={TextVariant.BodySMMedium}
-            color={ComponentLibraryTextColor.Alternative}
+            variant={DSTextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={DSTextColor.TextAlternative}
           >
             {' • '}
           </Text>
         )}
         {pricePercentChangeText && pricePercentChangeTextColor && (
           <Text
-            variant={TextVariant.BodySMMedium}
+            variant={DSTextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
             color={pricePercentChangeTextColor}
             numberOfLines={1}
           >
@@ -196,6 +209,11 @@ export function BatchSellTokenRow({
       networkImageSource={networkImageSource}
       isSelected={isSelected}
       secondaryRowContent={secondaryRowContent}
+      tokenBalanceTextProps={{
+        textVariant: ComponentLibraryTextVariant.BodySMMedium,
+        textColor: ComponentLibraryTextColor.Alternative,
+        textStyle: styles.tokenBalance,
+      }}
     >
       <Checkbox
         isSelected={isSelected}

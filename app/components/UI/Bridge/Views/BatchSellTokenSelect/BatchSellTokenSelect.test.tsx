@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { TextColor as DSTextColor } from '@metamask/design-system-react-native';
 import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { BridgeToken } from '../../types';
@@ -14,7 +15,10 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import { BridgeTokenMetadata } from '../../constants/tokens';
-import { TextColor as ComponentLibraryTextColor } from '../../../../../component-library/components/Texts/Text';
+import {
+  TextColor as ComponentLibraryTextColor,
+  TextVariant as ComponentLibraryTextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
@@ -228,6 +232,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextColor: {
       ErrorDefault: 'error-default',
       PrimaryInverse: 'primary-inverse',
+      SuccessDefault: 'success-default',
       TextAlternative: 'text-alternative',
       TextDefault: 'text-default',
     },
@@ -345,15 +350,29 @@ jest.mock('../../components/TokenSelectorItem', () => {
       onPress,
       secondaryRowContent,
       token,
+      tokenBalanceTextProps,
     }: {
       children?: React.ReactNode;
       onPress: (token: BridgeToken) => void;
       secondaryRowContent?: React.ReactNode;
       token: BridgeToken;
+      tokenBalanceTextProps?: {
+        textColor?: string;
+        textStyle?: object;
+        textVariant?: string;
+      };
     }) => (
       <Pressable onPress={() => onPress(token)}>
         <Text>{token.symbol}</Text>
         {secondaryRowContent ?? <Text>{token.name}</Text>}
+        <Text
+          color={tokenBalanceTextProps?.textColor}
+          style={tokenBalanceTextProps?.textStyle}
+          testID={`token-balance-${token.symbol}`}
+          variant={tokenBalanceTextProps?.textVariant}
+        >
+          {token.balance} {token.symbol}
+        </Text>
         <View>{children}</View>
       </Pressable>
     ),
@@ -650,18 +669,24 @@ describe('BatchSellTokenSelect', () => {
       },
     };
 
-    const { getByText } = render(<BatchSellTokenSelect />);
+    const { getByTestId, getByText } = render(<BatchSellTokenSelect />);
 
     expect(getByText('$2,344.52')).toBeOnTheScreen();
     expect(getByText('$1,000.00')).toBeOnTheScreen();
     expect(getByText('+1.23%')).toBeOnTheScreen();
     expect(getByText('-4.56%')).toBeOnTheScreen();
-    expect(getByText('+1.23%').props.color).toBe(
-      ComponentLibraryTextColor.Success,
+    expect(getByText('+1.23%').props.color).toBe(DSTextColor.SuccessDefault);
+    expect(getByText('-4.56%').props.color).toBe(DSTextColor.ErrorDefault);
+    expect(getByTestId('token-balance-GAIN').props.variant).toBe(
+      ComponentLibraryTextVariant.BodySMMedium,
     );
-    expect(getByText('-4.56%').props.color).toBe(
-      ComponentLibraryTextColor.Error,
+    expect(getByTestId('token-balance-GAIN').props.color).toBe(
+      ComponentLibraryTextColor.Alternative,
     );
+    expect(getByTestId('token-balance-GAIN').props.style).toMatchObject({
+      textAlign: 'right',
+      paddingHorizontal: 0,
+    });
   });
 
   it('shows the no sellable tokens empty state', () => {
