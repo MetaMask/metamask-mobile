@@ -93,7 +93,7 @@ const createStyles = ({
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
       paddingVertical: Platform.OS === 'ios' ? 2 : 1,
-      transform: [{ translateY: -vars.fontSize * 0.05 }],
+      transform: [{ translateY: -vars.fontSize * 0.08 }],
       ...(Platform.OS === 'android' && {
         includeFontPadding: false,
         textAlignVertical: 'center',
