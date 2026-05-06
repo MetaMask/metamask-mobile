@@ -2,7 +2,10 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { TextColor as DSTextColor } from '@metamask/design-system-react-native';
 import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
-import { formatAddressToAssetId } from '@metamask/bridge-controller';
+import {
+  formatAddressToAssetId,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 import { BridgeToken } from '../../types';
 import { BatchSellTokenSelect } from './BatchSellTokenSelect';
 import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
@@ -10,6 +13,7 @@ import {
   buildBatchSellEligibleChains,
   removeStablecoinsFromSourceTokens,
   MAX_BATCH_SELL_SOURCE_TOKENS,
+  SUPPORTED_BATCH_SELL_CHAIN_IDS,
   sortBatchSellTokens,
 } from './BatchSellTokenSelect.utils';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -23,6 +27,7 @@ const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetOptions = jest.fn();
+const mockUseTokensWithBalance = jest.fn();
 let mockStablecoinsByChain: Record<CaipChainId, CaipAssetType[]> = {};
 let mockWalletTokens: BridgeToken[] = [];
 let mockPricePercentChangesByAddress: Record<string, number | undefined> = {};
@@ -307,7 +312,8 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
 }));
 
 jest.mock('../../hooks/useTokensWithBalance', () => ({
-  useTokensWithBalance: () => mockWalletTokens,
+  useTokensWithBalance: (options?: { chainIds?: CaipChainId[] }) =>
+    mockUseTokensWithBalance(options),
 }));
 
 jest.mock('../../../Tokens/hooks/useTokenPricePercentageChange', () => ({
@@ -550,6 +556,19 @@ describe('BatchSellTokenSelect', () => {
     mockWalletTokens = [
       createToken({ symbol: 'ETHA', name: 'Ethereum A', tokenFiatAmount: 10 }),
     ];
+    mockUseTokensWithBalance.mockImplementation(
+      (options?: { chainIds?: CaipChainId[] }) => {
+        if (!options?.chainIds) {
+          return mockWalletTokens;
+        }
+
+        return mockWalletTokens.filter((token) =>
+          options.chainIds?.includes(
+            formatChainIdToCaip(token.chainId) as CaipChainId,
+          ),
+        );
+      },
+    );
   });
 
   it('renders only eligible wallet tokens', () => {
@@ -611,6 +630,38 @@ describe('BatchSellTokenSelect', () => {
     expect(
       queryByTestId(getNetworkPillTestId('eip155:8453' as CaipChainId)),
     ).not.toBeOnTheScreen();
+  });
+
+  it('does not render network pills for unsupported networks', () => {
+    mockWalletTokens = [
+      createToken({
+        symbol: 'ETHA',
+        name: 'Ethereum A',
+        tokenFiatAmount: 10,
+      }),
+      createToken({
+        symbol: 'AVAXA',
+        name: 'Avalanche A',
+        address: '0x2222222222222222222222222222222222222222',
+        chainId: '0xa86a' as Hex,
+        tokenFiatAmount: 100,
+      }),
+    ];
+
+    const { getByTestId, queryByTestId, queryByText } = render(
+      <BatchSellTokenSelect />,
+    );
+
+    expect(mockUseTokensWithBalance).toHaveBeenCalledWith({
+      chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
+    });
+    expect(
+      getByTestId(getNetworkPillTestId('eip155:1' as CaipChainId)),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getNetworkPillTestId('eip155:43114' as CaipChainId)),
+    ).not.toBeOnTheScreen();
+    expect(queryByText('AVAXA')).not.toBeOnTheScreen();
   });
 
   it('filters tokens to the selected network pill', () => {
