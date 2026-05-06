@@ -193,7 +193,7 @@ describe('useTokenContractSendAlert', () => {
 
     mockGetTokenDetails.mockResolvedValueOnce({});
 
-    rerender();
+    rerender(undefined);
 
     await act(async () => {
       resolveFirst({ standard: 'ERC20' } as TokenResult);
