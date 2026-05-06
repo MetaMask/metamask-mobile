@@ -1,4 +1,5 @@
 import React from 'react';
+import { Image, StyleSheet } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -7,17 +8,16 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import moneyAccountCoins from '../../../../../images/money-account-coins.png';
 import { strings } from '../../../../../../locales/i18n';
 import MoneyProgressBar from '../MoneyProgressBar';
 import { MoneyOnboardingCardTestIds } from './MoneyOnboardingCard.testIds';
+import { useStyles } from '../../../../../component-library/hooks';
+import stylesheet from './MoneyOnboardingCard.styles';
 
 const NOOP = () => undefined;
 
@@ -39,6 +39,11 @@ interface MoneyOnboardingCardProps {
    * Total number of onboarding steps. Defaults to 2.
    */
   totalSteps?: number;
+  /**
+   * Controls step 2 content: 'get-card' (default) shows card acquisition,
+   * 'link-card' shows card linking messaging.
+   */
+  variant?: 'get-card' | 'link-card';
 }
 
 const STEP_CONTENT = {
@@ -54,14 +59,26 @@ const STEP_CONTENT = {
   },
 } as const;
 
+const STEP_2_LINK_CARD = {
+  title: 'money.onboarding.link_card_title',
+  description: 'money.onboarding.link_card_description',
+  cta: 'money.onboarding.link_card_cta',
+} as const;
+
 const MoneyOnboardingCard = ({
   onCtaPress,
   onAddPress,
   currentStep = 1,
   totalSteps = 2,
+  variant = 'get-card',
 }: MoneyOnboardingCardProps) => {
-  const content =
-    STEP_CONTENT[currentStep as keyof typeof STEP_CONTENT] ?? STEP_CONTENT[1];
+  const { styles } = useStyles(stylesheet, {});
+
+  const isLinkCard = variant === 'link-card' && currentStep === 2;
+  const content = isLinkCard
+    ? STEP_2_LINK_CARD
+    : (STEP_CONTENT[currentStep as keyof typeof STEP_CONTENT] ??
+      STEP_CONTENT[1]);
   const handleCtaPress = onCtaPress ?? onAddPress ?? NOOP;
 
   return (
@@ -90,13 +107,13 @@ const MoneyOnboardingCard = ({
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="h-[202px]"
+        twClassName="h-[200px]"
         testID={MoneyOnboardingCardTestIds.COIN_ILLUSTRATION}
       >
-        <Icon
-          name={IconName.Stake}
-          size={IconSize.Xl}
-          color={IconColor.IconAlternative}
+        <Image
+          source={moneyAccountCoins}
+          style={styles.coinIllustration}
+          resizeMode="cover"
         />
       </Box>
 

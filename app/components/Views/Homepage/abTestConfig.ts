@@ -1,5 +1,6 @@
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnalytics.types';
+import { createActiveABTestAssignment } from '../../../util/analytics/activeABTestAssignments';
 import type { TransactionActiveAbTestEntry } from '../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 // ─── Hub Page Discovery Tabs ────────────────────────────────────────────────
@@ -55,7 +56,12 @@ export function getHomepageTrendingSectionsTransactionActiveAbTests(
   if (!isAssignmentActive) {
     return undefined;
   }
-  return [{ key: HOMEPAGE_TRENDING_SECTIONS_AB_KEY, value: variantName }];
+  return [
+    createActiveABTestAssignment(
+      HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
+      variantName,
+    ),
+  ];
 }
 
 export enum HomepageTrendingSectionsVariant {

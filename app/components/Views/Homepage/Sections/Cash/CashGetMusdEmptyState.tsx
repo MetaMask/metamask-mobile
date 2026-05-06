@@ -31,17 +31,13 @@ import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../../UI/Ramp/types';
 import { useMusdConversion } from '../../../../UI/Earn/hooks/useMusdConversion';
 import { useMusdConversionFlowData } from '../../../../UI/Earn/hooks/useMusdConversionFlowData';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../../UI/Earn/types/musd.types';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
-import { selectMusdQuickConvertEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
-import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
-import NavigationService from '../../../../../core/NavigationService';
 import { RootState } from '../../../../../reducers';
 import {
   selectConversionRateByChainId,
@@ -52,17 +48,16 @@ import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { getLocaleLanguageCode } from '../../../../hooks/useFormatters';
 import { CashGetMusdEmptyStateSelectors } from './CashGetMusdEmptyState.testIds';
-import {
-  LINEA_MUSD_ASSET_FOR_MERKL,
-  MUSD_MAINNET_ASSET_FOR_DETAILS,
-} from './CashGetMusdEmptyState.constants';
+import { LINEA_MUSD_ASSET_FOR_MERKL } from './CashGetMusdEmptyState.constants';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
+import { useCashNavigation } from './useCashNavigation';
 
 interface CashGetMusdEmptyStateProps {
   isFullView?: boolean;
+  hideClaimButton?: boolean;
 }
 
 /**
@@ -73,6 +68,7 @@ interface CashGetMusdEmptyStateProps {
  */
 const CashGetMusdEmptyState = ({
   isFullView = false,
+  hideClaimButton = false,
 }: CashGetMusdEmptyStateProps) => {
   const tw = useTailwind();
   const { toastRef } = useContext(ToastContext);
@@ -118,7 +114,6 @@ const CashGetMusdEmptyState = ({
   } = useMusdConversionFlowData();
   const { initiateCustomConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
-  const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const networkName = useNetworkName(MUSD_CONVERSION_DEFAULT_CHAIN_ID);
 
@@ -129,6 +124,7 @@ const CashGetMusdEmptyState = ({
   const mainnetUsdConversionRate = useSelector((state: RootState) =>
     selectUSDConversionRateByChainId(state, MUSD_CONVERSION_DEFAULT_CHAIN_ID),
   );
+  const { navigateToCash } = useCashNavigation();
 
   /** USD → selected fiat (same basis as aggregated mUSD balance / price row). */
   const oneUsdInUserFiat = useMemo(() => {
@@ -186,7 +182,6 @@ const CashGetMusdEmptyState = ({
       createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
         .addProperties({
           action_type: 'claim_bonus',
-          button_text: claimBonusButtonLabel,
           location: claimBonusAnalyticsLocation,
           network_chain_id: LINEA_MUSD_ASSET_FOR_MERKL.chainId,
           network_name: lineaNetworkName ?? undefined,
@@ -198,18 +193,10 @@ const CashGetMusdEmptyState = ({
   }, [
     trackEvent,
     createEventBuilder,
-    claimBonusButtonLabel,
     claimBonusAnalyticsLocation,
     lineaNetworkName,
     claimRewards,
   ]);
-
-  const handleTokenRowPress = useCallback(() => {
-    NavigationService.navigation.navigate('Asset', {
-      ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-      source: TokenDetailsSource.MobileTokenListPage,
-    });
-  }, []);
 
   const handleGetMusdPress = useCallback(async () => {
     const { EVENT_LOCATIONS, MUSD_CTA_TYPES } = MUSD_EVENTS_CONSTANTS;
@@ -218,9 +205,8 @@ const CashGetMusdEmptyState = ({
         if (!hasSeenConversionEducationScreen) {
           return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
         }
-        return isQuickConvertEnabled
-          ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
-          : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+
+        return EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
       }
       return EVENT_LOCATIONS.BUY_SCREEN;
     };
@@ -253,9 +239,6 @@ const CashGetMusdEmptyState = ({
       try {
         await initiateCustomConversion({
           preferredPaymentToken: paymentToken,
-          navigationOverride: isQuickConvertEnabled
-            ? MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT
-            : undefined,
         });
         return;
       } catch (error) {
@@ -280,7 +263,6 @@ const CashGetMusdEmptyState = ({
     hasConvertibleTokens,
     hasSeenConversionEducationScreen,
     isFullView,
-    isQuickConvertEnabled,
     getPaymentTokenForSelectedNetwork,
     goToBuy,
     initiateCustomConversion,
@@ -294,7 +276,7 @@ const CashGetMusdEmptyState = ({
       <View style={tw.style('flex-row items-center justify-between py-1')}>
         <Pressable
           testID={CashGetMusdEmptyStateSelectors.ROW}
-          onPress={handleTokenRowPress}
+          onPress={navigateToCash}
           style={({ pressed }) =>
             tw.style(
               'flex-row items-center gap-5 flex-1',
@@ -351,7 +333,7 @@ const CashGetMusdEmptyState = ({
           </Button>
         )}
       </View>
-      {hasClaimableBonus ? (
+      {hasClaimableBonus && !hideClaimButton ? (
         <Button
           testID={CashGetMusdEmptyStateSelectors.CLAIM_BONUS_BUTTON}
           variant={ButtonVariant.Secondary}

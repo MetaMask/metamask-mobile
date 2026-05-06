@@ -3,6 +3,7 @@ import {
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { EARN_TEST_IDS } from '../../../app/components/UI/Earn/constants/testIds';
+import { CashGetMusdEmptyStateSelectors } from '../../../app/components/Views/Homepage/Sections/Cash/CashGetMusdEmptyState.testIds';
 import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
 import {
   PredictTabViewSelectorsIDs,
@@ -119,8 +120,16 @@ class WalletView {
   get accountIcon(): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(WalletViewSelectorsIDs.ACCOUNT_ICON),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.ACCOUNT_ICON,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByCatchAll(
+            WalletViewSelectorsIDs.ACCOUNT_ICON,
+          ),
+      },
     });
   }
 
@@ -329,6 +338,10 @@ class WalletView {
     return Matchers.getElementByID(
       EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA,
     );
+  }
+
+  get cashGetMusdContainer(): DetoxElement {
+    return Matchers.getElementByID(CashGetMusdEmptyStateSelectors.CONTAINER);
   }
 
   get getMusdButton(): DetoxElement {

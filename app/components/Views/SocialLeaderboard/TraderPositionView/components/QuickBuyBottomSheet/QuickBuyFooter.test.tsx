@@ -1,5 +1,10 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
+import {
+  TextColor,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import type { Hex } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
@@ -93,6 +98,17 @@ const createSourceToken = (overrides: Partial<BridgeToken> = {}): BridgeToken =>
 
 const defaultProps = {
   usdAmount: '',
+  formattedNetworkFee: '-',
+  formattedSlippage: '-',
+  formattedMinimumReceived: '-',
+  formattedPriceImpact: '-',
+  priceImpactViewData: {
+    textColor: TextColor.TextAlternative,
+    icon: undefined,
+    title: 'bridge.price_impact_info_title',
+    description: 'bridge.price_impact_info_description',
+  },
+  totalAmountUsd: '$0',
   sourceToken: createSourceToken(),
   sourceChainId: '0x1' as Hex,
   sourceTokenOptions: [createSourceToken()],
@@ -101,18 +117,8 @@ const defaultProps = {
   setIsSourcePickerOpen: jest.fn(),
   setSelectedSourceToken: jest.fn(),
   sourceBalanceFiat: '$2000.00',
-  estimatedPoints: null,
-  isRewardsLoading: false,
-  shouldShowLiveRewardsEstimate: false,
-  shouldShowRewardsOptInCta: false,
-  shouldShowRewardsFallbackZero: false,
-  hasRewardsError: false,
-  rewardsAccountScope: null,
-  isConfirmDisabled: false,
-  isConfirmLoading: false,
-  getButtonLabel: () => 'social_leaderboard.trader_position.buy',
+  isTotalLoading: false,
   onPresetPress: jest.fn(),
-  onConfirm: jest.fn(),
   colors: mockColors,
 };
 
@@ -172,31 +178,64 @@ describe('QuickBuyFooter', () => {
     });
   });
 
-  describe('est. points row', () => {
-    it('renders the rewards animation when a live estimate is available', () => {
+  describe('total row', () => {
+    it('shows skeleton when isTotalLoading is true', () => {
       renderWithProvider(
         <QuickBuyFooter
           {...defaultProps}
-          shouldShowLiveRewardsEstimate
-          estimatedPoints={42}
+          isTotalLoading
+          totalAmountUsd="$20.50"
         />,
       );
 
-      expect(screen.getByTestId('mock-rewards-animation')).toBeOnTheScreen();
-      expect(screen.getByText('42 pts')).toBeOnTheScreen();
+      expect(screen.getByTestId('skeleton-view')).toBeOnTheScreen();
+      expect(screen.queryByText('$20.50')).toBeNull();
+    });
+
+    it('shows the total value when isTotalLoading is false', () => {
+      renderWithProvider(
+        <QuickBuyFooter
+          {...defaultProps}
+          isTotalLoading={false}
+          totalAmountUsd="$20.50"
+        />,
+      );
+
+      expect(screen.getByText('$20.50')).toBeOnTheScreen();
     });
   });
 
-  describe('buy button', () => {
-    it('renders and calls onConfirm when pressed', () => {
-      const onConfirm = jest.fn().mockResolvedValue(undefined);
+  describe('price impact row', () => {
+    it('renders the formatted percentage without an icon when impact is safe', () => {
+      renderWithProvider(<QuickBuyFooter {...defaultProps} usdAmount="50" />);
+
+      // safe impact starts collapsed; expand to reveal the subrow
+      fireEvent.press(screen.getByTestId('quick-buy-total-row'));
+
+      expect(screen.getByTestId('quick-buy-price-impact')).toBeOnTheScreen();
+    });
+
+    it('auto-expands the total breakdown when severity icon is set', () => {
       renderWithProvider(
-        <QuickBuyFooter {...defaultProps} onConfirm={onConfirm} />,
+        <QuickBuyFooter
+          {...defaultProps}
+          usdAmount="50"
+          formattedPriceImpact="6.00%"
+          priceImpactViewData={{
+            textColor: TextColor.WarningDefault,
+            icon: {
+              name: IconName.Warning,
+              color: IconColor.WarningDefault,
+            },
+            title: 'bridge.price_impact_warning_title',
+            description: 'bridge.price_impact_warning_description',
+          }}
+        />,
       );
 
-      expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
-      fireEvent.press(screen.getByTestId('quick-buy-confirm-button'));
-      expect(onConfirm).toHaveBeenCalledTimes(1);
+      // No tap on Total — should already be expanded
+      expect(screen.getByTestId('quick-buy-price-impact')).toBeOnTheScreen();
+      expect(screen.getByText('6.00%')).toBeOnTheScreen();
     });
   });
 });

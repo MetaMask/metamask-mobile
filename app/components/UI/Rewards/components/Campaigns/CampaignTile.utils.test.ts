@@ -44,6 +44,7 @@ function buildCampaignDto(overrides: Partial<CampaignDto> = {}): CampaignDto {
     excludedRegions: [],
     details: null,
     featured: true,
+    showUpcomingDate: false,
     ...overrides,
   };
 }

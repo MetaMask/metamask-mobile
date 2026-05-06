@@ -55,7 +55,7 @@ import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterren
 import AnimatedSpinner from '../../../AnimatedSpinner';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
-import { isEvmChain, isSpendingLimitSupportedToken } from '../../constants';
+import { isSpendingLimitSupportedToken } from '../../constants';
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
 import CardActionsButtons from './components/CardActionsButtons';
@@ -213,7 +213,6 @@ const CardHome = () => {
   const showSpendingLimitProgress =
     isAuthenticated &&
     data?.primaryFundingAsset?.status === FundingAssetStatus.Limited &&
-    isEvmChain(data?.primaryFundingAsset?.chainId) &&
     isSpendingLimitSupportedToken(data?.primaryFundingAsset?.symbol) &&
     !hasSetupActions;
 
@@ -335,6 +334,9 @@ const CardHome = () => {
             remainingAllowance={data.primaryFundingAsset.spendingCap ?? '0'}
             symbol={data.primaryFundingAsset.symbol ?? ''}
             privacyMode={privacyMode}
+            hasOriginalAllowance={
+              !!data.primaryFundingAsset.originalSpendingCap
+            }
           />
         )}
 
@@ -391,7 +393,6 @@ const CardHome = () => {
         onOrderMetalCard={actions.orderMetalCardAction}
         onChangeAsset={actions.changeAssetAction}
         hasPriorityTokenBalance={hasPriorityTokenBalance}
-        onNavigateToCardPage={actions.navigateToCardPage}
         onCashback={actions.cashbackAction}
         onTravel={actions.navigateToTravelPage}
       />
