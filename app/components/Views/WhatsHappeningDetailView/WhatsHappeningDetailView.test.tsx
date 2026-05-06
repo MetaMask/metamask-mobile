@@ -113,9 +113,12 @@ describe('WhatsHappeningDetailView', () => {
       refresh: mockRefresh,
     });
     renderWithProvider(<WhatsHappeningDetailView />);
-    expect(
-      screen.getByTestId('whats-happening-detail-carousel'),
-    ).toBeOnTheScreen();
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    expect(carousel).toBeOnTheScreen();
+    // Simulate the carousel measuring its height so cards become visible
+    fireEvent(carousel, 'layout', {
+      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
+    });
     expect(screen.getByText(mockItem.title)).toBeOnTheScreen();
   });
 
