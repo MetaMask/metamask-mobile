@@ -912,7 +912,7 @@ const rewardsSlice = createSlice({
               activeBoosts: action.payload.rewards.activeBoosts,
               pointsEvents: action.payload.rewards.pointsEvents,
               unlockedRewards: action.payload.rewards.unlockedRewards,
-              campaigns: action.payload.rewards.campaigns,
+              campaigns: action.payload.rewards.campaigns ?? [],
               campaignParticipantStatuses:
                 action.payload.rewards.campaignParticipantStatuses ?? {},
               ondoCampaignLeaderboardPositions:

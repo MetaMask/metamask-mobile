@@ -3129,6 +3129,16 @@ describe('Rewards selectors', () => {
       expect(result.current).toEqual([]);
     });
 
+    it('returns empty array when campaigns is undefined', () => {
+      const mockState = {
+        rewards: { campaigns: undefined },
+      } as unknown as RootState;
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaigns));
+      expect(result.current).toEqual([]);
+    });
+
     it('returns campaigns array when campaigns exist', () => {
       const mockState = { rewards: { campaigns: [mockCampaign] } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
@@ -3140,6 +3150,13 @@ describe('Rewards selectors', () => {
     describe('Direct selector calls', () => {
       it('returns empty array when campaigns is empty', () => {
         const state = createMockRootState({ campaigns: [] });
+        expect(selectCampaigns(state)).toEqual([]);
+      });
+
+      it('returns empty array when campaigns is undefined', () => {
+        const state = createMockRootState({
+          campaigns: undefined as unknown as CampaignDto[],
+        });
         expect(selectCampaigns(state)).toEqual([]);
       });
 

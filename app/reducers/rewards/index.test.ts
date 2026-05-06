@@ -2681,6 +2681,21 @@ describe('rewardsReducer', () => {
 
       expect(state.ondoCampaignActivity).toEqual({});
     });
+
+    it('should default campaigns to [] when absent from persisted state (upgrade path)', () => {
+      const persistedRewardsStateWithoutField = {
+        ...initialState,
+        campaigns: undefined,
+      } as unknown as RewardsState;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persistedRewardsStateWithoutField },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.campaigns).toEqual([]);
+    });
   });
 
   describe('unknown actions', () => {

@@ -2,7 +2,10 @@ import { createSelector } from 'reselect';
 import { RootState } from '..';
 import { RewardsTab, OnboardingStep } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
-import { SubscriptionBenefitDto } from '../../core/Engine/controllers/rewards-controller/types.ts';
+import {
+  CampaignDto,
+  SubscriptionBenefitDto,
+} from '../../core/Engine/controllers/rewards-controller/types.ts';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
   state.rewards.activeTab;
@@ -159,7 +162,9 @@ export const selectBenefitsLoading = (state: RootState): boolean =>
   state.rewards.benefitsLoading;
 
 // Campaigns selectors
-export const selectCampaigns = (state: RootState) => state.rewards.campaigns;
+const EMPTY_CAMPAIGNS: CampaignDto[] = [];
+export const selectCampaigns = (state: RootState): CampaignDto[] =>
+  state.rewards.campaigns ?? EMPTY_CAMPAIGNS;
 
 export const selectCampaignById = (campaignId: string) => (state: RootState) =>
   state.rewards.campaigns?.find((c) => c.id === campaignId) ?? null;
