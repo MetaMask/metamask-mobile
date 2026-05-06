@@ -212,34 +212,12 @@ export type Position = {
 
 // Using 'type' instead of 'interface' for BaseController Json compatibility
 export type AccountState = {
-  /**
-   * Total USD equity on this venue — collateral + unrealized PnL. Live MTM.
-   * HL: crossMarginSummary.accountValue + spot(USDC) − spot.hold
-   * MYX: walletBalance + marginUsed + unrealizedPnl
-   */
-  totalBalance: string;
-  /**
-   * Max USD that can immediately collateralize a new position on this venue,
-   * with no internal transfer required.
-   * HL Unified: withdrawable + freeSpotUSDC
-   * HL Standard: withdrawable
-   * MYX: walletBalance
-   */
-  spendableBalance: string;
-  /**
-   * Max USD that can leave this venue to the user's external wallet.
-   * UI reads this value without branching on provider; the provider
-   * contract guarantees HL's own abstraction (Unified) or the direct
-   * perps-clearinghouse (Standard) is what actually settles the
-   * withdraw — no client-side spot→perps sweep is performed.
-   * HL Unified: withdrawable + freeSpotUSDC (USDC only; `freeSpotUSDC = spot.total - spot.hold`, and HL withdraw3 draws from the unified ledger server-side)
-   * HL Standard: withdrawable (perps-clearinghouse only; spot is a separate ledger)
-   * MYX: walletBalance
-   */
-  withdrawableBalance: string;
-  marginUsed: string;
-  unrealizedPnl: string;
-  returnOnEquity: string;
+  availableBalance: string; // Based on HyperLiquid: withdrawable
+  availableToTradeBalance?: string; // withdrawable + unreserved spot collateral (order-entry path)
+  totalBalance: string; // Based on HyperLiquid: accountValue
+  marginUsed: string; // Based on HyperLiquid: marginUsed
+  unrealizedPnl: string; // Based on HyperLiquid: unrealizedPnl
+  returnOnEquity: string; // Based on HyperLiquid: returnOnEquity adjusted for weighted margin
   /**
    * Per-sub-account balance breakdown (protocol-specific, optional)
    * Maps sub-account identifier to its balance details.
@@ -255,8 +233,7 @@ export type AccountState = {
   subAccountBreakdown?: Record<
     string,
     {
-      spendableBalance: string;
-      withdrawableBalance: string;
+      availableBalance: string;
       totalBalance: string;
     }
   >;

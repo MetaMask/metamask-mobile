@@ -35,9 +35,6 @@ import type {
   PaginatedOndoGmActivityDto,
   OndoGmCampaignDepositsDto,
   OndoGmCampaignParticipantOutcomeDto,
-  PerpsTradingCampaignLeaderboardDto,
-  PerpsTradingCampaignLeaderboardPositionDto,
-  PerpsTradingCampaignVolumeDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -266,21 +263,6 @@ export interface RewardsDataServiceGetOndoCampaignParticipantOutcomeAction {
   handler: RewardsDataService['getOndoCampaignParticipantOutcome'];
 }
 
-export interface RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction {
-  type: `${typeof SERVICE_NAME}:getPerpsTradingCampaignLeaderboard`;
-  handler: RewardsDataService['getPerpsTradingCampaignLeaderboard'];
-}
-
-export interface RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction {
-  type: `${typeof SERVICE_NAME}:getPerpsTradingCampaignLeaderboardPosition`;
-  handler: RewardsDataService['getPerpsTradingCampaignLeaderboardPosition'];
-}
-
-export interface RewardsDataServiceGetPerpsTradingCampaignVolumeAction {
-  type: `${typeof SERVICE_NAME}:getPerpsTradingCampaignVolume`;
-  handler: RewardsDataService['getPerpsTradingCampaignVolume'];
-}
-
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -352,10 +334,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetOndoCampaignActivityAction
   | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
   | RewardsDataServiceGetOndoCampaignDepositsAction
-  | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction
-  | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
-  | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
-  | RewardsDataServiceGetPerpsTradingCampaignVolumeAction;
+  | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -529,18 +508,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getOndoCampaignParticipantOutcome`,
       this.getOndoCampaignParticipantOutcome.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getPerpsTradingCampaignLeaderboard`,
-      this.getPerpsTradingCampaignLeaderboard.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getPerpsTradingCampaignLeaderboardPosition`,
-      this.getPerpsTradingCampaignLeaderboardPosition.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getPerpsTradingCampaignVolume`,
-      this.getPerpsTradingCampaignVolume.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -1752,79 +1719,5 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as OndoGmCampaignParticipantOutcomeDto;
-  }
-
-  /**
-   * Get the Perps Trading Campaign leaderboard (top 20 entries, no tiers).
-   * Public endpoint — no authentication required.
-   * @param campaignId - The campaign ID.
-   */
-  async getPerpsTradingCampaignLeaderboard(
-    campaignId: string,
-  ): Promise<PerpsTradingCampaignLeaderboardDto> {
-    const response = await this.makeRequest(
-      `/perps-trading/${campaignId}/leaderboard`,
-      { method: 'GET' },
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Get perps trading campaign leaderboard failed: ${response.status}`,
-      );
-    }
-
-    return (await response.json()) as PerpsTradingCampaignLeaderboardDto;
-  }
-
-  /**
-   * Get the current user's position on the Perps Trading Campaign leaderboard.
-   * Authenticated endpoint.
-   * @param campaignId - The campaign ID.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns The user's position, or null if not found (404).
-   */
-  async getPerpsTradingCampaignLeaderboardPosition(
-    campaignId: string,
-    subscriptionId: string,
-  ): Promise<PerpsTradingCampaignLeaderboardPositionDto | null> {
-    const response = await this.makeRequest(
-      `/perps-trading/${campaignId}/leaderboard/me`,
-      { method: 'GET' },
-      subscriptionId,
-    );
-
-    if (response.status === 404) {
-      return null;
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        `Get perps trading campaign leaderboard position failed: ${response.status}`,
-      );
-    }
-
-    return (await response.json()) as PerpsTradingCampaignLeaderboardPositionDto;
-  }
-
-  /**
-   * Get the Perps Trading Campaign volume stats.
-   * Public endpoint — no authentication required.
-   * @param campaignId - The campaign ID.
-   */
-  async getPerpsTradingCampaignVolume(
-    campaignId: string,
-  ): Promise<PerpsTradingCampaignVolumeDto> {
-    const response = await this.makeRequest(
-      `/perps-trading/${campaignId}/stats/total-volume`,
-      { method: 'GET' },
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Get perps trading campaign volume failed: ${response.status}`,
-      );
-    }
-
-    return (await response.json()) as PerpsTradingCampaignVolumeDto;
   }
 }

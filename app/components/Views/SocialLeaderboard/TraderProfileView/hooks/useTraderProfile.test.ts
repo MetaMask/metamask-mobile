@@ -3,15 +3,10 @@ import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import { useTraderProfile } from './useTraderProfile';
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
-jest.mock('../../../../../selectors/keyringController', () => ({
-  selectIsUnlocked: jest.fn(),
+  useSelector: jest.fn().mockReturnValue([]),
 }));
 
 jest.mock('../../../../../selectors/socialController', () => ({
@@ -71,10 +66,7 @@ describe('useTraderProfile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseQuery.mockReturnValue(makeQueryResult());
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectIsUnlocked) return true;
-      return []; // default for other selectors (e.g. selectFollowingProfileIds)
-    });
+    mockUseSelector.mockReturnValue([]);
   });
 
   describe('query configuration', () => {
@@ -91,7 +83,7 @@ describe('useTraderProfile', () => {
       );
     });
 
-    it('enables the query when addressOrId is non-empty and wallet is unlocked', () => {
+    it('enables the query when addressOrId is non-empty', () => {
       renderHook(() => useTraderProfile('trader-1'));
 
       expect(mockUseQuery).toHaveBeenCalledWith(
@@ -101,18 +93,6 @@ describe('useTraderProfile', () => {
 
     it('disables the query when addressOrId is empty', () => {
       renderHook(() => useTraderProfile(''));
-
-      expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: false }),
-      );
-    });
-
-    it('disables the query when wallet is locked', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectIsUnlocked) return false;
-        return [];
-      });
-      renderHook(() => useTraderProfile('trader-1'));
 
       expect(mockUseQuery).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: false }),
@@ -200,10 +180,7 @@ describe('useTraderProfile', () => {
     });
 
     it('seeds isFollowing true when traderId is in followingProfileIds', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectIsUnlocked) return true;
-        return ['trader-1'];
-      });
+      mockUseSelector.mockReturnValue(['trader-1']);
       const { result } = renderHook(() => useTraderProfile('trader-1'));
       expect(result.current.isFollowing).toBe(true);
     });
@@ -222,10 +199,7 @@ describe('useTraderProfile', () => {
     });
 
     it('calls unfollowTrader when currently following', async () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectIsUnlocked) return true;
-        return ['trader-1'];
-      });
+      mockUseSelector.mockReturnValue(['trader-1']);
       const { result } = renderHook(() => useTraderProfile('trader-1'));
 
       await act(async () => {

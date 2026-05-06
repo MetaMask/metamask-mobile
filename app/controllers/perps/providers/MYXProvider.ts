@@ -687,8 +687,7 @@ export class MYXProvider implements PerpsProvider {
         ...this.#getErrorContext('getAccountState'),
       });
       return {
-        spendableBalance: '0',
-        withdrawableBalance: '0',
+        availableBalance: '0',
         totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -959,8 +958,7 @@ export class MYXProvider implements PerpsProvider {
     setTimeout(
       () =>
         params.callback({
-          spendableBalance: '0',
-          withdrawableBalance: '0',
+          availableBalance: '0',
           totalBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',

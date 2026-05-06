@@ -89,14 +89,16 @@ export function usePerpsOrderForm(
     selectPendingTradeConfiguration(state, initialAsset),
   );
 
-  const spendableBalance = Number.parseFloat(
+  const availableBalance = Number.parseFloat(
     effectiveAvailableBalanceParam != null
       ? effectiveAvailableBalanceParam.toString()
-      : (account?.spendableBalance?.toString() ?? '0'),
+      : (account?.availableToTradeBalance?.toString() ??
+          account?.availableBalance?.toString() ??
+          '0'),
   );
 
   // When paying with a custom token, use selected token amount in USD (including 0); otherwise use Perps balance
-  const balanceForMax = effectiveAvailableBalanceParam ?? spendableBalance;
+  const balanceForMax = effectiveAvailableBalanceParam ?? availableBalance;
 
   // Determine default amount based on network
   const defaultAmount =
@@ -130,7 +132,7 @@ export function usePerpsOrderForm(
     }
 
     const tempMaxAmount = getMaxAllowedAmount({
-      spendableBalance: balanceForMax,
+      availableBalance: balanceForMax,
       assetPrice: Number.parseFloat(currentPrice.price),
       assetSzDecimals: marketData?.szDecimals ?? 6,
       leverage: defaultLeverage, // Use default leverage for initial calculation
@@ -161,8 +163,8 @@ export function usePerpsOrderForm(
   const initialMarginRequired =
     Number.parseFloat(initialAmountValue) / defaultLeverage;
   const initialBalancePercent =
-    spendableBalance > 0
-      ? Math.min((initialMarginRequired / spendableBalance) * 100, 100)
+    availableBalance > 0
+      ? Math.min((initialMarginRequired / availableBalance) * 100, 100)
       : TRADING_DEFAULTS.marginPercent;
 
   // Initialize form state with pending config if available
@@ -182,7 +184,7 @@ export function usePerpsOrderForm(
   const maxPossibleAmount = useMemo(
     () =>
       getMaxAllowedAmount({
-        spendableBalance: balanceForMax,
+        availableBalance: balanceForMax,
         assetPrice: Number.parseFloat(currentPrice?.price) || 0,
         assetSzDecimals: marketData?.szDecimals ?? 6,
         leverage: orderForm.leverage, // Use current leverage instead of default

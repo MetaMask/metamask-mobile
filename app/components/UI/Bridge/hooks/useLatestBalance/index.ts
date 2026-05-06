@@ -243,26 +243,16 @@ export const useLatestBalance = (token: {
     return { displayBalance, atomicBalance };
   }, [token.balance, token.decimals]);
 
-  const latestBalance = useMemo(() => {
-    if (!token.address || !token.decimals) {
-      return undefined;
-    }
+  if (!token.address || !token.decimals) {
+    return undefined;
+  }
 
-    // If the token identity has changed, return cached balance of new token
-    // so we have time to fetch the new balance.
-    if (tokenIdentityChanged) {
-      return cachedBalance;
-    }
+  // If the token identity has changed, return cached balance of new token
+  // so we have time to fetch the new balance.
+  if (tokenIdentityChanged) {
+    return cachedBalance;
+  }
 
-    // Return balance if it exists, otherwise return cached balance of new token
-    return balance ?? cachedBalance;
-  }, [
-    balance,
-    cachedBalance,
-    token.address,
-    token.decimals,
-    tokenIdentityChanged,
-  ]);
-
-  return latestBalance;
+  // Return balance if it exists, otherwise return cached balance of new token
+  return balance ?? cachedBalance;
 };

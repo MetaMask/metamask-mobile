@@ -470,8 +470,7 @@ describe('MarketDataService', () => {
   describe('getAccountState', () => {
     it('fetches account state and updates state', async () => {
       const mockAccountState: AccountState = {
-        spendableBalance: '10000',
-        withdrawableBalance: '10000',
+        availableBalance: '10000',
         totalBalance: '15000',
         marginUsed: '5000',
         unrealizedPnl: '1000',
@@ -530,8 +529,7 @@ describe('MarketDataService', () => {
 
     it('passes source param in trace tags', async () => {
       const mockAccountState: AccountState = {
-        spendableBalance: '10000',
-        withdrawableBalance: '10000',
+        availableBalance: '10000',
         totalBalance: '15000',
         marginUsed: '5000',
         unrealizedPnl: '1000',

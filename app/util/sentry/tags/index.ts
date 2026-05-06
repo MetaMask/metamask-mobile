@@ -5,7 +5,6 @@ import { selectAllTokensFlat } from '../../../selectors/tokensController';
 import { getNotificationsList } from '../../../selectors/notifications';
 import { selectTransactions } from '../../../selectors/transactionController';
 import { selectPendingApprovals } from '../../../selectors/approvalController';
-import { getTokensControllerAllTokens } from '../../../selectors/assets/assets-migration';
 
 export function getTraceTags(state: RootState) {
   const tags: Record<string, number | string | boolean> = {};
@@ -52,8 +51,7 @@ export function getTraceTags(state: RootState) {
   }
 
   try {
-    const allTokens = getTokensControllerAllTokens(state);
-    if (allTokens && Object.keys(allTokens).length > 0) {
+    if (state?.engine?.backgroundState?.TokensController?.allTokens) {
       tags['wallet.token_count'] = selectAllTokensFlat(state)?.length;
     }
   } catch (_) {

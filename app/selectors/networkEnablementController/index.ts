@@ -22,15 +22,6 @@ export const selectEVMEnabledNetworks = createDeepEqualSelector(
     ) as Hex[],
 );
 
-export const selectEvmEnabledCaipNetworks = createDeepEqualSelector(
-  selectEVMEnabledNetworks,
-  (chainIds) =>
-    (chainIds ?? []).map(
-      (chainId) =>
-        `${KnownCaipNamespace.Eip155}:${Number.parseInt(chainId, 16)}`,
-    ),
-);
-
 export const selectNonEVMEnabledNetworks = createDeepEqualSelector(
   selectEnabledNetworksByNamespace,
   (

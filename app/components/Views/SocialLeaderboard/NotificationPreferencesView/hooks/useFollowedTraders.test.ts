@@ -1,6 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useQuery } from '@metamask/react-data-query';
-import { addBreadcrumb } from '@sentry/react-native';
 import Logger from '../../../../../util/Logger';
 import { useFollowedTraders } from './useFollowedTraders';
 
@@ -9,12 +8,6 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 jest.mock('@metamask/react-data-query');
-
-jest.mock('@sentry/react-native', () => ({
-  addBreadcrumb: jest.fn(),
-}));
-
-const mockAddBreadcrumb = addBreadcrumb as jest.Mock;
 
 const mockRefetch = jest.fn();
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
@@ -25,7 +18,6 @@ const makeQueryResult = (
   ({
     data: undefined,
     isLoading: false,
-    isFetching: false,
     error: null,
     refetch: mockRefetch,
     ...overrides,
@@ -53,7 +45,6 @@ describe('useFollowedTraders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseQuery.mockReturnValue(makeQueryResult());
-    mockAddBreadcrumb.mockClear();
   });
 
   describe('query configuration', () => {
@@ -144,17 +135,13 @@ describe('useFollowedTraders', () => {
       expect(result.current.error).toBe('raw error');
     });
 
-    it('logs query errors with enriched extras', () => {
+    it('logs query errors', () => {
       const error = new Error('fetch failed');
       mockUseQuery.mockReturnValue(makeQueryResult({ error }));
       renderHook(() => useFollowedTraders());
       expect(Logger.error).toHaveBeenCalledWith(
         error,
-        expect.objectContaining({
-          message: 'useFollowedTraders: following fetch failed',
-          endpoint: 'following',
-          errorCategory: expect.any(String),
-        }),
+        'useFollowedTraders: following fetch failed',
       );
     });
 
@@ -190,46 +177,8 @@ describe('useFollowedTraders', () => {
 
       expect(Logger.error).toHaveBeenCalledWith(
         error,
-        expect.objectContaining({
-          message: 'useFollowedTraders: refresh failed',
-          endpoint: 'following',
-          errorCategory: expect.any(String),
-        }),
+        'useFollowedTraders: refresh failed',
       );
-    });
-  });
-
-  describe('breadcrumbs', () => {
-    it('emits a failure breadcrumb when an error is set', () => {
-      const error = new Error('fetch failed');
-      mockUseQuery.mockReturnValue(makeQueryResult({ error }));
-      renderHook(() => useFollowedTraders());
-      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
-        expect.objectContaining({
-          category: 'social_service',
-          level: 'error',
-          message: expect.stringContaining('social_service.following.failure'),
-        }),
-      );
-    });
-
-    it('includes httpStatus in the failure breadcrumb for HttpError', () => {
-      const error = Object.assign(new Error('Unauthorized'), {
-        httpStatus: 401,
-      });
-      mockUseQuery.mockReturnValue(makeQueryResult({ error }));
-      renderHook(() => useFollowedTraders());
-      expect(mockAddBreadcrumb.mock.calls[0][0].message).toContain(
-        'status=401',
-      );
-    });
-
-    it('does not emit a breadcrumb when there is no error', () => {
-      mockUseQuery.mockReturnValue(
-        makeQueryResult({ data: fixtureFollowing as never }),
-      );
-      renderHook(() => useFollowedTraders());
-      expect(mockAddBreadcrumb).not.toHaveBeenCalled();
     });
   });
 });

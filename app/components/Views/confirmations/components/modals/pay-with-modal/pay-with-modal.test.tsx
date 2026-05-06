@@ -294,10 +294,10 @@ describe('PayWithModal', () => {
   });
 
   describe('on token select', () => {
-    it('sets pay asset', async () => {
-      const { findByText } = render();
+    it('sets pay asset', () => {
+      const { getByText } = render();
 
-      fireEvent.press(await findByText('Test Token 1'));
+      fireEvent.press(getByText('Test Token 1'));
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
         address: TOKENS_MOCK[1].address,
@@ -305,7 +305,7 @@ describe('PayWithModal', () => {
       });
     });
 
-    it('calls onPerpsPaymentTokenChange via close callback when type is perpsDepositAndOrder', async () => {
+    it('calls onPerpsPaymentTokenChange via close callback when type is perpsDepositAndOrder', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
         chainId: CHAIN_ID_1_MOCK,
@@ -316,9 +316,9 @@ describe('PayWithModal', () => {
         type: TransactionType.perpsDepositAndOrder,
       } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
 
-      const { findByText } = render();
+      const { getByText } = render();
 
-      fireEvent.press(await findByText('Test Token 1'));
+      fireEvent.press(getByText('Test Token 1'));
 
       expect(onPerpsPaymentTokenChangeMock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -465,9 +465,9 @@ describe('PayWithModal', () => {
         jest.fn(() => [zeroBalanceToken]),
       );
 
-      const { findByText } = render();
+      const { getByText } = render();
 
-      fireEvent.press(await findByText('Zero Token'));
+      fireEvent.press(getByText('Zero Token'));
 
       await waitFor(() => {
         expect(setPayTokenMock).toHaveBeenCalled();
@@ -497,9 +497,11 @@ describe('PayWithModal', () => {
         jest.fn(() => [zeroBalanceToken]),
       );
 
-      const { findByText } = render();
+      const { getByText } = render();
 
-      fireEvent.press(await findByText('Zero Token'));
+      await waitFor(() => {
+        fireEvent.press(getByText('Zero Token'));
+      });
 
       expect(mockAddTokens).toHaveBeenCalledWith(
         [

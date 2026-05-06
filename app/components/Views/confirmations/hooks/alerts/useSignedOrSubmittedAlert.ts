@@ -16,7 +16,6 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { selectMetaMaskPayHardwareFlags } from '../../../../../selectors/featureFlagController/confirmations';
 
 export const PAY_TYPES = [
-  TransactionType.moneyAccountDeposit,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
 ];

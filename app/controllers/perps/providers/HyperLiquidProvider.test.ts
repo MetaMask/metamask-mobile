@@ -181,9 +181,6 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
   spotClearinghouseState: jest.fn().mockResolvedValue({
     balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
   }),
-  // Mode-aware fold gate reads userAbstraction; default to unifiedAccount
-  // so tests that predated the gate still see spot folded into spendable/withdrawable.
-  userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
   meta: jest.fn().mockResolvedValue({
     universe: [
       { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
@@ -219,6 +216,7 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
     ],
   ]),
   perpDexs: jest.fn().mockResolvedValue([null]),
+  userAbstraction: jest.fn().mockResolvedValue('default'),
   allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
   frontendOpenOrders: jest.fn().mockResolvedValue([]),
   referral: jest.fn().mockResolvedValue({
@@ -2222,12 +2220,11 @@ describe('HyperLiquidProvider', () => {
 
       const accountState = await hip3Provider.getAccountState();
 
-      expect(accountState.spendableBalance).toBe('0');
-      expect(accountState.withdrawableBalance).toBe('0');
+      expect(accountState.availableToTradeBalance).toBe('0');
       expect(accountState.totalBalance).toBe('0');
     });
 
-    it('folds USDC spot balance into spendable/withdrawable in Unified Account mode', async () => {
+    it('folds USDC spot balance into availableToTradeBalance in Unified Account mode', async () => {
       const hip3Provider = createTestProvider({
         hip3Enabled: true,
         allowlistMarkets: ['xyz:*'],
@@ -2261,8 +2258,8 @@ describe('HyperLiquidProvider', () => {
 
       const accountState = await hip3Provider.getAccountState();
 
-      expect(accountState.spendableBalance).toBe('90');
-      expect(accountState.withdrawableBalance).toBe('90');
+      expect(accountState.availableBalance).toBe('0');
+      expect(accountState.availableToTradeBalance).toBe('90');
       expect(accountState.totalBalance).toBe('90');
     });
 
@@ -2302,8 +2299,7 @@ describe('HyperLiquidProvider', () => {
 
         const accountState = await hip3Provider.getAccountState();
 
-        expect(accountState.spendableBalance).toBe('0');
-        expect(accountState.withdrawableBalance).toBe('0');
+        expect(accountState.availableToTradeBalance).toBe('0');
         expect(accountState.totalBalance).toBe('90');
       },
     );
@@ -4352,8 +4348,7 @@ describe('HyperLiquidProvider', () => {
         // Mock account state for balance validation
         Object.defineProperty(provider, 'getAccountState', {
           value: jest.fn().mockResolvedValue({
-            spendableBalance: '5000',
-            withdrawableBalance: '5000',
+            availableBalance: '5000',
           }),
           writable: true,
         });
@@ -4376,7 +4371,7 @@ describe('HyperLiquidProvider', () => {
         });
       });
 
-      it('validates withdrawal against withdrawableBalance populated by spot fold for Unified Account', async () => {
+      it('validates withdrawal against availableToTradeBalance when Unified Account has zero availableBalance', async () => {
         const exchangeClient = createMockExchangeClient();
         mockClientService.getExchangeClient = jest
           .fn()
@@ -4384,8 +4379,8 @@ describe('HyperLiquidProvider', () => {
 
         Object.defineProperty(provider, 'getAccountState', {
           value: jest.fn().mockResolvedValue({
-            spendableBalance: '2500',
-            withdrawableBalance: '2500',
+            availableBalance: '0',
+            availableToTradeBalance: '2500',
             totalBalance: '2500',
             marginUsed: '0',
             unrealizedPnl: '0',
@@ -4422,8 +4417,7 @@ describe('HyperLiquidProvider', () => {
         // Mock account state for balance validation
         Object.defineProperty(provider, 'getAccountState', {
           value: jest.fn().mockResolvedValue({
-            spendableBalance: '5000',
-            withdrawableBalance: '5000',
+            availableBalance: '5000',
           }),
           writable: true,
         });
@@ -5651,7 +5645,6 @@ describe('HyperLiquidProvider', () => {
         spotClearinghouseState: jest.fn().mockResolvedValue({
           balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
         }),
-        userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
         meta: jest.fn().mockResolvedValue({
           universe: [
             { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
@@ -5783,7 +5776,6 @@ describe('HyperLiquidProvider', () => {
         spotClearinghouseState: jest.fn().mockResolvedValue({
           balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
         }),
-        userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
         meta: jest.fn().mockResolvedValue({
           universe: [
             { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
@@ -9618,8 +9610,6 @@ describe('HyperLiquidProvider', () => {
         frontendOpenOrders: jest.fn(),
         perpDexs: jest.fn().mockResolvedValue([null]),
         spotClearinghouseState: jest.fn().mockResolvedValue({ balances: [] }),
-        // Mode-aware fold gate requires userAbstraction on standalone info
-        // clients as well; default to unifiedAccount for pre-existing tests.
         userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
       };
     });
@@ -9829,8 +9819,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert — all DEX queries failed, aggregateAccountStates([]) returns fallback
         expect(result).toEqual({
-          spendableBalance: '--',
-          withdrawableBalance: '--',
+          availableBalance: '--',
           totalBalance: '--',
           marginUsed: '--',
           unrealizedPnl: '--',

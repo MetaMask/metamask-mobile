@@ -322,16 +322,15 @@ const ManualBackupStep1 = () => {
                 placeholder={strings('manual_backup_step_1.password')}
                 value={password}
                 onChangeText={onPasswordChange}
+                secureTextEntry
+                onSubmitEditing={tryUnlock}
+                testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
+                accessibilityLabel={
+                  ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT
+                }
+                keyboardAppearance={themeAppearance}
+                autoCapitalize="none"
                 autoFocus
-                inputProps={{
-                  secureTextEntry: true,
-                  onSubmitEditing: tryUnlock,
-                  testID: ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
-                  accessibilityLabel:
-                    ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
-                  keyboardAppearance: themeAppearance,
-                  autoCapitalize: 'none',
-                }}
               />
               {warningIncorrectPassword && (
                 <Text

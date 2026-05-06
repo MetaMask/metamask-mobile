@@ -64,10 +64,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import QuoteDetailsCardSkeleton from '../../components/QuoteDetailsCard/QuoteDetailsCardSkeleton';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
-import {
-  BridgeQuoteDataProvider,
-  useBridgeQuoteDataContext,
-} from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { createStyles } from './BridgeView.styles';
 import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
@@ -115,11 +112,7 @@ import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
-interface BridgeViewContentProps {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
-const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
+const BridgeView = () => {
   const [isNearBottom, setIsNearBottom] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
@@ -240,6 +233,13 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
 
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
+  const latestSourceBalance = useLatestBalance({
+    address: sourceToken?.address,
+    decimals: sourceToken?.decimals,
+    chainId: sourceToken?.chainId,
+    balance: sourceToken?.balance,
+  });
+
   const updateQuoteParams = useBridgeQuoteRequest({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
@@ -253,7 +253,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     quoteFetchError,
     shouldShowPriceImpactWarning,
     needsNewQuote,
-  } = useBridgeQuoteDataContext();
+  } = useBridgeQuoteData({
+    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
@@ -630,24 +632,6 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
         </SwapsKeypad>
       </Box>
     </ScreenView>
-  );
-};
-
-const BridgeView = () => {
-  const sourceToken = useSelector(selectSourceToken);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-  });
-
-  return (
-    <BridgeQuoteDataProvider
-      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-    >
-      <BridgeViewContent latestSourceBalance={latestSourceBalance} />
-    </BridgeQuoteDataProvider>
   );
 };
 

@@ -23,12 +23,7 @@ export const withQrKeyring = async <CallbackResult = void>(
 ): Promise<CallbackResult> =>
   await Engine.context.KeyringController.withKeyring(
     { type: ExtendedKeyringTypes.qr },
-    ({ keyring, metadata }) => {
-      if (!(keyring instanceof QrKeyring)) {
-        throw new Error('Expected QrKeyring');
-      }
-      return operation({ keyring, metadata });
-    },
+    operation,
     // TODO: Refactor this to stop creating the keyring on-demand
     // Instead create it only in response to an explicit user action, and do
     // not allow interactions with Qr Keyring until after that has been done.

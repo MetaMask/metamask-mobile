@@ -48,10 +48,8 @@ import {
   useSwapBridgeNavigation,
 } from '../Bridge/hooks/useSwapBridgeNavigation';
 import { BridgeToken } from '../Bridge/types';
-import {
-  useExploreSearch,
-  type SearchFeedId,
-} from '../../Views/TrendingView/search/useExploreSearch';
+import { useExploreSearch } from '../../Views/TrendingView/hooks/useExploreSearch';
+import { type SectionId } from '../../Views/TrendingView/sections.config';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket } from '../Predict/types';
@@ -83,22 +81,19 @@ const getTrendingTokenImageUrl = (assetId: string): string =>
   `https://token.api.cx.metamask.io/assets/${assetId}/logo.png`;
 
 interface ResultsWithCategory {
-  category: UrlAutocompleteCategory | SearchFeedId;
+  category: UrlAutocompleteCategory | SectionId;
   data: AutocompleteSearchResult[];
   isLoading?: boolean;
 }
 
 /**
- * Helper to map search feed id to UrlAutocompleteCategory for display
+ * Helper to map SectionId to UrlAutocompleteCategory for display
  */
-const sectionIdToCategory = (
-  sectionId: SearchFeedId,
-): UrlAutocompleteCategory => {
+const sectionIdToCategory = (sectionId: SectionId): UrlAutocompleteCategory => {
   switch (sectionId) {
     case 'sites':
       return UrlAutocompleteCategory.Sites;
     case 'tokens':
-    case 'stocks':
       return UrlAutocompleteCategory.Tokens;
     case 'perps':
       return UrlAutocompleteCategory.Perps;
@@ -204,42 +199,14 @@ const SearchContent: React.FC<SearchContentProps> = ({
     selectBasicFunctionalityEnabled,
   );
 
-  // Bridge Explore `useExploreSearch` ({ sections }) to the record shape this UI expects
-  const exploreResult = useExploreSearch(searchQuery);
+  // Use omni-search hook with browser-specific section order (Sites first)
   const {
     data: omniSearchData,
     isLoading: omniSearchLoading,
     sectionsOrder,
-  } = useMemo(() => {
-    const order = BROWSER_SEARCH_SECTIONS_ORDER;
-    const byFeedId = new Map(exploreResult.sections.map((s) => [s.feedId, s]));
-
-    const data: Partial<Record<SearchFeedId, unknown[]>> = {};
-    const isLoading: Partial<Record<SearchFeedId, boolean>> = {};
-
-    for (const sectionId of order) {
-      if (sectionId === 'tokens') {
-        const tokensSec = byFeedId.get('tokens');
-        const stocksSec = byFeedId.get('stocks');
-        data.tokens = [
-          ...((tokensSec?.items as TrendingAsset[]) ?? []),
-          ...((stocksSec?.items as TrendingAsset[]) ?? []),
-        ];
-        isLoading.tokens =
-          Boolean(tokensSec?.isLoading) || Boolean(stocksSec?.isLoading);
-        continue;
-      }
-      const sec = byFeedId.get(sectionId);
-      data[sectionId] = sec?.items ?? [];
-      isLoading[sectionId] = sec?.isLoading ?? false;
-    }
-
-    return {
-      data: data as Record<SearchFeedId, unknown[]>,
-      isLoading: isLoading as Record<SearchFeedId, boolean>,
-      sectionsOrder: order,
-    };
-  }, [exploreResult]);
+  } = useExploreSearch(searchQuery, {
+    sectionsOrder: BROWSER_SEARCH_SECTIONS_ORDER,
+  });
 
   // Create Fuse instance for filtering Recents and Favorites
   const fuseInstance = useMemo(() => {

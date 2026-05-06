@@ -1,5 +1,5 @@
 import { UrlAutocompleteCategory } from './types';
-import { SearchFeedId } from '../../Views/TrendingView/search/useExploreSearch';
+import type { SectionId } from '../../Views/TrendingView/sections.config';
 
 export const MAX_RECENTS = 5;
 
@@ -43,7 +43,7 @@ export const ORDERED_CATEGORIES = [
  * Section order for browser search (Sites first, then other omni-search sections)
  * This order is passed to useExploreSearch to display Sites before tokens/perps/predictions
  */
-export const BROWSER_SEARCH_SECTIONS_ORDER: SearchFeedId[] = [
+export const BROWSER_SEARCH_SECTIONS_ORDER: SectionId[] = [
   'sites',
   'tokens',
   'perps',

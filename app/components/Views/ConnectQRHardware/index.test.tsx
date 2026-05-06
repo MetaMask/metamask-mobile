@@ -10,8 +10,7 @@ import {
   ACCOUNT_SELECTOR_NEXT_BUTTON,
   ACCOUNT_SELECTOR_PREVIOUS_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
-import { QrKeyring, QrKeyringBridge } from '@metamask/eth-qr-keyring';
-import type { Hex } from '@metamask/utils';
+import { QrKeyringBridge } from '@metamask/eth-qr-keyring';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
@@ -43,14 +42,7 @@ const mockedNavigate = {
   goBack: jest.fn(),
 };
 
-interface MockAccount {
-  address: Hex;
-  index: number;
-  shortenedAddress: string;
-  balance: string;
-}
-
-const mockPage0Accounts: MockAccount[] = [
+const mockPage0Accounts = [
   {
     address: '0x4678901234567890123456789012345678901210',
     shortenedAddress: '0x46789...01210',
@@ -83,7 +75,7 @@ const mockPage0Accounts: MockAccount[] = [
   },
 ];
 
-const mockPage1Accounts: MockAccount[] = [
+const mockPage1Accounts = [
   {
     address: '0x12345678901234567890123456789012345678902',
     shortenedAddress: '0x12345...78902',
@@ -116,11 +108,27 @@ const mockPage1Accounts: MockAccount[] = [
   },
 ];
 
+const mockQrKeyring = {
+  getFirstPage: jest.fn(),
+  getNextPage: jest.fn(),
+  getPreviousPage: jest.fn(),
+  forgetDevice: jest.fn(),
+  getName: jest.fn().mockResolvedValue('KeystoneDevice'),
+  getAccounts: jest
+    .fn()
+    .mockReturnValue([
+      '0x4678901234567890123456789012345678901210',
+      '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
+    ]),
+  setAccountToUnlock: jest.fn(),
+  addAccounts: jest
+    .fn()
+    .mockResolvedValue(['0x4678901234567890123456789012345678901210']),
+};
+
 const mockQrKeyringBridge: QrKeyringBridge = {
   requestScan: jest.fn(),
 };
-
-const mockQrKeyring = new QrKeyring({ bridge: mockQrKeyringBridge });
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -174,55 +182,31 @@ const mockInitialState = {
 
 describe('ConnectQRHardware', () => {
   const mockKeyringController = MockEngine.context.KeyringController;
+  mockQrKeyring.getFirstPage.mockResolvedValue(mockPage0Accounts);
+  mockQrKeyring.getNextPage.mockResolvedValue(mockPage1Accounts);
+  mockQrKeyring.getPreviousPage.mockResolvedValue(mockPage0Accounts);
+
   const mockAccountTrackerController =
     MockEngine.context.AccountTrackerController;
+  mockAccountTrackerController.syncBalanceWithAddresses.mockImplementation(
+    (addresses) =>
+      Promise.resolve(
+        addresses.reduce(
+          (acc: { [key: string]: { balance: string } }, address) => {
+            acc[address] = {
+              balance: '0x0',
+            };
+            return acc;
+          },
+          {},
+        ),
+      ),
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
-
-    // Re-establish QrKeyring spies each test. `testSetup.js` runs
-    // `jest.restoreAllMocks()` in afterEach, which restores spied methods to
-    // their real implementations, so spies must be recreated here.
-    jest
-      .spyOn(mockQrKeyring, 'getFirstPage')
-      .mockResolvedValue(mockPage0Accounts);
-    jest
-      .spyOn(mockQrKeyring, 'getNextPage')
-      .mockResolvedValue(mockPage1Accounts);
-    jest
-      .spyOn(mockQrKeyring, 'getPreviousPage')
-      .mockResolvedValue(mockPage0Accounts);
-    jest.spyOn(mockQrKeyring, 'forgetDevice').mockImplementation();
-    jest
-      .spyOn(mockQrKeyring, 'getName')
-      .mockResolvedValue('KeystoneDevice' as never);
-    jest
-      .spyOn(mockQrKeyring, 'getAccounts')
-      .mockReturnValue([
-        '0x4678901234567890123456789012345678901210',
-        '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
-      ] as never);
-    jest.spyOn(mockQrKeyring, 'setAccountToUnlock').mockImplementation();
-    jest
-      .spyOn(mockQrKeyring, 'addAccounts')
-      .mockResolvedValue(['0x4678901234567890123456789012345678901210']);
-
-    mockAccountTrackerController.syncBalanceWithAddresses.mockImplementation(
-      (addresses) =>
-        Promise.resolve(
-          addresses.reduce(
-            (acc: { [key: string]: { balance: string } }, address) => {
-              acc[address] = {
-                balance: '0x0',
-              };
-              return acc;
-            },
-            {},
-          ),
-        ),
-    );
   });
 
   it('renders first page correctly when user clicks `continue` button', async () => {

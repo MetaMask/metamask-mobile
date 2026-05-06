@@ -8,12 +8,18 @@ import { selectEvmChainId } from './networkController';
 import { createDeepEqualSelector } from './util';
 import { selectShowFiatInTestnets } from './settings';
 import { isTestNet } from '../util/networks';
-import { getTokenBalancesControllerTokenBalances } from './assets/assets-migration';
 
-export { getTokenBalancesControllerTokenBalances as selectTokensBalances };
+const selectTokenBalancesControllerState = (state: RootState) =>
+  state.engine.backgroundState.TokenBalancesController;
+
+export const selectTokensBalances = createSelector(
+  selectTokenBalancesControllerState,
+  (tokenBalancesControllerState: TokenBalancesControllerState) =>
+    tokenBalancesControllerState.tokenBalances,
+);
 
 export const selectHasAnyBalance = createSelector(
-  [getTokenBalancesControllerTokenBalances],
+  [selectTokensBalances],
   (balances) => {
     // We will loop through this nested structure to see if we find any balance.
     for (const level2 of Object.values(balances)) {
@@ -35,7 +41,8 @@ export const selectSingleTokenBalance = createSelector(
       chainId: Hex,
       tokenAddress: Hex,
     ) => {
-      const tokenBalances = getTokenBalancesControllerTokenBalances(state);
+      const tokenBalances =
+        selectTokenBalancesControllerState(state).tokenBalances;
       const balance =
         tokenBalances?.[accountAddress]?.[chainId]?.[tokenAddress];
       return balance;
@@ -55,32 +62,40 @@ export const selectSingleTokenBalance = createSelector(
 );
 
 export const selectContractBalances = createSelector(
-  getTokenBalancesControllerTokenBalances,
+  selectTokenBalancesControllerState,
   selectSelectedInternalAccountAddress,
   selectEvmChainId,
   (
-    tokenBalances: TokenBalancesControllerState['tokenBalances'],
+    tokenBalancesControllerState: TokenBalancesControllerState,
     selectedInternalAccountAddress: string | undefined,
     chainId: string,
   ) =>
-    tokenBalances?.[selectedInternalAccountAddress as Hex]?.[chainId as Hex] ??
-    {},
+    tokenBalancesControllerState.tokenBalances?.[
+      selectedInternalAccountAddress as Hex
+    ]?.[chainId as Hex] ?? {},
 );
 
 export const selectContractBalancesPerChainId = createSelector(
-  getTokenBalancesControllerTokenBalances,
+  selectTokenBalancesControllerState,
   selectSelectedInternalAccountAddress,
   (
-    tokenBalances: TokenBalancesControllerState['tokenBalances'],
+    tokenBalancesControllerState: TokenBalancesControllerState,
     selectedInternalAccountAddress: string | undefined,
-  ) => tokenBalances?.[selectedInternalAccountAddress as Hex] ?? {},
+  ) =>
+    tokenBalancesControllerState.tokenBalances?.[
+      selectedInternalAccountAddress as Hex
+    ] ?? {},
 );
 
-export { getTokenBalancesControllerTokenBalances as selectAllTokenBalances };
+export const selectAllTokenBalances = createDeepEqualSelector(
+  selectTokenBalancesControllerState,
+  (tokenBalancesControllerState: TokenBalancesControllerState) =>
+    tokenBalancesControllerState.tokenBalances,
+);
 
 export const selectAddressHasTokenBalances = createDeepEqualSelector(
   [
-    getTokenBalancesControllerTokenBalances,
+    selectAllTokenBalances,
     selectSelectedInternalAccountAddress,
     selectShowFiatInTestnets,
   ],

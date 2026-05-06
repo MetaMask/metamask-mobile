@@ -1,6 +1,5 @@
 import test from '@playwright/test';
 import type { DeviceMatrix } from './types';
-import { getWindowSize } from './DeviceInfoCache.ts';
 import { PlaywrightElement } from './PlaywrightAdapter';
 import { CHROME_PACKAGE, DEFAULT_IMPLICIT_WAIT_MS } from './Constants';
 // eslint-disable-next-line import-x/no-nodejs-modules
@@ -144,7 +143,7 @@ class PlaywrightUtilities {
     width: number;
     height: number;
   }> {
-    const screenSize = getWindowSize();
+    const screenSize = await getDriver().getWindowSize();
     return { width: screenSize.width, height: screenSize.height };
   }
 

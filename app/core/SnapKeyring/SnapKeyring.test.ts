@@ -52,7 +52,9 @@ const mockInternalAccount: InternalAccount = {
   scopes: [EthScope.Eoa],
   metadata: {
     snap: {
+      enabled: true,
       id: mockSnapId,
+      name: mockSnapName,
     },
     name: accountNameSuggestion,
     keyring: {

@@ -14,7 +14,7 @@ jobs:
     if: >-
       github.event.label.name == 'skip-smart-e2e-selection' ||
       github.event.label.name == 'skip-e2e' ||
-      github.event.label.name == 'skip-e2e-flakiness-detection' ||
+      github.event.label.name == 'skip-e2e-quality-gate' ||
       github.event.label.name == 'pr-not-ready-for-e2e'
     runs-on: ubuntu-latest
     permissions:
@@ -92,8 +92,5 @@ jobs:
         run: |
           RUN_ID="${{ steps.find.outputs.run_id }}"
           echo "Re-running workflow $RUN_ID..."
-          if gh run rerun "$RUN_ID" --repo "$REPO"; then
-            echo "CI workflow re-triggered successfully"
-          else
-            echo "Rerun not possible (run may not be in a retriable state)"
-          fi
+          gh run rerun "$RUN_ID" --repo "$REPO"
+          echo "CI workflow re-triggered successfully"

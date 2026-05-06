@@ -432,8 +432,7 @@ describe('SubscriptionMultiplexer', () => {
   describe('subscribeToAccount', () => {
     const createMockAccount = (balance: string): AccountState =>
       ({
-        spendableBalance: balance,
-        withdrawableBalance: balance,
+        availableBalance: balance,
         totalBalance: balance,
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -455,8 +454,7 @@ describe('SubscriptionMultiplexer', () => {
       expect(callback).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
-            spendableBalance: '10000',
-            withdrawableBalance: '10000',
+            availableBalance: '10000',
             providerId: 'hyperliquid',
           }),
         ]),
@@ -481,15 +479,13 @@ describe('SubscriptionMultiplexer', () => {
       expect(lastCall).toHaveLength(2);
       expect(lastCall).toContainEqual(
         expect.objectContaining({
-          spendableBalance: '10000',
-          withdrawableBalance: '10000',
+          availableBalance: '10000',
           providerId: 'hyperliquid',
         }),
       );
       expect(lastCall).toContainEqual(
         expect.objectContaining({
-          spendableBalance: '5000',
-          withdrawableBalance: '5000',
+          availableBalance: '5000',
           providerId: 'myx',
         }),
       );

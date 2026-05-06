@@ -10,7 +10,7 @@ import type {
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import Engine from '../../../../core/Engine';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectChainId } from '../../../../selectors/networkController';
 
 /**
@@ -93,8 +93,9 @@ export function usePerpsCloseAllCalculations({
   priceData,
 }: UsePerpsCloseAllCalculationsParams): CloseAllCalculationsResult {
   // Selectors for account and chain
-  const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
-  const selectedAddress = evmAccount?.address;
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
   const currentChainId = useSelector(selectChainId);
 
   // Use ref to access latest priceData without triggering re-renders

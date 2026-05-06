@@ -25,8 +25,7 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
-      spendableBalance: '1000',
-      withdrawableBalance: '1000',
+      availableBalance: '1000',
       marginUsed: '0',
       unrealizedPnl: '0',
       returnOnEquity: '0',

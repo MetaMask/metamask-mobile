@@ -2,12 +2,6 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useQuery } from '@metamask/react-data-query';
 import type { FollowingResponse } from '@metamask/social-controllers';
 import Logger from '../../../../../util/Logger';
-import {
-  addSocialBreadcrumb,
-  buildSocialErrorExtras,
-  categoriseSocialError,
-  extractHttpStatus,
-} from '../../../../../util/social/socialServiceTelemetry';
 
 export interface FollowedTrader {
   /** Clicker profile ID. */
@@ -73,14 +67,7 @@ export const useFollowedTraders = (
     try {
       await refetch();
     } catch (err) {
-      Logger.error(
-        err as Error,
-        buildSocialErrorExtras({
-          legacyMessage: 'useFollowedTraders: refresh failed',
-          endpoint: 'following',
-          error: err,
-        }),
-      );
+      Logger.error(err as Error, 'useFollowedTraders: refresh failed');
       throw err;
     }
   }, [refetch]);
@@ -89,17 +76,8 @@ export const useFollowedTraders = (
     if (error) {
       Logger.error(
         error as Error,
-        buildSocialErrorExtras({
-          legacyMessage: 'useFollowedTraders: following fetch failed',
-          endpoint: 'following',
-          error,
-        }),
+        'useFollowedTraders: following fetch failed',
       );
-      addSocialBreadcrumb({
-        endpoint: 'following',
-        errorCategory: categoriseSocialError(error),
-        httpStatus: extractHttpStatus(error),
-      });
     }
   }, [error]);
 

@@ -93,8 +93,7 @@ describe('PerpsController Selectors', () => {
     it('returns account state from PerpsController', () => {
       // Arrange
       const mockAccountState: AccountState = {
-        spendableBalance: '3000',
-        withdrawableBalance: '3000',
+        availableBalance: '3000',
         marginUsed: '1000',
         unrealizedPnl: '50',
         returnOnEquity: '10.0',
@@ -139,8 +138,7 @@ describe('PerpsController Selectors', () => {
     it('handles zero balance account state', () => {
       // Arrange
       const mockAccountState: AccountState = {
-        spendableBalance: '0',
-        withdrawableBalance: '0',
+        availableBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -156,15 +154,14 @@ describe('PerpsController Selectors', () => {
 
       // Assert
       expect(result).toEqual(mockAccountState);
-      expect(result?.spendableBalance).toBe('0');
+      expect(result?.availableBalance).toBe('0');
       expect(result?.totalBalance).toBe('0');
     });
 
     it('handles account with positive PnL', () => {
       // Arrange
       const positivePnlState: AccountState = {
-        spendableBalance: '5000',
-        withdrawableBalance: '5000',
+        availableBalance: '5000',
         marginUsed: '1000',
         unrealizedPnl: '500',
         returnOnEquity: '100.0',
@@ -186,8 +183,7 @@ describe('PerpsController Selectors', () => {
     it('handles account with negative PnL', () => {
       // Arrange
       const negativePnlState: AccountState = {
-        spendableBalance: '3000',
-        withdrawableBalance: '3000',
+        availableBalance: '3000',
         marginUsed: '2000',
         unrealizedPnl: '-500',
         returnOnEquity: '-25.0',
@@ -544,8 +540,7 @@ describe('PerpsController Selectors', () => {
       const mockState = createMockState({
         activeProvider: 'testProvider',
         accountState: {
-          spendableBalance: '1000',
-          withdrawableBalance: '1000',
+          availableBalance: '1000',
           totalBalance: '1000',
           marginUsed: '0',
           unrealizedPnl: '0',
@@ -587,8 +582,7 @@ describe('PerpsController Selectors', () => {
       const complexState = createMockState({
         activeProvider: 'nestedProvider',
         accountState: {
-          spendableBalance: '5000',
-          withdrawableBalance: '5000',
+          availableBalance: '5000',
           totalBalance: '6000',
           marginUsed: '1000',
           unrealizedPnl: '100',
@@ -615,8 +609,7 @@ describe('PerpsController Selectors', () => {
       // Then - they extract only the relevant data
       expect(provider).toBe('nestedProvider');
       expect(account).toEqual({
-        spendableBalance: '5000',
-        withdrawableBalance: '5000',
+        availableBalance: '5000',
         totalBalance: '6000',
         marginUsed: '1000',
         unrealizedPnl: '100',

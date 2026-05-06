@@ -6,6 +6,4 @@ export enum RecoveryAction {
   ACKNOWLEDGE = 'acknowledge',
   /** Retry the failed operation */
   RETRY = 'retry',
-  /** Open device Settings to resolve a permission issue */
-  OPEN_SETTINGS = 'open_settings',
 }

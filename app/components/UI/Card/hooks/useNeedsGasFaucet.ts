@@ -4,12 +4,13 @@ import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { isNonEvmChainId, isSolanaChainId } from '@metamask/bridge-controller';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
+import BN from 'bnjs4';
 import Engine from '../../../../core/Engine';
 import { useAccountNativeBalance } from '../../../Views/confirmations/hooks/useAccountNativeBalance';
 import { selectMinSolBalance } from '../../../../selectors/bridgeController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
-import { hexToBigInt } from '../../../../util/number/bigint';
+import { hexToBN } from '../../../../util/number';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { CardFundingToken } from '../types';
 import { useLatestBalance } from '../../Bridge/hooks/useLatestBalance';
@@ -92,7 +93,7 @@ export const useNeedsGasFaucet = (
   /**
    * Estimate gas fee for EVM chains
    */
-  const estimateEvmGasFee = useCallback(async (): Promise<bigint> => {
+  const estimateEvmGasFee = useCallback(async (): Promise<BN> => {
     try {
       const { GasFeeController } = Engine.context;
       const result = await GasFeeController.fetchGasFeeEstimates();
@@ -119,16 +120,16 @@ export const useNeedsGasFaucet = (
           break;
       }
 
-      const weiGasPrice = hexToBigInt(decGWEIToHexWEI(gasPrice) as string);
-      return weiGasPrice * BigInt(gasLimitWithBuffer);
+      const weiGasPrice = hexToBN(decGWEIToHexWEI(gasPrice));
+      return weiGasPrice.muln(gasLimitWithBuffer);
     } catch (err) {
       // Return a conservative fallback estimate if gas estimation fails
       // Assume ~20 Gwei gas price as fallback
-      const fallbackGasPrice = 20000000000n; // 20 Gwei in Wei
+      const fallbackGasPrice = new BN('20000000000'); // 20 Gwei in Wei
       const gasLimitWithBuffer = Math.ceil(
         ERC20_APPROVE_GAS_LIMIT * GAS_LIMIT_BUFFER,
       );
-      return fallbackGasPrice * BigInt(gasLimitWithBuffer);
+      return fallbackGasPrice.muln(gasLimitWithBuffer);
     }
   }, []);
 
@@ -143,10 +144,10 @@ export const useNeedsGasFaucet = (
 
     try {
       const estimatedGasFee = await estimateEvmGasFee();
-      const balance = hexToBigInt(balanceWeiInHex);
+      const balanceBN = new BN(balanceWeiInHex.replace('0x', ''), 'hex');
 
       // User needs faucet if balance is less than estimated gas fee
-      return balance < estimatedGasFee;
+      return balanceBN.lt(estimatedGasFee);
     } catch (err) {
       console.error('Error checking EVM faucet need:', err);
       // Assume needs faucet on error

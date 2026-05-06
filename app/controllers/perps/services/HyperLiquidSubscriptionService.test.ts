@@ -7,7 +7,6 @@
 import type { CaipAccountId, Hex } from '@metamask/utils';
 
 import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
-import { ABSTRACTION_MODE_REFRESH_THROTTLE_MS } from '../constants/perpsConfig';
 import type {
   SubscribeOrderBookParams,
   SubscribeOrderFillsParams,
@@ -66,8 +65,7 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
       : {}),
   })),
   adaptAccountStateFromSDK: jest.fn(() => ({
-    spendableBalance: '1000.00',
-    withdrawableBalance: '1000.00',
+    availableBalance: '1000.00',
     marginUsed: '500.00',
     unrealizedPnl: '100.00',
     returnOnEquity: '20.0',
@@ -390,8 +388,6 @@ describe('HyperLiquidSubscriptionService', () => {
       getSubscriptionClient: jest.fn(() => mockSubscriptionClient),
       getInfoClient: jest.fn(() => ({
         spotClearinghouseState: mockSpotClearinghouseState,
-        // Mode-aware fold gate reads userAbstraction; default to unifiedAccount
-        // so existing spot-fold assertions behave as before the gate was added.
         userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
       })),
       isTestnetMode: jest.fn(() => false),
@@ -3837,12 +3833,8 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(accountCallback).toHaveBeenCalled();
       const recoveredCall = accountCallback.mock.calls.at(-1)?.[0];
       // unifiedAccount → fold=true → spot USDC ($123.45) folds into
-      // spendable/withdrawable (default $1000 perps + $123.45 spot ≈ $1123.45).
-      expect(parseFloat(recoveredCall?.spendableBalance)).toBeCloseTo(
-        1123.45,
-        2,
-      );
-      expect(parseFloat(recoveredCall?.withdrawableBalance)).toBeCloseTo(
+      // availableToTradeBalance (default $1000 perps + $123.45 spot ≈ $1123.45).
+      expect(parseFloat(recoveredCall?.availableToTradeBalance)).toBeCloseTo(
         1123.45,
         2,
       );
@@ -3880,161 +3872,6 @@ describe('HyperLiquidSubscriptionService', () => {
 
       observerUnsubscribe();
       unsubscribe();
-    });
-
-    it('refreshes abstraction mode per user when spotState ticks overlap account switches', async () => {
-      const userA = '0xaaa';
-      const userB = '0xbbb';
-      const accountA = 'eip155:42161:0xaaa' as CaipAccountId;
-      const accountB = 'eip155:42161:0xbbb' as CaipAccountId;
-      const spotState = {
-        balances: [
-          {
-            coin: 'USDC',
-            token: 0,
-            hold: '0',
-            total: '100',
-            entryNtl: '100',
-          },
-        ],
-      };
-      const spotListeners = new Map<string, (event: any) => void>();
-      let resolveUserARefresh: (mode: 'unifiedAccount') => void = () =>
-        undefined;
-      let userACalls = 0;
-      let userBCalls = 0;
-      const userAbstraction = jest.fn(({ user }: { user: string }) => {
-        const normalizedUser = user.toLowerCase();
-
-        if (normalizedUser === userA) {
-          userACalls += 1;
-          if (userACalls === 1) {
-            return Promise.resolve('unifiedAccount');
-          }
-          return new Promise<'unifiedAccount'>((resolve) => {
-            resolveUserARefresh = resolve;
-          });
-        }
-
-        if (normalizedUser === userB) {
-          userBCalls += 1;
-          if (userBCalls === 1) {
-            return Promise.reject(new Error('transient userAbstraction error'));
-          }
-          return Promise.resolve('disabled');
-        }
-
-        return Promise.resolve('unifiedAccount');
-      });
-
-      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        spendableBalance: '1000.00',
-        withdrawableBalance: '1000.00',
-        totalBalance: '10100.00',
-        marginUsed: '500.00',
-        unrealizedPnl: '100.00',
-        returnOnEquity: '20.0',
-      }));
-      mockSpotClearinghouseState.mockResolvedValue(spotState);
-      mockClientService.getInfoClient.mockReturnValue({
-        spotClearinghouseState: mockSpotClearinghouseState,
-        userAbstraction,
-      } as any);
-      mockWalletService.getUserAddressWithDefault.mockImplementation(
-        async (accountId?: CaipAccountId) =>
-          accountId === accountB ? (userB as Hex) : (userA as Hex),
-      );
-      mockSubscriptionClient.spotState.mockImplementation(
-        (_params: any, callback: any) => {
-          spotListeners.set(_params.user.toLowerCase(), callback);
-          return Promise.resolve({
-            unsubscribe: jest.fn().mockResolvedValue(undefined),
-          });
-        },
-      );
-
-      const unsubscribeA = service.subscribeToAccount({
-        accountId: accountA,
-        callback: jest.fn(),
-      });
-      await jest.runAllTimersAsync();
-
-      jest.advanceTimersByTime(ABSTRACTION_MODE_REFRESH_THROTTLE_MS + 1);
-      spotListeners.get(userA)?.({ user: userA, spotState });
-      expect(userACalls).toBe(2);
-
-      const callbackB = jest.fn();
-      const unsubscribeB = service.subscribeToAccount({
-        accountId: accountB,
-        callback: callbackB,
-      });
-      await jest.runAllTimersAsync();
-
-      const bCallsBeforeTick = userBCalls;
-      spotListeners.get(userB)?.({ user: userB, spotState });
-      await jest.runAllTimersAsync();
-
-      expect(bCallsBeforeTick).toBe(1);
-      expect(userBCalls).toBe(2);
-      expect(userAbstraction).toHaveBeenLastCalledWith({ user: userB });
-      expect(callbackB.mock.calls.at(-1)[0].spendableBalance).toBe('1000');
-      expect(callbackB.mock.calls.at(-1)[0].withdrawableBalance).toBe('1000');
-
-      resolveUserARefresh('unifiedAccount');
-      await jest.runAllTimersAsync();
-
-      unsubscribeB();
-      unsubscribeA();
-    });
-
-    it('refreshes abstraction mode on the first spotState tick even inside the throttle window', async () => {
-      const user = '0xaaa';
-      const accountId = 'eip155:42161:0xaaa' as CaipAccountId;
-      const callback = jest.fn();
-      const spotState = {
-        balances: [
-          {
-            coin: 'USDC',
-            token: 0,
-            hold: '0',
-            total: '100',
-            entryNtl: '100',
-          },
-        ],
-      };
-      const userAbstraction = jest
-        .fn()
-        .mockResolvedValueOnce('unifiedAccount')
-        .mockResolvedValueOnce('disabled');
-
-      jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        spendableBalance: '1000.00',
-        withdrawableBalance: '1000.00',
-        totalBalance: '10100.00',
-        marginUsed: '500.00',
-        unrealizedPnl: '100.00',
-        returnOnEquity: '20.0',
-      }));
-      mockSpotClearinghouseState.mockResolvedValue(spotState);
-      mockClientService.getInfoClient.mockReturnValue({
-        spotClearinghouseState: mockSpotClearinghouseState,
-        userAbstraction,
-      } as any);
-      mockWalletService.getUserAddressWithDefault.mockResolvedValue(
-        user as Hex,
-      );
-
-      service.subscribeToAccount({ accountId, callback });
-      await jest.runAllTimersAsync();
-
-      expect(userAbstraction).toHaveBeenCalledTimes(1);
-
-      const spotListener = mockSubscriptionClient.spotState.mock.calls[0][1];
-      spotListener({ user, spotState });
-      await jest.runAllTimersAsync();
-
-      expect(userAbstraction).toHaveBeenCalledTimes(2);
-      expect(userAbstraction).toHaveBeenLastCalledWith({ user });
     });
 
     it('unsubscribes spotState when the last account subscriber leaves', async () => {
@@ -4092,14 +3929,13 @@ describe('HyperLiquidSubscriptionService', () => {
       accountCallback.mockClear();
 
       // Switch the recorded mode to dexAbstraction (no fold). Account state
-      // hash flips because spendable/withdrawable drop the folded spot.
+      // hash flips because availableToTradeBalance drops the folded spot.
       service.setUserAbstractionMode('0x123', 'dexAbstraction');
       await jest.runAllTimersAsync();
 
       expect(accountCallback).toHaveBeenCalled();
       const lastCall = accountCallback.mock.calls.at(-1)?.[0];
-      expect(lastCall?.spendableBalance).toBeDefined();
-      expect(lastCall?.withdrawableBalance).toBeDefined();
+      expect(lastCall?.availableToTradeBalance).toBeDefined();
 
       unsubscribe();
     });
@@ -4167,8 +4003,7 @@ describe('HyperLiquidSubscriptionService', () => {
   describe('spot-adjusted account balance parity', () => {
     it('includes spot balance exactly once in streamed totalBalance across multiple DEXs', async () => {
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        spendableBalance: '0',
-        withdrawableBalance: '0',
+        availableBalance: '0',
         totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -4222,34 +4057,21 @@ describe('HyperLiquidSubscriptionService', () => {
 
       expect(mockCallback).toHaveBeenCalled();
       const accountState = mockCallback.mock.calls.at(-1)[0];
-      // Unified-mode default: spot USDC folds into total, spendable, and
-      // withdrawable (all three carry the same value when perps balances
-      // are zero). Per-DEX subAccountBreakdown entries stay perps-only —
-      // the fold is applied once at the aggregation level, not per DEX.
       expect(accountState.totalBalance).toBe('100.76531791');
-      expect(accountState.spendableBalance).toBe('100.76531791');
-      expect(accountState.withdrawableBalance).toBe('100.76531791');
+      expect(accountState.availableBalance).toBe('0');
+      expect(accountState.availableToTradeBalance).toBe('100.76531791');
       expect(accountState.subAccountBreakdown).toEqual({
-        main: {
-          spendableBalance: '0',
-          withdrawableBalance: '0',
-          totalBalance: '0',
-        },
-        xyz: {
-          spendableBalance: '0',
-          withdrawableBalance: '0',
-          totalBalance: '0',
-        },
+        main: { availableBalance: '0', totalBalance: '0' },
+        xyz: { availableBalance: '0', totalBalance: '0' },
       });
       expect(mockSpotClearinghouseState).toHaveBeenCalledTimes(1);
 
       unsubscribe();
     });
 
-    it('does not use non-USDC spot coins in streamed spendable/withdrawable', async () => {
+    it('does not use non-USDC spot coins in streamed availableToTradeBalance', async () => {
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        spendableBalance: '0',
-        withdrawableBalance: '0',
+        availableBalance: '0',
         totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -4313,8 +4135,7 @@ describe('HyperLiquidSubscriptionService', () => {
       await jest.runAllTimersAsync();
 
       const accountState = mockCallback.mock.calls.at(-1)[0];
-      expect(accountState.spendableBalance).toBe('0');
-      expect(accountState.withdrawableBalance).toBe('0');
+      expect(accountState.availableToTradeBalance).toBe('0');
       expect(accountState.totalBalance).toBe('0');
 
       unsubscribe();
@@ -4322,8 +4143,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
     it('includes spot balance in webData2 (single-DEX) account updates without flickering', async () => {
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        spendableBalance: '50',
-        withdrawableBalance: '50',
+        availableBalance: '50',
         totalBalance: '200',
         marginUsed: '10',
         unrealizedPnl: '5',
@@ -4370,14 +4190,8 @@ describe('HyperLiquidSubscriptionService', () => {
 
       expect(mockCallback).toHaveBeenCalled();
       const firstUpdate = mockCallback.mock.calls.at(-1)[0];
-      // Unified-mode default: freeSpot ($100.77) folds into spendable and
-      // withdrawable on top of perps-side values, and into total.
-      //   total       = perps.accountValue (200) + spot (100.77) = 300.77
-      //   spendable   = perps.withdrawable (50)  + spot (100.77) = 150.77
-      //   withdrawable = perps.withdrawable (50) + spot (100.77) = 150.77
       expect(firstUpdate.totalBalance).toBe('300.76531791');
-      expect(firstUpdate.spendableBalance).toBe('150.76531791');
-      expect(firstUpdate.withdrawableBalance).toBe('150.76531791');
+      expect(firstUpdate.availableBalance).toBe('50');
 
       // Simulate a second WebSocket tick — should still include spot balance,
       // not revert to perps-only 200.
@@ -4412,8 +4226,7 @@ describe('HyperLiquidSubscriptionService', () => {
     it('calculates positive ROE when unrealizedPnl is positive', async () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        spendableBalance: '100',
-        withdrawableBalance: '100',
+        availableBalance: '100',
         totalBalance: '1100',
         marginUsed: '1000',
         unrealizedPnl: '100',
@@ -4458,8 +4271,7 @@ describe('HyperLiquidSubscriptionService', () => {
     it('calculates negative ROE when unrealizedPnl is negative', async () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        spendableBalance: '0',
-        withdrawableBalance: '0',
+        availableBalance: '0',
         totalBalance: '950',
         marginUsed: '1000',
         unrealizedPnl: '-50',
@@ -4504,8 +4316,7 @@ describe('HyperLiquidSubscriptionService', () => {
     it('returns zero ROE when marginUsed is zero', async () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        spendableBalance: '1000',
-        withdrawableBalance: '1000',
+        availableBalance: '1000',
         totalBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -4550,8 +4361,7 @@ describe('HyperLiquidSubscriptionService', () => {
     it('calculates correct ROE with mixed profit and loss positions', async () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        spendableBalance: '75',
-        withdrawableBalance: '75',
+        availableBalance: '75',
         totalBalance: '1575',
         marginUsed: '1500',
         unrealizedPnl: '75',
@@ -4597,8 +4407,7 @@ describe('HyperLiquidSubscriptionService', () => {
     it('calculates high ROE with large percentage gains', async () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        spendableBalance: '200',
-        withdrawableBalance: '200',
+        availableBalance: '200',
         totalBalance: '300',
         marginUsed: '100',
         unrealizedPnl: '200',
@@ -4643,8 +4452,7 @@ describe('HyperLiquidSubscriptionService', () => {
     it('stores raw ROE without rounding', async () => {
       // Override the adapter mock
       jest.mocked(adaptAccountStateFromSDK).mockImplementation(() => ({
-        spendableBalance: '100',
-        withdrawableBalance: '100',
+        availableBalance: '100',
         totalBalance: '433',
         marginUsed: '333',
         unrealizedPnl: '100',
@@ -5584,36 +5392,6 @@ describe('HyperLiquidSubscriptionService', () => {
       // Assert: error was logged, service still functional
       expect(mockDeps.logger.error).toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
-    });
-
-    it('logs method name (not class name) for transient SDK errors', async () => {
-      // Arrange: make activeAssetCtx reject with a WebSocketRequestError
-      const transientError = new Error(
-        'Unknown error while making a WebSocket request',
-      );
-      transientError.name = 'WebSocketRequestError';
-      mockSubscriptionClient.activeAssetCtx.mockRejectedValue(transientError);
-
-      // Act
-      await service.subscribeToPrices({
-        symbols: ['BTC'],
-        callback: jest.fn(),
-        includeMarketData: true,
-      });
-      await jest.runAllTimersAsync();
-
-      // Assert: debugLogger received method context, not the class name
-      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('ensureActiveAssetSubscription'),
-      );
-      expect(mockDeps.debugLogger.log).not.toHaveBeenCalledWith(
-        expect.stringContaining('HyperLiquidSubscriptionService:'),
-      );
-      // Sentry logger should NOT have been called with the transient error
-      expect(mockDeps.logger.error).not.toHaveBeenCalledWith(
-        transientError,
-        expect.anything(),
-      );
     });
   });
 });

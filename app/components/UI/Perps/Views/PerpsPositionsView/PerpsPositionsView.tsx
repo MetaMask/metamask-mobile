@@ -185,9 +185,9 @@ const PerpsPositionsView: React.FC = () => {
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
             >
-              {account?.spendableBalance !== undefined &&
-              account?.spendableBalance !== null
-                ? formatPerpsFiat(account.spendableBalance, {
+              {account?.availableBalance !== undefined &&
+              account?.availableBalance !== null
+                ? formatPerpsFiat(account.availableBalance, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
                 : PERPS_CONSTANTS.FallbackDataDisplay}

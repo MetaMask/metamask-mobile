@@ -12,7 +12,6 @@ import { strings } from '../../../../../../locales/i18n';
 const SUPPORTED_CAMPAIGN_TYPES = new Set<CampaignType>([
   CampaignType.ONDO_HOLDING,
   CampaignType.SEASON_1,
-  CampaignType.PERPS_TRADING,
 ]);
 
 /**

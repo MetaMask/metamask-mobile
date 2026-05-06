@@ -517,7 +517,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.spending_with': 'Spending with',
       'card.card_home.add_funds': 'Add funds',
       'card.card_home.limited_spending_warning': 'Limited spending allowance',
-      'card.card_home.spending_limit_available': 'available',
       'card.card': 'Card',
       'card.card_home.error_title': 'Unable to load card',
       'card.card_home.error_description': 'Please try again later',
@@ -2679,7 +2678,8 @@ describe('CardHome Component', () => {
       expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
     });
 
-    it('renders compact "available" indicator for Solana chain assets without originalSpendingCap', () => {
+    it('does not render for Solana chain assets', () => {
+      // Given: authenticated with limited allowance on Solana chain
       setupMockSelectors({ isAuthenticated: true });
       const limitedSolanaToken = {
         ...mockPriorityToken,
@@ -2698,10 +2698,8 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: should display compact spending-limit indicator
-      expect(screen.getByText('Spending Limit')).toBeOnTheScreen();
-      expect(screen.getByText('500 USDC available')).toBeOnTheScreen();
-      expect(screen.queryByText('0/500 USDC')).not.toBeOnTheScreen();
+      // Then: should not display spending limit progress bar (Solana not supported)
+      expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
     });
 
     it('does not render for unsupported tokens (AUSDC, AMUSD)', () => {
@@ -2784,6 +2782,7 @@ describe('CardHome Component', () => {
     });
 
     it('handles undefined allowance values', () => {
+      // Given: authenticated with undefined allowance values
       setupMockSelectors({ isAuthenticated: true });
       const limitedAllowanceToken = {
         ...mockPriorityToken,
@@ -2802,9 +2801,8 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: should display compact zero-fallback indicator
-      expect(screen.getByText('0 USDC available')).toBeOnTheScreen();
-      expect(screen.queryByText('0/0 USDC')).not.toBeOnTheScreen();
+      // Then: should display zero values as fallback
+      expect(screen.getByText('0/0 USDC')).toBeOnTheScreen();
     });
   });
 

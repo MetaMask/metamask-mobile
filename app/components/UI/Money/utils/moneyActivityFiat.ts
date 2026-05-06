@@ -1,9 +1,9 @@
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { CurrencyRateState } from '@metamask/assets-controllers';
 import type { Hex } from '@metamask/utils';
-import BigNumber from 'bignumber.js';
+import I18n from '../../../../../locales/i18n';
+import { getIntlNumberFormatter } from '../../../../util/intl';
 import { safeToChecksumAddress } from '../../../../util/address';
-import { moneyFormatFiat } from './moneyFormatFiat';
 import {
   balanceToFiatNumber,
   fromTokenMinimalUnit,
@@ -131,6 +131,26 @@ function getEthToFiatConversionRate(
 }
 
 /**
+ * Formats a fiat value with exactly two fractional digits for Money activity rows.
+ */
+export function formatMoneyActivityFiatDisplay(
+  amountInSelectedCurrency: number,
+  isoCurrencyCode: string,
+): string {
+  try {
+    return getIntlNumberFormatter(I18n.locale, {
+      style: 'currency',
+      currency: isoCurrencyCode.toUpperCase(),
+      currencyDisplay: 'narrowSymbol',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amountInSelectedCurrency);
+  } catch {
+    return `${amountInSelectedCurrency.toFixed(2)} ${isoCurrencyCode.toUpperCase()}`;
+  }
+}
+
+/**
  * Secondary fiat line for a Money activity row: prefix (+/-) + localized currency (2 decimals).
  * Converts **token → fiat** via {@link balanceToFiatNumber}: human token amount × ETH→fiat
  * × token→ETH `price` from market data, matching {@link balanceToFiat} / TransactionElement
@@ -212,5 +232,6 @@ export function buildMoneyActivityFiatLine(
     return '';
   }
 
-  return `${prefix}${moneyFormatFiat(new BigNumber(fiatNumber), currentCurrency)}`;
+  const display = formatMoneyActivityFiatDisplay(fiatNumber, currentCurrency);
+  return `${prefix}${display}`;
 }

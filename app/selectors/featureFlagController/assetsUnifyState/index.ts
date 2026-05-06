@@ -1,5 +1,9 @@
+import compareVersions from 'compare-versions';
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
+import packageJson from '../../../../package.json';
+
+const APP_VERSION = packageJson.version;
 
 /**
  * Assets unify state feature flag
@@ -7,6 +11,7 @@ import { selectRemoteFeatureFlags } from '..';
 export interface AssetsUnifyStateFeatureFlag {
   enabled: boolean;
   featureVersion: string | null;
+  minimumVersion: string | null;
 }
 
 export const ASSETS_UNIFY_STATE_FLAG = 'assetsUnifyState';
@@ -23,16 +28,34 @@ export const isAssetsUnifyStateFeatureEnabled = (
   flagValue: unknown,
   featureVersionToCheck: string = ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 ): boolean => {
-  if (!flagValue || typeof flagValue !== 'object') {
+  if (!flagValue || !APP_VERSION) {
     return false;
   }
 
-  const parsedFlagValue = flagValue as AssetsUnifyStateFeatureFlag;
+  if (typeof flagValue !== 'object' || flagValue === null) {
+    return false;
+  }
 
-  return (
-    Boolean(parsedFlagValue?.enabled) &&
-    parsedFlagValue?.featureVersion === featureVersionToCheck
-  );
+  const flag = flagValue as AssetsUnifyStateFeatureFlag;
+  const { enabled, featureVersion, minimumVersion } = flag;
+
+  if (!enabled) {
+    return false;
+  }
+
+  if (featureVersion !== featureVersionToCheck) {
+    return false;
+  }
+
+  if (!minimumVersion) {
+    return false;
+  }
+
+  try {
+    return compareVersions.compare(minimumVersion, APP_VERSION, '<=');
+  } catch {
+    return false;
+  }
 };
 
 /**

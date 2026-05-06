@@ -6,12 +6,11 @@ import { strings } from '../../../../../../../locales/i18n';
 export const MONEY_ACCOUNT_CURRENCY = 'usd';
 
 export function MoneyAccountDepositInfo() {
-  useNavbar(strings('confirm.title.money_account_add_money'));
+  useNavbar(strings('confirm.title.money_account_deposit'));
 
   return (
     <CustomAmountInfo
       currency={MONEY_ACCOUNT_CURRENCY}
-      hasMax
       supportAccountSelection
     />
   );

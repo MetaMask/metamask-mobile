@@ -462,10 +462,10 @@ export function adaptAccountStateFromMYX(
   const balance = walletBalance ? fromMYXCollateral(walletBalance) : 0;
 
   const totalBalance = balance + marginUsed + unrealizedPnl;
+  const availableBalance = balance;
 
   return {
-    spendableBalance: balance.toString(),
-    withdrawableBalance: balance.toString(),
+    availableBalance: availableBalance.toString(),
     totalBalance: totalBalance.toString(),
     marginUsed: marginUsed.toString(),
     unrealizedPnl: unrealizedPnl.toString(),

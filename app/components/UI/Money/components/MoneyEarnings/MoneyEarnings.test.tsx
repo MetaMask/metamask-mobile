@@ -1,36 +1,24 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import MoneyEarnings from './MoneyEarnings';
 import { MoneyEarningsTestIds } from './MoneyEarnings.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
-const ZERO_VALUE = '$0.00';
-
 describe('MoneyEarnings', () => {
   it('renders the section title', () => {
-    const { getByText } = render(
-      <MoneyEarnings
-        lifetimeEarnings={ZERO_VALUE}
-        projectedEarnings={ZERO_VALUE}
-      />,
-    );
+    const { getByText } = render(<MoneyEarnings />);
 
     expect(getByText(strings('money.earnings.title'))).toBeOnTheScreen();
   });
 
-  it('renders the provided zero values when no real earnings exist', () => {
-    const { getByTestId } = render(
-      <MoneyEarnings
-        lifetimeEarnings={ZERO_VALUE}
-        projectedEarnings={ZERO_VALUE}
-      />,
-    );
+  it('renders both default zero values when no props are provided', () => {
+    const { getByTestId } = render(<MoneyEarnings />);
 
     expect(getByTestId(MoneyEarningsTestIds.LIFETIME_VALUE)).toHaveTextContent(
-      ZERO_VALUE,
+      '$0.00',
     );
     expect(getByTestId(MoneyEarningsTestIds.PROJECTED_VALUE)).toHaveTextContent(
-      ZERO_VALUE,
+      '$0.00',
     );
   });
 
@@ -48,13 +36,7 @@ describe('MoneyEarnings', () => {
   });
 
   it('renders skeletons instead of values when loading', () => {
-    const { getByTestId, queryByTestId } = render(
-      <MoneyEarnings
-        lifetimeEarnings={ZERO_VALUE}
-        projectedEarnings={ZERO_VALUE}
-        isLoading
-      />,
-    );
+    const { getByTestId, queryByTestId } = render(<MoneyEarnings isLoading />);
 
     expect(
       getByTestId(MoneyEarningsTestIds.LIFETIME_SKELETON),
@@ -70,13 +52,35 @@ describe('MoneyEarnings', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders lifetime earnings in success color when value starts with +', () => {
+  it('renders the navigation chevron on the projected column', () => {
+    const { getByTestId } = render(<MoneyEarnings />);
+
+    expect(
+      getByTestId(MoneyEarningsTestIds.PROJECTED_CHEVRON),
+    ).toBeOnTheScreen();
+  });
+
+  it('calls onProjectedPress when the projected column is tapped', () => {
+    const mockPress = jest.fn();
     const { getByTestId } = render(
-      <MoneyEarnings
-        lifetimeEarnings="+$2.84"
-        projectedEarnings={ZERO_VALUE}
-      />,
+      <MoneyEarnings onProjectedPress={mockPress} />,
     );
+
+    fireEvent.press(getByTestId(MoneyEarningsTestIds.PROJECTED));
+
+    expect(mockPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not throw when the projected column is tapped without a handler', () => {
+    const { getByTestId } = render(<MoneyEarnings />);
+
+    expect(() => {
+      fireEvent.press(getByTestId(MoneyEarningsTestIds.PROJECTED));
+    }).not.toThrow();
+  });
+
+  it('renders lifetime earnings in success color when value starts with +', () => {
+    const { getByTestId } = render(<MoneyEarnings lifetimeEarnings="+$2.84" />);
 
     const lifetimeValue = getByTestId(MoneyEarningsTestIds.LIFETIME_VALUE);
     expect(lifetimeValue).toHaveTextContent('+$2.84');

@@ -6917,7 +6917,9 @@
       "perps_deposit": "Ajouter des fonds",
       "perps_withdraw": "Retirer",
       "predict_deposit": "Ajouter des fonds de prédiction",
-      "predict_withdraw": "Retirer"
+      "predict_withdraw": "Retirer",
+      "money_account_deposit": "Ajouter des fonds",
+      "money_account_withdraw": "Retirer des fonds"
     },
     "sub_title": {
       "permit": "Ce site demande l’autorisation de dépenser vos jetons.",

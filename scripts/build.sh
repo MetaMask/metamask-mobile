@@ -517,25 +517,31 @@ generateIosBinary() {
 		exit 1
 	fi
 
-	# PROFILE: 'development' or 'release' (set in builds.yml, defaults to 'release')
-	local profile="${PROFILE:-release}"
-
 	if [ "$scheme" = "MetaMask" ] ; then
-		if [ "$profile" = "development" ] ; then
+		# Main target
+		if [ "$configuration" = "Debug" ] ; then
+			# Debug configuration
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
 		else
+			# Release configuration
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskRelease.plist"
 		fi
 	elif [ "$scheme" = "MetaMask-QA" ] ; then
-		if [ "$profile" = "development" ] ; then
+		# QA target
+		if [ "$configuration" = "Debug" ] ; then
+			# Debug configuration
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQADevelopment.plist"
 		else
+			# Release configuration
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
 		fi
 	elif [ "$scheme" = "MetaMask-Flask" ] ; then
-		if [ "$profile" = "development" ] ; then
+		# Flask target
+		if [ "$configuration" = "Debug" ] ; then
+			# Debug configuration
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
 		else
+			# Release configuration
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskRelease.plist"
 		fi
 	fi
@@ -545,25 +551,17 @@ generateIosBinary() {
 	if [ "$IS_SIM_BUILD" = "true" ]; then
     	echo "Binary build type: Simulator"
 		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build
-	fi
-	
-	if [ "$IS_DEVICE_BUILD" = "true" ] || [ -z "$IS_SIM_BUILD" ]; then
-		echo "Binary build type: Device"
 
-		# When PROFILE=development, override the signing settings so a Release
-		# archive can be signed with the development certificate and profile
-		# instead of the distribution identity hardcoded in the Xcode project.
-		local -a archiveOverrides=()
-		if [ "$profile" = "development" ] && [ "$configuration" = "Release" ]; then
-			archiveOverrides=(
-				CODE_SIGN_STYLE=Manual
-				"PROVISIONING_PROFILE_SPECIFIER=development-metamask"
-				"CODE_SIGN_IDENTITY=Apple Development"
-			)
-			echo "Overriding signing: using development certificate and profile for Release archive"
+		# Also generate an .ipa to run on devices
+		if [ "$IS_DEVICE_BUILD" = "true" ]; then
+			echo "Binary build type: Device"
+			xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
+			echo "Generating ipa for $scheme"
+			xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
 		fi
-
-		xcodebuild -workspace MetaMask.xcworkspace -scheme "$scheme" -configuration "$configuration" archive -archivePath "build/$scheme.xcarchive" -destination generic/platform=ios "${archiveOverrides[@]}"
+	else
+		echo "Binary build type: Device"
+		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
 		echo "Generating ipa for $scheme"
 		xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
 	fi
