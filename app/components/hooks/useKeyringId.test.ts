@@ -29,8 +29,6 @@ const solanaAccount = createMockSnapInternalAccount(
 );
 solanaAccount.metadata.snap = {
   id: SOLANA_WALLET_SNAP_ID,
-  name: 'Solana Wallet Snap',
-  enabled: true,
 };
 
 const snapAccount = createMockSnapInternalAccount(
