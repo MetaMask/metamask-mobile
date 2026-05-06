@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Badge, {
   BadgeVariant,
@@ -72,8 +72,7 @@ import {
 } from '@metamask/assets-controllers';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { safeToChecksumAddress } from '../../../../../util/address';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
-import { getAssetTestId } from '../../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { getAssetTestId } from '../../../../../../tests/selectors/Wallet/WalletView.selectors';
 import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
 import {
   TOKEN_BALANCE_LOADING,
@@ -544,7 +543,7 @@ export const TokenListItem = React.memo(
         <TouchableOpacity
           onPress={() => onItemPress?.(asset)}
           style={styles.itemWrapper}
-          {...generateTestId(Platform, getAssetTestId(asset.symbol))}
+          testID={getAssetTestId(asset.symbol)}
         >
           <BadgeWrapper
             style={styles.badge}
@@ -610,7 +609,7 @@ export const TokenListItem = React.memo(
           onLongPress?.(asset);
         }}
         style={styles.itemWrapper}
-        {...generateTestId(Platform, getAssetTestId(asset.symbol))}
+        testID={getAssetTestId(asset.symbol)}
       >
         {/* Column: 1 - Token logo */}
         <BadgeWrapper
