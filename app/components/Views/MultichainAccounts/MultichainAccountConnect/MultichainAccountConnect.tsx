@@ -227,16 +227,11 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     // Expand wallet:<namespace> scopes so default network selection still includes
     // those concrete namespaces in multichain WalletConnect flows.
     rawScopeKeys.forEach((scope) => {
-      if (!scope.startsWith(`${KnownCaipNamespace.Wallet}:`)) {
+      const { namespace, reference } = parseCaipChainId(scope as CaipChainId);
+      if (namespace !== KnownCaipNamespace.Wallet || !reference) {
         return;
       }
-
-      const delegatedNamespace = scope.slice(
-        `${KnownCaipNamespace.Wallet}:`.length,
-      );
-      if (delegatedNamespace) {
-        namespaces.add(delegatedNamespace as CaipNamespace);
-      }
+      namespaces.add(reference as CaipNamespace);
     });
 
     return Array.from(namespaces);
@@ -357,9 +352,14 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
     // Expand only namespaces that were requested without explicit chains
     // (e.g. wallet:eip155 delegated requests in mixed namespace proposals).
+    // Intentionally restrictive: if explicit eip155 chains are requested, treat
+    // that list as authoritative and do not expand to all eip155 networks. This
+    // prevents approving more chains than requested. Delegated namespace
+    // expansion still applies when no explicit chain ids are provided.
+    // TODO: check if this restrictive logic has already been applied in the past or if this modifies previous behavior.
     const additionalChains = nonTestNetworkCaipChainIds.filter(
       (caipChainId) => {
-        const namespace = parseCaipChainId(caipChainId).namespace;
+        const { namespace } = parseCaipChainId(caipChainId);
         return (
           requestedNamespacesForNetworkSelection.includes(namespace) &&
           !namespacesWithExplicitChainRequests.has(namespace)
