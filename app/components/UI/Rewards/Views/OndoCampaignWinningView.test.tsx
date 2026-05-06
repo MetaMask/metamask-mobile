@@ -99,7 +99,7 @@ describe('OndoCampaignWinningView', () => {
           params: { campaignId: 'campaign-ondo-1' },
         },
       }),
-      {},
+      undefined,
     );
   });
 
@@ -119,7 +119,7 @@ describe('OndoCampaignWinningView', () => {
         winningCode: null,
         hasOutcomeLoaded: true,
       }),
-      {},
+      undefined,
     );
   });
 
@@ -135,7 +135,7 @@ describe('OndoCampaignWinningView', () => {
         winningCode: null,
         hasOutcomeLoaded: false,
       }),
-      {},
+      undefined,
     );
   });
 
@@ -166,7 +166,7 @@ describe('OndoCampaignWinningView', () => {
         isRankLoading: false,
         isResultLoading: false,
       }),
-      {},
+      undefined,
     );
   });
 });
