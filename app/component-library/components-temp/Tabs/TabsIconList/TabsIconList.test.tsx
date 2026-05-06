@@ -277,7 +277,7 @@ describe('TabsIconList', () => {
           </View>
           <View
             key="t3"
-            {...(tabViewProps('Predictions', IconName.Predict) as object)}
+            {...(tabViewProps('Predictions', IconName.Predictions) as object)}
           >
             <Text>Content 3</Text>
           </View>
@@ -505,7 +505,7 @@ describe('TabsIconList', () => {
         {
           key: 'pred-tab',
           label: 'Predictions',
-          icon: IconName.Predict,
+          icon: IconName.Predictions,
           content: 'Predictions Content',
         },
       ];

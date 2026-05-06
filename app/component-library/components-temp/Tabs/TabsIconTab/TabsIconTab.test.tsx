@@ -110,7 +110,7 @@ describe('TabsIconTab', () => {
       const icons: IconName[] = [
         IconName.Portfolio,
         IconName.Candlestick,
-        IconName.Predict,
+        IconName.Predictions,
       ];
       icons.forEach((icon) => {
         expect(() =>
