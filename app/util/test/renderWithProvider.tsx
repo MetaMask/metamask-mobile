@@ -23,6 +23,8 @@ import {
   RouteMessengerContext,
   LegacyRouteMessengerProvider,
 } from '../../contexts/route-messenger';
+import { RouteMessenger } from '../../messengers/route-messenger';
+import { UIMessenger } from '../../messengers/ui-messenger';
 
 // DeepPartial is a generic type that recursively makes all properties of a given type T optional
 export type DeepPartial<T> = T extends (...args: unknown[]) => unknown
@@ -36,9 +38,12 @@ export type DeepPartial<T> = T extends (...args: unknown[]) => unknown
         { [K in keyof T]?: DeepPartial<T[K]> }
       : // Otherwise, return T or undefined.
         T | undefined;
+
 export interface ProviderValues {
   state?: DeepPartial<RootState>;
   theme?: Theme;
+  uiMessenger?: UIMessenger;
+  routeMessenger?: RouteMessenger;
 }
 
 export default function renderWithProvider(
@@ -46,10 +51,14 @@ export default function renderWithProvider(
   providerValues?: ProviderValues,
   includeNavigationContainer = true,
   includeFeatureFlagOverrideProvider = true,
-  uiMessenger = createMockUIMessenger(),
-  routeMessenger = null,
 ) {
-  const { state = {}, theme = mockTheme } = providerValues ?? {};
+  const {
+    state = {},
+    theme = mockTheme,
+    uiMessenger = createMockUIMessenger(),
+    routeMessenger = null,
+  } = providerValues ?? {};
+
   const store = configureStore(state);
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   require('../../store')._updateMockState(state);
