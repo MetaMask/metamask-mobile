@@ -568,10 +568,9 @@ const rewardsSlice = createSlice({
 
     // Campaigns reducers
     setCampaigns: (state, action: PayloadAction<CampaignDto[]>) => {
-      const rewardsState = state as RewardsState;
-      rewardsState.campaigns = action.payload;
-      rewardsState.campaignsError = false;
-      rewardsState.campaignsHasLoaded = true;
+      state.campaigns = action.payload;
+      state.campaignsError = false;
+      state.campaignsHasLoaded = true;
     },
     setCampaignsLoading: (state, action: PayloadAction<boolean>) => {
       if (action.payload && state.campaigns.length) {

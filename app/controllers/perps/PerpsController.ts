@@ -1906,11 +1906,6 @@ export class PerpsController extends BaseController<
     method: string,
     additionalContext?: Partial<ServiceContext>,
   ): ServiceContext {
-    // @ts-expect-error TS2589 - excessively deep instantiation from BaseController generic
-    const updateState = this.update.bind(this) as (
-      updater: (state: PerpsControllerState) => void,
-    ) => void;
-
     return {
       tracingContext: {
         provider: this.state.activeProvider,
@@ -1921,7 +1916,9 @@ export class PerpsController extends BaseController<
         method,
       },
       stateManager: {
-        update: updateState,
+        update: (updater: (state: PerpsControllerState) => void) =>
+          // @ts-expect-error TS2589 - excessively deep instantiation from BaseController generic
+          this.update(updater),
         getState: (): PerpsControllerState => this.#getControllerState(),
       },
       ...additionalContext,
