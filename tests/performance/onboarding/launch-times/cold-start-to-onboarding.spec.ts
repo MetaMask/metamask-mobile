@@ -2,7 +2,6 @@ import { test } from '../../../framework/fixture';
 import TimerHelper from '../../../framework/TimerHelper.js';
 import {
   Performance,
-  System,
   PerformanceOnboarding,
   PerformanceLaunch,
 } from '../../../tags.performance.js';

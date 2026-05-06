@@ -6,11 +6,7 @@ import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
-import {
-  Performance,
-  System,
-  PerformancePredict,
-} from '../../../tags.performance.js';
+import { Performance, PerformancePredict } from '../../../tags.performance.js';
 
 /*
  * Scenario: Predict Deposit Performance Test

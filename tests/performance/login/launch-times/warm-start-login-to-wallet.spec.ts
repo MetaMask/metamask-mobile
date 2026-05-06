@@ -11,7 +11,6 @@ import LoginView from '../../../page-objects/wallet/LoginView';
 import WalletView from '../../../page-objects/wallet/WalletView';
 import {
   Performance,
-  System,
   PerformanceLogin,
   PerformanceLaunch,
 } from '../../../tags.performance.js';

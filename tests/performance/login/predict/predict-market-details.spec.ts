@@ -6,11 +6,7 @@ import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 import PredictDetailsPage from '../../../page-objects/Predict/PredictDetailsPage';
-import {
-  Performance,
-  System,
-  PerformancePredict,
-} from '../../../tags.performance.js';
+import { Performance, PerformancePredict } from '../../../tags.performance.js';
 
 /*
  * Scenario: Predict Market Details Performance Test

@@ -1,7 +1,6 @@
 import { test } from '../../../framework/fixture';
 import {
   Performance,
-  System,
   PerformanceOnboarding,
   PerformanceLaunch,
 } from '../../../tags.performance.js';

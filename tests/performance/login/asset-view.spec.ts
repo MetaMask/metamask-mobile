@@ -6,7 +6,6 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import {
   Performance,
-  System,
   PerformanceLogin,
   PerformanceAssetLoading,
 } from '../../tags.performance.js';

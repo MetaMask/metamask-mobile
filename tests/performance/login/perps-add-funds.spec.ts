@@ -1,10 +1,6 @@
 import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
-import {
-  Performance,
-  System,
-  PerformancePreps,
-} from '../../tags.performance.js';
+import { Performance, PerformancePreps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';

@@ -1,11 +1,7 @@
 import { test } from '../../framework/fixture';
 
 import TimerHelper from '../../framework/TimerHelper';
-import {
-  Performance,
-  System,
-  PerformancePreps,
-} from '../../tags.performance.js';
+import { Performance, PerformancePreps } from '../../tags.performance.js';
 import {
   loginToAppPlaywright,
   selectAccountByDevice,

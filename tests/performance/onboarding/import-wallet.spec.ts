@@ -1,11 +1,7 @@
 import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
-import {
-  Performance,
-  System,
-  PerformanceOnboarding,
-} from '../../tags.performance.js';
+import { Performance, PerformanceOnboarding } from '../../tags.performance.js';
 import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
 import {
   asPlaywrightElement,
