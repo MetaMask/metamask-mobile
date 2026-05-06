@@ -6,6 +6,7 @@ import { selectEvmAddress } from '../../../selectors/accountsController';
 import { selectEvmEnabledCaipNetworks } from '../../../selectors/networkEnablementController';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { MINUTE } from '../../../constants/time';
+import { selectRequiredTransactionHashes } from '../../../selectors/transactionController';
 
 jest.mock('@tanstack/react-query', () => ({
   useInfiniteQuery: jest.fn(),
@@ -29,6 +30,10 @@ jest.mock('../../../selectors/accountsController', () => ({
 
 jest.mock('../../../selectors/networkEnablementController', () => ({
   selectEvmEnabledCaipNetworks: jest.fn(),
+}));
+
+jest.mock('../../../selectors/transactionController', () => ({
+  selectRequiredTransactionHashes: jest.fn(),
 }));
 
 const ADDRESS_MOCK = '0x1234567890123456789012345678901234567890';
@@ -59,6 +64,9 @@ describe('useTransactionsQuery', () => {
       }
       if (selector === selectEvmEnabledCaipNetworks) {
         return networks;
+      }
+      if (selector === selectRequiredTransactionHashes) {
+        return new Set<string>();
       }
       return undefined;
     });
