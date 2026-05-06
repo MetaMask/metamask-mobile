@@ -8512,7 +8512,6 @@
       "empty": "Pozisyonunuz yok",
       "empty_description": "Tokenlaştırılmış gerçek dünya varlıklarında bir pozisyon açarak ödül kazanmaya başlayın.",
       "empty_cta": "Bir pozisyon açın",
-      "position_units": "{{units}} pay",
       "positions_title": "Pozisyonlar",
       "activity_title": "Aktivite",
       "view_activity": "Aktiviteyi görüntüle",
