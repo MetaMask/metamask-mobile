@@ -506,19 +506,11 @@ export const shortenAddress = (address: string): string => {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
 
-const MAX_ONDO_TOKEN_NAME_LENGTH = 28;
-
-/**
- * Strips Ondo branding from a token name and truncates to
- * MAX_ONDO_TOKEN_NAME_LENGTH characters with an ellipsis if needed.
- *
- * Handles two forms: prefix ("Ondo Tokenized Apple" → "Apple") and
- * suffix ("US Dollar (Ondo Tokenized)" → "US Dollar").
- */
-export function sanitizeOndoTokenName(raw: string): string {
-  const cleaned = raw
-    .replace(/(?:^ondo\s+tokenized\s+|\s*\(ondo\s+tokenized\))/gi, '')
-    .trim();
-  if (cleaned.length <= MAX_ONDO_TOKEN_NAME_LENGTH) return cleaned;
-  return `${cleaned.slice(0, MAX_ONDO_TOKEN_NAME_LENGTH).trim()}...`;
+export function getPortfolioReturnColor(
+  portfolioPnlPercent: string | undefined,
+): TextColor {
+  if (!portfolioPnlPercent) return TextColor.TextDefault;
+  return parseFloat(portfolioPnlPercent) < 0
+    ? TextColor.ErrorDefault
+    : TextColor.SuccessDefault;
 }

@@ -8427,7 +8427,6 @@
       "empty": "Anda tidak memiliki posisi",
       "empty_description": "Mulailah mendapatkan reward dengan membuka posisi pada aset dunia nyata yang di tokenisasi.",
       "empty_cta": "Buka posisi",
-      "position_units": "{{units}} saham",
       "positions_title": "Posisi",
       "activity_title": "Aktivitas",
       "view_activity": "Lihat aktivitas",
