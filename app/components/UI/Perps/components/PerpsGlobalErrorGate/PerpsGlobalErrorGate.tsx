@@ -116,7 +116,8 @@ export const PerpsGlobalErrorGate: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const handleRetry = useCallback(async () => {
-    setRetryAttempts((prev) => prev + 1);
+    const nextAttempt = retryAttempts + 1;
+    setRetryAttempts(nextAttempt);
 
     try {
       await PerpsConnectionManager.reconnectWithNewContext({ force: true });
@@ -128,7 +129,7 @@ export const PerpsGlobalErrorGate: React.FC<{ children: React.ReactNode }> = ({
         level: 'warning',
         data: {
           error: ensureError(err, 'PerpsGlobalErrorGate.handleRetry').message,
-          retryAttempts,
+          retryAttempts: nextAttempt,
         },
       });
     }

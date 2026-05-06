@@ -609,6 +609,7 @@ describe('PerpsGlobalErrorGate', () => {
         level: 'warning',
         data: expect.objectContaining({
           error: 'Reconnect failed',
+          retryAttempts: 1,
         }),
       }),
     );
