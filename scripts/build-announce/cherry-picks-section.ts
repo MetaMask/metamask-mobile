@@ -2,7 +2,7 @@
  * Extracts commits from release branch and builds collapsible markdown section.
  */
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 const REPO_URL = process.env.GITHUB_REPOSITORY
   ? `https://github.com/${process.env.GITHUB_REPOSITORY}`
@@ -12,7 +12,7 @@ const SKIP_CI_BUMP_VERSION_SUBJECT = /^\[skip ci\] Bump version number to/;
 
 function getMergeBase(headRef: string, baseRef: string): string | null {
   try {
-    const out = execSync(`git merge-base ${headRef} ${baseRef}`, {
+    const out = execFileSync('git', ['merge-base', headRef, baseRef], {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -27,8 +27,9 @@ function getAncestryPathCommits(
   headRef: string,
 ): { hash: string; subject: string }[] {
   try {
-    const out = execSync(
-      `git log --ancestry-path ${mergeBaseHash}..${headRef} --pretty=format:%h\t%s`,
+    const out = execFileSync(
+      'git',
+      ['log', '--ancestry-path', `${mergeBaseHash}..${headRef}`, '--pretty=format:%h\t%s'],
       { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
     );
 
