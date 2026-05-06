@@ -9,6 +9,9 @@ import { isE2E } from '../../test/utils';
  * @returns boolean if notifications feature is enabled.
  */
 export const isNotificationsFeatureEnabled = () => {
+  // TEMP debug — force-enable for local CLI-push testing; revert before commit
+  return true;
+
   if (isE2E) {
     return true;
   }

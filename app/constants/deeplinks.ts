@@ -48,6 +48,8 @@ export enum ACTIONS {
   TRENDING = 'trending',
   EARN_MUSD = 'earn-musd',
   NFT = 'nft',
+  CLI_LOGIN = 'cli-login',
+  CLI_APPROVE = 'cli-approve',
 }
 
 export const PREFIXES = {
@@ -82,5 +84,7 @@ export const PREFIXES = {
   [ACTIONS.TRENDING]: '',
   [ACTIONS.EARN_MUSD]: '',
   [ACTIONS.NFT]: '',
+  [ACTIONS.CLI_LOGIN]: '',
+  [ACTIONS.CLI_APPROVE]: '',
   METAMASK: 'metamask://',
 };

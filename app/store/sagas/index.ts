@@ -54,6 +54,15 @@ function appStateListenerChannel() {
  * Checks seedless password status and performs the correct auth flow.
  */
 async function tryBiometricUnlock(): Promise<void> {
+  // TEMP debug — short-circuit biometric / keychain auto-unlock so the LOGIN
+  // screen renders and the user must type their password. The outer caller's
+  // catch handles the navigate-to-LOGIN. Useful for testing the killed-state
+  // → unlock → buffered-deeplink flow on Android emulator (which otherwise
+  // auto-unlocks via no-prompt keystore access). Revert before commit.
+  if (__DEV__) {
+    throw new Error('TEMP debug: forcing password prompt (skip biometric)');
+  }
+
   if (
     await Authentication.checkIsSeedlessPasswordOutdated({
       skipCache: true,
@@ -213,6 +222,17 @@ export function* handleDeeplinkSaga() {
       SET_COMPLETED_ONBOARDING,
     ])) as LoginAction | CheckForDeeplinkAction | SetCompletedOnboardingAction;
 
+    // eslint-disable-next-line no-console -- TEMP debug — remove before commit
+    console.log(
+      '[Deeplink:saga-tick]',
+      JSON.stringify({
+        action: value.type,
+        pendingDeeplink: AppStateEventProcessor.pendingDeeplink,
+        currentDeeplink: AppStateEventProcessor.currentDeeplink,
+        pendingSource: AppStateEventProcessor.pendingDeeplinkSource,
+      }),
+    );
+
     let completedOnboarding = false;
 
     // Check if triggering action is SET_COMPLETED_ONBOARDING
@@ -244,6 +264,16 @@ export function* handleDeeplinkSaga() {
     const { KeyringController } = Engine.context;
     const isUnlocked = KeyringController.isUnlocked();
 
+    // eslint-disable-next-line no-console -- TEMP debug — remove before commit
+    console.log(
+      '[Deeplink:saga-gate]',
+      JSON.stringify({
+        isUnlocked,
+        completedOnboarding,
+        passing: isUnlocked && completedOnboarding,
+      }),
+    );
+
     // App is locked or onboarding is not yet complete
     if (!isUnlocked || !completedOnboarding) {
       continue;
@@ -261,6 +291,8 @@ export function* handleDeeplinkSaga() {
       AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
     if (deeplink) {
+      // eslint-disable-next-line no-console -- TEMP debug — remove before commit
+      console.log('[Deeplink:saga-parse]', deeplink, 'source=', deeplinkSource);
       // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
       setTimeout(() => {
         SharedDeeplinkManager.parse(deeplink, {

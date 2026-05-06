@@ -33,6 +33,7 @@ import { handleTrendingUrl } from './handleTrendingUrl';
 import { handleEarnMusd } from './handleEarnMusd';
 import { handleAssetUrl } from './handleAssetUrl';
 import { handleNftUrl } from './handleNftUrl';
+import { handleCliMfa } from './handleCliMfa';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
 import {
@@ -87,6 +88,8 @@ const SUPPORTED_ACTIONS = {
   SHIELD: ACTIONS.SHIELD,
   EARN_MUSD: ACTIONS.EARN_MUSD,
   NFT: ACTIONS.NFT,
+  CLI_LOGIN: ACTIONS.CLI_LOGIN,
+  CLI_APPROVE: ACTIONS.CLI_APPROVE,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -118,6 +121,8 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.TRENDING,
   SUPPORTED_ACTIONS.SHIELD,
   SUPPORTED_ACTIONS.EARN_MUSD,
+  SUPPORTED_ACTIONS.CLI_LOGIN,
+  SUPPORTED_ACTIONS.CLI_APPROVE,
 ];
 
 /**
@@ -639,6 +644,16 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.NFT: {
       handleNftUrl();
+      break;
+    }
+    case SUPPORTED_ACTIONS.CLI_LOGIN:
+    case SUPPORTED_ACTIONS.CLI_APPROVE: {
+      const { params: cliParams } = extractURLParams(urlObj.href);
+      handleCliMfa({
+        intent: action === SUPPORTED_ACTIONS.CLI_LOGIN ? 'login' : 'tx_approve',
+        sessionId: cliParams?.sessionId,
+        server: cliParams?.server,
+      });
       break;
     }
   }

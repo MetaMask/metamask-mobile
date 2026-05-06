@@ -29,6 +29,8 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
   const { uri, source } = opts;
   try {
     if (uri && typeof uri === 'string') {
+      // eslint-disable-next-line no-console -- TEMP debug — remove before commit
+      console.log('[Deeplink:received]', uri, 'source=', source);
       AppStateEventProcessor.setCurrentDeeplink(uri, source);
       dispatch(checkForDeeplink());
     }

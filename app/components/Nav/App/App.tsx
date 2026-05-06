@@ -158,6 +158,7 @@ import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
+import MfaWebview from '../../Views/MfaWebview';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
@@ -1189,6 +1190,19 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_MODAL}
         component={PayWithModal}
+      />
+      <Stack.Screen
+        name={Routes.MFA_WEBVIEW.CONFIRM}
+        component={MfaWebview}
+        options={{
+          // Header is wired from inside MfaWebview via navigation.setOptions
+          // (mirrors SimpleWebview's pattern for title + back button).
+          // Overrides clearStackNavigatorOptions defaults from the parent stack.
+          headerShown: true,
+          gestureEnabled: true,
+          presentation: 'modal',
+          cardStyle: { backgroundColor: importedColors.white },
+        }}
       />
     </Stack.Navigator>
   );

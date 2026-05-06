@@ -3,9 +3,22 @@ export type { INotification } from '@metamask/notification-services-controller/n
 export enum PressActionId {
   OPEN_HOME = 'open-home-press-action-id',
   OPEN_NOTIFICATIONS_VIEW = 'open-notifications-view-press-action-id',
+  /**
+   * Press action for the agentic-CLI MFA flow. The press handler reads
+   * `notification.data.dataStr` for `{ deeplink }` and dispatches it through
+   * `handleDeeplink`, which routes via the existing saga to MfaWebview.
+   */
+  OPEN_CLI_MFA = 'open-cli-mfa-press-action-id',
 }
 
-export const LAUNCH_ACTIVITY = 'com.metamask.ui.MainActivity';
+// 'default' tells Notifee to use the activity declared in AndroidManifest.xml
+// as the app's launcher (resolves to io.metamask.MainActivity for the main
+// flavor, io.metamask.qa.MainActivity for qa, etc.).
+// Was previously the literal 'com.metamask.ui.MainActivity' which is stale
+// from an older package name and threw at runtime when Notifee tried to
+// construct the press-action Intent — meaning all notification taps were
+// silently inert.
+export const LAUNCH_ACTIVITY = 'default';
 
 export const NotificationTypes = {
   TRANSACTION: 'transaction',

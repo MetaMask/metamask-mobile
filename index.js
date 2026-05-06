@@ -112,6 +112,85 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
 // import Storybook from './.storybook';
 // AppRegistry.registerComponent(name, () => Storybook);
 
+// Notifee background event handler — must be registered at module scope (not in
+// React tree) so it fires when the app is in headless background state. Routes
+// CLI-MFA notification taps into the existing deeplink saga.
+// Production-shaped: this is the missing wiring that today leaves notification
+// taps inert. Reused for the agentic-CLI dev demo.
+/* eslint-disable no-console -- TEMP debug logging for the agentic-CLI POC; remove before non-draft promotion */
+import notifee, { EventType } from '@notifee/react-native';
+console.log('[Notifee:bg-subscribe] registering onBackgroundEvent'); // TEMP debug
+notifee.onBackgroundEvent(async ({ type, detail }) => {
+  console.log(
+    // TEMP debug
+    '[Notifee:bg-event]',
+    JSON.stringify({
+      type,
+      eventName:
+        type === EventType.PRESS
+          ? 'PRESS'
+          : type === EventType.DELIVERED
+            ? 'DELIVERED'
+            : type === EventType.DISMISSED
+              ? 'DISMISSED'
+              : 'OTHER',
+      pressActionId: detail.pressAction?.id,
+      notificationId: detail.notification?.id,
+      hasDataStr: typeof detail.notification?.data?.dataStr,
+      dataStr: detail.notification?.data?.dataStr,
+    }),
+  );
+  if (type !== EventType.PRESS) return;
+  if (detail.pressAction?.id !== 'open-cli-mfa-press-action-id') {
+    console.log(
+      // TEMP debug
+      '[Notifee:bg-event] press ignored — pressActionId mismatch:',
+      detail.pressAction?.id,
+    );
+    return;
+  }
+  try {
+    const dataStr = detail.notification?.data?.dataStr;
+    const data = typeof dataStr === 'string' ? JSON.parse(dataStr) : null;
+    console.log('[Notifee:bg-event] parsed data, deeplink=', data?.deeplink); // TEMP debug
+    if (data && typeof data.deeplink === 'string') {
+      const AppConstants = (await import('./app/core/AppConstants')).default;
+      // Same Engine-readiness guard as Root.tsx checkForPress — prevents
+      // the saga crash when Notifee delivers the press during early cold-start.
+      const Engine = (await import('./app/core/Engine')).default;
+      const engineReady = Boolean(Engine?.context?.KeyringController);
+      if (!engineReady) {
+        const { AppStateEventProcessor } = await import(
+          './app/core/AppStateEventListener'
+        );
+        console.log(
+          // TEMP debug
+          '[Notifee:bg-event] Engine not ready — buffering deeplink only',
+          data.deeplink,
+        );
+        AppStateEventProcessor.setCurrentDeeplink(
+          data.deeplink,
+          AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+        );
+      } else {
+        const { handleDeeplink } = await import(
+          './app/core/DeeplinkManager/handlers/legacy/handleDeeplink'
+        );
+        console.log('[Notifee:bg-event] calling handleDeeplink'); // TEMP debug
+        handleDeeplink({
+          uri: data.deeplink,
+          source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+        });
+      }
+    } else {
+      console.log('[Notifee:bg-event] no deeplink in data — skipping'); // TEMP debug
+    }
+  } catch (err) {
+    console.warn('[Notifee:bg-event] threw', err); // TEMP debug
+  }
+});
+/* eslint-enable no-console */
+
 /**
  * Application entry point responsible for registering root component
  */

@@ -144,6 +144,7 @@ import { selectUseTokenDetection } from '../../../selectors/preferencesControlle
 import Logger from '../../../util/Logger';
 import { useNftDetection } from '../../hooks/useNftDetection';
 import { Carousel } from '../../UI/Carousel';
+import MfaDebugButton from '../../UI/MfaDebugButton';
 import { TokenI } from '../../UI/Tokens/types';
 import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
 
@@ -1451,6 +1452,7 @@ const Wallet = ({
                   style={styles.headerAccountPickerStyle}
                 />
               </HeaderRoot>
+              <MfaDebugButton />
               <View
                 ref={containerViewRef}
                 style={styles.wrapper}
