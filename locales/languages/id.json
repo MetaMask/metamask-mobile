@@ -6917,7 +6917,9 @@
       "perps_deposit": "Tambahkan dana",
       "perps_withdraw": "Tarik",
       "predict_deposit": "Tambahkan dana Prediction",
-      "predict_withdraw": "Tarik"
+      "predict_withdraw": "Tarik",
+      "money_account_deposit": "Tambahkan dana",
+      "money_account_withdraw": "Tarik dana"
     },
     "sub_title": {
       "permit": "Situs ini meminta izin untuk menggunakan token Anda.",

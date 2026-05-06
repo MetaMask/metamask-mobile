@@ -153,8 +153,7 @@ const mockPositions: Position[] = [
 
 const mockAccountState = {
   totalBalance: '10000',
-  spendableBalance: '4700',
-  withdrawableBalance: '4700',
+  availableBalance: '4700',
   marginUsed: '5300',
 };
 
@@ -240,7 +239,7 @@ describe('PerpsPositionsView', () => {
         // Check that the actual formatted values appear in the UI
         // PRICE_RANGES_MINIMAL_VIEW: Fixed 2 decimals, trailing zeros removed
         expect(screen.getByText('$10,000')).toBeOnTheScreen(); // totalBalance
-        expect(screen.getByText('$4,700')).toBeOnTheScreen(); // spendableBalance
+        expect(screen.getByText('$4,700')).toBeOnTheScreen(); // availableBalance
         expect(screen.getByText('$5,300')).toBeOnTheScreen(); // marginUsed
         expect(screen.getByText('+$75.50')).toBeOnTheScreen(); // total PnL
       });
@@ -388,8 +387,7 @@ describe('PerpsPositionsView', () => {
       (usePerpsLiveAccount as jest.Mock).mockReturnValue({
         account: {
           totalBalance: null,
-          spendableBalance: undefined,
-          withdrawableBalance: undefined,
+          availableBalance: undefined,
           marginUsed: '',
         },
         isInitialLoading: false,

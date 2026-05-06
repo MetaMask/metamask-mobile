@@ -291,7 +291,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     handlePercentageAmount,
     handleMaxAmount,
     maxPossibleAmount,
-    balanceForValidation: spendableBalance,
+    balanceForValidation: availableBalance,
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
 
@@ -776,7 +776,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     orderForm,
     positionSize,
     assetPrice: assetData.price,
-    spendableBalance,
+    availableBalance,
     marginRequired: marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
     skipValidation: isInputFocused,
@@ -1248,7 +1248,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   useInitPerpsPaymentToken(orderForm.asset ?? '');
 
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
-  const amountTimesLeverage = Math.floor(spendableBalance * orderForm.leverage);
+  const amountTimesLeverage = Math.floor(availableBalance * orderForm.leverage);
 
   const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
 
@@ -1329,12 +1329,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={orderForm.amount}
-          showWarning={!isLoadingAccount && spendableBalance === 0}
+          showWarning={!isLoadingAccount && availableBalance === 0}
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={positionSize}
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
-          hasError={spendableBalance > 0 && !!filteredErrors.length}
+          hasError={availableBalance > 0 && !!filteredErrors.length}
           isLoading={isLoadingAccount}
         />
 
@@ -1853,7 +1853,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           // Check if current amount exceeds new maximum value and adjust if needed
           const currentAmount = parseFloat(orderForm.amount || '0');
-          const newMaxAmount = spendableBalance * leverage;
+          const newMaxAmount = availableBalance * leverage;
           if (currentAmount > newMaxAmount) {
             setAmount(Math.floor(newMaxAmount).toString());
           }

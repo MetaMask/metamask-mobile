@@ -20,15 +20,12 @@ import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { strings } from '../../../../../../locales/i18n';
 import { useRewardCampaigns } from '../../hooks/useRewardCampaigns';
 import CampaignTile from './CampaignTile';
-import CampaignReminder from './CampaignReminder';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { getCampaignStatus } from './CampaignTile.utils';
 
 /**
  * CampaignsPreview shows featured campaigns on the dashboard.
- * All campaigns marked `featured` are displayed, in API order. Upcoming campaigns
- * use {@link CampaignReminder}; active or complete campaigns use {@link CampaignTile}.
+ * Only campaigns marked as featured are displayed, in the order returned by the API.
  */
 const CampaignsPreview: React.FC = () => {
   const tw = useTailwind();
@@ -37,12 +34,12 @@ const CampaignsPreview: React.FC = () => {
   const { campaigns, isLoading, hasError, hasLoaded, fetchCampaigns } =
     useRewardCampaigns();
 
-  const featuredCampaigns = useMemo(
-    (): CampaignDto[] => (campaigns ?? []).filter((c) => c.featured),
+  const featuredCampaign = useMemo(
+    (): CampaignDto | undefined => (campaigns ?? []).find((c) => c.featured),
     [campaigns],
   );
 
-  const hasFeaturedCampaigns = featuredCampaigns.length > 0;
+  const hasFeaturedCampaigns = Boolean(featuredCampaign);
 
   const handleNavigateToCampaigns = useCallback(() => {
     navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW);
@@ -86,13 +83,7 @@ const CampaignsPreview: React.FC = () => {
         />
       )}
 
-      {featuredCampaigns.map((campaign) =>
-        getCampaignStatus(campaign) === 'upcoming' ? (
-          <CampaignReminder key={campaign.id} campaign={campaign} />
-        ) : (
-          <CampaignTile key={campaign.id} campaign={campaign} />
-        ),
-      )}
+      {featuredCampaign && <CampaignTile campaign={featuredCampaign} />}
     </Box>
   );
 };

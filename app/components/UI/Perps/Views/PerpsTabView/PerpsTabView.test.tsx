@@ -122,8 +122,7 @@ jest.mock('../../hooks/stream', () => ({
   usePerpsLiveOrders: jest.fn(() => ({ orders: [] })),
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
-      spendableBalance: '1000.00',
-      withdrawableBalance: '1000.00',
+      availableBalance: '1000.00',
       marginUsed: '0.00',
       unrealizedPnl: '0.00',
       returnOnEquity: '0.00',

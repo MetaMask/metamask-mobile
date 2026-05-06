@@ -2721,7 +2721,7 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     const accountState = await infoClient.clearinghouseState(queryParams);
     const adapted = adaptAccountStateFromSDK(accountState);
-    return parseFloat(adapted.withdrawableBalance);
+    return parseFloat(adapted.availableBalance);
   }
 
   /**
@@ -3014,7 +3014,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       const orderIsLong = isBuy;
 
       if (existingIsLong === orderIsLong) {
-        // Increasing position - HyperLiquid validates spendableBalance >= totalRequiredMargin
+        // Increasing position - HyperLiquid validates availableBalance >= totalRequiredMargin
         // BEFORE reallocating existing locked margin. Must transfer TOTAL margin temporarily.
         const existingSize = Math.abs(parseFloat(existingPosition.size));
         const existingMargin = parseFloat(existingPosition.marginUsed);
@@ -3130,7 +3130,7 @@ export class HyperLiquidProvider implements PerpsProvider {
             '🔄 HyperLiquidProvider: Auto-rebalancing excess margin back to main DEX',
             {
               dex: dexName,
-              spendableBalance: postOrderBalance.toFixed(2),
+              availableBalance: postOrderBalance.toFixed(2),
               desiredBuffer: desiredBuffer.toFixed(2),
               excessAmount: excessAmount.toFixed(2),
               destinationDex: transferInfo.sourceDex,
@@ -4769,20 +4769,6 @@ export class HyperLiquidProvider implements PerpsProvider {
         ntli,
       });
 
-      // Guard: confirm spendableBalance can cover margin addition.
-      // spendableBalance is already mode-aware (includes free spot in Unified,
-      // excludes it in Standard), so no extra spot fetch needed.
-      if (amountFloat > 0) {
-        const accountState = await this.getAccountState();
-        const spendable = parseFloat(accountState.spendableBalance);
-
-        if (spendable < amountFloat) {
-          throw new Error(
-            `Insufficient balance for margin addition: need ${amountFloat}, available ${spendable.toFixed(2)}`,
-          );
-        }
-      }
-
       // Call SDK to update isolated margin
       const exchangeClient = this.#clientService.getExchangeClient();
       const result = await exchangeClient.updateIsolatedMargin({
@@ -5866,9 +5852,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         this.#clientService.isTestnetMode() ? 'TESTNET' : 'MAINNET',
       );
 
-      // Get Spot balance, Perps states across DEXs, and the HL abstraction
-      // mode (Unified / Standard / Portfolio / DEX-abstraction). Mode decides
-      // whether spot USDC is perps collateral — see addSpotBalanceToAccountState.
+      // Get Spot balance (global, not DEX-specific) and Perps states across all DEXs.
       // One transient DEX failure should not blank the entire account state.
       const [spotStateResult, perpsStateResult, abstractionResult] =
         await Promise.allSettled([
@@ -5963,8 +5947,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           `DEX ${result.dex ?? 'main'} account state:`,
           {
             totalBalance: dexAccountState.totalBalance,
-            spendableBalance: dexAccountState.spendableBalance,
-            withdrawableBalance: dexAccountState.withdrawableBalance,
+            availableBalance: dexAccountState.availableBalance,
             marginUsed: dexAccountState.marginUsed,
             unrealizedPnl: dexAccountState.unrealizedPnl,
           },
@@ -5974,17 +5957,15 @@ export class HyperLiquidProvider implements PerpsProvider {
       const aggregatedAccountState = addSpotBalanceToAccountState(
         aggregateAccountStates(dexAccountStates),
         spotState,
-        { foldIntoCollateral: hyperLiquidModeFoldsSpot(abstractionMode) },
+        {
+          foldIntoCollateral: hyperLiquidModeFoldsSpot(abstractionMode),
+        },
       );
 
       // Build per-sub-account breakdown (HIP-3 DEXs map to sub-accounts)
       const subAccountBreakdown: Record<
         string,
-        {
-          spendableBalance: string;
-          withdrawableBalance: string;
-          totalBalance: string;
-        }
+        { availableBalance: string; totalBalance: string }
       > = {};
       perpsStateResults.forEach((result) => {
         const { dex, data: perpsState } = result;
@@ -5992,8 +5973,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         const subAccountKey = dex ?? ''; // Empty string for main DEX
 
         subAccountBreakdown[subAccountKey] = {
-          spendableBalance: dexAccountState.spendableBalance,
-          withdrawableBalance: dexAccountState.withdrawableBalance,
+          availableBalance: dexAccountState.availableBalance,
           totalBalance: dexAccountState.totalBalance,
         };
       });
@@ -7076,10 +7056,16 @@ export class HyperLiquidProvider implements PerpsProvider {
         'HyperLiquidProvider: CHECKING ACCOUNT BALANCE',
       );
       const accountState = await this.getAccountState();
-      const withdrawableBalance = parseFloat(accountState.withdrawableBalance);
+      // Release-branch bridge for Unified Account: availableToTradeBalance
+      // includes collateral HL can draw in target mode. The larger balance
+      // contract will replace this with an explicit withdrawableBalance field.
+      const availableBalance = parseFloat(
+        accountState.availableToTradeBalance ?? accountState.availableBalance,
+      );
       this.#deps.debugLogger.log('HyperLiquidProvider: ACCOUNT BALANCE', {
-        withdrawableBalance,
-        spendableBalance: accountState.spendableBalance,
+        availableBalance,
+        clearinghouseAvailableBalance: accountState.availableBalance,
+        availableToTradeBalance: accountState.availableToTradeBalance,
         totalBalance: accountState.totalBalance,
         marginUsed: accountState.marginUsed,
         unrealizedPnl: accountState.unrealizedPnl,
@@ -7097,17 +7083,13 @@ export class HyperLiquidProvider implements PerpsProvider {
       const withdrawAmount = parseFloat(params.amount);
       this.#deps.debugLogger.log('HyperLiquidProvider: WITHDRAWAL AMOUNT', {
         requestedAmount: withdrawAmount,
-        withdrawableBalance,
-        sufficientBalance: withdrawAmount <= withdrawableBalance,
+        availableBalance,
+        sufficientBalance: withdrawAmount <= availableBalance,
       });
 
-      // Validate against withdrawableBalance — the mode-aware cap.
-      // No spot sweep: withdrawableBalance already reflects what withdraw3
-      // can pull. In Unified mode HL handles cross-wallet internally; in
-      // Standard mode spot is not withdrawable via perps.
       const balanceValidation = validateBalance(
         withdrawAmount,
-        withdrawableBalance,
+        availableBalance,
       );
       if (!balanceValidation.isValid) {
         this.#deps.debugLogger.log(
@@ -7115,8 +7097,8 @@ export class HyperLiquidProvider implements PerpsProvider {
           {
             error: balanceValidation.error,
             requestedAmount: withdrawAmount,
-            withdrawableBalance,
-            difference: withdrawAmount - withdrawableBalance,
+            availableBalance,
+            difference: withdrawAmount - availableBalance,
           },
         );
         throw new Error(balanceValidation.error);

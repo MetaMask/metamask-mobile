@@ -4,7 +4,10 @@ import {
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import { safeToChecksumAddress } from '../../../../util/address';
-import { buildMoneyActivityFiatLine } from './moneyActivityFiat';
+import {
+  buildMoneyActivityFiatLine,
+  formatMoneyActivityFiatDisplay,
+} from './moneyActivityFiat';
 import { getMusdDisplayAmountFromTransactionMeta } from '../constants/activityStyles';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 
@@ -63,67 +66,48 @@ function makeIncomingTx(
 }
 
 describe('moneyActivityFiat', () => {
-  describe('buildMoneyActivityFiatLine', () => {
-    it('prefixes with + and formats fiat in USD using market rate', () => {
-      const tx = makeIncomingTx('1000000000');
-
-      const line = buildMoneyActivityFiatLine(
-        tx,
-        mockRates,
-        'usd',
-        mockMarketUsd,
-      );
-
-      expect(line).toMatch(/^\+.*1,000\.00/);
+  describe('formatMoneyActivityFiatDisplay', () => {
+    it('uses exactly two fractional digits', () => {
+      const out = formatMoneyActivityFiatDisplay(1234.5, 'USD');
+      expect(out).toMatch(/1,234\.50/);
     });
+  });
 
-    it('prefixes outgoing transactions with -', () => {
-      const tx = makeIncomingTx('1000000000', {
-        type: TransactionType.simpleSend,
-      });
-
-      const line = buildMoneyActivityFiatLine(
-        tx,
-        mockRates,
-        'usd',
-        mockMarketUsd,
-      );
-
-      expect(line).toMatch(/^-/);
+  describe('buildMoneyActivityFiatLine', () => {
+    it('prefixes with sign and formats fiat in USD using market rate', () => {
+      const tx = makeIncomingTx('1000000000');
+      expect(
+        buildMoneyActivityFiatLine(tx, mockRates, 'usd', mockMarketUsd),
+      ).toMatch(/^\+.*1,000\.00/);
     });
 
     it('converts to EUR using token→ETH price and ETH→fiat rate', () => {
       const tx = makeIncomingTx('1000000000');
-
       const line = buildMoneyActivityFiatLine(
         tx,
         mockRatesEur,
         'eur',
         mockMarketEur,
       );
-
       expect(line).toMatch(/^\+/);
       expect(line).toMatch(/920/);
     });
 
     it('converts mUSD to fiat via peg-derived token→ETH price when market data is missing', () => {
       const tx = makeIncomingTx('1000000000');
-
-      const line = buildMoneyActivityFiatLine(tx, mockRates, 'usd', {});
-
-      expect(line).toMatch(/^\+.*1,000\.00/);
+      expect(buildMoneyActivityFiatLine(tx, mockRates, 'usd', {})).toMatch(
+        /^\+.*1,000\.00/,
+      );
     });
 
     it('converts mUSD to EUR via peg when market data is missing', () => {
       const tx = makeIncomingTx('1000000000');
-
       const line = buildMoneyActivityFiatLine(tx, mockRatesEur, 'eur', {});
-
       expect(line).toMatch(/^\+/);
       expect(line).toMatch(/920/);
     });
 
-    it('returns empty string when market data is missing and token is not mUSD-like', () => {
+    it('returns empty when market data is missing and token is not mUSD-like', () => {
       const tx = makeIncomingTx('1000000000', {
         transferInformation: {
           amount: '1000000000',
@@ -132,65 +116,21 @@ describe('moneyActivityFiat', () => {
           contractAddress: OTHER_TOKEN_CONTRACT,
         },
       });
-
-      const line = buildMoneyActivityFiatLine(tx, mockRates, 'usd', {});
-
-      expect(line).toBe('');
-    });
-
-    it('returns empty string when transferInformation is absent', () => {
-      const tx = makeIncomingTx('1000000000', {
-        transferInformation: undefined,
-      });
-
-      const line = buildMoneyActivityFiatLine(
-        tx,
-        mockRates,
-        'usd',
-        mockMarketUsd,
-      );
-
-      expect(line).toBe('');
-    });
-
-    it('returns empty string when currentCurrency is undefined', () => {
-      const tx = makeIncomingTx('1000000000');
-
-      const line = buildMoneyActivityFiatLine(
-        tx,
-        mockRates,
-        undefined,
-        mockMarketUsd,
-      );
-
-      expect(line).toBe('');
-    });
-
-    it('returns empty string when currencyRates are undefined', () => {
-      const tx = makeIncomingTx('1000000000');
-
-      const line = buildMoneyActivityFiatLine(tx, undefined, 'usd', {});
-
-      expect(line).toBe('');
+      expect(buildMoneyActivityFiatLine(tx, mockRates, 'usd', {})).toBe('');
     });
   });
 
   describe('token amount from raw minimal units', () => {
     it('formats a whole-number amount with two decimals and thousands separator', () => {
       const tx = makeIncomingTx('1000000000');
-
       const display = getMusdDisplayAmountFromTransactionMeta(tx);
-
       expect(display).toContain('1,000.00');
       expect(display).toContain('mUSD');
     });
 
     it('formats a fractional amount with two decimals', () => {
       const tx = makeIncomingTx('1000500000');
-
-      const display = getMusdDisplayAmountFromTransactionMeta(tx);
-
-      expect(display).toContain('1,000.50');
+      expect(getMusdDisplayAmountFromTransactionMeta(tx)).toContain('1,000.50');
     });
   });
 });

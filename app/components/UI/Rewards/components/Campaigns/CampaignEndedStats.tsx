@@ -8,7 +8,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { CampaignLeaderboardDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { StatCell } from './OndoCampaignStatsSummary';
+import { StatCell } from './CampaignStatsSummary';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import { strings } from '../../../../../../locales/i18n';
 import { formatCompactUsd, formatPercentChange } from '../../utils/formatUtils';

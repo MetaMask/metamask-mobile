@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Pressable, ScrollView } from 'react-native';
+import { Image, Pressable, ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -25,9 +25,9 @@ import BottomSheetHeader from '../../../../component-library/components/BottomSh
 import { strings } from '../../../../../locales/i18n';
 import {
   formatRelativeTime,
+  getFaviconUrl,
   getNormalizedHandle,
 } from '../utils/marketInsightsFormatting';
-import ArticleRow from './ArticleRow';
 
 interface MarketInsightsTrendSourcesBottomSheetProps {
   isVisible: boolean;
@@ -79,12 +79,85 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
           const isLastItem =
             index === articles.length - 1 && tweets.length === 0;
           return (
-            <ArticleRow
+            <Pressable
               key={article.url}
-              article={article}
-              onPress={handleSourcePress}
-              isLastItem={isLastItem}
-            />
+              onPress={() => handleSourcePress(article.url)}
+              style={({ pressed }) =>
+                tw.style(
+                  'flex-row items-start py-3',
+                  !isLastItem && 'border-b border-muted',
+                  pressed && 'opacity-70',
+                )
+              }
+            >
+              <Box twClassName="flex-1">
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Start}
+                  twClassName="pr-1"
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                    twClassName="flex-1 pr-2"
+                  >
+                    {article.title}
+                  </Text>
+                  <Box paddingTop={1}>
+                    <Icon
+                      name={IconName.Export}
+                      size={IconSize.Sm}
+                      color={IconColor.IconAlternative}
+                    />
+                  </Box>
+                </Box>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="pt-3"
+                >
+                  <Box twClassName="w-4 h-4 rounded-full overflow-hidden mr-2">
+                    <Image
+                      source={{
+                        uri: getFaviconUrl(article.url || article.source),
+                      }}
+                      style={tw.style('w-4 h-4 rounded-full')}
+                    />
+                  </Box>
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    gap={1}
+                  >
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                    >
+                      {article.source}
+                    </Text>
+                    {article.date ? (
+                      <>
+                        <Text
+                          variant={TextVariant.BodySm}
+                          color={TextColor.TextAlternative}
+                        >
+                          {'•'}
+                        </Text>
+                        <Text
+                          variant={TextVariant.BodySm}
+                          color={TextColor.TextAlternative}
+                        >
+                          {formatRelativeTime(article.date, {
+                            nowLabel: 'now',
+                          })}
+                        </Text>
+                      </>
+                    ) : null}
+                  </Box>
+                </Box>
+              </Box>
+            </Pressable>
           );
         })}
 

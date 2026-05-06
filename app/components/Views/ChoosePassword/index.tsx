@@ -5,7 +5,7 @@ import React, {
   useCallback,
   useContext,
 } from 'react';
-import { TouchableOpacity, Platform, Keyboard, TextInput } from 'react-native';
+import { TouchableOpacity, Platform, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { captureException } from '@sentry/react-native';
@@ -137,7 +137,9 @@ const ChoosePassword = () => {
 
   const mounted = useRef(true);
   const passwordSetupAttemptTraceCtx = useRef<TraceContext | null>(null);
-  const confirmPasswordInputRef = useRef<TextInput | null>(null);
+  const confirmPasswordInputRef = useRef<React.ElementRef<
+    typeof TextField
+  > | null>(null);
   // Flag to know if password in keyring was set or not
   const keyringControllerPasswordSet = useRef(false);
 
@@ -728,10 +730,20 @@ const ChoosePassword = () => {
                   </Label>
                   <TextField
                     autoFocus
+                    secureTextEntry={showPasswordIndex.includes(0)}
                     value={password}
                     onChangeText={onPasswordChange}
                     onFocus={() => setIsPasswordFieldFocused(true)}
                     onBlur={() => setIsPasswordFieldFocused(false)}
+                    testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
+                    accessibilityLabel={
+                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID
+                    }
+                    onSubmitEditing={jumpToConfirmPassword}
+                    autoComplete="password-new"
+                    returnKeyType="next"
+                    autoCapitalize="none"
+                    keyboardAppearance={themeAppearance}
                     isError={isPasswordTooShort}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(0)}>
@@ -746,17 +758,6 @@ const ChoosePassword = () => {
                         />
                       </TouchableOpacity>
                     }
-                    inputProps={{
-                      secureTextEntry: showPasswordIndex.includes(0),
-                      testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                      accessibilityLabel:
-                        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                      onSubmitEditing: jumpToConfirmPassword,
-                      autoComplete: 'password-new',
-                      returnKeyType: 'next',
-                      autoCapitalize: 'none',
-                      keyboardAppearance: themeAppearance,
-                    }}
                   />
                   <Text
                     variant={TextVariant.BodySm}
@@ -785,9 +786,21 @@ const ChoosePassword = () => {
                     {strings('choose_password.confirm_password')}
                   </Label>
                   <TextField
-                    inputRef={confirmPasswordInputRef}
+                    ref={confirmPasswordInputRef}
                     value={confirmPassword}
                     onChangeText={setConfirmPasswordValue}
+                    secureTextEntry={showPasswordIndex.includes(1)}
+                    testID={
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                    }
+                    accessibilityLabel={
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                    }
+                    autoComplete="password-new"
+                    onSubmitEditing={Keyboard.dismiss}
+                    returnKeyType={'done'}
+                    autoCapitalize="none"
+                    keyboardAppearance={themeAppearance}
                     endAccessory={
                       <TouchableOpacity
                         disabled={password === ''}
@@ -806,18 +819,6 @@ const ChoosePassword = () => {
                     }
                     isDisabled={password === ''}
                     isError={checkError()}
-                    inputProps={{
-                      secureTextEntry: showPasswordIndex.includes(1),
-                      testID:
-                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                      accessibilityLabel:
-                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                      autoComplete: 'password-new',
-                      onSubmitEditing: Keyboard.dismiss,
-                      returnKeyType: 'done',
-                      autoCapitalize: 'none',
-                      keyboardAppearance: themeAppearance,
-                    }}
                   />
                   {checkError() && (
                     <Text

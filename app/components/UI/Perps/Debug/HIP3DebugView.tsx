@@ -52,13 +52,13 @@ const HIP3DebugView: React.FC = () => {
   // Balance and positions display state
   const [balanceInfo, setBalanceInfo] = useState<{
     totalBalance: string;
-    spendableBalance: string;
+    availableBalance: string;
     marginUsed: string;
     positionCount: number;
     subAccountCount: number;
     subAccountBreakdown?: Record<
       string,
-      { spendableBalance: string; totalBalance: string }
+      { availableBalance: string; totalBalance: string }
     >;
   } | null>(null);
 
@@ -167,7 +167,7 @@ const HIP3DebugView: React.FC = () => {
 
       const accountSummary = {
         totalBalance: accountState.totalBalance,
-        spendableBalance: accountState.spendableBalance,
+        availableBalance: accountState.availableBalance,
         marginUsed: accountState.marginUsed,
         unrealizedPnl: accountState.unrealizedPnl,
         positions: positions.length,
@@ -187,7 +187,7 @@ const HIP3DebugView: React.FC = () => {
           ([subAccount, breakdown]) => {
             const subAccountInfo = {
               totalBalance: breakdown.totalBalance,
-              spendableBalance: breakdown.spendableBalance,
+              availableBalance: breakdown.availableBalance,
             };
             DevLogger.log(
               `  ${subAccount || 'main'} sub-account:\n` +
@@ -200,7 +200,7 @@ const HIP3DebugView: React.FC = () => {
       // Update UI state
       setBalanceInfo({
         totalBalance: accountState.totalBalance,
-        spendableBalance: accountState.spendableBalance,
+        availableBalance: accountState.availableBalance,
         marginUsed: accountState.marginUsed,
         positionCount: positions.length,
         subAccountCount,
@@ -267,10 +267,10 @@ const HIP3DebugView: React.FC = () => {
     try {
       // Get current balance on selected DEX
       const accountState = await provider.getAccountState();
-      const spendableBalance =
-        accountState.subAccountBreakdown?.[selectedDex]?.spendableBalance;
+      const availableBalance =
+        accountState.subAccountBreakdown?.[selectedDex]?.availableBalance;
 
-      if (!spendableBalance || parseFloat(spendableBalance) <= 0) {
+      if (!availableBalance || parseFloat(availableBalance) <= 0) {
         const message = `⚠️ No available balance on ${selectedDex} DEX to transfer`;
         DevLogger.log(message);
         setTransferResult({
@@ -281,17 +281,17 @@ const HIP3DebugView: React.FC = () => {
       }
 
       DevLogger.log(
-        `Transferring ALL available balance ($${spendableBalance}) from ${selectedDex} to main`,
+        `Transferring ALL available balance ($${availableBalance}) from ${selectedDex} to main`,
       );
 
       const result = await provider.transferBetweenDexs({
         sourceDex: selectedDex,
         destinationDex: '',
-        amount: spendableBalance,
+        amount: availableBalance,
       });
 
       if (result.success) {
-        const message = `✅ Reset complete: Transferred $${spendableBalance} from ${selectedDex} to main DEX`;
+        const message = `✅ Reset complete: Transferred $${availableBalance} from ${selectedDex} to main DEX`;
         DevLogger.log(message);
         setTransferResult({
           status: 'success',
@@ -623,7 +623,7 @@ const HIP3DebugView: React.FC = () => {
                 Total: ${balanceInfo.totalBalance}
               </Text>
               <Text variant={TextVariant.BodySM} style={styles.successText}>
-                Available: ${balanceInfo.spendableBalance}
+                Available: ${balanceInfo.availableBalance}
               </Text>
               <Text variant={TextVariant.BodySM} style={styles.successText}>
                 Margin Used: ${balanceInfo.marginUsed}
@@ -662,7 +662,7 @@ const HIP3DebugView: React.FC = () => {
                             variant={TextVariant.BodySM}
                             style={styles.successText}
                           >
-                            {'  '}Available: ${breakdown.spendableBalance}
+                            {'  '}Available: ${breakdown.availableBalance}
                           </Text>
                         </View>
                       ),

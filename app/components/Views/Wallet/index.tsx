@@ -48,7 +48,6 @@ import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
-import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -644,10 +643,6 @@ const Wallet = ({
    */
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
-  const isMoneyHomeScreenEnabled = useSelector(
-    selectMoneyHomeScreenEnabledFlag,
-  );
-
   /**
    * Provider configuration for the current selected network
    */
@@ -1055,18 +1050,6 @@ const Wallet = ({
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation, trackEvent]);
 
-  const handleActivityPress = useCallback(() => {
-    trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.ACTIVITY_CLICKED,
-      ).build(),
-    );
-    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-      screen: Routes.TRANSACTIONS_VIEW,
-      params: { showBackButton: true },
-    });
-  }, [navigation, trackEvent]);
-
   const getTokenAddedAnalyticsParams = useCallback(
     ({ address, symbol }: { address: string; symbol: string }) => {
       try {
@@ -1389,18 +1372,6 @@ const Wallet = ({
                 endAccessory={
                   <View style={styles.headerEndAccessoryContainer}>
                     <View style={styles.headerActionButtonsContainer}>
-                      {isMoneyHomeScreenEnabled && (
-                        <ButtonIcon
-                          iconProps={{
-                            color: MMDSIconColor.IconDefault,
-                          }}
-                          onPress={handleActivityPress}
-                          iconName={MMDSIconName.Clock}
-                          size={ButtonIconSize.Md}
-                          testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
-                          hitSlop={touchAreaSlop}
-                        />
-                      )}
                       <View
                         testID={
                           WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON

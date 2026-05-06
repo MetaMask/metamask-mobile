@@ -91,35 +91,17 @@ const mockPredictionsData = {
 };
 
 const mockUseExploreSearchReturn = {
-  sections: [
-    {
-      feedId: 'tokens' as const,
-      title: '',
-      items: [mockTokenData],
-      isLoading: false,
-    },
-    {
-      feedId: 'perps' as const,
-      title: '',
-      items: [mockPerpsData],
-      isLoading: false,
-    },
-    {
-      feedId: 'predictions' as const,
-      title: '',
-      items: [mockPredictionsData],
-      isLoading: false,
-    },
-    {
-      feedId: 'sites' as const,
-      title: '',
-      items: [{ name: 'Uniswap', url: 'https://uniswap.org' }],
-      isLoading: false,
-    },
-  ],
+  data: {
+    sites: [{ name: 'Uniswap', url: 'https://uniswap.org' }],
+    tokens: [mockTokenData],
+    perps: [mockPerpsData],
+    predictions: [mockPredictionsData],
+  },
+  isLoading: { sites: false, tokens: false, perps: false, predictions: false },
+  sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
 };
 
-jest.mock('../../Views/TrendingView/search/useExploreSearch', () => ({
+jest.mock('../../Views/TrendingView/hooks/useExploreSearch', () => ({
   useExploreSearch: jest.fn(() => mockUseExploreSearchReturn),
 }));
 jest.mock('../Perps/providers/PerpsConnectionProvider', () => ({

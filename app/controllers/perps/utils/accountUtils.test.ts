@@ -10,8 +10,7 @@ import {
 
 describe('aggregateAccountStates', () => {
   const fallback: AccountState = {
-    spendableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
-    withdrawableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+    availableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
     totalBalance: PERPS_CONSTANTS.FallbackDataDisplay,
     marginUsed: PERPS_CONSTANTS.FallbackDataDisplay,
     unrealizedPnl: PERPS_CONSTANTS.FallbackDataDisplay,
@@ -24,8 +23,7 @@ describe('aggregateAccountStates', () => {
 
   it('returns the single state unchanged when given one element', () => {
     const single: AccountState = {
-      spendableBalance: '100',
-      withdrawableBalance: '100',
+      availableBalance: '100',
       totalBalance: '200',
       marginUsed: '50',
       unrealizedPnl: '10',
@@ -36,16 +34,14 @@ describe('aggregateAccountStates', () => {
 
   it('sums numeric fields from two states and recalculates ROE', () => {
     const stateA: AccountState = {
-      spendableBalance: '100',
-      withdrawableBalance: '100',
+      availableBalance: '100',
       totalBalance: '200',
       marginUsed: '50',
       unrealizedPnl: '10',
       returnOnEquity: '20',
     };
     const stateB: AccountState = {
-      spendableBalance: '50',
-      withdrawableBalance: '50',
+      availableBalance: '50',
       totalBalance: '150',
       marginUsed: '30',
       unrealizedPnl: '6',
@@ -54,8 +50,7 @@ describe('aggregateAccountStates', () => {
 
     const result = aggregateAccountStates([stateA, stateB]);
 
-    expect(parseFloat(result.spendableBalance)).toBe(150);
-    expect(parseFloat(result.withdrawableBalance)).toBe(150);
+    expect(parseFloat(result.availableBalance)).toBe(150);
     expect(parseFloat(result.totalBalance)).toBe(350);
     expect(parseFloat(result.marginUsed)).toBe(80);
     expect(parseFloat(result.unrealizedPnl)).toBe(16);
@@ -66,24 +61,21 @@ describe('aggregateAccountStates', () => {
   it('sums numeric fields from three states', () => {
     const states: AccountState[] = [
       {
-        spendableBalance: '100',
-        withdrawableBalance: '100',
+        availableBalance: '100',
         totalBalance: '200',
         marginUsed: '50',
         unrealizedPnl: '10',
         returnOnEquity: '20',
       },
       {
-        spendableBalance: '200',
-        withdrawableBalance: '200',
+        availableBalance: '200',
         totalBalance: '300',
         marginUsed: '100',
         unrealizedPnl: '30',
         returnOnEquity: '30',
       },
       {
-        spendableBalance: '50',
-        withdrawableBalance: '50',
+        availableBalance: '50',
         totalBalance: '100',
         marginUsed: '50',
         unrealizedPnl: '5',
@@ -93,8 +85,7 @@ describe('aggregateAccountStates', () => {
 
     const result = aggregateAccountStates(states);
 
-    expect(parseFloat(result.spendableBalance)).toBe(350);
-    expect(parseFloat(result.withdrawableBalance)).toBe(350);
+    expect(parseFloat(result.availableBalance)).toBe(350);
     expect(parseFloat(result.totalBalance)).toBe(600);
     expect(parseFloat(result.marginUsed)).toBe(200);
     expect(parseFloat(result.unrealizedPnl)).toBe(45);
@@ -104,8 +95,7 @@ describe('aggregateAccountStates', () => {
 
   it('does not mutate the input state object', () => {
     const single: AccountState = {
-      spendableBalance: '100',
-      withdrawableBalance: '100',
+      availableBalance: '100',
       totalBalance: '200',
       marginUsed: '50',
       unrealizedPnl: '10',
@@ -120,8 +110,7 @@ describe('aggregateAccountStates', () => {
 
   it('sets ROE to 0 when total marginUsed is 0', () => {
     const state: AccountState = {
-      spendableBalance: '100',
-      withdrawableBalance: '100',
+      availableBalance: '100',
       totalBalance: '100',
       marginUsed: '0',
       unrealizedPnl: '0',
@@ -133,16 +122,14 @@ describe('aggregateAccountStates', () => {
 
   it('handles negative unrealizedPnl correctly', () => {
     const stateA: AccountState = {
-      spendableBalance: '80',
-      withdrawableBalance: '80',
+      availableBalance: '80',
       totalBalance: '180',
       marginUsed: '100',
       unrealizedPnl: '-20',
       returnOnEquity: '-20',
     };
     const stateB: AccountState = {
-      spendableBalance: '40',
-      withdrawableBalance: '40',
+      availableBalance: '40',
       totalBalance: '90',
       marginUsed: '50',
       unrealizedPnl: '-10',
@@ -159,16 +146,14 @@ describe('aggregateAccountStates', () => {
 
   it('handles decimal values correctly', () => {
     const stateA: AccountState = {
-      spendableBalance: '100.50',
-      withdrawableBalance: '100.50',
+      availableBalance: '100.50',
       totalBalance: '200.75',
       marginUsed: '50.25',
       unrealizedPnl: '10.10',
       returnOnEquity: '20.1',
     };
     const stateB: AccountState = {
-      spendableBalance: '50.50',
-      withdrawableBalance: '50.50',
+      availableBalance: '50.50',
       totalBalance: '150.25',
       marginUsed: '30.75',
       unrealizedPnl: '6.90',
@@ -177,8 +162,7 @@ describe('aggregateAccountStates', () => {
 
     const result = aggregateAccountStates([stateA, stateB]);
 
-    expect(parseFloat(result.spendableBalance)).toBeCloseTo(151, 0);
-    expect(parseFloat(result.withdrawableBalance)).toBeCloseTo(151, 0);
+    expect(parseFloat(result.availableBalance)).toBeCloseTo(151, 0);
     expect(parseFloat(result.totalBalance)).toBeCloseTo(351, 0);
     expect(parseFloat(result.marginUsed)).toBeCloseTo(81, 0);
     expect(parseFloat(result.unrealizedPnl)).toBeCloseTo(17, 0);
@@ -190,10 +174,9 @@ describe('spot balance helpers', () => {
     expect(getSpotBalance()).toBe(0);
   });
 
-  it('bumps totalBalance, spendableBalance, and withdrawableBalance by spot USDC without mutating the input', () => {
+  it('adds spot balance to totalBalance without mutating the input state', () => {
     const accountState: AccountState = {
-      spendableBalance: '0',
-      withdrawableBalance: '0',
+      availableBalance: '0',
       totalBalance: '100',
       marginUsed: '0',
       unrealizedPnl: '0',
@@ -212,17 +195,15 @@ describe('spot balance helpers', () => {
     );
 
     // Only USDC contributes — non-stablecoin spot assets are not convertible
-    // to perps collateral and must not inflate balances.
+    // to perps collateral and must not inflate totalBalance.
     expect(result.totalBalance).toBe('125.5');
-    expect(result.spendableBalance).toBe('25.5');
-    expect(result.withdrawableBalance).toBe('25.5');
+    expect(result.availableToTradeBalance).toBe('25.5');
     expect(accountState.totalBalance).toBe('100');
   });
 
   it('ignores non-collateral spot balances entirely', () => {
     const accountState: AccountState = {
-      spendableBalance: '0',
-      withdrawableBalance: '0',
+      availableBalance: '0',
       totalBalance: '50',
       marginUsed: '0',
       unrealizedPnl: '0',
@@ -236,13 +217,15 @@ describe('spot balance helpers', () => {
       ],
     } as never);
 
-    expect(result).toBe(accountState);
+    // spotBalance is 0 (no USDC), so totalBalance is unchanged but
+    // availableToTradeBalance is computed from availableBalance.
+    expect(result.totalBalance).toBe('50');
+    expect(result.availableToTradeBalance).toBe('0');
   });
 
   it('excludes USDH-only spot balance from funded-state totals', () => {
     const accountState: AccountState = {
-      spendableBalance: '0',
-      withdrawableBalance: '0',
+      availableBalance: '0',
       totalBalance: '0',
       marginUsed: '0',
       unrealizedPnl: '0',
@@ -256,40 +239,55 @@ describe('spot balance helpers', () => {
       ],
     } as never);
 
-    expect(result).toBe(accountState);
+    // spotBalance is 0 (no USDC), so totalBalance is unchanged but
+    // availableToTradeBalance is computed from availableBalance.
+    expect(result.totalBalance).toBe('0');
+    expect(result.availableToTradeBalance).toBe('0');
   });
 
   it('adds only the USDC portion when USDC and USDH are both present', () => {
     const accountState: AccountState = {
-      spendableBalance: '0',
-      withdrawableBalance: '0',
+      availableBalance: '0',
       totalBalance: '10',
       marginUsed: '0',
       unrealizedPnl: '0',
       returnOnEquity: '0',
     };
 
-    const result = addSpotBalanceToAccountState(
-      accountState,
-      {
-        balances: [
-          { coin: 'USDC', total: '20' },
-          { coin: 'USDH', total: '30' },
-          { coin: 'HYPE', total: '9999' },
-        ],
-      } as never,
-      { foldIntoCollateral: true },
-    );
+    const result = addSpotBalanceToAccountState(accountState, {
+      balances: [
+        { coin: 'USDC', total: '20' },
+        { coin: 'USDH', total: '30' },
+        { coin: 'HYPE', total: '9999' },
+      ],
+    } as never);
 
     expect(result.totalBalance).toBe('30');
-    expect(result.spendableBalance).toBe('20');
-    expect(result.withdrawableBalance).toBe('20');
   });
 
-  it('does not fold USDC spot collateral into spendable/withdrawable for Standard modes', () => {
+  it('does not add non-USDC spot balances to availableToTradeBalance', () => {
     const accountState: AccountState = {
-      spendableBalance: '7',
-      withdrawableBalance: '7',
+      availableBalance: '0',
+      totalBalance: '10',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    };
+
+    const result = addSpotBalanceToAccountState(accountState, {
+      balances: [
+        { coin: 'mUSD', total: '25', hold: '5' },
+        { coin: 'HYPE', total: '999' },
+      ],
+    } as never);
+
+    expect(result.totalBalance).toBe('10');
+    expect(result.availableToTradeBalance).toBe('0');
+  });
+
+  it('does not fold USDC spot collateral into availableToTradeBalance for Standard modes', () => {
+    const accountState: AccountState = {
+      availableBalance: '7',
       totalBalance: '10',
       marginUsed: '0',
       unrealizedPnl: '0',
@@ -301,22 +299,22 @@ describe('spot balance helpers', () => {
       {
         balances: [{ coin: 'USDC', total: '25', hold: '5' }],
       } as never,
-      { foldIntoCollateral: false },
+      {
+        foldIntoCollateral: false,
+      },
     );
 
     expect(result.totalBalance).toBe('30');
-    expect(result.spendableBalance).toBe('7');
-    expect(result.withdrawableBalance).toBe('7');
+    expect(result.availableToTradeBalance).toBe('7');
   });
 
-  it('keeps spot USDC separate from withdrawable even when withdrawable=0 in Standard mode', () => {
+  it('keeps spot USDC separate from availableToTradeBalance even when withdrawable=0 in Standard mode', () => {
     // Standard / DEX-abstraction users with $0 perps withdrawable but free
-    // spot USDC must NOT see spot fold into withdrawable — withdraw3 only
-    // draws from the perps ledger in those modes. Folding would surface a
-    // withdrawable amount the API can't actually fulfill.
+    // spot USDC must NOT see spot fold into availableToTradeBalance —
+    // withdraw3 only draws from the perps ledger in those modes. Folding
+    // would surface a withdrawable amount the API can't actually fulfill.
     const accountState: AccountState = {
-      spendableBalance: '0',
-      withdrawableBalance: '0',
+      availableBalance: '0',
       totalBalance: '0',
       marginUsed: '0',
       unrealizedPnl: '0',
@@ -331,16 +329,14 @@ describe('spot balance helpers', () => {
       { foldIntoCollateral: false },
     );
 
-    expect(result.spendableBalance).toBe('0');
-    expect(result.withdrawableBalance).toBe('0');
+    expect(result.availableToTradeBalance).toBe('0');
     expect(result.totalBalance).toBe('2500');
   });
 
-  it('subtracts spot hold from total and only folds free spot into spendable/withdrawable', () => {
+  it('keeps spot separate when Standard mode has both perps and spot balances', () => {
     const accountState: AccountState = {
-      spendableBalance: '10',
-      withdrawableBalance: '10',
-      totalBalance: '100',
+      availableBalance: '7',
+      totalBalance: '10',
       marginUsed: '0',
       unrealizedPnl: '0',
       returnOnEquity: '0',
@@ -349,79 +345,27 @@ describe('spot balance helpers', () => {
     const result = addSpotBalanceToAccountState(
       accountState,
       {
-        balances: [{ coin: 'USDC', total: '40', hold: '15' }],
+        balances: [{ coin: 'USDC', total: '25', hold: '0' }],
       } as never,
-      { foldIntoCollateral: true },
+      { foldIntoCollateral: false },
     );
 
-    // totalBalance += spotTotal - spotHold = 100 + 40 - 15 = 125
-    expect(parseFloat(result.totalBalance)).toBe(125);
-    // spendable/withdrawable += freeSpot = 10 + (40 - 15) = 35
-    expect(parseFloat(result.spendableBalance)).toBe(35);
-    expect(parseFloat(result.withdrawableBalance)).toBe(35);
+    expect(result.availableToTradeBalance).toBe('7');
+    expect(result.totalBalance).toBe('35');
   });
 
-  it('returns the input untouched when no collateral spot balance is present', () => {
+  it('returns the original account state when spot balance is zero', () => {
     const accountState: AccountState = {
-      spendableBalance: '1',
-      withdrawableBalance: '1',
+      availableBalance: '1',
       totalBalance: '2',
       marginUsed: '3',
       unrealizedPnl: '4',
       returnOnEquity: '5',
     };
 
-    const result = addSpotBalanceToAccountState(accountState, {
-      balances: [],
-    } as never);
-
-    expect(result).toBe(accountState);
-  });
-
-  it('does NOT fold spot into spendable/withdrawable when foldIntoCollateral is false (e.g. HL Standard mode)', () => {
-    const accountState: AccountState = {
-      spendableBalance: '5',
-      withdrawableBalance: '5',
-      totalBalance: '5',
-      marginUsed: '0',
-      unrealizedPnl: '0',
-      returnOnEquity: '0',
-    };
-
-    const result = addSpotBalanceToAccountState(
-      accountState,
-      { balances: [{ coin: 'USDC', total: '30' }] } as never,
-      { foldIntoCollateral: false },
-    );
-
-    // Total still reflects combined wealth (display).
-    expect(parseFloat(result.totalBalance)).toBe(35);
-    // Spendable/withdrawable must remain perps-only — spot isn't auto-collateral
-    // on Standard mode, so surfacing a folded value would mislead the validation
-    // hook into approving submissions HL will reject.
-    expect(result.spendableBalance).toBe('5');
-    expect(result.withdrawableBalance).toBe('5');
-  });
-
-  it('folds spot into spendable/withdrawable when foldIntoCollateral is explicitly true', () => {
-    const accountState: AccountState = {
-      spendableBalance: '5',
-      withdrawableBalance: '5',
-      totalBalance: '5',
-      marginUsed: '0',
-      unrealizedPnl: '0',
-      returnOnEquity: '0',
-    };
-
-    const result = addSpotBalanceToAccountState(
-      accountState,
-      { balances: [{ coin: 'USDC', total: '30' }] } as never,
-      { foldIntoCollateral: true },
-    );
-
-    expect(parseFloat(result.totalBalance)).toBe(35);
-    expect(parseFloat(result.spendableBalance)).toBe(35);
-    expect(parseFloat(result.withdrawableBalance)).toBe(35);
+    expect(
+      addSpotBalanceToAccountState(accountState, { balances: [] } as never),
+    ).toEqual(expect.objectContaining(accountState));
   });
 });
 

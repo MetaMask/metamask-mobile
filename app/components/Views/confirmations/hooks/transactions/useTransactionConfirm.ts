@@ -22,8 +22,6 @@ import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfi
 const log = createProjectLogger('transaction-confirm');
 
 export const GO_BACK_TYPES = [
-  TransactionType.moneyAccountDeposit,
-  TransactionType.moneyAccountWithdraw,
   TransactionType.perpsWithdraw,
   TransactionType.predictClaim,
   TransactionType.predictDeposit,

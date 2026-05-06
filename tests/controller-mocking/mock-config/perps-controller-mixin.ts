@@ -565,8 +565,7 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
   const mockPositions = mockService.getMockPositions();
 
   console.log('Initializing Redux state with mock data:', {
-    spendableBalance: mockAccount.spendableBalance,
-    withdrawableBalance: mockAccount.spendableBalance,
+    availableBalance: mockAccount.availableBalance,
     totalBalance: mockAccount.totalBalance,
     positionsCount: mockPositions.length,
   });

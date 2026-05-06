@@ -2,12 +2,11 @@
 #
 # Expo Dev Build — replaces the Bitrise expo_dev_pipeline.
 #
-# Triggered on every push to main. Builds the main-dev-expo configuration (Debug)
+# Triggered on every push to main. Builds the main-dev configuration (Debug, simulator)
 # for both iOS and Android using the reusable build.yml workflow.
 #
-# Produces simulator .app + device IPA (iOS) and APK + test APK (Android).
-# No version bump or TestFlight upload.
-# Artifacts are uploaded as GitHub Actions artifacts.
+# No version bump or TestFlight upload — this is a dev/simulator build only.
+# Artifacts (iOS .app zip + Android APK) are uploaded as GitHub Actions artifacts.
 #
 # [skip ci] commits (e.g. version bumps) are automatically skipped by GitHub Actions.
 #
@@ -26,10 +25,10 @@ permissions:
 
 jobs:
   build-dev:
-    name: Expo dev build (main-dev-expo)
+    name: Expo dev build (main-dev)
     uses: ./.github/workflows/build.yml
     with:
-      build_name: main-dev-expo
+      build_name: main-dev
       platform: both
       skip_version_bump: true
     secrets: inherit

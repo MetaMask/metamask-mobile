@@ -128,20 +128,6 @@ describe('TransactionDetailsSummary', () => {
     expect(getByText('ReceiveSummaryLine')).toBeDefined();
   });
 
-  it('routes moneyAccountDeposit to ReceiveSummaryLine', () => {
-    const { getByText } = render({
-      transactions: [
-        {
-          id: transactionIdMock,
-          chainId: '0x1',
-          type: TransactionType.moneyAccountDeposit,
-        },
-      ],
-    });
-
-    expect(getByText('ReceiveSummaryLine')).toBeDefined();
-  });
-
   it('routes unsupported types to DefaultSummaryLine', () => {
     const { getByText } = render({
       transactions: [

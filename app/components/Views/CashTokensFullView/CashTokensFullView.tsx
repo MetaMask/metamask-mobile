@@ -38,6 +38,7 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../UI/Earn/constants/musd';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../UI/Earn/types/musd.types';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import {
   useSwapBridgeNavigation,
@@ -204,6 +205,7 @@ const CashTokensFullView = () => {
             address: token.address as Hex,
             chainId: token.chainId as Hex,
           },
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
         });
       } catch (error) {
         Logger.error(error as Error, {

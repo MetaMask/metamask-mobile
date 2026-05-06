@@ -1,5 +1,4 @@
 import { useCallback, useEffect } from 'react';
-import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
   TraderProfileResponse,
@@ -7,7 +6,6 @@ import type {
 } from '@metamask/social-controllers';
 import Logger from '../../../../../util/Logger';
 import { useFollowToggle } from '../../../../hooks/useFollowToggle';
-import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 
 export interface UseTraderProfileOptions {
   refetchInterval?: number;
@@ -26,7 +24,6 @@ export const useTraderProfile = (
   addressOrId: string,
   options?: UseTraderProfileOptions,
 ): UseTraderProfileResult => {
-  const isUnlocked = useSelector(selectIsUnlocked);
   const fetchOptions: FetchTraderProfileOptions = { addressOrId };
 
   const queryKey: [string, FetchTraderProfileOptions] = [
@@ -36,7 +33,7 @@ export const useTraderProfile = (
 
   const { data, isLoading, error, refetch } = useQuery<TraderProfileResponse>({
     queryKey,
-    enabled: Boolean(addressOrId) && isUnlocked,
+    enabled: Boolean(addressOrId),
     refetchInterval: options?.refetchInterval,
   });
 

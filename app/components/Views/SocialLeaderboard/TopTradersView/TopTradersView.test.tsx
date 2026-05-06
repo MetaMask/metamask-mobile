@@ -63,7 +63,6 @@ const fixtureTraders: TopTrader[] = [
 const defaultUseTopTradersResult: UseTopTradersResult = {
   traders: fixtureTraders,
   isLoading: false,
-  isFetching: false,
   error: null,
   refresh: mockRefresh as () => Promise<void>,
   toggleFollow: mockToggleFollow,

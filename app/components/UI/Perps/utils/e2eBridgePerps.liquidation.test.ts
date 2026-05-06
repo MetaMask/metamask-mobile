@@ -12,8 +12,7 @@ jest.mock('react-native', () => {
 const mockGetInstance = () => ({
   reset: jest.fn(),
   getMockAccountState: () => ({
-    spendableBalance: '8000.00',
-    withdrawableBalance: '8000.00',
+    availableBalance: '8000.00',
     marginUsed: '2000.00',
     unrealizedPnl: '0.00',
     returnOnEquity: '0',

@@ -40,6 +40,9 @@ import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetw
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../types/musd.types';
+import { selectMusdQuickConvertEnabledFlag } from '../../../selectors/featureFlags';
+import { useSelector } from 'react-redux';
 
 enum CTA_CLICK_TARGET {
   CTA_BUTTON = 'cta_button',
@@ -48,6 +51,8 @@ enum CTA_CLICK_TARGET {
 
 const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
+
+  const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
 
   const { goToBuy } = useRampNavigation();
 
@@ -83,7 +88,9 @@ const MusdConversionAssetListCta = () => {
         return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
       }
 
-      return EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+      return isQuickConvertEnabled
+        ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
+        : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
     };
 
     const ctaText =
@@ -133,6 +140,7 @@ const MusdConversionAssetListCta = () => {
     try {
       await initiateCustomConversion({
         preferredPaymentToken: paymentToken,
+        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
       });
     } catch (error) {
       Logger.error(

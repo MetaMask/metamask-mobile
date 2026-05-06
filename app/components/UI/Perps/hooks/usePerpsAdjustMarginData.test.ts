@@ -53,8 +53,7 @@ describe('usePerpsAdjustMarginData', () => {
   };
 
   const mockAccount = {
-    spendableBalance: '10000',
-    withdrawableBalance: '10000',
+    availableBalance: '10000',
     totalBalance: '15000',
     marginUsed: '5000',
     unrealizedPnl: '500',
@@ -179,7 +178,7 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      expect(result.current.spendableBalance).toBe(10000);
+      expect(result.current.availableBalance).toBe(10000);
     });
   });
 

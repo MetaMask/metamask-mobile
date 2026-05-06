@@ -290,17 +290,6 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns empty array if transaction type is moneyAccountWithdraw', () => {
-    mockUseTransactionMetadataRequest.mockReturnValue({
-      ...mockTransaction,
-      type: TransactionType.moneyAccountWithdraw,
-    } as unknown as TransactionMeta);
-
-    const { result } = renderHook(() => useInsufficientBalanceAlert());
-
-    expect(result.current).toStrictEqual([]);
-  });
-
   it('returns empty array when using pay source amounts', () => {
     useTransactionPayHasSourceAmountMock.mockReturnValue(true);
 

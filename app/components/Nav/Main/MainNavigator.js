@@ -51,7 +51,6 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
-import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSectionResultsFullView from '../../Views/TrendingView/Views/ExploreSectionResultsFullView/ExploreSectionResultsFullView';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
@@ -643,10 +642,6 @@ const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
-  const isMoneyHomeScreenEnabled = useSelector(
-    selectMoneyHomeScreenEnabledFlag,
-  );
-
   const accountsLength = useSelector(selectAccountsLength);
 
   const chainId = useSelector((state) => {
@@ -705,10 +700,6 @@ const HomeTabs = () => {
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
       unmountOnBlur: true,
-    },
-    money: {
-      tabBarIconKey: TabBarIconKey.Money,
-      rootScreenName: Routes.MONEY.HOME,
     },
     rewards: {
       tabBarIconKey: TabBarIconKey.Rewards,
@@ -864,21 +855,13 @@ const HomeTabs = () => {
         component={WalletTabModalFlow}
       />
 
-      {/* Activity Tab (replaced by Money when feature flag is on) */}
-      {isMoneyHomeScreenEnabled ? (
-        <Tab.Screen
-          name={Routes.MONEY.HOME}
-          options={options.money}
-          component={WalletTabModalFlow}
-        />
-      ) : (
-        <Tab.Screen
-          name={Routes.TRANSACTIONS_VIEW}
-          options={options.activity}
-          component={TransactionsHome}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-        />
-      )}
+      {/* Activity Tab */}
+      <Tab.Screen
+        name={Routes.TRANSACTIONS_VIEW}
+        options={options.activity}
+        component={TransactionsHome}
+        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+      />
 
       {/* Rewards Tab */}
       <Tab.Screen
@@ -892,7 +875,7 @@ const HomeTabs = () => {
 };
 
 const Webview = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
+  <Stack.Navigator>
     <Stack.Screen name="SimpleWebview" component={SimpleWebview} />
   </Stack.Navigator>
 );
@@ -1236,11 +1219,6 @@ const MainNavigator = () => {
               presentation: 'transparentModal',
             }}
           />
-          <Stack.Screen
-            name={Routes.TRANSACTIONS_VIEW}
-            component={TransactionsHome}
-            options={{ headerShown: false, ...slideFromRightAnimation }}
-          />
         </>
       )}
       <Stack.Screen
@@ -1367,11 +1345,6 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SITES_FULL_VIEW}
           component={SitesFullView}
-          options={{ headerShown: false, ...slideFromRightAnimation }}
-        />
-        <Stack.Screen
-          name={Routes.WHATS_HAPPENING_DETAIL}
-          component={WhatsHappeningDetailView}
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
         <Stack.Screen

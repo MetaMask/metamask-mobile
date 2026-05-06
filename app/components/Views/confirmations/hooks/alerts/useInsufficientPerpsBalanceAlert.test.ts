@@ -24,12 +24,11 @@ jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../useTokenAmount');
 jest.mock('../pay/useTransactionPayData');
 
-const mockPerpsState = (withdrawableBalance: string | null = '45.31') => ({
+const mockPerpsState = (availableBalance: string | null = '45.31') => ({
   engine: {
     backgroundState: {
       PerpsController: {
-        accountState:
-          withdrawableBalance !== null ? { withdrawableBalance } : null,
+        accountState: availableBalance !== null ? { availableBalance } : null,
       },
     },
   },
@@ -37,14 +36,14 @@ const mockPerpsState = (withdrawableBalance: string | null = '45.31') => ({
 
 function runHook({
   pendingAmount,
-  withdrawableBalance = '45.31',
+  availableBalance = '45.31',
 }: {
   pendingAmount?: string;
-  withdrawableBalance?: string | null;
+  availableBalance?: string | null;
 } = {}) {
   return renderHookWithProvider(
     () => useInsufficientPerpsBalanceAlert({ pendingAmount }),
-    { state: mockPerpsState(withdrawableBalance) },
+    { state: mockPerpsState(availableBalance) },
   );
 }
 
@@ -145,7 +144,7 @@ describe('useInsufficientPerpsBalanceAlert', () => {
   it('returns no alert if perps controller state is unavailable', () => {
     const { result } = runHook({
       pendingAmount: '50',
-      withdrawableBalance: null,
+      availableBalance: null,
     });
 
     expect(result.current).toStrictEqual([]);

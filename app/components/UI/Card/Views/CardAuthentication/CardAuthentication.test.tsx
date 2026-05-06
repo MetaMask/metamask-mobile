@@ -1,5 +1,12 @@
 import React from 'react';
-import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
+import { TextInput } from 'react-native';
+import {
+  fireEvent,
+  screen,
+  waitFor,
+  act,
+  within,
+} from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import CardAuthentication from './CardAuthentication';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -59,9 +66,9 @@ const mockGetErrorMessage = jest.fn(
   (err: unknown) => (err as Error)?.message ?? 'Unknown error',
 );
 
-/** DS TextField forwards `inputProps.testID` to the inner TextInput. */
+/** TextField puts testID on the outer Pressable; props sit on the inner TextInput. */
 function getLoginTextInput(fieldTestId: string) {
-  return screen.getByTestId(fieldTestId);
+  return within(screen.getByTestId(fieldTestId)).UNSAFE_getByType(TextInput);
 }
 
 function makeDefaultHookReturn(
@@ -250,7 +257,9 @@ describe('CardAuthentication Component', () => {
 
       fireEvent.changeText(emailField, 'test@example.com');
 
-      expect(emailField).toHaveDisplayValue('test@example.com');
+      expect(
+        within(emailField).getByDisplayValue('test@example.com'),
+      ).toBeOnTheScreen();
     });
 
     it('updates password field when user types', () => {
@@ -259,7 +268,9 @@ describe('CardAuthentication Component', () => {
 
       fireEvent.changeText(passwordField, 'password123');
 
-      expect(passwordField).toHaveDisplayValue('password123');
+      expect(
+        within(passwordField).getByDisplayValue('password123'),
+      ).toBeOnTheScreen();
     });
 
     it('resets submit error when user types in email field', () => {

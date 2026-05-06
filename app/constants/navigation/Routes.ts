@@ -115,11 +115,6 @@ const Routes = {
   REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW: 'RewardsOndoCampaignPortfolioView',
   REWARDS_ONDO_CAMPAIGN_STATS: 'RewardsOndoCampaignStats',
   REWARDS_CAMPAIGN_TOUR_STEP: 'RewardsCampaignTourStep',
-  REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW:
-    'RewardsPerpsTradingCampaignDetails',
-  REWARDS_PERPS_TRADING_CAMPAIGN_LEADERBOARD:
-    'RewardsPerpsTradingCampaignLeaderboard',
-  REWARDS_PERPS_TRADING_CAMPAIGN_STATS: 'RewardsPerpsTradingCampaignStats',
   TRENDING_VIEW: 'TrendingView',
   TRENDING_FEED: 'TrendingFeed',
   WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
@@ -412,6 +407,7 @@ const Routes = {
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
       CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
+      QUICK_CONVERT: 'EarnMusdQuickConvert',
     },
     MODALS: {
       ROOT: 'EarnModals',
@@ -424,14 +420,9 @@ const Routes = {
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
-    POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
-      MORE_SHEET: 'MoneyMoreSheet',
-      TRANSFER_MONEY_SHEET: 'MoneyTransferSheet',
-      APY_INFO_SHEET: 'MoneyApyInfoSheet',
-      EARNINGS_INFO_SHEET: 'MoneyEarningsInfoSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {

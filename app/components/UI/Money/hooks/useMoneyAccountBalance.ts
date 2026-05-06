@@ -7,31 +7,21 @@ import {
 import { useQueries, type UseQueryResult } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { fromTokenMinimalUnitString } from '../../../../util/number';
-import { moneyFormatFiat } from '../utils/moneyFormatFiat';
+import useFiatFormatter from '../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-import {
-  selectCurrencyRates,
-  selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
+import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_DECIMALS,
 } from '../../Earn/constants/musd';
+import { fromTokenMinimalUnitString } from '../../../../util/number';
 import { toChecksumAddress } from '../../../../util/address';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
-
-// TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
-const DEV_APY = {
-  decimal: 0.04,
-  percent: 4,
-  percentFormatted: '4%',
-};
 
 /**
  * Fetches the live exchange rate for the mUSD token.
@@ -51,7 +41,7 @@ const useMoneyAccountBalance = (
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const currentCurrency = useSelector(selectCurrentCurrency);
+  const formatFiat = useFiatFormatter();
 
   const [musdBalanceQuery, vaultApyQuery, musdEquivalentBalanceQuery] =
     useQueries({
@@ -168,23 +158,12 @@ const useMoneyAccountBalance = (
     musdFiatRate,
   ]);
 
-  const musdFiatFormatted = musdFiat
-    ? moneyFormatFiat(musdFiat, currentCurrency)
-    : undefined;
+  const musdFiatFormatted = musdFiat ? formatFiat(musdFiat) : undefined;
   const musdSHFvdFiatFormatted = musdSHFvdFiat
-    ? moneyFormatFiat(musdSHFvdFiat, currentCurrency)
+    ? formatFiat(musdSHFvdFiat)
     : undefined;
-  const totalFiatFormatted = totalFiat
-    ? moneyFormatFiat(totalFiat, currentCurrency)
-    : undefined;
+  const totalFiatFormatted = totalFiat ? formatFiat(totalFiat) : undefined;
   const totalFiatRaw = totalFiat ? totalFiat.toString() : undefined;
-
-  const rawApy = vaultApyQuery.data?.apy;
-
-  const apyDecimal = rawApy;
-  const apyPercent = rawApy !== undefined ? rawApy * 100 : undefined;
-  const apyPercentFormatted =
-    apyPercent !== undefined ? `${apyPercent}%` : undefined;
 
   return {
     musdBalanceQuery,
@@ -196,12 +175,6 @@ const useMoneyAccountBalance = (
     tokenTotal,
     totalFiatFormatted,
     totalFiatRaw,
-    // TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
-    apyDecimal: __DEV__ ? DEV_APY.decimal : apyDecimal,
-    apyPercent: __DEV__ ? DEV_APY.percent : apyPercent,
-    apyPercentFormatted: __DEV__
-      ? DEV_APY.percentFormatted
-      : apyPercentFormatted,
   };
 };
 

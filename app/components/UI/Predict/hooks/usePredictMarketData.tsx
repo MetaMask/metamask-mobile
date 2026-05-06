@@ -1,12 +1,6 @@
 /* eslint-disable react/prop-types */
 
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useState,
-  useRef,
-} from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
@@ -58,18 +52,6 @@ export const usePredictMarketData = (
 
   const currentCategoryRef = useRef(category);
   const currentOffsetRef = useRef(currentOffset);
-  const prevEnabledRef = useRef(enabled);
-
-  /**
-   * When `enabled` goes from false → true (e.g. All Sports pill), avoid one painted frame
-   * with empty data and `isFetching` still false from the disabled path before `useEffect` fetch runs.
-   */
-  useLayoutEffect(() => {
-    if (enabled && !prevEnabledRef.current) {
-      setIsLoading(true);
-    }
-    prevEnabledRef.current = enabled;
-  }, [enabled]);
 
   useEffect(() => {
     currentCategoryRef.current = category;

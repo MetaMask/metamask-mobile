@@ -28,7 +28,7 @@ import mmCardMetal from '../../../../../images/mm_card_metal.png';
 interface MoneyMetaMaskCardProps {
   /** 'upsell' (default): virtual/metal card rows. 'link': card-linking CTA layout. */
   mode?: 'upsell' | 'link';
-  onGetNowPress: () => void;
+  onGetNowPress?: (cardType: string) => void;
   onHeaderPress?: () => void;
   /** Called when the "Link card" button is pressed (link mode only). */
   onLinkPress?: () => void;
@@ -162,11 +162,19 @@ const LinkContent = ({
 
 const MoneyMetaMaskCard = ({
   mode = 'upsell',
-  onGetNowPress,
+  onGetNowPress = () => undefined,
   onHeaderPress,
   onLinkPress,
   apy,
 }: MoneyMetaMaskCardProps) => {
+  const handleVirtualPress = useCallback(
+    () => onGetNowPress('virtual'),
+    [onGetNowPress],
+  );
+  const handleMetalPress = useCallback(
+    () => onGetNowPress('metal'),
+    [onGetNowPress],
+  );
   const handleLinkPress = useCallback(() => onLinkPress?.(), [onLinkPress]);
 
   return (
@@ -197,14 +205,14 @@ const MoneyMetaMaskCard = ({
             imageSource={mmCardRegular}
             cardName={strings('money.metamask_card.virtual_card')}
             cashbackPercentage="1"
-            onPress={onGetNowPress}
+            onPress={handleVirtualPress}
             testID={MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW}
           />
           <CardRow
             imageSource={mmCardMetal}
             cardName={strings('money.metamask_card.metal_card')}
             cashbackPercentage="3"
-            onPress={onGetNowPress}
+            onPress={handleMetalPress}
             testID={MoneyMetaMaskCardTestIds.METAL_CARD_ROW}
           />
         </>

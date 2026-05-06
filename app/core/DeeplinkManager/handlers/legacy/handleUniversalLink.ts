@@ -30,7 +30,6 @@ import { handleCardOnboarding } from './handleCardOnboarding';
 import { handleCardHome } from './handleCardHome';
 import { handleCardKycNotification } from './handleCardKycNotification';
 import { handleTrendingUrl } from './handleTrendingUrl';
-import { handleSocialLeaderboardUrl } from './handleSocialLeaderboardUrl';
 import { handleSocialTraderPositionUrl } from './handleSocialTraderPositionUrl';
 import { handleEarnMusd } from './handleEarnMusd';
 import { handleAssetUrl } from './handleAssetUrl';
@@ -86,7 +85,6 @@ const SUPPORTED_ACTIONS = {
   CARD_HOME: ACTIONS.CARD_HOME,
   CARD_KYC_NOTIFICATION: ACTIONS.CARD_KYC_NOTIFICATION,
   TRENDING: ACTIONS.TRENDING,
-  SOCIAL_LEADERBOARD: ACTIONS.SOCIAL_LEADERBOARD,
   SOCIAL_TRADER_POSITION: ACTIONS.SOCIAL_TRADER_POSITION,
   SHIELD: ACTIONS.SHIELD,
   EARN_MUSD: ACTIONS.EARN_MUSD,
@@ -120,7 +118,6 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.SELL,
   SUPPORTED_ACTIONS.SELL_CRYPTO,
   SUPPORTED_ACTIONS.TRENDING,
-  SUPPORTED_ACTIONS.SOCIAL_LEADERBOARD,
   SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION,
   SUPPORTED_ACTIONS.SHIELD,
   SUPPORTED_ACTIONS.EARN_MUSD,
@@ -637,10 +634,6 @@ async function handleUniversalLink({
       handleTrendingUrl({
         actionPath: actionBasedRampPath,
       });
-      break;
-    }
-    case SUPPORTED_ACTIONS.SOCIAL_LEADERBOARD: {
-      handleSocialLeaderboardUrl();
       break;
     }
     case SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION: {

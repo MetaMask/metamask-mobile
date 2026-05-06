@@ -49,8 +49,7 @@ describe('usePerpsPaymentTokens', () => {
   };
 
   const mockAccountState: AccountState = {
-    spendableBalance: '1000.50',
-    withdrawableBalance: '1000.50',
+    availableBalance: '1000.50',
     marginUsed: '300.25',
     unrealizedPnl: '50.25',
     returnOnEquity: '0',
@@ -280,8 +279,7 @@ describe('usePerpsPaymentTokens', () => {
     it('handles zero Hyperliquid balance', () => {
       const zeroBalanceAccountState = {
         ...mockAccountState,
-        spendableBalance: '0',
-        withdrawableBalance: '0',
+        availableBalance: '0',
       };
 
       mockUsePerpsLiveAccount.mockReturnValue({
@@ -296,16 +294,15 @@ describe('usePerpsPaymentTokens', () => {
       expect(hyperliquidUsdc.balanceFiat).toBe('$0.00');
     });
 
-    it('uses spendableBalance for Unified Account users', () => {
-      // Unified Account / Portfolio Margin: collateral lives in spot. The
-      // provider folds free spot USDC into spendableBalance via
-      // addSpotBalanceToAccountState, so the Pay-with sheet sees the unified
-      // total without branching on mode.
+    it('uses availableToTradeBalance for Unified Account users', () => {
+      // Unified Account / Portfolio Margin: collateral lives in spot, so HL's
+      // `clearinghouseState.withdrawable` is $0. The Pay-with sheet must read
+      // `availableToTradeBalance` (perps + folded spot USDC) instead.
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           ...mockAccountState,
-          spendableBalance: '2500.00',
-          withdrawableBalance: '2500.00',
+          availableBalance: '0',
+          availableToTradeBalance: '2500.00',
         },
         isInitialLoading: false,
       });
