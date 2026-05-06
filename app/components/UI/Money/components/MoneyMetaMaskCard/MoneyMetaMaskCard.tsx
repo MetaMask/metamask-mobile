@@ -34,6 +34,12 @@ interface MoneyMetaMaskCardProps {
   onLinkPress?: () => void;
   /** Current APY value displayed in the link mode bullet. */
   apy?: number;
+  /**
+   * Whether to render the Metal card row in upsell mode. Defaults to `false`
+   * because the Metal card is currently only available to US users; the parent
+   * is expected to pass the geolocation-derived flag.
+   */
+  showMetalCard?: boolean;
 }
 
 const CardRow = ({
@@ -166,6 +172,7 @@ const MoneyMetaMaskCard = ({
   onHeaderPress,
   onLinkPress,
   apy,
+  showMetalCard = false,
 }: MoneyMetaMaskCardProps) => {
   const handleLinkPress = useCallback(() => onLinkPress?.(), [onLinkPress]);
 
@@ -200,13 +207,15 @@ const MoneyMetaMaskCard = ({
             onPress={onGetNowPress}
             testID={MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW}
           />
-          <CardRow
-            imageSource={mmCardMetal}
-            cardName={strings('money.metamask_card.metal_card')}
-            cashbackPercentage="3"
-            onPress={onGetNowPress}
-            testID={MoneyMetaMaskCardTestIds.METAL_CARD_ROW}
-          />
+          {showMetalCard && (
+            <CardRow
+              imageSource={mmCardMetal}
+              cardName={strings('money.metamask_card.metal_card')}
+              cashbackPercentage="3"
+              onPress={onGetNowPress}
+              testID={MoneyMetaMaskCardTestIds.METAL_CARD_ROW}
+            />
+          )}
         </>
       )}
     </Box>
