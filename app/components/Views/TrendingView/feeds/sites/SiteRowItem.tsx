@@ -22,21 +22,21 @@ const openSiteInBrowser = (navigation: AppNavigationProp, site: SiteData) => {
 
 interface SiteRowItemProps {
   site: SiteData;
-  /** Called synchronously before the default press handler fires. */
-  onBeforePress?: () => void;
+  /** Called synchronously before the card's navigation press fires. */
+  onCardPress?: () => void;
 }
 
 /** Generic site row (sites + dapps_favorites without remove action). */
 export const SiteRowItem: React.FC<SiteRowItemProps> = ({
   site,
-  onBeforePress,
+  onCardPress,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   return (
     <SiteRowItemBase
       site={site}
       onPress={() => {
-        onBeforePress?.();
+        onCardPress?.();
         openSiteInBrowser(navigation, site);
       }}
     />
@@ -46,7 +46,7 @@ export const SiteRowItem: React.FC<SiteRowItemProps> = ({
 /** Favorite-site row with the "remove from favorites" affordance. */
 export const FavoriteSiteRowItem: React.FC<SiteRowItemProps> = ({
   site,
-  onBeforePress,
+  onCardPress,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
@@ -54,7 +54,7 @@ export const FavoriteSiteRowItem: React.FC<SiteRowItemProps> = ({
     <SiteRowItemBase
       site={site}
       onPress={() => {
-        onBeforePress?.();
+        onCardPress?.();
         openSiteInBrowser(navigation, site);
       }}
       onRemoveFavorite={() =>

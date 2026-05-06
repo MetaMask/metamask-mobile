@@ -55,8 +55,8 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
 
 interface SiteTileRowItemProps {
   site: SiteData;
-  /** Called synchronously before the default press handler fires. */
-  onBeforePress?: () => void;
+  /** Called synchronously before the card's navigation press fires. */
+  onCardPress?: () => void;
 }
 
 /**
@@ -64,14 +64,14 @@ interface SiteTileRowItemProps {
  */
 const SiteTileRowItem: React.FC<SiteTileRowItemProps> = ({
   site,
-  onBeforePress,
+  onCardPress,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet);
   const tw = useTailwind();
 
   const onPress = () => {
-    onBeforePress?.();
+    onCardPress?.();
     navigation.navigate(Routes.BROWSER.HOME, {
       screen: Routes.BROWSER.VIEW,
       params: {

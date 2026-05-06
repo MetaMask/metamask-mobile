@@ -15,14 +15,11 @@ const LOGO_SIZE = 24;
 
 interface PerpsPillItemProps {
   item: PerpsFeedItem;
-  /** Called synchronously before the default press handler fires. */
-  onBeforePress?: () => void;
+  /** Called synchronously before the card's navigation press fires. */
+  onCardPress?: () => void;
 }
 
-const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
-  item,
-  onBeforePress,
-}) => {
+const PerpsPillItem: React.FC<PerpsPillItemProps> = ({ item, onCardPress }) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { market } = item;
 
@@ -49,7 +46,7 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
   }, [market.change24hPercent]);
 
   const onPress = () => {
-    onBeforePress?.();
+    onCardPress?.();
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: { market, source: PERPS_EVENT_VALUE.SOURCE.EXPLORE },

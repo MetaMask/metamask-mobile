@@ -65,7 +65,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
         renderItem={(item, index) => (
           <PerpsPillItem
             item={item}
-            onBeforePress={() =>
+            onCardPress={() =>
               trackExploreInteracted({
                 interaction_type: 'section_item_tapped',
                 tab_name: 'Now',
@@ -101,7 +101,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       <PredictionCarouselRowItem
         market={item}
         testIdPrefix="predict-market-row-item"
-        onBeforePress={() =>
+        onCardPress={() =>
           trackExploreInteracted({
             interaction_type: 'section_item_tapped',
             tab_name: 'Now',
@@ -111,7 +111,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             item_clicked: item.id,
           })
         }
-        onVote={(marketId) =>
+        onBuyButtonPress={(marketId) =>
           trackExploreInteracted({
             interaction_type: 'prediction_voted',
             tab_name: 'Now',
@@ -130,7 +130,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         token={item}
         index={index}
         tokenDetailsSource={TokenDetailsSource.ExploreNowStocks}
-        onBeforePress={() =>
+        onCardPress={() =>
           trackExploreInteracted({
             interaction_type: 'section_item_tapped',
             tab_name: 'Now',
@@ -196,7 +196,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
               <CryptoMoversPillItem
                 token={token}
                 index={index}
-                onBeforePress={() =>
+                onCardPress={() =>
                   trackExploreInteracted({
                     interaction_type: 'section_item_tapped',
                     tab_name: 'Now',

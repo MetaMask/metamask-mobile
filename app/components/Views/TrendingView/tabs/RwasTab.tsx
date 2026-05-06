@@ -103,7 +103,7 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       <PredictionCarouselRowItem
         market={item}
         testIdPrefix="predict-rwa-politics-market-row-item"
-        onBeforePress={() =>
+        onCardPress={() =>
           trackExploreInteracted({
             interaction_type: 'section_item_tapped',
             tab_name: 'RWAs',
@@ -113,7 +113,7 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             item_clicked: item.id,
           })
         }
-        onVote={(marketId) =>
+        onBuyButtonPress={(marketId) =>
           trackExploreInteracted({
             interaction_type: 'prediction_voted',
             tab_name: 'RWAs',
@@ -132,7 +132,7 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         token={item}
         index={index}
         tokenDetailsSource={TokenDetailsSource.ExploreRwasStocks}
-        onBeforePress={() =>
+        onCardPress={() =>
           trackExploreInteracted({
             interaction_type: 'section_item_tapped',
             tab_name: 'RWAs',

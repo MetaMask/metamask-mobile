@@ -13,8 +13,8 @@ interface TokenRowItemProps {
   index: number;
   /** When omitted, defaults to {@link TokenDetailsSource.Trending} in the row item. */
   tokenDetailsSource?: TokenDetailsSource;
-  /** Called synchronously before the default press handler fires. */
-  onBeforePress?: () => void;
+  /** Called synchronously before the card's press handler fires. */
+  onCardPress?: () => void;
 }
 
 /** Token row used inside the home tabs. */
@@ -22,14 +22,14 @@ export const TokenRowItem: React.FC<TokenRowItemProps> = ({
   token,
   index,
   tokenDetailsSource,
-  onBeforePress,
+  onCardPress,
 }) => (
   <TrendingTokenRowItem
     token={token}
     position={index}
     filterContext={DEFAULT_TOKENS_FILTER_CONTEXT}
     tokenDetailsSource={tokenDetailsSource}
-    onBeforePress={onBeforePress}
+    onCardPress={onCardPress}
   />
 );
 

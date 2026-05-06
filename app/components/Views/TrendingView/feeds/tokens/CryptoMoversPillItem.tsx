@@ -26,14 +26,14 @@ const LOGO_SIZE = 24;
 interface CryptoMoversPillItemProps {
   token: TrendingAsset;
   index: number;
-  /** Called synchronously before the default press handler fires. */
-  onBeforePress?: () => void;
+  /** Called synchronously before the card's press handler fires. */
+  onCardPress?: () => void;
 }
 
 const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
   token,
   index,
-  onBeforePress,
+  onCardPress,
 }) => {
   const { onPress: defaultOnPress } = useTrendingTokenPress({
     token,
@@ -43,9 +43,9 @@ const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
   });
 
   const onPress = React.useCallback(async () => {
-    onBeforePress?.();
+    onCardPress?.();
     await defaultOnPress();
-  }, [onBeforePress, defaultOnPress]);
+  }, [onCardPress, defaultOnPress]);
 
   const networkBadgeImageSource = useMemo(() => {
     const caipChainId = getCaipChainIdFromAssetId(token.assetId);

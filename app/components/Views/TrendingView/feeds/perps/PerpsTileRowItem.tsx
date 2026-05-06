@@ -9,14 +9,14 @@ import type { PerpsFeedItem } from './usePerpsFeed';
 interface PerpsTileRowItemProps {
   item: PerpsFeedItem;
   testIdPrefix: string;
-  /** Called synchronously before the default press handler fires. */
-  onBeforePress?: () => void;
+  /** Called synchronously before the card's navigation press fires. */
+  onCardPress?: () => void;
 }
 
 const PerpsTileRowItem: React.FC<PerpsTileRowItemProps> = ({
   item,
   testIdPrefix,
-  onBeforePress,
+  onCardPress,
 }) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { market, sparkline, isWatchlisted } = item;
@@ -28,7 +28,7 @@ const PerpsTileRowItem: React.FC<PerpsTileRowItemProps> = ({
       showFavoriteTag={isWatchlisted}
       testID={`${testIdPrefix}-${market.symbol}`}
       onPress={() => {
-        onBeforePress?.();
+        onCardPress?.();
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.MARKET_DETAILS,
           params: { market, source: PERPS_EVENT_VALUE.SOURCE.EXPLORE },

@@ -33,7 +33,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     ({ item, index }) => (
       <FavoriteSiteRowItem
         site={item}
-        onBeforePress={() =>
+        onCardPress={() =>
           trackExploreInteracted({
             interaction_type: 'section_item_tapped',
             tab_name: 'Sites',
@@ -52,7 +52,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     ({ item, index }) => (
       <SiteRowItem
         site={item}
-        onBeforePress={() =>
+        onCardPress={() =>
           trackExploreInteracted({
             interaction_type: 'section_item_tapped',
             tab_name: 'Sites',
@@ -85,7 +85,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             renderItem={(site, index) => (
               <SiteTileRowItem
                 site={site}
-                onBeforePress={() =>
+                onCardPress={() =>
                   trackExploreInteracted({
                     interaction_type: 'section_item_tapped',
                     tab_name: 'Sites',
@@ -138,7 +138,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
           renderItem={(site, index) => (
             <SiteTileRowItem
               site={site}
-              onBeforePress={() =>
+              onCardPress={() =>
                 trackExploreInteracted({
                   interaction_type: 'section_item_tapped',
                   tab_name: 'Sites',

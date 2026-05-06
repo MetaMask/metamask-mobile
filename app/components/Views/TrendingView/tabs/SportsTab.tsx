@@ -64,7 +64,7 @@ const renderPredictionItem: ListRenderItem<PredictMarketType> = ({
   <PredictionCarouselRowItem
     market={item}
     testIdPrefix="predict-sports-market-row-item"
-    onBeforePress={() =>
+    onCardPress={() =>
       trackExploreInteracted({
         interaction_type: 'section_item_tapped',
         tab_name: 'Sports',
@@ -74,7 +74,7 @@ const renderPredictionItem: ListRenderItem<PredictMarketType> = ({
         item_clicked: item.id,
       })
     }
-    onVote={(marketId) =>
+    onBuyButtonPress={(marketId) =>
       trackExploreInteracted({
         interaction_type: 'prediction_voted',
         tab_name: 'Sports',
@@ -172,7 +172,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       return (
         <PredictMarket
           market={item}
-          onBeforePress={() =>
+          onCardPress={() =>
             trackExploreInteracted({
               interaction_type: 'section_item_tapped',
               tab_name: 'Sports',
@@ -182,7 +182,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
               item_clicked: item.id,
             })
           }
-          onVote={(marketId) =>
+          onBuyButtonPress={(marketId) =>
             trackExploreInteracted({
               interaction_type: 'prediction_voted',
               tab_name: 'Sports',
