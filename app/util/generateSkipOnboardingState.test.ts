@@ -1,17 +1,37 @@
 import StorageWrapper from '../store/storage-wrapper';
-import { seedphraseBackedUp } from '../actions/user';
+import {
+  seedphraseBackedUp,
+  setExistingUser,
+  setMultichainAccountsIntroModalSeen,
+} from '../actions/user';
+import { setCompletedOnboarding } from '../actions/onboarding';
 import { storePrivacyPolicyClickedOrClosed } from '../actions/legalNotices';
 import { Authentication } from '../core';
 import { importNewSecretRecoveryPhrase } from '../actions/multiSrp';
 import { store } from '../store';
 import { setLockTime } from '../actions/settings';
 import AppConstants from '../core/AppConstants';
+import Engine from '../core/Engine';
+import AUTHENTICATION_TYPE from '../constants/userProperties';
 
 // Mock all dependencies
 jest.mock('../store/storage-wrapper');
 jest.mock('../actions/user');
+jest.mock('../actions/onboarding');
 jest.mock('../actions/legalNotices');
 jest.mock('../core');
+jest.mock('../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      KeyringController: {
+        state: {
+          keyrings: [],
+        },
+      },
+    },
+  },
+}));
 jest.mock('../actions/multiSrp');
 jest.mock('../store');
 jest.mock('../actions/settings', () => ({
@@ -23,7 +43,7 @@ jest.mock('../actions/settings', () => ({
 }));
 
 // Import after mocks are set up
-let applyVaultInitialization: () => Promise<null>;
+let applyVaultInitialization: (password?: string) => Promise<null>;
 let VAULT_INITIALIZED_KEY: string;
 let predefinedPassword: string | undefined;
 let additionalSrps: (string | undefined)[];
@@ -33,6 +53,15 @@ const mockStorageWrapper = StorageWrapper as jest.Mocked<typeof StorageWrapper>;
 const mockSeedphraseBackedUp = seedphraseBackedUp as jest.MockedFunction<
   typeof seedphraseBackedUp
 >;
+const mockSetExistingUser = setExistingUser as jest.MockedFunction<
+  typeof setExistingUser
+>;
+const mockSetMultichainAccountsIntroModalSeen =
+  setMultichainAccountsIntroModalSeen as jest.MockedFunction<
+    typeof setMultichainAccountsIntroModalSeen
+  >;
+const mockSetCompletedOnboarding =
+  setCompletedOnboarding as jest.MockedFunction<typeof setCompletedOnboarding>;
 const mockStorePrivacyPolicyClickedOrClosed =
   storePrivacyPolicyClickedOrClosed as jest.MockedFunction<
     typeof storePrivacyPolicyClickedOrClosed
@@ -43,8 +72,27 @@ const mockImportNewSecretRecoveryPhrase =
     typeof importNewSecretRecoveryPhrase
   >;
 const mockStore = store as jest.Mocked<typeof store>;
+const mockEngine = Engine as unknown as {
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: { accounts?: string[] }[];
+      };
+    };
+  };
+};
 
 describe('generateSkipOnboardingState', () => {
+  const originalPredefinedPassword = process.env.PREDEFINED_PASSWORD;
+  const restorePredefinedPassword = () => {
+    if (originalPredefinedPassword === undefined) {
+      delete process.env.PREDEFINED_PASSWORD;
+      return;
+    }
+
+    process.env.PREDEFINED_PASSWORD = originalPredefinedPassword;
+  };
+
   beforeAll(() => {
     // Import the module after all mocks are set up
     const actualModule = jest.requireActual(
@@ -59,15 +107,30 @@ describe('generateSkipOnboardingState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(console, 'warn').mockImplementation(jest.fn());
+    restorePredefinedPassword();
+    mockEngine.context.KeyringController.state.keyrings = [];
 
     mockStorageWrapper.getItem.mockResolvedValue(null);
     mockStorageWrapper.setItem.mockResolvedValue();
     mockAuthentication.newWalletAndKeychain.mockResolvedValue();
+    mockAuthentication.storePassword.mockResolvedValue();
     mockImportNewSecretRecoveryPhrase.mockResolvedValue({
       address: '0x123',
       discoveredAccountsCount: 1,
     });
     mockSeedphraseBackedUp.mockReturnValue({ type: 'test' } as never);
+    mockSetExistingUser.mockReturnValue({
+      type: 'SET_EXISTING_USER',
+      payload: { existingUser: true },
+    } as never);
+    mockSetMultichainAccountsIntroModalSeen.mockReturnValue({
+      type: 'SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN',
+      payload: { seen: true },
+    } as never);
+    mockSetCompletedOnboarding.mockReturnValue({
+      type: 'SET_COMPLETED_ONBOARDING',
+      completedOnboarding: true,
+    } as never);
     mockStorePrivacyPolicyClickedOrClosed.mockReturnValue({
       type: 'test',
     } as never);
@@ -75,6 +138,7 @@ describe('generateSkipOnboardingState', () => {
   });
 
   afterEach(() => {
+    restorePredefinedPassword();
     jest.restoreAllMocks();
   });
 
@@ -90,7 +154,7 @@ describe('generateSkipOnboardingState', () => {
       // Given the PREDEFINED_PASSWORD environment variable
       // When the module is loaded
       // Then it should export the correct value
-      expect(predefinedPassword).toBe(process.env.PREDEFINED_PASSWORD);
+      expect(predefinedPassword).toBe(originalPredefinedPassword);
     });
 
     it('exports array of 20 additional SRP slots', () => {
@@ -107,28 +171,17 @@ describe('generateSkipOnboardingState', () => {
       it('returns null without initializing vault', async () => {
         // Given predefinedPassword is undefined
         // When applyVaultInitialization is called
-        const result = await applyVaultInitialization();
+        const result = await applyVaultInitialization('');
 
         // Then it returns null and performs no operations
         expect(result).toBeNull();
+        expect(mockAuthentication.newWalletAndKeychain).not.toHaveBeenCalled();
+        expect(mockAuthentication.storePassword).not.toHaveBeenCalled();
+        expect(mockStore.dispatch).not.toHaveBeenCalled();
       });
     });
 
     describe('when predefined password is set', () => {
-      let originalEnv: string | undefined;
-
-      beforeAll(() => {
-        // Save original env var
-        originalEnv = process.env.PREDEFINED_PASSWORD;
-        // Set predefined password for these tests
-        process.env.PREDEFINED_PASSWORD = 'test-password-123';
-      });
-
-      afterAll(() => {
-        // Restore original env var
-        process.env.PREDEFINED_PASSWORD = originalEnv;
-      });
-
       it('dispatches setLockTime action during initialization flow', () => {
         // Arrange
         const lockTimeAction = setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
@@ -159,6 +212,58 @@ describe('generateSkipOnboardingState', () => {
           lockTime: 30000,
         });
         expect(mockStore.dispatch).toHaveBeenCalledWith(action);
+      });
+
+      it('marks the app as an existing onboarded user when vault accounts already exist', async () => {
+        mockStorageWrapper.getItem.mockResolvedValue('true');
+        mockEngine.context.KeyringController.state.keyrings = [
+          { accounts: ['0x123'] },
+        ];
+
+        await applyVaultInitialization('test-password-123');
+
+        expect(mockAuthentication.newWalletAndKeychain).not.toHaveBeenCalled();
+        expect(mockAuthentication.storePassword).not.toHaveBeenCalled();
+        expect(mockSetExistingUser).toHaveBeenCalledWith(true);
+        expect(mockSetCompletedOnboarding).toHaveBeenCalledWith(true);
+        expect(mockSeedphraseBackedUp).toHaveBeenCalled();
+        expect(mockSetMultichainAccountsIntroModalSeen).toHaveBeenCalledWith(
+          true,
+        );
+      });
+
+      it('repairs the password entry when accounts exist but the initialized flag is missing', async () => {
+        mockStorageWrapper.getItem.mockResolvedValue(null);
+        mockEngine.context.KeyringController.state.keyrings = [
+          { accounts: ['0x123'] },
+        ];
+
+        await applyVaultInitialization('test-password-123');
+
+        expect(mockAuthentication.newWalletAndKeychain).not.toHaveBeenCalled();
+        expect(mockAuthentication.storePassword).toHaveBeenCalledWith(
+          'test-password-123',
+          AUTHENTICATION_TYPE.PASSWORD,
+          true,
+        );
+        expect(mockSetExistingUser).toHaveBeenCalledWith(true);
+        expect(mockSetCompletedOnboarding).toHaveBeenCalledWith(true);
+      });
+
+      it('recreates the predefined wallet when the initialized flag exists but accounts are missing', async () => {
+        mockStorageWrapper.getItem.mockResolvedValue('true');
+
+        await applyVaultInitialization('test-password-123');
+
+        expect(mockAuthentication.newWalletAndKeychain).toHaveBeenCalledWith(
+          'test-password-123',
+          {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+          },
+        );
+        expect(mockAuthentication.storePassword).not.toHaveBeenCalled();
+        expect(mockSetExistingUser).toHaveBeenCalledWith(true);
+        expect(mockSetCompletedOnboarding).toHaveBeenCalledWith(true);
       });
     });
   });

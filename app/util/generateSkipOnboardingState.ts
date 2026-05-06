@@ -1,8 +1,10 @@
 import StorageWrapper from '../store/storage-wrapper';
 import {
   seedphraseBackedUp,
+  setExistingUser,
   setMultichainAccountsIntroModalSeen,
 } from '../actions/user';
+import { setCompletedOnboarding } from '../actions/onboarding';
 import {
   HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS,
   OPTIN_META_METRICS_UI_SEEN,
@@ -50,8 +52,8 @@ export const additionalSrps = [
  * Apply the vault initialization to Redux store and return vault data if needed
  * This should be called during EngineService startup
  */
-async function applyVaultInitialization() {
-  if (!predefinedPassword) {
+async function applyVaultInitialization(password = predefinedPassword) {
+  if (!password) {
     return null;
   }
 
@@ -65,15 +67,11 @@ async function applyVaultInitialization() {
   // the vault was never written to ControllerStorage, so the Engine starts empty.
   // Checking the live Engine state catches that scenario and allows re-initialization.
   const hasAccounts = Engine.context?.KeyringController?.state?.keyrings?.some(
-    (keyring: { accounts: string[] }) => keyring.accounts.length > 0,
+    (keyring: { accounts?: string[] }) => (keyring.accounts?.length ?? 0) > 0,
   );
 
-  if (flagSet && hasAccounts) {
-    return null;
-  }
-
   if (!hasAccounts) {
-    await Authentication.newWalletAndKeychain(predefinedPassword, {
+    await Authentication.newWalletAndKeychain(password, {
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
     });
 
@@ -92,10 +90,24 @@ async function applyVaultInitialization() {
         );
       }
     }
+  } else if (!flagSet) {
+    // The app can be terminated after controller state is persisted but before
+    // the keychain/Redux flags finish writing. Repair the password entry without
+    // resetting the already persisted vault.
+    await Authentication.storePassword(
+      password,
+      AUTHENTICATION_TYPE.PASSWORD,
+      true,
+    );
   }
 
   await StorageWrapper.setItem(VAULT_INITIALIZED_KEY, 'true');
 
+  // Keep Redux auth/onboarding state consistent with the preloaded vault on every
+  // launch. Appium can terminate the app between controller persistence and Redux
+  // persistence, leaving the next launch with accounts but existingUser=false.
+  store.dispatch(setExistingUser(true));
+  store.dispatch(setCompletedOnboarding(true));
   // removes the necessity of the user to see the protect your wallet modal
   store.dispatch(seedphraseBackedUp());
   // removes the necessity of the user to see the privacy policy modal
