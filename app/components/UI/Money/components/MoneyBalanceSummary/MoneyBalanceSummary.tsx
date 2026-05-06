@@ -47,16 +47,6 @@ const MoneyBalanceSummary = ({
   onApyInfoPress,
 }: MoneyBalanceSummaryProps) => (
   <Box twClassName="pt-3" testID={MoneyBalanceSummaryTestIds.CONTAINER}>
-    <Box twClassName="px-4">
-      <Text
-        variant={TextVariant.HeadingLg}
-        fontWeight={FontWeight.Bold}
-        testID={MoneyBalanceSummaryTestIds.TITLE}
-      >
-        {strings('money.title')}
-      </Text>
-    </Box>
-
     <Box twClassName="px-4 pt-2">
       {isLoading ? (
         <Skeleton

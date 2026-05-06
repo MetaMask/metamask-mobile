@@ -2,12 +2,21 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import MoneyHeader from './MoneyHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
+import { strings } from '../../../../../../locales/i18n';
 
 describe('MoneyHeader', () => {
   it('renders the menu button', () => {
     const { getByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
 
     expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('renders the Money title alongside the menu button', () => {
+    const { getByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
+
+    expect(getByTestId(MoneyHeaderTestIds.TITLE)).toHaveTextContent(
+      strings('money.title'),
+    );
   });
 
   it('calls onMenuPress when the menu button is pressed', () => {
