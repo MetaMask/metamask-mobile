@@ -5857,35 +5857,33 @@ describe('ondoCampaignDeposits', () => {
   });
 
   describe('dismissCampaignOutcomeToast', () => {
-    it('records winner_verify variant as dismissed', () => {
+    it('records winner variant as dismissed', () => {
       const state = rewardsReducer(
         initialState,
         dismissCampaignOutcomeToast({
-          campaignId: 'campaign-1',
-          subscriptionId: 'sub-1',
-          variant: 'winner_verify',
+          campaignId: 'perps-c-1',
+          subscriptionId: 'sub-9',
+          variant: 'winner',
         }),
       );
 
       expect(
-        state.dismissedCampaignOutcomeToasts['campaign-1:sub-1:winner_verify'],
+        state.dismissedCampaignOutcomeToasts['perps-c-1:sub-9:winner'],
       ).toBe(true);
     });
 
-    it('records participant_no_winner variant as dismissed', () => {
+    it('records non_winner variant as dismissed', () => {
       const state = rewardsReducer(
         initialState,
         dismissCampaignOutcomeToast({
-          campaignId: 'campaign-2',
-          subscriptionId: 'sub-2',
-          variant: 'participant_no_winner',
+          campaignId: 'ondo-c-1',
+          subscriptionId: 'sub-8',
+          variant: 'non_winner',
         }),
       );
 
       expect(
-        state.dismissedCampaignOutcomeToasts[
-          'campaign-2:sub-2:participant_no_winner'
-        ],
+        state.dismissedCampaignOutcomeToasts['ondo-c-1:sub-8:non_winner'],
       ).toBe(true);
     });
 
@@ -5895,7 +5893,7 @@ describe('ondoCampaignDeposits', () => {
         dismissCampaignOutcomeToast({
           campaignId: 'c1',
           subscriptionId: 's1',
-          variant: 'winner_verify',
+          variant: 'winner',
         }),
       );
       state = rewardsReducer(
@@ -5903,16 +5901,14 @@ describe('ondoCampaignDeposits', () => {
         dismissCampaignOutcomeToast({
           campaignId: 'c2',
           subscriptionId: 's2',
-          variant: 'participant_no_winner',
+          variant: 'non_winner',
         }),
       );
 
-      expect(state.dismissedCampaignOutcomeToasts['c1:s1:winner_verify']).toBe(
+      expect(state.dismissedCampaignOutcomeToasts['c1:s1:winner']).toBe(true);
+      expect(state.dismissedCampaignOutcomeToasts['c2:s2:non_winner']).toBe(
         true,
       );
-      expect(
-        state.dismissedCampaignOutcomeToasts['c2:s2:participant_no_winner'],
-      ).toBe(true);
     });
 
     it('starts with empty dismissedCampaignOutcomeToasts in initial state', () => {
@@ -5925,7 +5921,7 @@ describe('ondoCampaignDeposits', () => {
       const persisted: RewardsState = {
         ...initialState,
         dismissedCampaignOutcomeToasts: {
-          'campaign-1:sub-1:winner_verify': true,
+          'campaign-1:sub-1:winner': true,
         },
       };
 
@@ -5935,7 +5931,7 @@ describe('ondoCampaignDeposits', () => {
       });
 
       expect(state.dismissedCampaignOutcomeToasts).toEqual({
-        'campaign-1:sub-1:winner_verify': true,
+        'campaign-1:sub-1:winner': true,
       });
     });
 
@@ -5958,7 +5954,7 @@ describe('ondoCampaignDeposits', () => {
         ...initialState,
         candidateSubscriptionId: 'old-sub',
         dismissedCampaignOutcomeToasts: {
-          'campaign-1:old-sub:winner_verify': true,
+          'campaign-1:old-sub:winner': true,
         },
       };
 
@@ -5968,7 +5964,7 @@ describe('ondoCampaignDeposits', () => {
       );
 
       expect(state.dismissedCampaignOutcomeToasts).toEqual({
-        'campaign-1:old-sub:winner_verify': true,
+        'campaign-1:old-sub:winner': true,
       });
     });
   });

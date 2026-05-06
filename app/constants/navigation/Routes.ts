@@ -112,6 +112,8 @@ const Routes = {
   REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW: 'RewardsSeasonOneCampaignDetails',
   REWARDS_CAMPAIGN_MECHANICS: 'RewardsCampaignMechanics',
   REWARDS_ONDO_CAMPAIGN_LEADERBOARD: 'RewardsOndoCampaignLeaderboard',
+  REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW:
+    'RewardsPerpsTradingCampaignWinning',
   REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR: 'RewardsOndoRwaAssetSelector',
   REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW: 'RewardsOndoCampaignPortfolioView',
   REWARDS_ONDO_CAMPAIGN_STATS: 'RewardsOndoCampaignStats',

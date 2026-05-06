@@ -38,6 +38,8 @@ interface PerpsTradingCampaignStatsHeaderProps {
   showPnl?: boolean;
   /** When true, shows formatted `computedAt` time on the same row as PnL, right-aligned in alternative text color. */
   showComputedAt?: boolean;
+  /** When true, suppresses the "Pending" tag — qualification is locked once the campaign ends. */
+  isCampaignComplete?: boolean;
 }
 
 const PerpsTradingCampaignStatsHeader: React.FC<
@@ -47,6 +49,7 @@ const PerpsTradingCampaignStatsHeader: React.FC<
   isLoading = false,
   showPnl = true,
   showComputedAt = true,
+  isCampaignComplete = false,
 }) => {
   const tw = useTailwind();
 
@@ -80,7 +83,7 @@ const PerpsTradingCampaignStatsHeader: React.FC<
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.perps_trading_campaign.label_your_rank')}
           </Text>
-          {isPending && (
+          {isPending && !isCampaignComplete && (
             <PendingTag testID={PERPS_STATS_HEADER_TEST_IDS.PENDING_TAG} />
           )}
           {isQualified && (
