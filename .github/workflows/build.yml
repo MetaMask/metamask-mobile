@@ -68,8 +68,6 @@ on:
           - flask-test
           - flask-e2e
           - flask-dev
-          - qa-prod
-          - qa-dev
       platform:
         required: true
         type: choice

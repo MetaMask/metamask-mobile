@@ -22,7 +22,14 @@ import {
   StyleSheet as RNStyleSheet,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import Reanimated, {
+  useSharedValue,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -49,6 +56,7 @@ import PickerAccount from '../../../component-library/components/Pickers/PickerA
 import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
 import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
+import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -133,6 +141,13 @@ import { Hex } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import Homepage from '../Homepage';
+import HomepageDiscoveryTabs from '../Homepage/components/HomepageDiscoveryTabs';
+import {
+  HUB_PAGE_DISCOVERY_TABS_AB_KEY,
+  HUB_PAGE_DISCOVERY_TABS_VARIANTS,
+  HubPageDiscoveryTabsVariant,
+} from '../Homepage/abTestConfig';
+import { useABTest } from '../../../hooks';
 import { SectionRefreshHandle } from '../Homepage/types';
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
 import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
@@ -226,6 +241,13 @@ const createStyles = ({ colors }: Theme) =>
     },
     headerAccountPickerStyle: {
       marginRight: 16,
+      backgroundColor: 'transparent',
+    },
+    accountGroupBalanceContainer: {
+      marginBottom: 16,
+    },
+    walletHeaderRoot: {
+      zIndex: 2,
     },
   });
 
@@ -596,6 +618,10 @@ const Wallet = ({
   // ─── Homepage scroll context state ───────────────────────────────────────
   const [viewportHeight, setViewportHeight] = useState(0);
   const [containerScreenY, setContainerScreenY] = useState(0);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const sharedHeaderHeight = useSharedValue(0);
+  const walletHeaderTranslateY = useSharedValue(0);
+  const insets = useSafeAreaInsets();
   const { entryPoint, visitId } = useHomepageEntryPoint(navigation);
 
   // Ref to the scroll container View — used to measure its absolute screen Y
@@ -1016,6 +1042,25 @@ const Wallet = ({
     selectHomepageSectionsV1Enabled,
   );
 
+  const { variantName: discoveryTabsVariantName } = useABTest(
+    HUB_PAGE_DISCOVERY_TABS_AB_KEY,
+    HUB_PAGE_DISCOVERY_TABS_VARIANTS,
+  );
+
+  const isDiscoveryTabsTreatment =
+    discoveryTabsVariantName === HubPageDiscoveryTabsVariant.Treatment;
+
+  // translateY slides the header up; negative marginBottom collapses the layout
+  // space it occupied so the content below moves up in sync.
+  const animatedHeaderStyle = useAnimatedStyle(() => {
+    const h = sharedHeaderHeight.value;
+    return {
+      transform: [{ translateY: walletHeaderTranslateY.value }],
+      marginBottom: walletHeaderTranslateY.value,
+      opacity: h > 0 ? Math.max(0, 1 + walletHeaderTranslateY.value / h) : 1,
+    };
+  });
+
   const isFocused = useIsFocused();
 
   const homepageRef = useRef<SectionRefreshHandle>(null);
@@ -1301,62 +1346,93 @@ const Wallet = ({
     ],
   );
 
+  const bannerContent = (
+    <View style={styles.banner}>
+      {!basicFunctionalityEnabled ? (
+        <BannerAlert
+          severity={BannerAlertSeverity.Error}
+          title={strings('wallet.banner.title')}
+          description={
+            <CustomText
+              color={TextColor.Info}
+              onPress={turnOnBasicFunctionality}
+            >
+              {strings('wallet.banner.link')}
+            </CustomText>
+          }
+        />
+      ) : null}
+      <NetworkConnectionBanner />
+    </View>
+  );
+
+  const portfolioHeaderBase = (
+    <>
+      {bannerContent}
+      <AccountGroupBalance />
+      <AssetDetailsActions
+        displayBuyButton={displayBuyButton}
+        displaySwapsButton={displaySwapsButton}
+        goToSwaps={goToSwaps}
+        onReceive={onReceive}
+        onSend={onSend}
+        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+      />
+      {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+      {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
+    </>
+  );
+
+  const portfolioHeader = (
+    <>
+      {bannerContent}
+      <View style={styles.accountGroupBalanceContainer}>
+        <AccountGroupBalance />
+      </View>
+      <AssetDetailsActions
+        displayBuyButton={displayBuyButton}
+        displaySwapsButton={displaySwapsButton}
+        goToSwaps={goToSwaps}
+        onReceive={onReceive}
+        onSend={onSend}
+        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+      />
+      {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+      {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
+    </>
+  );
+
+  // Legacy scroll view content — used only when the sections redesign is off.
   const content = (
     <>
-      <View style={styles.banner}>
-        {!basicFunctionalityEnabled ? (
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            title={strings('wallet.banner.title')}
-            description={
-              <CustomText
-                color={TextColor.Info}
-                onPress={turnOnBasicFunctionality}
-              >
-                {strings('wallet.banner.link')}
-              </CustomText>
-            }
-          />
-        ) : null}
-        <NetworkConnectionBanner />
-      </View>
-      <>
-        <AccountGroupBalance />
-
-        <AssetDetailsActions
-          displayBuyButton={displayBuyButton}
-          displaySwapsButton={displaySwapsButton}
-          goToSwaps={goToSwaps}
-          onReceive={onReceive}
-          onSend={onSend}
-          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-        />
-
-        {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
-
-        {isHomepageSectionsV1Enabled ? (
-          <>
-            {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
-            <HomepageScrollContext.Provider value={homepageScrollContextValue}>
-              <Homepage ref={homepageRef} />
-            </HomepageScrollContext.Provider>
-          </>
-        ) : (
-          <>
-            {isFocused && <AssetPollingProvider />}
-            <WalletTokensTabView
-              ref={walletTokensTabViewRef}
-              navigation={navigation}
-              onChangeTab={onChangeTab}
-              defiEnabled={defiEnabled}
-              collectiblesEnabled={collectiblesEnabled}
-            />
-          </>
-        )}
-      </>
+      {bannerContent}
+      <AccountGroupBalance />
+      <AssetDetailsActions
+        displayBuyButton={displayBuyButton}
+        displaySwapsButton={displaySwapsButton}
+        goToSwaps={goToSwaps}
+        onReceive={onReceive}
+        onSend={onSend}
+        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+      />
+      {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+      {isFocused && <AssetPollingProvider />}
+      <WalletTokensTabView
+        ref={walletTokensTabViewRef}
+        navigation={navigation}
+        onChangeTab={onChangeTab}
+        defiEnabled={defiEnabled}
+        collectiblesEnabled={collectiblesEnabled}
+      />
     </>
   );
   const renderLoader = useCallback(
@@ -1381,49 +1457,84 @@ const Wallet = ({
         >
           {selectedInternalAccount ? (
             <>
-              <HeaderRoot
-                testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
-                endAccessory={
-                  <View style={styles.headerEndAccessoryContainer}>
-                    <View style={styles.headerActionButtonsContainer}>
-                      {isMoneyHomeScreenEnabled && (
-                        <ButtonIcon
-                          iconProps={{
-                            color: MMDSIconColor.IconDefault,
-                          }}
-                          onPress={handleActivityPress}
-                          iconName={MMDSIconName.Clock}
-                          size={ButtonIconSize.Md}
-                          testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
-                          hitSlop={touchAreaSlop}
-                        />
-                      )}
-                      <View
-                        testID={
-                          WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON
-                        }
-                      >
-                        <AddressCopy hitSlop={touchAreaSlop} />
-                      </View>
-                      <CardButton
-                        onPress={handleCardPress}
-                        touchAreaSlop={touchAreaSlop}
-                      />
-                      {isNotificationsFeatureEnabled() ? (
-                        <BadgeWrapper
-                          position={BadgeWrapperPosition.TopRight}
-                          positionAnchorShape={
-                            BadgeWrapperPositionAnchorShape.Circular
+              <Reanimated.View
+                style={
+                  isDiscoveryTabsTreatment
+                    ? [styles.walletHeaderRoot, animatedHeaderStyle]
+                    : undefined
+                }
+              >
+                <HeaderRoot
+                  onLayout={
+                    isDiscoveryTabsTreatment
+                      ? (e) => {
+                          const h = e.nativeEvent.layout.height;
+                          if (h > 0) {
+                            setHeaderHeight(h);
+                            sharedHeaderHeight.value = h;
                           }
-                          badge={
-                            isNotificationEnabled &&
-                            unreadNotificationCount > 0 ? (
-                              <BadgeStatus
-                                status={BadgeStatusStatus.Attention}
-                              />
-                            ) : null
+                        }
+                      : undefined
+                  }
+                  testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
+                  style={undefined}
+                  endAccessory={
+                    <View style={styles.headerEndAccessoryContainer}>
+                      <View style={styles.headerActionButtonsContainer}>
+                        {isMoneyHomeScreenEnabled && (
+                          <ButtonIcon
+                            iconProps={{
+                              color: MMDSIconColor.IconDefault,
+                            }}
+                            onPress={handleActivityPress}
+                            iconName={MMDSIconName.Clock}
+                            size={ButtonIconSize.Md}
+                            testID={
+                              WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON
+                            }
+                            hitSlop={touchAreaSlop}
+                          />
+                        )}
+                        <View
+                          testID={
+                            WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON
                           }
                         >
+                          <AddressCopy hitSlop={touchAreaSlop} />
+                        </View>
+                        <CardButton
+                          onPress={handleCardPress}
+                          touchAreaSlop={touchAreaSlop}
+                        />
+                        {isNotificationsFeatureEnabled() ? (
+                          <BadgeWrapper
+                            position={BadgeWrapperPosition.TopRight}
+                            positionAnchorShape={
+                              BadgeWrapperPositionAnchorShape.Circular
+                            }
+                            badge={
+                              isNotificationEnabled &&
+                              unreadNotificationCount > 0 ? (
+                                <BadgeStatus
+                                  status={BadgeStatusStatus.Attention}
+                                />
+                              ) : null
+                            }
+                          >
+                            <ButtonIcon
+                              iconProps={{
+                                color: MMDSIconColor.IconDefault,
+                              }}
+                              onPress={handleHamburgerPress}
+                              iconName={MMDSIconName.Menu}
+                              size={ButtonIconSize.Md}
+                              testID={
+                                WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
+                              }
+                              hitSlop={touchAreaSlop}
+                            />
+                          </BadgeWrapper>
+                        ) : (
                           <ButtonIcon
                             iconProps={{
                               color: MMDSIconColor.IconDefault,
@@ -1436,37 +1547,26 @@ const Wallet = ({
                             }
                             hitSlop={touchAreaSlop}
                           />
-                        </BadgeWrapper>
-                      ) : (
-                        <ButtonIcon
-                          iconProps={{
-                            color: MMDSIconColor.IconDefault,
-                          }}
-                          onPress={handleHamburgerPress}
-                          iconName={MMDSIconName.Menu}
-                          size={ButtonIconSize.Md}
-                          testID={
-                            WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
-                          }
-                          hitSlop={touchAreaSlop}
-                        />
-                      )}
+                        )}
+                      </View>
                     </View>
-                  </View>
-                }
-                twClassName="pl-1 pr-3"
-              >
-                <PickerAccount
-                  ref={walletRef}
-                  accountName={displayName}
-                  onPress={() =>
-                    navigation.navigate(...createAccountSelectorNavDetails({}))
                   }
-                  testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-                  hitSlop={touchAreaSlop}
-                  style={styles.headerAccountPickerStyle}
-                />
-              </HeaderRoot>
+                  twClassName="pl-1 pr-3"
+                >
+                  <PickerAccount
+                    ref={walletRef}
+                    accountName={displayName}
+                    onPress={() =>
+                      navigation.navigate(
+                        ...createAccountSelectorNavDetails({}),
+                      )
+                    }
+                    testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+                    hitSlop={touchAreaSlop}
+                    style={styles.headerAccountPickerStyle}
+                  />
+                </HeaderRoot>
+              </Reanimated.View>
               <View
                 ref={containerViewRef}
                 style={styles.wrapper}
@@ -1478,29 +1578,79 @@ const Wallet = ({
                   });
                 }}
               >
-                <ConditionalScrollView
-                  ref={scrollViewRef}
-                  isScrollEnabled
-                  scrollViewProps={{
-                    testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
-                    contentContainerStyle: scrollViewContentStyle,
-                    showsVerticalScrollIndicator: false,
-                    onScroll: isHomepageSectionsV1Enabled
-                      ? handleHomepageScroll
-                      : undefined,
-                    scrollEventThrottle: 16,
-                    refreshControl: (
-                      <RefreshControl
-                        colors={[colors.primary.default]}
-                        tintColor={colors.icon.default}
-                        refreshing={refreshing}
-                        onRefresh={handleRefresh}
-                      />
-                    ),
-                  }}
-                >
-                  {content}
-                </ConditionalScrollView>
+                {isHomepageSectionsV1Enabled ? (
+                  <>
+                    {isFocused && (
+                      <AssetPollingProvider chainIds={evmChainIds} />
+                    )}
+                    <HomepageScrollContext.Provider
+                      value={homepageScrollContextValue}
+                    >
+                      {isDiscoveryTabsTreatment ? (
+                        <HomepageDiscoveryTabs
+                          ref={homepageRef}
+                          portfolioHeader={portfolioHeader}
+                          onPortfolioScroll={handleHomepageScroll}
+                          walletHeaderOffset={headerHeight + insets.top}
+                          walletHeaderHeight={headerHeight}
+                          walletHeaderTranslateY={walletHeaderTranslateY}
+                          refreshControl={
+                            <RefreshControl
+                              colors={[colors.primary.default]}
+                              tintColor={colors.icon.default}
+                              refreshing={refreshing}
+                              onRefresh={handleRefresh}
+                            />
+                          }
+                        />
+                      ) : (
+                        <ConditionalScrollView
+                          ref={scrollViewRef}
+                          isScrollEnabled
+                          scrollViewProps={{
+                            testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
+                            contentContainerStyle: scrollViewContentStyle,
+                            showsVerticalScrollIndicator: false,
+                            onScroll: handleHomepageScroll,
+                            scrollEventThrottle: 16,
+                            refreshControl: (
+                              <RefreshControl
+                                colors={[colors.primary.default]}
+                                tintColor={colors.icon.default}
+                                refreshing={refreshing}
+                                onRefresh={handleRefresh}
+                              />
+                            ),
+                          }}
+                        >
+                          {portfolioHeaderBase}
+                          <Homepage ref={homepageRef} />
+                        </ConditionalScrollView>
+                      )}
+                    </HomepageScrollContext.Provider>
+                  </>
+                ) : (
+                  <ConditionalScrollView
+                    ref={scrollViewRef}
+                    isScrollEnabled
+                    scrollViewProps={{
+                      testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
+                      contentContainerStyle: scrollViewContentStyle,
+                      showsVerticalScrollIndicator: false,
+                      scrollEventThrottle: 16,
+                      refreshControl: (
+                        <RefreshControl
+                          colors={[colors.primary.default]}
+                          tintColor={colors.icon.default}
+                          refreshing={refreshing}
+                          onRefresh={handleRefresh}
+                        />
+                      ),
+                    }}
+                  >
+                    {content}
+                  </ConditionalScrollView>
+                )}
               </View>
             </>
           ) : (
