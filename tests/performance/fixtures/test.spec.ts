@@ -12,10 +12,12 @@ import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mo
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { LocalNodeType } from '../../framework';
 import { Hardfork } from '../../seeder/anvil-manager';
-import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
 
-/* Scenario: Test Fixtures */
-test('Test Fixtures', async ({ currentDeviceDetails, driver }, testInfo) => {
+/* Dummy test to test fixtures */
+test.skip('Test Fixtures', async ({
+  currentDeviceDetails,
+  driver,
+}, testInfo) => {
   await withFixtures(
     {
       fixture: new FixtureBuilder()
@@ -61,13 +63,8 @@ test('Test Fixtures', async ({ currentDeviceDetails, driver }, testInfo) => {
     async () => {
       console.log('currentDeviceDetails', currentDeviceDetails);
       await loginToAppPlaywright({ scenarioType: 'e2e' });
-      console.log('\n\n LOGIN COMPLETED - Go add funds \n\n');
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-      await new Promise((resolve) => setTimeout(resolve, 10000));
+
+      // Add any actions you may want to test.
     },
   );
 });

@@ -56,7 +56,7 @@ export default defineConfig({
     },
     {
       name: 'ios',
-      testMatch: 'tests/performance/fixtures/test.spec.ts',
+      testMatch: 'tests/performance/fixtures/test.spec.ts', // DEMO TEST USING WITHFIXTURES
       use: {
         platform: Platform.IOS,
         device: {
@@ -66,7 +66,7 @@ export default defineConfig({
         },
         app: {
           appId: 'io.metamask.MetaMask',
-          buildPath: '/Users/cferreira/Downloads/test.app', // Path to your .app file
+          // buildPath: 'PATH-TO-BUILD', // Path to your .app file
         },
       },
     },
@@ -178,7 +178,7 @@ export default defineConfig({
         app: {
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
-          buildPath: 'bs://d655741da74410b087d1fc0f13a66f0c4d0ad68a', // Path to Browserstack url
+          buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
         },
       },
     },
