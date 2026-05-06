@@ -3543,6 +3543,9 @@ export class HyperLiquidProvider implements PerpsProvider {
    * @returns A promise that resolves to the result.
    */
   async placeOrder(params: OrderParams, retryCount = 0): Promise<OrderResult> {
+    // Hoisted so the retry path in the catch block can use the fetched price
+    // even when the caller (e.g. flipPosition) omits currentPrice from params.
+    let effectivePrice: number | undefined;
     try {
       this.#deps.debugLogger.log('Placing order via HyperLiquid SDK:', params);
 
@@ -3557,10 +3560,42 @@ export class HyperLiquidProvider implements PerpsProvider {
         throw new Error(validation.error);
       }
 
-      // Validate order at provider level (enforces USD validation rules)
-      await this.#validateOrderBeforePlacement(params);
+      // Extract DEX name for API calls (main DEX = null)
+      const { dex: dexName } = parseAssetName(params.symbol);
 
-      // Ensure provider is ready for trading (includes signing operations)
+      // 1. Get asset info and current price before validation so price-less
+      // callers (e.g. flipPosition) can validate against the live fetched price.
+      const { assetInfo, currentPrice, meta } = await this.#getAssetInfo({
+        symbol: params.symbol,
+        dexName,
+      });
+
+      // Allow override with UI-provided price (optimization to avoid API call).
+      effectivePrice =
+        params.currentPrice && params.currentPrice > 0
+          ? params.currentPrice
+          : currentPrice;
+
+      if (params.currentPrice && params.currentPrice > 0) {
+        this.#deps.debugLogger.log('Using provided current price:', {
+          coin: params.symbol,
+          providedPrice: effectivePrice,
+          source: 'UI price feed',
+        });
+      }
+
+      // Validate order at provider level (enforces USD validation rules).
+      // Pass effectivePrice so price-less market orders (e.g. flipPosition)
+      // validate against the live fetched price instead of failing with
+      // ORDER_PRICE_REQUIRED.
+      await this.#validateOrderBeforePlacement({
+        ...params,
+        currentPrice: effectivePrice,
+      });
+
+      // Ensure provider is ready for trading (includes signing operations).
+      // Kept after validation so invalid orders never trigger signature prompts
+      // (builder-fee approval, DEX abstraction enablement, etc.).
       await this.#ensureReadyForTrading();
 
       // Debug: Log asset map state before order placement
@@ -3577,29 +3612,6 @@ export class HyperLiquidProvider implements PerpsProvider {
         allowlistMarkets: this.#allowlistMarkets,
         blocklistMarkets: this.#blocklistMarkets,
       });
-
-      // Extract DEX name for API calls (main DEX = null)
-      const { dex: dexName } = parseAssetName(params.symbol);
-
-      // 1. Get asset info and current price
-      const { assetInfo, currentPrice, meta } = await this.#getAssetInfo({
-        symbol: params.symbol,
-        dexName,
-      });
-
-      // Allow override with UI-provided price (optimization to avoid API call)
-      const effectivePrice =
-        params.currentPrice && params.currentPrice > 0
-          ? params.currentPrice
-          : currentPrice;
-
-      if (params.currentPrice && params.currentPrice > 0) {
-        this.#deps.debugLogger.log('Using provided current price:', {
-          coin: params.symbol,
-          providedPrice: effectivePrice,
-          source: 'UI price feed',
-        });
-      }
 
       // 2. Calculate final position size with USD reconciliation
       const { finalPositionSize } = calculateFinalPositionSize({
@@ -3706,10 +3718,13 @@ export class HyperLiquidProvider implements PerpsProvider {
           // USD-based order: adjust the USD amount directly
           originalValue = params.usdAmount;
           adjustedUsdAmount = (parseFloat(params.usdAmount) * 1.015).toFixed(2);
-        } else if (params.currentPrice) {
-          // Size-based order: calculate USD from size and adjust
+        } else if (effectivePrice) {
+          // Size-based order: calculate USD from size and adjust.
+          // Use the hoisted effectivePrice (fetched live price) so callers that
+          // omit currentPrice (e.g. flipPosition) can still recover from the
+          // $10-minimum edge case.
           const sizeValue = parseFloat(params.size);
-          const estimatedUsd = sizeValue * params.currentPrice;
+          const estimatedUsd = sizeValue * effectivePrice;
           originalValue = `${estimatedUsd.toFixed(2)} (calculated from size ${params.size})`;
           adjustedUsdAmount = (estimatedUsd * 1.015).toFixed(2);
         } else {

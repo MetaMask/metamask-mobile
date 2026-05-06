@@ -76,10 +76,10 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
 
         // Verify mUSD CTA is visible and tap Get mUSD
         await Assertions.expectElementToBeVisible(
-          WalletView.musdConversionCta,
+          WalletView.cashGetMusdContainer,
           {
             timeout: 30000,
-            description: 'mUSD conversion CTA should be visible',
+            description: 'Cash section Get mUSD container should be visible',
           },
         );
         await WalletView.tapGetMusdButton();
