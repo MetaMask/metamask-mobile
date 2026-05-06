@@ -181,6 +181,16 @@ export function getTransactionControllerInitMessenger(
       'AnalyticsController:trackEvent',
       'PredictController:beforePublish',
       'PredictController:publish',
+      // Missing actions to use fiat payment hook from publish hook
+      'AssetsController:getStateForTransactionPay',
+      'BridgeController:fetchQuotes',
+      'GasFeeController:getState',
+      'RampsController:getOrder',
+      'RampsController:getQuotes',
+      'RampsController:getState',
+      'TokenBalancesController:getState',
+      'TokenRatesController:getState',
+      'TokensController:getState',
     ],
     events: [
       'BridgeStatusController:stateChange',

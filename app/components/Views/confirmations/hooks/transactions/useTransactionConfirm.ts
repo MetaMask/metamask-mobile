@@ -21,6 +21,9 @@ import {
   useTransactionPayQuotes,
 } from '../pay/useTransactionPayData';
 import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
+import { useHeadlessBuy } from '../../../../UI/Ramp/headless';
+import Engine from '../../../../../core/Engine';
+import type { Quote } from '../../../../UI/Ramp/types';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -48,6 +51,7 @@ export function useTransactionConfirm() {
   const orderCode = fiatPayment?.orderCode as string | undefined;
   const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
     useMusdConfirmNavigation();
+  const { startHeadlessBuy } = useHeadlessBuy();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
 
@@ -121,26 +125,49 @@ export function useTransactionConfirm() {
     async (options?: {
       onError?: (error: unknown) => void;
       waitForResult?: boolean;
+      existingOrderId?: string;
     }) => {
-      if (isFiatPaymentSelected && !orderCode) {
-        // TODO: Replace with startHeadlessBuy() once Ramps team delivers the API.
-        // startHeadlessBuy({
-        //   assetId,
-        //   amount: fiatPayment.amountFiat,
-        //   currency: 'USD',
-        //   metadata: { transactionId: transactionMetadata?.id },
-        //   providerId,
-        //   paymentMethodId: fiatPayment.selectedPaymentMethodId,
-        //   walletAddress: transactionMetadata?.txParams?.from,
-        //   onOrderCreated: (orderId) => {
-        //     Engine.context.TransactionPayController.updateFiatPayment({
-        //       transactionId: transactionMetadata.id,
-        //       callback: (fp) => { fp.orderCode = orderId; },
-        //     });
-        //   },
-        //   onError: (error) => { log('Headless ramp error', error); },
-        // });
-        log('Fiat payment selected, awaiting ramp order completion');
+      if (isFiatPaymentSelected && !orderCode && !options?.existingOrderId) {
+        const rampsQuote = fiatPayment?.rampsQuote as Quote | undefined;
+        const assetId = fiatPayment?.caipAssetId as string | undefined;
+        const amountFiat = Number(fiatPayment?.amountFiat);
+
+        if (!rampsQuote || !assetId || !amountFiat) {
+          log('Fiat payment missing required data', {
+            hasQuote: Boolean(rampsQuote),
+            assetId,
+            amountFiat,
+          });
+          return;
+        }
+
+        startHeadlessBuy(
+          {
+            quote: rampsQuote,
+            assetId,
+            amount: amountFiat,
+            paymentMethodId: fiatPayment?.selectedPaymentMethodId,
+          },
+          {
+            onOrderCreated: (orderId) => {
+              if (!transactionMetadata?.id) {
+                return;
+              }
+              Engine.context.TransactionPayController.updateFiatPayment({
+                transactionId: transactionMetadata.id,
+                callback: (fp) => {
+                  fp.orderId = orderId;
+                },
+              });
+            },
+            onError: (error) => {
+              log('OGP - Headless ramp error', error);
+            },
+            onClose: (info) => {
+              log('OGP - Headless ramp session closed', info);
+            },
+          },
+        );
         return;
       }
 
@@ -195,6 +222,7 @@ export function useTransactionConfirm() {
     },
     [
       chainId,
+      fiatPayment,
       handleGasless7702,
       handleSmartTransaction,
       isFiatPaymentSelected,
@@ -205,6 +233,7 @@ export function useTransactionConfirm() {
       onRequestConfirm,
       orderCode,
       selectedGasFeeToken,
+      startHeadlessBuy,
       transactionMetadata,
       tryEnableEvmNetwork,
       type,

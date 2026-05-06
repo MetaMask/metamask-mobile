@@ -18,23 +18,24 @@ export function useTransactionPayAutoFiatSubmission(): void {
   const submittedOrderCodesRef = useRef(new Set<string>());
 
   const selectedPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
-  // @ts-expect-error orderCode not available until @metamask/transaction-pay-controller dep bump
-  const orderCode = fiatPayment?.orderCode as string | undefined;
+  const orderId = fiatPayment?.orderId as string | undefined;
 
   useEffect(() => {
-    if (!selectedPaymentMethodId || !orderCode) {
+    if (!selectedPaymentMethodId || !orderId) {
       return;
     }
 
-    if (submittedOrderCodesRef.current.has(orderCode)) {
+    if (submittedOrderCodesRef.current.has(orderId)) {
       return;
     }
 
-    submittedOrderCodesRef.current.add(orderCode);
+    submittedOrderCodesRef.current.add(orderId);
 
-    onConfirm().catch((error) => {
-      submittedOrderCodesRef.current.delete(orderCode);
+    onConfirm({
+      existingOrderId: orderId,
+    }).catch((error) => {
+      submittedOrderCodesRef.current.delete(orderId);
       log('Failed to auto-submit fiat transaction', error);
     });
-  }, [orderCode, selectedPaymentMethodId, onConfirm]);
+  }, [orderId, selectedPaymentMethodId, onConfirm]);
 }
