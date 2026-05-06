@@ -364,7 +364,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
 
   const handleFlipTokensPress = useCallback(() => {
     resetToTokenMode();
-    handleSwitchTokens(destTokenAmount)();
+    handleSwitchTokens(destTokenAmount)().catch((error) => {
+      console.error('Error switching bridge tokens:', error);
+    });
   }, [destTokenAmount, handleSwitchTokens, resetToTokenMode]);
 
   const handleDestTokenPress = () =>
