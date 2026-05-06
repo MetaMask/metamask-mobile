@@ -77,7 +77,7 @@ export default function renderWithProvider(
       wrappedChildren = (
         <RouteMessengerContext.Provider value={routeMessenger}>
           <LegacyRouteMessengerProvider>
-            {children}
+            {wrappedChildren}
           </LegacyRouteMessengerProvider>
         </RouteMessengerContext.Provider>
       );
