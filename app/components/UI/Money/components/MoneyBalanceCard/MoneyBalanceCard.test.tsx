@@ -152,7 +152,7 @@ describe('MoneyBalanceCard', () => {
       expect(
         getByTestId(MoneyBalanceCardTestIds.GET_STARTED_BUTTON),
       ).toHaveTextContent(
-        strings('homepage.sections.cash_empty_state.get_started'),
+        strings('homepage.sections.money_empty_state.get_started'),
       );
     });
 

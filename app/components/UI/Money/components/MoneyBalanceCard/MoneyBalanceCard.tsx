@@ -55,7 +55,7 @@ const MoneyBalanceCard = () => {
   if (isNewUser) {
     balanceText = EMPTY_BALANCE_DISPLAY;
     buttonVariant = ButtonVariant.Primary;
-    buttonLabel = strings('homepage.sections.cash_empty_state.get_started');
+    buttonLabel = strings('homepage.sections.money_empty_state.get_started');
     buttonTestId = MoneyBalanceCardTestIds.GET_STARTED_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.NEW_USER_CONTAINER;
   } else if (isEmpty) {
