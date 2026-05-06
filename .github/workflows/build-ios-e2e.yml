@@ -131,7 +131,6 @@ jobs:
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
-            ios/build
             ~/.cocoapods
             ios/Pods
 
