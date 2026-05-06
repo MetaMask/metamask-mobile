@@ -329,8 +329,8 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
+        <MoneyFooter onAddMoneyPress={handleAddPress} />
       </ScrollView>
-      <MoneyFooter onAddMoneyPress={handleAddPress} />
     </Box>
   );
 };
