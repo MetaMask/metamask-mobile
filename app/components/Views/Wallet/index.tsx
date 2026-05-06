@@ -48,6 +48,7 @@ import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
+import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -148,8 +149,6 @@ import { TokenI } from '../../UI/Tokens/types';
 import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
 
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
-import { selectHDKeyrings } from '../../../selectors/keyringController';
-import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
@@ -624,7 +623,7 @@ const Wallet = ({
   );
 
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
   const dispatch = useDispatch();
@@ -644,6 +643,10 @@ const Wallet = ({
    * A string that represents the selected address
    */
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+
+  const isMoneyHomeScreenEnabled = useSelector(
+    selectMoneyHomeScreenEnabledFlag,
+  );
 
   /**
    * Provider configuration for the current selected network
@@ -770,8 +773,6 @@ const Wallet = ({
 
   const currentToast = toastRef?.current;
 
-  const hdKeyrings = useSelector(selectHDKeyrings);
-
   const accountName = useAccountName();
   const accountGroupName = useAccountGroupName();
 
@@ -865,12 +866,6 @@ const Wallet = ({
     isPredictGTMModalEnabled,
     checkAndNavigateToPredictGTM,
   ]);
-
-  useEffect(() => {
-    addTraitsToUser({
-      [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
-    });
-  }, [addTraitsToUser, hdKeyrings.length]);
 
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
 
@@ -1058,6 +1053,18 @@ const Wallet = ({
       ).build(),
     );
     navigation.navigate(Routes.CARD.ROOT);
+  }, [navigation, trackEvent]);
+
+  const handleActivityPress = useCallback(() => {
+    trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.ACTIVITY_CLICKED,
+      ).build(),
+    );
+    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.TRANSACTIONS_VIEW,
+      params: { showBackButton: true },
+    });
   }, [navigation, trackEvent]);
 
   const getTokenAddedAnalyticsParams = useCallback(
@@ -1382,6 +1389,18 @@ const Wallet = ({
                 endAccessory={
                   <View style={styles.headerEndAccessoryContainer}>
                     <View style={styles.headerActionButtonsContainer}>
+                      {isMoneyHomeScreenEnabled && (
+                        <ButtonIcon
+                          iconProps={{
+                            color: MMDSIconColor.IconDefault,
+                          }}
+                          onPress={handleActivityPress}
+                          iconName={MMDSIconName.Clock}
+                          size={ButtonIconSize.Md}
+                          testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
+                          hitSlop={touchAreaSlop}
+                        />
+                      )}
                       <View
                         testID={
                           WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON

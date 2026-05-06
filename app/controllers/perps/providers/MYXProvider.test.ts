@@ -596,7 +596,8 @@ describe('MYXProvider', () => {
       const result = await provider.getAccountState();
 
       expect(result).toEqual({
-        availableBalance: '0',
+        spendableBalance: '0',
+        withdrawableBalance: '0',
         totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -769,7 +770,8 @@ describe('MYXProvider', () => {
       jest.advanceTimersByTime(1);
 
       expect(callback).toHaveBeenCalledWith({
-        availableBalance: '0',
+        spendableBalance: '0',
+        withdrawableBalance: '0',
         totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -1006,7 +1008,8 @@ describe('MYXProvider', () => {
         ) as { adaptAccountStateFromMYX: jest.Mock };
         mockAdapt.mockReturnValue({
           totalBalance: '1000',
-          availableBalance: '800',
+          spendableBalance: '800',
+          withdrawableBalance: '800',
           marginUsed: '200',
           unrealizedPnl: '50',
           returnOnEquity: '5',

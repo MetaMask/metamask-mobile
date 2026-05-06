@@ -68,6 +68,20 @@ describe('TransactionDetailsBridgeFeeRow', () => {
     expect(getByText('Provider fee')).toBeOnTheScreen();
   });
 
+  it('renders "Provider fee" label for money account withdrawals', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        type: TransactionType.moneyAccountWithdraw,
+        metamaskPay: {
+          bridgeFeeFiat: BRIDGE_FEE_FIAT_MOCK,
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+    expect(getByText('Provider fee')).toBeOnTheScreen();
+  });
+
   it('renders nothing if no bridge fee fiat', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {

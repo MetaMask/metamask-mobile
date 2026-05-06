@@ -1,5 +1,6 @@
 import test from '@playwright/test';
 import type { DeviceMatrix, LaunchArgs } from './types';
+import { getWindowSize } from './DeviceInfoCache.ts';
 import { PlaywrightElement } from './PlaywrightAdapter';
 import {
   CHROME_PACKAGE,
@@ -154,7 +155,7 @@ class PlaywrightUtilities {
     width: number;
     height: number;
   }> {
-    const screenSize = await getDriver().getWindowSize();
+    const screenSize = getWindowSize();
     return { width: screenSize.width, height: screenSize.height };
   }
 

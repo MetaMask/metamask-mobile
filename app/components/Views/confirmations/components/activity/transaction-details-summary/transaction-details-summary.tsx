@@ -114,6 +114,7 @@ function SummaryLine({
 
   if (
     hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
       TransactionType.musdConversion,
