@@ -123,6 +123,7 @@ import giftSVG from './assets/gift.svg';
 import globalsearchSVG from './assets/global-search.svg';
 import globalSVG from './assets/global.svg';
 import graphSVG from './assets/graph.svg';
+import groupSVG from './assets/group.svg';
 import hardwareSVG from './assets/hardware.svg';
 import hashtagSVG from './assets/hash-tag.svg';
 import heartfilledSVG from './assets/heart-filled.svg';
@@ -177,8 +178,8 @@ import peopleSVG from './assets/people.svg';
 import personcancelSVG from './assets/person-cancel.svg';
 import pinSVG from './assets/pin.svg';
 import plantSVG from './assets/plant.svg';
-import portfolioSVG from './assets/portfolio.svg';
-import predictSVG from './assets/predict.svg';
+import pieChartSVG from './assets/pie-chart.svg';
+import predictionsSVG from './assets/predictions.svg';
 import plugSVG from './assets/plug.svg';
 import plusandminusSVG from './assets/plus-and-minus.svg';
 import policyalertSVG from './assets/policy-alert.svg';
@@ -409,6 +410,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.GlobalSearch]: globalsearchSVG,
   [IconName.Global]: globalSVG,
   [IconName.Graph]: graphSVG,
+  [IconName.Group]: groupSVG,
   [IconName.Hardware]: hardwareSVG,
   [IconName.HashTag]: hashtagSVG,
   [IconName.HeartFilled]: heartfilledSVG,
@@ -463,8 +465,8 @@ export const assetByIconName: AssetByIconName = {
   [IconName.PersonCancel]: personcancelSVG,
   [IconName.Pin]: pinSVG,
   [IconName.Plant]: plantSVG,
-  [IconName.Portfolio]: portfolioSVG,
-  [IconName.Predict]: predictSVG,
+  [IconName.Portfolio]: pieChartSVG,
+  [IconName.Predictions]: predictionsSVG,
   [IconName.Plug]: plugSVG,
   [IconName.PlusAndMinus]: plusandminusSVG,
   [IconName.PolicyAlert]: policyalertSVG,
