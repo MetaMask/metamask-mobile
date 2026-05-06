@@ -199,21 +199,22 @@ const HomepagePredictPositions = ({
 }: HomepagePredictPositionsProps) => (
   <Box gap={3}>
     {showHeader && (
-      <SectionHeader
-        title={title}
-        onPress={onViewAll}
-        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
-      />
-    )}
-    {showHeader && predictHomepageUnrealizedPnl.show && (
-      <HomepageSectionUnrealizedPnlRow
-        marginTop={1}
-        isLoading={predictHomepageUnrealizedPnl.isLoading}
-        valueText={predictHomepageUnrealizedPnl.valueText}
-        tone={predictHomepageUnrealizedPnl.tone}
-        label={strings('predict.unrealized_pnl_label')}
-        testID="homepage-predict-unrealized-pnl"
-      />
+      <Box gap={1}>
+        <SectionHeader
+          title={title}
+          onPress={onViewAll}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
+        />
+        {predictHomepageUnrealizedPnl.show && (
+          <HomepageSectionUnrealizedPnlRow
+            isLoading={predictHomepageUnrealizedPnl.isLoading}
+            valueText={predictHomepageUnrealizedPnl.valueText}
+            tone={predictHomepageUnrealizedPnl.tone}
+            label={strings('predict.unrealized_pnl_label')}
+            testID="homepage-predict-unrealized-pnl"
+          />
+        )}
+      </Box>
     )}
     {isLoadingPositions ? (
       <>
