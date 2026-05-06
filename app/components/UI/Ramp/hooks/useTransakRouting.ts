@@ -385,7 +385,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             amount_source: Number(rampsOrder.fiatAmount),
             amount_destination: Number(rampsOrder.cryptoAmount),
             exchange_rate: Number(rampsOrder.exchangeRate),
-            gas_fee: rampsOrder.networkFees ? Number(rampsOrder.networkFees) : 0,
+            gas_fee: rampsOrder.networkFees
+              ? Number(rampsOrder.networkFees)
+              : 0,
             processing_fee: rampsOrder.partnerFees
               ? Number(rampsOrder.partnerFees)
               : 0,
@@ -394,14 +396,16 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             country: regionIsoCode,
             chain_id: rampsOrder.network?.chainId || '',
             currency_destination: rampsOrder.cryptoCurrency?.assetId || '',
-            currency_destination_symbol: rampsOrder.cryptoCurrency?.symbol || '',
+            currency_destination_symbol:
+              rampsOrder.cryptoCurrency?.symbol || '',
             currency_destination_network: rampsOrder.network?.name || '',
             currency_source: rampsOrder.fiatCurrency?.symbol || '',
           });
         } catch (error) {
           processingOrderIdRef.current = null;
           Logger.error(error as Error, {
-            message: 'useTransakRouting: Failed to process order after checkout',
+            message:
+              'useTransakRouting: Failed to process order after checkout',
           });
         }
         return;
