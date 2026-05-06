@@ -151,6 +151,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'bridge.slippage': 'Slippage',
       'bridge.cancel': 'Cancel',
       'bridge.confirm': 'Confirm',
+      'bridge.close': 'Close',
     };
     return translations[key] || key;
   }),
@@ -162,6 +163,7 @@ import { useSlippageStepperDescription } from '../../hooks/useSlippageStepperDes
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { InputStepper } from '../InputStepper';
 import Keypad from '../../../../Base/Keypad';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockUseSlippageConfig = useSlippageConfig as jest.MockedFunction<
   typeof useSlippageConfig
@@ -1020,7 +1022,7 @@ describe('CustomSlippageModal', () => {
     it('closes modal via header close button', () => {
       const { getByLabelText } = render(<CustomSlippageModal />);
 
-      const closeButton = getByLabelText('Close');
+      const closeButton = getByLabelText(strings('bridge.close'));
       fireEvent.press(closeButton);
 
       // Verify it doesn't throw and component handles close
@@ -1030,7 +1032,7 @@ describe('CustomSlippageModal', () => {
     it('does not dispatch slippage when closing without confirm', () => {
       const { getByLabelText } = render(<CustomSlippageModal />);
 
-      const closeButton = getByLabelText('Close');
+      const closeButton = getByLabelText(strings('bridge.close'));
       fireEvent.press(closeButton);
 
       expect(mockDispatch).not.toHaveBeenCalled();

@@ -85,6 +85,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'bridge.slippage': 'Slippage',
       'bridge.default_slippage_description': 'Set your slippage tolerance',
       'bridge.submit': 'Submit',
+      'bridge.close': 'Close',
     };
     return translations[key] || key;
   }),
@@ -94,6 +95,7 @@ import { useGetSlippageOptions } from '../../hooks/useGetSlippageOptions';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { AUTO_SLIPPAGE_VALUE } from './constants';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockUseGetSlippageOptions = useGetSlippageOptions as jest.MockedFunction<
   typeof useGetSlippageOptions
@@ -194,7 +196,7 @@ describe('DefaultSlippageModal', () => {
     it('closes bottom sheet when close is called', () => {
       const { getByLabelText } = render(<DefaultSlippageModal />);
 
-      const closeButton = getByLabelText('Close');
+      const closeButton = getByLabelText(strings('bridge.close'));
       fireEvent.press(closeButton);
 
       // Bottom sheet close is handled internally by ref

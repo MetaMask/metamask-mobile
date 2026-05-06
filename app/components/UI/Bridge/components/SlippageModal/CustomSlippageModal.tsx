@@ -100,7 +100,9 @@ export const CustomSlippageModal = () => {
       <HeaderStandard
         title={strings('bridge.slippage')}
         onClose={handleClose}
-        closeButtonProps={{ accessibilityLabel: 'Close' }}
+        closeButtonProps={{
+          accessibilityLabel: strings('bridge.close'),
+        }}
       />
       <View style={customSlippageModalStyles.stepperContainer}>
         <InputStepper

@@ -83,7 +83,9 @@ export const DefaultSlippageModal = () => {
       <HeaderStandard
         title={strings('bridge.slippage')}
         onClose={handleClose}
-        closeButtonProps={{ accessibilityLabel: 'Close' }}
+        closeButtonProps={{
+          accessibilityLabel: strings('bridge.close'),
+        }}
       />
       <View style={styles.descriptionContainer}>
         <Text style={styles.descriptionText}>
