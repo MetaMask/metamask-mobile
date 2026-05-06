@@ -204,8 +204,7 @@ describe(
       jest.setTimeout(2500000);
     });
 
-    // Moved to cv tests (eip-7702-sponsored-relay-api-failure.view.test.tsx)
-    it.skip('sends ETH sponsored', async () => {
+    it('sends ETH sponsored', async () => {
       await withFixtures(
         {
           fixture: createFixture,
@@ -264,8 +263,8 @@ describe(
       jest.setTimeout(2500000);
     });
 
-    // Moved to cv tests (eip-7702-sponsored-relay-api-failure.view.test.tsx)
-    it.skip('fails transaction if error occurs on API', async () => {
+    // Also implemented in cv tests (eip-7702-sponsored-relay-api-failure.view.test.tsx)
+    it('fails transaction if error occurs on API', async () => {
       await withFixtures(
         {
           fixture: createFixture,

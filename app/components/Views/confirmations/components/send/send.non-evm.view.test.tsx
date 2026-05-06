@@ -212,10 +212,40 @@ describeForPlatforms('Send (Non-EVM)', () => {
     expect(evmContactRow).not.toBeOnTheScreen();
   });
 
-  /**
-   * Smoke `send-solana-token`: Amount screen shows the Send header title and SOL
-   * symbol (same text checks as E2E; no transfer).
-   */
+  it('Bitcoin send Recipient screen does not show EVM contacts', async () => {
+    const EVM_CONTACT_ADDRESS = '0x1234567890123456789012345678901234567890';
+
+    const addressBookOverrides =
+      buildAddressBookOverridesWithEvmContact(EVM_CONTACT_ADDRESS);
+
+    const state = initialStateWallet()
+      .withOverrides(sendViewOverrides)
+      .withOverrides(addressBookOverrides)
+      .build();
+
+    const { findByTestId, queryByTestId } = renderScreenWithRoutes(
+      Send as unknown as React.ComponentType,
+      { name: Routes.SEND.DEFAULT },
+      [],
+      { state },
+      {
+        screen: Routes.SEND.RECIPIENT,
+        params: { asset: MINIMAL_BTC_BALANCE_ASSET },
+      },
+    );
+
+    expect(
+      await findByTestId(
+        RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+      ),
+    ).toBeOnTheScreen();
+
+    const evmContactRow = queryByTestId(
+      getRecipientRowTestId(EVM_CONTACT_ADDRESS),
+    );
+    expect(evmContactRow).not.toBeOnTheScreen();
+  });
+
   it('Solana native: Amount screen shows Send title and SOL', async () => {
     const state = initialStateWallet()
       .withOverrides(sendViewOverrides)
@@ -298,11 +328,6 @@ describeForPlatforms('Send (Non-EVM)', () => {
     expect(await findByTestId('route-TransactionsView')).toBeOnTheScreen();
   }, 20000);
 
-  /**
-   * Bitcoin send Amount: entering an amount above balance shows “Insufficient funds”
-   * on Continue (input validation only; no transaction). Aligns with smoke
-   * `send-btc-token` insufficient-funds coverage.
-   */
   it('Bitcoin Amount: exceeding balance shows Insufficient funds', async () => {
     const state = initialStateWallet()
       .withOverrides(sendViewOverrides)
