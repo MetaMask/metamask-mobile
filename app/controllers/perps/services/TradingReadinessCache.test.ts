@@ -118,6 +118,43 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
           false,
         );
       });
+
+      it('stores and returns a reason discriminator', () => {
+        TradingReadinessCache.set(network, userAddress, {
+          attempted: true,
+          enabled: false,
+          reason: 'no_hl_account',
+        });
+
+        const result = TradingReadinessCache.get(network, userAddress);
+        expect(result?.reason).toBe('no_hl_account');
+        expect(result?.attempted).toBe(true);
+        expect(result?.enabled).toBe(false);
+      });
+
+      it('returns undefined reason when set without one', () => {
+        TradingReadinessCache.set(network, userAddress, {
+          attempted: true,
+          enabled: false,
+        });
+
+        const result = TradingReadinessCache.get(network, userAddress);
+        expect(result?.reason).toBeUndefined();
+      });
+
+      it('clears reason when clearUnifiedAccount is called', () => {
+        TradingReadinessCache.set(network, userAddress, {
+          attempted: true,
+          enabled: false,
+          reason: 'no_hl_account',
+        });
+
+        TradingReadinessCache.clearUnifiedAccount(network, userAddress);
+
+        const result = TradingReadinessCache.get(network, userAddress);
+        expect(result?.reason).toBeUndefined();
+        expect(result?.attempted).toBe(false);
+      });
     });
   });
 

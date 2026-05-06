@@ -9355,6 +9355,163 @@ describe('HyperLiquidProvider', () => {
     });
 
     // ─────────────────────────────────────────────────
+    // "User or API Wallet does not exist" — unfunded wallet no-op
+    //
+    // HL returns this error when a wallet has never deposited funds.
+    // The migration should be silently recorded as not_applicable
+    // and must NOT fire a Sentry error or a failed analytics event.
+    // ─────────────────────────────────────────────────
+
+    it('silences the "User or API Wallet does not exist" error from agentSetAbstraction (default → unified)', async () => {
+      // Arrange: HL reports the wallet has no account
+      const userNotFoundError = new Error(
+        'User or API Wallet 0xabc does not exist.',
+      );
+      const mockExchangeClient = createMockExchangeClient();
+      mockExchangeClient.agentSetAbstraction = jest
+        .fn()
+        .mockRejectedValue(userNotFoundError);
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(mockExchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+
+      // Act — must resolve, not throw
+      await expect(provider.getMarketDataWithPrices()).resolves.not.toThrow();
+
+      // Cache written with reason: 'no_hl_account' so we stop retrying
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .set,
+      ).toHaveBeenCalledWith('mainnet', USER_ADDRESS, {
+        attempted: true,
+        enabled: false,
+        reason: 'no_hl_account',
+      });
+
+      // Analytics: one migration_required event followed by one not_applicable
+      const trackCalls = (
+        mockPlatformDependencies.metrics.trackPerpsEvent as jest.Mock
+      ).mock.calls.filter((call) => call[0] === 'Perp Account Setup');
+      const notApplicableCall = trackCalls.find(
+        (call) => call[1]?.status === 'not_applicable',
+      );
+      expect(notApplicableCall).toBeDefined();
+      expect(notApplicableCall[1]).toEqual(
+        expect.objectContaining({
+          previous_abstraction_mode: 'default',
+          abstraction_mode: 'unifiedAccount',
+          status: 'not_applicable',
+          error_message: 'no_hl_account',
+        }),
+      );
+
+      // Sentry NOT called — this is not a real failure
+      expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
+    });
+
+    it('silences the "User or API Wallet does not exist" error from userSetAbstraction (dexAbstraction → unified)', async () => {
+      // Arrange: dexAbstraction user with no HL account
+      const userNotFoundError = new Error(
+        'User or API Wallet 0xdef does not exist.',
+      );
+      const mockExchangeClient = createMockExchangeClient();
+      mockExchangeClient.userSetAbstraction = jest
+        .fn()
+        .mockRejectedValue(userNotFoundError);
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(mockExchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('dexAbstraction'),
+        }),
+      );
+
+      // Act — init path for software wallet (allowUserSigning=true via
+      // isSelectedHardwareWallet returning false)
+      await expect(provider.getMarketDataWithPrices()).resolves.not.toThrow();
+
+      // Cache written with reason: 'no_hl_account' (not the dexAbstraction-
+      // failure path — the no_hl_account branch must win)
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .set,
+      ).toHaveBeenCalledWith('mainnet', USER_ADDRESS, {
+        attempted: true,
+        enabled: false,
+        reason: 'no_hl_account',
+      });
+
+      // Analytics: not_applicable, not failed
+      const trackCalls = (
+        mockPlatformDependencies.metrics.trackPerpsEvent as jest.Mock
+      ).mock.calls.filter((call) => call[0] === 'Perp Account Setup');
+      const notApplicableCall = trackCalls.find(
+        (call) => call[1]?.status === 'not_applicable',
+      );
+      expect(notApplicableCall).toBeDefined();
+      expect(notApplicableCall[1]).toEqual(
+        expect.objectContaining({
+          previous_abstraction_mode: 'dexAbstraction',
+          abstraction_mode: 'unifiedAccount',
+          status: 'not_applicable',
+          error_message: 'no_hl_account',
+        }),
+      );
+
+      // Sentry NOT called
+      expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
+    });
+
+    it('still fires the failed analytics event and Sentry for unrelated agentSetAbstraction errors', async () => {
+      // Arrange: unrelated error to confirm the special case does not
+      // swallow legitimate failures
+      const unrelatedError = new Error('Insufficient margin');
+      const mockExchangeClient = createMockExchangeClient();
+      mockExchangeClient.agentSetAbstraction = jest
+        .fn()
+        .mockRejectedValue(unrelatedError);
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(mockExchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+
+      // Act — still resolves (error is caught internally)
+      await expect(provider.getMarketDataWithPrices()).resolves.not.toThrow();
+
+      // Analytics: should have a failed event, no not_applicable
+      const trackCalls = (
+        mockPlatformDependencies.metrics.trackPerpsEvent as jest.Mock
+      ).mock.calls.filter((call) => call[0] === 'Perp Account Setup');
+      const failedCall = trackCalls.find(
+        (call) => call[1]?.status === 'failed',
+      );
+      expect(failedCall).toBeDefined();
+      expect(failedCall[1]).toEqual(
+        expect.objectContaining({
+          status: 'failed',
+          error_message: 'Insufficient margin',
+        }),
+      );
+      const notApplicableCall = trackCalls.find(
+        (call) => call[1]?.status === 'not_applicable',
+      );
+      expect(notApplicableCall).toBeUndefined();
+
+      // Sentry IS called
+      expect(mockPlatformDependencies.logger.error).toHaveBeenCalled();
+    });
+
+    // ─────────────────────────────────────────────────
     // Network key (mainnet vs testnet)
     // ─────────────────────────────────────────────────
 

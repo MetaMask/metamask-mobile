@@ -25,6 +25,7 @@
 type SigningOperationState = {
   attempted: boolean; // Whether we've attempted this operation
   success: boolean; // Whether it succeeded (only valid if attempted=true)
+  reason?: 'no_hl_account' | 'user_rejected' | 'transient'; // optional discriminator
 };
 
 type PerpsSigningCacheEntry = {
@@ -39,6 +40,7 @@ type TradingReadinessCacheEntry = {
   attempted: boolean;
   enabled: boolean;
   timestamp: number;
+  reason?: 'no_hl_account' | 'user_rejected' | 'transient';
 };
 
 class PerpsSigningCacheManager {
@@ -149,6 +151,7 @@ class PerpsSigningCacheManager {
       attempted: entry.unifiedAccount.attempted,
       enabled: entry.unifiedAccount.success,
       timestamp: entry.timestamp,
+      reason: entry.unifiedAccount.reason,
     };
   }
 
@@ -160,14 +163,23 @@ class PerpsSigningCacheManager {
    * @param data - The transaction data payload.
    * @param data.attempted - Whether the operation was attempted.
    * @param data.enabled - Whether the feature is enabled.
+   * @param data.reason - Optional discriminator for why the operation ended in this state.
    */
   public set(
     network: 'mainnet' | 'testnet',
     userAddress: string,
-    data: { attempted: boolean; enabled: boolean },
+    data: {
+      attempted: boolean;
+      enabled: boolean;
+      reason?: 'no_hl_account' | 'user_rejected' | 'transient';
+    },
   ): void {
     const entry = this.#getOrCreateEntry(network, userAddress);
-    entry.unifiedAccount = { attempted: data.attempted, success: data.enabled };
+    entry.unifiedAccount = {
+      attempted: data.attempted,
+      success: data.enabled,
+      reason: data.reason,
+    };
     entry.timestamp = Date.now();
   }
 
@@ -257,7 +269,11 @@ class PerpsSigningCacheManager {
     const key = this.#getCacheKey(network, userAddress);
     const entry = this.#cache.get(key);
     if (entry) {
-      entry.unifiedAccount = { attempted: false, success: false };
+      entry.unifiedAccount = {
+        attempted: false,
+        success: false,
+        reason: undefined,
+      };
       entry.timestamp = Date.now();
     }
   }

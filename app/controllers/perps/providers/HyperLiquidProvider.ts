@@ -128,7 +128,10 @@ import {
   addSpotBalanceToAccountState,
   aggregateAccountStates,
 } from '../utils/accountUtils';
-import { ensureError } from '../utils/errorUtils';
+import {
+  ensureError,
+  isHyperLiquidUserNotFoundError,
+} from '../utils/errorUtils';
 import {
   adaptAccountStateFromSDK,
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
@@ -820,6 +823,37 @@ export class HyperLiquidProvider implements PerpsProvider {
           '[ensureUnifiedAccountEnabled] Keyring locked, will retry later',
         );
         this.#unifiedAccountSetupNeedsRetry = true;
+        completeInFlight();
+        return;
+      }
+
+      // User has no HL account yet — nothing to migrate. HL surfaces this as
+      // "User or API Wallet 0x… does not exist." for both the agent-key and
+      // user-signed paths. This is benign: the user has no funds on HL, and
+      // the next migration attempt after their first deposit will succeed.
+      // We cache it so we don't re-fire the doomed call (and the failed
+      // analytics/Sentry events) on every Perps section open. The cache resets
+      // on app restart, which is sufficient coverage for users who deposit and
+      // trade within the same session.
+      if (isHyperLiquidUserNotFoundError(error)) {
+        this.#deps.debugLogger.log(
+          '[ensureUnifiedAccountEnabled] User has no HL account yet, skipping migration',
+          { user: userAddress, network },
+        );
+        TradingReadinessCache.set(network, userAddress, {
+          attempted: true,
+          enabled: false,
+          reason: 'no_hl_account',
+        });
+        this.#deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.AccountSetup, {
+          ...(currentMode && {
+            [PERPS_EVENT_PROPERTY.PREVIOUS_ABSTRACTION_MODE]: currentMode,
+            [PERPS_EVENT_PROPERTY.ABSTRACTION_MODE]: HL_UNIFIED_ACCOUNT_MODE,
+          }),
+          [PERPS_EVENT_PROPERTY.STATUS]:
+            PERPS_EVENT_VALUE.STATUS.NOT_APPLICABLE,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: 'no_hl_account',
+        });
         completeInFlight();
         return;
       }

@@ -5,6 +5,20 @@
 import { hasProperty } from '@metamask/utils';
 
 /**
+ * Matches HyperLiquid's "User or API Wallet … does not exist." API response.
+ * HL returns this when a wallet has never had any state on the exchange
+ * (no deposits, no agent approval). For our migration call site this is
+ * a no-op condition, not an error worth surfacing via Sentry or Mixpanel.
+ *
+ * @param error - The error to check.
+ * @returns True if the error indicates the wallet has no HL account yet.
+ */
+export function isHyperLiquidUserNotFoundError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error ?? '');
+  return /User or API Wallet .* does not exist/iu.test(message);
+}
+
+/**
  * Detects expected cancellation/abort errors that should not be reported to Sentry.
  * These occur during normal navigation or view teardown when in-flight fetch requests
  * are cancelled via AbortController.
