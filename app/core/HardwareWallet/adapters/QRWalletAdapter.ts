@@ -255,14 +255,16 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
         return true;
       }
 
-      const newStatus = await Camera.requestCameraPermission();
-      DevLogger.log(
-        '[QRWalletAdapter] Camera permission after request:',
-        newStatus,
-      );
+      if (status === 'not-determined') {
+        const newStatus = await Camera.requestCameraPermission();
+        DevLogger.log(
+          '[QRWalletAdapter] Camera permission after request:',
+          newStatus,
+        );
 
-      if (newStatus === 'granted') {
-        return true;
+        if (newStatus === 'granted') {
+          return true;
+        }
       }
 
       this.#emitCameraPermissionDenied();

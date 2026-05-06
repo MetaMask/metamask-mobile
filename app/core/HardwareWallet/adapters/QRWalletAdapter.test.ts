@@ -144,11 +144,11 @@ describe('QRWalletAdapter', () => {
 
     it('emits ConnectionFailed when camera permission is denied', async () => {
       mockGetCameraPermissionStatus.mockReturnValueOnce('denied');
-      mockRequestCameraPermission.mockResolvedValueOnce('denied');
 
       const result = await adapter.ensureDeviceReady('qr-account-address');
 
       expect(result).toBe(false);
+      expect(mockRequestCameraPermission).not.toHaveBeenCalled();
       expect(adapter.getConnectedDeviceId()).toBeNull();
       expect(adapter.isConnected()).toBe(false);
       expect(onDeviceEvent).toHaveBeenCalledWith({
