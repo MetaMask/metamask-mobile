@@ -75,9 +75,7 @@ perfTest.describe(`${PerformanceLogin}`, () => {
       await switchToMobileBrowser();
 
       if (platform === 'android') {
-        await PlaywrightContextHelpers.withNativeAction(async () => {
-          await UniswapDapp.isUniswapDisplayed();
-        });
+        await UniswapDapp.isUniswapDisplayed();
       }
 
       connectTimer.stop();
