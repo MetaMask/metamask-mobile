@@ -108,11 +108,6 @@ describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
         await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'Invalid');
         await TestSnaps.fillMessage('messageBip44Input', 'foo bar');
         await TestSnaps.tapButton('signMessageBip44Button');
-        // Both iOS and Android surface the snap error as a native WebView
-        // alert (`window.alert`). The previous Android-specific branch read
-        // the error from the inline result span, but post RN 0.81 / new
-        // react-native-webview the Android WebView routes `alert()` through
-        // the native dialog handler too.
         await Assertions.expectTextDisplayed(
           'Entropy source with ID "invalid" not found.',
           { timeout: 30000 },

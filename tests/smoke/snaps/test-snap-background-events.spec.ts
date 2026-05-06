@@ -120,11 +120,6 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
 
         await TestSnaps.fillMessage('backgroundEventDateInput', pastDate);
         await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
-        // Both iOS and Android surface the snap error as a native WebView
-        // alert (`window.alert`). The previous Android-specific branch read
-        // the error from the inline result span, but post RN 0.81 / new
-        // react-native-webview the Android WebView routes `alert()` through
-        // the native dialog handler too.
         await Assertions.expectTextDisplayed(
           'Cannot schedule an event in the past.',
           { timeout: 30000 },

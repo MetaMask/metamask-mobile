@@ -123,11 +123,6 @@ describe(SmokeSnaps('Get Entropy Snap Tests'), () => {
           await TestSnaps.fillMessage('entropyMessageInput', 'foo bar');
           await TestSnaps.tapButton('signEntropyMessageButton');
           await TestSnaps.approveSignRequest();
-          // Both iOS and Android surface the snap error as a native WebView
-          // alert (`window.alert`). The previous Android-specific branch read
-          // the error from the inline result span, but post RN 0.81 / new
-          // react-native-webview the Android WebView routes `alert()` through
-          // the native dialog handler too.
           await Assertions.expectTextDisplayed(
             'Entropy source with ID "invalid" not found.',
             { timeout: 30000 },
