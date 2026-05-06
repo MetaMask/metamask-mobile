@@ -14,11 +14,16 @@ import type {
   FrontendOpenOrdersResponse,
   ClearinghouseStateWsEvent,
   OpenOrdersWsEvent,
+  SpotStateWsEvent,
 } from '@nktkas/hyperliquid';
 
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
-import { TP_SL_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
+import {
+  TP_SL_CONFIG,
+  PERPS_CONSTANTS,
+  ABSTRACTION_MODE_REFRESH_THROTTLE_MS,
+} from '../constants/perpsConfig';
 import { WebSocketConnectionState } from '../types';
 import type {
   PriceUpdate,
@@ -38,7 +43,17 @@ import type {
   PerpsPlatformDependencies,
   PerpsLogger,
 } from '../types';
-import { calculateWeightedReturnOnEquity } from '../utils/accountUtils';
+import type {
+  SpotClearinghouseStateResponse,
+  HyperLiquidAbstractionMode,
+  UserAbstractionResponse,
+} from '../types/hyperliquid-types';
+import { hyperLiquidModeFoldsSpot } from '../types/hyperliquid-types';
+import {
+  addSpotBalanceToAccountState,
+  calculateWeightedReturnOnEquity,
+} from '../utils/accountUtils';
+import type { AddSpotBalanceOptions } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import {
   adaptPositionFromSDK,
@@ -133,6 +148,15 @@ export class HyperLiquidSubscriptionService {
   // Order fill subscriptions keyed by accountId (normalized: undefined -> 'default')
   readonly #orderFillSubscriptions = new Map<string, ISubscription>();
 
+  readonly #spotStateSubscriptions = new Map<string, ISubscription>();
+
+  readonly #spotStateSubscriptionPromises = new Map<string, Promise<void>>();
+
+  // Bumped on cleanup so in-flight #ensureSpotStateSubscription
+  // continuations discard their subscription instead of rehydrating
+  // #spotStateSubscriptions after clearAll/cleanupSharedWebData3.
+  #spotStateSubscriptionGeneration = 0;
+
   readonly #symbolSubscriberCounts = new Map<string, number>();
 
   readonly #dexSubscriberCounts = new Map<string, number>(); // Track subscribers per DEX for assetCtxs
@@ -156,6 +180,40 @@ export class HyperLiquidSubscriptionService {
   readonly #dexOrdersCache = new Map<string, Order[]>(); // Per-DEX orders
 
   readonly #dexAccountCache = new Map<string, AccountState>(); // Per-DEX account state
+
+  #cachedSpotState: SpotClearinghouseStateResponse | null = null;
+
+  // HL abstraction mode (Unified / Standard / Portfolio / DEX-abstraction).
+  // Gates spot→perps folding in addSpotBalanceToAccountState. Keyed by user
+  // address so an in-flight refresh or late response for one wallet cannot
+  // overwrite another wallet's fold semantics after an account switch.
+  readonly #abstractionModeByUser = new Map<
+    string,
+    HyperLiquidAbstractionMode
+  >();
+
+  // Timestamp of the last successful WS-driven userAbstraction refresh per
+  // user. This throttle intentionally does not count the initial bootstrap
+  // fetch so the first spot tick after app launch can still detect an HL-web
+  // mode flip immediately.
+  readonly #abstractionModeLastWsRefreshAtByUser = new Map<string, number>();
+
+  // In-flight promises for WS-triggered refreshes, keyed by user so concurrent
+  // ticks for the same wallet share one fetch while account switches can start
+  // their own refresh immediately.
+  readonly #abstractionModeInflightByUser = new Map<string, Promise<void>>();
+
+  #cachedSpotStateUserAddress: string | null = null;
+
+  #spotStatePromise?: Promise<void>;
+
+  #spotStatePromiseUserAddress?: string;
+
+  // Monotonic token bumped on cleanUp/clearAll and on each new fetch.
+  // Any in-flight #refreshSpotState that resolves with a stale token
+  // discards its result, preventing cross-account cache contamination
+  // when accounts are switched mid-fetch.
+  #spotStateGeneration = 0;
 
   #cachedPositions: Position[] | null = null; // Aggregated positions
 
@@ -295,13 +353,44 @@ export class HyperLiquidSubscriptionService {
     if (this.#isClearing) {
       return;
     }
+    if (this.#isTransientSdkError(error)) {
+      // Expected SDK lifecycle: reconnect churn, intentional terminations, or
+      // request-side aborts. Forwarding these to Sentry pollutes the error
+      // budget with handled events the SDK already recovers from. Keep them
+      // visible locally via debugLogger for diagnosis.
+      this.#deps.debugLogger.log(
+        `[Perps transient SDK error] ${(context?.context?.data?.method as string) ?? 'unknown'}: ${error.message}`,
+      );
+      return;
+    }
     this.#deps.logger.error(error, context);
   }
 
-  #isTransientAssetCtxsError(error: unknown): boolean {
+  /**
+   * Detects transient SDK errors that are part of normal WebSocket / HTTP
+   * lifecycle and should not surface to Sentry. The Hyperliquid SDK
+   * (`@nktkas/hyperliquid`) and its `@nktkas/rews` v2 transport surface several
+   * error classes that are caught and recovered automatically by the SDK or
+   * by our own teardown paths.
+   *
+   * Returns true for `WebSocketRequestError` (rews queue rejection on close),
+   * `ReconnectingWebSocketError` (rews v2 lifecycle: RECONNECTION_LIMIT,
+   * TERMINATED_BY_USER, UNKNOWN_ERROR — v1 silently hung), `TimeoutError`
+   * with "Signal timed out" message (AbortSignal.timeout shim firing inside
+   * the SDK transport as designed), and reconnect-churn fallbacks (unknown
+   * or undefined errors while in Connecting / Disconnected states).
+   *
+   * Used both to drop these from Sentry (`#logErrorUnlessClearing`) and to
+   * decide whether to retry on the assetCtxs subscription path.
+   *
+   * @param error - The error thrown by the SDK or rews transport.
+   * @returns True if the error is part of normal SDK lifecycle and should
+   * be downgraded from Sentry capture to debug logging.
+   */
+  #isTransientSdkError(error: unknown): boolean {
     const ensuredError = ensureError(
       error,
-      'HyperLiquidSubscriptionService.createAssetCtxsSubscription',
+      'HyperLiquidSubscriptionService.isTransientSdkError',
     );
     const connectionState = this.#clientService.getConnectionState?.();
     const messageParts = [
@@ -319,6 +408,9 @@ export class HyperLiquidSubscriptionService {
     return (
       messageParts.includes('websocketrequesterror') ||
       messageParts.includes('unknown error while making a websocket request') ||
+      messageParts.includes('reconnectingwebsocketerror') ||
+      (messageParts.includes('timeouterror') &&
+        messageParts.includes('signal timed out')) ||
       (isReconnectChurn &&
         (messageParts.includes('unknown error (no details provided)') ||
           messageParts.includes('undefined')))
@@ -684,7 +776,7 @@ export class HyperLiquidSubscriptionService {
   }
 
   #hashAccountState(account: AccountState): string {
-    return `${account.availableBalance}:${account.totalBalance}:${account.marginUsed}:${account.unrealizedPnl}`;
+    return `${account.spendableBalance}:${account.withdrawableBalance}:${account.totalBalance}:${account.marginUsed}:${account.unrealizedPnl}`;
   }
 
   // Cache hashes to avoid recomputation
@@ -940,9 +1032,14 @@ export class HyperLiquidSubscriptionService {
   #aggregateAccountStates(): AccountState {
     const subAccountBreakdown: Record<
       string,
-      { availableBalance: string; totalBalance: string }
+      {
+        spendableBalance: string;
+        withdrawableBalance: string;
+        totalBalance: string;
+      }
     > = {};
-    let totalAvailableBalance = 0;
+    let totalSpendableBalance = 0;
+    let totalWithdrawableBalance = 0;
     let totalBalance = 0;
     let totalMarginUsed = 0;
     let totalUnrealizedPnl = 0;
@@ -958,10 +1055,12 @@ export class HyperLiquidSubscriptionService {
       ([currentDex, state]) => {
         const dexKey = currentDex === '' ? 'main' : currentDex;
         subAccountBreakdown[dexKey] = {
-          availableBalance: state.availableBalance,
+          spendableBalance: state.spendableBalance,
+          withdrawableBalance: state.withdrawableBalance,
           totalBalance: state.totalBalance,
         };
-        totalAvailableBalance += parseFloat(state.availableBalance);
+        totalSpendableBalance += parseFloat(state.spendableBalance);
+        totalWithdrawableBalance += parseFloat(state.withdrawableBalance);
         totalBalance += parseFloat(state.totalBalance);
         totalMarginUsed += parseFloat(state.marginUsed);
         totalUnrealizedPnl += parseFloat(state.unrealizedPnl);
@@ -981,15 +1080,402 @@ export class HyperLiquidSubscriptionService {
     // Calculate weighted returnOnEquity across all DEXs
     const returnOnEquity = calculateWeightedReturnOnEquity(accountStatesForROE);
 
+    return addSpotBalanceToAccountState(
+      {
+        ...firstDexAccount,
+        spendableBalance: totalSpendableBalance.toString(),
+        withdrawableBalance: totalWithdrawableBalance.toString(),
+        totalBalance: totalBalance.toString(),
+        marginUsed: totalMarginUsed.toString(),
+        unrealizedPnl: totalUnrealizedPnl.toString(),
+        subAccountBreakdown,
+        returnOnEquity,
+      },
+      this.#cachedSpotState,
+      this.#getSpotBalanceOptions(),
+    );
+  }
+
+  /**
+   * Return the cached HL abstraction mode for the given user address.
+   *
+   * Returns `null` when the address is unknown or this user has not been
+   * fetched yet — callers pass this through `hyperLiquidModeFoldsSpot`,
+   * which fail-closes (no fold) when the mode is unresolved.
+   *
+   * @param userAddress - Current user address; null/empty returns null.
+   * @returns Cached abstraction mode when the user matches; otherwise null.
+   */
+  #getAbstractionModeForUser(
+    userAddress?: string | null,
+  ): HyperLiquidAbstractionMode | null {
+    if (!userAddress) {
+      return null;
+    }
+    return this.#abstractionModeByUser.get(userAddress.toLowerCase()) ?? null;
+  }
+
+  #getSpotBalanceOptions(): AddSpotBalanceOptions {
     return {
-      ...firstDexAccount,
-      availableBalance: totalAvailableBalance.toString(),
-      totalBalance: totalBalance.toString(),
-      marginUsed: totalMarginUsed.toString(),
-      unrealizedPnl: totalUnrealizedPnl.toString(),
-      subAccountBreakdown,
-      returnOnEquity,
+      foldIntoCollateral: hyperLiquidModeFoldsSpot(
+        this.#getAbstractionModeForUser(this.#cachedSpotStateUserAddress),
+      ),
     };
+  }
+
+  /**
+   * Record a user's resolved abstraction mode and immediately re-aggregate.
+   * Call after the provider has confirmed the on-chain mode (already-enabled
+   * or just-migrated) so the WS-driven aggregator picks up the correct fold
+   * decision on the next tick.
+   *
+   * @param userAddress - The EVM address whose mode is being recorded.
+   * @param mode - The current abstraction mode for this user.
+   */
+  public setUserAbstractionMode(
+    userAddress: string,
+    mode: HyperLiquidAbstractionMode,
+  ): void {
+    const lower = userAddress.toLowerCase();
+    this.#abstractionModeByUser.set(lower, mode);
+
+    if (this.#dexAccountCache.size > 0) {
+      this.#aggregateAndNotifySubscribers();
+    }
+  }
+
+  /**
+   * Fetch userAbstraction and update the cache, throttled so the long-lived
+   * spotState WebSocket can trigger a background refresh on every tick
+   * without burning REST quota. Handles HL-web mode flips propagating back
+   * to mobile without requiring a restart or account switch.
+   *
+   * Concurrent callers share the same in-flight promise so an in-flight
+   * fetch (especially a slow-failing one) doesn't ratchet the throttle
+   * forward on every WS tick and leave mode stale during a network hang.
+   *
+   * @param userAddress - Current user address to refresh the cache for.
+   * @returns Promise that resolves once the refresh completes (or immediately when throttled).
+   */
+  async #refreshAbstractionModeThrottled(userAddress: string): Promise<void> {
+    const normalizedUser = userAddress.toLowerCase();
+    const existing = this.#abstractionModeInflightByUser.get(normalizedUser);
+    if (existing) {
+      await existing;
+      return undefined;
+    }
+    const now = Date.now();
+    const lastWsRefreshAt =
+      this.#abstractionModeLastWsRefreshAtByUser.get(normalizedUser) ?? 0;
+    if (now - lastWsRefreshAt < ABSTRACTION_MODE_REFRESH_THROTTLE_MS) {
+      return undefined;
+    }
+    const inflight: Promise<void> = (async (): Promise<void> => {
+      try {
+        const infoClient = this.#clientService.getInfoClient();
+        const mode = await infoClient.userAbstraction({ user: userAddress });
+        const previousMode =
+          this.#abstractionModeByUser.get(normalizedUser) ?? null;
+        this.#abstractionModeByUser.set(normalizedUser, mode);
+        // Set timestamp only on success; a hanging/failed fetch must not
+        // ratchet the throttle window forward (which would silence every
+        // subsequent spot WS tick for the full throttle duration).
+        this.#abstractionModeLastWsRefreshAtByUser.set(
+          normalizedUser,
+          Date.now(),
+        );
+
+        // If the fold semantics actually changed for this user, trigger a
+        // re-aggregation so balance-dependent UI (withdraw cap, order-entry
+        // validation) picks up the new mode immediately — otherwise a
+        // Unified→Standard flip can stay folded with old semantics until the
+        // next spot/account event happens to arrive.
+        const foldChanged =
+          hyperLiquidModeFoldsSpot(previousMode) !==
+          hyperLiquidModeFoldsSpot(mode);
+        if (foldChanged && this.#dexAccountCache.size > 0) {
+          this.#aggregateAndNotifySubscribers();
+        }
+      } catch (error) {
+        // Non-fatal — preserve the last known mode for this user. Leave
+        // timestamp at its previous value so a genuine retry on the next
+        // WS tick is allowed (no forward ratchet on slow failures). Route
+        // through the shared Sentry helper so repeated failures become
+        // visible on the perps ops dashboard (consistent with other async
+        // boundary errors in this file, e.g. #refreshSpotState).
+        this.#logErrorUnlessClearing(
+          ensureError(
+            error,
+            'HyperLiquidSubscriptionService.refreshAbstractionModeThrottled',
+          ),
+          this.#getErrorContext('refreshAbstractionModeThrottled', {
+            user: normalizedUser,
+          }),
+        );
+      }
+    })();
+    this.#abstractionModeInflightByUser.set(normalizedUser, inflight);
+    try {
+      await inflight;
+    } finally {
+      if (
+        this.#abstractionModeInflightByUser.get(normalizedUser) === inflight
+      ) {
+        this.#abstractionModeInflightByUser.delete(normalizedUser);
+      }
+    }
+    return undefined;
+  }
+
+  async #ensureSpotState(accountId?: CaipAccountId): Promise<void> {
+    const userAddress =
+      await this.#walletService.getUserAddressWithDefault(accountId);
+    const lowerUserAddress = userAddress.toLowerCase();
+
+    // Fast-path only when we have spot for this user AND a resolved
+    // abstraction mode. Without the mode, `#getSpotBalanceOptions` would
+    // fall back to fail-closed (no fold), under-reporting Unified /
+    // Portfolio Margin balances — force a refresh instead.
+    if (
+      this.#cachedSpotState &&
+      this.#cachedSpotStateUserAddress === lowerUserAddress &&
+      this.#abstractionModeByUser.has(lowerUserAddress)
+    ) {
+      return;
+    }
+
+    // Share an in-flight fetch only if it targets the same user.
+    // A pending fetch for a different user is stale after an account switch —
+    // start a fresh fetch; the stale one will self-discard via generation check.
+    if (
+      this.#spotStatePromise &&
+      this.#spotStatePromiseUserAddress === userAddress
+    ) {
+      await this.#spotStatePromise;
+      return;
+    }
+
+    this.#spotStateGeneration += 1;
+    const generation = this.#spotStateGeneration;
+    const promise = this.#refreshSpotState(userAddress, generation);
+    this.#spotStatePromise = promise;
+    this.#spotStatePromiseUserAddress = userAddress;
+
+    try {
+      await promise;
+    } finally {
+      // Only clear tracker if we're still the latest in-flight fetch.
+      // A newer fetch may have already replaced us.
+      if (this.#spotStatePromise === promise) {
+        this.#spotStatePromise = undefined;
+        this.#spotStatePromiseUserAddress = undefined;
+      }
+    }
+  }
+
+  async #refreshSpotState(
+    userAddress: string,
+    generation: number,
+  ): Promise<void> {
+    try {
+      // Cold-start safety: getInfoClient() throws until the SDK has been
+      // initialized via ensureSubscriptionClient. On a fresh service
+      // instance subscribeToAccount can race ahead of the webData3 path,
+      // so initialize here first — subsequent calls are no-ops.
+      await this.#clientService.ensureSubscriptionClient(
+        this.#walletService.createWalletAdapter(),
+      );
+
+      // Don't bail here even if generation has bumped (e.g. WS spot snapshot
+      // arrived while we awaited the subscription client). We still need to
+      // resolve `userAbstraction` for this user — the mode is user-keyed,
+      // independent of the spot generation, and the post-fetch path below
+      // correctly handles the generation-changed case (seal + re-aggregate
+      // instead of overwriting WS spot).
+      const infoClient = this.#clientService.getInfoClient();
+      const lowerUserAddress = userAddress.toLowerCase();
+      // Fetch spot state + abstraction mode in parallel — mode decides
+      // whether the spot fold applies in addSpotBalanceToAccountState.
+      // Register the userAbstraction call in `#abstractionModeInflightByUser`
+      // so a concurrent WS-driven `#refreshAbstractionModeThrottled` awaits
+      // this fetch instead of duplicating the REST round-trip.
+      const abstractionFetch = infoClient.userAbstraction({
+        user: userAddress,
+      }) as Promise<UserAbstractionResponse>;
+      const trackedAbstraction = abstractionFetch.then(
+        () => undefined,
+        () => undefined,
+      );
+      this.#abstractionModeInflightByUser.set(
+        lowerUserAddress,
+        trackedAbstraction,
+      );
+      const [spotResult, abstractionResult] = await Promise.allSettled([
+        infoClient.spotClearinghouseState({ user: userAddress }),
+        abstractionFetch,
+      ]);
+      if (
+        this.#abstractionModeInflightByUser.get(lowerUserAddress) ===
+        trackedAbstraction
+      ) {
+        this.#abstractionModeInflightByUser.delete(lowerUserAddress);
+      }
+
+      // Record the abstraction mode regardless of generation. The mode is
+      // user-keyed (independent of the spot snapshot generation) so a WS
+      // push that bumped generation while we awaited cannot make this
+      // result wrong for this user. Discarding it would strand
+      // Unified / Portfolio Margin users at fail-closed until another
+      // subscribe runs — exactly the race the WS-vs-REST guard creates.
+      if (abstractionResult.status === 'fulfilled') {
+        this.#abstractionModeByUser.set(
+          lowerUserAddress,
+          abstractionResult.value,
+        );
+      } else {
+        this.#deps.debugLogger.log(
+          'User abstraction fetch failed during spot refresh; spot fold disabled until the mode resolves',
+          {
+            error: ensureError(
+              abstractionResult.reason,
+              'HyperLiquidSubscriptionService.refreshSpotState.abstraction',
+            ).message,
+          },
+        );
+      }
+
+      if (generation !== this.#spotStateGeneration) {
+        // A WS push superseded our spot snapshot. The earlier WS-driven
+        // aggregation ran with a null mode (fail-closed), so subscribers
+        // may currently be under-reported. If we just resolved the mode
+        // for the user whose spot is cached (strict match — null cache
+        // owner could mean cleanUp ran for a different user), re-aggregate
+        // now so the active subscribers immediately see the correct fold.
+        if (
+          abstractionResult.status === 'fulfilled' &&
+          this.#cachedSpotState &&
+          this.#cachedSpotStateUserAddress === lowerUserAddress
+        ) {
+          if (this.#dexAccountCache.size > 0) {
+            this.#aggregateAndNotifySubscribers();
+          }
+        }
+        return;
+      }
+
+      if (spotResult.status === 'rejected') {
+        throw spotResult.reason;
+      }
+
+      this.#cachedSpotState = spotResult.value;
+      // Always record the spot owner so subsequent #ensureSpotState calls
+      // and recovery branches can identify whose data is cached. Fast-path
+      // eligibility is gated separately by #abstractionModeByUser.has(...);
+      // a transient abstraction failure leaves the user out of the map and
+      // the next #ensureSpotState retries both fetches.
+      this.#cachedSpotStateUserAddress = lowerUserAddress;
+
+      if (this.#dexAccountCache.size > 0) {
+        this.#aggregateAndNotifySubscribers();
+      }
+    } catch (error) {
+      if (generation !== this.#spotStateGeneration) {
+        return;
+      }
+      this.#logErrorUnlessClearing(
+        ensureError(error, 'HyperLiquidSubscriptionService.refreshSpotState'),
+        this.#getErrorContext('refreshSpotState'),
+      );
+    }
+  }
+
+  async #ensureSpotStateSubscription(accountId?: CaipAccountId): Promise<void> {
+    const userAddress =
+      await this.#walletService.getUserAddressWithDefault(accountId);
+
+    if (this.#spotStateSubscriptions.has(userAddress)) {
+      return;
+    }
+
+    const inFlight = this.#spotStateSubscriptionPromises.get(userAddress);
+    if (inFlight) {
+      await inFlight;
+      return;
+    }
+
+    const startGeneration = this.#spotStateSubscriptionGeneration;
+
+    const promise = (async (): Promise<void> => {
+      await this.#clientService.ensureSubscriptionClient(
+        this.#walletService.createWalletAdapter(),
+      );
+      const subscriptionClient = this.#clientService.getSubscriptionClient();
+      if (!subscriptionClient) {
+        throw new Error('SubscriptionClient not available');
+      }
+
+      const subscription = await subscriptionClient.spotState(
+        { user: userAddress as `0x${string}` },
+        (event: SpotStateWsEvent) => {
+          try {
+            if (event.user.toLowerCase() !== userAddress.toLowerCase()) {
+              return;
+            }
+            // Invalidate any in-flight REST refreshSpotState so it drops
+            // its result instead of overwriting this fresher WS snapshot.
+            this.#spotStateGeneration += 1;
+            this.#cachedSpotState = event.spotState;
+            // Always record the spot owner so subsequent generation guards
+            // and recovery branches can identify whose data is cached.
+            // Fast-path eligibility is gated separately in #ensureSpotState
+            // by checking #abstractionModeByUser.has(...).
+            this.#cachedSpotStateUserAddress = userAddress.toLowerCase();
+
+            // Kick a throttled userAbstraction refresh so HL-web mode
+            // flips (Unified → Standard or vice versa) propagate back to
+            // mobile while the app stays open. Fire-and-forget: the
+            // refresh updates the per-user abstraction-mode cache and the next
+            // fold picks up the new value.
+            this.#refreshAbstractionModeThrottled(
+              event.user.toLowerCase(),
+            ).catch(() => {
+              // Errors are logged inside the throttled refresh helper.
+            });
+
+            if (this.#dexAccountCache.size > 0) {
+              this.#aggregateAndNotifySubscribers();
+            }
+          } catch (error) {
+            this.#logErrorUnlessClearing(
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.ensureSpotStateSubscription',
+              ),
+              this.#getErrorContext('spotState callback error', {
+                user: userAddress,
+              }),
+            );
+          }
+        },
+      );
+
+      // Discard if cleanup ran while we were awaiting the subscription
+      // handshake; rehydrating #spotStateSubscriptions here would leave
+      // a stale entry that short-circuits future resubscribe attempts.
+      if (startGeneration !== this.#spotStateSubscriptionGeneration) {
+        await subscription.unsubscribe().catch(() => undefined);
+        return;
+      }
+
+      this.#spotStateSubscriptions.set(userAddress, subscription);
+    })();
+
+    this.#spotStateSubscriptionPromises.set(userAddress, promise);
+    try {
+      await promise;
+    } finally {
+      this.#spotStateSubscriptionPromises.delete(userAddress);
+    }
   }
 
   /**
@@ -1405,7 +1891,6 @@ export class HyperLiquidSubscriptionService {
               // Extract account data (webData2 provides clearinghouseState)
               const accountState: AccountState = adaptAccountStateFromSDK(
                 data.clearinghouseState,
-                undefined, // webData2 doesn't include spotState
               );
 
               // Store in caches (main DEX only)
@@ -1425,10 +1910,18 @@ export class HyperLiquidSubscriptionService {
                 this.#oiCapSubscribers.forEach((callback) => callback(oiCaps));
               }
 
-              // Notify subscribers (no aggregation needed - only main DEX)
+              // Notify subscribers (no aggregation needed - only main DEX).
+              // Apply spot balance so single-DEX accounts see the same
+              // spot-inclusive totalBalance as the HIP-3 aggregation path.
+              const spotAdjustedAccount = addSpotBalanceToAccountState(
+                accountState,
+                this.#cachedSpotState,
+                this.#getSpotBalanceOptions(),
+              );
+
               const positionsHash = this.#hashPositions(positionsWithTPSL);
               const ordersHash = this.#hashOrders(orders);
-              const accountHash = this.#hashAccountState(accountState);
+              const accountHash = this.#hashAccountState(spotAdjustedAccount);
 
               if (positionsHash !== this.#cachedPositionsHash) {
                 this.#cachedPositions = positionsWithTPSL;
@@ -1447,10 +1940,10 @@ export class HyperLiquidSubscriptionService {
               }
 
               if (accountHash !== this.#cachedAccountHash) {
-                this.#cachedAccount = accountState;
+                this.#cachedAccount = spotAdjustedAccount;
                 this.#cachedAccountHash = accountHash;
                 this.#accountSubscribers.forEach((callback) =>
-                  callback(accountState),
+                  callback(spotAdjustedAccount),
                 );
               }
             } catch (error) {
@@ -1603,7 +2096,6 @@ export class HyperLiquidSubscriptionService {
             // Update account state
             const accountState: AccountState = adaptAccountStateFromSDK(
               data.clearinghouseState,
-              undefined,
             );
 
             // Update caches
@@ -1877,6 +2369,30 @@ export class HyperLiquidSubscriptionService {
         this.#webData3SubscriptionPromise = undefined;
       }
 
+      // Cleanup spotState subscriptions (per-user). Bump generation +
+      // drop in-flight promises so a racing #ensureSpotStateSubscription
+      // continuation discards its subscription rather than rehydrating
+      // #spotStateSubscriptions after this clear.
+      this.#spotStateSubscriptionGeneration += 1;
+      this.#spotStateSubscriptionPromises.clear();
+      if (this.#spotStateSubscriptions.size > 0) {
+        this.#spotStateSubscriptions.forEach((subscription, user) => {
+          subscription.unsubscribe().catch((error: Error) => {
+            this.#logErrorUnlessClearing(
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
+              ),
+              this.#getErrorContext(
+                'cleanupSharedWebData3ISubscription.spotState',
+                { user },
+              ),
+            );
+          });
+        });
+        this.#spotStateSubscriptions.clear();
+      }
+
       // Cleanup individual subscriptions (clearinghouseState + openOrders)
       if (this.#clearinghouseStateSubscriptions.size > 0) {
         this.#clearinghouseStateSubscriptions.forEach(
@@ -1943,6 +2459,18 @@ export class HyperLiquidSubscriptionService {
       this.#cachedPositions = null;
       this.#cachedOrders = null;
       this.#cachedAccount = null;
+      this.#cachedSpotState = null;
+      this.#cachedSpotStateUserAddress = null;
+      this.#abstractionModeByUser.clear();
+      this.#abstractionModeLastWsRefreshAtByUser.clear();
+      // Drop in-flight refresh handles so stale hanging userAbstraction
+      // requests from the prior connection can't be awaited by future calls.
+      this.#abstractionModeInflightByUser.clear();
+      // Bump generation so any in-flight spot fetch from a prior user discards
+      // its result instead of re-populating the cache post-cleanup.
+      this.#spotStateGeneration += 1;
+      this.#spotStatePromise = undefined;
+      this.#spotStatePromiseUserAddress = undefined;
       this.#ordersCacheInitialized = false; // Reset cache initialization flag
       this.#positionsCacheInitialized = false; // Reset cache initialization flag
 
@@ -2252,10 +2780,28 @@ export class HyperLiquidSubscriptionService {
     // Increment account subscriber count
     this.#accountSubscriberCount += 1;
 
-    // Immediately provide cached data if available
+    // Immediately provide cached data if available. May be spot-less if the
+    // spot fetch has not resolved yet (or permanently failed) — subscribers
+    // prefer stale-but-present data over silent starvation; the next
+    // aggregation after #ensureSpotState / next WebSocket update pushes the
+    // spot-inclusive value.
     if (this.#cachedAccount) {
       callback(this.#cachedAccount);
     }
+
+    this.#ensureSpotState(accountId).catch((error) => {
+      this.#logErrorUnlessClearing(
+        ensureError(error, 'HyperLiquidSubscriptionService.subscribeToAccount'),
+        this.#getErrorContext('subscribeToAccount.ensureSpotState'),
+      );
+    });
+
+    this.#ensureSpotStateSubscription(accountId).catch((error) => {
+      this.#logErrorUnlessClearing(
+        ensureError(error, 'HyperLiquidSubscriptionService.subscribeToAccount'),
+        this.#getErrorContext('subscribeToAccount.ensureSpotStateSubscription'),
+      );
+    });
 
     // Ensure shared subscription is active (reuses existing connection)
     this.#ensureSharedWebData3Subscription(accountId).catch((error) => {
@@ -2970,10 +3516,7 @@ export class HyperLiquidSubscriptionService {
               'HyperLiquidSubscriptionService.createAssetCtxsSubscription',
             );
             const isLastAttempt = attempt === maxAttempts;
-            if (
-              isLastAttempt ||
-              !this.#isTransientAssetCtxsError(ensuredError)
-            ) {
+            if (isLastAttempt || !this.#isTransientSdkError(ensuredError)) {
               throw ensuredError;
             }
 
@@ -3648,6 +4191,18 @@ export class HyperLiquidSubscriptionService {
     });
     this.#orderFillSubscriptions.clear();
 
+    // Clear spotState subscriptions. Bump generation + drop in-flight
+    // promises so any racing #ensureSpotStateSubscription continuation
+    // unsubscribes its fresh sub instead of rehydrating the cleared map.
+    this.#spotStateSubscriptionGeneration += 1;
+    this.#spotStateSubscriptionPromises.clear();
+    this.#spotStateSubscriptions.forEach((subscription) => {
+      subscription.unsubscribe().catch(() => {
+        // Ignore errors during cleanup
+      });
+    });
+    this.#spotStateSubscriptions.clear();
+
     // Clear cached data
     this.#cachedPriceData = null;
     this.#allMidsSnapshots.clear();
@@ -3684,6 +4239,14 @@ export class HyperLiquidSubscriptionService {
     this.#dexPositionsCache.clear();
     this.#dexOrdersCache.clear();
     this.#dexAccountCache.clear();
+    this.#cachedSpotState = null;
+    this.#cachedSpotStateUserAddress = null;
+    this.#abstractionModeByUser.clear();
+    this.#abstractionModeLastWsRefreshAtByUser.clear();
+    this.#abstractionModeInflightByUser.clear();
+    this.#spotStateGeneration += 1;
+    this.#spotStatePromise = undefined;
+    this.#spotStatePromiseUserAddress = undefined;
     this.#dexAssetCtxsCache.clear();
 
     // Unsubscribe all active subscriptions before clearing references.

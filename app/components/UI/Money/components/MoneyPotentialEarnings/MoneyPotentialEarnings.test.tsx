@@ -27,13 +27,13 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 }));
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
-jest.mock('../../../SimulationDetails/FiatDisplay/useFiatFormatter', () => ({
-  __esModule: true,
-  default: () => (amount: { toString: () => string }) =>
-    `$${Number(amount.toString()).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`,
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => 'usd'),
+}));
+
+jest.mock('../../utils/moneyFormatFiat', () => ({
+  moneyFormatFiat: jest.fn((value: BigNumber) => `$${value.toFixed(2)}`),
 }));
 
 const makeToken = (overrides: Partial<AssetType>): AssetType =>
@@ -113,13 +113,13 @@ describe('MoneyPotentialEarnings', () => {
   });
 
   it('computes the aggregate projected amount from token fiat balances', () => {
-    // USDC 5000 + USDT 4000 = 9000 * 0.2 = 1800
+    // USDC $5000 + USDT $4000 = $9000 × (4% APY × 1 year) = $360.00
     const { getByTestId } = render(
       <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC, MOCK_USDT]} />,
     );
 
-    expect(getByTestId(MoneyPotentialEarningsTestIds.AMOUNT)).toHaveTextContent(
-      '+$1,800.00',
+    expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toHaveTextContent(
+      '+$360.00',
     );
   });
 
@@ -216,7 +216,7 @@ describe('MoneyPotentialEarnings', () => {
     );
 
     expect(
-      queryByTestId(MoneyPotentialEarningsTestIds.AMOUNT),
+      queryByTestId(MoneyPotentialEarningsTestIds.TEXT),
     ).not.toBeOnTheScreen();
   });
 
@@ -228,5 +228,81 @@ describe('MoneyPotentialEarnings', () => {
     // With apy=0 the projected multiplier is 0 so projectedFiatNumber is 0,
     // which fails isPositiveNumber and hides the "+$..." text in each token row.
     expect(queryByText(/^\+\$/)).not.toBeOnTheScreen();
+  });
+
+  describe('condensed mode', () => {
+    it('renders the gradient amount and description in condensed mode', () => {
+      const { getByTestId, getByText } = render(
+        <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} condensed />,
+      );
+      expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.potential_earnings.description')),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides token rows in condensed mode', () => {
+      const { queryByText } = render(
+        <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} condensed />,
+      );
+      expect(queryByText('USDC')).not.toBeOnTheScreen();
+    });
+
+    it('hides the View all button in condensed mode', () => {
+      const { queryByTestId } = render(
+        <MoneyPotentialEarnings
+          apy={4}
+          tokens={[MOCK_USDC]}
+          condensed
+          onViewAllPress={jest.fn()}
+        />,
+      );
+      expect(
+        queryByTestId(MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the View potential earnings button in condensed mode', () => {
+      const { getByTestId } = render(
+        <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} condensed />,
+      );
+      expect(
+        getByTestId(
+          MoneyPotentialEarningsTestIds.VIEW_POTENTIAL_EARNINGS_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onViewAllPress when View potential earnings is pressed', () => {
+      const onViewAll = jest.fn();
+      const { getByTestId } = render(
+        <MoneyPotentialEarnings
+          apy={4}
+          tokens={[MOCK_USDC]}
+          condensed
+          onViewAllPress={onViewAll}
+        />,
+      );
+      fireEvent.press(
+        getByTestId(
+          MoneyPotentialEarningsTestIds.VIEW_POTENTIAL_EARNINGS_BUTTON,
+        ),
+      );
+      expect(onViewAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('still renders section header with onHeaderPress in condensed mode', () => {
+      const onHeader = jest.fn();
+      const { getByText } = render(
+        <MoneyPotentialEarnings
+          apy={4}
+          tokens={[MOCK_USDC]}
+          condensed
+          onHeaderPress={onHeader}
+        />,
+      );
+      fireEvent.press(getByText(strings('money.potential_earnings.title')));
+      expect(onHeader).toHaveBeenCalledTimes(1);
+    });
   });
 });

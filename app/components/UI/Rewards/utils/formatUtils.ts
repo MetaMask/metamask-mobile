@@ -1,4 +1,4 @@
-import { IconName } from '@metamask/design-system-react-native';
+import { IconName, TextColor } from '@metamask/design-system-react-native';
 import {
   type CaipAssetType,
   type CaipChainId,
@@ -8,7 +8,7 @@ import {
   parseCaipChainId,
 } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
-import I18n from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
 import formatFiat from '../../../../util/formatFiat';
 import { getIntlNumberFormatter } from '../../../../util/intl';
@@ -367,10 +367,10 @@ export const formatCompactUsd = (value: number): string => {
  * @example formatSignedUsd('-1250.50')     // '-$1,250.50'
  * @example formatSignedUsd(null)           // '—'
  */
-export const formatSignedUsd = (value: string | null): string => {
+export const formatSignedUsd = (value: string | number | null): string => {
   if (value === null) return '—';
-  const num = parseFloat(value);
-  if (Number.isNaN(num)) return value;
+  const num = typeof value === 'number' ? value : parseFloat(value);
+  if (Number.isNaN(num)) return '—';
   const sign = num > 0 ? '+' : '';
   return `${sign}${formatUsd(value)}`;
 };
@@ -402,21 +402,28 @@ export const isPercentChangeNonNegative = (value: string | number): boolean => {
   return !Number.isNaN(num) && num >= 0;
 };
 
-// ── Timestamp formatting ────────────────────────────────────────────────
+// ── Ordinal rank (English) ─────────────────────────────────────────────
 
 /**
- * Formats an ISO 8601 timestamp to `HH:MM:SS`.
- * Returns '' for null or unparseable values.
+ * Formats a 1-based rank as an English ordinal suffix (e.g. `3` → `"3rd"`).
+ * Pair with localized copy such as `"{{place}} place"`.
  */
-export const formatComputedAt = (isoString: string | null): string => {
-  if (!isoString) return '';
-  const date = new Date(isoString);
-  if (isNaN(date.getTime())) return '';
-  const h = date.getHours().toString().padStart(2, '0');
-  const m = date.getMinutes().toString().padStart(2, '0');
-  const s = date.getSeconds().toString().padStart(2, '0');
-  return `${h}:${m}:${s}`;
-};
+export function formatOrdinalRank(rank: number): string {
+  const n = Math.floor(Math.abs(rank));
+  const mod100 = n % 100;
+  const mod10 = n % 10;
+  let suffix = 'th';
+  if (mod100 < 11 || mod100 > 13) {
+    if (mod10 === 1) {
+      suffix = 'st';
+    } else if (mod10 === 2) {
+      suffix = 'nd';
+    } else if (mod10 === 3) {
+      suffix = 'rd';
+    }
+  }
+  return `${n}${suffix}`;
+}
 
 // ── CAIP-19 / address helpers ───────────────────────────────────────────
 
@@ -498,4 +505,13 @@ export function sanitizeOndoTokenName(raw: string): string {
     .trim();
   if (cleaned.length <= MAX_ONDO_TOKEN_NAME_LENGTH) return cleaned;
   return `${cleaned.slice(0, MAX_ONDO_TOKEN_NAME_LENGTH).trim()}...`;
+}
+
+export function getPortfolioReturnColor(
+  portfolioPnlPercent: string | undefined,
+): TextColor {
+  if (!portfolioPnlPercent) return TextColor.TextDefault;
+  return parseFloat(portfolioPnlPercent) < 0
+    ? TextColor.ErrorDefault
+    : TextColor.SuccessDefault;
 }

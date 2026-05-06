@@ -16,7 +16,7 @@ import ControllersGate from '../../Nav/ControllersGate';
 import { isTest } from '../../../util/test/utils';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 import { ScreenOrientationService } from '../../../core/ScreenOrientation';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
@@ -75,7 +75,7 @@ const Root = ({ foxCode }: RootProps) => {
         <PersistGate persistor={persistor}>
           <ErrorBoundary view="Root">
             {
-              ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+              ///: BEGIN:ONLY_INCLUDE_IF(snaps)
               // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
               <SnapsExecutionWebView />
               ///: END:ONLY_INCLUDE_IF

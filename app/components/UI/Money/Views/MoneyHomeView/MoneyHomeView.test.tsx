@@ -14,13 +14,22 @@ import { MoneyMetaMaskCardTestIds } from '../../components/MoneyMetaMaskCard/Mon
 import { MoneyWhatYouGetTestIds } from '../../components/MoneyWhatYouGet/MoneyWhatYouGet.testIds';
 import { MoneyFooterTestIds } from '../../components/MoneyFooter/MoneyFooter.testIds';
 import { MoneyActivityListTestIds } from '../../components/MoneyActivityList/MoneyActivityList.testIds';
+import { MoneyCondensedInfoCardsTestIds } from '../../components/MoneyCondensedInfoCards/MoneyCondensedInfoCards.testIds';
+import { MoneyMusdTokenRowTestIds } from '../../components/MoneyMusdTokenRow/MoneyMusdTokenRow.testIds';
+import { MoneySectionHeaderTestIds } from '../../components/MoneySectionHeader/MoneySectionHeader.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
+import { strings } from '../../../../../../locales/i18n';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { selectIsCardholder } from '../../../../../selectors/cardController';
+import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockMoneyFormatFiat = moneyFormatFiat as jest.MockedFunction<
+  typeof moneyFormatFiat
+>;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -60,6 +69,23 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
+
+jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
+  useMusdConversion: () => ({
+    initiateCustomConversion: jest.fn(),
+  }),
+}));
+
+jest.mock('../../utils/moneyFormatFiat', () => ({
+  moneyFormatFiat: jest.fn(() => '$0.12'),
+}));
+
+jest.mock('../../../../../selectors/cardController', () => ({
+  ...jest.requireActual('../../../../../selectors/cardController'),
+  selectIsCardholder: jest.fn(),
+}));
+
+const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
@@ -105,6 +131,9 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 describe('MoneyHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    global.alert = jest.fn();
+
+    mockSelectIsCardholder.mockReturnValue(false);
 
     mockUseMoneyAccountBalance.mockReturnValue({
       totalFiatFormatted: '$3.00',
@@ -113,8 +142,11 @@ describe('MoneyHomeView', () => {
       totalFiatRaw: '3',
       tokenTotal: undefined,
       isAggregatedBalanceLoading: false,
+      apyDecimal: 0.05,
+      apyPercent: 5,
+      apyPercentFormatted: '5%',
       vaultApyQuery: {
-        data: { apy: 5.5, timestamp: '2026-01-01T00:00:00Z' },
+        data: { apy: 0.05, timestamp: '2026-01-01T00:00:00Z' },
         isLoading: false,
       },
       musdBalanceQuery: {
@@ -190,10 +222,11 @@ describe('MoneyHomeView', () => {
     expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
-  it('renders the how it works section', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-    expect(getByTestId(MoneyHowItWorksTestIds.CONTAINER)).toBeOnTheScreen();
+  it('hides the how it works section in filled state', () => {
+    const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+    expect(
+      queryByTestId(MoneyHowItWorksTestIds.CONTAINER),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders the potential earnings section when tokens exist', () => {
@@ -210,10 +243,11 @@ describe('MoneyHomeView', () => {
     expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
-  it('renders the why MetaMask Money section', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-    expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
+  it('hides the what you get section in filled state', () => {
+    const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+    expect(
+      queryByTestId(MoneyWhatYouGetTestIds.CONTAINER),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders the footer', () => {
@@ -236,5 +270,326 @@ describe('MoneyHomeView', () => {
     fireEvent.press(getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ACTIVITY);
+  });
+
+  it.each([
+    ['action row Add', MoneyActionButtonRowTestIds.ADD_BUTTON],
+    ['footer Add money', MoneyFooterTestIds.ADD_MONEY_BUTTON],
+  ])('opens the Add money sheet from the %s button', (_label, testId) => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(testId));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+    });
+  });
+
+  it('opens the More sheet when menu button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyHeaderTestIds.MENU_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.MORE_SHEET,
+    });
+  });
+
+  it('opens the Transfer sheet when Transfer button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
+    });
+  });
+
+  it('navigates to Card root when Card button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+  });
+
+  it('opens the APY info sheet when the APY info button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
+      params: { apy: 5 },
+    });
+  });
+
+  it('opens the earnings info sheet when the earnings info button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneySectionHeaderTestIds.INFO_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
+      params: { apy: 5 },
+    });
+  });
+
+  describe('projected earnings', () => {
+    it('passes the formatted projected earnings to MoneyEarnings', () => {
+      mockMoneyFormatFiat.mockReturnValue('$0.12');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyEarningsTestIds.PROJECTED_VALUE),
+      ).toHaveTextContent('$0.12');
+    });
+
+    it('displays the zero-formatted value for projected earnings when totalFiatRaw is absent', () => {
+      mockMoneyFormatFiat.mockReturnValue('$0.00');
+      mockUseMoneyAccountBalance.mockReturnValue({
+        totalFiatFormatted: undefined,
+        musdFiatFormatted: undefined,
+        musdSHFvdFiatFormatted: undefined,
+        totalFiatRaw: undefined,
+        tokenTotal: undefined,
+        isAggregatedBalanceLoading: false,
+        apyDecimal: 0.05,
+        apyPercent: 5,
+        apyPercentFormatted: '5%',
+        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
+        musdBalanceQuery: { data: undefined, isLoading: false },
+        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyEarningsTestIds.PROJECTED_VALUE),
+      ).toHaveTextContent('$0.00');
+    });
+  });
+
+  describe('milestone state (1-9 transactions)', () => {
+    beforeEach(() => {
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: Array.from({ length: 3 }, (_, index) => ({
+          ...MOCK_MONEY_TRANSACTIONS[index % MOCK_MONEY_TRANSACTIONS.length],
+          id: `milestone-${index}`,
+        })),
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+      });
+    });
+
+    it('renders onboarding card with step 2', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.STEP_LABEL),
+      ).toHaveTextContent('Step 2 of 2');
+    });
+
+    it('renders the activity list', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('renders condensed info cards', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(MoneyCondensedInfoCardsTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides expanded HowItWorks section', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        queryByTestId(MoneyHowItWorksTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides expanded WhatYouGet section', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        queryByTestId(MoneyWhatYouGetTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the MetaMask Card section', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('navigates to Card root when onboarding CTA is tapped', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+    });
+  });
+
+  describe('card-unlinked state (milestone + has cardholder)', () => {
+    beforeEach(() => {
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: Array.from({ length: 3 }, (_, index) => ({
+          ...MOCK_MONEY_TRANSACTIONS[index % MOCK_MONEY_TRANSACTIONS.length],
+          id: `card-unlinked-${index}`,
+        })),
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+      });
+      mockSelectIsCardholder.mockReturnValue(true);
+    });
+
+    it('renders onboarding card with step 2 and link-card variant', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.STEP_LABEL),
+      ).toHaveTextContent('Step 2 of 2');
+      expect(getByTestId(MoneyOnboardingCardTestIds.TITLE)).toHaveTextContent(
+        strings('money.onboarding.link_card_title'),
+      );
+    });
+
+    it('renders MetaMask Card section in link mode', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the balance summary section', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the action button row', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(MoneyActionButtonRowTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the earnings section', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('renders the activity list', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('renders condensed info cards', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(MoneyCondensedInfoCardsTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the potential earnings section', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(MoneyPotentialEarningsTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides expanded HowItWorks section', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        queryByTestId(MoneyHowItWorksTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides expanded WhatYouGet section', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        queryByTestId(MoneyWhatYouGetTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the footer', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('navigates to Card home when onboarding CTA is tapped by cardholder', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+      });
+    });
+  });
+
+  describe('empty state (0 transactions)', () => {
+    beforeEach(() => {
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+      });
+    });
+
+    it('renders onboarding card with step 1', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.STEP_LABEL),
+      ).toHaveTextContent('Step 1 of 2');
+    });
+
+    it('does not render the activity list', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        queryByTestId(MoneyActivityListTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render condensed info cards', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        queryByTestId(MoneyCondensedInfoCardsTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders expanded HowItWorks section', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(getByTestId(MoneyHowItWorksTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('renders expanded WhatYouGet section', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it.each([
+      ['onboarding card CTA', MoneyOnboardingCardTestIds.CTA_BUTTON],
+      ['mUSD row Add', MoneyMusdTokenRowTestIds.ADD_BUTTON],
+    ])('opens the Add money sheet from the %s button', (_label, testId) => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(testId));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    });
   });
 });

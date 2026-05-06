@@ -75,7 +75,7 @@ class ImportWalletView {
         android: () =>
           PlaywrightMatchers.getElementById(
             index === 0
-              ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
+              ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_FIELD
               : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
             {
               exact: true,

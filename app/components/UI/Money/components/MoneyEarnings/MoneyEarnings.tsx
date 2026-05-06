@@ -1,5 +1,4 @@
 import React from 'react';
-import { Pressable, StyleSheet } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -18,44 +17,41 @@ import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyEarningsTestIds } from './MoneyEarnings.testIds';
 
-const DEFAULT_VALUE = '$0.00';
-
-const styles = StyleSheet.create({
-  projectedColumn: { flex: 1 },
-});
-
 interface MoneyEarningsProps {
   /**
-   * Cumulative yield earned to date. Falls back to "$0.00" when omitted.
+   * Cumulative yield earned to date, formatted in the user's selected currency.
    */
-  lifetimeEarnings?: string;
+  lifetimeEarnings: string;
   /**
-   * Forward-looking earnings based on current balance and APY. Falls back to
-   * "$0.00" when omitted.
+   * Forward-looking earnings based on current balance and APY, formatted in
+   * the user's selected currency.
    */
-  projectedEarnings?: string;
+  projectedEarnings: string;
   /**
    * Render skeletons in place of the two earnings values while data is being
    * fetched.
    */
   isLoading?: boolean;
   /**
-   * Handler fired when the projected column is tapped. Navigates to the "Earn
-   * on your crypto" page (MUSD follow-up).
+   * Handler fired when the info icon next to the section title is tapped.
+   * Opens the Earnings tooltip bottom sheet.
    */
-  onProjectedPress?: () => void;
+  onInfoPress?: () => void;
 }
 
 const ValueText = ({
   children,
   testID,
+  color,
 }: {
   children: string;
   testID: string;
+  color?: TextColor;
 }) => (
   <Text
     variant={TextVariant.BodyMd}
     fontWeight={FontWeight.Medium}
+    color={color}
     testID={testID}
   >
     {children}
@@ -63,13 +59,17 @@ const ValueText = ({
 );
 
 const MoneyEarnings = ({
-  lifetimeEarnings = DEFAULT_VALUE,
-  projectedEarnings = DEFAULT_VALUE,
+  lifetimeEarnings,
+  projectedEarnings,
   isLoading = false,
-  onProjectedPress,
+  onInfoPress,
 }: MoneyEarningsProps) => (
   <Box twClassName="px-4 py-3" testID={MoneyEarningsTestIds.CONTAINER}>
-    <MoneySectionHeader title={strings('money.earnings.title')} />
+    <MoneySectionHeader
+      title={strings('money.earnings.title')}
+      onInfoPress={onInfoPress}
+      infoAccessibilityLabel={strings('money.earnings.info_label')}
+    />
 
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -91,50 +91,45 @@ const MoneyEarnings = ({
             testID={MoneyEarningsTestIds.LIFETIME_SKELETON}
           />
         ) : (
-          <ValueText testID={MoneyEarningsTestIds.LIFETIME_VALUE}>
+          <ValueText
+            testID={MoneyEarningsTestIds.LIFETIME_VALUE}
+            color={
+              lifetimeEarnings.startsWith('+')
+                ? TextColor.SuccessDefault
+                : undefined
+            }
+          >
             {lifetimeEarnings}
           </ValueText>
         )}
       </Box>
 
-      <Pressable
-        onPress={onProjectedPress}
-        style={styles.projectedColumn}
-        testID={MoneyEarningsTestIds.PROJECTED}
-      >
-        <Box twClassName="gap-0.5">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+      <Box twClassName="gap-0.5 flex-1">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+        >
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
           >
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              {strings('money.earnings.projected')}
-            </Text>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-              testID={MoneyEarningsTestIds.PROJECTED_CHEVRON}
-            />
-          </Box>
-          {isLoading ? (
-            <Skeleton
-              height={24}
-              width={80}
-              testID={MoneyEarningsTestIds.PROJECTED_SKELETON}
-            />
-          ) : (
-            <ValueText testID={MoneyEarningsTestIds.PROJECTED_VALUE}>
-              {projectedEarnings}
-            </ValueText>
-          )}
+            {strings('money.earnings.projected')}
+          </Text>
         </Box>
-      </Pressable>
+        {isLoading ? (
+          <Skeleton
+            height={24}
+            width={80}
+            testID={MoneyEarningsTestIds.PROJECTED_SKELETON}
+          />
+        ) : (
+          <ValueText testID={MoneyEarningsTestIds.PROJECTED_VALUE}>
+            {projectedEarnings}
+          </ValueText>
+        )}
+      </Box>
     </Box>
   </Box>
 );

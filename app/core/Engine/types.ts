@@ -167,14 +167,14 @@ import {
   PermissionControllerActions,
   PermissionControllerEvents,
   PermissionControllerState,
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SubjectMetadataController,
   SubjectMetadataControllerActions,
   SubjectMetadataControllerEvents,
   SubjectMetadataControllerState,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   SnapController,
   ExecutionService,
@@ -225,7 +225,7 @@ import {
   type SmartTransactionsControllerEvents,
   SmartTransactionsControllerState,
 } from '@metamask/smart-transactions-controller';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   AuthenticationController,
   UserStorageController,
@@ -445,6 +445,11 @@ import {
   type SocialServiceEvents,
 } from '@metamask/social-controllers';
 import {
+  AuthenticatedUserStorageService,
+  type AuthenticatedUserStorageActions,
+  type AuthenticatedUserStorageEvents,
+} from '@metamask/authenticated-user-storage';
+import {
   ComplianceController,
   ComplianceControllerActions,
   ComplianceControllerEvents,
@@ -484,7 +489,7 @@ type OptionalControllers = Pick<
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // TODO: Abstract this into controller utils for SnapsController
 type SnapsGlobalActions =
   | SnapControllerActions
@@ -519,7 +524,7 @@ type GlobalActions =
   | SignatureControllerActions
   | LoggingControllerActions
   | AnalyticsControllerActions
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalActions
   | SnapInterfaceControllerActions
   | AuthenticationController.Actions
@@ -582,6 +587,7 @@ type GlobalActions =
   | AiDigestControllerActions
   | SocialControllerActions
   | SocialServiceActions
+  | AuthenticatedUserStorageActions
   | ComplianceControllerActions
   | ComplianceServiceActions
   | TransakServiceActions;
@@ -603,7 +609,7 @@ type GlobalEvents =
   | NetworkControllerEvents
   | NetworkEnablementControllerEvents
   | PermissionControllerEvents
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalEvents
   | SnapInterfaceControllerEvents
   | AuthenticationController.Events
@@ -666,6 +672,7 @@ type GlobalEvents =
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
+  | AuthenticatedUserStorageEvents
   | ComplianceControllerEvents
   | ComplianceServiceEvents
   | TransakServiceEvents;
@@ -746,7 +753,7 @@ export type MessengerClients = {
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
   StorageService: StorageService;
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   ExecutionService: ExecutionService;
   SnapController: SnapController;
   SnapRegistryController: SnapRegistryController;
@@ -794,6 +801,7 @@ export type MessengerClients = {
   AiDigestController: AiDigestController;
   SocialController: SocialController;
   SocialService: SocialService;
+  AuthenticatedUserStorageService: AuthenticatedUserStorageService;
   ComplianceService: ComplianceService;
   ComplianceController: ComplianceController;
   TransakService: TransakService;
@@ -834,7 +842,7 @@ export type EngineState = {
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
   DeFiPositionsController: DeFiPositionsControllerState;
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SnapController: PersistedSnapControllerState;
   SnapRegistryController: SnapRegistryControllerState;
   SubjectMetadataController: SubjectMetadataControllerState;
@@ -917,7 +925,7 @@ export type MessengerClientsToInitialize =
   | 'AssetsContractController'
   | 'AssetsController'
   | 'ConnectivityController'
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'
   | 'CronjobController'
   | 'ExecutionService'
@@ -996,6 +1004,7 @@ export type MessengerClientsToInitialize =
   | 'AiDigestController'
   | 'SocialService'
   | 'SocialController'
+  | 'AuthenticatedUserStorageService'
   | 'ComplianceService'
   | 'ComplianceController';
 
