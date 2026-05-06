@@ -475,7 +475,9 @@ describe('MoneyHomeView', () => {
     });
 
     it('renders MetaMask Card section in link mode', () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(<MoneyHomeView />);
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON),
       ).toBeOnTheScreen();
@@ -679,7 +681,9 @@ describe('MoneyHomeView', () => {
     };
 
     it('keeps the footer translated off-screen when the stepper is visible and education has not been seen', () => {
-      const { queryByTestId, getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
 
       // Stepper sits at the top of the scroll view, well within the viewport.
       const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
@@ -699,7 +703,9 @@ describe('MoneyHomeView', () => {
 
     it('triggers the slide-in animation when the stepper has scrolled out of view and education has not been seen', () => {
       mockWithTiming.mockClear();
-      const { queryByTestId, getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
 
       const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
       const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
@@ -753,7 +759,9 @@ describe('MoneyHomeView', () => {
 
     it('does not retrigger withTiming when the footer reflows after appearing', () => {
       mockWithTiming.mockClear();
-      const { queryByTestId, getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
 
       const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
       const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
@@ -859,7 +867,9 @@ describe('MoneyHomeView', () => {
     });
 
     it('keeps the footer translated off-screen when the stepper is below the viewport (off-screen, not yet scrolled to)', () => {
-      const { queryByTestId, getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
 
       const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
       const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
@@ -879,7 +889,9 @@ describe('MoneyHomeView', () => {
     });
 
     it('keeps the footer translated off-screen on initial layout while the stepper height is still 0', () => {
-      const { queryByTestId, getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
 
       const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
       const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
