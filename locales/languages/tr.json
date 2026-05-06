@@ -8987,14 +8987,14 @@
   },
   "homepage": {
     "sections": {
-      "money": "Para",
-      "money_empty_description": "Henüz mUSD'niz yok. Ana sayfada Para kısmından stabil kripto paraları mUSD'ye dönüştürün.",
-      "money_empty_description_network_filter": "Bu ağda mUSD yok. mUSD'nizi görmek için ağ değiştirin.",
-      "money_empty_state": {
+      "cash": "Para",
+      "cash_empty_description": "Henüz mUSD'niz yok. Ana sayfada Para kısmından stabil kripto paraları mUSD'ye dönüştürün.",
+      "cash_empty_description_network_filter": "Bu ağda mUSD yok. mUSD'nizi görmek için ağ değiştirin.",
+      "cash_empty_state": {
         "get_started": "Başlarken",
         "earn_apy": "Earn {{percentage}}% APY"
       },
-      "money_filled_state": {
+      "cash_filled_state": {
         "add": "Ekle",
         "apy": "%{{percentage}} Yıllık Bileşik Getiri"
       },

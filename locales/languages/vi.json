@@ -8987,14 +8987,14 @@
   },
   "homepage": {
     "sections": {
-      "money": "Tài chính",
-      "money_empty_description": "Bạn chưa có mUSD. Hãy chuyển đổi đồng ổn định sang mUSD từ mục Tài chính trên trang chủ.",
-      "money_empty_description_network_filter": "Không có mUSD trên mạng này. Hãy chuyển mạng để xem mUSD của bạn.",
-      "money_empty_state": {
+      "cash": "Tài chính",
+      "cash_empty_description": "Bạn chưa có mUSD. Hãy chuyển đổi đồng ổn định sang mUSD từ mục Tài chính trên trang chủ.",
+      "cash_empty_description_network_filter": "Không có mUSD trên mạng này. Hãy chuyển mạng để xem mUSD của bạn.",
+      "cash_empty_state": {
         "get_started": "Bắt đầu",
         "earn_apy": "Earn {{percentage}}% APY"
       },
-      "money_filled_state": {
+      "cash_filled_state": {
         "add": "Thêm",
         "apy": "APY {{percentage}}%"
       },

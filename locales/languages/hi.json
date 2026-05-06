@@ -8987,14 +8987,14 @@
   },
   "homepage": {
     "sections": {
-      "money": "वित्त",
-      "money_empty_description": "आपके पास अभी तक कोई mUSD नहीं है। होमपेज पर Money सेक्शन से स्टेबलकॉइन को mUSD में कन्वर्ट करें।",
-      "money_empty_description_network_filter": "इस नेटवर्क पर कोई mUSD नहीं है। अपना mUSD देखने के लिए नेटवर्क बदलें।",
-      "money_empty_state": {
+      "cash": "वित्त",
+      "cash_empty_description": "आपके पास अभी तक कोई mUSD नहीं है। होमपेज पर Money सेक्शन से स्टेबलकॉइन को mUSD में कन्वर्ट करें।",
+      "cash_empty_description_network_filter": "इस नेटवर्क पर कोई mUSD नहीं है। अपना mUSD देखने के लिए नेटवर्क बदलें।",
+      "cash_empty_state": {
         "get_started": "शुरू करें",
         "earn_apy": "Earn {{percentage}}% APY"
       },
-      "money_filled_state": {
+      "cash_filled_state": {
         "add": "जोड़ें",
         "apy": "{{percentage}}% APY"
       },

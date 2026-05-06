@@ -8987,14 +8987,14 @@
   },
   "homepage": {
     "sections": {
-      "money": "Money",
-      "money_empty_description": "您目前尚未持有任何 mUSD。请从首页的“资金”部分将稳定币兑换为 mUSD。",
-      "money_empty_description_network_filter": "此网络中没有 mUSD。请切换网络以查看您的 mUSD。",
-      "money_empty_state": {
+      "cash": "Money",
+      "cash_empty_description": "您目前尚未持有任何 mUSD。请从首页的“资金”部分将稳定币兑换为 mUSD。",
+      "cash_empty_description_network_filter": "此网络中没有 mUSD。请切换网络以查看您的 mUSD。",
+      "cash_empty_state": {
         "get_started": "开始",
         "earn_apy": "Earn {{percentage}}% APY"
       },
-      "money_filled_state": {
+      "cash_filled_state": {
         "add": "添加",
         "apy": "{{percentage}}% 年化收益率"
       },

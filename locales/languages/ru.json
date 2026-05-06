@@ -8987,14 +8987,14 @@
   },
   "homepage": {
     "sections": {
-      "money": "Финансы",
-      "money_empty_description": "У вас пока нет mUSD. Конвертируйте стейблкоины в mUSD в разделе «Деньги» на главной странице.",
-      "money_empty_description_network_filter": "В этой сети нет mUSD. Переключитесь на другую сеть, чтобы увидеть свои mUSD.",
-      "money_empty_state": {
+      "cash": "Финансы",
+      "cash_empty_description": "У вас пока нет mUSD. Конвертируйте стейблкоины в mUSD в разделе «Деньги» на главной странице.",
+      "cash_empty_description_network_filter": "В этой сети нет mUSD. Переключитесь на другую сеть, чтобы увидеть свои mUSD.",
+      "cash_empty_state": {
         "get_started": "С чего начать",
         "earn_apy": "Earn {{percentage}}% APY"
       },
-      "money_filled_state": {
+      "cash_filled_state": {
         "add": "Добавить",
         "apy": "{{percentage}}% годовых"
       },

@@ -8987,14 +8987,14 @@
   },
   "homepage": {
     "sections": {
-      "money": "머니",
-      "money_empty_description": "아직 mUSD가 없습니다. 홈 화면의 Money 섹션에서 스테이블코인을 mUSD로 전환하세요.",
-      "money_empty_description_network_filter": "이 네트워크에는 mUSD가 없습니다. mUSD를 확인하려면 네트워크를 전환하세요.",
-      "money_empty_state": {
+      "cash": "머니",
+      "cash_empty_description": "아직 mUSD가 없습니다. 홈 화면의 Money 섹션에서 스테이블코인을 mUSD로 전환하세요.",
+      "cash_empty_description_network_filter": "이 네트워크에는 mUSD가 없습니다. mUSD를 확인하려면 네트워크를 전환하세요.",
+      "cash_empty_state": {
         "get_started": "지금 시작하세요",
         "earn_apy": "Earn {{percentage}}% APY"
       },
-      "money_filled_state": {
+      "cash_filled_state": {
         "add": "추가",
         "apy": "{{percentage}}% APY"
       },

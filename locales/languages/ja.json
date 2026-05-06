@@ -8987,14 +8987,14 @@
   },
   "homepage": {
     "sections": {
-      "money": "マネー",
-      "money_empty_description": "まだmUSDがありません。ホームページの「マネー」セクションでステーブルコインをmUSDに換金してください。",
-      "money_empty_description_network_filter": "このネットワークにはmUSDがありません。ネットワークを切り替えてお持ちのmUSDをご確認ください。",
-      "money_empty_state": {
+      "cash": "マネー",
+      "cash_empty_description": "まだmUSDがありません。ホームページの「マネー」セクションでステーブルコインをmUSDに換金してください。",
+      "cash_empty_description_network_filter": "このネットワークにはmUSDがありません。ネットワークを切り替えてお持ちのmUSDをご確認ください。",
+      "cash_empty_state": {
         "get_started": "開始",
         "earn_apy": "Earn {{percentage}}% APY"
       },
-      "money_filled_state": {
+      "cash_filled_state": {
         "add": "追加",
         "apy": "年換算利率 (APY) {{percentage}}%"
       },

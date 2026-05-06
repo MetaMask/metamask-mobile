@@ -8987,14 +8987,14 @@
   },
   "homepage": {
     "sections": {
-      "money": "Pera",
-      "money_empty_description": "Wala ka pang kahit anong mUSD. I-convert ang mga stablecoin papuntang mUSD mula sa seksyon ng Pera sa homepage.",
-      "money_empty_description_network_filter": "Walang mUSD sa network na ito. Lumipat ng network para makita ang mUSD mo.",
-      "money_empty_state": {
+      "cash": "Pera",
+      "cash_empty_description": "Wala ka pang kahit anong mUSD. I-convert ang mga stablecoin papuntang mUSD mula sa seksyon ng Pera sa homepage.",
+      "cash_empty_description_network_filter": "Walang mUSD sa network na ito. Lumipat ng network para makita ang mUSD mo.",
+      "cash_empty_state": {
         "get_started": "Magsimula",
         "earn_apy": "Earn {{percentage}}% APY"
       },
-      "money_filled_state": {
+      "cash_filled_state": {
         "add": "Idagdag",
         "apy": "{{percentage}}% APY"
       },

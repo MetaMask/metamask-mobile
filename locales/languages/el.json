@@ -8987,14 +8987,14 @@
   },
   "homepage": {
     "sections": {
-      "money": "Οικονομικά",
-      "money_empty_description": "Δεν έχετε ακόμη mUSD. Μετατρέψτε stablecoins σε mUSD από την ενότητα Οικονομικά στην αρχική σελίδα.",
-      "money_empty_description_network_filter": "Δεν έχετε mUSD σε αυτό το δίκτυο. Αλλάξτε δίκτυο για να δείτε τα mUSD σας.",
-      "money_empty_state": {
+      "cash": "Οικονομικά",
+      "cash_empty_description": "Δεν έχετε ακόμη mUSD. Μετατρέψτε stablecoins σε mUSD από την ενότητα Οικονομικά στην αρχική σελίδα.",
+      "cash_empty_description_network_filter": "Δεν έχετε mUSD σε αυτό το δίκτυο. Αλλάξτε δίκτυο για να δείτε τα mUSD σας.",
+      "cash_empty_state": {
         "get_started": "Ξεκινήστε",
         "earn_apy": "Earn {{percentage}}% APY"
       },
-      "money_filled_state": {
+      "cash_filled_state": {
         "add": "Προσθήκη",
         "apy": "{{percentage}}% APY"
       },
