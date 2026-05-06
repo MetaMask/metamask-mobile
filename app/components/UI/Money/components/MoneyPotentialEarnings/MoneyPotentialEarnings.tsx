@@ -52,8 +52,6 @@ interface MoneyPotentialEarningsProps {
   onTokenPress?: (token: AssetType) => void;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
-  /** When true, hides token rows and shows a single "View potential earnings" button. */
-  condensed?: boolean;
 }
 
 const MoneyPotentialEarnings = ({
@@ -62,7 +60,6 @@ const MoneyPotentialEarnings = ({
   onTokenPress,
   onViewAllPress,
   onHeaderPress,
-  condensed = false,
 }: MoneyPotentialEarningsProps) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const apyPercent = apy ?? 0;
@@ -71,7 +68,7 @@ const MoneyPotentialEarnings = ({
   // useMusdConversionTokens; strip zero-balance entries defensively — the
   // feature flag threshold may be set to 0 in some environments.
   const eligibleTokens = useMemo(
-    () => (tokens ?? []).filter((token) => tokenFiatValue(token) > 0),
+    () => tokens.filter((token) => tokenFiatValue(token) > 0),
     [tokens],
   );
   const visibleTokens = useMemo(
@@ -130,45 +127,29 @@ const MoneyPotentialEarnings = ({
         </Text>
       </Box>
 
-      {condensed ? (
+      <>
+        {visibleTokens.map((token) => (
+          <PotentialEarningsTokenRow
+            key={`${token.address}-${token.chainId}`}
+            token={token}
+            hasSubsidizedFee={STABLECOIN_SYMBOLS.has(token.symbol)}
+            apyPercent={apyPercent}
+            onPress={handleTokenPress(token)}
+          />
+        ))}
+
         <Box twClassName="px-4 py-3">
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
             isFullWidth
             onPress={onViewAllPress}
-            testID={
-              MoneyPotentialEarningsTestIds.VIEW_POTENTIAL_EARNINGS_BUTTON
-            }
+            testID={MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON}
           >
-            {strings('money.potential_earnings.view_potential_earnings')}
+            {strings('money.potential_earnings.view_all')}
           </Button>
         </Box>
-      ) : (
-        <>
-          {visibleTokens.map((token) => (
-            <PotentialEarningsTokenRow
-              key={`${token.address}-${token.chainId}`}
-              token={token}
-              hasSubsidizedFee={STABLECOIN_SYMBOLS.has(token.symbol)}
-              apyPercent={apyPercent}
-              onPress={handleTokenPress(token)}
-            />
-          ))}
-
-          <Box twClassName="px-4 py-3">
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={onViewAllPress}
-              testID={MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON}
-            >
-              {strings('money.potential_earnings.view_all')}
-            </Button>
-          </Box>
-        </>
-      )}
+      </>
     </Box>
   );
 };
