@@ -657,6 +657,24 @@ export const POLYMARKET_FEE_RATE_MOCKS = async (mockServer: Mockttp) => {
 };
 
 /**
+ * Mock for Polymarket CLOB prices-history API
+ * Returns an empty history series — sufficient for predict happy-path specs
+ * that render the chart (consumer treats non-array history as empty).
+ */
+export const POLYMARKET_PRICES_HISTORY_MOCKS = async (mockServer: Mockttp) => {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(url?.includes('clob.polymarket.com/prices-history'));
+    })
+    .asPriority(PRIORITY.BASE)
+    .thenReply(200, JSON.stringify({ history: [] }), {
+      'content-type': 'application/json',
+    });
+};
+
+/**
  * Mock for Polymarket CLOB order book API
  * Returns order book data for specific token IDs with correct market mapping
  */
@@ -2184,6 +2202,7 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_EVENT_DETAILS_MOCKS(mockServer);
   await POLYMARKET_ORDER_BOOK_MOCKS(mockServer);
   await POLYMARKET_PRICES_MOCKS(mockServer); // Mock for CLOB prices API
+  await POLYMARKET_PRICES_HISTORY_MOCKS(mockServer); // Mock for CLOB prices-history API (chart series)
   await POLYMARKET_FEE_RATE_MOCKS(mockServer);
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   await POLYMARKET_CLOB_AUTH_MOCKS(mockServer);

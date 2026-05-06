@@ -38,19 +38,6 @@ export const POLYMARKET_API_MOCKS = {
       responseCode: 200,
       response: { events: [] },
     },
-    // gamma-api: single event lookup — consumer accesses `data?.markets`
-    {
-      urlEndpoint: /^https:\/\/gamma-api\.polymarket\.com\/events\/[^/?]+$/,
-      responseCode: 200,
-      response: { markets: [] },
-    },
-    // gamma-api: parent event lookup
-    {
-      urlEndpoint:
-        /^https:\/\/gamma-api\.polymarket\.com\/events(\?.*parent_event_id=.*)?$/,
-      responseCode: 200,
-      response: [],
-    },
     // gamma-api: markets list
     {
       urlEndpoint: /^https:\/\/gamma-api\.polymarket\.com\/markets(\?.*)?$/,
