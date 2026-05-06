@@ -45,6 +45,7 @@ const Price = (props: PriceProps) => {
     setTimePeriod,
     currentPrice,
     currentCurrency,
+    chartRefreshKey,
     ...rest
   } = props;
 
@@ -59,7 +60,7 @@ const Price = (props: PriceProps) => {
         isLoading={isLoading}
         currentPrice={currentPrice}
         currentCurrency={currentCurrency}
-        chartRefreshKey={props.chartRefreshKey}
+        chartRefreshKey={chartRefreshKey}
         {...rest}
       />
     );
