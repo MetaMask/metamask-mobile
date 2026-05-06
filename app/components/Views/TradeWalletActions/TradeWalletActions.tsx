@@ -39,7 +39,7 @@ import { useSelector } from 'react-redux';
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
-import { MULTI_SWAP_ENABLED } from '../../../constants/bridge';
+import { BATCH_SELL_ENABLED } from '../../../constants/bridge';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
@@ -149,7 +149,7 @@ function TradeWalletActions() {
   const onBatchSell = useCallback(() => {
     postCallback.current = () => {
       navigate(Routes.BRIDGE.ROOT, {
-        screen: Routes.BRIDGE.MULTI_SWAP_TOKEN_SELECT,
+        screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
       });
     };
     handleNavigateBack();
@@ -296,7 +296,7 @@ function TradeWalletActions() {
                   `px-0`,
                 )}
               >
-                {MULTI_SWAP_ENABLED && AppConstants.SWAPS.ACTIVE && (
+                {BATCH_SELL_ENABLED && AppConstants.SWAPS.ACTIVE && (
                   <ActionListItem
                     label={
                       <View style={tw.style('flex-row items-center gap-2')}>

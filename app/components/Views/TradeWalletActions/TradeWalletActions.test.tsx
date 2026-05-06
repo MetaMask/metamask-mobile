@@ -189,7 +189,7 @@ jest.mock('../../../core/AppConstants', () => {
 
 jest.mock('../../../constants/bridge', () => ({
   ...jest.requireActual('../../../constants/bridge'),
-  MULTI_SWAP_ENABLED: true,
+  BATCH_SELL_ENABLED: true,
 }));
 
 const mockInitialState: DeepPartial<RootState> = {

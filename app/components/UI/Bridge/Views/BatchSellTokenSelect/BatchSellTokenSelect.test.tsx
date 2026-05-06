@@ -3,14 +3,14 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { BridgeToken } from '../../types';
-import { MultiSwapTokenSelect } from './MultiSwapTokenSelect';
-import { MultiSwapTokenSelectSelectorsIDs } from './MultiSwapTokenSelect.testIds';
+import { BatchSellTokenSelect } from './BatchSellTokenSelect';
+import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
 import {
   buildBatchSellEligibleChains,
   removeStablecoinsFromSourceTokens,
   MAX_BATCH_SELL_SOURCE_TOKENS,
   sortBatchSellTokens,
-} from './MultiSwapTokenSelect.utils';
+} from './BatchSellTokenSelect.utils';
 import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import { BridgeTokenMetadata } from '../../constants/tokens';
@@ -321,7 +321,7 @@ const createToken = (overrides: Partial<BridgeToken>): BridgeToken => ({
 });
 
 const getNetworkPillTestId = (chainId: CaipChainId) =>
-  `${MultiSwapTokenSelectSelectorsIDs.NETWORK_PILL}-${chainId}`;
+  `${BatchSellTokenSelectSelectorsIDs.NETWORK_PILL}-${chainId}`;
 
 describe('filterBatchSellDestinationStablecoins', () => {
   it('excludes configured stablecoins', () => {
@@ -430,7 +430,7 @@ describe('sortBatchSellTokens', () => {
   });
 });
 
-describe('MultiSwapTokenSelect', () => {
+describe('BatchSellTokenSelect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockStablecoinsByChain = {};
@@ -458,7 +458,7 @@ describe('MultiSwapTokenSelect', () => {
       }),
     ];
 
-    const { getByText, queryByText } = render(<MultiSwapTokenSelect />);
+    const { getByText, queryByText } = render(<BatchSellTokenSelect />);
 
     expect(getByText('Select up to 5 tokens')).toBeOnTheScreen();
     expect(
@@ -484,7 +484,7 @@ describe('MultiSwapTokenSelect', () => {
       }),
     ];
 
-    const { getByTestId, queryByTestId } = render(<MultiSwapTokenSelect />);
+    const { getByTestId, queryByTestId } = render(<BatchSellTokenSelect />);
 
     expect(
       getByTestId(getNetworkPillTestId('eip155:1' as CaipChainId)),
@@ -517,7 +517,7 @@ describe('MultiSwapTokenSelect', () => {
     ];
 
     const { getByTestId, getByText, queryByText } = render(
-      <MultiSwapTokenSelect />,
+      <BatchSellTokenSelect />,
     );
 
     expect(getByText('ETHA')).toBeOnTheScreen();
@@ -553,7 +553,7 @@ describe('MultiSwapTokenSelect', () => {
       }),
     ];
 
-    const { getByText, queryByText } = render(<MultiSwapTokenSelect />);
+    const { getByText, queryByText } = render(<BatchSellTokenSelect />);
 
     expect(getByText('BSCA')).toBeOnTheScreen();
     expect(queryByText('ETHA')).not.toBeOnTheScreen();
@@ -563,21 +563,21 @@ describe('MultiSwapTokenSelect', () => {
   it('shows the no sellable tokens empty state', () => {
     mockWalletTokens = [];
 
-    const { getByText, queryByTestId } = render(<MultiSwapTokenSelect />);
+    const { getByText, queryByTestId } = render(<BatchSellTokenSelect />);
 
     expect(getByText('No tokens. No problem.')).toBeOnTheScreen();
     expect(
-      queryByTestId(MultiSwapTokenSelectSelectorsIDs.NEXT_BUTTON),
+      queryByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON),
     ).not.toBeOnTheScreen();
   });
 
   it('navigates to Explore Tokens from the empty state', () => {
     mockWalletTokens = [];
 
-    const { getByTestId } = render(<MultiSwapTokenSelect />);
+    const { getByTestId } = render(<BatchSellTokenSelect />);
 
     fireEvent.press(
-      getByTestId(MultiSwapTokenSelectSelectorsIDs.EXPLORE_TOKENS_BUTTON),
+      getByTestId(BatchSellTokenSelectSelectorsIDs.EXPLORE_TOKENS_BUTTON),
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
@@ -606,7 +606,7 @@ describe('MultiSwapTokenSelect', () => {
     ];
 
     const { getByTestId, getByText, queryByText } = render(
-      <MultiSwapTokenSelect />,
+      <BatchSellTokenSelect />,
     );
 
     fireEvent.press(getByText('ETHA'));
@@ -636,14 +636,14 @@ describe('MultiSwapTokenSelect', () => {
       }),
     );
 
-    const { getByTestId, getByText } = render(<MultiSwapTokenSelect />);
+    const { getByTestId, getByText } = render(<BatchSellTokenSelect />);
 
     for (let index = 0; index <= MAX_BATCH_SELL_SOURCE_TOKENS; index += 1) {
       fireEvent.press(getByText(`TOK${index}`));
     }
 
     const nextButton = getByTestId(
-      MultiSwapTokenSelectSelectorsIDs.NEXT_BUTTON,
+      BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON,
     );
 
     expect(getByText('Max 5 tokens allowed')).toBeOnTheScreen();
@@ -666,12 +666,12 @@ describe('MultiSwapTokenSelect', () => {
     };
     mockWalletTokens = [selectedToken];
 
-    const { getByTestId, getByText } = render(<MultiSwapTokenSelect />);
+    const { getByTestId, getByText } = render(<BatchSellTokenSelect />);
 
     fireEvent.press(getByText('ONE'));
     expect(getByText('Continue with (1) token')).toBeOnTheScreen();
 
-    fireEvent.press(getByTestId(MultiSwapTokenSelectSelectorsIDs.NEXT_BUTTON));
+    fireEvent.press(getByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.HIGH_RATE_ALERT_MODAL,
@@ -690,13 +690,13 @@ describe('MultiSwapTokenSelect', () => {
     });
     mockWalletTokens = [firstToken, secondToken];
 
-    const { getByTestId, getByText } = render(<MultiSwapTokenSelect />);
+    const { getByTestId, getByText } = render(<BatchSellTokenSelect />);
 
     fireEvent.press(getByText('ONE'));
     fireEvent.press(getByText('TWO'));
     expect(getByText('Continue with (2) tokens')).toBeOnTheScreen();
 
-    fireEvent.press(getByTestId(MultiSwapTokenSelectSelectorsIDs.NEXT_BUTTON));
+    fireEvent.press(getByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON));
 
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'bridge/setBatchSellSourceTokens',

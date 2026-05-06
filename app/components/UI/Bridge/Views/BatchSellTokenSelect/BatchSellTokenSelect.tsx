@@ -51,13 +51,13 @@ import {
   MAX_BATCH_SELL_SOURCE_TOKENS,
   sortBatchSellTokens,
   SUPPORTED_BATCH_SELL_CHAIN_IDS,
-} from './MultiSwapTokenSelect.utils';
-import { MultiSwapTokenSelectSelectorsIDs } from './MultiSwapTokenSelect.testIds';
+} from './BatchSellTokenSelect.utils';
+import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
 
 const getTokenKey = (token: BridgeToken) =>
   `${formatChainIdToCaip(token.chainId)}:${token.address}`;
 
-export function MultiSwapTokenSelect() {
+export function BatchSellTokenSelect() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
@@ -265,7 +265,7 @@ export function MultiSwapTokenSelect() {
         isDisabled={isDisabled}
         size={ButtonToggleSize.Md}
         style={tw.style('rounded-xl py-2 px-3')}
-        testID={`${MultiSwapTokenSelectSelectorsIDs.NETWORK_PILL}-${chainId}`}
+        testID={`${BatchSellTokenSelectSelectorsIDs.NETWORK_PILL}-${chainId}`}
       />
     ),
     [handleChainSelect, tw],
@@ -283,7 +283,7 @@ export function MultiSwapTokenSelect() {
 
       return (
         <Box
-          testID={`${MultiSwapTokenSelectSelectorsIDs.TOKEN_ROW}-${token.symbol}`}
+          testID={`${BatchSellTokenSelectSelectorsIDs.TOKEN_ROW}-${token.symbol}`}
         >
           <TokenSelectorItem
             token={token}
@@ -310,7 +310,7 @@ export function MultiSwapTokenSelect() {
     return (
       <SafeAreaView style={tw.style('flex-1 bg-default')} edges={['bottom']}>
         <Box
-          testID={MultiSwapTokenSelectSelectorsIDs.EMPTY_STATE}
+          testID={BatchSellTokenSelectSelectorsIDs.EMPTY_STATE}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
           twClassName="flex-1 px-8"
@@ -340,7 +340,7 @@ export function MultiSwapTokenSelect() {
               size={ButtonSize.Lg}
               isFullWidth
               onPress={handleExploreTokensPress}
-              testID={MultiSwapTokenSelectSelectorsIDs.EXPLORE_TOKENS_BUTTON}
+              testID={BatchSellTokenSelectSelectorsIDs.EXPLORE_TOKENS_BUTTON}
             >
               {strings('bridge.explore_tokens')}
             </Button>
@@ -404,7 +404,7 @@ export function MultiSwapTokenSelect() {
           </Box>
         </Box>
         <FlatList
-          testID={MultiSwapTokenSelectSelectorsIDs.TOKEN_LIST}
+          testID={BatchSellTokenSelectSelectorsIDs.TOKEN_LIST}
           data={selectedChainTokens}
           renderItem={renderToken}
           keyExtractor={getTokenKey}
@@ -412,7 +412,7 @@ export function MultiSwapTokenSelect() {
           contentContainerStyle={tw.style('pb-4')}
           ListEmptyComponent={
             <Box
-              testID={MultiSwapTokenSelectSelectorsIDs.SEARCH_EMPTY_STATE}
+              testID={BatchSellTokenSelectSelectorsIDs.SEARCH_EMPTY_STATE}
               alignItems={BoxAlignItems.Center}
               twClassName="px-8 py-20"
             >
@@ -440,7 +440,7 @@ export function MultiSwapTokenSelect() {
             isFullWidth
             isDisabled={isPrimaryButtonDisabled}
             onPress={handleNextPress}
-            testID={MultiSwapTokenSelectSelectorsIDs.NEXT_BUTTON}
+            testID={BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON}
           >
             {primaryButtonLabel}
           </Button>

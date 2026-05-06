@@ -306,7 +306,7 @@ const Routes = {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',
     TOKEN_SELECTOR: 'BridgeTokenSelector',
-    MULTI_SWAP_TOKEN_SELECT: 'MultiSwapTokenSelect',
+    BATCH_SELL_TOKEN_SELECT: 'BatchSellTokenSelect',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     MODALS: {
       ROOT: 'BridgeModals',
