@@ -85,6 +85,8 @@ import descriptionSVG from './assets/description.svg';
 import detailsSVG from './assets/details.svg';
 import diagramSVG from './assets/diagram.svg';
 import documentcodeSVG from './assets/document-code.svg';
+import dollarSVG from './assets/dollar.svg';
+import dollarfilledSVG from './assets/dollar-filled.svg';
 import downloadSVG from './assets/download.svg';
 import draftSVG from './assets/draft.svg';
 import ecoleafSVG from './assets/eco-leaf.svg';
@@ -372,6 +374,8 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Details]: detailsSVG,
   [IconName.Diagram]: diagramSVG,
   [IconName.DocumentCode]: documentcodeSVG,
+  [IconName.Dollar]: dollarSVG,
+  [IconName.DollarFilled]: dollarfilledSVG,
   [IconName.Download]: downloadSVG,
   [IconName.Draft]: draftSVG,
   [IconName.EcoLeaf]: ecoleafSVG,

@@ -155,6 +155,8 @@ export enum IconName {
   Details = 'Details',
   Diagram = 'Diagram',
   DocumentCode = 'DocumentCode',
+  Dollar = 'Dollar',
+  DollarFilled = 'DollarFilled',
   Download = 'Download',
   Draft = 'Draft',
   EcoLeaf = 'EcoLeaf',
