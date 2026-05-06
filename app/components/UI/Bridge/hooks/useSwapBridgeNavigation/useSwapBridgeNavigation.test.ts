@@ -1117,6 +1117,35 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
     });
 
+    it('tracks swap button click with per-call onboarding_checklist location override', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.MainView,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        ActionLocation.ONBOARDING_CHECKLIST,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: ActionLocation.ONBOARDING_CHECKLIST,
+          chain_id_source: expect.any(String),
+          token_symbol_source: expect.anything(),
+          token_address_source: expect.anything(),
+          from_trending: expect.any(Boolean),
+        }),
+      );
+    });
+
     it('tracks action button click with correct properties when location is TokenView', () => {
       const { result } = renderHookWithProvider(
         () =>

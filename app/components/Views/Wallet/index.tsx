@@ -23,7 +23,10 @@ import {
   unstable_batchedUpdates,
   View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import Reanimated, {
   LinearTransition,
   useSharedValue,
@@ -743,6 +746,17 @@ const Wallet = ({
     sourcePage: 'MainView',
   });
 
+  /** Trade checklist primary — Segment location per TMCU-680. */
+  const goToSwapsFromOnboardingChecklist = useCallback(() => {
+    goToSwaps(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      ActionLocation.ONBOARDING_CHECKLIST,
+    );
+  }, [goToSwaps]);
+
   const handleWalletHomeOnboardingNotificationsPrimary = useCallback(() => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.NOTIFICATIONS,
@@ -1112,7 +1126,6 @@ const Wallet = ({
     accountBalanceByChainId?.balance,
   ]);
 
-
   const { variantName: discoveryTabsVariantName } = useABTest(
     HUB_PAGE_DISCOVERY_TABS_AB_KEY,
     HUB_PAGE_DISCOVERY_TABS_VARIANTS,
@@ -1131,7 +1144,6 @@ const Wallet = ({
       opacity: h > 0 ? Math.max(0, 1 + walletHeaderTranslateY.value / h) : 1,
     };
   });
-
 
   const isFocused = useIsFocused();
 
@@ -1509,7 +1521,7 @@ const Wallet = ({
           <AccountGroupBalance
             onCoordinatedFlowExit={runWalletHomePostOnboardingComplete}
             suspendRiveForCurtain={postOnboardingExitAnimating}
-            onTradePrimaryPress={goToSwaps}
+            onTradePrimaryPress={goToSwapsFromOnboardingChecklist}
             onNotificationsPrimaryPress={
               handleWalletHomeOnboardingNotificationsPrimary
             }

@@ -161,6 +161,10 @@ export const useSwapBridgeNavigation = ({
       destTokenOverride?: BridgeToken,
       buttonLabel?: string,
       scrollToTopOnNav?: boolean,
+      /** Per-call override for {@link MetaMetricsEvents.SWAP_BUTTON_CLICKED} `location`. */
+      swapButtonClickLocationOverride?:
+        | ActionLocation
+        | SwapBridgeNavigationLocation,
     ) => {
       // Use tokenOverride if provided, otherwise fall back to tokenBase
       const effectiveSourceTokenBase = sourceTokenOverride ?? sourceTokenBase;
@@ -325,7 +329,10 @@ export const useSwapBridgeNavigation = ({
       trackActionButtonClick(trackEvent, createEventBuilder, actionButtonProps);
 
       const swapEventProperties = {
-        location: swapButtonEventLocationOverride ?? location,
+        location:
+          swapButtonClickLocationOverride ??
+          swapButtonEventLocationOverride ??
+          location,
         chain_id_source: getDecimalChainId(sourceToken.chainId),
         token_symbol_source: sourceToken?.symbol,
         token_address_source: sourceToken?.address,
@@ -368,6 +375,9 @@ export const useSwapBridgeNavigation = ({
       destTokenOverride?: BridgeToken,
       buttonLabel?: string,
       scrollToTopOnNav?: boolean,
+      swapButtonClickLocationOverride?:
+        | ActionLocation
+        | SwapBridgeNavigationLocation,
     ) => {
       goToNativeBridge(
         BridgeViewMode.Unified,
@@ -375,6 +385,7 @@ export const useSwapBridgeNavigation = ({
         destTokenOverride,
         buttonLabel,
         scrollToTopOnNav,
+        swapButtonClickLocationOverride,
       );
     },
     [goToNativeBridge],
