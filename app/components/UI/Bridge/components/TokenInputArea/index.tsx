@@ -107,12 +107,8 @@ const createStyles = ({
       gap: 8,
     },
     amountTypeToggle: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: theme.colors.background.muted,
     },
     currencyContainer: {
       flex: 1,
