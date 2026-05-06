@@ -23,6 +23,8 @@ jest.mock('@metamask/design-system-react-native', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en-US' },
   strings: jest.fn((key: string, params?: Record<string, string>) =>
     params ? `${key}:${JSON.stringify(params)}` : key,
   ),
