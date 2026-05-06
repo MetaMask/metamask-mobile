@@ -9609,18 +9609,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^13.2.0":
-  version: 13.2.0
-  resolution: "@metamask/ramps-controller@npm:13.2.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/controller-utils": "npm:^11.20.0"
-    "@metamask/messenger": "npm:^1.1.1"
-  checksum: 10/17ce6e74c5a2894c7fbe3ee3a6c39cd820212de04a7dda86324293f9f09fdf03e9ccc11d9d29cd7131f01ec62073eb4cc8e7cb321de40c956bb52b1dce774f95
-  languageName: node
-  linkType: hard
-
-"@metamask/ramps-controller@npm:^13.3.0":
+"@metamask/ramps-controller@npm:^13.2.0, @metamask/ramps-controller@npm:^13.3.0":
   version: 13.3.0
   resolution: "@metamask/ramps-controller@npm:13.3.0"
   dependencies:
