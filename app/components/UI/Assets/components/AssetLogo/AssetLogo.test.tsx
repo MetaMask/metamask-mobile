@@ -1,8 +1,10 @@
 import React from 'react';
+import {
+  AvatarToken,
+  AvatarTokenSize,
+} from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import AssetLogo from './AssetLogo';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
 
 describe('AssetLogo', () => {
@@ -43,13 +45,16 @@ describe('AssetLogo', () => {
     );
 
     const assetAvatar = UNSAFE_getByType(AvatarToken);
-    expect(assetAvatar.props).toStrictEqual({
-      name: 'TEST',
-      imageSource: {
-        uri: 'https://example.com/image.png',
-      },
-      size: AvatarSize.Lg,
-    });
+    expect(assetAvatar.props).toEqual(
+      expect.objectContaining({
+        name: 'TEST',
+        src: {
+          uri: 'https://example.com/image.png',
+        },
+        size: AvatarTokenSize.Lg,
+        testID: 'token-avatar-image',
+      }),
+    );
   });
 
   it('renders asset logo for native asset', () => {
