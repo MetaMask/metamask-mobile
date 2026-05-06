@@ -32,6 +32,8 @@ export interface BatchSellEligibleChain {
   tokenFiatAmount: number;
 }
 
+export type BatchSellTokenSortDirection = 'asc' | 'desc';
+
 function getChecksummedEvmAssetId(assetId: CaipAssetType): CaipAssetType {
   try {
     const { assetNamespace, assetReference, chainId } =
@@ -91,13 +93,18 @@ export function removeStablecoinsFromSourceTokens({
   });
 }
 
-export function sortBatchSellTokens(tokens: BridgeToken[]): BridgeToken[] {
+export function sortBatchSellTokens(
+  tokens: BridgeToken[],
+  sortDirection: BatchSellTokenSortDirection = 'desc',
+): BridgeToken[] {
   return [...tokens].sort((tokenA, tokenB) => {
     const fiatAmountA = tokenA.tokenFiatAmount ?? 0;
     const fiatAmountB = tokenB.tokenFiatAmount ?? 0;
 
     if (fiatAmountA !== fiatAmountB) {
-      return fiatAmountB - fiatAmountA;
+      return sortDirection === 'desc'
+        ? fiatAmountB - fiatAmountA
+        : fiatAmountA - fiatAmountB;
     }
 
     return tokenA.symbol.localeCompare(tokenB.symbol);

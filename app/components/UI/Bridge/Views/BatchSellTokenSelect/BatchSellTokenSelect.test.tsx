@@ -208,6 +208,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     IconName: {
       Arrow2Down: 'Arrow2Down',
+      Arrow2Up: 'Arrow2Up',
       ArrowDown: 'ArrowDown',
       VerifiedFilled: 'VerifiedFilled',
     },
@@ -499,6 +500,38 @@ describe('sortBatchSellTokens', () => {
       'ETHB',
     ]);
   });
+
+  it('sorts tokens by lowest fiat value when ascending', () => {
+    const result = sortBatchSellTokens(
+      [
+        createToken({
+          symbol: 'ETHA',
+          address: '0x1111111111111111111111111111111111111111',
+          chainId: '0x1' as Hex,
+          tokenFiatAmount: 10,
+        }),
+        createToken({
+          symbol: 'BSCA',
+          address: '0x2222222222222222222222222222222222222222',
+          chainId: '0x38' as Hex,
+          tokenFiatAmount: 100,
+        }),
+        createToken({
+          symbol: 'BASEA',
+          address: '0x3333333333333333333333333333333333333333',
+          chainId: '0x2105' as Hex,
+          tokenFiatAmount: 50,
+        }),
+      ],
+      'asc',
+    );
+
+    expect(result.map((token) => token.symbol)).toEqual([
+      'ETHA',
+      'BASEA',
+      'BSCA',
+    ]);
+  });
 });
 
 describe('BatchSellTokenSelect', () => {
@@ -639,6 +672,54 @@ describe('BatchSellTokenSelect', () => {
     expect(getByText('BSCA')).toBeOnTheScreen();
     expect(queryByText('ETHA')).not.toBeOnTheScreen();
     expect(queryByText('ETHB')).not.toBeOnTheScreen();
+  });
+
+  it('toggles token sorting when pressing the balance header', () => {
+    mockWalletTokens = [
+      createToken({
+        symbol: 'HIGH',
+        name: 'High Token',
+        address: '0x1111111111111111111111111111111111111111',
+        tokenFiatAmount: 10,
+      }),
+      createToken({
+        symbol: 'LOW',
+        name: 'Low Token',
+        address: '0x2222222222222222222222222222222222222222',
+        tokenFiatAmount: 1,
+      }),
+      createToken({
+        symbol: 'MID',
+        name: 'Mid Token',
+        address: '0x3333333333333333333333333333333333333333',
+        tokenFiatAmount: 5,
+      }),
+    ];
+
+    const { getAllByTestId, getByTestId } = render(<BatchSellTokenSelect />);
+    const balanceSortButton = getByTestId(
+      BatchSellTokenSelectSelectorsIDs.BALANCE_SORT_BUTTON,
+    );
+    const getTokenRowSymbols = () =>
+      getAllByTestId(
+        new RegExp(`^${BatchSellTokenSelectSelectorsIDs.TOKEN_ROW}-`),
+      ).map((row) =>
+        row.props.testID.replace(
+          `${BatchSellTokenSelectSelectorsIDs.TOKEN_ROW}-`,
+          '',
+        ),
+      );
+
+    expect(balanceSortButton.props.style).toBeUndefined();
+    expect(getTokenRowSymbols()).toEqual(['HIGH', 'MID', 'LOW']);
+
+    fireEvent.press(balanceSortButton);
+
+    expect(getTokenRowSymbols()).toEqual(['LOW', 'MID', 'HIGH']);
+
+    fireEvent.press(balanceSortButton);
+
+    expect(getTokenRowSymbols()).toEqual(['HIGH', 'MID', 'LOW']);
   });
 
   it('renders token prices and percentage changes with wallet colors', () => {

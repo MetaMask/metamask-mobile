@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Image, ListRenderItemInfo } from 'react-native';
+import { Image, ListRenderItemInfo, Pressable } from 'react-native';
 import { FlatList, ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
@@ -47,6 +47,7 @@ import {
   removeStablecoinsFromSourceTokens,
   getBatchSellDestinationToken,
   MAX_BATCH_SELL_SOURCE_TOKENS,
+  BatchSellTokenSortDirection,
   sortBatchSellTokens,
   SUPPORTED_BATCH_SELL_CHAIN_IDS,
 } from './BatchSellTokenSelect.utils';
@@ -64,14 +65,16 @@ export function BatchSellTokenSelect() {
   const allWalletTokens = useTokensWithBalance({
     chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
   });
+  const [tokenSortDirection, setTokenSortDirection] =
+    useState<BatchSellTokenSortDirection>('desc');
   const eligibleSourceTokens = useMemo(() => {
     const sourceTokens = removeStablecoinsFromSourceTokens({
       tokens: allWalletTokens,
       stablecoinsByChain,
     });
 
-    return sortBatchSellTokens(sourceTokens);
-  }, [stablecoinsByChain, allWalletTokens]);
+    return sortBatchSellTokens(sourceTokens, tokenSortDirection);
+  }, [stablecoinsByChain, allWalletTokens, tokenSortDirection]);
   const sortedEligibleChains = useMemo(
     () => buildBatchSellEligibleChains(eligibleSourceTokens),
     [eligibleSourceTokens],
@@ -226,6 +229,12 @@ export function BatchSellTokenSelect() {
     });
   }, [navigation]);
 
+  const handleTokenSortToggle = useCallback(() => {
+    setTokenSortDirection((currentSortDirection) =>
+      currentSortDirection === 'desc' ? 'asc' : 'desc',
+    );
+  }, []);
+
   const renderNetworkPill = useCallback(
     (
       chainId: CaipChainId,
@@ -376,23 +385,33 @@ export function BatchSellTokenSelect() {
           alignItems={BoxAlignItems.Center}
           twClassName="px-4 py-4"
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
+          <Pressable
+            accessibilityRole="button"
+            onPress={handleTokenSortToggle}
+            testID={BatchSellTokenSelectSelectorsIDs.BALANCE_SORT_BUTTON}
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
             >
-              {strings('bridge.sort_balance')}
-            </Text>
-            <Icon
-              name={IconName.Arrow2Down}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          </Box>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('bridge.sort_balance')}
+              </Text>
+              <Icon
+                name={
+                  tokenSortDirection === 'desc'
+                    ? IconName.Arrow2Down
+                    : IconName.Arrow2Up
+                }
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            </Box>
+          </Pressable>
         </Box>
         <FlatList
           testID={BatchSellTokenSelectSelectorsIDs.TOKEN_LIST}
