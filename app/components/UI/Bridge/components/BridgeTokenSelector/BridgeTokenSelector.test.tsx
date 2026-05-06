@@ -230,12 +230,6 @@ jest.mock('../../hooks/useTokenSelection', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => ({
-    getHeaderCompactStandardNavbarOptions: jest.fn(() => ({})),
-  }),
-);
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
@@ -298,13 +292,48 @@ jest.mock('@metamask/design-system-react-native', () => {
     Box: ({ children, style }: { children: React.ReactNode; style?: object }) =>
       createElement(View, { style }, children),
     Text: 'Text',
-    ButtonIcon: ({ onPress }: { onPress?: () => void }) =>
-      createElement(TouchableOpacity, { onPress, testID: 'button-icon-info' }),
+    ButtonIcon: ({
+      onPress,
+      iconName,
+    }: {
+      onPress?: () => void;
+      iconName?: string;
+    }) =>
+      createElement(TouchableOpacity, {
+        onPress,
+        // Derive the testID from the iconName so different ButtonIcons
+        // (e.g. Info on each row, ArrowLeft in the inline header) don't
+        // collide on the same selector.
+        testID: `button-icon-${String(iconName ?? 'unknown').toLowerCase()}`,
+      }),
     ButtonIconSize: { Md: 'Md' },
     IconColor: { IconAlternative: 'IconAlternative' },
-    IconName: { Info: 'Info', Check: 'Check' },
+    IconName: { Info: 'Info', Check: 'Check', ArrowLeft: 'ArrowLeft' },
     Icon: 'Icon',
     IconSize: { Md: 'Md' },
+    HeaderStandard: ({
+      title,
+      onBack,
+    }: {
+      title?: string;
+      onBack?: () => void;
+    }) =>
+      createElement(
+        View,
+        { testID: 'header-standard' },
+        // Render the title text so existing assertions on `getByText(title)` pass.
+        // Render the back button only when onBack is provided to mirror the
+        // real component's behaviour.
+        title
+          ? createElement('Text', { testID: 'header-standard-title' }, title)
+          : null,
+        onBack
+          ? createElement(TouchableOpacity, {
+              onPress: onBack,
+              testID: 'button-icon-arrowleft',
+            })
+          : null,
+      ),
     TextVariant: {
       HeadingSm: 'HeadingSm',
       HeadingMd: 'HeadingMd',
@@ -585,10 +614,15 @@ describe('BridgeTokenSelector', () => {
   });
 
   describe('rendering', () => {
-    it('renders and sets navigation options', () => {
-      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+    it('renders the search input and inline header title', () => {
+      const { getByTestId, getByText } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
       expect(getByTestId('bridge-token-search-input')).toBeTruthy();
-      expect(mockSetOptions).toHaveBeenCalled();
+      // Header is now inlined inside the screen instead of being set via
+      // navigation.setOptions, so assert on the rendered title instead.
+      // strings() is mocked to return the key.
+      expect(getByText('bridge.select_token')).toBeTruthy();
     });
 
     it('renders skeleton items during loading', async () => {
