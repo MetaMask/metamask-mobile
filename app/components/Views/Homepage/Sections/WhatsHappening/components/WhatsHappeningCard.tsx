@@ -83,7 +83,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
-          numberOfLines={3}
+          numberOfLines={2}
         >
           {item.title}
         </Text>

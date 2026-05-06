@@ -158,15 +158,15 @@ describe('WhatsHappeningExpandedCard', () => {
     expect(screen.getByText('Trade')).toBeOnTheScreen();
   });
 
-  it('does not duplicate a dual asset (caip19 + hlPerpsMarket) into the Perps section', () => {
+  it('does not duplicate a dual asset (caip19 + hlPerpsMarket) into the Perps section, shows Trade for the token row', () => {
     const item = { ...baseItem, relatedAssets: [dualAsset] };
     renderWithProvider(
       <WhatsHappeningExpandedCard item={item} cardWidth={CARD_WIDTH} />,
     );
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
-    expect(screen.getByText('Buy')).toBeOnTheScreen();
+    expect(screen.getByText('Trade')).toBeOnTheScreen();
+    expect(screen.queryByText('Buy')).toBeNull();
     expect(screen.queryByText('Perps')).toBeNull();
-    expect(screen.queryByText('Trade')).toBeNull();
   });
 
   it('renders neither section when relatedAssets is empty', () => {
