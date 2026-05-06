@@ -6,6 +6,7 @@ import PerpsTradingCampaignStatsView, {
 } from './PerpsTradingCampaignStatsView';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
+import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
 import {
   CampaignType,
   type PerpsTradingCampaignLeaderboardPositionDto,
@@ -142,6 +143,13 @@ jest.mock('../components/RewardsErrorBanner', () => {
 
 jest.mock('../hooks/useGetPerpsTradingCampaignLeaderboardPosition');
 jest.mock('../hooks/useGetCampaignParticipantStatus');
+jest.mock('../hooks/usePerpsTradingCampaignParticipantOutcome', () => ({
+  usePerpsTradingCampaignParticipantOutcome: jest.fn(() => ({
+    outcome: null,
+    isLoading: false,
+    hasError: false,
+  })),
+}));
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -155,6 +163,10 @@ const mockUseGetPosition =
 const mockUseGetParticipant =
   useGetCampaignParticipantStatus as jest.MockedFunction<
     typeof useGetCampaignParticipantStatus
+  >;
+const mockUsePerpsTradingCampaignParticipantOutcome =
+  usePerpsTradingCampaignParticipantOutcome as jest.MockedFunction<
+    typeof usePerpsTradingCampaignParticipantOutcome
   >;
 
 const basePosition: PerpsTradingCampaignLeaderboardPositionDto = {
@@ -196,6 +208,11 @@ describe('PerpsTradingCampaignStatsView', () => {
       isLoading: false,
       hasError: false,
       refetch: jest.fn(),
+    });
+    mockUsePerpsTradingCampaignParticipantOutcome.mockReturnValue({
+      outcome: null,
+      isLoading: false,
+      hasError: false,
     });
     mockUseGetPosition.mockReturnValue({
       position: basePosition,
