@@ -240,15 +240,6 @@ remapMainDevEnvVariables() {
 		remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_DEV" "MM_CARD_BAANX_API_CLIENT_KEY"
 }
 
-remapEnvVariableQA() {
-  	echo "Remapping QA env variable names to match QA values"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
 # Mapping for Main env variables in the e2e environment
 remapMainE2EEnvVariables() {
   	echo "Remapping Main target environment variables for the e2e environment"
@@ -395,13 +386,6 @@ buildAndroidMainLocal(){
 	yarn expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
 }
 
-# Builds and installs the QA APK for local development
-buildAndroidQALocal(){
-	prebuild_android
-	#react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
-	yarn expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug' --device
-}
-
 # Builds and installs the Flask APK for local development
 buildAndroidFlaskLocal(){
 	prebuild_android
@@ -421,12 +405,6 @@ buildIosFlaskLocal(){
 	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-Flask" --device "$IOS_SIMULATOR"
 }
 
-# Builds and installs the QA iOS app for local development
-buildIosQALocal(){
-  	prebuild_ios
-	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-QA" --device "$IOS_SIMULATOR"
-}
-
 # Generates the iOS binary for the given scheme and configuration
 generateIosBinary() {
 	scheme="$1"
@@ -440,9 +418,9 @@ generateIosBinary() {
 	fi
 
 	# Check if scheme is valid
-	if [ "$scheme" != "MetaMask" ] && [ "$scheme" != "MetaMask-QA" ] && [ "$scheme" != "MetaMask-Flask" ] ; then
+	if [ "$scheme" != "MetaMask" ] && [ "$scheme" != "MetaMask-Flask" ] ; then
 		# Scheme is not recognized
-		echo "Scheme $scheme is not recognized! Only MetaMask, MetaMask-QA, and MetaMask-Flask are supported"
+		echo "Scheme $scheme is not recognized! Only MetaMask, and MetaMask-Flask are supported"
 		exit 1
 	fi
 
@@ -454,12 +432,6 @@ generateIosBinary() {
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
 		else
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskRelease.plist"
-		fi
-	elif [ "$scheme" = "MetaMask-QA" ] ; then
-		if [ "$profile" = "development" ] ; then
-			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQADevelopment.plist"
-		else
-			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
 		fi
 	elif [ "$scheme" = "MetaMask-Flask" ] ; then
 		if [ "$profile" = "development" ] ; then
@@ -501,7 +473,7 @@ generateIosBinary() {
 
 # Generates the Android binary for the given scheme and configuration
 generateAndroidBinary() {
-	# Prod, Flask, or QA (Deprecated - Do not use)
+	# Prod, Flask
 	local flavor="$1"
 	# Lowercase flavor string
 	local lowercaseFlavor=$(echo "$flavor" | tr '[:upper:]' '[:lower:]')
@@ -530,9 +502,9 @@ generateAndroidBinary() {
 	fi
 
 	# Check if flavor is valid
-	if [ "$flavor" != "Prod" ] && [ "$flavor" != "Flask" ] && [ "$flavor" != "Qa" ] ; then
+	if [ "$flavor" != "Prod" ] && [ "$flavor" != "Flask" ] ; then
 		# Flavor is not recognized
-		echo "Flavor $flavor is not recognized! Only Prod, Flask, and Qa (Deprecated - Do not use) are supported"
+		echo "Flavor $flavor is not recognized! Only Prod, Flask are supported"
 		exit 1
 	fi
 
@@ -795,17 +767,6 @@ buildAndroid() {
 			# Generate Android binary
 			generateAndroidBinary "Flask"
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "QA" ] || [ "$METAMASK_BUILD_TYPE" == "qa" ] ; then
-		if [ "$IS_LOCAL" = true ] ; then
-			buildAndroidQALocal
-		else
-			# Prepare Android dependencies
-			prebuild_android
-			# Go to android directory
-			cd android
-			# Generate Android binary
-			generateAndroidBinary "Qa"
-		fi
 	else
 		printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not recognized."
 		exit 1
@@ -835,17 +796,6 @@ buildIos() {
 			cd ios
 			# Generate iOS binary
 			generateIosBinary "MetaMask-Flask"
-		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "QA" ] || [ "$METAMASK_BUILD_TYPE" == "qa" ] ; then
-		if [ "$IS_LOCAL" = true ] ; then
-			buildIosQALocal
-		else
-			# Prepare iOS dependencies
-			prebuild_ios
-			# Go to ios directory
-			cd ios
-			# Generate iOS binary
-			generateIosBinary "MetaMask-QA"
 		fi
 	else
 		printError "METAMASK_BUILD_TYPE '${METAMASK_BUILD_TYPE}' is not recognized"
@@ -968,8 +918,6 @@ if [ "$PLATFORM" != "expo-update" ]; then
 			elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
 				remapFlaskE2EEnvVariables
 			fi
-		elif [ "$METAMASK_BUILD_TYPE" == "qa" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
-			remapEnvVariableQA
 		fi
 	fi
 fi
@@ -981,14 +929,14 @@ if [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
 	export IGNORE_BOXLOGS_DEVELOPMENT="true"
 fi
 
-if [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
-	echo "DEBUG SENTRY PROPS"
-	checkAuthToken 'sentry.debug.properties'
-	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
-elif [ "$METAMASK_BUILD_TYPE" == "flask" ] || [ "$METAMASK_BUILD_TYPE" == "main" ]; then
+if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
 	echo "RELEASE SENTRY PROPS"
 	checkAuthToken 'sentry.release.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
+else
+	echo "DEBUG SENTRY PROPS"
+	checkAuthToken 'sentry.debug.properties'
+	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
 fi
 
 # Update Expo channel configuration based on environment
