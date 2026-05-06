@@ -220,7 +220,7 @@ const MOCK_POSITION_DISPLAY_NAME = 'Apple Inc. (Ondo Tokenized)';
 
 const MOCK_POSITION: OndoGmPortfolioPositionDto = {
   tokenSymbol: 'AAPLon',
-  tokenName: 'Apple Inc.',
+  tokenName: MOCK_POSITION_DISPLAY_NAME,
   tokenAsset: 'eip155:1/erc20:0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c',
   units: '45.2',
   bookPrice: '200.000000',

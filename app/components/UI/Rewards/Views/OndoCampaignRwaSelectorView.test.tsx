@@ -609,17 +609,7 @@ describe('OndoCampaignRwaSelectorView', () => {
   });
 
   describe('Ondo token name display', () => {
-    it('normalizes "Ondo Tokenized " prefix names to the suffix form in list rows', () => {
-      const token = { ...buildToken('AAPL'), name: 'Ondo Tokenized Apple' };
-      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
-      const { getByText, queryByText } = render(
-        <OndoCampaignRwaSelectorView />,
-      );
-      expect(getByText('Apple (Ondo Tokenized)')).toBeDefined();
-      expect(queryByText('Ondo Tokenized Apple')).toBeNull();
-    });
-
-    it('keeps "(Ondo Tokenized)" suffix names unchanged in list rows', () => {
+    it('preserves backend-provided suffix names in list rows', () => {
       const token = {
         ...buildToken('AAPL'),
         name: 'Apple (Ondo Tokenized)',
@@ -632,15 +622,11 @@ describe('OndoCampaignRwaSelectorView', () => {
       expect(queryByText('Apple')).toBeNull();
     });
 
-    it('normalizes "Tokenized Ondo " prefix names to the suffix form in list rows', () => {
-      const token = { ...buildToken('AAPL'), name: 'Tokenized Ondo Apple' };
-      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
-      const { getByText } = render(<OndoCampaignRwaSelectorView />);
-      expect(getByText('Apple (Ondo Tokenized)')).toBeDefined();
-    });
-
-    it('passes the suffix-form name to goToSwaps when token has Ondo prefix', () => {
-      const token = { ...buildToken('AAPL'), name: 'Ondo Tokenized Apple' };
+    it('passes the backend-provided name to goToSwaps', () => {
+      const token = {
+        ...buildToken('AAPL'),
+        name: 'Apple (Ondo Tokenized)',
+      };
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
       fireEvent.press(getByTestId('token-row-AAPL'));

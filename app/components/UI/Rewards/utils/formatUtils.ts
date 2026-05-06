@@ -490,19 +490,6 @@ export const shortenAddress = (address: string): string => {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
 
-const ONDO_TOKENIZED_SUFFIX = ' (Ondo Tokenized)';
-const ONDO_TOKENIZED_NAME_PATTERN =
-  /(?:^ondo\s+tokenized\s+|^tokenized\s+ondo\s+|\s*\(ondo\s+tokenized\))/gi;
-
-/**
- * Formats Ondo RWA token names using the same suffix pattern used by the
- * asset list, Explore, and Swaps token pickers.
- */
-export function formatOndoTokenName(raw: string): string {
-  const cleaned = raw.replace(ONDO_TOKENIZED_NAME_PATTERN, '').trim();
-  return cleaned ? `${cleaned}${ONDO_TOKENIZED_SUFFIX}` : '';
-}
-
 export function getPortfolioReturnColor(
   portfolioPnlPercent: string | undefined,
 ): TextColor {

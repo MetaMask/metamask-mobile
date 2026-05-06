@@ -2,7 +2,6 @@ import {
   groupPortfolioPositionsByAsset,
   formatPnlPercent,
   isPnlNonNegative,
-  formatOndoTokenName,
 } from './OndoPortfolio.utils';
 
 describe('groupPortfolioPositionsByAsset', () => {
@@ -110,33 +109,5 @@ describe('isPnlNonNegative', () => {
 
   it('returns false for non-parseable value (BigNumber NaN is not >= 0)', () => {
     expect(isPnlNonNegative('—')).toBe(false);
-  });
-});
-
-describe('formatOndoTokenName', () => {
-  it('keeps the app-wide "(Ondo Tokenized)" suffix form unchanged', () => {
-    expect(formatOndoTokenName('US Dollar (Ondo Tokenized)')).toBe(
-      'US Dollar (Ondo Tokenized)',
-    );
-  });
-
-  it('normalizes the "Ondo Tokenized " prefix form to the suffix form', () => {
-    expect(formatOndoTokenName('Ondo Tokenized Apple')).toBe(
-      'Apple (Ondo Tokenized)',
-    );
-  });
-
-  it('normalizes the "Tokenized Ondo " prefix form to the suffix form', () => {
-    expect(formatOndoTokenName('Tokenized Ondo Apple')).toBe(
-      'Apple (Ondo Tokenized)',
-    );
-  });
-
-  it('adds the suffix when the Ondo asset name has no marker', () => {
-    expect(formatOndoTokenName('OUSG')).toBe('OUSG (Ondo Tokenized)');
-  });
-
-  it('handles empty string', () => {
-    expect(formatOndoTokenName('')).toBe('');
   });
 });

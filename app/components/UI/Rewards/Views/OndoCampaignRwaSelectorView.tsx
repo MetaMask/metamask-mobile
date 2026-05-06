@@ -36,11 +36,7 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useRwaTokens } from '../../Trending/hooks/useRwaTokens/useRwaTokens';
 import TrendingTokenRowItem from '../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { getTrendingTokenImageUrl } from '../../Trending/utils/getTrendingTokenImageUrl';
-import {
-  parseCaip19,
-  caipChainIdToHex,
-  formatOndoTokenName,
-} from '../utils/formatUtils';
+import { parseCaip19, caipChainIdToHex } from '../utils/formatUtils';
 import { RWA_NETWORKS_LIST } from '../../Trending/utils/trendingNetworksList';
 import {
   useSwapBridgeNavigation,
@@ -262,19 +258,17 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     sourceToken: srcBridgeToken,
   });
 
-  // Deduplicate by assetId and normalize names to the app-wide Ondo suffix form.
+  // Deduplicate by assetId while preserving backend-provided display names.
   // Use CAIP-19 assetId (not symbol) for deduplication — symbol comparison
   // is fragile when casing differs between chains.
   const tokens = useMemo((): TrendingAsset[] => {
     const seen = new Set<string>();
-    return rwaTokens
-      .filter((token) => {
-        if (srcTokenAsset && token.assetId === srcTokenAsset) return false;
-        if (seen.has(token.assetId)) return false;
-        seen.add(token.assetId);
-        return true;
-      })
-      .map((token) => ({ ...token, name: formatOndoTokenName(token.name) }));
+    return rwaTokens.filter((token) => {
+      if (srcTokenAsset && token.assetId === srcTokenAsset) return false;
+      if (seen.has(token.assetId)) return false;
+      seen.add(token.assetId);
+      return true;
+    });
   }, [rwaTokens, srcTokenAsset]);
 
   const handleAssetSelect = useCallback(

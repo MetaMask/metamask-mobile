@@ -25,7 +25,6 @@ import {
   formatUsd,
   formatSignedUsd,
   formatCompactUsd,
-  formatOndoTokenName,
   formatOrdinalRank,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
@@ -1652,40 +1651,6 @@ describe('formatUtils', () => {
 
     it('formats negative thousands', () => {
       expect(formatCompactUsd(-75_000)).toBe('-$75K');
-    });
-  });
-
-  describe('formatOndoTokenName', () => {
-    it('keeps the app-wide "(Ondo Tokenized)" suffix form unchanged', () => {
-      expect(formatOndoTokenName('US Dollar (Ondo Tokenized)')).toBe(
-        'US Dollar (Ondo Tokenized)',
-      );
-    });
-
-    it('normalizes the "Ondo Tokenized " prefix form to the suffix form', () => {
-      expect(formatOndoTokenName('Ondo Tokenized Apple')).toBe(
-        'Apple (Ondo Tokenized)',
-      );
-    });
-
-    it('normalizes the "Tokenized Ondo " prefix form to the suffix form', () => {
-      expect(formatOndoTokenName('Tokenized Ondo Apple')).toBe(
-        'Apple (Ondo Tokenized)',
-      );
-    });
-
-    it('is case-insensitive', () => {
-      expect(formatOndoTokenName('token (ondo tokenized)')).toBe(
-        'token (Ondo Tokenized)',
-      );
-    });
-
-    it('adds the suffix when the Ondo asset name has no marker', () => {
-      expect(formatOndoTokenName('Apple')).toBe('Apple (Ondo Tokenized)');
-    });
-
-    it('returns empty string for an empty input', () => {
-      expect(formatOndoTokenName('')).toBe('');
     });
   });
 });

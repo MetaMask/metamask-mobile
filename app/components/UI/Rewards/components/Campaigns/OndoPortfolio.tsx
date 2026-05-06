@@ -41,7 +41,6 @@ import {
   groupPortfolioPositionsByAsset,
   formatPnlPercent,
   isPnlNonNegative,
-  formatOndoTokenName,
 } from './OndoPortfolio.utils';
 import { selectAllTokenBalances } from '../../../../../selectors/tokenBalancesController';
 import { selectAllTokens } from '../../../../../selectors/tokensController';
@@ -465,7 +464,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
                         numberOfLines={1}
                         ellipsizeMode="tail"
                       >
-                        {formatOndoTokenName(row.tokenName)}
+                        {row.tokenName}
                       </Text>
                     </Box>
                     <Text
