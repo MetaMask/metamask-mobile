@@ -1,4 +1,7 @@
+import { query } from '@metamask/controller-utils';
+import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import Engine from '../../../../../core/Engine';
 import { Side } from '../../types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
@@ -9,12 +12,23 @@ import {
 import {
   createApiKey,
   deriveApiKey,
+  getAllowance,
   getContractConfig,
+  getIsApprovedForAll,
   getOrderBook,
+  getRawBalance,
   previewOrder,
 } from './utils';
 
 const mockSignTypedMessage = jest.fn();
+
+jest.mock('@metamask/controller-utils', () => ({
+  query: jest.fn(),
+}));
+
+jest.mock('@metamask/eth-query', () =>
+  jest.fn().mockImplementation(() => ({})),
+);
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -30,6 +44,12 @@ jest.mock('../../../../../core/Engine', () => ({
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
+const mockQuery = jest.mocked(query);
+const mockEthQuery = jest.mocked(EthQuery);
+const mockNetworkController = Engine.context.NetworkController as {
+  findNetworkClientIdByChainId: jest.Mock;
+  getNetworkClientById: jest.Mock;
+};
 
 const apiKeyCreds = {
   apiKey: 'api-key',
@@ -53,6 +73,12 @@ describe('polymarket utils', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSignTypedMessage.mockResolvedValue('0xsig');
+    mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+      'test-network-client-id',
+    );
+    mockNetworkController.getNetworkClientById.mockReturnValue({
+      provider: {},
+    });
   });
 
   it('creates API keys against the canonical CLOB host', async () => {
@@ -180,5 +206,42 @@ describe('polymarket utils', () => {
     expect(getContractConfig(POLYGON_MAINNET_CHAIN_ID)).toBe(
       MATIC_CONTRACTS_V2,
     );
+  });
+
+  it('treats empty balance results as zero', async () => {
+    mockQuery.mockResolvedValue('0x');
+
+    await expect(
+      getRawBalance({
+        address: '0x1111111111111111111111111111111111111111',
+        tokenAddress: '0x2222222222222222222222222222222222222222',
+      }),
+    ).resolves.toBe(0n);
+
+    expect(mockEthQuery).toHaveBeenCalled();
+  });
+
+  it('treats empty allowance results as zero', async () => {
+    mockQuery.mockResolvedValue('0x');
+
+    await expect(
+      getAllowance({
+        tokenAddress: '0x2222222222222222222222222222222222222222',
+        owner: '0x1111111111111111111111111111111111111111',
+        spender: '0x3333333333333333333333333333333333333333',
+      }),
+    ).resolves.toBe(0n);
+  });
+
+  it('treats empty approval results as false', async () => {
+    mockQuery.mockResolvedValue('0x');
+
+    await expect(
+      getIsApprovedForAll({
+        tokenAddress: '0x2222222222222222222222222222222222222222',
+        owner: '0x1111111111111111111111111111111111111111',
+        operator: '0x3333333333333333333333333333333333333333',
+      }),
+    ).resolves.toBe(false);
   });
 });

@@ -966,23 +966,41 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
           // Safe Factory call - return proxy wallet address
           result = MOCK_RPC_RESPONSES.SAFE_FACTORY_RESULT;
         } else if (
-          toAddress?.toLowerCase() === USDC_CONTRACT_ADDRESS.toLowerCase()
+          toAddress?.toLowerCase() === POLYGON_PUSD_TOKEN_ADDRESS.toLowerCase()
         ) {
-          // USDC contract call - check function selector
+          // pUSD contract call (post-CLOB-v1 migration: Predict balance lives in pUSD).
+          // Return the current global balance for balanceOf so the displayed Predict
+          // balance comes from pUSD, matching production state for v2 users.
           if (callData?.toLowerCase()?.startsWith('0x70a08231')) {
             // balanceOf(address) selector - return current global balance
             result = currentUSDCBalance;
           } else if (callData?.toLowerCase()?.startsWith('0xdd62ed3e')) {
-            // allowance(address,address) selector - return max allowance (uint256 max)
-            // This indicates full allowance is granted
+            // allowance(address,address) selector - max allowance
+            result =
+              '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+          } else {
+            result = currentUSDCBalance;
+          }
+        } else if (
+          toAddress?.toLowerCase() === USDC_CONTRACT_ADDRESS.toLowerCase()
+        ) {
+          // Legacy Safe USDC.e contract call. Post-migration this balance is 0
+          // so deposit/withdraw/claim/trade flows do not append the legacy sweep
+          // maintenance transactions during E2E. Allowances stay maxed so any
+          // unrelated reads still see the wallet as fully approved.
+          if (callData?.toLowerCase()?.startsWith('0x70a08231')) {
+            // balanceOf(address) selector - ABI-encoded 0 (no legacy balance to sweep)
+            result = MOCK_RPC_RESPONSES.ZERO_UINT256_RESULT;
+          } else if (callData?.toLowerCase()?.startsWith('0xdd62ed3e')) {
+            // allowance(address,address) selector - max allowance
             result =
               '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
           } else if (callData?.toLowerCase()?.startsWith('0x6352211e')) {
-            // ownerOf(uint256) selector - return owner of the token
+            // ownerOf(uint256) selector
             result = '0x';
           } else {
-            // Other USDC contract calls - return current global balance as fallback
-            result = currentUSDCBalance;
+            // Other legacy USDC.e contract calls default to ABI-encoded zero.
+            result = MOCK_RPC_RESPONSES.ZERO_UINT256_RESULT;
           }
         } else if (
           toAddress?.toLowerCase() === MULTICALL_CONTRACT_ADDRESS.toLowerCase()
@@ -1012,7 +1030,9 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
           result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
         }
       } else if (body?.method === 'eth_blockNumber') {
-        // Return current block number (dynamically updated to invalidate cache)
+        // Auto-advance so PendingTransactionTracker detects new blocks and
+        // polls eth_getTransactionReceipt, allowing relay deposits to confirm.
+        currentBlockNumber++;
         result = `0x${currentBlockNumber.toString(16)}`;
       } else if (body?.method === 'eth_getBalance') {
         result = MOCK_RPC_RESPONSES.ETH_BALANCE_RESULT;
@@ -1053,9 +1073,10 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
         body?.method === 'eth_sendRawTransaction' ||
         body?.method === 'eth_sendTransaction'
       ) {
-        // A valid 32-byte tx hash is required; returning `0x` breaks submission and the
-        // activity list never shows Predict withdraw (or any) transactions.
-        result = MOCK_RPC_RESPONSES.TRANSACTION_RECEIPT_RESULT.transactionHash;
+        // Return a unique 32-byte hash per call so cross-chain transactions
+        // (e.g. Polygon deposit + Linea relay) don't share the same hash.
+        txHashCounter++;
+        result = `0x${txHashCounter.toString(16).padStart(64, '0')}`;
       } else if (body?.method === 'eth_getBlockByNumber') {
         // Return block details to enable EIP-1559 transactions
         result = {
@@ -1475,7 +1496,7 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
         return false;
       }
 
-      // Parse body to ensure this is a USDC balance call
+      // Parse body to ensure this is a pUSD balance call
       try {
         const bodyText = await request.body.getText();
         const body = bodyText ? JSON.parse(bodyText) : undefined;
@@ -1485,9 +1506,9 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
         const toAddress = body?.params?.[0]?.to?.toLowerCase();
         const callData = body?.params?.[0]?.data;
         const isMatch =
-          toAddress === USDC_CONTRACT_ADDRESS.toLowerCase() &&
+          toAddress === POLYGON_PUSD_TOKEN_ADDRESS.toLowerCase() &&
           callData?.toLowerCase()?.startsWith('0x70a08231');
-        // Only match USDC balanceOf calls
+        // Only match pUSD balanceOf calls (post-CLOB-v1 Predict balance source)
         return isMatch;
       } catch (error) {
         return false;
@@ -1546,15 +1567,23 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
 
         // Verify the request matches cash-out order structure
         // Only check consistent fields - allow variable values for dynamic fields (salt, tokenId, amounts, signature, owner)
+        // CLOB v2 SELL order shape — see
+        // app/components/UI/Predict/providers/polymarket/protocol/orderCodec.ts
+        // (`buildProtocolUnsignedOrder`/`serializeProtocolRelayerOrder`).
+        // v2 orders have `timestamp`, `metadata`, `builder`; v1-only fields
+        // (`taker`, `nonce`, `feeRateBps`) were removed when CLOB v1 support
+        // was dropped, so this matcher must not check them.
         return (
           order &&
           (body.orderType === 'FOK' || body.orderType === 'FAK') &&
           order.maker?.toLowerCase() === PROXY_WALLET_ADDRESS.toLowerCase() &&
           order.signer?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase() &&
-          order.taker === '0x0000000000000000000000000000000000000000' &&
           order.expiration === '0' &&
-          order.nonce === '0' &&
-          typeof order.feeRateBps === 'string' &&
+          typeof order.timestamp === 'string' &&
+          typeof order.metadata === 'string' &&
+          order.metadata.startsWith('0x') &&
+          typeof order.builder === 'string' &&
+          order.builder.startsWith('0x') &&
           order.side === 'SELL' &&
           order.signatureType === 2 &&
           typeof order.salt === 'number' &&
@@ -1878,12 +1907,14 @@ export const POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS = async (
         try {
           const bodyText = await request.body.getText();
           const body = bodyText ? JSON.parse(bodyText) : undefined;
-          const isUSDCBalanceCall =
+          // Match pUSD balanceOf calls — post-CLOB-v1 migration the Predict
+          // balance lives in pUSD, so withdraw flow refreshes target pUSD.
+          const isPusdBalanceCall =
             body?.method === 'eth_call' &&
             body?.params?.[0]?.to?.toLowerCase() ===
-              USDC_CONTRACT_ADDRESS.toLowerCase();
+              POLYGON_PUSD_TOKEN_ADDRESS.toLowerCase();
 
-          return isUSDCBalanceCall;
+          return isPusdBalanceCall;
         } catch (error) {
           return false;
         }

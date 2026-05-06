@@ -1441,6 +1441,14 @@ export const getAllowanceCalls = (params: { address: string }) => {
   return calls;
 };
 
+const parseNumericRpcResult = (res: string): bigint => {
+  if (res === '0x') {
+    return 0n;
+  }
+
+  return BigInt(res);
+};
+
 export const getAllowance = async ({
   tokenAddress,
   owner,
@@ -1471,8 +1479,8 @@ export const getAllowance = async ({
     },
   ]);
 
-  // Decode the result
-  const allowance = BigInt(res);
+  // Treat empty hex responses as zero to avoid breaking on sparse/mock RPCs.
+  const allowance = parseNumericRpcResult(res);
   return allowance;
 };
 
@@ -1507,7 +1515,7 @@ export const getIsApprovedForAll = async ({
   ]);
 
   // Decode the result - convert hex to boolean
-  const isApproved = BigInt(res) !== 0n;
+  const isApproved = parseNumericRpcResult(res) !== 0n;
   return isApproved;
 };
 
@@ -1558,7 +1566,7 @@ export const getRawBalance = async ({
     },
   ]);
 
-  return BigInt(res);
+  return parseNumericRpcResult(res);
 };
 
 export const getBalance = async ({
