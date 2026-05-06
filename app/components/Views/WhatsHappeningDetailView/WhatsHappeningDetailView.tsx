@@ -65,13 +65,18 @@ const WhatsHappeningDetailView = () => {
   }, []);
 
   useEffect(() => {
-    if (initialIndex > 0 && scrollViewRef.current && !isLoading) {
+    if (
+      initialIndex > 0 &&
+      cardHeight > 0 &&
+      scrollViewRef.current &&
+      !isLoading
+    ) {
       scrollViewRef.current.scrollTo({
         x: initialIndex * SNAP_INTERVAL,
         animated: false,
       });
     }
-  }, [initialIndex, isLoading]);
+  }, [initialIndex, isLoading, cardHeight]);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
