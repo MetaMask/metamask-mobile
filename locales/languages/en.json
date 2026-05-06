@@ -6476,10 +6476,17 @@
       },
       "education": {
         "heading": "GET {{percentage}}% ON\nSTABLECOINS",
-        "description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "description": "Convert your stablecoins to mUSD and earn a {{percentage}}% annualized bonus.",
         "terms_apply": "Terms apply.",
         "primary_button": "Get Started",
-        "secondary_button": "Not now"
+        "secondary_button": "Not now",
+        "checklist": {
+          "dollar_backed": "Dollar-backed",
+          "no_lockups": "No lockups",
+          "daily_bonus": "Daily bonus",
+          "metamask_stablecoins": "MetaMask stablecoins",
+          "no_metamask_fee": "No MetaMask fee"
+        }
       },
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
@@ -6523,6 +6530,7 @@
   },
   "money": {
     "title": "Money",
+    "your_balance": "Your balance",
     "apy_label": "{{percentage}}% APY",
     "apy_info_label": "APY info",
     "onboarding": {
@@ -6555,6 +6563,12 @@
     },
     "musd_row": {
       "add": "Add"
+    },
+    "balance_card": {
+      "label": "Money balance",
+      "add": "Add",
+      "info_sheet_title": "Money Home",
+      "info_sheet_body": "Your dollar-backed balance, always available. Spend it, send it, or trade it anytime. We don't calculate this into your total account balance."
     },
     "potential_earnings": {
       "title": "Earn on your crypto",
@@ -9000,14 +9014,14 @@
   },
   "homepage": {
     "sections": {
-      "cash": "Money",
-      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Money section on the homepage.",
-      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
-      "cash_empty_state": {
+      "money": "Money",
+      "money_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Money section on the homepage.",
+      "money_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
+      "money_empty_state": {
         "get_started": "Get started",
         "earn_apy": "Earn {{percentage}}% APY"
       },
-      "cash_filled_state": {
+      "money_filled_state": {
         "add": "Add",
         "apy": "{{percentage}}% APY"
       },
