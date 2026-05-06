@@ -5088,6 +5088,59 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getPerpsTradingCampaignParticipantOutcome', () => {
+    const mockCampaignId = 'perps-outcome-campaign-1';
+    const mockSubscriptionId = 'sub-perps-outcome-1';
+    const mockToken = 'test-bearer-token';
+    const mockOutcome = {
+      subscriptionId: mockSubscriptionId,
+      outcomeStatus: 'finalized' as const,
+      winnerVerificationCode: null,
+      rank: 3,
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('calls the authenticated perps outcome endpoint and returns data', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockOutcome),
+      } as unknown as Response);
+
+      const result = await service.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/perps-trading/${mockCampaignId}/outcome/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockOutcome);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 401 } as Response);
+
+      await expect(
+        service.getPerpsTradingCampaignParticipantOutcome(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Get Perps Trading participant outcome failed: 401');
+    });
+  });
+
   describe('getPerpsTradingCampaignLeaderboard', () => {
     const mockCampaignId = 'perps-campaign-api-1';
     const mockLeaderboard = {

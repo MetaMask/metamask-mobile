@@ -1226,7 +1226,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('validates price requirement before attempting order placement', async () => {
+    it('retries with adjusted USD when price-less order hits $10 minimum (uses fetched price from allMids)', async () => {
       // Create provider with PUMP in the asset mapping
       provider = createTestProvider({
         initialAssetMapping: [
@@ -1256,24 +1256,38 @@ describe('HyperLiquidProvider', () => {
         isBuy: true,
         size: '2553',
         orderType: 'market',
+        // No currentPrice: provider fetches live price (0.003918) and uses it
+        // for both validation and the $10-minimum retry path.
       };
+
+      const mockOrder = jest
+        .fn()
+        .mockRejectedValueOnce(
+          new Error('Order must have minimum value of $10'),
+        )
+        .mockResolvedValueOnce({
+          status: 'ok',
+          response: {
+            data: {
+              statuses: [
+                { filled: { oid: 123, totalSz: '2553', avgPx: '0.004' } },
+              ],
+            },
+          },
+        });
 
       mockClientService.getExchangeClient = jest.fn().mockReturnValue({
         ...createMockExchangeClient(),
-        order: jest
-          .fn()
-          .mockRejectedValueOnce(
-            new Error('Order must have minimum value of $10'),
-          ),
+        order: mockOrder,
       });
 
       const result = await provider.placeOrder(orderParams);
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
-      expect(
-        mockClientService.getExchangeClient().order,
-      ).not.toHaveBeenCalled();
+      // The live price is fetched → validation passes → order is submitted →
+      // first call hits $10 minimum → retry uses fetched price to compute
+      // adjusted usdAmount → second call succeeds.
+      expect(result.success).toBe(true);
+      expect(mockOrder).toHaveBeenCalledTimes(2);
     });
 
     it('closes a position successfully', async () => {
@@ -2812,6 +2826,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('handles missing price data', async () => {
+      mockSubscriptionService.getCachedPrice.mockReturnValueOnce(undefined);
       (
         mockClientService.getInfoClient().allMids as jest.Mock
       ).mockResolvedValueOnce({});
@@ -2825,8 +2840,10 @@ describe('HyperLiquidProvider', () => {
 
       const result = await provider.placeOrder(orderParams);
 
+      // allMids returns {} so #getOrFetchPrice parses price as 0, which is
+      // invalid. The error surfaces from #getAssetInfo before validation runs.
       expect(result.success).toBe(false);
-      expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
+      expect(result.error).toContain('Invalid price for BTC: 0');
     });
 
     it('handles missing position in close operation', async () => {
@@ -3545,19 +3562,45 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toContain('Failed to update leverage');
       });
 
-      it('fails market order without current price or usdAmount', async () => {
+      it('succeeds with market order without current price or usdAmount (uses fetched price)', async () => {
+        // The provider now fetches the live price before validation so callers
+        // that intentionally omit currentPrice (e.g. flipPosition) work correctly.
         const orderParams: OrderParams = {
           symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
-          // No currentPrice or usdAmount provided - should fail validation
+          // No currentPrice or usdAmount: provider fetches live price (50000)
         };
 
         const result = await provider.placeOrder(orderParams);
 
-        expect(result.success).toBe(false);
-        expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
+        expect(result.success).toBe(true);
+        expect(mockClientService.getExchangeClient().order).toHaveBeenCalled();
+      });
+
+      it('placeOrder validates against fetched price when params omit currentPrice (flipPosition path)', async () => {
+        // Simulate the exact OrderParams shape that TradingService.flipPosition
+        // builds: symbol + isBuy + size + orderType + leverage, no price fields.
+        const flipOrderParams: OrderParams = {
+          symbol: 'BTC',
+          isBuy: false, // flipping long → short
+          size: '1', // 2× the 0.5 BTC position
+          orderType: 'market',
+          leverage: 10,
+          // currentPrice, usdAmount, price intentionally absent
+        };
+
+        const result = await provider.placeOrder(flipOrderParams);
+
+        // Live price (50000) is fetched from allMids → validation passes
+        // (0.1 BTC × $50 000 = $5 000 >> $10 minimum) → order executes.
+        expect(result.success).toBe(true);
+        expect(
+          mockClientService.getExchangeClient().order,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({ orders: expect.any(Array) }),
+        );
       });
 
       it('handles order with custom slippage', async () => {
