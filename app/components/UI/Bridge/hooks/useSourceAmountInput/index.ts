@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { getCurrencySymbol } from '../../../../../util/number/bigint';
@@ -32,15 +32,18 @@ export const useSourceAmountInput = ({
   const fiatRate = useTokenFiatRate(sourceToken);
   const canToggle = Boolean(fiatRate && fiatRate > 0);
   const amount = isFiatMode ? fiatAmount : sourceAmount;
+  const isFiatInputChangeRef = useRef(false);
 
   const handleAmountChange = useCallback(
     (value: string | undefined) => {
       if (!isFiatMode) {
+        isFiatInputChangeRef.current = false;
         onSourceAmountChange(value);
         return;
       }
 
       setFiatAmount(value);
+      isFiatInputChangeRef.current = true;
       onSourceAmountChange(
         formatTokenInputAmountFromFiat({
           fiatAmount: value,
@@ -77,6 +80,7 @@ export const useSourceAmountInput = ({
     resetSourceAmountCursorPosition();
     setIsFiatMode(false);
     setFiatAmount(undefined);
+    isFiatInputChangeRef.current = false;
   }, [canToggle, isFiatMode, resetSourceAmountCursorPosition]);
 
   // Keep the visible fiat amount aligned when the canonical token amount
@@ -87,6 +91,18 @@ export const useSourceAmountInput = ({
     }
 
     const nextFiatAmount = formatFiatInputAmount(sourceAmount, fiatRate);
+    if (isFiatInputChangeRef.current) {
+      const tokenAmountFromFiatInput = formatTokenInputAmountFromFiat({
+        fiatAmount,
+        tokenFiatRate: fiatRate,
+        tokenDecimals: sourceToken?.decimals,
+      });
+      if (tokenAmountFromFiatInput === sourceAmount) {
+        isFiatInputChangeRef.current = false;
+      }
+      return;
+    }
+
     if (nextFiatAmount === fiatAmount) {
       return;
     }
@@ -100,11 +116,13 @@ export const useSourceAmountInput = ({
     isFiatMode,
     resetSourceAmountCursorPosition,
     sourceAmount,
+    sourceToken?.decimals,
   ]);
 
   const syncFiatAmountToTokenAmount = useCallback(
     (tokenAmount: string | undefined) => {
       resetSourceAmountCursorPosition();
+      isFiatInputChangeRef.current = false;
       if (isFiatMode) {
         setFiatAmount(formatFiatInputAmount(tokenAmount, fiatRate));
       }
@@ -116,6 +134,7 @@ export const useSourceAmountInput = ({
     resetSourceAmountCursorPosition();
     setIsFiatMode(false);
     setFiatAmount(undefined);
+    isFiatInputChangeRef.current = false;
   }, [resetSourceAmountCursorPosition]);
 
   const handleToggle = useCallback(() => {
@@ -127,6 +146,7 @@ export const useSourceAmountInput = ({
       setSourceAmountCursorPositionToEnd(sourceAmount);
       setIsFiatMode(false);
       setFiatAmount(undefined);
+      isFiatInputChangeRef.current = false;
       return;
     }
 
