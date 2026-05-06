@@ -23,6 +23,13 @@ const mockSetOptions = jest.fn();
 let mockStablecoinsByChain: Record<CaipChainId, CaipAssetType[]> = {};
 let mockWalletTokens: BridgeToken[] = [];
 let mockPricePercentChangesByAddress: Record<string, number | undefined> = {};
+let mockTokenMarketData: Record<
+  Hex,
+  Record<Hex, { price?: number; pricePercentChange1d?: number }>
+> = {};
+let mockCurrencyRates: Record<string, { conversionRate: number }> = {};
+let mockCurrentCurrency = 'usd';
+let mockNativeCurrencyByChainId: Record<Hex, string | undefined> = {};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -247,6 +254,27 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../../component-library/components/Texts/Text', () => {
+  const { Text } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: ({ children, ...props }: { children?: React.ReactNode }) => (
+      <Text {...props}>{children}</Text>
+    ),
+    TextColor: {
+      Alternative: 'Alternative',
+      Default: 'Default',
+      Error: 'Error',
+      Success: 'Success',
+    },
+    TextVariant: {
+      BodySM: 'BodySM',
+      BodySMMedium: 'BodySMMedium',
+    },
+  };
+});
+
 jest.mock(
   '../../../../../component-library/components-temp/Buttons/ButtonToggle',
   () => {
@@ -282,6 +310,21 @@ jest.mock('../../../Tokens/hooks/useTokenPricePercentageChange', () => ({
     address ? mockPricePercentChangesByAddress[address] : undefined,
 }));
 
+jest.mock('../../../../../selectors/tokenRatesController', () => ({
+  selectTokenMarketData: jest.fn(() => mockTokenMarketData),
+}));
+
+jest.mock('../../../../../selectors/currencyRateController', () => ({
+  selectCurrencyRates: jest.fn(() => mockCurrencyRates),
+  selectCurrentCurrency: jest.fn(() => mockCurrentCurrency),
+}));
+
+jest.mock('../../../../../selectors/networkController', () => ({
+  selectNativeCurrencyByChainId: jest.fn(
+    (_state: unknown, chainId: Hex) => mockNativeCurrencyByChainId[chainId],
+  ),
+}));
+
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBatchSellDestStablecoinsByChain: jest.fn(() => mockStablecoinsByChain),
   setBatchSellSourceTokens: jest.fn((tokens: BridgeToken[]) => ({
@@ -300,27 +343,17 @@ jest.mock('../../components/TokenSelectorItem', () => {
     TokenSelectorItem: ({
       children,
       onPress,
-      pricePercentChangeText,
-      pricePercentChangeTextColor,
+      secondaryRowContent,
       token,
     }: {
       children?: React.ReactNode;
       onPress: (token: BridgeToken) => void;
-      pricePercentChangeText?: string;
-      pricePercentChangeTextColor?: string;
+      secondaryRowContent?: React.ReactNode;
       token: BridgeToken;
     }) => (
       <Pressable onPress={() => onPress(token)}>
         <Text>{token.symbol}</Text>
-        <Text>{token.name}</Text>
-        {pricePercentChangeText && (
-          <Text
-            color={pricePercentChangeTextColor}
-            testID={`price-change-${token.symbol}`}
-          >
-            {pricePercentChangeText}
-          </Text>
-        )}
+        {secondaryRowContent ?? <Text>{token.name}</Text>}
         <View>{children}</View>
       </Pressable>
     ),
@@ -454,6 +487,15 @@ describe('BatchSellTokenSelect', () => {
     jest.clearAllMocks();
     mockStablecoinsByChain = {};
     mockPricePercentChangesByAddress = {};
+    mockTokenMarketData = {};
+    mockCurrencyRates = {
+      ETH: { conversionRate: 1 },
+    };
+    mockCurrentCurrency = 'usd';
+    mockNativeCurrencyByChainId = {
+      ['0x1' as Hex]: 'ETH',
+      ['0x38' as Hex]: 'BNB',
+    };
     mockWalletTokens = [
       createToken({ symbol: 'ETHA', name: 'Ethereum A', tokenFiatAmount: 10 }),
     ];
@@ -580,7 +622,7 @@ describe('BatchSellTokenSelect', () => {
     expect(queryByText('ETHB')).not.toBeOnTheScreen();
   });
 
-  it('renders token price percentage changes with wallet colors', () => {
+  it('renders token prices and percentage changes with wallet colors', () => {
     const gainToken = createToken({
       symbol: 'GAIN',
       name: 'Gain Token',
@@ -598,15 +640,26 @@ describe('BatchSellTokenSelect', () => {
       [gainToken.address]: 1.23,
       [lossToken.address]: -4.56,
     };
+    mockCurrencyRates = {
+      ETH: { conversionRate: 2000 },
+    };
+    mockTokenMarketData = {
+      ['0x1' as Hex]: {
+        [gainToken.address as Hex]: { price: 1.17226 },
+        [lossToken.address as Hex]: { price: 0.5 },
+      },
+    };
 
-    const { getByTestId, getByText } = render(<BatchSellTokenSelect />);
+    const { getByText } = render(<BatchSellTokenSelect />);
 
+    expect(getByText('$2,344.52')).toBeOnTheScreen();
+    expect(getByText('$1,000.00')).toBeOnTheScreen();
     expect(getByText('+1.23%')).toBeOnTheScreen();
     expect(getByText('-4.56%')).toBeOnTheScreen();
-    expect(getByTestId('price-change-GAIN').props.color).toBe(
+    expect(getByText('+1.23%').props.color).toBe(
       ComponentLibraryTextColor.Success,
     );
-    expect(getByTestId('price-change-LOSS').props.color).toBe(
+    expect(getByText('-4.56%').props.color).toBe(
       ComponentLibraryTextColor.Error,
     );
   });
