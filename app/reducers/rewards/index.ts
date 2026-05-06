@@ -687,7 +687,7 @@ const rewardsSlice = createSlice({
     },
 
     setBenefits: (state, action: PayloadAction<SubscriptionBenefitsState>) => {
-      state.benefits = action.payload.benefits;
+      state.benefits = action.payload.benefits ?? [];
     },
 
     setBenefitsLoading: (state, action: PayloadAction<boolean>) => {
@@ -897,9 +897,10 @@ const rewardsSlice = createSlice({
               seasonName: action.payload.rewards.seasonName,
               seasonStartDate: action.payload.rewards.seasonStartDate,
               seasonEndDate: action.payload.rewards.seasonEndDate,
-              seasonTiers: action.payload.rewards.seasonTiers,
-              seasonActivityTypes: action.payload.rewards.seasonActivityTypes,
-              seasonWaysToEarn: action.payload.rewards.seasonWaysToEarn,
+              seasonTiers: action.payload.rewards.seasonTiers ?? [],
+              seasonActivityTypes:
+                action.payload.rewards.seasonActivityTypes ?? [],
+              seasonWaysToEarn: action.payload.rewards.seasonWaysToEarn ?? [],
               referralCode: action.payload.rewards.referralCode,
               refereeCount: action.payload.rewards.refereeCount,
               currentTier: action.payload.rewards.currentTier,

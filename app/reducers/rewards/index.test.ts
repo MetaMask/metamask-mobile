@@ -2328,6 +2328,27 @@ describe('rewardsReducer', () => {
       );
     });
 
+    it('should default persisted season arrays to empty arrays when absent', () => {
+      const persistedRewardsStateWithoutFields = {
+        ...initialState,
+        seasonTiers: undefined,
+        seasonActivityTypes: undefined,
+        seasonWaysToEarn: undefined,
+      } as unknown as RewardsState;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: {
+          rewards: persistedRewardsStateWithoutFields,
+        },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.seasonTiers).toEqual([]);
+      expect(state.seasonActivityTypes).toEqual([]);
+      expect(state.seasonWaysToEarn).toEqual([]);
+    });
+
     it('should preserve all persisted UI state fields', () => {
       // Arrange
       const persistedRewardsState: RewardsState = {
@@ -4636,6 +4657,17 @@ describe('setBenefits', () => {
     const state = rewardsReducer(initialState, action);
 
     expect(state.benefits).toEqual(mockBenefitsPayload.benefits);
+  });
+
+  it('sets benefits to empty array when payload benefits are missing', () => {
+    const action = setBenefits({
+      ...mockBenefitsPayload,
+      benefits: undefined,
+    } as unknown as typeof mockBenefitsPayload);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.benefits).toEqual([]);
   });
 
   it('replaces existing benefits with new payload benefits', () => {
