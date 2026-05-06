@@ -33,7 +33,7 @@ describe('TabsIconBar', () => {
     {
       key: 'tab3',
       label: 'Predictions',
-      iconName: IconName.Predict,
+      iconName: IconName.Predictions,
       content: null,
     },
   ];

@@ -1,10 +1,12 @@
 // Third party dependencies.
 import React, { createRef } from 'react';
+import { StyleSheet } from 'react-native';
 import { render, screen, act } from '@testing-library/react-native';
 
 // Internal dependencies.
 import Toast from './Toast';
 import { ToastRef, ToastVariants, ToastOptions } from './Toast.types';
+import { ToastSelectorsIDs } from './ToastModal.testIds';
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
 
@@ -162,5 +164,25 @@ describe('Toast', () => {
 
     expect(screen.queryByText('In Progress')).toBeNull();
     expect(screen.getByText('Success')).toBeOnTheScreen();
+  });
+
+  it('uses flex-start justifyContent on labels container by default', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Aligned label' }],
+      hasNoTimeout: true,
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    const labelsContainer = screen.getByTestId(ToastSelectorsIDs.CONTAINER);
+    const flat = StyleSheet.flatten(labelsContainer.props.style);
+
+    expect(flat.justifyContent).toBe('flex-start');
   });
 });

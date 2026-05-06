@@ -345,7 +345,7 @@ const HomepageDiscoveryTabs = forwardRef<
 
                 <DiscoveryTabView
                   tabLabel="Predictions"
-                  tabIcon={IconName.Predict}
+                  tabIcon={IconName.Predictions}
                   keepMounted={false}
                 >
                   <PredictPreviewSheetProvider>

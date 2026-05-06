@@ -12,6 +12,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
+import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { usePerpsFeed, type PerpsFeedItem } from '../feeds/perps/usePerpsFeed';
@@ -29,6 +30,7 @@ import HorizontalCarousel from '../components/HorizontalCarousel';
 import SectionHeader from '../components/SectionHeader';
 import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
+import { trackExploreInteracted } from '../search/analytics';
 
 interface CryptoPerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -53,14 +55,26 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
         title={strings('trending.crypto_perps_section')}
         onViewAll={onViewAll}
         testID="section-header-view-all-crypto_perps"
+        tabName="Crypto"
+        sectionName="perps_crypto"
       />
       <TileCarousel<PerpsFeedItem>
         data={perps.data}
         isLoading={perps.isLoading}
-        renderItem={(item) => (
+        renderItem={(item, index) => (
           <PerpsTileRowItem
             item={item}
             testIdPrefix="crypto-tab-perps-market-tile-card"
+            onCardPress={() =>
+              trackExploreInteracted({
+                interaction_type: 'section_item_tapped',
+                tab_name: 'Crypto',
+                section_name: 'perps_crypto',
+                asset_type: 'perp',
+                position: index,
+                item_clicked: item.market.symbol,
+              })
+            }
           />
         )}
         keyExtractor={(item) => item.market.symbol}
@@ -91,16 +105,46 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         token={item}
         index={index}
         tokenDetailsSource={TokenDetailsSource.ExploreCryptoTrending}
+        onCardPress={() =>
+          trackExploreInteracted({
+            interaction_type: 'section_item_tapped',
+            tab_name: 'Crypto',
+            section_name: 'tokens_trending',
+            asset_type: 'token',
+            position: index,
+            token_symbol: item.symbol,
+            chain_id: getCaipChainIdFromAssetId(item.assetId),
+            item_clicked: item.assetId,
+          })
+        }
       />
     ),
     [],
   );
 
   const renderPredictionItem: ListRenderItem<PredictMarketType> = useCallback(
-    ({ item }) => (
+    ({ item, index }) => (
       <PredictionCarouselRowItem
         market={item}
         testIdPrefix="predict-crypto-market-row-item"
+        onCardPress={() =>
+          trackExploreInteracted({
+            interaction_type: 'section_item_tapped',
+            tab_name: 'Crypto',
+            section_name: 'predictions_crypto',
+            asset_type: 'prediction',
+            position: index,
+            item_clicked: item.id,
+          })
+        }
+        onBuyButtonPress={(marketId) =>
+          trackExploreInteracted({
+            interaction_type: 'prediction_voted',
+            tab_name: 'Crypto',
+            section_name: 'predictions_crypto',
+            item_clicked: marketId,
+          })
+        }
       />
     ),
     [],
@@ -120,6 +164,8 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
               navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW)
             }
             testID="section-header-view-all-tokens"
+            tabName="Crypto"
+            sectionName="tokens_trending"
           />
           <CardList<TrendingAsset>
             data={tokens.data}
@@ -148,6 +194,8 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             title={strings('trending.predictions')}
             onViewAll={() => navigateToPredictionsList(navigation, 'crypto')}
             testID="section-header-view-all-crypto_predictions"
+            tabName="Crypto"
+            sectionName="predictions_crypto"
           />
           <HorizontalCarousel<PredictMarketType>
             data={cryptoPredictions.data}
