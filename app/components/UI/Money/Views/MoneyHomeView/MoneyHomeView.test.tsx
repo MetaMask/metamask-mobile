@@ -537,20 +537,29 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders the structural divider after MoneyEarnings when the bonus card is visible', () => {
+    it('omits the parent divider when the bonus card is visible to avoid stacking two dividers', () => {
+      // Regression guard for the double-divider bug: AssetOverviewClaimBonus
+      // already renders its own internal top divider for the asset-overview
+      // page consumer, so MoneyHomeView must NOT render the parent divider
+      // when the bonus card is visible — otherwise the user sees two
+      // adjacent dividers (~80px combined spacing).
       mockUseMerklBonusClaim.mockReturnValue(
         buildMerklClaimDataMock({
           claimableReward: '5.00',
           hasPendingClaim: false,
         }),
       );
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      expect(
-        getByTestId(MoneyHomeViewTestIds.EARNINGS_DIVIDER),
-      ).toBeOnTheScreen();
+      const { getByTestId, queryByTestId, queryAllByTestId } =
+        renderWithProvider(<MoneyHomeView />);
       expect(
         getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER),
       ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyHomeViewTestIds.EARNINGS_DIVIDER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryAllByTestId(MoneyHomeViewTestIds.EARNINGS_DIVIDER),
+      ).toHaveLength(0);
     });
   });
 

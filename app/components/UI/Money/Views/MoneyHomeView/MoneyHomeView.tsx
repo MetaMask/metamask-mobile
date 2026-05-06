@@ -269,7 +269,9 @@ const MoneyHomeView = () => {
           isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
           onInfoPress={handleEarningsInfoPress}
         />
-        <Divider testID={MoneyHomeViewTestIds.EARNINGS_DIVIDER} />
+        {!isBonusEligible && (
+          <Divider testID={MoneyHomeViewTestIds.EARNINGS_DIVIDER} />
+        )}
         {isBonusEligible && (
           <AssetOverviewClaimBonus
             asset={LINEA_MUSD_ASSET_FOR_MERKL}
