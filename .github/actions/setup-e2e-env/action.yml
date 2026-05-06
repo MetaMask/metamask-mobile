@@ -77,6 +77,10 @@ inputs:
     description: 'Target for which the keystore is being configured (e.g., qa, flask, main)'
     required: false
     default: 'qa'
+  runner_provider:
+    description: 'Runner provider forwarded from the caller workflow chain. When set to "namespace", toolchain-install steps short-circuit if the pinned version is already on the image. Default "current" preserves byte-identical behaviour on existing GitHub-hosted / Cirrus runners.'
+    required: false
+    default: 'current'
 
 runs:
   using: 'composite'
@@ -106,14 +110,19 @@ runs:
 
     ## JDK Setup
     - name: Setup Java
-      if: ${{ inputs.platform == 'android' }}
+      # Skip on namespace runners only when the image already exposes JAVA_HOME
+      # (the metamask-android-build base image bakes Temurin 17 and sets JAVA_HOME).
+      # Defensive fallback: still run setup-java if JAVA_HOME is empty on namespace.
+      if: ${{ inputs.platform == 'android' && (inputs.runner_provider != 'namespace' || env.JAVA_HOME == '') }}
       uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
       with:
         java-version: ${{ inputs.jdk-version }}
         distribution: ${{ inputs.jdk-distribution }}
 
     - name: Install required emulator dependencies
-      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && runner.os == 'Linux' }}
+      # Skip apt-get install on namespace — libpulse0 / libglu1-mesa / libnss3 / libxss1
+      # are baked into the metamask-android-build image.
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && runner.os == 'Linux' && inputs.runner_provider != 'namespace' }}
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
       with:
         timeout_minutes: 5
