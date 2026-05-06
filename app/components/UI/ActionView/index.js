@@ -73,9 +73,9 @@ const getStyles = (colors) =>
 export default function ActionView({
   cancelTestID = '',
   confirmTestID = '',
-  cancelText,
+  cancelText = '',
   children,
-  confirmText,
+  confirmText = '',
   confirmButtonMode = 'normal',
   onCancelPress,
   onConfirmPress,
