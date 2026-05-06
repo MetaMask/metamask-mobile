@@ -354,6 +354,7 @@ const Settings: React.FC = () => {
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
       <HeaderStandard
+        testID="header"
         title={strings('app_settings.security_title')}
         onBack={() => navigation.goBack()}
         includesTopInset
