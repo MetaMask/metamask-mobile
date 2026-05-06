@@ -421,7 +421,26 @@
   "AssetsController": {
     "assetPreferences": {},
     "assetsBalance": {},
-    "assetsInfo": {},
+    "assetsInfo": {
+      "eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da": {
+        "decimals": 6,
+        "name": "MetaMask USD",
+        "symbol": "mUSD",
+        "type": "erc20"
+      },
+      "eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da": {
+        "decimals": 6,
+        "name": "MetaMask USD",
+        "symbol": "mUSD",
+        "type": "erc20"
+      },
+      "eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da": {
+        "decimals": 6,
+        "name": "MetaMask USD",
+        "symbol": "mUSD",
+        "type": "erc20"
+      }
+    },
     "assetsPrice": {},
     "customAssets": {},
     "selectedCurrency": "usd"
@@ -729,6 +748,9 @@
     "ondoCampaignActivity": {},
     "ondoCampaignDeposits": {},
     "ondoCampaignLeaderboard": {},
+    "perpsTradingCampaignLeaderboard": {},
+    "perpsTradingCampaignLeaderboardPositions": {},
+    "perpsTradingCampaignVolume": {},
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},

@@ -238,6 +238,8 @@ jest.mock('../../app/core/Engine', () => {
         getBalance: jest.fn().mockResolvedValue(0),
         getPositions: jest.fn().mockResolvedValue([]),
         getPrices: jest.fn().mockResolvedValue({ providerId: '', results: [] }),
+        subscribeToMarketPrices: jest.fn(() => () => undefined),
+        getConnectionStatus: jest.fn(() => ({ marketConnected: false })),
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),
         trackMarketDetailsOpened: jest.fn(),

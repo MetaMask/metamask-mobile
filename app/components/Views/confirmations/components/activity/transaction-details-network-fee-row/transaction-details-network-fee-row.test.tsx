@@ -65,4 +65,15 @@ describe('TransactionDetailsNetworkFeeRow', () => {
 
     expect(toJSON()).toBeNull();
   });
+
+  it('renders calculated network fee for moneyAccountWithdraw fallback', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        type: TransactionType.moneyAccountWithdraw,
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+    expect(getByText(`$${CALCULATED_FEE_MOCK}`)).toBeDefined();
+  });
 });
