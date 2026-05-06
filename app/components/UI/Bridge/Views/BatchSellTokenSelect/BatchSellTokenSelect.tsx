@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Image, ListRenderItemInfo, Pressable } from 'react-native';
+import { ListRenderItemInfo, Pressable } from 'react-native';
 import { FlatList, ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,7 +12,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -30,7 +29,6 @@ import { CaipChainId } from '@metamask/utils';
 
 import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../locales/i18n';
-import AppConstants from '../../../../../core/AppConstants';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectBatchSellDestStablecoinsByChain,
@@ -41,7 +39,6 @@ import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
 import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
 import { ButtonSize as ButtonToggleSize } from '../../../../../component-library/components/Buttons/Button';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import emptyStateDefiLight from '../../../../../images/empty-state-defi-light.png';
 import {
   buildBatchSellEligibleChains,
   removeStablecoinsFromSourceTokens,
@@ -53,6 +50,7 @@ import {
 } from './BatchSellTokenSelect.utils';
 import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
 import { BatchSellTokenRow } from './BatchSellTokenRow';
+import { BatchSellEmptyState } from './BatchSellEmptyState';
 
 const getTokenKey = (token: BridgeToken) =>
   `${formatChainIdToCaip(token.chainId)}:${token.address}`;
@@ -220,12 +218,8 @@ export function BatchSellTokenSelect() {
   }, [dispatch, navigation, selectedTokens, stablecoinsByChain]);
 
   const handleExploreTokensPress = useCallback(() => {
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: AppConstants.EXPLORE_TOKENS.URL,
-        timestamp: Date.now(),
-      },
+    navigation.navigate(Routes.TRENDING_VIEW, {
+      screen: Routes.TRENDING_FEED,
     });
   }, [navigation]);
 
@@ -308,45 +302,7 @@ export function BatchSellTokenSelect() {
 
   if (eligibleSourceTokens.length === 0) {
     return (
-      <SafeAreaView style={tw.style('flex-1 bg-default')} edges={['bottom']}>
-        <Box
-          testID={BatchSellTokenSelectSelectorsIDs.EMPTY_STATE}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 px-8"
-        >
-          <Image
-            source={emptyStateDefiLight}
-            resizeMode="contain"
-            style={tw.style('h-[96px] w-[96px] mb-6')}
-          />
-          <Text
-            variant={TextVariant.HeadingMd}
-            color={TextColor.TextDefault}
-            twClassName="text-center"
-          >
-            {strings('bridge.batch_sell_empty_state_title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="mt-2 text-center"
-          >
-            {strings('bridge.batch_sell_empty_state_description')}
-          </Text>
-          <Box twClassName="mt-6 w-full">
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={handleExploreTokensPress}
-              testID={BatchSellTokenSelectSelectorsIDs.EXPLORE_TOKENS_BUTTON}
-            >
-              {strings('bridge.explore_tokens')}
-            </Button>
-          </Box>
-        </Box>
-      </SafeAreaView>
+      <BatchSellEmptyState onExploreTokensPress={handleExploreTokensPress} />
     );
   }
 
@@ -420,28 +376,6 @@ export function BatchSellTokenSelect() {
           keyExtractor={getTokenKey}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-4')}
-          ListEmptyComponent={
-            <Box
-              testID={BatchSellTokenSelectSelectorsIDs.SEARCH_EMPTY_STATE}
-              alignItems={BoxAlignItems.Center}
-              twClassName="px-8 py-20"
-            >
-              <Text
-                variant={TextVariant.HeadingMd}
-                color={TextColor.TextDefault}
-                twClassName="text-center"
-              >
-                {strings('bridge.no_tokens_found')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                twClassName="mt-2 text-center"
-              >
-                {strings('bridge.no_tokens_found_description')}
-              </Text>
-            </Box>
-          }
         />
         <Box twClassName="border-t border-muted px-4 pb-4 pt-3">
           <Button

@@ -13,7 +13,6 @@ import {
   sortBatchSellTokens,
 } from './BatchSellTokenSelect.utils';
 import Routes from '../../../../../constants/navigation/Routes';
-import AppConstants from '../../../../../core/AppConstants';
 import { BridgeTokenMetadata } from '../../constants/tokens';
 import {
   TextColor as ComponentLibraryTextColor,
@@ -775,7 +774,9 @@ describe('BatchSellTokenSelect', () => {
 
     const { getByText, queryByTestId } = render(<BatchSellTokenSelect />);
 
-    expect(getByText('No tokens. No problem.')).toBeOnTheScreen();
+    expect(
+      getByText('No tokens. No problem. Explore and buy tokens to batch sell.'),
+    ).toBeOnTheScreen();
     expect(
       queryByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON),
     ).not.toBeOnTheScreen();
@@ -790,12 +791,8 @@ describe('BatchSellTokenSelect', () => {
       getByTestId(BatchSellTokenSelectSelectorsIDs.EXPLORE_TOKENS_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: AppConstants.EXPLORE_TOKENS.URL,
-        timestamp: expect.any(Number),
-      },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW, {
+      screen: Routes.TRENDING_FEED,
     });
   });
 

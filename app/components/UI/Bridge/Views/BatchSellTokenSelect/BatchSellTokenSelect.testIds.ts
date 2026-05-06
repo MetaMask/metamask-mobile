@@ -5,6 +5,5 @@ export const BatchSellTokenSelectSelectorsIDs = {
   NEXT_BUTTON: 'batch-sell-token-select-next-button',
   EMPTY_STATE: 'batch-sell-token-select-empty-state',
   EXPLORE_TOKENS_BUTTON: 'batch-sell-token-select-explore-tokens-button',
-  SEARCH_EMPTY_STATE: 'batch-sell-token-select-search-empty-state',
   BALANCE_SORT_BUTTON: 'batch-sell-token-select-balance-sort-button',
 };
