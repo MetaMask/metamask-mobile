@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -31,7 +31,7 @@ const PerpsRowSingleSkeleton: React.FC = () => <PerpsRowSkeleton count={1} />;
 
 interface MacroPerpsBlockProps {
   refresh: TabProps['refresh'];
-  onViewAll: () => void;
+  onViewAll: (filter: string) => void;
 }
 
 const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
@@ -39,6 +39,7 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
   onViewAll,
 }) => {
   const perps = usePerpsFeed({ variant: 'macro', refresh });
+  const activePillKey = useRef<string>('stocks');
 
   const tabs = useMemo<PillToggleCardListTab<PerpsMarketData>[]>(() => {
     const stocks = perps.data
@@ -74,7 +75,7 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
     <Box>
       <SectionHeader
         title={strings('trending.macro_stocks_commodity_perps')}
-        onViewAll={onViewAll}
+        onViewAll={() => onViewAll(activePillKey.current)}
         testID="section-header-view-all-macro_stocks_commodity_perps"
       />
       <PillToggleCardList<PerpsMarketData>
@@ -83,6 +84,9 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
         renderItem={renderItem}
         Skeleton={PerpsRowSingleSkeleton}
         idPrefix="macro_stocks_commodity_perps"
+        onPillChange={(key) => {
+          activePillKey.current = key;
+        }}
         testIdPrefix="macro-stocks-commodity-pills"
         listTestId="macro-stocks-commodity-perps-list"
       />
@@ -137,7 +141,9 @@ const MacroTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         <PerpsSectionProvider>
           <MacroPerpsBlock
             refresh={refresh}
-            onViewAll={() => navigateToPerpsMarketList(perpsNavigation)}
+            onViewAll={(filter) =>
+              navigateToPerpsMarketList(perpsNavigation, filter)
+            }
           />
         </PerpsSectionProvider>
       )}
