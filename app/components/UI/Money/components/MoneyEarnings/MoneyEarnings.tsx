@@ -65,7 +65,7 @@ const MoneyEarnings = ({
       infoAccessibilityLabel={strings('money.earnings.info_label')}
     />
 
-    <Box twClassName="mt-3 gap-1">
+    <Box twClassName="mt-3 gap-4">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
