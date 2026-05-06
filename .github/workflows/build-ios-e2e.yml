@@ -1,6 +1,26 @@
 name: Build iOS E2E Apps
 
 on:
+  workflow_dispatch:
+    inputs:
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: true
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
+      build_type:
+        description: The type of build to perform
+        required: false
+        default: main
+        type: string
+      metamask_environment:
+        description: The environment to build for
+        required: false
+        default: qa
+        type: string
   workflow_call:
     outputs:
       app-uploaded:
@@ -79,6 +99,9 @@ jobs:
       # Get the source code from the repository
       - name: Checkout repo
         uses: actions/checkout@v6
+
+      - name: Debug runner environment
+        run: whoami && echo $HOME
 
       - name: Restore Xcode derived data from branch cache
         id: xcode-restore-cache
