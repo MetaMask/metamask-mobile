@@ -145,14 +145,6 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
   NetworkBadgeSource: jest.fn(() => null),
 }));
 
-const educationSeenState = {
-  user: { musdConversionEducationSeen: true },
-};
-
-const educationNotSeenState = {
-  user: { musdConversionEducationSeen: false },
-};
-
 describe('MoneyHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -204,86 +196,58 @@ describe('MoneyHomeView', () => {
   });
 
   it('renders the main container', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyHomeViewTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
   it('renders the scroll view', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW)).toBeOnTheScreen();
   });
 
   it('renders the header section', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyHeaderTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
   it('renders the balance summary section', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyBalanceSummaryTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
   it('renders the action button row', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(
       getByTestId(MoneyActionButtonRowTestIds.CONTAINER),
     ).toBeOnTheScreen();
   });
 
-  it('renders the onboarding card when education has not been seen', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationNotSeenState,
-    });
+  it('renders the onboarding card', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyOnboardingCardTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
-  it('does not render the onboarding card when education has been seen', () => {
-    const { queryByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
-
-    expect(
-      queryByTestId(MoneyOnboardingCardTestIds.CONTAINER),
-    ).not.toBeOnTheScreen();
-  });
-
   it('renders the earnings section', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
   it('hides the how it works section in filled state', () => {
-    const { queryByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
     expect(
       queryByTestId(MoneyHowItWorksTestIds.CONTAINER),
     ).not.toBeOnTheScreen();
   });
 
   it('renders the potential earnings section when tokens exist', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(
       getByTestId(MoneyPotentialEarningsTestIds.CONTAINER),
@@ -291,34 +255,26 @@ describe('MoneyHomeView', () => {
   });
 
   it('renders the MetaMask Card section', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
   it('hides the what you get section in filled state', () => {
-    const { queryByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
     expect(
       queryByTestId(MoneyWhatYouGetTestIds.CONTAINER),
     ).not.toBeOnTheScreen();
   });
 
   it('renders the footer', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
   it('pressing the back button calls navigation.goBack', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     fireEvent.press(getByTestId(MoneyHeaderTestIds.BACK_BUTTON));
 
@@ -326,9 +282,7 @@ describe('MoneyHomeView', () => {
   });
 
   it('navigates to the Money activity screen when View all is pressed', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     fireEvent.press(getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON));
 
@@ -339,9 +293,7 @@ describe('MoneyHomeView', () => {
     ['action row Add', MoneyActionButtonRowTestIds.ADD_BUTTON],
     ['footer Add money', MoneyFooterTestIds.ADD_MONEY_BUTTON],
   ])('opens the Add money sheet from the %s button', (_label, testId) => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     fireEvent.press(getByTestId(testId));
 
@@ -351,9 +303,7 @@ describe('MoneyHomeView', () => {
   });
 
   it('opens the More sheet when menu button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     fireEvent.press(getByTestId(MoneyHeaderTestIds.MENU_BUTTON));
 
@@ -363,9 +313,7 @@ describe('MoneyHomeView', () => {
   });
 
   it('opens the Transfer sheet when Transfer button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON));
 
@@ -375,9 +323,7 @@ describe('MoneyHomeView', () => {
   });
 
   it('navigates to Card root when Card button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON));
 
@@ -385,9 +331,7 @@ describe('MoneyHomeView', () => {
   });
 
   it('opens the APY info sheet when the APY info button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     fireEvent.press(getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON));
 
@@ -398,9 +342,7 @@ describe('MoneyHomeView', () => {
   });
 
   it('opens the earnings info sheet when the earnings info button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-      state: educationSeenState,
-    });
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     fireEvent.press(getByTestId(MoneySectionHeaderTestIds.INFO_BUTTON));
 
@@ -414,9 +356,7 @@ describe('MoneyHomeView', () => {
     it('passes the formatted projected earnings to MoneyEarnings', () => {
       mockMoneyFormatFiat.mockReturnValue('$0.12');
 
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(
         getByTestId(MoneyEarningsTestIds.PROJECTED_VALUE),
@@ -440,9 +380,7 @@ describe('MoneyHomeView', () => {
         musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
       } as ReturnType<typeof useMoneyAccountBalance>);
 
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(
         getByTestId(MoneyEarningsTestIds.PROJECTED_VALUE),
@@ -465,59 +403,45 @@ describe('MoneyHomeView', () => {
     });
 
     it('renders onboarding card with step 2', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationNotSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         getByTestId(MoneyOnboardingCardTestIds.STEP_LABEL),
       ).toHaveTextContent('Step 2 of 2');
     });
 
     it('renders the activity list', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
     it('renders condensed info cards', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         getByTestId(MoneyCondensedInfoCardsTestIds.CONTAINER),
       ).toBeOnTheScreen();
     });
 
     it('hides expanded HowItWorks section', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         queryByTestId(MoneyHowItWorksTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
     });
 
     it('hides expanded WhatYouGet section', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         queryByTestId(MoneyWhatYouGetTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
     });
 
     it('renders the MetaMask Card section', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
     it('navigates to Card root when onboarding CTA is tapped', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationNotSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
 
@@ -541,9 +465,7 @@ describe('MoneyHomeView', () => {
     });
 
     it('renders onboarding card with step 2 and link-card variant', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationNotSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         getByTestId(MoneyOnboardingCardTestIds.STEP_LABEL),
       ).toHaveTextContent('Step 2 of 2');
@@ -553,10 +475,7 @@ describe('MoneyHomeView', () => {
     });
 
     it('renders MetaMask Card section in link mode', () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-        { state: educationSeenState },
-      );
+      const { getByTestId, queryByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON),
       ).toBeOnTheScreen();
@@ -566,84 +485,64 @@ describe('MoneyHomeView', () => {
     });
 
     it('renders the balance summary section', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         getByTestId(MoneyBalanceSummaryTestIds.CONTAINER),
       ).toBeOnTheScreen();
     });
 
     it('renders the action button row', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         getByTestId(MoneyActionButtonRowTestIds.CONTAINER),
       ).toBeOnTheScreen();
     });
 
     it('renders the earnings section', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
     it('renders the activity list', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
     it('renders condensed info cards', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         getByTestId(MoneyCondensedInfoCardsTestIds.CONTAINER),
       ).toBeOnTheScreen();
     });
 
     it('renders the potential earnings section', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         getByTestId(MoneyPotentialEarningsTestIds.CONTAINER),
       ).toBeOnTheScreen();
     });
 
     it('hides expanded HowItWorks section', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         queryByTestId(MoneyHowItWorksTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
     });
 
     it('hides expanded WhatYouGet section', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         queryByTestId(MoneyWhatYouGetTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
     });
 
     it('renders the footer', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
     it('navigates to Card home when onboarding CTA is tapped by cardholder', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationNotSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
 
@@ -665,43 +564,33 @@ describe('MoneyHomeView', () => {
     });
 
     it('renders onboarding card with step 1', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationNotSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         getByTestId(MoneyOnboardingCardTestIds.STEP_LABEL),
       ).toHaveTextContent('Step 1 of 2');
     });
 
     it('does not render the activity list', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         queryByTestId(MoneyActivityListTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
     });
 
     it('does not render condensed info cards', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
         queryByTestId(MoneyCondensedInfoCardsTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
     });
 
     it('renders expanded HowItWorks section', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyHowItWorksTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
     it('renders expanded WhatYouGet section', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
@@ -709,9 +598,7 @@ describe('MoneyHomeView', () => {
       ['onboarding card CTA', MoneyOnboardingCardTestIds.CTA_BUTTON],
       ['mUSD row Add', MoneyMusdTokenRowTestIds.ADD_BUTTON],
     ])('opens the Add money sheet from the %s button', (_label, testId) => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationNotSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(testId));
 
@@ -792,10 +679,7 @@ describe('MoneyHomeView', () => {
     };
 
     it('keeps the footer translated off-screen when the stepper is visible and education has not been seen', () => {
-      const { queryByTestId, getByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-        { state: educationNotSeenState },
-      );
+      const { queryByTestId, getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       // Stepper sits at the top of the scroll view, well within the viewport.
       const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
@@ -815,10 +699,7 @@ describe('MoneyHomeView', () => {
 
     it('triggers the slide-in animation when the stepper has scrolled out of view and education has not been seen', () => {
       mockWithTiming.mockClear();
-      const { queryByTestId, getByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-        { state: educationNotSeenState },
-      );
+      const { queryByTestId, getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
       const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
@@ -841,9 +722,7 @@ describe('MoneyHomeView', () => {
     });
 
     it('triggers the slide-out animation when the stepper scrolls back into view', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
-        state: educationNotSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
       const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
@@ -874,10 +753,7 @@ describe('MoneyHomeView', () => {
 
     it('does not retrigger withTiming when the footer reflows after appearing', () => {
       mockWithTiming.mockClear();
-      const { queryByTestId, getByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-        { state: educationNotSeenState },
-      );
+      const { queryByTestId, getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
       const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
@@ -938,9 +814,7 @@ describe('MoneyHomeView', () => {
         </React.Profiler>
       );
 
-      const { getByTestId } = renderWithProvider(<ProfiledMoneyHomeView />, {
-        state: educationNotSeenState,
-      });
+      const { getByTestId } = renderWithProvider(<ProfiledMoneyHomeView />);
 
       const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
       const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
@@ -984,43 +858,8 @@ describe('MoneyHomeView', () => {
       expect(renderCount - afterFlip).toBeLessThanOrEqual(1);
     });
 
-    it('always renders the footer and never the stepper when education has been seen', () => {
-      mockWithTiming.mockClear();
-
-      const { queryByTestId, getByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-        { state: educationSeenState },
-      );
-
-      // Footer is mounted from the first render when education has been seen.
-      expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
-      // Stepper is gated on !hasSeenMusdConversionEducation, so it must not
-      // render at all once the user has completed/dismissed onboarding.
-      expect(
-        queryByTestId(MoneyOnboardingCardTestIds.CONTAINER),
-      ).not.toBeOnTheScreen();
-      // The footer must render in its final visible position with NO
-      // mount animation. If withTiming fires here, the user sees an
-      // unwanted 300ms slide-in every time the screen mounts post-education.
-      expect(mockWithTiming).not.toHaveBeenCalled();
-
-      // Scroll events with the stepper absent must keep the footer visible
-      // and must not trigger any animation (visibility ref starts in sync).
-      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
-      act(() => {
-        fireScrollViewLayout(scrollView);
-        fireScroll(scrollView, 0);
-      });
-
-      expect(queryByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
-      expect(mockWithTiming).not.toHaveBeenCalled();
-    });
-
     it('keeps the footer translated off-screen when the stepper is below the viewport (off-screen, not yet scrolled to)', () => {
-      const { queryByTestId, getByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-        { state: educationNotSeenState },
-      );
+      const { queryByTestId, getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
       const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
@@ -1040,10 +879,7 @@ describe('MoneyHomeView', () => {
     });
 
     it('keeps the footer translated off-screen on initial layout while the stepper height is still 0', () => {
-      const { queryByTestId, getByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-        { state: educationNotSeenState },
-      );
+      const { queryByTestId, getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       const onboarding = getByTestId(MoneyOnboardingCardTestIds.CONTAINER);
       const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);

@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   LayoutChangeEvent,
   Linking,
@@ -54,7 +48,6 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
-import { selectMusdConversionEducationSeen } from '../../../../../reducers/user/selectors';
 import Logger from '../../../../../util/Logger';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
@@ -97,9 +90,6 @@ const MoneyHomeView = () => {
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
-  const hasSeenMusdConversionEducation = useSelector(
-    selectMusdConversionEducationSeen,
-  );
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
@@ -230,14 +220,7 @@ const MoneyHomeView = () => {
   // padding update triggers a re-render.
   const [footerHeight, setFooterHeight] = useState(0);
 
-  const isStepperRendered = !hasSeenMusdConversionEducation;
-  // Conditionally seed both shared value and visibility ref so the
-  // education-seen path renders the footer in its final position with NO
-  // mount animation. Otherwise the on-mount visibility-recompute effect
-  // would slide the footer in from FOOTER_HIDDEN_OFFSET → 0 every time.
-  const footerTranslateY = useSharedValue(
-    isStepperRendered ? FOOTER_HIDDEN_OFFSET : 0,
-  );
+  const footerTranslateY = useSharedValue(FOOTER_HIDDEN_OFFSET);
   const footerAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: footerTranslateY.value }],
   }));
@@ -246,18 +229,11 @@ const MoneyHomeView = () => {
     [footerHeight],
   );
 
-  // Seed visibility tracking based on whether the stepper is rendered at all.
-  // - Stepper rendered: default to "visible" until layouts settle so the
-  //   footer stays hidden on initial paint and we avoid a flash of "Add money".
-  // - Stepper not rendered (education seen): default to "not visible" so the
-  //   on-mount visibility-recompute matches and produces no animation.
-  const isStepperVisibleRef = useRef(isStepperRendered);
+  // Default to "visible" until layouts settle so the footer stays hidden on
+  // initial paint and we avoid a flash of "Add money".
+  const isStepperVisibleRef = useRef(true);
 
   const computeStepperVisibility = useCallback(() => {
-    // When the stepper isn't rendered, it can't obstruct the footer.
-    if (!isStepperRendered) {
-      return false;
-    }
     const stepperLayout = stepperLayoutRef.current;
     const scrollViewHeight = scrollViewHeightRef.current;
     // While the stepper is rendered but not yet measured, treat it as visible
@@ -278,7 +254,7 @@ const MoneyHomeView = () => {
     const stepperBottom = stepperLayout.y + stepperLayout.height;
     const isUserPastStepper = scrollOffsetYRef.current > stepperBottom;
     return !isUserPastStepper;
-  }, [isStepperRendered]);
+  }, []);
 
   const animateFooter = useCallback(
     (visible: boolean) => {
@@ -296,11 +272,6 @@ const MoneyHomeView = () => {
     isStepperVisibleRef.current = next;
     animateFooter(!next);
   }, [computeStepperVisibility, animateFooter]);
-
-  // Re-evaluate footer visibility when the stepper mounts or unmounts.
-  useEffect(() => {
-    updateStepperVisibility();
-  }, [isStepperRendered, updateStepperVisibility]);
 
   const handleStepperLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -391,15 +362,13 @@ const MoneyHomeView = () => {
           onTransferPress={handleTransferPress}
           onCardPress={handleCardPress}
         />
-        {isStepperRendered && (
-          <Box onLayout={handleStepperLayout}>
-            <MoneyOnboardingCard
-              currentStep={isMilestone ? 2 : 1}
-              variant={isCardholderWithMilestone ? 'link-card' : 'get-card'}
-              onCtaPress={handleOnboardingCtaPress}
-            />
-          </Box>
-        )}
+        <Box onLayout={handleStepperLayout}>
+          <MoneyOnboardingCard
+            currentStep={isMilestone ? 2 : 1}
+            variant={isCardholderWithMilestone ? 'link-card' : 'get-card'}
+            onCtaPress={handleOnboardingCtaPress}
+          />
+        </Box>
         <Divider />
         <MoneyEarnings
           lifetimeEarnings={formattedZero}
