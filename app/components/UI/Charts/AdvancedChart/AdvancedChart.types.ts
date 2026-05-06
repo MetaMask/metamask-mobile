@@ -450,6 +450,11 @@ export interface AdvancedChartProps {
 
   /** Callback when chart is ready */
   onChartReady?: () => void;
+  /**
+   * Fires once when the native skeleton overlay is removed (chart ready, layout settled,
+   * and parent `isLoading` false). Resets when `ohlcvSeriesKey` or chart HTML reloads.
+   */
+  onSkeletonHidden?: () => void;
   /** Callback when an error occurs */
   onError?: (error: string) => void;
   /** Crosshair OHLC data callback (for overlay legend) */
