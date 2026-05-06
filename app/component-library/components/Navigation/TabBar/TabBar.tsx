@@ -34,7 +34,7 @@ const FILLED_ICONS: Partial<Record<TabBarIconKey, IconName>> = {
   [TabBarIconKey.Activity]: IconName.ClockFilled,
   [TabBarIconKey.Trending]: IconName.Search,
   [TabBarIconKey.Rewards]: IconName.MetamaskFoxFilled,
-  [TabBarIconKey.Money]: IconName.DollarFilled,
+  [TabBarIconKey.Money]: IconName.MusdFilled,
 };
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {

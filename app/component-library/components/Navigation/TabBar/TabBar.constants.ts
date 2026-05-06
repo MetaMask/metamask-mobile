@@ -14,7 +14,7 @@ export const ICON_BY_TAB_BAR_ICON_KEY: IconByTabBarIconKey = {
   [TabBarIconKey.Setting]: IconName.Setting,
   [TabBarIconKey.Rewards]: IconName.MetamaskFoxOutline,
   [TabBarIconKey.Trending]: IconName.Search,
-  [TabBarIconKey.Money]: IconName.Dollar,
+  [TabBarIconKey.Money]: IconName.Musd,
 };
 
 export const LABEL_BY_TAB_BAR_ICON_KEY = {
