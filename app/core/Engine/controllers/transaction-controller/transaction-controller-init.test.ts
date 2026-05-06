@@ -285,6 +285,20 @@ describe('Transaction Controller Init', () => {
     expect(mock).toHaveBeenCalled();
   });
 
+  it('delegates beforePublish hook to PredictController', async () => {
+    const beforePublishMock = jest.fn().mockResolvedValue(true);
+    const hooks = testConstructorOption('hooks', {
+      beforePublish: beforePublishMock,
+    });
+
+    const result = await hooks?.beforePublish?.(MOCK_TRANSACTION_META);
+
+    expect(beforePublishMock).toHaveBeenCalledWith({
+      transactionMeta: MOCK_TRANSACTION_META,
+    });
+    expect(result).toBe(true);
+  });
+
   it('calls smartTransactionsController.getTransactions on option getExternalPendingTransactions', () => {
     const MOCK_STX = [{ id: '123' }];
     const MOCK_ADDRESS = '0x123';

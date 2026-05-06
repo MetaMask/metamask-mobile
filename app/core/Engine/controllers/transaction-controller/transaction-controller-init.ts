@@ -136,6 +136,8 @@ export const TransactionControllerInit: MessengerClientInitFunction<
               transactions:
                 _request.transactions as PublishBatchHookTransaction[],
             }),
+          beforePublish: (transactionMeta: TransactionMeta) =>
+            beforePublish(transactionMeta, request),
           beforeSign: (_request: { transactionMeta: TransactionMeta }) =>
             beforeSign(_request, request),
         },
@@ -439,6 +441,17 @@ function getControllers(
       'SmartTransactionsController',
     ),
   };
+}
+
+function beforePublish(
+  transactionMeta: TransactionMeta,
+  request: MessengerClientInitRequest<
+    TransactionControllerMessenger,
+    TransactionControllerInitMessenger
+  >,
+) {
+  const predictController = request.getMessengerClient('PredictController');
+  return predictController.beforePublish({ transactionMeta });
 }
 
 function beforeSign(
