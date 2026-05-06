@@ -1,12 +1,4 @@
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
-
-jest.mock('../../../../lib/Money/feature-flags', () => ({
-  isMoneyAccountEnabled: jest.fn(),
-}));
-
-const mockIsMoneyAccountEnabled = jest.requireMock(
-  '../../../../lib/Money/feature-flags',
-).isMoneyAccountEnabled as jest.Mock;
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getKeyringControllerMessenger } from '../../messengers/keyring-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
@@ -72,7 +64,6 @@ function getInitRequestMock(): jest.Mocked<
 describe('keyringControllerInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsMoneyAccountEnabled.mockReturnValue(true);
   });
 
   it('initializes the controller', () => {
@@ -108,24 +99,10 @@ describe('keyringControllerInit', () => {
       return builder;
     }
 
-    it('includes a MoneyKeyring builder when the flag is enabled', () => {
-      mockIsMoneyAccountEnabled.mockReturnValue(true);
-
+    it('always includes a MoneyKeyring builder', () => {
       const builder = getMoneyKeyringBuilder();
 
       expect(builder).toBeDefined();
-    });
-
-    it('does not include a MoneyKeyring builder when the flag is disabled', () => {
-      mockIsMoneyAccountEnabled.mockReturnValue(false);
-
-      keyringControllerInit(getInitRequestMock());
-
-      const { keyringBuilders } = jest.mocked(KeyringController).mock
-        .calls[0][0] as { keyringBuilders: KeyringBuilder[] };
-
-      const builder = keyringBuilders.find((b) => b.type === MoneyKeyring.type);
-      expect(builder).toBeUndefined();
     });
 
     it('creates a MoneyKeyring instance when invoked', () => {

@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import OndoCampaignDetailsView, {
   CAMPAIGN_DETAILS_TEST_IDS,
+  resetOndoCampaignDetailsSessionAutoNavigationForTests,
 } from './OndoCampaignDetailsView';
 import { ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS } from '../components/Campaigns/OndoCampaignStatsSummary';
 import { ONDO_PRIZE_POOL_TEST_IDS } from '../components/Campaigns/OndoPrizePool';
@@ -19,7 +20,12 @@ import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPositio
 import { useGetOndoCampaignDeposits } from '../hooks/useGetOndoCampaignDeposits';
 import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParticipantOutcome';
 import Routes from '../../../../constants/navigation/Routes';
-
+import { useSelector } from 'react-redux';
+import { selectReferralCode } from '../../../../reducers/rewards/selectors';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectIsMetaMaskPushNotificationsEnabled,
+} from '../../../../selectors/notifications';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockRouteState: { params: { campaignId?: string } } = {
@@ -135,18 +141,6 @@ jest.mock('../components/Campaigns/OndoCampaignStatsSummary', () => {
     },
   };
 });
-
-jest.mock('../hooks/useRewardsToast', () => ({
-  __esModule: true,
-  default: () => ({
-    showToast: jest.fn(),
-    RewardsToastOptions: {
-      success: jest.fn(),
-      error: jest.fn(),
-      entriesClosed: jest.fn(() => ({ variant: 'icon' })),
-    },
-  }),
-}));
 
 jest.mock('../hooks/useCampaignGeoRestriction', () => ({
   __esModule: true,
@@ -280,7 +274,7 @@ jest.mock('../components/Campaigns/OndoPrizePool', () => {
 });
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => null),
+  useSelector: jest.fn(),
 }));
 
 const mockIsTokenTradingOpen = jest.fn(() => true);
@@ -476,6 +470,7 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.campaign_details.competition_closed_description':
         'Entries are now closed',
       'rewards.ondo_campaign_portfolio.view_activity': 'View activity',
+      'rewards.notifications_nudge.turn_on_button': 'Turn on',
     };
     return translations[key] || key;
   },
@@ -519,6 +514,19 @@ const hookDefaults = {
 describe('OndoCampaignDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetOndoCampaignDetailsSessionAutoNavigationForTests();
+    (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+      if (selector === selectReferralCode) {
+        return null;
+      }
+      if (selector === selectIsMetamaskNotificationsEnabled) {
+        return true;
+      }
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) {
+        return true;
+      }
+      return null;
+    });
     mockIsTokenTradingOpen.mockReturnValue(true);
     mockOndoCampaignStatsSummary.mockReset();
     mockUseRewardCampaigns.mockReturnValue(hookDefaults);

@@ -104,6 +104,16 @@ describe('PerpsTradingCampaignStatsHeader', () => {
     expect(queryByTestId(TEST_IDS.QUALIFIED_ICON)).toBeNull();
   });
 
+  it('hides the pending tag when the campaign is complete', () => {
+    const { queryByTestId } = render(
+      <PerpsTradingCampaignStatsHeader
+        position={{ ...basePosition, qualified: false }}
+        isCampaignComplete
+      />,
+    );
+    expect(queryByTestId(TEST_IDS.PENDING_TAG)).toBeNull();
+  });
+
   it('shows em dashes for rank and PnL when position is null', () => {
     const { getByTestId } = render(
       <PerpsTradingCampaignStatsHeader position={null} />,

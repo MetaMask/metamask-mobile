@@ -71,6 +71,7 @@ import {
   RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction,
   RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction,
   RewardsDataServiceGetPerpsTradingCampaignVolumeAction,
+  RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -126,7 +127,8 @@ type AllowedActions =
   | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
-  | RewardsDataServiceGetPerpsTradingCampaignVolumeAction;
+  | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
+  | RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -217,6 +219,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPerpsTradingCampaignLeaderboard',
       'RewardsDataService:getPerpsTradingCampaignLeaderboardPosition',
       'RewardsDataService:getPerpsTradingCampaignVolume',
+      'RewardsDataService:getPerpsTradingCampaignParticipantOutcome',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

@@ -407,7 +407,9 @@ describe('OndoCampaignStatsView', () => {
       hasError: false,
     });
     const { getByText } = render(<OndoCampaignStatsView />);
-    const title = getByText('rewards.ondo_outcome_banner.winner_pending.title');
+    const title = getByText(
+      'rewards.campaign_outcome_banner.winner_pending.title',
+    );
     fireEvent.press(title);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
@@ -437,7 +439,7 @@ describe('OndoCampaignStatsView', () => {
     });
     const { queryByText } = render(<OndoCampaignStatsView />);
     expect(
-      queryByText('rewards.ondo_outcome_banner.winner_pending.title'),
+      queryByText('rewards.campaign_outcome_banner.winner_pending.title'),
     ).toBeNull();
   });
 
@@ -986,7 +988,9 @@ describe('OndoCampaignStatsView', () => {
       hasError: false,
     });
     const { getByText } = render(<OndoCampaignStatsView />);
-    const title = getByText('rewards.ondo_outcome_banner.winner_pending.title');
+    const title = getByText(
+      'rewards.campaign_outcome_banner.winner_pending.title',
+    );
     fireEvent.press(title);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
