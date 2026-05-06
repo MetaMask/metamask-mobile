@@ -17,6 +17,7 @@ import { getGlobalNetworkClientId } from '../../util/networks/global-network';
 import { Hex, CaipChainId, KnownCaipNamespace } from '@metamask/utils';
 import Engine from '../Engine';
 import WalletConnectPort from '../BackgroundBridge/WalletConnectPort';
+import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 
 const mockedMessengerCall = (
   Engine as unknown as {
@@ -1353,6 +1354,75 @@ describe('WalletConnect2Session', () => {
       expect(rejectRequestSpy).toHaveBeenCalledWith({
         id: requestId + '',
         error: snapError,
+      });
+    });
+
+    it('routes tron request using active session namespaces when permission lookup is missing', async () => {
+      const requestId = Math.floor(Math.random() * 1000000);
+      mockedGetPermittedChains.mockImplementation(async () => {
+        throw new PermissionDoesNotExistError(
+          'missing-subject',
+          'endowment:caip25',
+        );
+      });
+      mockedMessengerCall.mockResolvedValueOnce('snap-result');
+      session.session = {
+        ...mockSession,
+        namespaces: {
+          [KnownCaipNamespace.Tron]: {
+            chains: ['tron:728126428'],
+            methods: ['tron_signTransaction'],
+            events: [],
+            accounts: ['tron:728126428:TTestAddress'],
+          },
+        },
+      } as any;
+
+      const request: WalletKitTypes.SessionRequest = {
+        id: requestId,
+        topic: mockSession.topic,
+        params: {
+          request: {
+            method: 'tron_signTransaction',
+            params: [
+              {
+                address: 'TTestAddress',
+                transaction: {
+                  raw_data_hex: '0xabc',
+                  type: 'TransferContract',
+                },
+              },
+            ],
+          },
+          chainId: 'tron:728126428' as CaipChainId,
+        },
+        verifyContext: {
+          verified: {
+            origin: 'https://sunswap.com',
+            validation: 'UNKNOWN',
+            verifyUrl: '',
+          },
+        },
+      };
+
+      const approveRequestSpy = jest
+        .spyOn(session, 'approveRequest')
+        .mockResolvedValue(undefined);
+
+      session.setDeeplink(false);
+      (session as any).topicByRequestId[requestId] = mockSession.topic;
+      await session.handleRequest(request);
+
+      expect(mockedMessengerCall).toHaveBeenCalledWith(
+        'MultichainRoutingService:handleRequest',
+        expect.objectContaining({
+          scope: 'tron:728126428',
+          request: expect.objectContaining({ method: 'signTransaction' }),
+        }),
+      );
+      expect(approveRequestSpy).toHaveBeenCalledWith({
+        id: requestId + '',
+        result: 'snap-result',
       });
     });
 
