@@ -85,8 +85,6 @@ jest.mock('../../../shared/StockBadge', () => {
   };
 });
 
-const mockNavigate = jest.fn();
-
 // Mock dependencies
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
