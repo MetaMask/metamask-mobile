@@ -268,6 +268,24 @@ if (enableApiCallLogs || isTest) {
       }
     }
 
+    // Hosts that bypass the mock proxy and make direct network requests.
+    const PROXY_BYPASS_PATTERNS = [
+      '.node.web3auth.io',
+      '.uat-node.web3auth.io',
+      'auth-service.uat-api.cx.metamask.io',
+    ];
+
+    const shouldBypassProxy = (targetUrl) => {
+      try {
+        const hostname = new URL(targetUrl).hostname;
+        return PROXY_BYPASS_PATTERNS.some(
+          (p) => hostname === p || hostname.endsWith(p),
+        );
+      } catch {
+        return false;
+      }
+    };
+
     // if mockServer is off we route to original destination
     global.fetch = async (url, options) => {
       // Extract URL string from Request or URL objects
@@ -283,7 +301,7 @@ if (enableApiCallLogs || isTest) {
         urlString = String(url);
       }
 
-      if (!isMockServerAvailable) {
+      if (!isMockServerAvailable || shouldBypassProxy(urlString)) {
         return originalFetch(url, options);
       }
 
@@ -331,7 +349,8 @@ if (enableApiCallLogs || isTest) {
                 }
                 if (
                   !url.includes(`localhost:${mockServerPort}`) &&
-                  !url.includes('/proxy')
+                  !url.includes('/proxy') &&
+                  !shouldBypassProxy(url)
                 ) {
                   url = `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`;
                 }
@@ -416,6 +435,9 @@ if (enableApiCallLogs || isTest) {
         const originalExpoFetch = fetchSourceModule.fetch;
         fetchSourceModule.fetch = (url, options) => {
           const urlStr = String(url);
+          if (shouldBypassProxy(urlStr)) {
+            return originalExpoFetch(url, options);
+          }
           const proxyUrl = `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(urlStr)}`;
           // eslint-disable-next-line no-console
           console.log(`[E2E SHIM] expo/fetch: ${urlStr} → ${proxyUrl}`);
