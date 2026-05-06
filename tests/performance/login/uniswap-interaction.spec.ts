@@ -55,7 +55,15 @@ perfTest.describe(`${PerformanceLogin}`, () => {
         });
       }
 
-      await UniswapDapp.tapOnMetaMaskWalletOptionAndOpenDeeplink();
+      // Android comes from a webAction so needs to be in native context
+      if (platform === 'android') {
+        await PlaywrightContextHelpers.withNativeAction(async () => {
+          await UniswapDapp.tapOnMetaMaskWalletOptionAndOpenDeeplink();
+        });
+      } else {
+        // iOS comes from a nativeAction so no need to change context
+        await UniswapDapp.tapOnMetaMaskWalletOptionAndOpenDeeplink();
+      }
 
       metamaskTimer.start();
 
