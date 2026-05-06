@@ -6,10 +6,7 @@ import type {
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 // Re-export shared helpers so existing consumers keep working
-export {
-  formatPercentChange as formatRateOfReturn,
-  formatComputedAt,
-} from '../../utils/formatUtils';
+export { formatPercentChange as formatRateOfReturn } from '../../utils/formatUtils';
 
 // ── Tier display names ──────────────────────────────────────────────────
 
