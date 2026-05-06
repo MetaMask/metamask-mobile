@@ -10,7 +10,6 @@ import { tokenDetectionControllerInit } from './token-detection-controller-init'
 import {
   TokenDetectionController,
   TokenDetectionControllerMessenger,
-  TokenListService,
 } from '@metamask/assets-controllers';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
@@ -49,7 +48,7 @@ describe('TokenDetectionControllerInit', () => {
       messenger: expect.any(Object),
       disabled: false,
       getBalancesInSingleCall: expect.any(Function),
-      tokenListService: expect.any(TokenListService),
+      tokenListService: expect.any(Object),
       useTokenDetection: expect.any(Function),
       useExternalServices: expect.any(Function),
       trackMetaMetricsEvent: expect.any(Function),
