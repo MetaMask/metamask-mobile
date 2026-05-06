@@ -632,34 +632,42 @@ describe('RemoteImage', () => {
     });
 
     it('renders token image with full ratio and dimensions', async () => {
-      jest.spyOn(Dimensions, 'get').mockReturnValue({
-        width: 400,
-        height: 800,
-        scale: 1,
-        fontScale: 1,
-      });
-
-      const { UNSAFE_getByType } = render(
-        <RemoteImage
-          fadeIn
-          isTokenImage
-          isFullRatio
-          source={{ uri: 'https://example.com/token.png' }}
-        />,
-      );
-
-      await act(async () => {
-        const image = UNSAFE_getByType(Image);
-        image.props.onLoad({
-          source: { width: 600, height: 400 },
+      jest.useFakeTimers();
+      try {
+        jest.spyOn(Dimensions, 'get').mockReturnValue({
+          width: 400,
+          height: 800,
+          scale: 1,
+          fontScale: 1,
         });
-      });
 
-      await waitFor(() => {
-        const image = UNSAFE_getByType(Image);
-        expect(image.props.style.width).toBe(368);
-        expect(image.props.style.height).toBeCloseTo(245.33, 1);
-      });
+        const { UNSAFE_getByType } = render(
+          <RemoteImage
+            fadeIn
+            isTokenImage
+            isFullRatio
+            source={{ uri: 'https://example.com/token.png' }}
+          />,
+        );
+
+        jest.clearAllTimers();
+
+        await act(async () => {
+          const image = UNSAFE_getByType(Image);
+          image.props.onLoad({
+            source: { width: 600, height: 400 },
+          });
+        });
+
+        await waitFor(() => {
+          const image = UNSAFE_getByType(Image);
+          expect(image.props.style.width).toBe(368);
+          expect(image.props.style.height).toBeCloseTo(245.33, 1);
+        });
+      } finally {
+        jest.runOnlyPendingTimers();
+        jest.useRealTimers();
+      }
     });
 
     it('renders token image with chainId prop', async () => {
