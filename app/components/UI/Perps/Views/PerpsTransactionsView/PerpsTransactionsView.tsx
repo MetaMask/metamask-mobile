@@ -25,7 +25,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../../selectors/networkController';
 import {
   formatAccountToCaipAccountId,
@@ -70,9 +70,8 @@ const PerpsTransactionsView: React.FC = () => {
 
   const { isConnected, isConnecting } = usePerpsConnection();
 
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
+  const selectedAddress = evmAccount?.address;
   const currentChainId = useSelector(selectChainId);
   const accountId = useMemo(() => {
     if (!selectedAddress || !currentChainId) {
@@ -477,7 +476,7 @@ const PerpsTransactionsView: React.FC = () => {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('flex-row gap-3')}
+            contentContainerStyle={tw.style('flex-row gap-2')}
             pointerEvents="auto"
             scrollEnabled={false}
           >
@@ -501,7 +500,7 @@ const PerpsTransactionsView: React.FC = () => {
       <View style={styles.filterContainer} pointerEvents="box-none">
         <ScrollView
           horizontal
-          contentContainerStyle={tw.style('flex-row gap-3')}
+          contentContainerStyle={tw.style('flex-row gap-2')}
           showsHorizontalScrollIndicator={false}
           pointerEvents="auto"
           scrollEnabled

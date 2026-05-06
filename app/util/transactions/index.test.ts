@@ -743,6 +743,42 @@ describe('Transactions utils :: getActionKey', () => {
     expect(result).toBe(strings('transactions.smart_contract_interaction'));
   });
 
+  it('should be labeled as deposit to Money Account for money account deposit txs', async () => {
+    spyOnQueryMethod(UNI_ADDRESS);
+    const tx = {
+      type: TransactionType.moneyAccountDeposit,
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: UNI_ADDRESS,
+      },
+    };
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+    expect(result).toBe(strings('transactions.money_account_deposit'));
+  });
+
+  it('should be labeled as transfer from Money Account for money account withdraw txs', async () => {
+    spyOnQueryMethod(UNI_ADDRESS);
+    const tx = {
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: UNI_ADDRESS,
+      },
+    };
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+    expect(result).toBe(strings('transactions.money_account_withdraw'));
+  });
+
   it('should be labeled as "Contract Deployment" if the tx has no receiver', async () => {
     spyOnQueryMethod(UNI_ADDRESS);
     const tx = {
@@ -1662,6 +1698,8 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     TransactionType.perpsDeposit,
     TransactionType.perpsWithdraw,
     TransactionType.predictDeposit,
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
   ])('returns transaction type if type is %s', async (type) => {
     const transaction = { type };
     const chainId = '1';
@@ -1669,6 +1707,34 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     const actionKey = await getTransactionActionKey(transaction, chainId);
 
     expect(actionKey).toBe(type);
+  });
+
+  it('returns moneyAccountDeposit when type is contractInteraction and nested has money account deposit', async () => {
+    const transaction = {
+      type: TransactionType.contractInteraction,
+      nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
+      txParams: {
+        to: '0x0000000000000000000000000000000000000001',
+        from: '0x0000000000000000000000000000000000000002',
+        data: '0x',
+      },
+    };
+    const actionKey = await getTransactionActionKey(transaction, '0x1');
+    expect(actionKey).toBe(TransactionType.moneyAccountDeposit);
+  });
+
+  it('returns moneyAccountWithdraw when type is contractInteraction and nested has money account withdraw', async () => {
+    const transaction = {
+      type: TransactionType.contractInteraction,
+      nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
+      txParams: {
+        to: '0x0000000000000000000000000000000000000001',
+        from: '0x0000000000000000000000000000000000000002',
+        data: '0x',
+      },
+    };
+    const actionKey = await getTransactionActionKey(transaction, '0x1');
+    expect(actionKey).toBe(TransactionType.moneyAccountWithdraw);
   });
 
   it('returns TRANSFER_FROM_ACTION_KEY for tokenMethodTransferFrom type', async () => {

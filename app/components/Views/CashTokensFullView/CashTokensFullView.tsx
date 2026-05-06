@@ -38,7 +38,6 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../UI/Earn/constants/musd';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../UI/Earn/types/musd.types';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import {
   useSwapBridgeNavigation,
@@ -70,30 +69,30 @@ const CashTokensFullView = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { hasMusdBalanceOnAnyChain } = useMusdBalance();
+  const { hasMusdBalanceOnAnyChain, tokenBalanceByChain } = useMusdBalance();
+
+  const numChainsWithMusdBalance = Object.keys(tokenBalanceByChain).length;
+
   const { tokens: conversionTokens } = useMusdConversionTokens();
 
   const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
 
   const hasConversionTokens = conversionTokens.length > 0;
 
-  // Loading signal: neither useMusdBalance nor useMusdConversionTokens expose
-  // an isLoading flag (they derive from synchronous Redux selectors). We mirror
-  // the Tokens component's hasInitialLoad pattern and flip loading off after
-  // the first InteractionManager tick so the Hub's dedicated skeleton shows on
-  // the first paint instead of falling through to TokenListSkeleton.
-  const [isLoading, setIsLoading] = useState(true);
+  const [isTokenListReady, setIsTokenListReady] = useState(false);
   useEffect(() => {
     const handle = InteractionManager.runAfterInteractions(() => {
-      setIsLoading(false);
+      setIsTokenListReady(true);
     });
     return () => handle.cancel();
   }, []);
 
   const screenViewedRef = useRef(false);
 
+  const isScreenReady = !hasMusdBalanceOnAnyChain || isTokenListReady;
+
   useEffect(() => {
-    if (isLoading || screenViewedRef.current || !isMoneyHubEnabled) return;
+    if (!isScreenReady || screenViewedRef.current || !isMoneyHubEnabled) return;
     screenViewedRef.current = true;
 
     const hasConvertibleTokens = conversionTokens.length > 0;
@@ -121,11 +120,11 @@ const CashTokensFullView = () => {
         .build(),
     );
   }, [
-    isLoading,
     conversionTokens,
     createEventBuilder,
     trackEvent,
     isMoneyHubEnabled,
+    isScreenReady,
   ]);
 
   const merklRefetchRef = useRef<(() => void) | null>(null);
@@ -205,7 +204,6 @@ const CashTokensFullView = () => {
             address: token.address as Hex,
             chainId: token.chainId as Hex,
           },
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
         });
       } catch (error) {
         Logger.error(error as Error, {
@@ -225,9 +223,8 @@ const CashTokensFullView = () => {
           .addProperties({
             location: MONEY_EVENT_LOCATIONS.MONEY_HUB,
             button_type: 'text_button',
-            button_action: 'max',
-            redirects_to:
-              MUSD_EVENT_LOCATIONS.QUICK_CONVERT_MAX_BOTTOM_SHEET_CONFIRMATION_SCREEN,
+            button_action: 'custom',
+            redirects_to: MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
             asset_symbol: topToken.symbol,
             network_chain_id: topToken.chainId,
             network_name: topToken.chainId
@@ -237,13 +234,23 @@ const CashTokensFullView = () => {
           .build(),
       );
 
-      await initiateMaxConversion(topToken);
+      await initiateCustomConversion({
+        preferredPaymentToken: {
+          address: topToken.address as Hex,
+          chainId: topToken.chainId as Hex,
+        },
+      });
     } catch (error) {
       Logger.error(error as Error, {
         message: '[CashTokensFullView] Failed to initiate convert CTA',
       });
     }
-  }, [conversionTokens, createEventBuilder, initiateMaxConversion, trackEvent]);
+  }, [
+    conversionTokens,
+    createEventBuilder,
+    initiateCustomConversion,
+    trackEvent,
+  ]);
 
   const handleSwapsPress = useCallback(() => {
     trackEvent(
@@ -309,10 +316,6 @@ const CashTokensFullView = () => {
     ],
   );
 
-  if (isLoading) {
-    return <CashTokensFullViewSkeleton />;
-  }
-
   return (
     <SafeAreaView style={tw`flex-1 bg-default pb-4`}>
       <HeaderBase
@@ -330,18 +333,26 @@ const CashTokensFullView = () => {
         {strings('homepage.sections.cash')}
       </HeaderBase>
       {hasMusdBalanceOnAnyChain ? (
-        <Tokens
-          isFullView
-          showOnlyMusd
-          hideLoadingSkeleton
-          hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
-          listFooterComponent={
-            isMoneyHubEnabled ? bonusAndConvertSections : undefined
-          }
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        />
+        isTokenListReady ? (
+          <Tokens
+            isFullView
+            showOnlyMusd
+            hideLoadingSkeleton
+            hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
+            listFooterComponent={
+              isMoneyHubEnabled ? bonusAndConvertSections : undefined
+            }
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          />
+        ) : (
+          <CashTokensFullViewSkeleton
+            numChainsWithMusdBalance={numChainsWithMusdBalance}
+            isMoneyHubEnabled={isMoneyHubEnabled}
+            conversionTokenCount={conversionTokens.length}
+          />
+        )
       ) : (
         <ScrollView
           style={tw`flex-1`}
@@ -351,7 +362,10 @@ const CashTokensFullView = () => {
           }
         >
           <SectionRow>
-            <CashGetMusdEmptyState isFullView />
+            <CashGetMusdEmptyState
+              isFullView
+              hideClaimButton={isMoneyHubEnabled}
+            />
           </SectionRow>
           {isMoneyHubEnabled ? bonusAndConvertSections : undefined}
         </ScrollView>

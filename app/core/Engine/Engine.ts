@@ -2,7 +2,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
 ///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   AppState,
   AppStateStatus,
@@ -14,7 +14,7 @@ import { AccountsController } from '@metamask/accounts-controller';
 import {
   KeyringController,
   KeyringControllerState,
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   KeyringTypes,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
@@ -29,7 +29,7 @@ import {
   type CaveatSpecificationConstraint,
   PermissionController,
   type PermissionSpecificationConstraint,
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SubjectMetadataController,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
@@ -51,7 +51,7 @@ import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
 import { initializeRpcProviderDomains } from '../../util/rpc-domain-utils';
 
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from './controllers/notifications/notification-services-push-controller-init';
 ///: END:ONLY_INCLUDE_IF
@@ -93,7 +93,7 @@ import { multichainAccountServiceInit } from './controllers/multichain-account-s
 import { snapKeyringBuilderInit } from './controllers/snap-keyring/snap-keyring-builder-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   cronjobControllerInit,
   executionServiceInit,
@@ -110,6 +110,14 @@ import {
   getRootExtendedMessenger,
 } from './types';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
+import {
+  getAccountTrackerControllerAccountsByChainId,
+  getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
+  getTokenBalancesControllerTokenBalances,
+  getTokenRatesControllerMarketData,
+  getTokensControllerAllTokens,
+} from '../../selectors/assets/assets-migration';
 import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
 import { initMessengerClients } from './utils';
@@ -139,7 +147,7 @@ import type { GatorPermissionsController } from '@metamask/gator-permissions-con
 import { DelegationControllerInit } from './controllers/delegation/delegation-controller-init';
 import { selectedNetworkControllerInit } from './controllers/selected-network-controller-init';
 import { permissionControllerInit } from './controllers/permission-controller-init';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { subjectMetadataControllerInit } from './controllers/subject-metadata-controller-init';
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
@@ -180,6 +188,7 @@ import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-i
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
 import { socialServiceInit } from './controllers/social-service-init';
+import { authenticatedUserStorageServiceInit } from './controllers/authenticated-user-storage-service-init';
 import { socialControllerInit } from './controllers/social-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
 import { clientControllerInit } from './controllers/client-controller-init';
@@ -221,7 +230,7 @@ export class Engine {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   lastIncomingTxBlockInfo: any;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   /**
    * The app state event listener.
    * This is used to handle app state changes in snaps lifecycle hooks.
@@ -301,7 +310,7 @@ export class Engine {
         ///: END:ONLY_INCLUDE_IF
         KeyringController: keyringControllerInit,
         PermissionController: permissionControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         SubjectMetadataController: subjectMetadataControllerInit,
         ///: END:ONLY_INCLUDE_IF
         AccountTreeController: accountTreeControllerInit,
@@ -338,7 +347,7 @@ export class Engine {
         BridgeStatusController: bridgeStatusControllerInit,
         NftController: nftControllerInit,
         NftDetectionController: nftDetectionControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
         SnapRegistryController: snapRegistryControllerInit,
@@ -386,6 +395,7 @@ export class Engine {
         AiDigestController: aiDigestControllerInit,
         SocialService: socialServiceInit,
         SocialController: socialControllerInit,
+        AuthenticatedUserStorageService: authenticatedUserStorageServiceInit,
         CardController: cardControllerInit,
         ComplianceService: complianceServiceInit,
         ComplianceController: complianceControllerInit,
@@ -436,6 +446,8 @@ export class Engine {
     const aiDigestController = messengerClientsByName.AiDigestController;
     const socialService = messengerClientsByName.SocialService;
     const socialController = messengerClientsByName.SocialController;
+    const authenticatedUserStorageService =
+      messengerClientsByName.AuthenticatedUserStorageService;
     const cardController = messengerClientsByName.CardController;
     const clientController = messengerClientsByName.ClientController;
     const complianceService = messengerClientsByName.ComplianceService;
@@ -473,7 +485,7 @@ export class Engine {
       messengerClientsByName.NftDetectionController;
     const networkController = messengerClientsByName.NetworkController;
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     const cronjobController = messengerClientsByName.CronjobController;
     const executionService = messengerClientsByName.ExecutionService;
     const snapController = messengerClientsByName.SnapController;
@@ -525,7 +537,7 @@ export class Engine {
       captureException(error);
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     snapController.init();
     cronjobController.init();
     // Notification Setup
@@ -564,7 +576,7 @@ export class Engine {
       SelectedNetworkController: selectedNetworkController,
       SignatureController: signatureController,
       LoggingController: loggingController,
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       CronjobController: cronjobController,
       ExecutionService: executionService,
       SnapController: snapController,
@@ -614,6 +626,7 @@ export class Engine {
       AiDigestController: aiDigestController,
       SocialService: socialService,
       SocialController: socialController,
+      AuthenticatedUserStorageService: authenticatedUserStorageService,
       CardController: cardController,
       ClientController: clientController,
       ComplianceService: complianceService,
@@ -675,7 +688,7 @@ export class Engine {
       },
     );
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     this.controllerMessenger.subscribe(
       `${snapController.name}:snapTerminated`,
       (truncatedSnap) => {
@@ -830,15 +843,7 @@ export class Engine {
     totalNativeTokenBalance: string;
     ticker: string;
   } => {
-    const {
-      CurrencyRateController,
-      AccountsController,
-      AccountTrackerController,
-      TokenBalancesController,
-      TokenRatesController,
-      TokensController,
-      NetworkController,
-    } = this.context;
+    const { AccountsController, NetworkController } = this.context;
 
     const selectedInternalAccount =
       account ??
@@ -860,11 +865,14 @@ export class Engine {
     const selectedInternalAccountFormattedAddress = toFormattedAddress(
       selectedInternalAccount.address,
     );
-    const { currentCurrency } = CurrencyRateController.state;
-    const { settings: { showFiatOnTestnets } = {} } = store.getState();
+    const state = store.getState();
+    const currentCurrency = getCurrencyRateControllerCurrentCurrency(state);
+    const { settings: { showFiatOnTestnets } = {} } = state;
 
-    const { accountsByChainId } = AccountTrackerController.state;
-    const { marketData } = TokenRatesController.state;
+    const accountsByChainId =
+      getAccountTrackerControllerAccountsByChainId(state);
+    const marketData = getTokenRatesControllerMarketData(state);
+    const currencyRates = getCurrencyRateControllerCurrencyRates(state);
 
     let totalEthFiat = 0;
     let totalEthFiat1dAgo = 0;
@@ -900,9 +908,7 @@ export class Engine {
         return;
       }
 
-      const conversionRate =
-        CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ??
-        0;
+      const conversionRate = currencyRates?.[ticker]?.conversionRate ?? 0;
 
       if (conversionRate === 0) {
         return;
@@ -966,14 +972,13 @@ export class Engine {
       }
 
       const tokens =
-        TokensController.state.allTokens?.[chainIdHex]?.[
+        getTokensControllerAllTokens(state)?.[chainIdHex]?.[
           selectedInternalAccount.address
         ] || [];
       const tokenExchangeRates = marketData?.[chainIdHex];
 
       if (tokens.length > 0) {
-        const { tokenBalances: allTokenBalances } =
-          TokenBalancesController.state;
+        const allTokenBalances = getTokenBalancesControllerTokenBalances(state);
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
             chainId
@@ -1150,7 +1155,7 @@ export class Engine {
       TokenRatesController,
       PermissionController,
       // SelectedNetworkController,
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       SnapController,
       ///: END:ONLY_INCLUDE_IF
       LoggingController,
@@ -1159,7 +1164,7 @@ export class Engine {
 
     // Remove all permissions.
     PermissionController?.clearState?.();
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     await SnapController.clearState();
     ///: END:ONLY_INCLUDE_IF
 
@@ -1193,7 +1198,7 @@ export class Engine {
   removeAllListeners() {
     this.controllerMessenger.clearSubscriptions();
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     this.appStateListener?.remove();
     ///: END:ONLY_INCLUDE_IF
 
@@ -1398,7 +1403,7 @@ export default {
       ClientController,
       SocialController,
       ComplianceController,
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController,
       CronjobController,
       NotificationServicesController,
@@ -1472,7 +1477,7 @@ export default {
       CardController: CardController.state,
       ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController: AuthenticationController.state,
       CronjobController: CronjobController.state,
       NotificationServicesController: NotificationServicesController.state,

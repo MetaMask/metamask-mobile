@@ -4,6 +4,8 @@ import { useSelector } from 'react-redux';
 import RewardsDashboard from './RewardsDashboard';
 import Routes from '../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
+import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
+import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -91,26 +93,6 @@ const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
-// Mock Toast component
-jest.mock('../../../../component-library/components/Toast', () => {
-  const ReactActual = jest.requireActual('react');
-  return {
-    __esModule: true,
-    default: ReactActual.forwardRef(
-      (
-        _props: Record<string, unknown>,
-        ref: React.Ref<{ showToast: jest.Mock }>,
-      ) => {
-        ReactActual.useImperativeHandle(ref, () => ({
-          showToast: jest.fn(),
-          closeToast: jest.fn(),
-        }));
-        return ReactActual.createElement(ReactActual.Fragment, null, 'Toast');
-      },
-    ),
-  };
-});
-
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -186,6 +168,14 @@ jest.mock('../hooks/useBulkLinkState', () => ({
   useBulkLinkState: jest.fn(),
 }));
 
+jest.mock('../hooks/useOndoOutcomeToast', () => ({
+  useOndoOutcomeToast: jest.fn(),
+}));
+
+jest.mock('../hooks/usePerpsTradingCampaignEndedOutcomeToast', () => ({
+  usePerpsTradingCampaignEndedOutcomeToast: jest.fn(),
+}));
+
 // Import mocked hooks
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useRewardDashboardModals } from '../hooks/useRewardDashboardModals';
@@ -202,6 +192,13 @@ const mockUseRewardDashboardModals =
 const mockUseBulkLinkState = useBulkLinkState as jest.MockedFunction<
   typeof useBulkLinkState
 >;
+const mockUseOndoOutcomeToast = useOndoOutcomeToast as jest.MockedFunction<
+  typeof useOndoOutcomeToast
+>;
+const mockUsePerpsTradingCampaignEndedOutcomeToast =
+  usePerpsTradingCampaignEndedOutcomeToast as jest.MockedFunction<
+    typeof usePerpsTradingCampaignEndedOutcomeToast
+  >;
 
 describe('RewardsDashboard', () => {
   const mockShowUnlinkedAccountsModal = jest.fn();
@@ -336,6 +333,15 @@ describe('RewardsDashboard', () => {
       expect(getByText('Rewards')).toBeTruthy();
     });
 
+    it('mounts campaign outcome toast hooks on render', () => {
+      render(<RewardsDashboard />);
+
+      expect(mockUseOndoOutcomeToast).toHaveBeenCalledTimes(1);
+      expect(
+        mockUsePerpsTradingCampaignEndedOutcomeToast,
+      ).toHaveBeenCalledTimes(1);
+    });
+
     it('renders all child components', () => {
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
@@ -434,10 +440,7 @@ describe('RewardsDashboard', () => {
       );
 
       // Assert - referral button is never disabled
-      const isDisabled =
-        referralButton.props.disabled === true ||
-        referralButton.props.accessibilityState?.disabled === true;
-      expect(isDisabled).toBe(false);
+      expect(referralButton).not.toBeDisabled();
     });
   });
 
@@ -465,10 +468,7 @@ describe('RewardsDashboard', () => {
       );
 
       // Assert
-      const isDisabled =
-        settingsButton.props.disabled === true ||
-        settingsButton.props.accessibilityState?.disabled === true;
-      expect(isDisabled).toBe(true);
+      expect(settingsButton).toBeDisabled();
     });
 
     it('enables settings button when user is opted in', () => {
@@ -479,10 +479,7 @@ describe('RewardsDashboard', () => {
       );
 
       // Assert
-      const isDisabled =
-        settingsButton.props.disabled === true ||
-        settingsButton.props.accessibilityState?.disabled === true;
-      expect(isDisabled).toBe(false);
+      expect(settingsButton).not.toBeDisabled();
     });
   });
 

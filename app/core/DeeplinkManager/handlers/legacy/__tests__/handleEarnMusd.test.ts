@@ -3,10 +3,34 @@ import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
+import { selectMusdConversionEducationSeen } from '../../../../../reducers/user';
+import { selectIsMusdConversionGeoEligible } from '../../../../../components/UI/Earn/selectors/eligibility';
+import { selectMoneyHubEnabledFlag } from '../../../../../components/UI/Money/selectors/featureFlags';
 
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
 jest.mock('../../../../../util/Logger');
+
+jest.mock('../../../../redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('../../../../../reducers/user', () => ({
+  selectMusdConversionEducationSeen: jest.fn(),
+}));
+
+jest.mock('../../../../../components/UI/Earn/selectors/eligibility', () => ({
+  selectIsMusdConversionGeoEligible: jest.fn(),
+}));
+
+jest.mock('../../../../../components/UI/Money/selectors/featureFlags', () => ({
+  selectMoneyHubEnabledFlag: jest.fn(),
+}));
 
 describe('handleEarnMusd', () => {
   let mockNavigate: jest.Mock;
@@ -21,15 +45,11 @@ describe('handleEarnMusd', () => {
 
     (DevLogger.log as jest.Mock) = jest.fn();
     (Logger.error as jest.Mock) = jest.fn();
-  });
 
-  it('navigates to EARN.ROOT with MUSD.CONVERSION_EDUCATION screen and isDeeplink flag', () => {
-    handleEarnMusd();
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-      screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-      params: { isDeeplink: true },
-    });
+    // Default: geo-eligible user who has seen the education screen with money hub enabled
+    jest.mocked(selectIsMusdConversionGeoEligible).mockReturnValue(true);
+    jest.mocked(selectMusdConversionEducationSeen).mockReturnValue(true);
+    jest.mocked(selectMoneyHubEnabledFlag).mockReturnValue(true);
   });
 
   it('logs start of deeplink handling', () => {
@@ -38,6 +58,85 @@ describe('handleEarnMusd', () => {
     expect(DevLogger.log).toHaveBeenCalledWith(
       '[handleEarnMusd] Starting deeplink handling',
     );
+  });
+
+  describe('when user has not seen the education screen', () => {
+    beforeEach(() => {
+      jest.mocked(selectMusdConversionEducationSeen).mockReturnValue(false);
+    });
+
+    it('navigates to the education screen when geo-eligible', () => {
+      jest.mocked(selectIsMusdConversionGeoEligible).mockReturnValue(true);
+
+      handleEarnMusd();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+        params: { isDeeplink: true },
+      });
+    });
+
+    it('navigates to the education screen even when geo-ineligible', () => {
+      jest.mocked(selectIsMusdConversionGeoEligible).mockReturnValue(false);
+
+      handleEarnMusd();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+        params: { isDeeplink: true },
+      });
+    });
+
+    it('does not navigate to CASH_TOKENS_FULL_VIEW', () => {
+      handleEarnMusd();
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+      );
+    });
+  });
+
+  describe('when user has seen the education screen', () => {
+    beforeEach(() => {
+      jest.mocked(selectMusdConversionEducationSeen).mockReturnValue(true);
+    });
+
+    it('navigates to CASH_TOKENS_FULL_VIEW when geo-eligible and money hub is enabled', () => {
+      jest.mocked(selectIsMusdConversionGeoEligible).mockReturnValue(true);
+      jest.mocked(selectMoneyHubEnabledFlag).mockReturnValue(true);
+
+      handleEarnMusd();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+      );
+    });
+
+    it('navigates to WALLET.HOME when geo-eligible but money hub is disabled', () => {
+      jest.mocked(selectIsMusdConversionGeoEligible).mockReturnValue(true);
+      jest.mocked(selectMoneyHubEnabledFlag).mockReturnValue(false);
+
+      handleEarnMusd();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    });
+
+    it('navigates to WALLET.HOME when geo-ineligible', () => {
+      jest.mocked(selectIsMusdConversionGeoEligible).mockReturnValue(false);
+
+      handleEarnMusd();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    });
+
+    it('does not navigate to the education screen', () => {
+      handleEarnMusd();
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+        params: { isDeeplink: true },
+      });
+    });
   });
 
   it('falls back to WALLET.HOME on navigation error', () => {
