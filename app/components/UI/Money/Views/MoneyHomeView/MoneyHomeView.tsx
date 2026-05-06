@@ -230,9 +230,8 @@ const MoneyHomeView = () => {
   // padding update triggers a re-render.
   const [footerHeight, setFooterHeight] = useState(0);
 
-  const footerTranslateY = useSharedValue(
-    hasSeenMusdConversionEducation ? 0 : FOOTER_HIDDEN_OFFSET,
-  );
+  const isStepperRendered = !hasSeenMusdConversionEducation;
+  const footerTranslateY = useSharedValue(FOOTER_HIDDEN_OFFSET);
   const footerAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: footerTranslateY.value }],
   }));
@@ -248,12 +247,15 @@ const MoneyHomeView = () => {
   const isStepperVisibleRef = useRef(true);
 
   const computeStepperVisibility = useCallback(() => {
+    // When the stepper isn't rendered, it can't obstruct the footer.
+    if (!isStepperRendered) {
+      return false;
+    }
     const stepperLayout = stepperLayoutRef.current;
     const scrollViewHeight = scrollViewHeightRef.current;
-    // Treat a missing layout, an unmeasured (height === 0) stepper, or a
-    // not-yet-laid-out scroll view as "stepper still considered visible" so the
-    // footer stays hidden until measurements settle. This avoids a flash of
-    // "Add money" before the stepper's onLayout reports a real height.
+    // While the stepper is rendered but not yet measured, treat it as visible
+    // so the footer stays hidden until measurements settle. Avoids a brief
+    // "Add money" flash before the stepper's onLayout reports a real height.
     if (
       !stepperLayout ||
       stepperLayout.height === 0 ||
@@ -269,7 +271,7 @@ const MoneyHomeView = () => {
     const stepperBottom = stepperLayout.y + stepperLayout.height;
     const isUserPastStepper = scrollOffsetYRef.current > stepperBottom;
     return !isUserPastStepper;
-  }, []);
+  }, [isStepperRendered]);
 
   const animateFooter = useCallback(
     (visible: boolean) => {
@@ -285,16 +287,13 @@ const MoneyHomeView = () => {
     const next = computeStepperVisibility();
     if (next === isStepperVisibleRef.current) return;
     isStepperVisibleRef.current = next;
-    animateFooter(hasSeenMusdConversionEducation || !next);
-  }, [computeStepperVisibility, animateFooter, hasSeenMusdConversionEducation]);
+    animateFooter(!next);
+  }, [computeStepperVisibility, animateFooter]);
 
-  // `hasSeenMusdConversionEducation` is monotonic in Redux (false -> true,
-  // never back), so we only handle the false -> true transition here.
+  // Re-evaluate footer visibility when the stepper mounts or unmounts.
   useEffect(() => {
-    if (hasSeenMusdConversionEducation) {
-      footerTranslateY.value = 0;
-    }
-  }, [hasSeenMusdConversionEducation, footerTranslateY]);
+    updateStepperVisibility();
+  }, [isStepperRendered, updateStepperVisibility]);
 
   const handleStepperLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -385,7 +384,7 @@ const MoneyHomeView = () => {
           onTransferPress={handleTransferPress}
           onCardPress={handleCardPress}
         />
-        {!hasSeenMusdConversionEducation && (
+        {isStepperRendered && (
           <Box onLayout={handleStepperLayout}>
             <MoneyOnboardingCard
               currentStep={isMilestone ? 2 : 1}
