@@ -1,9 +1,11 @@
-import { useCallback, useContext, useMemo } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
+import { ActivityIndicator } from 'react-native';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
   ButtonIconVariant,
   ToastDescriptionOptions,
   ToastLabelOptions,
+  ToastLinkButtonOptions,
   ToastOptions,
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
@@ -14,6 +16,9 @@ import {
   NotificationMoment,
   type HapticNotificationMoment,
 } from '../../../../util/haptics';
+import { strings } from '../../../../../locales/i18n';
+import RewardsNotificationIcon from '../../../../images/rewards/notification.svg';
+import { Box } from '@metamask/design-system-react-native';
 
 export type RewardsToastOptions = ToastOptions & {
   hapticsType: HapticNotificationMoment;
@@ -22,7 +27,11 @@ export type RewardsToastOptions = ToastOptions & {
 export interface RewardsToastConfig {
   success: (title: string, subtitle?: string) => RewardsToastOptions;
   error: (title: string, subtitle?: string) => RewardsToastOptions;
+  loading: (title: string, subtitle?: string) => RewardsToastOptions;
   entriesClosed: (title: string, subtitle?: string) => RewardsToastOptions;
+  enableNotificationsNudge: (
+    linkButtonOptions: ToastLinkButtonOptions,
+  ) => RewardsToastOptions;
 }
 
 const getRewardsToastLabels = (title: string): ToastLabelOptions => {
@@ -104,6 +113,26 @@ const useRewardsToast = (): {
           },
         },
       }),
+      loading: (title: string, subtitle?: string) => ({
+        ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
+        variant: ToastVariants.Plain,
+        hasNoTimeout: true,
+        hapticsType: NotificationMoment.Warning,
+        startAccessory: (
+          <Box twClassName="p-1 mr-2">
+            <ActivityIndicator size="small" color={theme.colors.icon.default} />
+          </Box>
+        ),
+        labelOptions: getRewardsToastLabels(title),
+        descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
+        closeButtonOptions: {
+          variant: ButtonIconVariant.Icon,
+          iconName: IconName.Close,
+          onPress: () => {
+            toastRef?.current?.closeToast();
+          },
+        },
+      }),
       entriesClosed: (title: string, subtitle?: string) => ({
         ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
         variant: ToastVariants.Icon,
@@ -122,11 +151,44 @@ const useRewardsToast = (): {
           },
         },
       }),
+      enableNotificationsNudge: (
+        linkButtonOptions: ToastLinkButtonOptions,
+      ) => ({
+        ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
+        variant: ToastVariants.Plain,
+        hasNoTimeout: true,
+        hapticsType: NotificationMoment.Warning,
+        startAccessory: (
+          <Box twClassName="p-1 mr-2">
+            <RewardsNotificationIcon
+              name="notification"
+              width={24}
+              height={24}
+              color={theme.colors.warning.default}
+            />
+          </Box>
+        ),
+        labelOptions: getRewardsToastLabels(
+          strings('rewards.notifications_nudge.title'),
+        ),
+        descriptionOptions: getRewardsToastDescriptionLabels(
+          strings('rewards.notifications_nudge.description'),
+        ),
+        linkButtonOptions,
+        closeButtonOptions: {
+          variant: ButtonIconVariant.Icon,
+          iconName: IconName.Close,
+          onPress: () => {
+            toastRef?.current?.closeToast();
+          },
+        },
+      }),
     }),
     [
       theme.colors.success.default,
       theme.colors.error.default,
       theme.colors.icon.default,
+      theme.colors.warning.default,
       toastRef,
     ],
   );

@@ -37,6 +37,12 @@ jest.mock('../selectors/featureFlags', () => ({
     mockSelectStablecoinLendingEnabledFlag(),
 }));
 
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: () => () =>
+    jest.requireActual('../../../../util/test/accountsControllerTestUtils')
+      .internalAccount2,
+}));
+
 const MOCK_ROOT_STATE_WITH_EARN_CONTROLLER = mockEarnControllerRootState();
 const MOCK_RATE = {
   price: 0.99,

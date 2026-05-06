@@ -8129,6 +8129,15 @@
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
     },
+    "notifications_nudge": {
+      "title": "Don't miss out",
+      "description": "Enable notifications to stay informed on campaigns.",
+      "turn_on_button": "Turn on",
+      "loading": "Enabling notifications...",
+      "loading_description": "This may take a moment.",
+      "enable_error": "Failed to enable notifications",
+      "success": "Notifications enabled"
+    },
     "version_guard": {
       "title": "Update required",
       "description": "A newer version of MetaMask is required to use Rewards. Please update to continue.",
@@ -8999,9 +9008,15 @@
         "apy": "{{percentage}}% APY"
       },
       "tokens": "Tokens",
+      "perps": "Perps",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
       "whats_happening": "What's happening",
+      "whats_happening_impact": {
+        "bullish": "Bullish",
+        "bearish": "Bearish",
+        "neutral": "Neutral"
+      },
       "top_traders": "Top Traders",
       "whats_happening_categories": {
         "geopolitical": "Geopolitical",
