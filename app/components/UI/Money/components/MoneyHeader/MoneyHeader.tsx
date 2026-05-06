@@ -18,6 +18,7 @@ const MoneyHeader = ({ onMenuPress }: MoneyHeaderProps) => (
   <HeaderBase
     testID={MoneyHeaderTestIds.CONTAINER}
     variant={HeaderBaseVariant.Display}
+    twClassName="px-4"
     titleTestID={MoneyHeaderTestIds.TITLE}
     endButtonIconProps={[
       {
