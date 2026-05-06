@@ -1,9 +1,14 @@
 import { useSelector } from 'react-redux';
-import { TokenI } from '../types';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain/multichain';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+
+export interface TokenPricePercentageChangeAsset {
+  address?: string;
+  chainId?: Hex;
+  isNative?: boolean;
+}
 
 /**
  * Returns the 1 day price percentage change for a given asset.
@@ -11,7 +16,7 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
  * @returns The price percentage change for the asset.
  */
 export const useTokenPricePercentageChange = (
-  asset?: TokenI,
+  asset?: TokenPricePercentageChangeAsset,
 ): number | undefined => {
   const multiChainMarketData = useSelector(selectTokenMarketData);
 

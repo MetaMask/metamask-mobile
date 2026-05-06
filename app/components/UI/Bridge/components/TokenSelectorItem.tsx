@@ -128,6 +128,11 @@ const createStyles = ({
       minWidth: 0,
       marginRight: 8,
     },
+    tokenNameRow: {
+      flexShrink: 1,
+      minWidth: 0,
+      marginRight: 8,
+    },
     skeleton: {
       width: 50,
       padding: 8,
@@ -162,6 +167,8 @@ interface TokenSelectorItemProps {
   shouldShowBalance?: boolean;
   children?: React.ReactNode;
   isNoFeeAsset?: boolean;
+  pricePercentChangeText?: string;
+  pricePercentChangeTextColor?: TextColor;
 }
 
 const isLoadingBalance = (balance?: string) =>
@@ -258,6 +265,8 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   shouldShowBalance = true,
   children,
   isNoFeeAsset = false,
+  pricePercentChangeText,
+  pricePercentChangeTextColor = TextColor.Alternative,
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
   const { variant } = useABTest(
@@ -450,15 +459,31 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
               alignItems={AlignItems.center}
               justifyContent={JustifyContent.spaceBetween}
             >
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                style={styles.tokenName}
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                style={styles.tokenNameRow}
+                gap={4}
               >
-                {token.name}
-              </Text>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  style={styles.tokenName}
+                >
+                  {token.name}
+                </Text>
+                {pricePercentChangeText && (
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={pricePercentChangeTextColor}
+                    numberOfLines={1}
+                  >
+                    {pricePercentChangeText}
+                  </Text>
+                )}
+              </Box>
 
               {selectedVariant.showTokenBalanceFirst ? (
                 <FiatBalanceView

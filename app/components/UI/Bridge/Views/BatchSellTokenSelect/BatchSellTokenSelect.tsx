@@ -16,7 +16,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  Checkbox,
   FontWeight,
   Icon,
   IconColor,
@@ -42,7 +41,6 @@ import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
 import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
 import { ButtonSize as ButtonToggleSize } from '../../../../../component-library/components/Buttons/Button';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { TokenSelectorItem } from '../../components/TokenSelectorItem';
 import emptyStateDefiLight from '../../../../../images/empty-state-defi-light.png';
 import {
   buildBatchSellEligibleChains,
@@ -53,6 +51,7 @@ import {
   SUPPORTED_BATCH_SELL_CHAIN_IDS,
 } from './BatchSellTokenSelect.utils';
 import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
+import { BatchSellTokenRow } from './BatchSellTokenRow';
 
 const getTokenKey = (token: BridgeToken) =>
   `${formatChainIdToCaip(token.chainId)}:${token.address}`;
@@ -285,21 +284,13 @@ export function BatchSellTokenSelect() {
         <Box
           testID={`${BatchSellTokenSelectSelectorsIDs.TOKEN_ROW}-${token.symbol}`}
         >
-          <TokenSelectorItem
+          <BatchSellTokenRow
             token={token}
-            onPress={handleTokenPress}
+            onTokenPress={handleTokenPress}
             networkName={network?.name}
             networkImageSource={getNetworkImageSource({ chainId })}
             isSelected={isSelected}
-          >
-            <Checkbox
-              isSelected={isSelected}
-              onChange={() => handleTokenPress(token)}
-              accessibilityLabel={`${token.symbol} ${strings(
-                'bridge.batch_sell_checkbox_label',
-              )}`}
-            />
-          </TokenSelectorItem>
+          />
         </Box>
       );
     },

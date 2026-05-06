@@ -14,6 +14,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import { BridgeTokenMetadata } from '../../constants/tokens';
+import { TextColor as ComponentLibraryTextColor } from '../../../../../component-library/components/Texts/Text';
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
@@ -21,6 +22,7 @@ const mockGoBack = jest.fn();
 const mockSetOptions = jest.fn();
 let mockStablecoinsByChain: Record<CaipChainId, CaipAssetType[]> = {};
 let mockWalletTokens: BridgeToken[] = [];
+let mockPricePercentChangesByAddress: Record<string, number | undefined> = {};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -275,6 +277,11 @@ jest.mock('../../hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: () => mockWalletTokens,
 }));
 
+jest.mock('../../../Tokens/hooks/useTokenPricePercentageChange', () => ({
+  useTokenPricePercentageChange: ({ address }: { address?: string }) =>
+    address ? mockPricePercentChangesByAddress[address] : undefined,
+}));
+
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBatchSellDestStablecoinsByChain: jest.fn(() => mockStablecoinsByChain),
   setBatchSellSourceTokens: jest.fn((tokens: BridgeToken[]) => ({
@@ -293,15 +300,27 @@ jest.mock('../../components/TokenSelectorItem', () => {
     TokenSelectorItem: ({
       children,
       onPress,
+      pricePercentChangeText,
+      pricePercentChangeTextColor,
       token,
     }: {
       children?: React.ReactNode;
       onPress: (token: BridgeToken) => void;
+      pricePercentChangeText?: string;
+      pricePercentChangeTextColor?: string;
       token: BridgeToken;
     }) => (
       <Pressable onPress={() => onPress(token)}>
         <Text>{token.symbol}</Text>
         <Text>{token.name}</Text>
+        {pricePercentChangeText && (
+          <Text
+            color={pricePercentChangeTextColor}
+            testID={`price-change-${token.symbol}`}
+          >
+            {pricePercentChangeText}
+          </Text>
+        )}
         <View>{children}</View>
       </Pressable>
     ),
@@ -434,6 +453,7 @@ describe('BatchSellTokenSelect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockStablecoinsByChain = {};
+    mockPricePercentChangesByAddress = {};
     mockWalletTokens = [
       createToken({ symbol: 'ETHA', name: 'Ethereum A', tokenFiatAmount: 10 }),
     ];
@@ -558,6 +578,37 @@ describe('BatchSellTokenSelect', () => {
     expect(getByText('BSCA')).toBeOnTheScreen();
     expect(queryByText('ETHA')).not.toBeOnTheScreen();
     expect(queryByText('ETHB')).not.toBeOnTheScreen();
+  });
+
+  it('renders token price percentage changes with wallet colors', () => {
+    const gainToken = createToken({
+      symbol: 'GAIN',
+      name: 'Gain Token',
+      address: '0x2222222222222222222222222222222222222222',
+      tokenFiatAmount: 10,
+    });
+    const lossToken = createToken({
+      symbol: 'LOSS',
+      name: 'Loss Token',
+      address: '0x3333333333333333333333333333333333333333',
+      tokenFiatAmount: 5,
+    });
+    mockWalletTokens = [gainToken, lossToken];
+    mockPricePercentChangesByAddress = {
+      [gainToken.address]: 1.23,
+      [lossToken.address]: -4.56,
+    };
+
+    const { getByTestId, getByText } = render(<BatchSellTokenSelect />);
+
+    expect(getByText('+1.23%')).toBeOnTheScreen();
+    expect(getByText('-4.56%')).toBeOnTheScreen();
+    expect(getByTestId('price-change-GAIN').props.color).toBe(
+      ComponentLibraryTextColor.Success,
+    );
+    expect(getByTestId('price-change-LOSS').props.color).toBe(
+      ComponentLibraryTextColor.Error,
+    );
   });
 
   it('shows the no sellable tokens empty state', () => {
