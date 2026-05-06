@@ -25,6 +25,7 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import { ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS } from '../../../Earn/components/AssetOverviewClaimBonus/AssetOverviewClaimBonus.testIds';
+import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 
 const mockGoBack = jest.fn();
@@ -93,8 +94,13 @@ jest.mock(
     useMerklBonusClaim: jest.fn(),
   }),
 );
+jest.mock('../../../../../reducers/fiatOrders', () => ({
+  ...jest.requireActual('../../../../../reducers/fiatOrders'),
+  getDetectedGeolocation: jest.fn(),
+}));
 
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
+const mockGetDetectedGeolocation = jest.mocked(getDetectedGeolocation);
 
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
@@ -177,6 +183,7 @@ describe('MoneyHomeView', () => {
 
     mockSelectIsCardholder.mockReturnValue(false);
     mockUseMerklBonusClaim.mockReturnValue(buildMerklClaimDataMock());
+    mockGetDetectedGeolocation.mockReturnValue('US');
 
     mockUseMoneyAccountBalance.mockReturnValue({
       totalFiatFormatted: '$3.00',
@@ -782,6 +789,84 @@ describe('MoneyHomeView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
       });
+    });
+  });
+
+  describe('Metal card geolocation gating', () => {
+    it('renders the Metal card row when geolocation is US', () => {
+      mockGetDetectedGeolocation.mockReturnValue('US');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the Metal card row when geolocation is a US sub-region (e.g. US-CA)', () => {
+      mockGetDetectedGeolocation.mockReturnValue('us-ca');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the Metal card row when geolocation is GB', () => {
+      mockGetDetectedGeolocation.mockReturnValue('GB');
+
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the Metal card row when geolocation is undefined (loading/unknown - fail closed)', () => {
+      mockGetDetectedGeolocation.mockReturnValue(undefined);
+
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.METAL_CARD_ROW),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Get now navigation', () => {
+    it('navigates to the card sign-up flow when the virtual card Get now button is pressed', () => {
+      mockGetDetectedGeolocation.mockReturnValue('GB');
+
+      const { getByText } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByText(strings('money.metamask_card.get_now')));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+    });
+
+    it('navigates to the card sign-up flow when the metal card Get now button is pressed', () => {
+      mockGetDetectedGeolocation.mockReturnValue('US');
+
+      const { getAllByText } = renderWithProvider(<MoneyHomeView />);
+      const buttons = getAllByText(strings('money.metamask_card.get_now'));
+
+      fireEvent.press(buttons[1]);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
     });
   });
 });

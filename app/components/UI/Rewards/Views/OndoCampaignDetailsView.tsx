@@ -81,7 +81,6 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
 
 const sessionUpcomingRedirectCampaignIds = new Set<string>();
 const sessionWinningViewAutoNavCampaignIds = new Set<string>();
-
 export function resetOndoCampaignDetailsSessionAutoNavigationForTests(): void {
   sessionUpcomingRedirectCampaignIds.clear();
   sessionWinningViewAutoNavCampaignIds.clear();

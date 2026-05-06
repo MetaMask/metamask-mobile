@@ -1,6 +1,7 @@
 import { test } from '../../../framework/fixture';
 import TimerHelper from '../../../framework/TimerHelper.js';
 import {
+  Performance,
   PerformanceOnboarding,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
@@ -8,7 +9,7 @@ import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
 import OnboardingView from '../../../page-objects/Onboarding/OnboardingView';
 import { asPlaywrightElement } from '../../../framework/EncapsulatedElement';
 
-test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
+test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
   test(
     'Measure Cold Start To Onboarding Screen',
     { tag: '@metamask-mobile-platform' },
