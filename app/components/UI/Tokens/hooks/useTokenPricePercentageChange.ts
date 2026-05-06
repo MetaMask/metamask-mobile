@@ -3,12 +3,12 @@ import { selectTokenMarketData } from '../../../../selectors/tokenRatesControlle
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain/multichain';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import type { TokenI } from '../types';
 
-export interface TokenPricePercentageChangeAsset {
-  address?: string;
-  chainId?: Hex;
-  isNative?: boolean;
-}
+export type TokenPricePercentageChangeAsset = Pick<
+  TokenI,
+  'address' | 'chainId' | 'isNative'
+>;
 
 /**
  * Returns the 1 day price percentage change for a given asset.
