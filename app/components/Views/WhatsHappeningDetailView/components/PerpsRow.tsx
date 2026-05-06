@@ -5,10 +5,17 @@ import type { RelatedAsset } from '@metamask/ai-controllers';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { WhatsHappeningInteractionType } from '../../Homepage/Sections/WhatsHappening/constants';
+import { getWhatsHappeningEventProps } from '../../Homepage/Sections/WhatsHappening/eventProperties';
+import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
 import AssetRow from './AssetRow';
 
 interface PerpsRowProps {
   asset: RelatedAsset;
+  item: WhatsHappeningItem;
+  cardIndex: number;
 }
 
 /**
@@ -17,12 +24,23 @@ interface PerpsRowProps {
  * the Perps market details view. Extracted as its own component so hooks can
  * be called per-asset (hooks cannot be called inside a loop).
  */
-const PerpsRow: React.FC<PerpsRowProps> = ({ asset }) => {
+const PerpsRow: React.FC<PerpsRowProps> = ({ asset, item, cardIndex }) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const hlPerpsMarket = asset.hlPerpsMarket?.[0];
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleTrade = useCallback(() => {
     if (!hlPerpsMarket) return;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTION)
+        .addProperties({
+          ...getWhatsHappeningEventProps(item, cardIndex),
+          interaction_type: WhatsHappeningInteractionType.TradePressed,
+          asset_symbol: asset.symbol,
+          perps_market: hlPerpsMarket,
+        })
+        .build(),
+    );
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
@@ -30,7 +48,16 @@ const PerpsRow: React.FC<PerpsRowProps> = ({ asset }) => {
         source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
       },
     });
-  }, [navigation, hlPerpsMarket, asset.name]);
+  }, [
+    navigation,
+    hlPerpsMarket,
+    asset.name,
+    asset.symbol,
+    item,
+    cardIndex,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   return (
     <AssetRow
