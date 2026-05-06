@@ -2708,6 +2708,52 @@ describe('PerpsStreamManager', () => {
     });
   });
 
+  describe('pauseAllChannels / resumeAllChannels', () => {
+    const CHANNEL_NAMES = [
+      'prices',
+      'orders',
+      'positions',
+      'fills',
+      'account',
+      'oiCaps',
+      'topOfBook',
+      'candles',
+    ] as const;
+
+    it('pauseAllChannels calls pause() on every channel', () => {
+      for (const channel of CHANNEL_NAMES) {
+        jest.spyOn(testStreamManager[channel], 'pause');
+      }
+
+      testStreamManager.pauseAllChannels();
+
+      for (const channel of CHANNEL_NAMES) {
+        expect(testStreamManager[channel].pause).toHaveBeenCalledTimes(1);
+      }
+    });
+
+    it('resumeAllChannels calls resume() on every channel', () => {
+      for (const channel of CHANNEL_NAMES) {
+        jest.spyOn(testStreamManager[channel], 'resume');
+      }
+
+      testStreamManager.resumeAllChannels();
+
+      for (const channel of CHANNEL_NAMES) {
+        expect(testStreamManager[channel].resume).toHaveBeenCalledTimes(1);
+      }
+    });
+
+    it('does not touch marketData (REST-based, not a stream channel)', () => {
+      const spy = jest.spyOn(testStreamManager.marketData, 'getSnapshot');
+
+      testStreamManager.pauseAllChannels();
+      testStreamManager.resumeAllChannels();
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('TopOfBookStreamChannel', () => {
     it('subscribes to top of book with includeOrderBook flag', () => {
       const callback = jest.fn();

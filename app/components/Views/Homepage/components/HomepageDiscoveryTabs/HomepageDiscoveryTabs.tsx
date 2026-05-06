@@ -40,6 +40,13 @@ const TAB_INDEX = {
   PREDICTIONS: 2,
 } as const;
 
+// Tabs that consume live Perps WebSocket data. Add new tab indices here when
+// a future tab needs Perps WS channels to stay active.
+const PERPS_WS_TABS = new Set<number>([
+  TAB_INDEX.PORTFOLIO,
+  TAB_INDEX.PERPETUALS,
+]);
+
 // Static per-tab gradient color stops. Keyed by TAB_INDEX so adding a new tab
 // only requires adding an entry here.
 // Design spec: linear-gradient(180deg, <color> 0%, rgba(<color>, 0) 100%)
@@ -250,15 +257,12 @@ const HomepageDiscoveryTabs = forwardRef<
         // Both tabs consume Perps data (PerpsHomeView and PerpsSection respectively),
         // so streams must stay active on either. Only Predictions has no Perps consumers.
         if (prevIndex !== i) {
-          const wasPerpsVisible =
-            prevIndex === TAB_INDEX.PERPETUALS ||
-            prevIndex === TAB_INDEX.PORTFOLIO;
-          const isPerpsVisible =
-            i === TAB_INDEX.PERPETUALS || i === TAB_INDEX.PORTFOLIO;
+          const wasActive = PERPS_WS_TABS.has(prevIndex);
+          const isActive = PERPS_WS_TABS.has(i);
 
-          if (wasPerpsVisible && !isPerpsVisible) {
+          if (wasActive && !isActive) {
             getStreamManagerInstance().pauseAllChannels();
-          } else if (!wasPerpsVisible && isPerpsVisible) {
+          } else if (!wasActive && isActive) {
             getStreamManagerInstance().resumeAllChannels();
           }
         }

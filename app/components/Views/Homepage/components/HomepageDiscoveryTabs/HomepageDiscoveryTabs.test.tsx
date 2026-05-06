@@ -69,9 +69,16 @@ jest.mock('../../../../UI/Perps/providers/PerpsConnectionProvider', () => ({
     children,
 }));
 
+const mockPauseAllChannels = jest.fn();
+const mockResumeAllChannels = jest.fn();
+
 jest.mock('../../../../UI/Perps/providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
+  getStreamManagerInstance: () => ({
+    pauseAllChannels: mockPauseAllChannels,
+    resumeAllChannels: mockResumeAllChannels,
+  }),
 }));
 
 jest.mock('../../../../UI/Predict/contexts', () => ({
@@ -196,6 +203,74 @@ describe('HomepageDiscoveryTabs', () => {
 
     it('renders without throwing when walletHeaderOffset is 0', () => {
       expect(() => renderComponent({ walletHeaderOffset: 0 })).not.toThrow();
+    });
+  });
+
+  describe('Perps WS pause/resume on tab switch', () => {
+    it('pauses channels when switching from Portfolio to Predictions', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+      expect(mockPauseAllChannels).toHaveBeenCalledTimes(1);
+      expect(mockResumeAllChannels).not.toHaveBeenCalled();
+    });
+
+    it('pauses channels when switching from Perpetuals to Predictions', async () => {
+      renderComponent();
+      await pressTab('Perpetuals');
+      mockPauseAllChannels.mockClear();
+      mockResumeAllChannels.mockClear();
+      await pressTab('Predictions');
+      expect(mockPauseAllChannels).toHaveBeenCalledTimes(1);
+      expect(mockResumeAllChannels).not.toHaveBeenCalled();
+    });
+
+    it('resumes channels when switching from Predictions to Portfolio', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+      mockPauseAllChannels.mockClear();
+      mockResumeAllChannels.mockClear();
+      await pressTab('Portfolio');
+      expect(mockResumeAllChannels).toHaveBeenCalledTimes(1);
+      expect(mockPauseAllChannels).not.toHaveBeenCalled();
+    });
+
+    it('resumes channels when switching from Predictions to Perpetuals', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+      mockPauseAllChannels.mockClear();
+      mockResumeAllChannels.mockClear();
+      await pressTab('Perpetuals');
+      expect(mockResumeAllChannels).toHaveBeenCalledTimes(1);
+      expect(mockPauseAllChannels).not.toHaveBeenCalled();
+    });
+
+    it('does not pause or resume when switching between Portfolio and Perpetuals', async () => {
+      renderComponent();
+      mockPauseAllChannels.mockClear();
+      mockResumeAllChannels.mockClear();
+      await pressTab('Perpetuals');
+      await pressTab('Portfolio');
+      expect(mockPauseAllChannels).not.toHaveBeenCalled();
+      expect(mockResumeAllChannels).not.toHaveBeenCalled();
+    });
+
+    it('does not pause or resume when pressing the active tab', async () => {
+      renderComponent();
+      mockPauseAllChannels.mockClear();
+      mockResumeAllChannels.mockClear();
+      await pressTab('Portfolio');
+      expect(mockPauseAllChannels).not.toHaveBeenCalled();
+      expect(mockResumeAllChannels).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Perps WS cleanup on unmount', () => {
+    it('calls resumeAllChannels on unmount so channels are never left paused', async () => {
+      const { unmount } = renderComponent();
+      await pressTab('Predictions');
+      mockResumeAllChannels.mockClear();
+      unmount();
+      expect(mockResumeAllChannels).toHaveBeenCalledTimes(1);
     });
   });
 });
