@@ -943,6 +943,112 @@ describe('WC2Manager', () => {
   });
 
   describe('WC2Manager session proposal handling', () => {
+    it('keeps isMultichainOrigin false for eip155-only proposals', async () => {
+      const requestPermissionsSpy = jest.spyOn(
+        Engine.context.PermissionController,
+        'requestPermissions',
+      );
+      const proposal = {
+        id: 101,
+        params: {
+          id: 101,
+          pairingTopic: 'pairing-eip155-only',
+          proposer: {
+            publicKey: 'test-public-key',
+            metadata: {
+              name: 'Test App',
+              description: 'Test App',
+              url: 'https://example.com',
+              icons: ['https://example.com/icon.png'],
+            },
+          },
+          requiredNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          optionalNamespaces: {},
+          expiryTimestamp: 10000000,
+          relays: [{ protocol: 'irn' }],
+        },
+      };
+
+      await manager.onSessionProposal(proposal as any);
+
+      expect(requestPermissionsSpy).toHaveBeenCalledWith(
+        { origin: 'pairing-eip155-only' },
+        expect.objectContaining({
+          'endowment:caip25': expect.objectContaining({
+            caveats: [
+              expect.objectContaining({
+                value: expect.objectContaining({
+                  isMultichainOrigin: false,
+                }),
+              }),
+            ],
+          }),
+        }),
+      );
+    });
+
+    it('sets isMultichainOrigin true when proposal references tron', async () => {
+      const requestPermissionsSpy = jest.spyOn(
+        Engine.context.PermissionController,
+        'requestPermissions',
+      );
+      const proposal = {
+        id: 102,
+        params: {
+          id: 102,
+          pairingTopic: 'pairing-tron',
+          proposer: {
+            publicKey: 'test-public-key',
+            metadata: {
+              name: 'Test App',
+              description: 'Test App',
+              url: 'https://example.com',
+              icons: ['https://example.com/icon.png'],
+            },
+          },
+          requiredNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          optionalNamespaces: {
+            tron: {
+              chains: ['tron:728126428'],
+              methods: ['tron_signTransaction'],
+              events: [],
+            },
+          },
+          expiryTimestamp: 10000000,
+          relays: [{ protocol: 'irn' }],
+        },
+      };
+
+      await manager.onSessionProposal(proposal as any);
+
+      expect(requestPermissionsSpy).toHaveBeenCalledWith(
+        { origin: 'pairing-tron' },
+        expect.objectContaining({
+          'endowment:caip25': expect.objectContaining({
+            caveats: [
+              expect.objectContaining({
+                value: expect.objectContaining({
+                  isMultichainOrigin: true,
+                }),
+              }),
+            ],
+          }),
+        }),
+      );
+    });
+
     it('injects tron namespace when scoped permissions contain tron without chains', async () => {
       (
         Engine.context.AccountsController as unknown as {
