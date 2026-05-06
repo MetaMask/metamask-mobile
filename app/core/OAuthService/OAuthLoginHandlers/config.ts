@@ -50,7 +50,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
   },
   main_prod: {
     IOS_GOOGLE_CLIENT_ID:
-      '795351133007-jcaor637tblrlpuj29shdej3co8bu8kv.apps.googleusercontent.com',
+      '795351133007-47aohp9j9n7r8fef5n6ejeauhu4kfc9e.apps.googleusercontent.com',
     IOS_GOOGLE_REDIRECT_URI:
       'com.googleusercontent.apps.795351133007-47aohp9j9n7r8fef5n6ejeauhu4kfc9e:/oauth2redirect/google',
     ANDROID_GOOGLE_CLIENT_ID:
