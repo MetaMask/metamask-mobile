@@ -33,7 +33,7 @@ describe('createRouteMessenger', () => {
     jest.spyOn(uiMessenger, 'delegate');
 
     const routeMessenger = createRouteMessenger({
-      path: 'SomePathRoute',
+      path: 'SomePath',
       uiMessenger,
       capabilities: {
         actions: ['SnapController:installSnaps'],
