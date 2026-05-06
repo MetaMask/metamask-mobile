@@ -1121,7 +1121,7 @@ class AuthenticationService {
     );
     const entropySource = wallet.entropySource;
 
-    const [newAccountAddress] = await KeyringController.withKeyringV2(
+    const [newAccount] = await KeyringController.withKeyringV2(
       { id: entropySource },
       async ({ keyring }) => keyring.getAccounts(),
     );
@@ -1137,7 +1137,7 @@ class AuthenticationService {
       // handle seedless controller import error by reverting keyring controller mnemonic import
       await MultichainAccountService.removeMultichainAccountWallet(
         entropySource,
-        newAccountAddress,
+        newAccount.address,
       );
       throw error;
     }

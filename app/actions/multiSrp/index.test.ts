@@ -53,6 +53,13 @@ const hdKeyring = {
   },
 };
 
+const hdKeyringV2 = {
+  getAccounts: () => {
+    mockGetAccounts();
+    return [{ address: mockAddress }];
+  },
+};
+
 jest.mock('../../selectors/seedlessOnboardingController', () => ({
   selectSeedlessOnboardingLoginFlow: (state: unknown) =>
     mockSelectSeedlessOnboardingLoginFlow(state),
@@ -100,7 +107,7 @@ jest.mock('../../core/Engine', () => ({
       withKeyring: (_selector: unknown, operation: (args: unknown) => void) =>
         operation({ keyring: hdKeyring, metadata: { id: '1234' } }),
       withKeyringV2: (_selector: unknown, operation: (args: unknown) => void) =>
-        operation({ keyring: hdKeyring, metadata: { id: '1234' } }),
+        operation({ keyring: hdKeyringV2, metadata: { id: '1234' } }),
     },
     AccountsController: {
       getNextAvailableAccountName: jest.fn().mockReturnValue('Snap Account 1'),
