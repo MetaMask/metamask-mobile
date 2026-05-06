@@ -15,7 +15,7 @@ import {
 const UNISWAP_URL = 'https://app.uniswap.org';
 
 perfTest.describe(`${PerformanceLogin}`, () => {
-  perfTest.setTimeout(240000);
+  perfTest.setTimeout(10 * 60 * 1000);
 
   perfTest(
     'Connect to Uniswap dapp, edit accounts, choose another account, and skip Solana popup',
