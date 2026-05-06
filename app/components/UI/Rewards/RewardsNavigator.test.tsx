@@ -282,6 +282,8 @@ jest.mock('./hooks/useRewardsToast', () => ({
       loading: jest.fn(),
       entriesClosed: jest.fn(),
       enableNotificationsNudge: jest.fn(),
+      outcomeWinner: jest.fn(),
+      outcomeNonWinner: jest.fn(),
     },
   })),
 }));
