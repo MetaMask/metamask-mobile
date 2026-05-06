@@ -709,7 +709,11 @@
     "smart_contract_address": "Smart contract address",
     "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
     "i_understand": "I understand",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "new_address_title": "New address",
+    "new_address_message": "You're sending to this address for the first time. Make sure that it's correct before you continue:",
+    "alert_navigation_previous": "Previous alert",
+    "alert_navigation_next": "Next alert"
   },
   "unified_ramp": {
     "networks_filter_bar": {
@@ -8129,6 +8133,15 @@
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
     },
+    "notifications_nudge": {
+      "title": "Don't miss out",
+      "description": "Enable notifications to stay informed on campaigns.",
+      "turn_on_button": "Turn on",
+      "loading": "Enabling notifications...",
+      "loading_description": "This may take a moment.",
+      "enable_error": "Failed to enable notifications",
+      "success": "Notifications enabled"
+    },
     "version_guard": {
       "title": "Update required",
       "description": "A newer version of MetaMask is required to use Rewards. Please update to continue.",
@@ -8632,7 +8645,11 @@
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
       "stats_error_title": "Unable to load stats",
       "stats_error_description": "We had a problem loading your stats. Please try again.",
-      "stats_retry": "Retry"
+      "stats_retry": "Retry",
+      "completed_label_total_participants": "Total participants",
+      "completed_label_total_volume": "Total volume",
+      "completed_label_top_pnl": "Top PnL",
+      "completed_label_winners": "Winners"
     },
     "campaigns_preview": {
       "title": "Campaigns",
@@ -8658,29 +8675,29 @@
       "retry_button": "Retry",
       "refreshing": "Refreshing..."
     },
-    "ondo_campaign_winning": {
+    "campaign_winning": {
       "you_won": "You won",
       "rank_label": "{{place}} place",
-      "email_instructions": "Email ondocampaign@consensys.net with your code to claim your prize.",
+      "email_instructions": "Email {{email}} with your code to claim your prize.",
       "open_mail": "Open mail",
       "skip_for_now": "Skip for now",
-      "mail_subject": "Ondo campaign prize claim",
+      "mail_subject": "{{campaignName}} prize claim",
       "mail_body": "My winning code: {{code}}",
       "winning_code": "Winning code",
       "close_a11y": "Close"
     },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "You won",
-        "description": "Claim your prize today.",
-        "a11y": "Open winner details"
+        "title": "You won!",
+        "description": "Verify your winning code and claim your prize today.",
+        "a11y": "View details"
       },
       "participant_pending": {
         "title": "Campaign has ended.",
         "description": "We're determining the results. Check back soon."
       },
       "participant_finalized": {
-        "title": "Campaign results are in",
+        "title": "Campaign results are in.",
         "description": "You didn't win this time. Check the leaderboard to see where you finished."
       },
       "winner_finalized": {
@@ -8688,15 +8705,15 @@
         "description": "Your reward is on its way — we'll be in touch shortly."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "You won 💰",
-        "description": "Claim your prize from the {{campaignName}}",
+        "description": "Claim your prize from the {{campaignName}} today.",
         "cta": "View details"
       },
-      "participant_no_winner": {
-        "title": "The results are in. 🏅",
-        "description": "See your ranking in the {{campaignName}}",
+      "non_winner": {
+        "title": "The results are in 🏅",
+        "description": "See your ranking in the {{campaignName}}.",
         "cta": "View"
       }
     }
@@ -8999,9 +9016,15 @@
         "apy": "{{percentage}}% APY"
       },
       "tokens": "Tokens",
+      "perps": "Perps",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
       "whats_happening": "What's happening",
+      "whats_happening_impact": {
+        "bullish": "Bullish",
+        "bearish": "Bearish",
+        "neutral": "Neutral"
+      },
       "top_traders": "Top Traders",
       "whats_happening_categories": {
         "geopolitical": "Geopolitical",
