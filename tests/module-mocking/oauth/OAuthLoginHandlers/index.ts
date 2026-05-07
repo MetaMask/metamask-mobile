@@ -11,30 +11,30 @@ import QuickCrypto from 'react-native-quick-crypto';
 // Re-export types from real module
 export { AuthConnection } from '../../../../app/core/OAuthService/OAuthInterface';
 
-// Import constants from real module
 import {
   AuthServerUrl,
   web3AuthNetwork,
+  AppleWebClientId,
+  GoogleWebGID,
+  IosGID,
 } from '../../../../app/core/OAuthService/OAuthLoginHandlers/constants';
 import type { BaseHandlerOptions } from '../../../../app/core/OAuthService/OAuthLoginHandlers/baseHandler';
 
-const MOCK_GOOGLE_OAUTH_CLIENT_ID_IOS =
-  process.env.MAIN_IOS_GOOGLE_CLIENT_ID_UAT;
-const MOCK_GOOGLE_OAUTH_CLIENT_ID_ANDROID =
-  process.env.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT;
-
 function getMockGoogleOAuthClientId(): string {
-  const clientId =
-    Platform.OS === 'ios'
-      ? MOCK_GOOGLE_OAUTH_CLIENT_ID_IOS
-      : MOCK_GOOGLE_OAUTH_CLIENT_ID_ANDROID;
-  if (!clientId) {
+  if (Platform.OS === 'ios') {
+    if (!IosGID) {
+      throw new Error(
+        '[E2E Mock] Missing iOS Google client ID (IosGID / IOS_GOOGLE_CLIENT_ID from OAuth config).',
+      );
+    }
+    return IosGID;
+  }
+  if (!GoogleWebGID) {
     throw new Error(
-      `[E2E Mock] Missing Google OAuth UAT client ID env var for platform "${Platform.OS}". ` +
-        'Ensure MAIN_IOS_GOOGLE_CLIENT_ID_UAT or MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT is set.',
+      '[E2E Mock] Missing Android Google server client ID (GoogleWebGID from OAuth config).',
     );
   }
-  return clientId;
+  return GoogleWebGID;
 }
 
 /**
@@ -289,14 +289,12 @@ export function createLoginHandler(
         redirectUri: 'metamask://e2e',
       });
     case 'apple': {
-      const appleClientId = process.env.MAIN_ANDROID_APPLE_CLIENT_ID_UAT;
-      if (!appleClientId) {
+      if (!AppleWebClientId) {
         throw new Error(
-          '[E2E Mock] Missing Apple OAuth UAT client ID. ' +
-            'Ensure MAIN_ANDROID_APPLE_CLIENT_ID_UAT is set.',
+          '[E2E Mock] Missing Apple client ID (AppleWebClientId from OAuth config).',
         );
       }
-      return new MockAppleLoginHandler({ clientId: appleClientId });
+      return new MockAppleLoginHandler({ clientId: AppleWebClientId });
     }
     default:
       throw new Error(`[E2E Mock] Unsupported provider: ${provider}`);
