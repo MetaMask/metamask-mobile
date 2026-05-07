@@ -63,12 +63,11 @@ on:
           - main-e2e
           - main-exp
           - main-dev
+          - main-dev-expo
           - flask-prod
           - flask-test
           - flask-e2e
           - flask-dev
-          - qa-prod
-          - qa-dev
       platform:
         required: true
         type: choice
@@ -113,6 +112,7 @@ jobs:
       signing_aws_role: ${{ steps.config.outputs.signing_aws_role }}
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
+      script_name: ${{ steps.config.outputs.script_name }}
       checkout_ref_for_setup: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
     steps:
       - uses: actions/checkout@v4
@@ -123,6 +123,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
+          cache: 'yarn'
       - run: yarn install --immutable
       - run: node scripts/validate-build-config.js
 
@@ -142,6 +143,7 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing ? signing.aws_role || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'script_name=' + (build.script_name || '${{ inputs.build_name }}') + '\n');
           "
 
   # Setup dependencies (no secrets) - uses reusable workflow on platform-specific runner
@@ -305,6 +307,8 @@ jobs:
           eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
           # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
           node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+          # Generate build-env.json capturing actual env values used in this build (non-critical)
+          node scripts/apply-build-config.js ${{ inputs.build_name }} --write-build-env || true
 
       - name: Validate secrets
         env:
@@ -369,51 +373,6 @@ jobs:
           aws-secret-name: ${{ needs.prepare.outputs.signing_aws_secret }}
           android-keystore-path: ${{ needs.prepare.outputs.signing_android_keystore_path }}
 
-      # Temporary: iOS signing from GitHub Environment secrets (no AWS).
-      # Bridges main-dev until signing is fully migrated to AWS. Remove this step once it uses AWS-based signing.
-      - name: Configure iOS signing from GitHub secrets
-        if: matrix.platform == 'ios' && inputs.build_name == 'main-dev'
-        run: |
-          echo "📦 Configuring iOS code signing for dev builds..."
-
-          CERT_PATH="$RUNNER_TEMP/build_certificate.p12"
-          PROFILE_PATH="$RUNNER_TEMP/build_pp.mobileprovision"
-          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
-          CERT_PW="${IOS_SIGNING_KEYSTORE_PASSWORD}"
-
-          if [ -f "$KEYCHAIN_PATH" ]; then
-            echo "🧹 Removing existing keychain..."
-            security delete-keychain "$KEYCHAIN_PATH" || true
-          fi
-
-          echo "$IOS_SIGNING_KEYSTORE" | base64 --decode > "$CERT_PATH"
-          echo "$IOS_SIGNING_PROFILE" | base64 --decode > "$PROFILE_PATH"
-          echo "✅ Decoded .p12 and provisioning profile"
-
-          security create-keychain -p "$CERT_PW" "$KEYCHAIN_PATH"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "$CERT_PW" "$KEYCHAIN_PATH"
-
-          echo "🔐 Importing certificate..."
-          if ! security import "$CERT_PATH" -P "$CERT_PW" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"; then
-            echo "❌ Failed to import certificate."
-            exit 1
-          fi
-          echo "✅ Certificate imported"
-
-          security set-key-partition-list -S apple-tool:,apple: -k "$CERT_PW" "$KEYCHAIN_PATH" 2>/dev/null || true
-
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/
-          echo "✅ Installed provisioning profile"
-
-          # Add keychain to search list (codesign searches this; default-keychain alone is insufficient)
-          # Word splitting is intentional; security list-keychains -s expects separate args
-          # shellcheck disable=SC2046
-          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"' | xargs)
-          security default-keychain -s "$KEYCHAIN_PATH"
-          echo "✅ Keychain added to search list and set as default"
-
       # iOS: Configure Node path for Xcode build scripts (React Native Codegen)
       - name: Configure Node path for Xcode
         if: matrix.platform == 'ios'
@@ -451,8 +410,8 @@ jobs:
           command: |
             export NODE_OPTIONS='--max-old-space-size=4096'
             export METRO_MAX_WORKERS='4'
-            BUILD_NAME="${{ inputs.build_name }}"
-            SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
+            SCRIPT_BASE="${{ needs.prepare.outputs.script_name }}"
+            SCRIPT_NAME="build:${{ matrix.platform }}:${SCRIPT_BASE//-/:}"
             yarn "$SCRIPT_NAME"
 
       # Rename build artifacts (ios_simulator_path / ios_ipa_path / ios_archive_path / android_*_path outputs)
@@ -534,6 +493,14 @@ jobs:
         with:
           name: android-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_sourcemap_dir }}
+          if-no-files-found: warn
+
+      - name: Upload build environment JSON
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-env-${{ inputs.build_name }}-${{ matrix.platform }}
+          path: build-env.json
           if-no-files-found: warn
 
   # Single fan-in job so workflow_call outputs work with matrix `build` (matrix jobs cannot feed workflow outputs directly).

@@ -126,9 +126,8 @@ describe('MusdAggregatedRow', () => {
   });
 
   describe('handleTokenRowPress', () => {
-    it('navigates to Cash tokens full view when Money Home is disabled and education seen', () => {
+    it('navigates to Cash tokens full view when Money Home is disabled', () => {
       mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
-      mockSelectMusdConversionEducationSeen.mockReturnValue(true);
 
       renderWithProvider(<MusdAggregatedRow />);
 
@@ -140,9 +139,8 @@ describe('MusdAggregatedRow', () => {
       );
     });
 
-    it('navigates to Money Home when Money Home is enabled and education seen', () => {
+    it('navigates to Money Home when Money Home is enabled', () => {
       mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
-      mockSelectMusdConversionEducationSeen.mockReturnValue(true);
 
       renderWithProvider(<MusdAggregatedRow />);
 
@@ -183,7 +181,7 @@ describe('MusdAggregatedRow', () => {
       );
     });
 
-    it('navigates to education screen with Money Home returnTo when isMoneyHomeEnabled and education not seen', () => {
+    it('navigates to MONEY.ROOT when isMoneyHomeEnabled is true (regardless of education)', () => {
       mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
       mockSelectMusdConversionEducationSeen.mockReturnValue(false);
 

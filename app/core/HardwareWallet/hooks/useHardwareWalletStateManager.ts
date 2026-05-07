@@ -131,8 +131,8 @@ export const useHardwareWalletStateManager =
     );
 
     const setPendingOperationWalletType = useCallback(
-      (walletType: HardwareWalletType | null) => {
-        pendingOperationWalletTypeRef.current = walletType;
+      (nextWalletType: HardwareWalletType | null) => {
+        pendingOperationWalletTypeRef.current = nextWalletType;
       },
       [],
     );

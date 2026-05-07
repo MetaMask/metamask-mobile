@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import {
   MoneyAccountDepositInfo,
   MONEY_ACCOUNT_CURRENCY,
@@ -10,31 +10,29 @@ jest.mock('../../../hooks/ui/useNavbar', () => ({
   default: jest.fn(),
 }));
 
+const mockCustomAmountInfo = jest.fn();
 jest.mock('../custom-amount-info', () => ({
-  CustomAmountInfo: ({
-    currency,
-    children,
-  }: {
-    currency: string;
-    children?: React.ReactNode;
-  }) => {
+  CustomAmountInfo: (props: Record<string, unknown>) => {
+    mockCustomAmountInfo(props);
     const { View, Text } = jest.requireActual('react-native');
     return (
       <View>
-        <Text testID="custom-amount-info">{currency}</Text>
-        {children}
+        <Text testID="custom-amount-info">{props.currency as string}</Text>
+        {props.children as React.ReactNode}
       </View>
     );
   },
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string) =>
+    ({ 'confirm.title.money_account_add_money': 'Add money' })[key] ?? key,
 }));
 
 describe('MoneyAccountDepositInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCustomAmountInfo.mockClear();
   });
 
   it('renders CustomAmountInfo with usd currency', () => {
@@ -51,12 +49,30 @@ describe('MoneyAccountDepositInfo', () => {
 
     render(<MoneyAccountDepositInfo />);
 
-    expect(useNavbar).toHaveBeenCalledWith(
-      'confirm.title.money_account_deposit',
-    );
+    expect(useNavbar).toHaveBeenCalledWith('Add money');
   });
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {
     expect(MONEY_ACCOUNT_CURRENCY).toBe('usd');
+  });
+
+  it('passes supportAccountSelection=true to CustomAmountInfo', () => {
+    render(<MoneyAccountDepositInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.supportAccountSelection).toBe(true);
+  });
+
+  it('passes hasMax=true to CustomAmountInfo', () => {
+    render(<MoneyAccountDepositInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.hasMax).toBe(true);
   });
 });

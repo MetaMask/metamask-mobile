@@ -8,6 +8,7 @@ import reducer, {
   setSlippage,
   setBridgeViewMode,
   selectBridgeViewMode,
+  setSourceToken,
   setDestToken,
   setIsDestTokenManuallySet,
   selectIsDestTokenManuallySet,
@@ -20,7 +21,9 @@ import reducer, {
   selectVisiblePillChainIds,
   setSelectedQuoteRequestId,
   selectSelectedQuoteRequestId,
+  selectIsRwaSwap,
 } from '.';
+import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
 import {
   BridgeToken,
   BridgeViewMode,
@@ -50,6 +53,15 @@ describe('bridge slice', () => {
     name: 'USDC',
     balance: '100',
     balanceFiat: '100',
+  };
+
+  const polygonNativeToken: BridgeToken = {
+    address: '0x0000000000000000000000000000000000001010',
+    symbol: 'POL',
+    decimals: 18,
+    image: '',
+    chainId: '0x89' as Hex,
+    name: 'POL',
   };
 
   describe('initial state', () => {
@@ -185,6 +197,14 @@ describe('bridge slice', () => {
   });
 
   describe('setDestToken', () => {
+    it('normalizes Polygon native token address', () => {
+      const state = reducer(initialState, setDestToken(polygonNativeToken));
+
+      expect(state.destToken?.address).toBe(
+        '0x0000000000000000000000000000000000000000',
+      );
+    });
+
     it('sets the destination token and updates selectedDestChainId', () => {
       const action = setDestToken(mockDestToken);
       const state = reducer(initialState, action);
@@ -203,6 +223,16 @@ describe('bridge slice', () => {
       const state = reducer(stateWithManualFlag, action);
 
       expect(state.isDestTokenManuallySet).toBe(true);
+    });
+  });
+
+  describe('setSourceToken', () => {
+    it('normalizes Polygon native token address', () => {
+      const state = reducer(initialState, setSourceToken(polygonNativeToken));
+
+      expect(state.sourceToken?.address).toBe(
+        '0x0000000000000000000000000000000000000000',
+      );
     });
   });
 
@@ -752,6 +782,89 @@ describe('bridge slice', () => {
       const newState = reducer(stateWithSelection, resetBridgeState());
 
       expect(newState.selectedQuoteRequestId).toBeUndefined();
+    });
+  });
+
+  describe('selectIsRwaSwap', () => {
+    const stockToken: BridgeToken = {
+      address: '0xstock',
+      symbol: 'STOCK',
+      decimals: 18,
+      image: '',
+      chainId: '0x1' as Hex,
+      name: 'Stock Token',
+      rwaData: { instrumentType: 'stock' } as BridgeToken['rwaData'],
+    };
+
+    const nonRwaToken: BridgeToken = {
+      address: '0xusdc',
+      symbol: 'USDC',
+      decimals: 6,
+      image: '',
+      chainId: '0x1' as Hex,
+      name: 'USDC',
+    };
+
+    const buildState = (
+      sourceToken: BridgeToken | undefined,
+      destToken: BridgeToken | undefined,
+      rwaEnabled: boolean,
+    ) => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        sourceToken,
+        destToken,
+      };
+      (
+        mockState as any
+      ).engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags[
+        FEATURE_FLAG_NAME
+      ] = rwaEnabled;
+      return mockState as unknown as RootState;
+    };
+
+    it('returns false when source and dest chains differ (bridge, not a swap)', () => {
+      const state = buildState(
+        { ...stockToken, chainId: '0x1' as Hex },
+        { ...nonRwaToken, chainId: '0xa' as Hex },
+        true,
+      );
+      expect(selectIsRwaSwap(state)).toBe(false);
+    });
+
+    it('returns false when it is an EVM swap but no token has RWA data', () => {
+      const state = buildState(nonRwaToken, nonRwaToken, true);
+      expect(selectIsRwaSwap(state)).toBe(false);
+    });
+
+    it('returns false when source token is a stock RWA but the RWA flag is disabled', () => {
+      const state = buildState(stockToken, nonRwaToken, false);
+      expect(selectIsRwaSwap(state)).toBe(false);
+    });
+
+    it('returns true when source token is a stock RWA and the RWA flag is enabled', () => {
+      const state = buildState(stockToken, nonRwaToken, true);
+      expect(selectIsRwaSwap(state)).toBe(true);
+    });
+
+    it('returns true when dest token is a stock RWA and the RWA flag is enabled', () => {
+      const state = buildState(nonRwaToken, stockToken, true);
+      expect(selectIsRwaSwap(state)).toBe(true);
+    });
+
+    it('returns true when both tokens are stock RWA and the RWA flag is enabled', () => {
+      const state = buildState(stockToken, stockToken, true);
+      expect(selectIsRwaSwap(state)).toBe(true);
+    });
+
+    it('returns false when source token instrument type is not stock', () => {
+      const bondToken: BridgeToken = {
+        ...stockToken,
+        rwaData: { instrumentType: 'bond' } as BridgeToken['rwaData'],
+      };
+      const state = buildState(bondToken, nonRwaToken, true);
+      expect(selectIsRwaSwap(state)).toBe(false);
     });
   });
 

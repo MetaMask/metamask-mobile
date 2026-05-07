@@ -38,14 +38,14 @@ export enum CardMessageBoxType {
   KYCPending = 'kyc_pending',
   CardProvisioning = 'card_provisioning',
   AuthPrompt = 'auth_prompt',
+  CashbackFundingRequired = 'cashback_funding_required',
 }
 
 export type CardUserPhase =
   | 'ACCOUNT'
   | 'PHONE_NUMBER'
   | 'PERSONAL_INFORMATION'
-  | 'PHYSICAL_ADDRESS'
-  | 'MAILING_ADDRESS';
+  | 'PHYSICAL_ADDRESS';
 
 export type CardVerificationState =
   | 'VERIFIED'
@@ -85,6 +85,7 @@ export type CardFundingToken = {
   fundingStatus: FundingStatus;
   spendableBalance: string;
   spendingCap?: string;
+  originalSpendingCap?: string;
 } & CardToken &
   AuthenticatedCardFundingTokenData;
 
