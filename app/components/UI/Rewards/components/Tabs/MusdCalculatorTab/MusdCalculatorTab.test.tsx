@@ -1,10 +1,16 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import MusdCalculatorTab from './MusdCalculatorTab';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { amountToPercent } from '../../../utils/musdCalculatorSlider';
+
+const mockPanGestureHandlers: {
+  onBegin?: (event: { x: number }) => void;
+  onUpdate?: (event: { x: number }) => void;
+  onFinalize?: (event: { x: number }) => void;
+} = {};
 
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: jest.requireActual('react-native').View,
@@ -12,9 +18,27 @@ jest.mock('react-native-gesture-handler', () => ({
   Gesture: {
     Pan: jest.fn(() => ({
       minDistance: jest.fn().mockReturnThis(),
-      onBegin: jest.fn().mockReturnThis(),
-      onUpdate: jest.fn().mockReturnThis(),
-      onFinalize: jest.fn().mockReturnThis(),
+      onBegin: jest.fn(function (
+        this: unknown,
+        handler: (event: { x: number }) => void,
+      ) {
+        mockPanGestureHandlers.onBegin = handler;
+        return this;
+      }),
+      onUpdate: jest.fn(function (
+        this: unknown,
+        handler: (event: { x: number }) => void,
+      ) {
+        mockPanGestureHandlers.onUpdate = handler;
+        return this;
+      }),
+      onFinalize: jest.fn(function (
+        this: unknown,
+        handler: (event: { x: number }) => void,
+      ) {
+        mockPanGestureHandlers.onFinalize = handler;
+        return this;
+      }),
     })),
   },
 }));
@@ -64,6 +88,9 @@ jest.mock('../../../../../../util/theme', () => {
 describe('MusdCalculatorTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPanGestureHandlers.onBegin = undefined;
+    mockPanGestureHandlers.onUpdate = undefined;
+    mockPanGestureHandlers.onFinalize = undefined;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -182,5 +209,80 @@ describe('MusdCalculatorTab', () => {
       expect(amountInput).toHaveProp('value', '12000');
       expect(getByText(/\$360/)).toBeOnTheScreen();
     });
+  });
+
+  it('normalizes decorated decimal input while editing', async () => {
+    const { getByTestId, getByText } = render(<MusdCalculatorTab />);
+    const amountInput = getByTestId('musd-slider-amount-display');
+
+    fireEvent(amountInput, 'focus');
+    fireEvent.changeText(amountInput, '$1,234.56.78');
+
+    await waitFor(() => {
+      expect(amountInput).toHaveProp('value', '1234.5678');
+      expect(getByText(/\$37\.037/)).toBeOnTheScreen();
+    });
+  });
+
+  it('treats invalid numeric input as zero', async () => {
+    const { getByTestId, getAllByText } = render(<MusdCalculatorTab />);
+    const amountInput = getByTestId('musd-slider-amount-display');
+
+    fireEvent(amountInput, 'focus');
+    fireEvent.changeText(amountInput, '.');
+
+    await waitFor(() => {
+      expect(amountInput).toHaveProp('value', '.');
+      expect(getAllByText(/\$0/).length).toBeGreaterThan(0);
+    });
+  });
+
+  it('ignores slider presses before the track is measured', () => {
+    const { getByTestId } = render(<MusdCalculatorTab />);
+
+    fireEvent(getByTestId('musd-slider-track'), 'pressIn', {
+      nativeEvent: { locationX: 200 },
+    });
+
+    expect(getByTestId('musd-slider-amount-display')).toHaveProp(
+      'value',
+      '$1,000',
+    );
+  });
+
+  it('updates amount through pan gesture handlers', async () => {
+    const { getByTestId } = render(<MusdCalculatorTab />);
+    const track = getByTestId('musd-slider-track');
+
+    fireEvent(track, 'layout', {
+      nativeEvent: { layout: { width: 300, height: 32, x: 0, y: 0 } },
+    });
+
+    act(() => {
+      mockPanGestureHandlers.onBegin?.({ x: 150 });
+      mockPanGestureHandlers.onUpdate?.({ x: 300 });
+      mockPanGestureHandlers.onFinalize?.({ x: 300 });
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('musd-slider-amount-display')).toHaveProp(
+        'value',
+        '$10,000',
+      );
+    });
+  });
+
+  it('ignores pan gesture handlers before the track is measured', () => {
+    const { getByTestId } = render(<MusdCalculatorTab />);
+
+    act(() => {
+      mockPanGestureHandlers.onBegin?.({ x: 150 });
+      mockPanGestureHandlers.onUpdate?.({ x: 300 });
+    });
+
+    expect(getByTestId('musd-slider-amount-display')).toHaveProp(
+      'value',
+      '$1,000',
+    );
   });
 });
