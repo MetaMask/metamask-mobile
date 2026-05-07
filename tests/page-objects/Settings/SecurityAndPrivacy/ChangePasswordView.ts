@@ -12,21 +12,13 @@ class ChangePasswordView {
   }
 
   get passwordInput(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(
-          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-        )
-      : Matchers.getEditTextWithAncestorTestId(
-          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-        );
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
   }
 
   get confirmPasswordInput(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(RESET_PASSWORD_CONFIRM_INPUT_BOX_ID)
-      : Matchers.getEditTextWithAncestorTestId(
-          RESET_PASSWORD_CONFIRM_INPUT_BOX_ID,
-        );
+    return Matchers.getElementByID(RESET_PASSWORD_CONFIRM_INPUT_BOX_ID);
   }
 
   get iUnderstandCheckBox(): DetoxElement {
@@ -45,7 +37,6 @@ class ChangePasswordView {
     await Gestures.typeText(this.passwordInput, PASSWORD, {
       hideKeyboard: true,
       elemDescription: 'Confirm password input box',
-      timeout: 30000,
     });
   }
 
