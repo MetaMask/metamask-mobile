@@ -47,7 +47,7 @@ describe('TabsIconList', () => {
         <TabsIconList>
           <View
             key="t1"
-            {...(tabViewProps('Portfolio', IconName.Portfolio) as object)}
+            {...(tabViewProps('Portfolio', IconName.PieChart) as object)}
           >
             <Text>Portfolio Content</Text>
           </View>
@@ -68,7 +68,7 @@ describe('TabsIconList', () => {
         <TabsIconList initialActiveIndex={1}>
           <View
             key="t1"
-            {...(tabViewProps('Portfolio', IconName.Portfolio) as object)}
+            {...(tabViewProps('Portfolio', IconName.PieChart) as object)}
           >
             <Text>Content 1</Text>
           </View>
@@ -90,7 +90,7 @@ describe('TabsIconList', () => {
           <View
             key="t1"
             {...({
-              ...tabViewProps('Portfolio', IconName.Portfolio),
+              ...tabViewProps('Portfolio', IconName.PieChart),
               isDisabled: true,
             } as object)}
           >
@@ -115,7 +115,7 @@ describe('TabsIconList', () => {
           <View
             key="t1"
             {...({
-              ...tabViewProps('Portfolio', IconName.Portfolio),
+              ...tabViewProps('Portfolio', IconName.PieChart),
               isDisabled: true,
             } as object)}
           >
@@ -140,7 +140,7 @@ describe('TabsIconList', () => {
         <TabsIconList testID="list" tabsListContentTwClassName="bg-red-500">
           <View
             key="t1"
-            {...(tabViewProps('Portfolio', IconName.Portfolio) as object)}
+            {...(tabViewProps('Portfolio', IconName.PieChart) as object)}
           >
             <Text>Content 1</Text>
           </View>
@@ -156,7 +156,7 @@ describe('TabsIconList', () => {
         <TabsIconList>
           <View
             key="t1"
-            {...(tabViewProps('Portfolio', IconName.Portfolio) as object)}
+            {...(tabViewProps('Portfolio', IconName.PieChart) as object)}
           >
             <Text>Portfolio Content</Text>
           </View>
@@ -180,7 +180,7 @@ describe('TabsIconList', () => {
         <TabsIconList onChangeTab={mockOnChangeTab}>
           <View
             key="t1"
-            {...(tabViewProps('Portfolio', IconName.Portfolio) as object)}
+            {...(tabViewProps('Portfolio', IconName.PieChart) as object)}
           >
             <Text>Content 1</Text>
           </View>
@@ -207,7 +207,7 @@ describe('TabsIconList', () => {
         <TabsIconList onChangeTab={mockOnChangeTab}>
           <View
             key="t1"
-            {...(tabViewProps('Portfolio', IconName.Portfolio) as object)}
+            {...(tabViewProps('Portfolio', IconName.PieChart) as object)}
           >
             <Text>Content 1</Text>
           </View>
@@ -237,7 +237,7 @@ describe('TabsIconList', () => {
         <TabsIconList onChangeTab={mockOnChangeTab}>
           <View
             key="t1"
-            {...(tabViewProps('Portfolio', IconName.Portfolio) as object)}
+            {...(tabViewProps('Portfolio', IconName.PieChart) as object)}
           >
             <Text>Content 1</Text>
           </View>
@@ -265,7 +265,7 @@ describe('TabsIconList', () => {
         <TabsIconList ref={ref}>
           <View
             key="t1"
-            {...(tabViewProps('Portfolio', IconName.Portfolio) as object)}
+            {...(tabViewProps('Portfolio', IconName.PieChart) as object)}
           >
             <Text>Content 1</Text>
           </View>
@@ -296,7 +296,7 @@ describe('TabsIconList', () => {
         <TabsIconList ref={ref} initialActiveIndex={0}>
           <View
             key="t1"
-            {...(tabViewProps('Portfolio', IconName.Portfolio) as object)}
+            {...(tabViewProps('Portfolio', IconName.PieChart) as object)}
           >
             <Text>Content 1</Text>
           </View>
@@ -326,7 +326,7 @@ describe('TabsIconList', () => {
         <TabsIconList>
           <View
             key="t1"
-            {...(tabViewProps('Portfolio', IconName.Portfolio) as object)}
+            {...(tabViewProps('Portfolio', IconName.PieChart) as object)}
           >
             <Text>Content 1</Text>
           </View>
@@ -359,7 +359,7 @@ describe('TabsIconList', () => {
         <TabsIconList>
           <View
             key="t1"
-            {...(tabViewProps('Portfolio', IconName.Portfolio) as object)}
+            {...(tabViewProps('Portfolio', IconName.PieChart) as object)}
           >
             <Text>Content 1</Text>
           </View>
@@ -395,7 +395,7 @@ describe('TabsIconList', () => {
           <TabsIconList initialActiveIndex={0}>
             <View
               key="t1"
-              {...(tabViewProps('Portfolio', IconName.Portfolio) as object)}
+              {...(tabViewProps('Portfolio', IconName.PieChart) as object)}
             >
               <Text>Content 1</Text>
             </View>
@@ -420,7 +420,7 @@ describe('TabsIconList', () => {
         <TabsIconList>
           <View
             key="t1"
-            {...(tabViewProps('Portfolio', IconName.Portfolio) as object)}
+            {...(tabViewProps('Portfolio', IconName.PieChart) as object)}
           >
             <Text>Content 1</Text>
           </View>
@@ -444,7 +444,7 @@ describe('TabsIconList', () => {
         <TabsIconList>
           <View
             key="t1"
-            {...(tabViewProps('Portfolio', IconName.Portfolio) as object)}
+            {...(tabViewProps('Portfolio', IconName.PieChart) as object)}
           >
             <Text>Content 1</Text>
           </View>
@@ -474,7 +474,7 @@ describe('TabsIconList', () => {
         {
           key: 'p-tab',
           label: 'Portfolio',
-          icon: IconName.Portfolio,
+          icon: IconName.PieChart,
           content: 'Portfolio Content',
         },
         {
@@ -526,7 +526,7 @@ describe('TabsIconList', () => {
         {
           key: 'p-tab',
           label: 'Portfolio',
-          icon: IconName.Portfolio,
+          icon: IconName.PieChart,
           content: 'Portfolio Content',
         },
         {
@@ -555,7 +555,7 @@ describe('TabsIconList', () => {
         <TabsIconList>
           <View
             key="p-tab"
-            {...(tabViewProps('Portfolio', IconName.Portfolio) as object)}
+            {...(tabViewProps('Portfolio', IconName.PieChart) as object)}
           >
             <Text>Portfolio Content</Text>
           </View>

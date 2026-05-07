@@ -86,7 +86,7 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
       return null;
     }
 
-    const title = strings('homepage.sections.cash');
+    const title = strings('homepage.sections.money');
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>

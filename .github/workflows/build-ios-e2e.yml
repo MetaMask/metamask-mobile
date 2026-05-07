@@ -26,11 +26,20 @@ on:
         required: false
         default: ''
         type: string
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   build-ios-apps:
     name: Build iOS E2E Apps
-    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe-xl
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' }}
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}

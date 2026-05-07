@@ -8,6 +8,18 @@ import Routes from '../../../../constants/navigation/Routes';
 const mockNavigate = jest.fn();
 const mockGoToBuy = jest.fn();
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn((eventName: string) => ({
+      addProperties: jest.fn(() => ({
+        build: jest.fn(() => ({ category: eventName })),
+      })),
+      build: jest.fn(() => ({ category: eventName })),
+    })),
+  }),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -81,6 +93,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={baseItem}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -93,6 +106,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={baseItem}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -105,6 +119,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -117,6 +132,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -131,6 +147,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -145,6 +162,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -158,6 +176,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -172,6 +191,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -185,6 +205,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -200,6 +221,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -214,6 +236,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={baseItem}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -227,6 +250,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -238,5 +262,37 @@ describe('WhatsHappeningExpandedCard', () => {
         market: { symbol: 'xyz:TSLA', name: 'Tesla' },
       }),
     });
+  });
+
+  it('calls onSourcesPress with the item articles when the sources footer is pressed', () => {
+    const mockOnSourcesPress = jest.fn();
+    const article = {
+      title: 'Test article',
+      source: 'coindesk.com',
+      url: 'https://coindesk.com/test',
+      date: '2026-03-15T10:00:00.000Z',
+    };
+    const item = { ...baseItem, articles: [article] };
+
+    // Override mock so the sources footer is rendered
+    const { getUniqueSourcesByFavicon } = jest.requireMock(
+      '../../../UI/MarketInsights/utils/marketInsightsFormatting',
+    );
+    (getUniqueSourcesByFavicon as jest.Mock).mockReturnValueOnce([
+      { name: 'coindesk.com', type: 'news', url: 'https://coindesk.com' },
+    ]);
+
+    renderWithProvider(
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
+        onSourcesPress={mockOnSourcesPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByText('coindesk.com'));
+    expect(mockOnSourcesPress).toHaveBeenCalledWith([article]);
   });
 });

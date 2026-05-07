@@ -25,6 +25,11 @@ on:
         required: false
         type: boolean
         default: false
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
     outputs:
       build_name:
         description: 'build_name input passed to this workflow'
@@ -81,6 +86,14 @@ on:
         required: false
         type: boolean
         default: false
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: true
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
 
 permissions:
   contents: read
@@ -104,7 +117,7 @@ jobs:
   prepare:
     needs: [update-build-version]
     if: ${{ always() && !failure() && !cancelled() }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
       secrets_json: ${{ steps.config.outputs.secrets_json }}
@@ -117,7 +130,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -165,6 +177,7 @@ jobs:
       upload-artifact: true
       artifact-name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
       artifact-retention-days: 1
+      runner_provider: ${{ inputs.runner_provider }}
 
   # Build
   build:
@@ -175,7 +188,7 @@ jobs:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
     # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: Cirrus macOS Tahoe (has Xcode 26.x)
-    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build' || 'namespace-profile-metamask-android-build') || (matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg') }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     steps:
       - name: Validate version-bump commit
@@ -315,6 +328,16 @@ jobs:
           CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
           SECRETS_JSON: ${{ toJSON(secrets) }}
         run: node scripts/validate-secrets-from-config.js
+
+      - name: Restore CocoaPods specs cache (iOS)
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cocoapods/repos
+          key: ${{ runner.os }}-cocoapods-specs-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cocoapods-specs-
+        continue-on-error: true
 
       # iOS: Install Pods here so generated paths match this runner (setup-node-modules skips pod install with --no-install-pods).
       - name: Install CocoaPods dependencies (iOS)
@@ -508,7 +531,7 @@ jobs:
     name: Emit build metadata
     needs: [prepare, build]
     if: ${{ !failure() && !cancelled() && needs.prepare.result == 'success' && needs.build.result == 'success' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     outputs:
       checkout_ref: ${{ steps.meta.outputs.checkout_ref }}
       built_commit_sha: ${{ steps.meta.outputs.built_commit_sha }}
@@ -518,7 +541,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
 
       - name: Setup Node.js
