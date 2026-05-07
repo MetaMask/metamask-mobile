@@ -37,9 +37,9 @@ import { useReferralDetails } from './hooks/useReferralDetails';
 import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNudge';
 import useRewardsToast from './hooks/useRewardsToast';
 import { strings } from '../../../../locales/i18n';
+import PerpsTradingCampaignWinningView from './Views/PerpsTradingCampaignWinningView';
 
 let sessionNotificationsNudgeShown = false;
-
 const Stack = createStackNavigator();
 
 const RewardsNavigator: React.FC = () => {
@@ -294,6 +294,11 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_STATS}
             component={PerpsTradingCampaignStatsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW}
+            component={PerpsTradingCampaignWinningView}
             options={{ headerShown: false }}
           />
         </>

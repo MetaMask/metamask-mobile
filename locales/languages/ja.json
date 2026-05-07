@@ -8512,7 +8512,6 @@
       "empty": "ポジションがありません",
       "empty_description": "RWAトークンのポジションをオープンして、報酬の獲得を始めましょう。",
       "empty_cta": "ポジションをオープン",
-      "position_units": "{{units}}株",
       "positions_title": "ポジション",
       "activity_title": "アクティビティ",
       "view_activity": "アクティビティを表示",
@@ -8658,29 +8657,18 @@
       "retry_button": "再試行",
       "refreshing": "更新中..."
     },
-    "ondo_campaign_winning": {
-      "you_won": "予測的中",
-      "rank_label": "{{place}}位",
-      "email_instructions": "賞品を請求するには、ondocampaign@consensys.netにメールでコードを送信してください。",
-      "open_mail": "メールを開く",
-      "skip_for_now": "今はスキップ",
-      "mail_subject": "Ondoキャンペーン賞品の請求",
-      "mail_body": "勝利コード: {{code}}",
-      "winning_code": "勝利コード",
-      "close_a11y": "閉じる"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "予測的中",
-        "description": "今すぐ賞品を請求しましょう。",
-        "a11y": "勝者の詳細を開く"
+        "title": "当選しました！",
+        "description": "当選コードを確認し、本日中に賞品を請求してください。",
+        "a11y": "詳細を表示"
       },
       "participant_pending": {
         "title": "キャンペーンが終了しました。",
         "description": "結果を判断しています。近々またご確認ください。"
       },
       "participant_finalized": {
-        "title": "キャンペーンの結果が出ました",
+        "title": "キャンペーンの結果が出ました。",
         "description": "今回は勝ちませんでした。リーダーボードで順位を確認しましょう。"
       },
       "winner_finalized": {
@@ -8688,17 +8676,28 @@
         "description": "間もなく報酬を受け取れます。近々ご連絡します。"
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "予測的中 💰",
-        "description": "{{campaignName}}の賞品を請求",
+        "description": "本日、{{campaignName}}の賞品を請求してください。",
         "cta": "詳細を表示"
       },
-      "participant_no_winner": {
-        "title": "結果が出ました。🏅",
-        "description": "{{campaignName}}でのランキングをご覧ください",
+      "non_winner": {
+        "title": "結果が出ました 🏅",
+        "description": "{{campaignName}}での順位を確認してください。",
         "cta": "表示"
       }
+    },
+    "campaign_winning": {
+      "you_won": "予測的中",
+      "rank_label": "{{place}}位",
+      "email_instructions": "賞品を請求するには、{{email}}にメールでコードを送信してください。",
+      "open_mail": "メールを開く",
+      "skip_for_now": "今はスキップ",
+      "mail_subject": "{{campaignName}} 賞品の請求",
+      "mail_body": "勝利コード: {{code}}",
+      "winning_code": "勝利コード",
+      "close_a11y": "閉じる"
     }
   },
   "time": {

@@ -314,6 +314,41 @@ describe('PredictionsSection', () => {
       });
     });
 
+    it('renders the current active position values from the hook data', async () => {
+      mockUsePredictPositionsForHomepage.mockImplementation(
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
+          positions: claimable
+            ? []
+            : [
+                {
+                  ...mockActivePositions[0],
+                  currentValue: 99,
+                  percentPnl: 890,
+                },
+                mockActivePositions[1],
+              ],
+          isLoading: false,
+          error: null,
+          totalClaimableValue: 0,
+          refetch: jest.fn(),
+        }),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
+      });
+
+      expect(screen.getByText('$99')).toBeOnTheScreen();
+      expect(screen.getByText('890%')).toBeOnTheScreen();
+      expect(screen.queryByText('$12')).not.toBeOnTheScreen();
+    });
+
     it('shows position skeletons when loading positions', () => {
       mockUsePredictPositionsForHomepage.mockImplementation(
         ({

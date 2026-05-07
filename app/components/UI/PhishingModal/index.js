@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Platform,
   Linking,
   TouchableOpacity,
 } from 'react-native';
@@ -13,8 +12,7 @@ import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { ETHEREUM_DETECTION_TITLE } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/ExternalWebsites.testIds';
+import { PhishingModalSelectorsIDs } from './PhishingModal.testIds';
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
   ButtonVariants,
@@ -146,7 +144,7 @@ export default class PhishingModal extends PureComponent {
         </View>
         <Text
           style={styles.phishingModalTitle}
-          {...generateTestId(Platform, ETHEREUM_DETECTION_TITLE)}
+          testID={PhishingModalSelectorsIDs.DETECTION_TITLE}
         >
           {strings('phishing.site_might_be_harmful')}
         </Text>
