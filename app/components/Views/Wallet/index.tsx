@@ -23,7 +23,10 @@ import {
   unstable_batchedUpdates,
   View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import Reanimated, {
   LinearTransition,
   useSharedValue,
@@ -1112,7 +1115,6 @@ const Wallet = ({
     accountBalanceByChainId?.balance,
   ]);
 
-
   const { variantName: discoveryTabsVariantName } = useABTest(
     HUB_PAGE_DISCOVERY_TABS_AB_KEY,
     HUB_PAGE_DISCOVERY_TABS_VARIANTS,
@@ -1131,7 +1133,6 @@ const Wallet = ({
       opacity: h > 0 ? Math.max(0, 1 + walletHeaderTranslateY.value / h) : 1,
     };
   });
-
 
   const isFocused = useIsFocused();
 
