@@ -288,6 +288,7 @@ describe('RewardsDataService', () => {
       id: 'test-subscription-id',
       referralCode: 'test-referral-code',
       accounts: [],
+      features: { vip: { enabled: false } },
     };
 
     it('should successfully join an account to a subscription', async () => {
@@ -441,6 +442,7 @@ describe('RewardsDataService', () => {
         id: 'test-subscription-id',
         referralCode: 'test-referral-code',
         accounts: [],
+        features: { vip: { enabled: false } },
       },
     };
 
@@ -1995,6 +1997,7 @@ describe('RewardsDataService', () => {
       id: 'test-subscription-id',
       referralCode: 'test-referral-code',
       accounts: [],
+      features: { vip: { enabled: false } },
     },
   };
 
@@ -2142,6 +2145,7 @@ describe('RewardsDataService', () => {
           id: 'sub-789',
           referralCode: 'REF123',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
       };
 
@@ -2177,6 +2181,7 @@ describe('RewardsDataService', () => {
           id: 'sol-789',
           referralCode: 'REF123',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
       };
 
@@ -2218,6 +2223,7 @@ describe('RewardsDataService', () => {
           id: 'sub-789',
           referralCode: 'AUTO123',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
       };
 

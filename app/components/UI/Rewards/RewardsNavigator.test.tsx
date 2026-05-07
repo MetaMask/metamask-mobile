@@ -66,6 +66,18 @@ jest.mock('./Views/RewardsSettingsView', () => {
   };
 });
 
+jest.mock('./Views/RewardsVipView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockRewardsVipView() {
+    return ReactActual.createElement(
+      View,
+      { testID: 'rewards-vip-view' },
+      ReactActual.createElement(Text, null, 'Rewards VIP View'),
+    );
+  };
+});
+
 jest.mock('./Views/CampaignTourStepView', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -576,6 +588,16 @@ describe('RewardsNavigator', () => {
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
 
       // Rendering should not throw even with the new screens registered
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
+      });
+    });
+
+    it('registers REWARDS_VIP_VIEW route when subscription exists', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {

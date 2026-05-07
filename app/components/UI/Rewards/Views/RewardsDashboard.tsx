@@ -1,10 +1,16 @@
 import React, { useEffect, useCallback, useMemo, useRef } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { Box, IconName } from '@metamask/design-system-react-native';
+import {
+  Box,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
+import { useTheme } from '../../../../util/theme';
 import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
@@ -14,7 +20,10 @@ import {
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
 } from '../../../../reducers/rewards/selectors';
-import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import {
+  selectIsCurrentSubscriptionVipEnabled,
+  selectRewardsSubscriptionId,
+} from '../../../../selectors/rewards';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import {
   useRewardDashboardModals,
@@ -28,14 +37,17 @@ import { selectSelectedAccountGroup } from '../../../../selectors/multichainAcco
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
-import { ScrollView } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
+import CrownIcon from '../../../../images/rewards/crown.svg';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
+  const { colors } = useTheme();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
   const activeTab = useSelector(selectActiveTab);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
@@ -192,19 +204,43 @@ const RewardsDashboard: React.FC = () => {
       >
         <HeaderRoot
           title={strings('rewards.main_title')}
-          endButtonIconProps={[
-            {
-              iconName: IconName.Setting,
-              onPress: () => navigation.navigate(Routes.REWARDS_SETTINGS_VIEW),
-              disabled: !subscriptionId,
-              testID: REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
-            },
-            {
-              iconName: IconName.UserCircleAdd,
-              onPress: () => navigation.navigate(Routes.REFERRAL_REWARDS_VIEW),
-              testID: REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
-            },
-          ]}
+          endAccessory={
+            <Box twClassName="flex-row gap-2">
+              {isVipEnabled && (
+                <Pressable
+                  accessibilityLabel={strings('rewards.vip.title')}
+                  accessibilityRole="button"
+                  onPress={() => navigation.navigate(Routes.REWARDS_VIP_VIEW)}
+                  style={tw.style('h-8 w-8 items-center justify-center')}
+                  testID={REWARDS_VIEW_SELECTORS.VIP_BUTTON}
+                >
+                  <CrownIcon
+                    color={colors.icon.default}
+                    name="crown"
+                    width={24}
+                    height={24}
+                  />
+                </Pressable>
+              )}
+              <ButtonIcon
+                iconName={IconName.UserCircleAdd}
+                onPress={() =>
+                  navigation.navigate(Routes.REFERRAL_REWARDS_VIEW)
+                }
+                size={ButtonIconSize.Md}
+                testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
+              />
+              <ButtonIcon
+                disabled={!subscriptionId}
+                iconName={IconName.Setting}
+                onPress={() =>
+                  navigation.navigate(Routes.REWARDS_SETTINGS_VIEW)
+                }
+                size={ButtonIconSize.Md}
+                testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
+              />
+            </Box>
+          }
         />
         <ScrollView
           showsVerticalScrollIndicator={false}

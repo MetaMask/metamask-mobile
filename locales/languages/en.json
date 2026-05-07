@@ -8253,6 +8253,9 @@
       "retry_button": "Retry"
     },
     "main_title": "Rewards",
+    "vip": {
+      "title": "VIP"
+    },
     "referral_title": "Referrals",
     "referral_stats_earned_from_referrals": "Earned from referrals",
     "referral_stats_referrals": "Referrals",
