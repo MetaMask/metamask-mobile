@@ -73,6 +73,9 @@ const mockState = {
           selectedAccount: '',
         },
       },
+      NotificationServicesPushController: {
+        isPushEnabled: true,
+      },
     },
   },
   user: { appTheme: 'os' },
@@ -102,6 +105,7 @@ describe('generateUserProfileAnalyticsMetaData', () => {
       [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: UserProfileProperty.OFF,
       [UserProfileProperty.SECURITY_PROVIDERS]: 'blockaid',
       [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+      [UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]: true,
       [UserProfileProperty.CHAIN_IDS]: ['eip155:1'],
       [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: 0,
       [UserProfileProperty.NUMBER_OF_ACCOUNT_GROUPS]: 0,
@@ -123,6 +127,26 @@ describe('generateUserProfileAnalyticsMetaData', () => {
 
     const metadata = generateUserProfileAnalyticsMetaData();
     expect(metadata[UserProfileProperty.HAS_MARKETING_CONSENT]).toEqual(
+      expected,
+    );
+  });
+
+  it.each([
+    [true, true],
+    [false, false],
+  ])('returns push notifications enabled "%s"', (expected, isPushEnabled) => {
+    mockGetState.mockReturnValue({
+      ...mockState,
+      engine: {
+        backgroundState: {
+          ...mockState.engine.backgroundState,
+          NotificationServicesPushController: { isPushEnabled },
+        },
+      },
+    });
+
+    const metadata = generateUserProfileAnalyticsMetaData();
+    expect(metadata[UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]).toEqual(
       expected,
     );
   });

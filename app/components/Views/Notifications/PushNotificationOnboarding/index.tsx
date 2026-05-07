@@ -12,6 +12,7 @@ import {
   PushPrePromptVariant,
   usePushPrePromptVariant,
 } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
+import { usePushPrePromptAnalytics } from '../../../../util/notifications/hooks/usePushPrePromptAnalytics';
 import ExistingUserSheet from './ExistingUserSheet';
 import NewUserSheet from './NewUserSheet';
 
@@ -30,6 +31,15 @@ const PushNotificationOnboarding = () => {
     (state: RootState) => state.security?.dataCollectionForMarketing === true,
   );
   const viewedPrePromptVariant = useRef<PushPrePromptVariant>(null);
+  const {
+    trackPrePromptViewed,
+    trackPrePromptDismissed,
+    trackPrePromptButtonClicked,
+    trackOsPromptShown,
+    trackOsPromptResponse,
+    identifyPushNotificationsEnabled,
+    identifyMarketingConsent,
+  } = usePushPrePromptAnalytics();
 
   useEffect(() => {
     if (
@@ -41,7 +51,8 @@ const PushNotificationOnboarding = () => {
 
     viewedPrePromptVariant.current = prePromptVariant;
     markPrePromptShown().catch(() => undefined);
-  }, [markPrePromptShown, prePromptVariant]);
+    trackPrePromptViewed(prePromptVariant);
+  }, [markPrePromptShown, prePromptVariant, trackPrePromptViewed]);
 
   const showToast = useCallback(
     (label: string) => {
@@ -59,18 +70,29 @@ const PushNotificationOnboarding = () => {
       if (hasPendingAction) {
         return;
       }
+      if (prePromptVariant) {
+        trackPrePromptDismissed(prePromptVariant);
+      }
       dismissPrePrompt();
     },
-    [dismissPrePrompt],
+    [dismissPrePrompt, prePromptVariant, trackPrePromptDismissed],
   );
 
   const handlePushPermissionYes = useCallback(async () => {
     dismissPrePrompt();
+    trackPrePromptButtonClicked('push_permission', 'yes');
     if (!hasMarketingConsent) {
       dispatch(setDataCollectionForMarketing(true));
+      await identifyMarketingConsent(true);
     }
 
+    trackOsPromptShown('push_permission');
     const isPushEnabled = await enableNotifications();
+    await identifyPushNotificationsEnabled(isPushEnabled);
+    trackOsPromptResponse(
+      'push_permission',
+      isPushEnabled ? 'allowed' : 'denied',
+    );
     showToast(
       isPushEnabled
         ? strings('notifications.push_onboarding.toast_enabled')
@@ -81,24 +103,51 @@ const PushNotificationOnboarding = () => {
     dispatch,
     enableNotifications,
     hasMarketingConsent,
+    identifyMarketingConsent,
+    identifyPushNotificationsEnabled,
     showToast,
+    trackOsPromptResponse,
+    trackOsPromptShown,
+    trackPrePromptButtonClicked,
   ]);
 
   const handlePushPermissionNotNow = useCallback(() => {
     dismissPrePrompt();
+    trackPrePromptButtonClicked('push_permission', 'not_now');
+    identifyPushNotificationsEnabled(false).catch(() => undefined);
     showToast(strings('notifications.push_onboarding.toast_settings_hint'));
-  }, [dismissPrePrompt, showToast]);
+  }, [
+    dismissPrePrompt,
+    identifyPushNotificationsEnabled,
+    showToast,
+    trackPrePromptButtonClicked,
+  ]);
 
   const handleMarketingConsentConfirm = useCallback(() => {
     dismissPrePrompt();
+    trackPrePromptButtonClicked('marketing_consent', 'confirm');
     dispatch(setDataCollectionForMarketing(true));
+    identifyMarketingConsent(true).catch(() => undefined);
     showToast(strings('notifications.push_onboarding.toast_marketing_enabled'));
-  }, [dismissPrePrompt, dispatch, showToast]);
+  }, [
+    dismissPrePrompt,
+    dispatch,
+    identifyMarketingConsent,
+    showToast,
+    trackPrePromptButtonClicked,
+  ]);
 
   const handleMarketingConsentNotNow = useCallback(() => {
     dismissPrePrompt();
+    trackPrePromptButtonClicked('marketing_consent', 'not_now');
+    identifyMarketingConsent(false).catch(() => undefined);
     showToast(strings('notifications.push_onboarding.toast_marketing_hint'));
-  }, [dismissPrePrompt, showToast]);
+  }, [
+    dismissPrePrompt,
+    identifyMarketingConsent,
+    showToast,
+    trackPrePromptButtonClicked,
+  ]);
 
   return (
     <>

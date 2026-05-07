@@ -111,6 +111,9 @@ const generateUserProfileAnalyticsMetaData = (): AnalyticsUserTraits => {
     appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
   const isDataCollectionForMarketingEnabled =
     reduxState?.security?.dataCollectionForMarketing;
+  const isPushNotificationsEnabled =
+    reduxState?.engine?.backgroundState?.NotificationServicesPushController
+      ?.isPushEnabled;
 
   const chainIds = getConfiguredCaipChainIds();
 
@@ -141,6 +144,9 @@ const generateUserProfileAnalyticsMetaData = (): AnalyticsUserTraits => {
       preferencesController?.securityAlertsEnabled ? 'blockaid' : '',
     [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
       isDataCollectionForMarketingEnabled,
+    ),
+    [UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]: Boolean(
+      isPushNotificationsEnabled,
     ),
     [UserProfileProperty.CHAIN_IDS]: chainIds,
     ...getAccountCompositionTraits(internalAccounts),

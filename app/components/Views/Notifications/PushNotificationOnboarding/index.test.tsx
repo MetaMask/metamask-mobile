@@ -13,6 +13,13 @@ const mockUsePushPrePromptVariant = jest.fn(() => ({
 }));
 const mockEnableNotifications = jest.fn();
 const mockShowToast = jest.fn();
+const mockTrackPrePromptViewed = jest.fn();
+const mockTrackPrePromptDismissed = jest.fn();
+const mockTrackPrePromptButtonClicked = jest.fn();
+const mockTrackOsPromptShown = jest.fn();
+const mockTrackOsPromptResponse = jest.fn();
+const mockIdentifyPushNotificationsEnabled = jest.fn();
+const mockIdentifyMarketingConsent = jest.fn();
 
 jest.mock(
   '../../../../util/notifications/hooks/usePushPrePromptVariant',
@@ -26,6 +33,21 @@ jest.mock('../../../../util/notifications/hooks/useNotifications', () => ({
     enableNotifications: mockEnableNotifications,
   }),
 }));
+
+jest.mock(
+  '../../../../util/notifications/hooks/usePushPrePromptAnalytics',
+  () => ({
+    usePushPrePromptAnalytics: () => ({
+      trackPrePromptViewed: mockTrackPrePromptViewed,
+      trackPrePromptDismissed: mockTrackPrePromptDismissed,
+      trackPrePromptButtonClicked: mockTrackPrePromptButtonClicked,
+      trackOsPromptShown: mockTrackOsPromptShown,
+      trackOsPromptResponse: mockTrackOsPromptResponse,
+      identifyPushNotificationsEnabled: mockIdentifyPushNotificationsEnabled,
+      identifyMarketingConsent: mockIdentifyMarketingConsent,
+    }),
+  }),
+);
 
 jest.mock('./NewUserSheet', () => ({
   __esModule: true,
@@ -124,6 +146,8 @@ describe('PushNotificationOnboarding', () => {
       dismiss: mockDismissPrePrompt,
     });
     mockEnableNotifications.mockResolvedValue(false);
+    mockIdentifyPushNotificationsEnabled.mockResolvedValue(undefined);
+    mockIdentifyMarketingConsent.mockResolvedValue(undefined);
   });
 
   it('marks the prompt as shown when the push permission sheet renders', async () => {
@@ -138,6 +162,7 @@ describe('PushNotificationOnboarding', () => {
     await waitFor(() => {
       expect(mockMarkPrePromptShown).toHaveBeenCalledTimes(1);
     });
+    expect(mockTrackPrePromptViewed).toHaveBeenCalledWith('push_permission');
   });
 
   it('requests notifications and grants marketing consent when Yes is pressed', async () => {
@@ -156,6 +181,17 @@ describe('PushNotificationOnboarding', () => {
     });
     expect(mockDismissPrePrompt).toHaveBeenCalledTimes(1);
     expect(store.getState().security.dataCollectionForMarketing).toBe(true);
+    expect(mockTrackPrePromptButtonClicked).toHaveBeenCalledWith(
+      'push_permission',
+      'yes',
+    );
+    expect(mockTrackOsPromptShown).toHaveBeenCalledWith('push_permission');
+    expect(mockTrackOsPromptResponse).toHaveBeenCalledWith(
+      'push_permission',
+      'allowed',
+    );
+    expect(mockIdentifyMarketingConsent).toHaveBeenCalledWith(true);
+    expect(mockIdentifyPushNotificationsEnabled).toHaveBeenCalledWith(true);
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [{ label: 'Notifications enabled' }],
@@ -175,6 +211,11 @@ describe('PushNotificationOnboarding', () => {
 
     expect(mockEnableNotifications).not.toHaveBeenCalled();
     expect(mockDismissPrePrompt).toHaveBeenCalledTimes(1);
+    expect(mockTrackPrePromptButtonClicked).toHaveBeenCalledWith(
+      'push_permission',
+      'not_now',
+    );
+    expect(mockIdentifyPushNotificationsEnabled).toHaveBeenCalledWith(false);
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [
@@ -199,6 +240,11 @@ describe('PushNotificationOnboarding', () => {
 
     expect(store.getState().security.dataCollectionForMarketing).toBe(true);
     expect(mockEnableNotifications).not.toHaveBeenCalled();
+    expect(mockTrackPrePromptButtonClicked).toHaveBeenCalledWith(
+      'marketing_consent',
+      'confirm',
+    );
+    expect(mockIdentifyMarketingConsent).toHaveBeenCalledWith(true);
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [{ label: 'Personalized updates enabled' }],
@@ -217,6 +263,7 @@ describe('PushNotificationOnboarding', () => {
     fireEvent.press(getByTestId('mock-push-permission-action-close'));
 
     expect(mockDismissPrePrompt).not.toHaveBeenCalled();
+    expect(mockTrackPrePromptDismissed).not.toHaveBeenCalled();
   });
 
   it('dismisses when the sheet is closed directly', () => {
@@ -230,5 +277,6 @@ describe('PushNotificationOnboarding', () => {
     fireEvent.press(getByTestId('mock-push-permission-dismiss'));
 
     expect(mockDismissPrePrompt).toHaveBeenCalledTimes(1);
+    expect(mockTrackPrePromptDismissed).toHaveBeenCalledWith('push_permission');
   });
 });
