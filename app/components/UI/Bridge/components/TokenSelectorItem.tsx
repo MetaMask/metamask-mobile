@@ -175,6 +175,8 @@ interface TokenSelectorItemProps {
   isNoFeeAsset?: boolean;
   secondaryRowContent?: React.ReactNode;
   tokenBalanceTextProps?: Partial<BalanceTextProps>;
+  shouldChangeSelectedStyle?: boolean;
+  shouldShowNetworkIcon?: boolean;
 }
 
 const isLoadingBalance = (balance?: string) =>
@@ -267,8 +269,13 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   isNoFeeAsset = false,
   secondaryRowContent,
   tokenBalanceTextProps,
+  shouldChangeSelectedStyle = true,
+  shouldShowNetworkIcon = true,
 }) => {
-  const { styles } = useStyles(createStyles, { isSelected });
+  const shouldShowSelectedStyle = isSelected && shouldChangeSelectedStyle;
+  const { styles } = useStyles(createStyles, {
+    isSelected: shouldShowSelectedStyle,
+  });
   const { variant } = useABTest(
     TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
     TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
@@ -335,6 +342,16 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     : undefined;
 
   const securityTag = getSecurityTag(token.securityData?.type);
+  const tokenAvatar = (
+    <AvatarToken
+      name={token.symbol}
+      imageSource={getTokenImageSource(token.symbol, token.image)}
+      size={AvatarSize.Lg}
+      testID={
+        isNative ? `network-logo-${token.symbol}` : `token-logo-${token.symbol}`
+      }
+    />
+  );
 
   return (
     <Box
@@ -342,7 +359,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
       alignItems={AlignItems.center}
       style={styles.container}
     >
-      {isSelected && <View style={styles.selectedIndicator} />}
+      {shouldShowSelectedStyle && <View style={styles.selectedIndicator} />}
 
       <TouchableOpacity
         key={token.address}
@@ -356,17 +373,35 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           gap={4}
         >
           {/* Token Icon */}
-          <BadgeWrapper
-            style={styles.badgeWrapper}
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                name={networkName}
-                imageSource={networkImageSource}
+          {shouldShowNetworkIcon ? (
+            <BadgeWrapper
+              style={styles.badgeWrapper}
+              badgePosition={BadgePosition.BottomRight}
+              badgeElement={
+                <Badge
+                  variant={BadgeVariant.Network}
+                  name={networkName}
+                  imageSource={networkImageSource}
+                />
+              }
+            >
+              <AvatarToken
+                name={token.symbol}
+                imageSource={getTokenImageSource(
+                  token.symbol,
+                  token.image,
+                  token.address,
+                  token.chainId,
+                )}
+                size={AvatarSize.Lg}
+                testID={
+                  isNative
+                    ? `network-logo-${token.symbol}`
+                    : `token-logo-${token.symbol}`
+                }
               />
-            }
-          >
+            </BadgeWrapper>
+          ) : (
             <AvatarToken
               name={token.symbol}
               imageSource={getTokenImageSource(
@@ -382,7 +417,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                   : `token-logo-${token.symbol}`
               }
             />
-          </BadgeWrapper>
+          )}
 
           {/* Token symbol/name on the left, balances on the right (extension layout pattern) */}
           <Box
@@ -448,14 +483,14 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
               {selectedVariant.showTokenBalanceFirst ? (
                 <TokenBalanceView
                   balance={tokenBalance}
-                  isSelected={isSelected}
+                  isSelected={shouldShowSelectedStyle}
                   textStyle={styles.rightValue}
                   {...topRowTokenBalanceTextStyle}
                 />
               ) : (
                 <FiatBalanceView
                   balance={fiatBalance}
-                  isSelected={isSelected}
+                  isSelected={shouldShowSelectedStyle}
                   textStyle={styles.rightValue}
                   {...topRowBalanceTextStyle}
                 />
@@ -489,14 +524,14 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
               {selectedVariant.showTokenBalanceFirst ? (
                 <FiatBalanceView
                   balance={fiatBalance}
-                  isSelected={isSelected}
+                  isSelected={shouldShowSelectedStyle}
                   textStyle={styles.rightValue}
                   {...bottomRowBalanceTextStyle}
                 />
               ) : (
                 <TokenBalanceView
                   balance={tokenBalance}
-                  isSelected={isSelected}
+                  isSelected={shouldShowSelectedStyle}
                   textStyle={styles.rightValue}
                   {...bottomRowTokenBalanceTextStyle}
                 />

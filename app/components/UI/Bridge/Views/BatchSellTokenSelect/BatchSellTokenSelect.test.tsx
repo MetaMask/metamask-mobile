@@ -355,12 +355,16 @@ jest.mock('../../components/TokenSelectorItem', () => {
       children,
       onPress,
       secondaryRowContent,
+      shouldChangeSelectedStyle,
+      shouldShowNetworkIcon,
       token,
       tokenBalanceTextProps,
     }: {
       children?: React.ReactNode;
       onPress: (token: BridgeToken) => void;
       secondaryRowContent?: React.ReactNode;
+      shouldChangeSelectedStyle?: boolean;
+      shouldShowNetworkIcon?: boolean;
       token: BridgeToken;
       tokenBalanceTextProps?: {
         textColor?: string;
@@ -378,6 +382,12 @@ jest.mock('../../components/TokenSelectorItem', () => {
           variant={tokenBalanceTextProps?.textVariant}
         >
           {token.balance} {token.symbol}
+        </Text>
+        <Text testID={`token-selected-style-${token.symbol}`}>
+          {String(shouldChangeSelectedStyle)}
+        </Text>
+        <Text testID={`token-network-icon-${token.symbol}`}>
+          {String(shouldShowNetworkIcon)}
         </Text>
         <View>{children}</View>
       </Pressable>
@@ -818,6 +828,24 @@ describe('BatchSellTokenSelect', () => {
       textAlign: 'right',
       paddingHorizontal: 0,
     });
+  });
+
+  it('disables TokenSelectorItem selected row styling and network icons for Batch Sell rows', () => {
+    mockWalletTokens = [
+      createToken({
+        symbol: 'STYLE',
+        name: 'Style Token',
+      }),
+    ];
+
+    const { getByTestId } = render(<BatchSellTokenSelect />);
+
+    expect(getByTestId('token-selected-style-STYLE').props.children).toBe(
+      'false',
+    );
+    expect(getByTestId('token-network-icon-STYLE').props.children).toBe(
+      'false',
+    );
   });
 
   it('shows the no sellable tokens empty state', () => {

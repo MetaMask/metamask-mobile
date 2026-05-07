@@ -208,6 +208,8 @@ export function BatchSellTokenRow({
       networkName={networkName}
       networkImageSource={networkImageSource}
       isSelected={isSelected}
+      shouldChangeSelectedStyle={false}
+      shouldShowNetworkIcon={false}
       secondaryRowContent={secondaryRowContent}
       tokenBalanceTextProps={{
         textVariant: ComponentLibraryTextVariant.BodySMMedium,
