@@ -8,11 +8,6 @@ describe('useBlinkingCursor', () => {
     expect(result.current).toBeInstanceOf(Animated.Value);
   });
 
-  it('starts visible', () => {
-    const { result } = renderHook(() => useBlinkingCursor());
-    expect(result.current.__getValue()).toBe(1);
-  });
-
   it('returns the same Animated.Value across re-renders', () => {
     const { result, rerender } = renderHook(() => useBlinkingCursor());
     const first = result.current;

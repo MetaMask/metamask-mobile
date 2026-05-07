@@ -195,6 +195,10 @@ const mockGetOrderFromCallback = jest.fn();
 const mockAddPrecreatedOrder = jest.fn();
 const mockContinueWithQuote = jest.fn();
 
+const getAmountInputValue = (amountInput: {
+  props: { value?: string };
+}): string => amountInput.props.value ?? '';
+
 const WIDGET_PROVIDER_QUOTE = {
   provider: 'moonpay',
   id: 'quote-1',
@@ -392,7 +396,24 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('100');
+      expect(getAmountInputValue(amountInput)).toContain('100');
+    });
+
+    it('positions the native caret after the amount', () => {
+      mockUseParams.mockReturnValue({});
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(amountInput.props.selection).toStrictEqual({
+        start: '$100'.length,
+        end: '$100'.length,
+      });
+      expect(amountInput.props.autoFocus).toBe(true);
+      expect(amountInput.props.showSoftInputOnFocus).toBe(false);
+      expect(amountInput.props.caretHidden).toBe(false);
     });
 
     it('uses amount param as initial value when provided via route params', () => {
@@ -403,7 +424,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('30');
+      expect(getAmountInputValue(amountInput)).toContain('30');
     });
 
     it('does not override amount with region default when amount param is provided', () => {
@@ -414,7 +435,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('50');
+      expect(getAmountInputValue(amountInput)).toContain('50');
     });
   });
 
@@ -429,7 +450,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('0');
+      expect(getAmountInputValue(amountInput)).toContain('0');
     });
 
     it('updates amount from string input with parsed valueAsNumber', async () => {
@@ -442,7 +463,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('250');
+      expect(getAmountInputValue(amountInput)).toContain('250');
     });
 
     it('uses valueAsNumber when provided with string input', async () => {
@@ -455,7 +476,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('99.99');
+      expect(getAmountInputValue(amountInput)).toContain('99.99');
     });
 
     it('updates amount from number input via QuickAmounts', async () => {
@@ -472,22 +493,22 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('50');
+      expect(getAmountInputValue(amountInput)).toContain('50');
     });
 
     it('clears rampsError when amount is updated', async () => {
       mockUseParams.mockReturnValue({ nativeFlowError: 'Some error' });
 
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+      const { getByTestId, queryByText } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(queryByText('Some error')).toBeOnTheScreen();
 
       await act(async () => {
         fireEvent.press(getByTestId('keypad-trigger-string'));
       });
 
-      expect(amountInput.props.color).toBeUndefined();
+      expect(queryByText('Some error')).not.toBeOnTheScreen();
     });
 
     it('clears amount to 0 when Back key pressed and keyboard not dirty', async () => {
@@ -500,7 +521,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('0');
+      expect(getAmountInputValue(amountInput)).toContain('0');
     });
 
     it('updates amount when Back key pressed and keyboard is dirty', async () => {
@@ -516,7 +537,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('10');
+      expect(getAmountInputValue(amountInput)).toContain('10');
     });
   });
 

@@ -5,7 +5,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Animated, View } from 'react-native';
 import {
   useNavigation,
   useFocusEffect,
@@ -25,11 +24,14 @@ import {
   Text,
   TextVariant,
   TextColor,
-  FontWeight,
   Button,
   ButtonVariant,
   ButtonSize,
   IconName,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  Input,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -49,7 +51,6 @@ import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { useContinueWithQuote } from '../../hooks/useContinueWithQuote';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
-import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
@@ -143,7 +144,6 @@ function BuildQuote() {
   const isOnBuildQuoteScreen = useIsFocused();
   const { styles } = useStyles(styleSheet, {});
   const { formatCurrency } = useFormatters();
-  const cursorOpacity = useBlinkingCursor();
 
   const params = useParams<BuildQuoteParams>();
   const initialAmount = params?.amount ?? DEFAULT_AMOUNT;
@@ -345,6 +345,7 @@ function BuildQuote() {
   );
   const amountFontSize = getFontSizeForInputLength(amountDisplayString.length);
   const amountLineHeight = amountFontSize + 10;
+  const amountInputCursorPosition = `${currencyPrefix}${amount}`.length;
 
   /*
    * Tracks RAMPS_SCREEN_VIEWED
@@ -762,44 +763,39 @@ function BuildQuote() {
           includesTopInset
         />
         <ScreenLayout.Content style={styles.content}>
-          <View style={styles.centerGroup}>
-            <View style={styles.amountContainer}>
-              <View style={styles.amountRow}>
-                <Text
+          <Box style={styles.centerGroup}>
+            <Box style={styles.amountContainer}>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+              >
+                <Input
                   testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Regular}
-                  color={
-                    amountInputHasError ? TextColor.ErrorDefault : undefined
-                  }
-                  twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
-                  numberOfLines={1}
-                >
-                  {currencyPrefix}
-                  {amount}
-                </Text>
-                <Animated.View
+                  value={amountDisplayString}
+                  textVariant={TextVariant.BodyMd}
+                  autoFocus
+                  showSoftInputOnFocus={false}
+                  caretHidden={false}
+                  contextMenuHidden
+                  isStateStylesDisabled
+                  selection={{
+                    start: amountInputCursorPosition,
+                    end: amountInputCursorPosition,
+                  }}
+                  onChangeText={() => undefined}
                   style={[
-                    styles.cursor,
+                    styles.amountInput,
                     {
-                      height: Math.max(amountLineHeight - 4, 16),
-                      opacity: cursorOpacity,
+                      fontSize: amountFontSize,
+                      lineHeight: amountLineHeight,
+                      height: amountLineHeight + 4,
                     },
                   ]}
+                  twClassName={`tracking-tight font-normal border-transparent bg-transparent ${
+                    amountInputHasError ? 'text-error-default' : 'text-default'
+                  }`}
                 />
-                {currencySuffix ? (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Regular}
-                    color={
-                      amountInputHasError ? TextColor.ErrorDefault : undefined
-                    }
-                    twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
-                  >
-                    {currencySuffix}
-                  </Text>
-                ) : null}
-              </View>
+              </Box>
               <PaymentMethodPill
                 label={
                   selectedPaymentMethod?.name ||
@@ -812,8 +808,8 @@ function BuildQuote() {
                 }
                 testID="build-quote-payment-pill"
               />
-            </View>
-          </View>
+            </Box>
+          </Box>
 
           {quoteFetchError && (
             <BannerAlert
@@ -825,7 +821,7 @@ function BuildQuote() {
             />
           )}
 
-          <View style={styles.actionSection}>
+          <Box style={styles.actionSection}>
             {hasAmount ? (
               <>
                 {actionSectionMessage}
@@ -855,7 +851,7 @@ function BuildQuote() {
                 />
               )
             )}
-          </View>
+          </Box>
           <Keypad
             currency={currency}
             value={amount}

@@ -17,15 +17,10 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       gap: 16,
     },
-    amountRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    cursor: {
-      width: 2,
-      marginHorizontal: 1,
-      alignSelf: 'center',
-      backgroundColor: theme.colors.primary.default,
+    amountInput: {
+      paddingHorizontal: 0,
+      paddingVertical: 0,
+      textAlign: 'center',
     },
     actionSection: {
       paddingBottom: 16,
