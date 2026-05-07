@@ -330,7 +330,7 @@ describe('PerpsGlobalErrorGate', () => {
 
       // Advance past debounce window
       act(() => {
-        jest.advanceTimersByTime(1000);
+        jest.advanceTimersByTime(150);
       });
 
       expect(mockTrack).toHaveBeenCalledTimes(1);
@@ -364,7 +364,7 @@ describe('PerpsGlobalErrorGate', () => {
 
       // Advance past debounce
       act(() => {
-        jest.advanceTimersByTime(1000);
+        jest.advanceTimersByTime(150);
       });
 
       expect(mockTrack).toHaveBeenCalledTimes(1);
@@ -393,9 +393,9 @@ describe('PerpsGlobalErrorGate', () => {
         </PerpsGlobalErrorGate>,
       );
 
-      // Error set — debounce timer starts
+      // Error set — debounce timer starts (advance less than 150ms debounce)
       act(() => {
-        jest.advanceTimersByTime(500);
+        jest.advanceTimersByTime(50);
       });
 
       // Error clears within debounce window
@@ -408,8 +408,10 @@ describe('PerpsGlobalErrorGate', () => {
         error: null,
       });
 
+      // Polling picks up the cleared error (100ms interval)
+      // Total elapsed: 50 + 50 = 100ms, still under 150ms debounce
       act(() => {
-        jest.advanceTimersByTime(100);
+        jest.advanceTimersByTime(50);
       });
 
       // Rerender with cleared error (polling detects it)
@@ -419,9 +421,9 @@ describe('PerpsGlobalErrorGate', () => {
         </PerpsGlobalErrorGate>,
       );
 
-      // Wait past the original debounce window
+      // Wait well past the original debounce window
       act(() => {
-        jest.advanceTimersByTime(1000);
+        jest.advanceTimersByTime(500);
       });
 
       // No event should have fired because the error cleared before debounce completed
@@ -450,7 +452,7 @@ describe('PerpsGlobalErrorGate', () => {
 
       // Initial error — advance past debounce
       act(() => {
-        jest.advanceTimersByTime(1000);
+        jest.advanceTimersByTime(150);
       });
 
       expect(mockTrack).toHaveBeenCalledTimes(1);
@@ -462,7 +464,7 @@ describe('PerpsGlobalErrorGate', () => {
 
       // Advance past debounce for retry event
       act(() => {
-        jest.advanceTimersByTime(1000);
+        jest.advanceTimersByTime(150);
       });
 
       expect(mockTrack).toHaveBeenCalledTimes(2);
