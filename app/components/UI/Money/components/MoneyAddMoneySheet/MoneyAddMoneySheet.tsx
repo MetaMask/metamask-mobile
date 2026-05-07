@@ -53,12 +53,9 @@ const MoneyAddMoneySheet: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
-  // TODO(MUSD-478/MUSD-516): point to the MM Pay "Add money" amount-entry
-  // screen (Figma 2547:8887). Amount is collected by the MM Pay UI; the
-  // placeholder 0n keeps the deposit pipeline wired until that lands.
   const handleConvertCrypto = useCallback(() => {
     closeAndNavigate(() => {
-      initiateDeposit(BigInt(0)).catch(() => undefined);
+      initiateDeposit().catch(() => undefined);
     });
   }, [closeAndNavigate, initiateDeposit]);
 
