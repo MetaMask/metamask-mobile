@@ -138,13 +138,13 @@ function setupDefaults({
   subscriptionId = SUBSCRIPTION_ID,
   outcome = null,
 }: {
-  campaigns?: ReturnType<typeof makeCompletedOndoCampaign>[];
+  campaigns?: ReturnType<typeof makeCompletedOndoCampaign>[] | undefined;
   dismissed?: Record<string, boolean>;
   subscriptionId?: string | null;
   outcome?: OndoGmCampaignParticipantOutcomeDto | null;
 } = {}) {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectCampaigns) return campaigns;
+    if (selector === selectCampaigns) return campaigns ?? [];
     if (selector === selectDismissedCampaignOutcomeToasts) return dismissed;
     if (selector === selectRewardsSubscriptionId) return subscriptionId;
     return undefined;
@@ -177,6 +177,15 @@ describe('useOndoOutcomeToast', () => {
       expect(mockUseOndoCampaignParticipantOutcome).toHaveBeenCalledWith(
         undefined,
       );
+    });
+
+    it('passes undefined to useOndoCampaignParticipantOutcome when campaigns are missing from persisted state', () => {
+      setupDefaults({ campaigns: undefined });
+      renderHook(() => useOndoOutcomeToast());
+      expect(mockUseOndoCampaignParticipantOutcome).toHaveBeenCalledWith(
+        undefined,
+      );
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
 
     it('passes completed ONDO campaign id to useOndoCampaignParticipantOutcome', () => {

@@ -48,6 +48,10 @@ import {
   BASE32_REGEX,
   CampaignType,
 } from './types';
+import {
+  defaultRewardsControllerState,
+  getRewardsControllerDefaultState,
+} from './defaultState';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
   storeSubscriptionToken,
@@ -273,33 +277,7 @@ const metadata: StateMetadata<RewardsControllerState> = {
   },
 };
 
-/**
- * Get the default state for the RewardsController
- */
-export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
-  activeAccount: null,
-  accounts: {},
-  subscriptions: {},
-  subscriptionBenefits: {},
-  seasons: {},
-  subscriptionReferralDetails: {},
-  seasonStatuses: {},
-  activeBoosts: {},
-  unlockedRewards: {},
-  pointsEvents: {},
-  offDeviceSubscriptionAccounts: {},
-  campaigns: {},
-  campaignParticipantStatus: {},
-  ondoCampaignLeaderboard: {},
-  ondoCampaignLeaderboardPositions: {},
-  ondoCampaignPortfolio: {},
-  ondoCampaignActivity: {},
-  ondoCampaignDeposits: {},
-  pointsEstimateHistory: [],
-  rewardsEnvUrl: null,
-});
-
-export const defaultRewardsControllerState = getRewardsControllerDefaultState();
+export { defaultRewardsControllerState, getRewardsControllerDefaultState };
 
 type CacheReader<T> = (
   key: string,
