@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import {
   getTrendingTokens,
-  SortTrendingBy,
   TrendingTokensQueryParams,
 } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
