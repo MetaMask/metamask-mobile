@@ -92,7 +92,6 @@ The table below maps each burndown path to the GitHub team(s) from [`.github/COD
 
 - `app/component-library/components-temp/CustomSpendCap/CustomInput/CustomInput.tsx`
 - `app/component-library/components-temp/CustomSpendCap/CustomSpendCap.tsx`
-- `app/component-library/components-temp/Price/AggregatedPercentage/utils.ts`
 
 ### @MetaMask/earn
 
