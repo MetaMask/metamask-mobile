@@ -93,6 +93,8 @@ export default defineConfig({
 
     {
       name: 'android-onboarding',
+      // Exclude seedless OAuth perf — those run under *-onboarding-seedless with a binary
+      // built with OAuthLoginHandlers Metro mock
       testMatch: '**/performance/onboarding/**/*.spec.ts',
       testIgnore: '**/performance/onboarding/seedless-*.spec.ts',
 
@@ -114,6 +116,8 @@ export default defineConfig({
     },
     {
       name: 'ios-onboarding',
+      // Exclude seedless OAuth perf — those run under *-onboarding-seedless with a binary
+      // built with OAuthLoginHandlers Metro mock
       testMatch: '**/performance/onboarding/**/*.spec.ts',
       testIgnore: '**/performance/onboarding/seedless-*.spec.ts',
       use: {
