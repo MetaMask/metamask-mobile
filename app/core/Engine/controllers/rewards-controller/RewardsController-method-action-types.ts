@@ -171,10 +171,19 @@ export type RewardsControllerGetOptInStatusAction = {
 };
 
 /**
- * Get perps fee discount for an account with caching and threshold logic
+ * Get perps fee discount for an account.
+ *
+ * When the account's active subscription has VIP enabled, this calls the
+ * authenticated `/vip/fees` endpoint and converts the absolute VIP builder
+ * fee into a discount fraction relative to `baseFeeBips`. Non-VIP accounts
+ * receive no discount.
  *
  * @param account - The account address in CAIP-10 format
- * @returns Promise<number> - The discount in basis points
+ * @param baseFeeBips - The perps MetaMask builder base fee in basis points
+ * that the caller would apply absent any discount. Used to convert the VIP
+ * absolute fee into a discount fraction (caller owns the source of truth
+ * for the base fee; the controller is a pure transformer).
+ * @returns Promise<number> - The discount in basis points (0-10000)
  */
 export type RewardsControllerGetPerpsDiscountForAccountAction = {
   type: `RewardsController:getPerpsDiscountForAccount`;

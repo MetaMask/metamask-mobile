@@ -68,6 +68,7 @@ describe('RewardsIntegrationService', () => {
       expect(result).toBe(6500);
       expect(mockDeps.rewards.getPerpsDiscountForAccount).toHaveBeenCalledWith(
         expect.stringMatching(/^eip155:1:0x/),
+        10,
       );
       expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         'RewardsIntegrationService: Fee discount calculated',

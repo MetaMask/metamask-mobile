@@ -1,6 +1,8 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
+  BASIS_POINTS_DIVISOR,
+  BUILDER_FEE_CONFIG,
   formatAccountToCaipAccountId,
   type Position,
   type FeeCalculationResult,
@@ -188,6 +190,7 @@ export function usePerpsCloseAllCalculations({
         const discountBips =
           await Engine.context.RewardsController.getPerpsDiscountForAccount(
             caipAccountId,
+            BUILDER_FEE_CONFIG.MaxFeeDecimal * BASIS_POINTS_DIVISOR,
           );
 
         // Only update state if this is still the latest fetch and component is mounted
