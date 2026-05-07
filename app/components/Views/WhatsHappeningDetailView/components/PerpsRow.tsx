@@ -26,6 +26,7 @@ const PerpsRow: React.FC<PerpsRowProps> = ({ asset, item, cardIndex }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleTradeWithTracking = useCallback(() => {
+    if (!asset.hlPerpsMarket?.[0]) return;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTION)
         .addProperties({
