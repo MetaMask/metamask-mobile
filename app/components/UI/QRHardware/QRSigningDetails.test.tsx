@@ -1,5 +1,5 @@
 import React, { type ReactNode } from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import type { UR } from '@ngraveio/bc-ur';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import {
@@ -22,6 +22,7 @@ import { strings } from '../../../../locales/i18n';
 const mockRejectPendingScan = jest.fn();
 const mockResolvePendingScan = jest.fn();
 const mockShowHardwareWalletError = jest.fn();
+const mockSetQrScanRetryHandler = jest.fn();
 const mockAddListener = jest.fn();
 const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -42,6 +43,7 @@ jest.mock('../../../core/Engine', () => ({
 jest.mock('../../../core/HardwareWallet/contexts', () => ({
   useHardwareWallet: () => ({
     showHardwareWalletError: mockShowHardwareWalletError,
+    setQrScanRetryHandler: mockSetQrScanRetryHandler,
   }),
 }));
 
@@ -263,6 +265,33 @@ describe('QRSigningDetails', () => {
         }),
       }),
     );
+  });
+
+  it('registers QR scan retry handler that reopens the scanner', () => {
+    const { getByText } = render(<QRSigningDetails {...defaultProps} />);
+
+    fireEvent.press(getByText('confirm-qr-signing'));
+    fireEvent.press(getByText('scanner-hide'));
+    const retryHandler = mockSetQrScanRetryHandler.mock.calls[0][0];
+
+    act(() => {
+      retryHandler();
+    });
+
+    expect(AnimatedQRScannerModal).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        visible: true,
+      }),
+      {},
+    );
+  });
+
+  it('clears QR scan retry handler when unmounted', () => {
+    const { unmount } = render(<QRSigningDetails {...defaultProps} />);
+
+    unmount();
+
+    expect(mockSetQrScanRetryHandler).toHaveBeenLastCalledWith(null);
   });
 
   it('rejects the pending scan request when signing is canceled', () => {

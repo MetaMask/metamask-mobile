@@ -18,6 +18,7 @@ import { useTheme } from '../../../util/theme';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { useQrScanErrorForwarding } from '../../../core/HardwareWallet/hooks/useQrScanErrorForwarding';
+import { useHardwareWallet } from '../../../core/HardwareWallet/contexts';
 
 interface IQRSigningDetails {
   pendingScanRequest: QrScanRequest;
@@ -113,6 +114,7 @@ const QRSigningDetails = ({
 }: IQRSigningDetails) => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { setQrScanRetryHandler } = useHardwareWallet();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const [scannerVisible, setScannerVisible] = useState(false);
@@ -137,20 +139,30 @@ const QRSigningDetails = ({
     return unsubscribe;
   }, [pendingScanRequest, hasSentOrCanceled, navigation]);
 
-  const resetError = () => {
+  const resetError = useCallback(() => {
     setErrorMessage('');
-  };
+  }, []);
 
-  const showScanner = () => {
+  const showScanner = useCallback(() => {
     setScannerVisible(true);
     resetError();
-  };
+  }, [resetError]);
 
   const hideScanner = useCallback(() => {
     setScannerVisible(false);
   }, []);
   const { onQRHardwareScanError, handleScannerModalHide } =
     useQrScanErrorForwarding({ hideScanner });
+
+  useEffect(() => {
+    setQrScanRetryHandler?.(() => {
+      showScanner();
+    });
+
+    return () => {
+      setQrScanRetryHandler?.(null);
+    };
+  }, [setQrScanRetryHandler, showScanner]);
 
   const onCancel = useCallback(async () => {
     if (pendingScanRequest) {
