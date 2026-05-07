@@ -27,7 +27,6 @@ import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
-import { upgradeMoneyAccount } from '../../../../../actions/money';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -44,10 +43,6 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       navigate: mockNavigate,
     }),
-    useFocusEffect: (callback: () => void) => {
-      const React = jest.requireActual('react');
-      React.useEffect(callback, [callback]);
-    },
   };
 });
 
@@ -108,12 +103,6 @@ jest.mock('../../../../../reducers/fiatOrders', () => ({
 
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 const mockGetDetectedGeolocation = jest.mocked(getDetectedGeolocation);
-
-jest.mock('../../../../../actions/money', () => ({
-  upgradeMoneyAccount: jest.fn(() => () => undefined),
-}));
-
-const mockUpgradeMoneyAccount = jest.mocked(upgradeMoneyAccount);
 
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
@@ -231,12 +220,6 @@ describe('MoneyHomeView', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyHomeViewTestIds.CONTAINER)).toBeOnTheScreen();
-  });
-
-  it('dispatches upgradeMoneyAccount when the screen gains focus', () => {
-    renderWithProvider(<MoneyHomeView />);
-
-    expect(mockUpgradeMoneyAccount).toHaveBeenCalledTimes(1);
   });
 
   it('renders the scroll view', () => {
