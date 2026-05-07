@@ -56,6 +56,7 @@ interface TokensProps {
    * (e.g. network filter set to a chain without mUSD).
    */
   hasMusdBalanceOnAnyChain?: boolean;
+  listHeaderComponent?: React.ReactElement;
   listFooterComponent?: React.ReactElement;
   /**
    * Optional external RefreshControl. When provided, overrides the internal
@@ -82,6 +83,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       isFullView = false,
       showOnlyMusd = false,
       hasMusdBalanceOnAnyChain: hasMusdBalanceOnAnyChainProp,
+      listHeaderComponent,
       listFooterComponent,
       refreshControl,
       hideLoadingSkeleton = false,
@@ -275,6 +277,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
               setShowScamWarningModal={handleScamWarningModal}
               maxItems={maxItems}
               isFullView={isFullView}
+              listHeaderComponent={listHeaderComponent}
               listFooterComponent={listFooterComponent}
               refreshControl={refreshControl}
               hideSecondaryPriceRow={hideSecondaryPriceRow}
@@ -329,6 +332,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       handleScamWarningModal,
       maxItems,
       isGeoEligible,
+      listHeaderComponent,
       listFooterComponent,
       refreshControl,
       hideSecondaryPriceRow,
