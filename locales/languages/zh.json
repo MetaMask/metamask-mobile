@@ -8512,7 +8512,6 @@
       "empty": "您暂无任何持仓",
       "empty_description": "通过开立代币化现实世界资产的仓位，开始赚取奖励。",
       "empty_cta": "开仓",
-      "position_units": "{{units}} 份额",
       "positions_title": "头寸",
       "activity_title": "活动",
       "view_activity": "查看活动",
@@ -8658,29 +8657,18 @@
       "retry_button": "重试",
       "refreshing": "正在刷新……"
     },
-    "ondo_campaign_winning": {
-      "you_won": "您已获胜",
-      "rank_label": "第 {{place}} 名",
-      "email_instructions": "请将您的代码发送至 ondocampaign@consensys.net 领取奖品。",
-      "open_mail": "打开邮件",
-      "skip_for_now": "暂时跳过",
-      "mail_subject": "领取 Ondo 活动奖品",
-      "mail_body": "我的获奖码：{{code}}",
-      "winning_code": "获奖码",
-      "close_a11y": "关闭"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "您已获胜",
-        "description": "立即领取您的奖品。",
-        "a11y": "打开获奖者详情"
+        "title": "您中奖了！",
+        "description": "验证您的中奖代码，并在今天领取奖品。",
+        "a11y": "查看详情"
       },
       "participant_pending": {
         "title": "活动已结束。",
         "description": "我们正在确定结果。请稍后再来查看。"
       },
       "participant_finalized": {
-        "title": "活动结果已出炉",
+        "title": "活动结果已公布。",
         "description": "您这次未中奖。查看排行榜了解您的最终排名。"
       },
       "winner_finalized": {
@@ -8688,17 +8676,28 @@
         "description": "您的奖励正在发放中——我们将很快联系您。"
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "您已获胜 💰",
-        "description": "领取您在 {{campaignName}} 中的奖品",
+        "description": "今天从 {{campaignName}} 领取您的奖品。",
         "cta": "查看详情"
       },
-      "participant_no_winner": {
-        "title": "结果已揭晓。🏅",
-        "description": "查看您在 {{campaignName}} 中的排名",
+      "non_winner": {
+        "title": "结果已公布 🏅",
+        "description": "查看您在 {{campaignName}} 中的排名。",
         "cta": "查看"
       }
+    },
+    "campaign_winning": {
+      "you_won": "您已获胜",
+      "rank_label": "第 {{place}} 名",
+      "email_instructions": "请将您的代码发送至 {{email}} 领取奖品。",
+      "open_mail": "打开邮件",
+      "skip_for_now": "暂时跳过",
+      "mail_subject": "{{campaignName}} 奖品领取",
+      "mail_body": "我的获奖码：{{code}}",
+      "winning_code": "获奖码",
+      "close_a11y": "关闭"
     }
   },
   "time": {

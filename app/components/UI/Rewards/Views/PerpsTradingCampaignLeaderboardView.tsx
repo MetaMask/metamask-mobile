@@ -113,6 +113,7 @@ const PerpsTradingCampaignLeaderboardView: React.FC = () => {
                 <PerpsTradingCampaignStatsHeader
                   position={position}
                   isLoading={isPositionLoading}
+                  isCampaignComplete={isCampaignComplete}
                 />
               </Box>
               <Box twClassName="my-1 border-b border-border-muted" />

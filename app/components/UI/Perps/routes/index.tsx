@@ -48,7 +48,11 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 /* eslint-disable-next-line */
 import { NavigationContext } from '@react-navigation/core';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
-import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearNativeStackNavigatorOptions,
+  clearStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../../constants/navigation/clearStackNavigatorOptions';
 
 const Stack = createNativeStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createStackNavigator();
@@ -74,7 +78,7 @@ function getRedesignedConfirmationsHeaderOptions({
     title: '',
     headerBackVisible: false,
     contentStyle: { backgroundColor: 'transparent' },
-    presentation: 'transparentModal',
+    ...transparentModalScreenOptions,
   };
 }
 
@@ -286,6 +290,17 @@ const PerpsScreenStack = () => {
               }}
             />
 
+            {/* TP/SL View - Regular screen */}
+            <Stack.Screen
+              name={Routes.PERPS.TPSL}
+              component={PerpsTPSLView}
+              options={{
+                ...transparentModalScreenOptions,
+                title: strings('perps.tpsl.title'),
+                headerShown: false,
+              }}
+            />
+
             <Stack.Screen
               name={Routes.PERPS.MARKET_LIST}
               component={PerpsMarketListView}
@@ -348,21 +363,43 @@ const PerpsScreenStack = () => {
             )}
 
             <Stack.Screen
-              name={Routes.PERPS.TPSL}
-              component={PerpsTPSLView}
-              options={{
-                title: strings('perps.tpsl.title'),
-                headerShown: false,
-                presentation: 'transparentModal',
-              }}
-            />
-
-            <Stack.Screen
               name={Routes.PERPS.ADJUST_MARGIN}
               component={PerpsAdjustMarginView}
               options={{
                 title: strings('perps.adjust_margin.title'),
                 headerShown: false,
+              }}
+            />
+
+            {/* Modal stack for ClosePosition bottom sheets (triggered by tooltip) */}
+            <Stack.Screen
+              name={Routes.PERPS.MODALS.CLOSE_POSITION_MODALS}
+              component={PerpsClosePositionBottomSheetStack}
+              options={{
+                ...clearNativeStackNavigatorOptions,
+                ...transparentModalScreenOptions,
+              }}
+            />
+
+            {/* Modal stack for bottom sheet modals */}
+            <Stack.Screen
+              name={Routes.PERPS.MODALS.ROOT}
+              component={PerpsModalStack}
+              options={{
+                ...clearNativeStackNavigatorOptions,
+                ...transparentModalScreenOptions,
+              }}
+            />
+
+            {/* Pay-with token selector (lives in App stack for other flows, duplicated here so the
+                navigate action is handled inside the native stack instead of being lost
+                when dispatched from a transparentModal screen) */}
+            <Stack.Screen
+              name={Routes.CONFIRMATION_PAY_WITH_MODAL}
+              component={PayWithModal}
+              options={{
+                headerShown: false,
+                ...transparentModalScreenOptions,
               }}
             />
 

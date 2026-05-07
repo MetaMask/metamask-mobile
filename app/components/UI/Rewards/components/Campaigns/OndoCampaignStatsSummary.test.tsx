@@ -28,12 +28,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
-jest.mock('./OndoCampaignOutcomeBanners', () => {
+jest.mock('./CampaignOutcomeBanners', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    OndoGmCampaignOutcomeBanner: ({
+    CampaignOutcomeBanner: ({
       outcomeStatus,
       winnerVerificationCode,
     }: {
