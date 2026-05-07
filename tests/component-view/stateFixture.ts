@@ -307,15 +307,17 @@ export function createStateFixture(): StateFixtureBuilder {
                 conversionRates: {},
               },
               BridgeController: {
-                quoteRequest: [{
-                  srcChainId: numericChainId,
-                  srcTokenAddress,
-                  destChainId: numericChainId,
-                  destTokenAddress,
-                  destAddress: '',
-                  srcAmount,
-                  slippage: 0.005,
-                }],
+                quoteRequest: [
+                  {
+                    srcChainId: numericChainId,
+                    srcTokenAddress,
+                    destChainId: numericChainId,
+                    destTokenAddress,
+                    destAddress: '',
+                    srcAmount,
+                    slippage: 0.005,
+                  },
+                ],
                 quotes: [quoteResponse],
                 recommendedQuote: quoteResponse,
                 quotesLastFetched: now,
@@ -446,15 +448,17 @@ export function createStateFixture(): StateFixtureBuilder {
             backgroundState: {
               ...bg,
               BridgeController: {
-                quoteRequest: [{
-                  srcChainId: undefined,
-                  srcTokenAddress: undefined,
-                  destChainId: undefined,
-                  destTokenAddress: undefined,
-                  destAddress: undefined,
-                  srcAmount: undefined,
-                  slippage: 0.005,
-                }],
+                quoteRequest: [
+                  {
+                    srcChainId: undefined,
+                    srcTokenAddress: undefined,
+                    destChainId: undefined,
+                    destTokenAddress: undefined,
+                    destAddress: undefined,
+                    srcAmount: undefined,
+                    slippage: 0.005,
+                  },
+                ],
                 isInPolling: false,
                 quotesLastFetched: 0,
                 quotes: [],

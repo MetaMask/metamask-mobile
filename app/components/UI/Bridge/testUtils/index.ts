@@ -13,19 +13,21 @@ import { merge } from 'lodash';
 // Re-export all fixtures (no heavy dependencies)
 export * from './fixtures';
 
-type BridgeControllerStateOverride = Partial<Omit<BridgeControllerState, 'quoteRequest'>> & { quoteRequest?: Partial<QuoteRequest> };
+type BridgeControllerStateOverride = Partial<
+  Omit<BridgeControllerState, 'quoteRequest'>
+> & { quoteRequest?: Partial<QuoteRequest> };
 /**
  * Creates a complete bridge controller state by merging default state with overrides
  * @param overrides - Partial state to override default values
  * @returns Complete bridge controller state
  */
-export const createBridgeControllerState = (
-  {quoteRequest,...overrides}: BridgeControllerStateOverride = {},
-): BridgeControllerState => merge(
-  getDefaultBridgeControllerState(),
-  overrides,
-  {quoteRequest:Array.isArray(quoteRequest) ? quoteRequest : [quoteRequest]},
-);
+export const createBridgeControllerState = ({
+  quoteRequest,
+  ...overrides
+}: BridgeControllerStateOverride = {}): BridgeControllerState =>
+  merge(getDefaultBridgeControllerState(), overrides, {
+    quoteRequest: Array.isArray(quoteRequest) ? quoteRequest : [quoteRequest],
+  });
 
 /**
  * Creates a complete test state for bridge components/hooks
