@@ -439,41 +439,6 @@ const PerpsScreenStack = () => {
             />
 
             <Stack.Screen
-              name={Routes.PERPS.MODALS.CLOSE_POSITION_MODALS}
-              component={PerpsClosePositionBottomSheetStack}
-              options={{
-                headerShown: false,
-                contentStyle: {
-                  backgroundColor: 'transparent',
-                },
-                animation: 'none',
-                presentation: 'transparentModal',
-              }}
-            />
-
-            <Stack.Screen
-              name={Routes.PERPS.MODALS.ROOT}
-              component={PerpsModalStack}
-              options={{
-                headerShown: false,
-                contentStyle: {
-                  backgroundColor: 'transparent',
-                },
-                animation: 'none',
-                presentation: 'transparentModal',
-              }}
-            />
-
-            <Stack.Screen
-              name={Routes.CONFIRMATION_PAY_WITH_MODAL}
-              component={PayWithModal}
-              options={{
-                headerShown: false,
-                presentation: 'transparentModal',
-              }}
-            />
-
-            <Stack.Screen
               name={Routes.PERPS.ORDER_REDIRECT}
               component={PerpsOrderRedirect}
               options={{
