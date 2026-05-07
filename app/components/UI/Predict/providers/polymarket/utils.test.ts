@@ -445,11 +445,22 @@ describe('polymarket utils', () => {
     });
   });
 
-  it('previews orders using CLOB v2 order books and zero fee-rate bps', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: jest.fn().mockResolvedValue(orderBook),
-    });
+  it('previews buy orders with CLOB market fee and zero fee-rate bps', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(orderBook),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: {
+            r: 0.02,
+            e: 1,
+            to: true,
+          },
+        }),
+      });
 
     const preview = await previewOrder({
       marketId: 'market-1',
@@ -465,8 +476,48 @@ describe('polymarket utils', () => {
         marketId: 'market-1',
         outcomeTokenId: 'token-1',
         feeRateBps: '0',
+        fees: expect.objectContaining({
+          marketFee: 0.1,
+          totalFee: 0,
+          totalFeePercentage: 0,
+        }),
         negRisk: false,
       }),
+    );
+    expect(mockFetch).toHaveBeenCalledWith(
+      `${DEFAULT_CLOB_BASE_URL}/clob-markets/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`,
+      { method: 'GET' },
+    );
+  });
+
+  it('does not fetch CLOB market info for sell previews', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue(orderBook),
+    });
+
+    const preview = await previewOrder({
+      marketId: 'market-1',
+      outcomeId:
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      outcomeTokenId: 'token-1',
+      side: Side.SELL,
+      size: 10,
+    });
+
+    expect(preview).toEqual(
+      expect.objectContaining({
+        marketId: 'market-1',
+        outcomeTokenId: 'token-1',
+        feeRateBps: '0',
+        side: Side.SELL,
+      }),
+    );
+    expect(preview.fees).toBeUndefined();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledWith(
+      `${DEFAULT_CLOB_BASE_URL}/book?token_id=token-1`,
+      { method: 'GET' },
     );
   });
 

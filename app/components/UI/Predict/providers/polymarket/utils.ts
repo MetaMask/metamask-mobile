@@ -1950,11 +1950,14 @@ export const previewOrder = async (
 ): Promise<OrderPreview> => {
   const { marketId, outcomeId, outcomeTokenId, side, size, feeCollection } =
     params;
-  const [book, feeRateBps] = await Promise.all([
+  const [book, feeRateBps, marketInfo] = await Promise.all([
     getOrderBook({
       tokenId: outcomeTokenId,
     }),
     Promise.resolve('0'),
+    side === Side.BUY
+      ? getClobMarketInfoSafe({ conditionId: outcomeId })
+      : Promise.resolve(undefined),
   ]);
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
@@ -1975,7 +1978,7 @@ export const previewOrder = async (
       amount: shareAmount,
       decimals: roundConfig.amount,
     });
-    return {
+    const preview: OrderPreview = {
       marketId,
       outcomeId,
       outcomeTokenId,
@@ -1989,11 +1992,24 @@ export const previewOrder = async (
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
       feeRateBps,
-      fees: await calculateFees({
-        feeCollection,
-        marketId,
-        userBetAmount: makerAmount,
-      }),
+    };
+
+    const serviceFees = await calculateFees({
+      feeCollection,
+      marketId,
+      userBetAmount: makerAmount,
+    });
+    const marketFee = calculateConservativeBuyMarketFee({
+      preview,
+      marketInfo,
+    });
+
+    return {
+      ...preview,
+      fees: {
+        ...serviceFees,
+        marketFee,
+      },
     };
   }
   const { bids } = book;
