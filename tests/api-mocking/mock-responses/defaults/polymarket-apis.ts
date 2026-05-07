@@ -44,6 +44,12 @@ export const POLYMARKET_API_MOCKS = {
       responseCode: 200,
       response: [],
     },
+    // gamma-api: sports league team metadata (TeamsCache)
+    {
+      urlEndpoint: /^https:\/\/gamma-api\.polymarket\.com\/teams(\?.*)?$/,
+      responseCode: 200,
+      response: [],
+    },
     // polymarket.com: homepage carousel
     {
       urlEndpoint: 'https://polymarket.com/api/homepage/carousel',

@@ -676,6 +676,25 @@ export const POLYMARKET_PRICES_HISTORY_MOCKS = async (mockServer: Mockttp) => {
 };
 
 /**
+ * Mock for Polymarket gamma-api /teams API
+ * Returns an empty teams array — sufficient for predict specs that render
+ * sports markets with team metadata. Consumer (TeamsCache) handles a
+ * non-array response by short-circuiting, so [] is safe.
+ */
+export const POLYMARKET_TEAMS_MOCKS = async (mockServer: Mockttp) => {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(url?.includes('gamma-api.polymarket.com/teams'));
+    })
+    .asPriority(PRIORITY.BASE)
+    .thenReply(200, JSON.stringify([]), {
+      'content-type': 'application/json',
+    });
+};
+
+/**
  * Mock for Polymarket CLOB order book API
  * Returns order book data for specific token IDs with correct market mapping
  */
@@ -2234,6 +2253,7 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_ORDER_BOOK_MOCKS(mockServer);
   await POLYMARKET_PRICES_MOCKS(mockServer); // Mock for CLOB prices API
   await POLYMARKET_PRICES_HISTORY_MOCKS(mockServer); // Mock for CLOB prices-history API (chart series)
+  await POLYMARKET_TEAMS_MOCKS(mockServer); // Mock for gamma-api /teams (sports league team metadata)
   await POLYMARKET_FEE_RATE_MOCKS(mockServer);
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   await POLYMARKET_CLOB_AUTH_MOCKS(mockServer);
