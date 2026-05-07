@@ -1,10 +1,23 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import WhatsHappeningDetailView from './WhatsHappeningDetailView';
+import WhatsHappeningDetailView, {
+  CARD_WIDTH,
+} from './WhatsHappeningDetailView';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+
+const GAP = 12;
+const SNAP_INTERVAL_FOR_TEST = CARD_WIDTH + GAP;
 
 const mockGoBack = jest.fn();
 const mockRefresh = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn((eventName: string) => ({
+  addProperties: jest.fn((properties: Record<string, unknown>) => ({
+    build: jest.fn(() => ({ category: eventName, properties })),
+  })),
+  build: jest.fn(() => ({ category: eventName })),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -14,6 +27,13 @@ jest.mock('@react-navigation/native', () => {
     useRoute: () => ({ params: { initialIndex: 0 } }),
   };
 });
+
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('../Homepage/Sections/WhatsHappening/hooks', () => ({
   useWhatsHappening: jest.fn(() => ({
@@ -113,9 +133,12 @@ describe('WhatsHappeningDetailView', () => {
       refresh: mockRefresh,
     });
     renderWithProvider(<WhatsHappeningDetailView />);
-    expect(
-      screen.getByTestId('whats-happening-detail-carousel'),
-    ).toBeOnTheScreen();
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    expect(carousel).toBeOnTheScreen();
+    // Simulate the carousel measuring its height so cards become visible
+    fireEvent(carousel, 'layout', {
+      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
+    });
     expect(screen.getByText(mockItem.title)).toBeOnTheScreen();
   });
 
@@ -132,8 +155,133 @@ describe('WhatsHappeningDetailView', () => {
   });
 
   it('calls navigation.goBack when back button is pressed', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
     renderWithProvider(<WhatsHappeningDetailView />);
     fireEvent.press(screen.getByTestId('whats-happening-detail-back-button'));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks Whats Happening Viewed once for the initial card on mount', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+        properties: expect.objectContaining({
+          event_id: mockItem.id,
+          card_index: 0,
+          category: 'macro',
+          impact: 'positive',
+          asset_symbols: [],
+        }),
+      }),
+    );
+  });
+
+  it('does not fire Viewed more than once for the initial card across re-renders', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    const { rerender } = renderWithProvider(<WhatsHappeningDetailView />);
+    rerender(<WhatsHappeningDetailView />);
+    const viewedCalls = mockCreateEventBuilder.mock.calls.filter(
+      ([name]) =>
+        name ===
+        (MetaMetricsEvents.WHATS_HAPPENING_VIEWED as unknown as string),
+    );
+    expect(viewedCalls).toHaveLength(1);
+  });
+
+  it('tracks Whats Happening Viewed when scrolling to a new card', () => {
+    const secondItem = {
+      ...mockItem,
+      id: 'trend-1',
+      title: 'Second trend',
+      category: 'social' as const,
+      impact: 'negative' as const,
+    };
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem, secondItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'onMomentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: SNAP_INTERVAL_FOR_TEST } },
+    });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+        properties: expect.objectContaining({
+          event_id: 'trend-1',
+          card_index: 1,
+          category: 'social',
+          impact: 'negative',
+        }),
+      }),
+    );
+  });
+
+  it('does not track Viewed when scroll resolves to same index', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'onMomentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 0 } },
+    });
+    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+  });
+
+  it('tracks Whats Happening Closed with the visible card when back is pressed', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    fireEvent.press(screen.getByTestId('whats-happening-detail-back-button'));
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_CLOSED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.WHATS_HAPPENING_CLOSED,
+        properties: expect.objectContaining({
+          event_id: mockItem.id,
+          card_index: 0,
+        }),
+      }),
+    );
   });
 });

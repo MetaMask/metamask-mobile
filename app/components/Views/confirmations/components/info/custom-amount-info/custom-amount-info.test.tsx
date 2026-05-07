@@ -68,20 +68,6 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../../../../../util/transaction-controller', () => ({}));
 jest.mock('../../../../../../util/Logger');
-jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance', () => ({
-  __esModule: true,
-  default: () => ({
-    vaultApyQuery: { data: { apy: 5.5 }, isLoading: false },
-  }),
-}));
-jest.mock(
-  '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter',
-  () => ({
-    __esModule: true,
-    default: () => (value: { toString: () => string }) =>
-      `$${Number(value.toString()).toFixed(2)}`,
-  }),
-);
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
@@ -96,6 +82,9 @@ jest.mock('../../PayAccountSelector', () => {
     default: () => <View testID="pay-account-selector" />,
   };
 });
+jest.mock('../../projected-five-year-balance', () => ({
+  ProjectedFiveYearBalance: () => null,
+}));
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: () => ({
     trackInlineAlertClicked: jest.fn(),
