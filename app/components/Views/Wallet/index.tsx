@@ -204,9 +204,7 @@ import {
 import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
-import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
 import { Carousel } from '../../UI/Carousel';
-import { selectBrazeBannerHomeFlag } from '../../../selectors/featureFlagController/brazeBannerHome';
 import { SolScope } from '@metamask/keyring-api';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
@@ -215,6 +213,7 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
 
 /** Reanimated layout when the top cluster height changes (e.g. checklist → balance). */
 const WALLET_HOME_MAIN_BELOW_CLUSTER_LAYOUT = LinearTransition.duration(
@@ -1056,13 +1055,7 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
-  const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
-  const isBrazeBannerHomeEnabled = useSelector(selectBrazeBannerHomeFlag);
-  const homeBanner: 'braze' | 'carousel' | null = isBrazeBannerHomeEnabled
-    ? 'braze'
-    : isCarouselBannersEnabled
-      ? 'carousel'
-      : null;
+  const homeGrowthBanner = useHomeGrowthBanner();
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -1440,6 +1433,18 @@ const Wallet = ({
     Logger.error(new Error('Banner rendering error in wallet home'));
   }, []);
 
+  const homeGrowthBannerContent =
+    homeGrowthBanner === 'braze' ? (
+      <ComponentErrorBoundary
+        componentLabel="BrazeBanner"
+        onError={handleBannerError}
+      >
+        <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
+      </ComponentErrorBoundary>
+    ) : homeGrowthBanner === 'carousel' ? (
+      <Carousel style={styles.carousel} />
+    ) : null;
+
   const bannerContent = (
     <View style={styles.banner}>
       {!basicFunctionalityEnabled ? (
@@ -1484,15 +1489,7 @@ const Wallet = ({
           receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
         />
       ) : null}
-      {homeBanner === 'braze' && (
-        <ComponentErrorBoundary
-          componentLabel="BrazeBanner"
-          onError={handleBannerError}
-        >
-          <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
-        </ComponentErrorBoundary>
-      )}
-      {homeBanner === 'carousel' && <Carousel style={styles.carousel} />}
+      {homeGrowthBannerContent}
       {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
     </>
   );
@@ -1523,15 +1520,7 @@ const Wallet = ({
           receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
         />
       ) : null}
-      {homeBanner === 'braze' && (
-        <ComponentErrorBoundary
-          componentLabel="BrazeBanner"
-          onError={handleBannerError}
-        >
-          <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
-        </ComponentErrorBoundary>
-      )}
-      {homeBanner === 'carousel' && <Carousel style={styles.carousel} />}
+      {homeGrowthBannerContent}
       {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
     </>
   );
@@ -1591,15 +1580,7 @@ const Wallet = ({
           layout={WALLET_HOME_MAIN_BELOW_CLUSTER_LAYOUT}
           style={styles.walletPostOnboardingMainBelowCluster}
         >
-          {homeBanner === 'braze' && (
-            <ComponentErrorBoundary
-              componentLabel="BrazeBanner"
-              onError={handleBannerError}
-            >
-              <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
-            </ComponentErrorBoundary>
-          )}
-          {homeBanner === 'carousel' && <Carousel style={styles.carousel} />}
+          {homeGrowthBannerContent}
 
           {isHomepageSectionsV1Enabled ? (
             <>

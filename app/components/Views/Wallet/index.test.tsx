@@ -146,13 +146,13 @@ jest.mock('../Homepage/components/HomepageDiscoveryTabs', () => {
 });
 
 // Control carousel/braze banner flags per test (default off so existing tests are unaffected)
-let mockCarouselBannersEnabled = false;
-let mockBrazeBannerHomeEnabled = false;
+const mockCarouselBannersEnabled = false;
+const mockBrazeBannerHomeEnabled = false;
 jest.mock('../../UI/Carousel/selectors/featureFlags', () => ({
   selectCarouselBannersFlag: jest.fn(() => mockCarouselBannersEnabled),
   selectContentfulCarouselEnabledFlag: jest.fn(() => false),
 }));
-jest.mock('../../UI/BrazeBanner/selectors/featureFlags', () => ({
+jest.mock('../../../selectors/featureFlagController/brazeBannerHome', () => ({
   selectBrazeBannerHomeFlag: jest.fn(() => mockBrazeBannerHomeEnabled),
 }));
 
