@@ -89,6 +89,7 @@ jobs:
   post-build-source-hash:
     name: Post build-source-hash commit status
     runs-on: ubuntu-latest
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     permissions:
       contents: read
       statuses: write
