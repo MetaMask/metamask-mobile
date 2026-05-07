@@ -4,20 +4,30 @@
 
 ## Phases checklist
 
-- [x] **Phase 1** — Scaffold Headless Playground screen + route + entry row in Ramp Settings (gated by `isInternalBuild`)
-- [x] **Phase 2** — Implement `useHeadlessBuy` v0 read-only facade (tokens, providers, payment methods, `getQuotes`) and wire playground inputs/quotes list
-- [x] **Phase 3** — Add headless session registry + `startHeadlessBuy` API that navigates into existing BuildQuote with `headlessSessionId`
-- [x] **Phase 3.1** — Move pre-seed out of `useHeadlessBuy` — keep params on the session only and let the destination resolve them from the catalog
-- [x] **Phase 4** — Extract `handleWidgetProviderContinue` / `handleNativeProviderContinue` into `useContinueWithQuote(quote, ctx)` so both BuildQuote and headless callers can reuse it
-- [x] **Phase 4b** — Introduce Headless Host screen as stack base for the headless flow + parameterize `useTransakRouting` reset helpers with `baseRoute`
-- [x] **Phase 4c** — Make `useContinueWithQuote` headless-ready — extend `ContinueWithQuoteContext` with optional overrides so callers without controller state (the Host) can drive it from a `Quote`
-- [x] **Phase 5 (revised)** — Quote-first headless start path — `startHeadlessBuy({ quote, redirectUrl? })` creates a session carrying the quote, navigates to Headless Host, Host calls `continueWithQuote(quote, ctx)` and re-orchestrates after auth loops
+- [x] **Phase 1** — Scaffold Headless Playground screen + route + entry row in Ramp Settings (gated by `isInternalBuild`) — [#29144](https://github.com/MetaMask/metamask-mobile/pull/29144)
+- [x] **Phase 2** — Implement `useHeadlessBuy` v0 read-only facade (tokens, providers, payment methods, `getQuotes`) and wire playground inputs/quotes list — [#29144](https://github.com/MetaMask/metamask-mobile/pull/29144)
+- [x] **Phase 3** — Add headless session registry + `startHeadlessBuy` API that navigates into existing BuildQuote with `headlessSessionId` — [#29144](https://github.com/MetaMask/metamask-mobile/pull/29144)
+- [x] **Phase 3.1** — Move pre-seed out of `useHeadlessBuy` — keep params on the session only and let the destination resolve them from the catalog — [#29144](https://github.com/MetaMask/metamask-mobile/pull/29144)
+- [x] **Phase 4** — Extract `handleWidgetProviderContinue` / `handleNativeProviderContinue` into `useContinueWithQuote(quote, ctx)` so both BuildQuote and headless callers can reuse it — [#29213](https://github.com/MetaMask/metamask-mobile/pull/29213)
+- [x] **Phase 4b** — Introduce Headless Host screen as stack base for the headless flow + parameterize `useTransakRouting` reset helpers with `baseRoute` — [#29338](https://github.com/MetaMask/metamask-mobile/pull/29338)
+- [x] **Phase 4c** — Make `useContinueWithQuote` headless-ready — extend `ContinueWithQuoteContext` with optional overrides so callers without controller state (the Host) can drive it from a `Quote` — [#29338](https://github.com/MetaMask/metamask-mobile/pull/29338)
+- [x] **Phase 5 (revised)** — Quote-first headless start path — `startHeadlessBuy({ quote, redirectUrl? })` creates a session carrying the quote, navigates to Headless Host, Host calls `continueWithQuote(quote, ctx)` and re-orchestrates after auth loops — [#29338](https://github.com/MetaMask/metamask-mobile/pull/29338)
 - [ ] **Phase 5b (deferred)** — `startHeadlessBuy({ assetId, amount, paymentMethodId, providerId? })` "open BuildQuote / Host fetches quotes" mode — picked up after the quote-first path is stable
-- [x] **Phase 6** — Bypass order-processing redirect in Transak/aggregator routing when headless; fire `onOrderCreated` and end session
-- [x] **Phase 7** — Extract UI-coupled error/limit surfacing; route errors through `onError` as typed `HeadlessBuyError`
+- [x] **Phase 6** — Bypass order-processing redirect in Transak/aggregator routing when headless; fire `onOrderCreated` and end session — [#29340](https://github.com/MetaMask/metamask-mobile/pull/29340)
+- [x] **Phase 7** — Extract UI-coupled error/limit surfacing; route errors through `onError` as typed `HeadlessBuyError` — [#29612](https://github.com/MetaMask/metamask-mobile/pull/29612)
 - [ ] **Phase 8** — Cancellation + `onClose` semantics (including user-dismissed detection)
 - [ ] **Phase 9** — Expose `getOrder` / `refreshOrder` from hook and show in playground
 - [ ] **Phase 10** — Playground polish — event log, input persistence, aggregator/native presets
+
+---
+
+## Completed implementation PRs
+
+- [#29144](https://github.com/MetaMask/metamask-mobile/pull/29144) — Headless buy playground and Phase 3 session API (covers Phases 1–3.1)
+- [#29213](https://github.com/MetaMask/metamask-mobile/pull/29213) — Extract `useContinueWithQuote` hook (Phase 4)
+- [#29338](https://github.com/MetaMask/metamask-mobile/pull/29338) — Headless Host + quote-first `startHeadlessBuy` (covers Phases 4b–5)
+- [#29340](https://github.com/MetaMask/metamask-mobile/pull/29340) — Bypass order-processing redirect in headless flows (Phase 6)
+- [#29612](https://github.com/MetaMask/metamask-mobile/pull/29612) — Surface headless buy errors as data (Phase 7)
 
 ---
 
