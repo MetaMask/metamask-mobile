@@ -22,11 +22,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return { ...actual };
-});
-
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   createMockUseAnalyticsHook,
@@ -50,27 +45,6 @@ jest.mock('../../../../../locales/i18n', () => ({
     return translations[key] || key;
   },
 }));
-
-jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text, Pressable } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({ title, onBack }: { title: string; onBack: () => void }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'header' },
-          ReactActual.createElement(Text, null, title),
-          ReactActual.createElement(Pressable, {
-            onPress: onBack,
-            testID: 'header-back-button',
-          }),
-        ),
-    };
-  },
-);
 
 jest.mock('../../../Views/ErrorBoundary', () => ({
   __esModule: true,
