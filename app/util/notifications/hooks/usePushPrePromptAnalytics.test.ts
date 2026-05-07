@@ -5,18 +5,27 @@ import { usePushPrePromptAnalytics } from './usePushPrePromptAnalytics';
 
 const mockTrackEvent = jest.fn();
 const mockAddTraitsToUser = jest.fn();
+interface MockEventBuilder {
+  properties: Record<string, unknown>;
+  addProperties: jest.Mock<MockEventBuilder, [Record<string, unknown>]>;
+  build: jest.Mock<{
+    event: unknown;
+    properties: Record<string, unknown>;
+  }>;
+}
+
 const mockCreateEventBuilder = jest.fn((event) => {
-  const builder = {
-    properties: {},
-    addProperties: jest.fn((properties) => {
-      builder.properties = properties;
-      return builder;
-    }),
-    build: jest.fn(() => ({
-      event,
-      properties: builder.properties,
-    })),
-  };
+  const builder = {} as MockEventBuilder;
+  builder.properties = {};
+  builder.addProperties = jest.fn((properties) => {
+    builder.properties = properties;
+    return builder;
+  });
+  builder.build = jest.fn(() => ({
+    event,
+    properties: builder.properties,
+  }));
+
   return builder;
 });
 

@@ -49,7 +49,7 @@ export function useOptimisticNavigationEffect(props: {
 export function useHandleOptInClick(props: {
   navigation: AppNavigationProp;
   metrics: UseAnalyticsHook;
-  enableNotifications: () => Promise<void>;
+  enableNotifications: () => Promise<unknown>;
 }) {
   const { navigation, enableNotifications, metrics } = props;
   const { trackEvent, createEventBuilder } = metrics;

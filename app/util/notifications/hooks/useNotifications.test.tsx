@@ -117,7 +117,9 @@ describe('useNotifications - useEnableNotifications()', () => {
 
     // Act
     const hook = renderHookWithProvider(() => useEnableNotifications());
-    await act(() => hook.result.current.enableNotifications());
+    await act(async () => {
+      await hook.result.current.enableNotifications();
+    });
     await waitFor(() =>
       expect(mocks.mockEnableNotifications).toHaveBeenCalled(),
     );

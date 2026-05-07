@@ -6,11 +6,17 @@ import PushNotificationOnboarding from '.';
 
 const mockMarkPrePromptShown = jest.fn().mockResolvedValue(undefined);
 const mockDismissPrePrompt = jest.fn();
-const mockUsePushPrePromptVariant = jest.fn(() => ({
-  variant: null,
-  markShown: mockMarkPrePromptShown,
-  dismiss: mockDismissPrePrompt,
-}));
+const mockUsePushPrePromptVariant = jest.fn(
+  (): {
+    variant: 'push_permission' | 'marketing_consent' | null;
+    markShown: typeof mockMarkPrePromptShown;
+    dismiss: typeof mockDismissPrePrompt;
+  } => ({
+    variant: null,
+    markShown: mockMarkPrePromptShown,
+    dismiss: mockDismissPrePrompt,
+  }),
+);
 const mockEnableNotifications = jest.fn();
 const mockShowToast = jest.fn();
 const mockTrackPrePromptViewed = jest.fn();
