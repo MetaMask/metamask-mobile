@@ -197,5 +197,18 @@ release-test-plan.json
 release-delta.json
 release-signoffs.json
 
+# Agent skills — fully local. Synced via `yarn skills` from Consensys/skills,
+# or hand-authored personal skills. Never tracked here. (See ADR #57.)
+.claude/skills/
+.claude/commands/
+.agents/skills/
+.cursor/rules/
+.cursor/skills/
+.cursor/commands/
+# Carve-outs: IDE config that must stay tracked
+!.cursor/BUGBOT.md
+!.cursor/hooks.json
+!.cursor/worktrees.json
+
 # Build environment validation
 build-env.json
