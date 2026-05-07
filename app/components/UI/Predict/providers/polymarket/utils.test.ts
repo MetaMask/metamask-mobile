@@ -2,7 +2,8 @@ import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import Engine from '../../../../../core/Engine';
-import { Side } from '../../types';
+import Logger from '../../../../../util/Logger';
+import { Side, type OrderPreview } from '../../types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
   DEFAULT_CLOB_BASE_URL,
@@ -10,9 +11,14 @@ import {
   POLYGON_MAINNET_CHAIN_ID,
 } from './constants';
 import {
+  calculateConservativeBuyMarketFee,
+  clearClobMarketInfoCache,
+  clearClobMarketInfoSessionState,
   createApiKey,
   deriveApiKey,
   getAllowance,
+  getClobMarketInfo,
+  getClobMarketInfoSafe,
   getContractConfig,
   getIsApprovedForAll,
   getOrderBook,
@@ -42,9 +48,17 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
+
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 const mockQuery = jest.mocked(query);
+const mockLoggerError = jest.mocked(Logger.error);
 const mockEthQuery = jest.mocked(EthQuery);
 const mockFindNetworkClientIdByChainId = jest.mocked(
   Engine.context.NetworkController.findNetworkClientIdByChainId,
@@ -71,9 +85,26 @@ const orderBook = {
   neg_risk: false,
 };
 
+const buyPreview: OrderPreview = {
+  marketId: 'market-1',
+  outcomeId: 'condition-1',
+  outcomeTokenId: 'token-1',
+  timestamp: 1,
+  side: Side.BUY,
+  sharePrice: 0.5,
+  maxAmountSpent: 10,
+  minAmountReceived: 20,
+  slippage: 0.1,
+  tickSize: 0.01,
+  minOrderSize: 1,
+  negRisk: false,
+  feeRateBps: '0',
+};
+
 describe('polymarket utils', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    clearClobMarketInfoSessionState();
     mockSignTypedMessage.mockResolvedValue('0xsig');
     mockFindNetworkClientIdByChainId.mockReturnValue('test-network-client-id');
     mockGetNetworkClientById.mockReturnValue({
@@ -181,6 +212,237 @@ describe('polymarket utils', () => {
     await expect(getOrderBook({ tokenId: 'token-1' })).rejects.toThrow(
       PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK,
     );
+  });
+
+  it('fetches CLOB market info and caches by condition ID', async () => {
+    const marketInfo = {
+      fd: {
+        r: 0.02,
+        e: 1,
+        to: true,
+      },
+      mts: 1,
+      mos: 1,
+    };
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue(marketInfo),
+    });
+
+    await expect(
+      getClobMarketInfo({ conditionId: 'condition-1' }),
+    ).resolves.toEqual(marketInfo);
+    await expect(
+      getClobMarketInfo({ conditionId: 'condition-1' }),
+    ).resolves.toEqual(marketInfo);
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledWith(
+      `${DEFAULT_CLOB_BASE_URL}/clob-markets/condition-1`,
+      { method: 'GET' },
+    );
+  });
+
+  it('logs CLOB market info failures once per condition ID and fails open', async () => {
+    mockFetch.mockRejectedValue(new Error('network down'));
+
+    await expect(
+      getClobMarketInfoSafe({ conditionId: 'condition-1' }),
+    ).resolves.toBeUndefined();
+    await expect(
+      getClobMarketInfoSafe({ conditionId: 'condition-1' }),
+    ).resolves.toBeUndefined();
+
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockLoggerError).toHaveBeenCalledTimes(1);
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          feature: 'Predict',
+          provider: 'polymarket',
+        }),
+        context: expect.objectContaining({
+          name: 'PolymarketUtils',
+          data: expect.objectContaining({
+            method: 'getClobMarketInfo',
+            conditionId: 'condition-1',
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('clears CLOB market info failure suppression after a later success', async () => {
+    const marketInfo = {
+      fd: {
+        r: 0.02,
+        e: 1,
+        to: true,
+      },
+    };
+
+    mockFetch
+      .mockRejectedValueOnce(new Error('network down'))
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(marketInfo),
+      })
+      .mockRejectedValueOnce(new Error('network down again'));
+
+    await expect(
+      getClobMarketInfoSafe({ conditionId: 'condition-1' }),
+    ).resolves.toBeUndefined();
+    await expect(
+      getClobMarketInfoSafe({ conditionId: 'condition-1' }),
+    ).resolves.toEqual(marketInfo);
+
+    clearClobMarketInfoCache();
+
+    await expect(
+      getClobMarketInfoSafe({ conditionId: 'condition-1' }),
+    ).resolves.toBeUndefined();
+
+    expect(mockLoggerError).toHaveBeenCalledTimes(2);
+  });
+
+  describe('calculateConservativeBuyMarketFee', () => {
+    it('uses endpoint maximum when no interior critical point is in the interval', () => {
+      expect(
+        calculateConservativeBuyMarketFee({
+          preview: buyPreview,
+          marketInfo: {
+            fd: {
+              r: 0.02,
+              e: 1,
+            },
+          },
+        }),
+      ).toBe(0.1);
+    });
+
+    it('uses the interior critical point when it is inside the interval', () => {
+      expect(
+        calculateConservativeBuyMarketFee({
+          preview: {
+            ...buyPreview,
+            minAmountReceived: 50,
+            slippage: 0.5,
+          },
+          marketInfo: {
+            fd: {
+              r: 0.02,
+              e: 2,
+            },
+          },
+        }),
+      ).toBe(0.02963);
+    });
+
+    it('treats exponent zero as valid', () => {
+      expect(
+        calculateConservativeBuyMarketFee({
+          preview: buyPreview,
+          marketInfo: {
+            fd: {
+              r: 0.02,
+              e: 0,
+            },
+          },
+        }),
+      ).toBe(0.4);
+    });
+
+    it('returns zero when the fee rate is zero', () => {
+      expect(
+        calculateConservativeBuyMarketFee({
+          preview: buyPreview,
+          marketInfo: {
+            fd: {
+              r: 0,
+              e: 1,
+            },
+          },
+        }),
+      ).toBe(0);
+    });
+
+    it('returns zero for invalid fee metadata', () => {
+      expect(
+        calculateConservativeBuyMarketFee({
+          preview: buyPreview,
+          marketInfo: {
+            fd: {
+              r: 0.02,
+              e: -1,
+            },
+          },
+        }),
+      ).toBe(0);
+    });
+
+    it('returns zero when the buy interval cannot be derived', () => {
+      expect(
+        calculateConservativeBuyMarketFee({
+          preview: {
+            ...buyPreview,
+            minAmountReceived: 0,
+          },
+          marketInfo: {
+            fd: {
+              r: 0.02,
+              e: 1,
+            },
+          },
+        }),
+      ).toBe(0);
+    });
+
+    it('rounds the market fee to five decimals', () => {
+      expect(
+        calculateConservativeBuyMarketFee({
+          preview: buyPreview,
+          marketInfo: {
+            fd: {
+              r: 0.0246912,
+              e: 1,
+            },
+          },
+        }),
+      ).toBe(0.12346);
+    });
+
+    it('rounds values below half of the smallest unit to zero', () => {
+      expect(
+        calculateConservativeBuyMarketFee({
+          preview: buyPreview,
+          marketInfo: {
+            fd: {
+              r: 0.0000008,
+              e: 1,
+            },
+          },
+        }),
+      ).toBe(0);
+    });
+
+    it('returns zero for SELL previews', () => {
+      expect(
+        calculateConservativeBuyMarketFee({
+          preview: {
+            ...buyPreview,
+            side: Side.SELL,
+          },
+          marketInfo: {
+            fd: {
+              r: 0.02,
+              e: 1,
+            },
+          },
+        }),
+      ).toBe(0);
+    });
   });
 
   it('previews orders using CLOB v2 order books and zero fee-rate bps', async () => {
