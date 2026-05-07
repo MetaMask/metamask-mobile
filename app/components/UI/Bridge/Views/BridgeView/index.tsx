@@ -353,13 +353,17 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     [dispatch],
   );
 
-  const headerTitle =
-    bridgeViewMode === BridgeViewMode.Bridge
-      ? strings('bridge.title')
-      : bridgeViewMode === BridgeViewMode.Swap ||
-          bridgeViewMode === BridgeViewMode.Unified
-        ? strings('swaps.title')
-        : `${strings('swaps.title')}/${strings('bridge.title')}`;
+  let headerTitle: string;
+  if (bridgeViewMode === BridgeViewMode.Bridge) {
+    headerTitle = strings('bridge.title');
+  } else if (
+    bridgeViewMode === BridgeViewMode.Swap ||
+    bridgeViewMode === BridgeViewMode.Unified
+  ) {
+    headerTitle = strings('swaps.title');
+  } else {
+    headerTitle = `${strings('swaps.title')}/${strings('bridge.title')}`;
+  }
 
   useTrackSwapPageViewed();
 
