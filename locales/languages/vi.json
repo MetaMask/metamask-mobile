@@ -8427,7 +8427,6 @@
       "empty": "Bạn không có bất kỳ vị thế nào",
       "empty_description": "Bắt đầu nhận phần thưởng bằng cách mở một vị thế trong tài sản thế giới thực được token hóa.",
       "empty_cta": "Mở vị thế",
-      "position_units": "{{units}} cổ phần",
       "positions_title": "Vị thế",
       "activity_title": "Hoạt động",
       "view_activity": "Xem hoạt động",

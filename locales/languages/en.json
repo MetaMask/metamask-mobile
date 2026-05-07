@@ -8474,7 +8474,6 @@
       "empty": "You don't have any positions",
       "empty_description": "Start earning rewards by opening a position in tokenized real-world assets.",
       "empty_cta": "Open a position",
-      "position_units": "{{units}} shares",
       "positions_title": "Positions",
       "activity_title": "Activity",
       "view_activity": "View activity",
