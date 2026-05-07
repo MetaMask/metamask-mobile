@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
+  LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
   SafeAreaView,
@@ -10,10 +11,14 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
-  HeaderBase,
+  FontWeight,
   IconName,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { useWhatsHappening } from '../Homepage/Sections/WhatsHappening/hooks';
@@ -45,22 +50,33 @@ const WhatsHappeningDetailView = () => {
   const route =
     useRoute<RouteProp<{ params: WhatsHappeningDetailParams }, 'params'>>();
 
-  const { initialIndex = 0 } = route.params;
+  const initialIndex = route.params?.initialIndex ?? 0;
 
   const { items, isLoading, error, refresh } =
     useWhatsHappening(MAX_ITEMS_DISPLAYED);
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [cardHeight, setCardHeight] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
 
+  const handleCarouselLayout = useCallback((e: LayoutChangeEvent) => {
+    const { height } = e.nativeEvent.layout;
+    if (height > 0) setCardHeight(height);
+  }, []);
+
   useEffect(() => {
-    if (initialIndex > 0 && scrollViewRef.current && !isLoading) {
+    if (
+      initialIndex > 0 &&
+      cardHeight > 0 &&
+      scrollViewRef.current &&
+      !isLoading
+    ) {
       scrollViewRef.current.scrollTo({
         x: initialIndex * SNAP_INTERVAL,
         animated: false,
       });
     }
-  }, [initialIndex, isLoading]);
+  }, [initialIndex, isLoading, cardHeight]);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -79,20 +95,24 @@ const WhatsHappeningDetailView = () => {
 
   return (
     <SafeAreaView style={tw`flex-1 bg-default`}>
-      <HeaderBase
-        startAccessory={
-          <ButtonIcon
-            size={ButtonIconSize.Lg}
-            onPress={handleBackPress}
-            iconName={IconName.ArrowLeft}
-            testID="whats-happening-detail-back-button"
-          />
-        }
-        style={tw`p-4`}
-        twClassName="h-auto"
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="px-2 py-2"
       >
-        {strings('homepage.sections.whats_happening')}
-      </HeaderBase>
+        <ButtonIcon
+          iconName={IconName.ArrowLeft}
+          size={ButtonIconSize.Md}
+          onPress={handleBackPress}
+          testID="whats-happening-detail-back-button"
+        />
+        <Box twClassName="flex-1 items-center">
+          <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
+            {strings('homepage.sections.whats_happening')}
+          </Text>
+        </Box>
+        <Box twClassName="w-10" />
+      </Box>
 
       <Box twClassName="flex-1">
         {isLoading ? (
@@ -125,17 +145,20 @@ const WhatsHappeningDetailView = () => {
               snapToInterval={SNAP_INTERVAL}
               snapToAlignment="start"
               style={tw`flex-1`}
-              contentContainerStyle={tw.style(`px-4 gap-3 items-stretch`)}
+              contentContainerStyle={tw.style('px-4 gap-3')}
+              onLayout={handleCarouselLayout}
               onMomentumScrollEnd={handleScrollEnd}
               testID="whats-happening-detail-carousel"
             >
-              {items.map((item) => (
-                <WhatsHappeningExpandedCard
-                  key={item.id}
-                  item={item}
-                  cardWidth={CARD_WIDTH}
-                />
-              ))}
+              {cardHeight > 0 &&
+                items.map((item) => (
+                  <WhatsHappeningExpandedCard
+                    key={item.id}
+                    item={item}
+                    cardWidth={CARD_WIDTH}
+                    cardHeight={cardHeight}
+                  />
+                ))}
             </ScrollView>
 
             <PageIndicator count={items.length} activeIndex={currentIndex} />

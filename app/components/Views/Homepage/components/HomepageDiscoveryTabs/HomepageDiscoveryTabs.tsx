@@ -284,7 +284,7 @@ const HomepageDiscoveryTabs = forwardRef<
               style: { zIndex: 2 },
             }}
           >
-            <DiscoveryTabView tabLabel="Portfolio" tabIcon={IconName.Portfolio}>
+            <DiscoveryTabView tabLabel="Portfolio" tabIcon={IconName.PieChart}>
               <Reanimated.ScrollView
                 showsVerticalScrollIndicator={false}
                 onScroll={scrollHandler}
