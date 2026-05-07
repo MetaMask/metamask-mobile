@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -11,7 +11,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { MarketInsightsSource } from '@metamask/ai-controllers';
+import type { Article, MarketInsightsSource } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
 import { strings } from '../../../../../locales/i18n';
 import {
@@ -26,22 +26,29 @@ import {
 import SourceLogoGroup from '../../../UI/MarketInsights/components/SourceLogoGroup';
 import PerpsRow from './PerpsRow';
 import TokenRow from './TokenRow';
-import WhatsHappeningSourcesBottomSheet from './WhatsHappeningSourcesBottomSheet';
 
 interface WhatsHappeningExpandedCardProps {
   item: WhatsHappeningItem;
+  cardIndex: number;
   cardWidth: number;
   /** Height of the carousel container — used to give every card the same fixed height. */
   cardHeight: number;
+  /**
+   * Called when the user taps the sources footer row. The parent is responsible
+   * for rendering the bottom sheet so it is anchored to the screen root rather
+   * than the card's positioning context.
+   */
+  onSourcesPress?: (articles: Article[]) => void;
 }
 
 const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   item,
+  cardIndex,
   cardWidth,
   cardHeight,
+  onSourcesPress,
 }) => {
   const tw = useTailwind();
-  const [sourcesVisible, setSourcesVisible] = useState(false);
 
   const impactLabel = getImpactLabel(item.impact);
   const impactBgClass = getImpactBackgroundClass(item.impact);
@@ -114,7 +121,12 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
               {item.relatedAssets
                 .filter((asset) => asset.caip19?.length)
                 .map((asset) => (
-                  <TokenRow key={asset.sourceAssetId} asset={asset} />
+                  <TokenRow
+                    key={asset.sourceAssetId}
+                    asset={asset}
+                    item={item}
+                    cardIndex={cardIndex}
+                  />
                 ))}
             </Box>
           )}
@@ -138,7 +150,12 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                     asset.hlPerpsMarket?.length && !asset.caip19?.length,
                 )
                 .map((asset) => (
-                  <PerpsRow key={`perp-${asset.sourceAssetId}`} asset={asset} />
+                  <PerpsRow
+                    key={`perp-${asset.sourceAssetId}`}
+                    asset={asset}
+                    item={item}
+                    cardIndex={cardIndex}
+                  />
                 ))}
             </Box>
           )}
@@ -150,7 +167,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
             <Box twClassName="h-px bg-border-muted" />
 
             <Pressable
-              onPress={() => setSourcesVisible(true)}
+              onPress={() => onSourcesPress?.(item.articles)}
               accessibilityRole="button"
             >
               {({ pressed }) => (
@@ -190,13 +207,6 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
           </Box>
         )}
       </Box>
-
-      {sourcesVisible && (
-        <WhatsHappeningSourcesBottomSheet
-          onClose={() => setSourcesVisible(false)}
-          articles={item.articles}
-        />
-      )}
     </Box>
   );
 };
