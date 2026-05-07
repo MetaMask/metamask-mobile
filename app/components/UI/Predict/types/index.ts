@@ -183,7 +183,8 @@ export type PredictSportsLeague =
   | 'bol1'
   | 'itc'
   | 'dfb'
-  | 'cde';
+  | 'cde'
+  | 'fifwc';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -614,7 +615,6 @@ export interface PreviewOrderParams {
 export interface AccountState {
   address: Hex;
   isDeployed: boolean;
-  hasAllowances: boolean;
 }
 
 export interface GeoBlockResponse {
