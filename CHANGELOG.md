@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Bumped `@metamask/assets-controllers` to `105.1.0` (#29657)
 
+## [7.75.1]
+
+### Fixed
+
+- Fixed Hyperliquid withdraw showing $0 and being blocked for users on Unified Account mode. (#29492)
+
 ## [7.75.0]
 
 ### Added

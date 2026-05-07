@@ -8512,7 +8512,6 @@
       "empty": "Você não tem nenhuma posição",
       "empty_description": "Abra uma posição em ativos tokenizados do mundo real e comece a ganhar recompensas.",
       "empty_cta": "Abrir uma posição",
-      "position_units": "{{units}} ações",
       "positions_title": "Posições",
       "activity_title": "Atividade",
       "view_activity": "Ver atividade",

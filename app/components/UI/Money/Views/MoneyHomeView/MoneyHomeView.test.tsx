@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHomeView from './MoneyHomeView';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
@@ -293,14 +294,6 @@ describe('MoneyHomeView', () => {
     expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
-  it('pressing the back button calls navigation.goBack', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-    fireEvent.press(getByTestId(MoneyHeaderTestIds.BACK_BUTTON));
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
   it('navigates to the Money activity screen when View all is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -369,6 +362,43 @@ describe('MoneyHomeView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
     });
+  });
+
+  it('navigates to Card root when Get now row is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+  });
+
+  it('navigates to potential earnings screen when View potential earnings is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.POTENTIAL_EARNINGS);
+  });
+
+  it('opens the MUSD learn more URL when learn more is pressed in empty state', () => {
+    const mockOpenURL = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+
+    mockUseMoneyAccountTransactions.mockReturnValue({
+      allTransactions: [],
+      deposits: [],
+      transfers: [],
+      submittedTransactions: [],
+      moneyAddress: '0x0000000000000000000000000000000000000001',
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON));
+
+    expect(mockOpenURL).toHaveBeenCalledTimes(1);
+    mockOpenURL.mockRestore();
   });
 
   describe('monthly and yearly earnings', () => {

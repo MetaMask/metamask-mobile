@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { ScrollView, Linking } from 'react-native';
+import { Linking, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -111,10 +111,6 @@ const MoneyHomeView = () => {
     if (!Number.isFinite(earnings)) return formattedZero;
     return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
-
-  const handleBackPress = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
 
   const handleMenuPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -237,10 +233,7 @@ const MoneyHomeView = () => {
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      <MoneyHeader
-        onBackPress={handleBackPress}
-        onMenuPress={handleMenuPress}
-      />
+      <MoneyHeader onMenuPress={handleMenuPress} />
       <ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
         contentContainerStyle={styles.scrollContent}
@@ -328,13 +321,16 @@ const MoneyHomeView = () => {
           </>
         )}
         {!isMilestone && (
-          <MoneyWhatYouGet
-            apy={apyPercent}
-            onLearnMorePress={handleLearnMorePress}
-          />
+          <>
+            <MoneyWhatYouGet
+              apy={apyPercent}
+              onLearnMorePress={handleLearnMorePress}
+            />
+            <Divider />
+          </>
         )}
+        <MoneyFooter onAddMoneyPress={handleAddPress} />
       </ScrollView>
-      <MoneyFooter onAddMoneyPress={handleAddPress} />
     </Box>
   );
 };
