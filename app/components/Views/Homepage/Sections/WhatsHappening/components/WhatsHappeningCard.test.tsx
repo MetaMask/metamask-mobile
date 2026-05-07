@@ -164,10 +164,10 @@ describe('WhatsHappeningCard', () => {
       expect.objectContaining({
         category: MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
         properties: expect.objectContaining({
-          event_id: 'trend-0',
+          trend_id: 'trend-0',
           card_index: 2,
-          category: 'macro',
-          impact: 'positive',
+          trend_category: 'macro',
+          trend_impact: 'positive',
           asset_symbols: ['BTC'],
         }),
       }),

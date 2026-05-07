@@ -201,17 +201,17 @@ describe('WhatsHappeningSection', () => {
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(mockItem.title));
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_OPENED,
+      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_OPENED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
         properties: expect.objectContaining({
           entry_point: 'card',
-          event_id: mockItem.id,
+          trend_id: mockItem.id,
           card_index: 0,
-          category: 'macro',
-          impact: 'positive',
+          trend_category: 'macro',
+          trend_impact: 'positive',
           asset_symbols: [],
         }),
       }),
@@ -229,7 +229,7 @@ describe('WhatsHappeningSection', () => {
     fireEvent.press(screen.getByText(/view more/i));
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_OPENED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
         properties: expect.objectContaining({
           entry_point: 'view_all',
         }),

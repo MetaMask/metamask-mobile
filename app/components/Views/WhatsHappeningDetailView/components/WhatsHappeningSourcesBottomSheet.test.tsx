@@ -180,18 +180,18 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
     );
     fireEvent.press(screen.getByText('coindesk.com'));
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_INTERACTION,
+      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTION,
+        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
         properties: expect.objectContaining({
           interaction_type: 'source_click',
           source: 'https://coindesk.com/fed-pauses',
-          event_id: 'trend-7',
+          trend_id: 'trend-7',
           card_index: 3,
-          category: 'macro',
-          impact: 'positive',
+          trend_category: 'macro',
+          trend_impact: 'positive',
           asset_symbols: ['BTC'],
         }),
       }),
@@ -210,7 +210,7 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
     );
     fireEvent.press(screen.getByText('coindesk.com'));
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_INTERACTION,
+      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
     );
   });
 });

@@ -38,7 +38,7 @@ const WhatsHappeningSourcesBottomSheet: React.FC<
   const handleSourcePress = useCallback(
     (url: string) => {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTION)
+        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED)
           .addProperties({
             ...getWhatsHappeningEventProps(item, cardIndex),
             interaction_type: WhatsHappeningInteractionType.SourceClick,

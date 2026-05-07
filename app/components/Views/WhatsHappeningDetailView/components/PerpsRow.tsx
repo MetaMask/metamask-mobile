@@ -28,7 +28,7 @@ const PerpsRow: React.FC<PerpsRowProps> = ({ asset, item, cardIndex }) => {
   const handleTradeWithTracking = useCallback(() => {
     if (!asset.hlPerpsMarket?.[0]) return;
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTION)
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED)
         .addProperties({
           ...getWhatsHappeningEventProps(item, cardIndex),
           interaction_type: WhatsHappeningInteractionType.TradePressed,

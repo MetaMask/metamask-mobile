@@ -30,7 +30,7 @@ const TokenRow: React.FC<TokenRowProps> = ({ asset, item, cardIndex }) => {
 
   const handleTradeWithTracking = useCallback(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTION)
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED)
         .addProperties({
           ...getWhatsHappeningEventProps(item, cardIndex),
           interaction_type: WhatsHappeningInteractionType.TradePressed,
@@ -53,7 +53,7 @@ const TokenRow: React.FC<TokenRowProps> = ({ asset, item, cardIndex }) => {
   const handleBuy = useCallback(() => {
     const assetId = asset.caip19?.[0];
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTION)
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED)
         .addProperties({
           ...getWhatsHappeningEventProps(item, cardIndex),
           interaction_type: WhatsHappeningInteractionType.BuyPressed,

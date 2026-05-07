@@ -125,19 +125,19 @@ describe('PerpsRow', () => {
     );
     fireEvent.press(screen.getByText('Trade'));
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_INTERACTION,
+      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTION,
+        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
         properties: expect.objectContaining({
           interaction_type: 'trade_pressed',
           asset_symbol: 'TSLA',
           perps_market: 'xyz:TSLA',
-          event_id: 'trend-3',
+          trend_id: 'trend-3',
           card_index: 1,
-          category: 'macro',
-          impact: 'positive',
+          trend_category: 'macro',
+          trend_impact: 'positive',
         }),
       }),
     );

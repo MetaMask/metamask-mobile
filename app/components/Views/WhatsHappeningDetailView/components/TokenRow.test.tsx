@@ -150,19 +150,19 @@ describe('TokenRow', () => {
     );
     fireEvent.press(screen.getByText('Buy'));
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_INTERACTION,
+      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTION,
+        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
         properties: expect.objectContaining({
           interaction_type: 'buy_pressed',
           asset_symbol: 'BTC',
           asset_caip19: 'eip155:1/slip44:0',
-          event_id: 'trend-2',
+          trend_id: 'trend-2',
           card_index: 2,
-          category: 'macro',
-          impact: 'positive',
+          trend_category: 'macro',
+          trend_impact: 'positive',
         }),
       }),
     );

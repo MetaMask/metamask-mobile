@@ -103,7 +103,7 @@ const WhatsHappeningSection = forwardRef<
 
   const handleViewAll = useCallback(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_OPENED)
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED)
         .addProperties({ entry_point: WhatsHappeningEntryPoint.ViewAll })
         .build(),
     );
@@ -115,7 +115,7 @@ const WhatsHappeningSection = forwardRef<
       const item = items[index];
       if (item) {
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_OPENED)
+          createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED)
             .addProperties({
               ...getWhatsHappeningEventProps(item, index),
               entry_point: WhatsHappeningEntryPoint.Card,
