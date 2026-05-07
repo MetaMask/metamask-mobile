@@ -13,10 +13,7 @@ import {
   ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
-import {
-  isQRHardwareScanError,
-  type QRHardwareScanErrorMetadata,
-} from '../../errors';
+import { isQRHardwareScanError } from '../../errors';
 
 import {
   ConnectingContent,

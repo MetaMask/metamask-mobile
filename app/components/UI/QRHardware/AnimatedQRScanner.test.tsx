@@ -128,6 +128,27 @@ describe('AnimatedQRScannerModal - Metrics', () => {
     });
   };
 
+  const scanNonUR = () =>
+    mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+
+  function setupSuccessfulDecoder(urType = SUPPORTED_UR_TYPE.CRYPTO_HDKEY) {
+    const instance = {
+      receivePart: jest.fn(),
+      getProgress: jest.fn(() => 1),
+      isError: jest.fn(() => false),
+      isSuccess: jest.fn(() => true),
+      resultError: jest.fn(),
+      resultUR: jest.fn(() => ({
+        type: urType,
+        cbor: Buffer.from([]),
+      })),
+    };
+    mockURRegistryDecoder.mockImplementation(
+      () => instance as unknown as URRegistryDecoder,
+    );
+    return instance;
+  }
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockBuild.mockReturnValue({});
@@ -659,6 +680,57 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
 
       expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(2);
+    });
+
+    it('forwards the same error again after a successful scan clears dedup state', async () => {
+      setupSuccessfulDecoder();
+
+      render(
+        <AnimatedQRScannerModal
+          {...defaultProps}
+          onQRHardwareScanError={mockOnQRHardwareScanError}
+        />,
+      );
+
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+      expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(1);
+
+      await mockOnCodeScanned([{ value: 'ur:crypto-hdkey/1-1', type: 'qr' }]);
+      await waitFor(() => {
+        expect(mockOnScanSuccess).toHaveBeenCalledTimes(1);
+      });
+
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+      expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(2);
+    });
+
+    it('forwards different error types independently even when one was already forwarded', async () => {
+      setupSuccessfulDecoder(SUPPORTED_UR_TYPE.ETH_SIGNATURE);
+
+      render(
+        <AnimatedQRScannerModal
+          {...defaultProps}
+          onQRHardwareScanError={mockOnQRHardwareScanError}
+        />,
+      );
+
+      await mockOnCodeScanned([{ value: 'not-a-ur', type: 'qr' }]);
+      expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(1);
+      expect(mockOnQRHardwareScanError).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          message: 'Scanned QR code is not in UR format',
+        }),
+      );
+
+      await mockOnCodeScanned([
+        { value: 'ur:crypto-account/mock-part', type: 'qr' },
+      ]);
+      expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(2);
+      expect(mockOnQRHardwareScanError).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          message: 'Received UR type is not valid for pairing flow',
+        }),
+      );
     });
 
     it('reopens the scanner when try again is pressed', async () => {
@@ -1362,6 +1434,81 @@ describe('AnimatedQRScannerModal - Metrics', () => {
         decoderCallsAfterFirstError,
       );
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Reset on visible transition', () => {
+    it('resets decoder and dedup state when scanner transitions from hidden to visible', async () => {
+      setupSuccessfulDecoder();
+
+      const { rerender } = render(
+        <AnimatedQRScannerModal
+          {...defaultProps}
+          onQRHardwareScanError={mockOnQRHardwareScanError}
+        />,
+      );
+
+      await scanNonUR();
+      expect(mockOnQRHardwareScanError).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <AnimatedQRScannerModal
+          {...defaultProps}
+          visible={false}
+          onQRHardwareScanError={mockOnQRHardwareScanError}
+        />,
+      );
+      rerender(
+        <AnimatedQRScannerModal
+          {...defaultProps}
+          visible
+          onQRHardwareScanError={mockOnQRHardwareScanError}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(mockURRegistryDecoder.mock.calls.length).toBeGreaterThan(1);
+      });
+
+      await mockOnCodeScanned([
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+      ]);
+
+      await waitFor(() => {
+        expect(mockOnScanSuccess).toHaveBeenCalledWith({
+          type: SUPPORTED_UR_TYPE.CRYPTO_HDKEY,
+          cbor: Buffer.from([]),
+        });
+      });
+    });
+
+    it('does not reset when visible stays true across rerenders', async () => {
+      const mockDecoderInstance = {
+        receivePart: jest.fn(),
+        getProgress: jest.fn(() => 0.5),
+        isError: jest.fn(() => false),
+        isSuccess: jest.fn(() => false),
+        resultError: jest.fn(),
+        resultUR: jest.fn(),
+      };
+
+      mockURRegistryDecoder.mockImplementation(
+        () => mockDecoderInstance as unknown as URRegistryDecoder,
+      );
+
+      const { rerender } = render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await mockOnCodeScanned([
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+      ]);
+
+      const decoderCallsAfterScan = mockURRegistryDecoder.mock.calls.length;
+
+      rerender(<AnimatedQRScannerModal {...defaultProps} />);
+
+      expect(mockURRegistryDecoder).toHaveBeenCalledTimes(
+        decoderCallsAfterScan,
+      );
     });
   });
 

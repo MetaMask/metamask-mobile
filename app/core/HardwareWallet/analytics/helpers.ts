@@ -4,11 +4,7 @@ import {
   HardwareWalletConnectionState,
   ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
-import {
-  isQRHardwareScanError,
-  QRHardwareScanErrorType,
-  type QRHardwareScanErrorMetadata,
-} from '../errors';
+import { isQRHardwareScanError, QRHardwareScanErrorType } from '../errors';
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 
