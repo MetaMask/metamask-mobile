@@ -130,6 +130,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 1
           ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -169,7 +170,7 @@ jobs:
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
-      fetch-depth: 0
+      fetch-depth: 1
       checkout-submodules: true
       platform: ${{ matrix.platform }}
       build_name: ${{ inputs.build_name }}
@@ -541,6 +542,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 1
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
 
       - name: Setup Node.js
