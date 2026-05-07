@@ -4,8 +4,17 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PerpsRow from './PerpsRow';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RelatedAsset } from '@metamask/ai-controllers';
+import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn((eventName: string) => ({
+  addProperties: jest.fn((properties: Record<string, unknown>) => ({
+    build: jest.fn(() => ({ category: eventName, properties })),
+  })),
+  build: jest.fn(() => ({ category: eventName })),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -17,6 +26,13 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../utils/getRelatedAssetImageSource', () => ({
   getRelatedAssetImageSource: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 const perpsOnlyAsset: RelatedAsset = {
@@ -35,23 +51,40 @@ const dualAsset: RelatedAsset = {
   hlPerpsMarket: ['BTC'],
 };
 
+const mockItem: WhatsHappeningItem = {
+  id: 'trend-3',
+  title: 'TSLA earnings',
+  description: '...',
+  date: '2026-03-15T10:00:00.000Z',
+  category: 'macro',
+  impact: 'positive',
+  relatedAssets: [perpsOnlyAsset],
+  articles: [],
+};
+
 describe('PerpsRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders the asset symbol', () => {
-    renderWithProvider(<PerpsRow asset={perpsOnlyAsset} />);
+    renderWithProvider(
+      <PerpsRow asset={perpsOnlyAsset} item={mockItem} cardIndex={0} />,
+    );
     expect(screen.getByText('TSLA')).toBeOnTheScreen();
   });
 
   it('renders the Trade button', () => {
-    renderWithProvider(<PerpsRow asset={perpsOnlyAsset} />);
+    renderWithProvider(
+      <PerpsRow asset={perpsOnlyAsset} item={mockItem} cardIndex={0} />,
+    );
     expect(screen.getByText('Trade')).toBeOnTheScreen();
   });
 
   it('navigates to PerpsMarketDetails with minimal market payload on Trade press', () => {
-    renderWithProvider(<PerpsRow asset={perpsOnlyAsset} />);
+    renderWithProvider(
+      <PerpsRow asset={perpsOnlyAsset} item={mockItem} cardIndex={0} />,
+    );
     fireEvent.press(screen.getByText('Trade'));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
@@ -62,7 +95,9 @@ describe('PerpsRow', () => {
   });
 
   it('uses first hlPerpsMarket entry as the market symbol', () => {
-    renderWithProvider(<PerpsRow asset={dualAsset} />);
+    renderWithProvider(
+      <PerpsRow asset={dualAsset} item={mockItem} cardIndex={0} />,
+    );
     fireEvent.press(screen.getByText('Trade'));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
@@ -77,8 +112,46 @@ describe('PerpsRow', () => {
       ...perpsOnlyAsset,
       hlPerpsMarket: [],
     };
-    renderWithProvider(<PerpsRow asset={assetNoPerps} />);
+    renderWithProvider(
+      <PerpsRow asset={assetNoPerps} item={mockItem} cardIndex={0} />,
+    );
     fireEvent.press(screen.getByText('Trade'));
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('tracks Whats Happening Interaction with interaction_type=trade_pressed and asset details on Trade press', () => {
+    renderWithProvider(
+      <PerpsRow asset={perpsOnlyAsset} item={mockItem} cardIndex={1} />,
+    );
+    fireEvent.press(screen.getByText('Trade'));
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTION,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTION,
+        properties: expect.objectContaining({
+          interaction_type: 'trade_pressed',
+          asset_symbol: 'TSLA',
+          perps_market: 'xyz:TSLA',
+          event_id: 'trend-3',
+          card_index: 1,
+          category: 'macro',
+          impact: 'positive',
+        }),
+      }),
+    );
+  });
+
+  it('does not track Interaction when hlPerpsMarket is empty', () => {
+    const assetNoPerps: RelatedAsset = {
+      ...perpsOnlyAsset,
+      hlPerpsMarket: [],
+    };
+    renderWithProvider(
+      <PerpsRow asset={assetNoPerps} item={mockItem} cardIndex={0} />,
+    );
+    fireEvent.press(screen.getByText('Trade'));
+    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
   });
 });
