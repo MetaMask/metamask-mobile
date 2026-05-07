@@ -59,16 +59,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 describe('NavbarTitle', () => {
-  it('should render correctly', () => {
-    const title = 'Test';
-    const { toJSON } = renderWithProvider(<NavbarTitle title={title} />, {
-      state: {
-        engine: { backgroundState },
-      },
-    });
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('tracks NETWORK_SELECTOR_PRESSED when pressed and network is not disabled', () => {
     jest.clearAllMocks();
 

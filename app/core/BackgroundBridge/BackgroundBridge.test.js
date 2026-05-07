@@ -46,12 +46,14 @@ jest.mock('../Engine', () => ({
   },
   context: {
     AccountsController: {
+      name: 'AccountsController',
       listAccounts: jest.fn(),
       listMultichainAccounts: jest.fn(),
       getSelectedAccount: jest.fn(),
       getAccountByAddress: jest.fn(),
     },
     PermissionController: {
+      name: 'PermissionController',
       createPermissionMiddleware: jest.fn(),
       requestPermissions: jest.fn(),
       getCaveat: jest.fn(),
@@ -275,7 +277,7 @@ describe('BackgroundBridge', () => {
         chainId: '0x2',
         networkVersion: '2',
       };
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const mmBridge = setupBackgroundBridge(url, true);
       // Mock the getProviderNetworkState method to return the expected network state
@@ -305,7 +307,7 @@ describe('BackgroundBridge', () => {
         chainId: '0x1',
         networkVersion: '1',
       };
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationEip1193');
       const getProviderSpy = jest.spyOn(bridge, 'getProviderNetworkState');
@@ -435,7 +437,7 @@ describe('BackgroundBridge', () => {
 
   describe('notifySolanaAccountChangedForCurrentAccount', () => {
     it('emits nothing if there is no CAIP-25 permission', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -448,7 +450,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there are no permitted solana scopes and `solana_accountChanged_notifications` session property is set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -476,7 +478,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there are permitted solana accounts, but the `solana_accountChanged_notifications` session property is not set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -502,7 +504,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there are permitted solana scopes but no accounts and the `solana_accountChanged_notifications` session property is set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -530,7 +532,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits a solana accountChanged event when there are permitted solana accounts and the `solana_accountChanged_notifications` session property is set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -567,7 +569,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('prioritizes solana account from selected account group over scope accounts', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -615,7 +617,7 @@ describe('BackgroundBridge', () => {
 
   describe('handleSolanaAccountChangedFromScopeChanges', () => {
     it('emits nothing if the current and previous permissions both did not have `solana_accountChanged_notifications` session property set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -653,7 +655,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if currently and previously selected solana accounts did not change', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -695,7 +697,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits the currently selected solana account if the currently selected solana accounts did change', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -748,7 +750,7 @@ describe('BackgroundBridge', () => {
 
   describe('handleSolanaAccountChangedFromSelectedAccountChanges', () => {
     it('emits nothing if the selected account is not a solana account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -779,7 +781,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if the selected account did not change from the last seen solana account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -811,7 +813,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there is no CAIP-25 permission', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -828,7 +830,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if the `solana_accountChanged_notifications` session property is not set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -857,7 +859,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if the selected account does not match a permitted solana account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -888,7 +890,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits a solana accountChanged event for the selected account if it does match a permitted solana account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -934,7 +936,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing when AccountTreeController returns no accounts', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleSolanaAccountSpy = jest.spyOn(
         bridge,
@@ -953,7 +955,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing when AccountTreeController returns only non-Solana accounts', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleSolanaAccountSpy = jest.spyOn(
         bridge,
@@ -977,7 +979,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('calls handleSolanaAccountChangedFromSelectedAccountChanges when AccountTreeController returns a Solana account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleSolanaAccountSpy = jest.spyOn(
         bridge,
@@ -1002,7 +1004,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('processes only the first Solana account when multiple valid Solana accounts exist', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleSolanaAccountSpy = jest.spyOn(
         bridge,
@@ -1041,7 +1043,7 @@ describe('BackgroundBridge', () => {
 
   describe('notifyTronAccountChangedForCurrentAccount', () => {
     it('emits nothing if there is no CAIP-25 permission', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1054,7 +1056,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there are no permitted tron scopes and `tron_accountChanged_notifications` session property is set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1082,7 +1084,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there are permitted tron accounts, but the `tron_accountChanged_notifications` session property is not set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1108,7 +1110,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there are permitted tron scopes but no accounts and the `tron_accountChanged_notifications` session property is set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1136,7 +1138,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits a tron accountChanged event when there are permitted tron accounts and the `tron_accountChanged_notifications` session property is set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1173,7 +1175,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('prioritizes tron account from selected account group over scope accounts', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1219,7 +1221,7 @@ describe('BackgroundBridge', () => {
 
   describe('handleTronAccountChangedFromScopeChanges', () => {
     it('emits nothing if the current and previous permissions both did not have `tron_accountChanged_notifications` session property set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1257,7 +1259,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if currently and previously selected tron accounts did not change', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1299,7 +1301,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits the currently selected tron account if the currently selected tron accounts did change', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1352,7 +1354,7 @@ describe('BackgroundBridge', () => {
 
   describe('handleTronAccountChangedFromSelectedAccountChanges', () => {
     it('emits nothing if the selected account is not a tron account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1383,7 +1385,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if the selected account did not change from the last seen tron account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1415,7 +1417,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there is no CAIP-25 permission', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1432,7 +1434,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if the `tron_accountChanged_notifications` session property is not set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1461,7 +1463,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if the selected account does not match a permitted tron account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1492,7 +1494,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits a tron accountChanged event for the selected account if it does match a permitted tron account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1538,7 +1540,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing when AccountTreeController returns no accounts', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleTronAccountSpy = jest.spyOn(
         bridge,
@@ -1557,7 +1559,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing when AccountTreeController returns only non-Tron accounts', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleTronAccountSpy = jest.spyOn(
         bridge,
@@ -1581,7 +1583,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('calls handleTronAccountChangedFromSelectedAccountChanges when AccountTreeController returns a Tron account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleTronAccountSpy = jest.spyOn(
         bridge,
@@ -1606,7 +1608,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('processes only the first Tron account when multiple valid Tron accounts exist', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleTronAccountSpy = jest.spyOn(
         bridge,
@@ -1643,6 +1645,84 @@ describe('BackgroundBridge', () => {
     });
   });
 
+  describe('onDisconnect', () => {
+    const eventsUnsubscribedByStableRef = [
+      [AppConstants.NETWORK_STATE_CHANGE_EVENT],
+      ['PreferencesController:stateChange'],
+      ['AccountsController:selectedAccountChange'],
+      ['SelectedNetworkController:stateChange'],
+      ['KeyringController:lock'],
+      ['KeyringController:unlock'],
+    ];
+
+    it.each(eventsUnsubscribedByStableRef)(
+      'unsubscribes from %s using the handler reference that was subscribed',
+      (eventName) => {
+        const bridge = setupBackgroundBridge('https://www.mock.io');
+        const subscribeCall =
+          Engine.controllerMessenger.subscribe.mock.calls.find(
+            (call) => call[0] === eventName,
+          );
+        expect(subscribeCall).toBeDefined();
+        const subscribedHandler = subscribeCall[1];
+
+        bridge.onDisconnect();
+
+        expect(Engine.controllerMessenger.tryUnsubscribe).toHaveBeenCalledWith(
+          eventName,
+          subscribedHandler,
+        );
+      },
+    );
+
+    it('unsubscribes every PermissionController:stateChange handler that was subscribed in the constructor', () => {
+      const bridge = setupBackgroundBridge('https://www.mock.io');
+      const subscribedHandlers = Engine.controllerMessenger.subscribe.mock.calls
+        .filter((call) => call[0] === 'PermissionController:stateChange')
+        .map((call) => call[1]);
+
+      expect(subscribedHandlers.length).toBeGreaterThan(0);
+
+      bridge.onDisconnect();
+
+      const unsubscribedHandlers = [
+        ...Engine.controllerMessenger.tryUnsubscribe.mock.calls,
+        ...Engine.controllerMessenger.unsubscribe.mock.calls,
+      ]
+        .filter((call) => call[0] === 'PermissionController:stateChange')
+        .map((call) => call[1]);
+
+      subscribedHandlers.forEach((handler) => {
+        expect(unsubscribedHandlers).toContain(handler);
+      });
+    });
+
+    it('does not throw when called multiple times', () => {
+      const bridge = setupBackgroundBridge('https://www.mock.io');
+
+      expect(() => {
+        bridge.onDisconnect();
+        bridge.onDisconnect();
+      }).not.toThrow();
+    });
+
+    it('does not repeat teardown work on subsequent calls', () => {
+      const bridge = setupBackgroundBridge('https://www.mock.io');
+
+      bridge.onDisconnect();
+      const firstCallCount =
+        Engine.controllerMessenger.tryUnsubscribe.mock.calls.length +
+        Engine.controllerMessenger.unsubscribe.mock.calls.length;
+
+      bridge.onDisconnect();
+      const secondCallCount =
+        Engine.controllerMessenger.tryUnsubscribe.mock.calls.length +
+        Engine.controllerMessenger.unsubscribe.mock.calls.length;
+
+      expect(secondCallCount).toBe(firstCallCount);
+    });
+  });
+
   describe('handleSessionChangedFromSelectedAccountGroupChanges', () => {
     beforeEach(() => {
       jest.useFakeTimers();
@@ -1655,7 +1735,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('does nothing if there is no CAIP-25 permission', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       bridge.multichainEngine = { emit: jest.fn() };
 
@@ -1670,7 +1750,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('does nothing if getCaveat returns falsy', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       bridge.multichainEngine = { emit: jest.fn() };
 
@@ -1683,7 +1763,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('calls notifyCaipAuthorizationChange with the refetched caveat value', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const notifySpy = jest.spyOn(bridge, 'notifyCaipAuthorizationChange');
 
@@ -1730,7 +1810,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('does not call notifyCaipAuthorizationChange if the caveat is revoked before the setTimeout fires', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const notifySpy = jest.spyOn(bridge, 'notifyCaipAuthorizationChange');
 
@@ -1763,7 +1843,7 @@ describe('BackgroundBridge', () => {
 
   describe('notifyCaipAuthorizationChange', () => {
     it('emits a wallet_sessionChanged notification with session scopes', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       bridge.multichainEngine = { emit: jest.fn() };
 

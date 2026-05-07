@@ -65,7 +65,13 @@ describe('Rewards Selectors', () => {
       const result = selectRewardsControllerState(state);
 
       // Assert
-      expect(result).toBeUndefined();
+      expect(result).toEqual(
+        expect.objectContaining({
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+        }),
+      );
     });
   });
 
@@ -177,6 +183,24 @@ describe('Rewards Selectors', () => {
       // Assert
       expect(result).toBeNull();
     });
+
+    it('returns null when RewardsController is undefined', () => {
+      // Arrange
+      const state = {
+        engine: {
+          backgroundState: {
+            RewardsController: undefined,
+          },
+        },
+        rewards: { candidateSubscriptionId: null },
+      } as unknown as RootState;
+
+      // Act
+      const result = selectRewardsSubscriptionId(state);
+
+      // Assert
+      expect(result).toBeNull();
+    });
   });
 
   describe('selectRewardsActiveAccountAddress', () => {
@@ -241,6 +265,23 @@ describe('Rewards Selectors', () => {
     it('returns null when no active account exists', () => {
       // Arrange
       const state = createMockRootState({ activeAccount: null });
+
+      // Act
+      const result = selectRewardsActiveAccountAddress(state);
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('returns null when RewardsController is undefined', () => {
+      // Arrange
+      const state = {
+        engine: {
+          backgroundState: {
+            RewardsController: undefined,
+          },
+        },
+      } as unknown as RootState;
 
       // Act
       const result = selectRewardsActiveAccountAddress(state);
@@ -393,6 +434,49 @@ describe('Rewards Selectors', () => {
 
       const result = selectCurrentSubscriptionAccounts(state);
       expect(result).toHaveLength(0);
+    });
+
+    it('returns empty array when controller accounts are missing', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RewardsController: {
+              activeAccount: { subscriptionId: 'sub-1' },
+              accounts: undefined,
+              subscriptions: {
+                'sub-1': { id: 'sub-1' },
+              },
+            },
+          },
+        },
+        rewards: { candidateSubscriptionId: null },
+      } as unknown as RootState;
+
+      const result = selectCurrentSubscriptionAccounts(state);
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when controller subscriptions are missing', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RewardsController: {
+              activeAccount: { subscriptionId: 'sub-1' },
+              accounts: {
+                'acct-1': {
+                  subscriptionId: 'sub-1',
+                  account: 'eip155:1:0x123',
+                },
+              },
+              subscriptions: undefined,
+            },
+          },
+        },
+        rewards: { candidateSubscriptionId: null },
+      } as unknown as RootState;
+
+      const result = selectCurrentSubscriptionAccounts(state);
+      expect(result).toEqual([]);
     });
 
     it('returns empty array when no accounts match subscription', () => {

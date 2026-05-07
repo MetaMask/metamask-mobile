@@ -6,8 +6,13 @@ import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
 import { handleFetch } from '@metamask/controller-utils';
+import Routes from '../../../../constants/navigation/Routes';
+import ClipboardManager from '../../../../core/ClipboardManager';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+const mockReplace = jest.fn();
+const mockGetState = jest.fn();
 const mockGetAssetImageUrl = jest.fn();
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 const mockPriceChart = jest.fn();
@@ -81,6 +86,21 @@ const mockState = {
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
   handleFetch: jest.fn().mockResolvedValue({}),
+}));
+
+jest.mock('../../../../core/ClipboardManager', () => ({
+  setString: jest.fn().mockResolvedValue(undefined),
+}));
+
+// Pressing buy mounts QuickBuyBottomSheet. Jest's global mock for design-system
+// `BottomSheet` (see app/util/test/testSetup.js) invokes `onOpenBottomSheet`'s
+// callback synchronously, so `QuickBuyBottomSheetContent` mounts in the same turn
+// and runs `useQuickBuyBottomSheet` (bridge selectors, device version compare,
+// NetworkController, …). This file intentionally uses a minimal Redux store, so
+// we stub the sheet here.
+jest.mock('./components/QuickBuyBottomSheet', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
 jest.mock('../../../../util/haptics', () => {
@@ -167,7 +187,12 @@ jest.mock('@react-navigation/native', () => {
 
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack }),
+    useNavigation: () => ({
+      goBack: mockGoBack,
+      navigate: mockNavigate,
+      replace: mockReplace,
+      getState: mockGetState,
+    }),
     useRoute: () => ({
       params: mockRouteParams,
     }),
@@ -187,6 +212,7 @@ jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
 describe('TraderPositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetState.mockReturnValue({ routes: [{ name: 'Home' }], index: 0 });
     mockHandleFetch.mockResolvedValue({});
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -220,7 +246,36 @@ describe('TraderPositionView', () => {
     expect(screen.getByText('No trades for this interval')).toBeOnTheScreen();
   });
 
-  it('calls goBack when the back button is pressed', () => {
+  it('replaces the current screen with the trader profile when the back button is pressed and no profile is in the back stack (deeplink)', () => {
+    // default mockGetState has no profile route behind the position screen
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.BACK_BUTTON),
+    );
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.PROFILE,
+      {
+        traderId: 'trader-1',
+        traderName: 'dutchiono',
+      },
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('calls goBack when the back button is pressed and the trader profile is already in the stack', () => {
+    mockGetState.mockReturnValue({
+      routes: [
+        { name: 'Home' },
+        { name: Routes.SOCIAL_LEADERBOARD.VIEW },
+        { name: Routes.SOCIAL_LEADERBOARD.PROFILE },
+        { name: Routes.SOCIAL_LEADERBOARD.POSITION },
+      ],
+      index: 3,
+    });
+
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     fireEvent.press(
@@ -228,6 +283,8 @@ describe('TraderPositionView', () => {
     );
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it('renders the fallback when position is undefined and no positionId is provided', () => {
@@ -369,6 +426,22 @@ describe('TraderPositionView', () => {
       '0x1234567890123456789012345678901234567890',
       'eip155:8453',
     );
+  });
+
+  it('copies the token address when the token address button is pressed', async () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(
+        TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(ClipboardManager.setString).toHaveBeenCalledWith(
+        '0x1234567890123456789012345678901234567890',
+      );
+    });
   });
 
   it('skips token image URL resolution when the position chain is unsupported', () => {
