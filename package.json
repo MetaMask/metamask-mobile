@@ -802,7 +802,8 @@
       "eslint-plugin-import-x>unrs-resolver": false,
       "eslint-import-resolver-typescript>unrs-resolver": false,
       "better-sqlite3": true,
-      "tsx>esbuild": false
+      "tsx>esbuild": false,
+      "@metamask/test-dapp-solana>vite-plugin-node-polyfills>vite>esbuild": false
     }
   },
   "dependenciesMeta": {

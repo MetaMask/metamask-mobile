@@ -1,5 +1,6 @@
 /scripts/inpage-bridge
 /app/core/InpageBridgeWeb3.js
+/app/lib/ppom/ppom.html.js
 /app/components/UI/Charts/AdvancedChart/webview/chartLogic.js
 /app/components/UI/Charts/AdvancedChart/webview/chartLogicString.ts
 /app/components/UI/Charts/AdvancedChart/webview/syncChartLogic.js
