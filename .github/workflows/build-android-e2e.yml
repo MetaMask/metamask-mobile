@@ -191,7 +191,6 @@ jobs:
         shell: bash
 
       - name: Setup Android Build Environment
-        if: ${{ inputs.runner_provider != 'namespace' }}
         timeout-minutes: 15
         uses: ./.github/actions/setup-e2e-env
         with:
@@ -201,6 +200,8 @@ jobs:
           install-foundry: false
           target: ${{ inputs.keystore_target }} # qa for target=main, flask for target=flask
 
+      # The Namespace cache action above already includes `.metamask`, so the
+      # dedicated actions/cache restore is only needed on non-Namespace runners.
       - name: Restore .metamask folder
         if: ${{ inputs.runner_provider != 'namespace' }}
         id: restore-metamask
@@ -235,11 +236,15 @@ jobs:
       # Gradle caches + native build — only on the full native-build path.
       # -------------------------------------------------------------------------
 
+      # Skipped on Namespace runners because the Namespace cache action above
+      # already handles `${GRADLE_USER_HOME}/caches` and `wrapper` — running
+      # cirruslabs/cache on top of it would be redundant work and a redundant
+      # save at end of run.
       - name: Restore Gradle dependencies from branch cache
         id: gradle-cache-restore
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
@@ -254,7 +259,7 @@ jobs:
       - name: Restore Gradle dependencies from main cache
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
