@@ -220,6 +220,25 @@ describe('useMoneyAccountBalance', () => {
     expect(result.current.tokenTotal?.toFixed(0)).toBe('3');
   });
 
+  it('returns withdrawableMusd as the vmUSD-shares-only mUSD equivalent when loaded', () => {
+    // musdEquivalentValue '2000000' = 2 mUSD (6 decimals) — vmUSD shares only, not including bare mUSD
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.withdrawableMusd?.toFixed(0)).toBe('2');
+  });
+
+  it('returns undefined withdrawableMusd while loading', () => {
+    mockUseQueries.mockReturnValue(
+      makeQueryResults({
+        musdEquivalentBalance: { data: undefined, isLoading: true },
+      }),
+    );
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.withdrawableMusd).toBeUndefined();
+  });
+
   it('returns undefined fiat values when musdFiatRate cannot be computed', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPrimaryMoneyAccount) {
