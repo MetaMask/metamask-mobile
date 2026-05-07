@@ -2748,6 +2748,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnChompApiConfig: {
+    name: 'earnChompApiConfig',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      baseUrl: 'https://chomp.dev-api.cx.metamask.io',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnFeatureFlagTemplate: {
     name: 'earnFeatureFlagTemplate',
     type: FeatureFlagType.Remote,
