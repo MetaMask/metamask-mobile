@@ -1,6 +1,11 @@
 import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
 import { createActiveABTestAssignment } from './activeABTestAssignments';
 import { enrichWithABTests } from './enrichWithABTests';
+import { EVENT_NAME } from '../../core/Analytics/MetaMetrics.events';
+import {
+  MARKET_INSIGHTS_CARD_ROTATION_INTERVAL_AB_KEY,
+  MarketInsightsCardRotationIntervalVariant,
+} from '../../components/UI/MarketInsights/components/MarketInsightsEntryCard/abTestConfig';
 
 describe('enrichWithABTests', () => {
   it('injects one active assignment for a matching allowlisted event', () => {
@@ -143,6 +148,31 @@ describe('enrichWithABTests', () => {
       ),
     ]);
   });
+
+  it.each([
+    EVENT_NAME.MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW,
+    EVENT_NAME.MARKET_INSIGHTS_OPENED,
+    EVENT_NAME.MARKET_INSIGHTS_VIEWED,
+    EVENT_NAME.MARKET_INSIGHTS_INTERACTION,
+    EVENT_NAME.MARKET_INSIGHTS_CLOSED,
+  ])(
+    'enriches %s with Market Insights card rotation assignment',
+    (eventName) => {
+      const event = AnalyticsEventBuilder.createEventBuilder(eventName).build();
+
+      const result = enrichWithABTests(event, {
+        [MARKET_INSIGHTS_CARD_ROTATION_INTERVAL_AB_KEY]:
+          MarketInsightsCardRotationIntervalVariant.CarouselTimeExtended,
+      });
+
+      expect(result.properties.active_ab_tests).toEqual([
+        createActiveABTestAssignment(
+          MARKET_INSIGHTS_CARD_ROTATION_INTERVAL_AB_KEY,
+          MarketInsightsCardRotationIntervalVariant.CarouselTimeExtended,
+        ),
+      ]);
+    },
+  );
 
   it('leaves non-A/B properties and sensitive properties unchanged', () => {
     const event = AnalyticsEventBuilder.createEventBuilder('Card Button Viewed')

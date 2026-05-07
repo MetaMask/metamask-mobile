@@ -7,6 +7,7 @@ import {
   HUB_PAGE_DISCOVERY_TABS_AB_TEST_ANALYTICS_MAPPING,
 } from '../../components/Views/Homepage/abTestConfig';
 import { STICKY_FOOTER_SWAP_LABEL_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/TokenDetails/components/abTestConfig';
+import { MARKET_INSIGHTS_CARD_ROTATION_INTERVAL_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/MarketInsights/components/MarketInsightsEntryCard/abTestConfig';
 
 export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   // Card
@@ -22,4 +23,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
 
   // Token Details
   STICKY_FOOTER_SWAP_LABEL_AB_TEST_ANALYTICS_MAPPING,
+
+  // Market Insights
+  MARKET_INSIGHTS_CARD_ROTATION_INTERVAL_AB_TEST_ANALYTICS_MAPPING,
 ];

@@ -37,6 +37,8 @@ const styles = StyleSheet.create({
 export interface SlidingTextCarouselProps {
   /** List of text strings to cycle through. */
   texts: string[];
+  /** Interval between text rotations in ms. Defaults to ROTATE_INTERVAL_MS. */
+  rotateIntervalMs?: number;
   /** Called when a slide transition begins (after rotation gates pass). */
   onSlideStart?: () => void;
   /** Called after each slide transition completes. */
@@ -62,6 +64,7 @@ export interface SlidingTextCarouselProps {
  */
 const SlidingTextCarousel: React.FC<SlidingTextCarouselProps> = ({
   texts,
+  rotateIntervalMs = ROTATE_INTERVAL_MS,
   onSlideStart,
   onSlideComplete,
   testID,
@@ -144,9 +147,9 @@ const SlidingTextCarousel: React.FC<SlidingTextCarouselProps> = ({
 
   useEffect(() => {
     if (texts.length <= 1) return undefined;
-    const interval = setInterval(advanceSlide, ROTATE_INTERVAL_MS);
+    const interval = setInterval(advanceSlide, rotateIntervalMs);
     return () => clearInterval(interval);
-  }, [texts.length, advanceSlide]);
+  }, [texts.length, advanceSlide, rotateIntervalMs]);
 
   const handleContainerLayout = useCallback(
     (e: { nativeEvent: { layout: { width: number } } }) => {

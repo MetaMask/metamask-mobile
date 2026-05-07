@@ -8,6 +8,12 @@ import MarketInsightsEntryCard from './MarketInsightsEntryCard';
 import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import {
+  MARKET_INSIGHTS_CARD_ROTATION_INTERVAL_AB_KEY,
+  MARKET_INSIGHTS_CARD_ROTATION_INTERVAL_VARIANTS,
+  MarketInsightsCardRotationIntervalVariant,
+} from './abTestConfig';
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
@@ -50,16 +56,20 @@ jest.mock('./AnimatedGradientBorder', () => ({
 }));
 
 let capturedOnSlideStart: (() => void) | null = null;
+let capturedRotateIntervalMs: number | undefined;
 jest.mock('./SlidingTextCarousel', () => {
   const { View, Text } = jest.requireActual('react-native');
   return ({
     texts,
+    rotateIntervalMs,
     onSlideStart,
   }: {
     texts: string[];
+    rotateIntervalMs?: number;
     onSlideStart?: () => void;
   }) => {
     capturedOnSlideStart = onSlideStart ?? null;
+    capturedRotateIntervalMs = rotateIntervalMs;
     return (
       <View>
         <Text>{texts[0]}</Text>
@@ -107,11 +117,25 @@ const mockReport = {
   sources: [{ name: 'CoinDesk', type: 'news', url: 'coindesk.com' }],
 };
 
+const createState = (remoteFeatureFlags: Record<string, unknown>) => ({
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      RemoteFeatureFlagController: {
+        ...(backgroundState as { RemoteFeatureFlagController?: object })
+          .RemoteFeatureFlagController,
+        remoteFeatureFlags,
+      },
+    },
+  },
+});
+
 describe('MarketInsightsEntryCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     capturedOnVisible = null;
     capturedOnSlideStart = null;
+    capturedRotateIntervalMs = undefined;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -139,6 +163,52 @@ describe('MarketInsightsEntryCard', () => {
 
     fireEvent.press(getByTestId('market-insights-entry-card'));
     expect(mockPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the control rotation interval when assigned control', () => {
+    renderWithProvider(
+      <MarketInsightsEntryCard
+        report={mockReport as never}
+        timeAgo="3m ago"
+        onPress={jest.fn()}
+        testID="market-insights-entry-card"
+      />,
+      {
+        state: createState({
+          [MARKET_INSIGHTS_CARD_ROTATION_INTERVAL_AB_KEY]:
+            MarketInsightsCardRotationIntervalVariant.Control,
+        }),
+      },
+    );
+
+    expect(capturedRotateIntervalMs).toBe(
+      MARKET_INSIGHTS_CARD_ROTATION_INTERVAL_VARIANTS[
+        MarketInsightsCardRotationIntervalVariant.Control
+      ].rotateIntervalMs,
+    );
+  });
+
+  it('uses the extended rotation interval when assigned carouselTimeExtended', () => {
+    renderWithProvider(
+      <MarketInsightsEntryCard
+        report={mockReport as never}
+        timeAgo="3m ago"
+        onPress={jest.fn()}
+        testID="market-insights-entry-card"
+      />,
+      {
+        state: createState({
+          [MARKET_INSIGHTS_CARD_ROTATION_INTERVAL_AB_KEY]:
+            MarketInsightsCardRotationIntervalVariant.CarouselTimeExtended,
+        }),
+      },
+    );
+
+    expect(capturedRotateIntervalMs).toBe(
+      MARKET_INSIGHTS_CARD_ROTATION_INTERVAL_VARIANTS[
+        MarketInsightsCardRotationIntervalVariant.CarouselTimeExtended
+      ].rotateIntervalMs,
+    );
   });
 
   it('renders summary text when there are no trend descriptions', () => {
