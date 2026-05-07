@@ -112,6 +112,11 @@ import { useSourceAmountCursor } from '../../hooks/useSourceAmountCursor.ts';
 import { BridgeViewFooter } from './BridgeViewFooter.tsx';
 import { getQuoteStreamReasonString } from './BridgeView.utils';
 import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
+import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError/index.ts';
+import {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button/Button.types.ts';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -157,7 +162,6 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     : false;
 
   const walletAddress = useSelector(selectSourceWalletAddress);
-
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
@@ -273,6 +277,13 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
+  const insufficientNativeReserveError = useInsufficientNativeReserveError({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+    walletAddress,
+  });
+
   const isGasFeesSponsoredNetworkEnabled = useSelector(
     getGasFeesSponsoredNetworkEnabled,
   );
@@ -290,9 +301,14 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     isGasFeesSponsoredNetworkEnabled,
   ]);
 
+  const hasInsufficientNativeReserveError = Boolean(
+    insufficientNativeReserveError,
+  );
+
   const isSubmitDisabled =
     (isLoading && !activeQuote) ||
     hasInsufficientBalance ||
+    hasInsufficientNativeReserveError ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
     !!blockaidError ||
@@ -301,6 +317,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
 
   useBridgeQuoteEvents({
     hasInsufficientBalance,
+    hasInsufficientNativeReserveError,
     hasNoQuotesAvailable: isNoQuotesAvailable,
     hasInsufficientGas: !hasSufficientGas,
     hasTxAlert: Boolean(blockaidError),
@@ -309,6 +326,8 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   });
 
   const isZeroState = !sourceAmount || !(Number(sourceAmount) > 0);
+
+  const ticker = sourceToken?.symbol;
 
   // Update quote parameters when relevant state changes
   useEffect(() => {
@@ -558,6 +577,57 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                         closeButtonProps={{ iconName: CLIconName.ArrowRight }}
                       />
                     </Pressable>
+                  );
+                })()
+              : null}
+
+            {insufficientNativeReserveError && !hasInsufficientBalance
+              ? (() => {
+                  const bannerStyle = {
+                    borderLeftWidth: 4,
+                    borderColor: colors.warning.default,
+                    backgroundColor: colors.warning.muted,
+                    paddingLeft: 8,
+                  };
+                  return (
+                    <BannerBase
+                      startAccessory={
+                        <Icon
+                          name={IconName.Warning}
+                          color={IconColor.WarningDefault}
+                          size={IconSize.Lg}
+                        />
+                      }
+                      title={strings(
+                        'bridge.insufficient_native_reserve_title',
+                        { ticker },
+                      )}
+                      style={bannerStyle}
+                      actionButtonProps={{
+                        label: strings(
+                          'bridge.insufficient_native_reserve_cta',
+                        ),
+                        onPress: () =>
+                          handleSourcePresetAmountSelect(
+                            insufficientNativeReserveError.maxSwappableNativeBalance,
+                          ),
+                        variant: ButtonVariants.Primary,
+                        size: ButtonSize.Sm,
+                        style: {
+                          marginTop: 6,
+                        },
+                      }}
+                      description={strings(
+                        'bridge.insufficient_native_reserve_message',
+                        {
+                          ticker,
+                          minimumReserve:
+                            insufficientNativeReserveError.minimumNativeBalanceToBeKeptInAccount,
+                          maxSwappable:
+                            insufficientNativeReserveError.maxSwappableNativeBalance,
+                        },
+                      )}
+                    />
                   );
                 })()
               : null}
