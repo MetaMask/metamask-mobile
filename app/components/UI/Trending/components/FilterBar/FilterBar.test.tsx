@@ -59,17 +59,9 @@ describe('FilterButton', () => {
     expect(text.props.ellipsizeMode).toBe('tail');
   });
 
-  it('uses wide padding by default', () => {
+  it('applies twClassName for layout overrides', () => {
     const { getByTestId } = renderWithProvider(
-      <FilterButton {...defaultProps} />,
-    );
-    // wide=true is the default — component renders without error
-    expect(getByTestId('filter-btn')).toBeOnTheScreen();
-  });
-
-  it('renders with wide=false (compact padding)', () => {
-    const { getByTestId } = renderWithProvider(
-      <FilterButton {...defaultProps} wide={false} />,
+      <FilterButton {...defaultProps} twClassName="px-2" />,
     );
     expect(getByTestId('filter-btn')).toBeOnTheScreen();
   });
