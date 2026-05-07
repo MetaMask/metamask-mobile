@@ -3,10 +3,6 @@ import { Provider } from 'react-redux';
 
 import { NavigationContainer } from '@react-navigation/native';
 import {
-  createNativeStackNavigator,
-  type NativeStackNavigationOptions,
-} from '@react-navigation/native-stack';
-import {
   createStackNavigator,
   StackNavigationOptions,
 } from '@react-navigation/stack';
@@ -81,69 +77,28 @@ export default function renderWithProvider(
   return { ...render(component, { wrapper: AllProviders }), store };
 }
 
-export type RenderScreenOptions =
-  | {
-      name: string;
-      useNativeStack?: false;
-      options?: StackNavigationOptions;
-    }
-  | {
-      name: string;
-      useNativeStack: true;
-      options?: NativeStackNavigationOptions;
-    };
-
 export function renderScreen(
   Component: React.ComponentType,
-  options: RenderScreenOptions,
+  options: {
+    name: string;
+    options?: StackNavigationOptions;
+  },
   providerValues?: ProviderValues,
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialParams: Record<string, any> = {},
 ) {
-  const { name } = options;
-  if (options.useNativeStack) {
-    const NativeStack = createNativeStackNavigator();
-    return renderWithProvider(
-      <NativeStack.Navigator>
-        <NativeStack.Screen
-          name={name}
-          options={options.options}
-          component={Component}
-          initialParams={initialParams}
-        />
-      </NativeStack.Navigator>,
-      providerValues,
-    );
-  }
   const Stack = createStackNavigator();
   return renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen
-        name={name}
+        name={options.name}
         options={options.options}
         component={Component}
         initialParams={initialParams}
-      />
+      ></Stack.Screen>
     </Stack.Navigator>,
     providerValues,
-  );
-}
-
-/** Same as {@link renderScreen} with `useNativeStack: true` — swap the import/call in one line. */
-export function renderScreenNative(
-  Component: React.ComponentType,
-  options: { name: string; options?: NativeStackNavigationOptions },
-  providerValues?: ProviderValues,
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initialParams: Record<string, any> = {},
-) {
-  return renderScreen(
-    Component,
-    { name: options.name, useNativeStack: true, options: options.options },
-    providerValues,
-    initialParams,
   );
 }
 
