@@ -197,32 +197,44 @@ jobs:
         shell: bash
 
       # -------------------------------------------------------------------------
-      # Heavy native setup — only runs on a full native-build path.
-      # setup-e2e-env handles: keystore, Java, Android SDK + AVD, yarn install,
-      # Foundry. Pulling the AVD + emulator deps alone is ~1m that repack
-      # doesn't need.
+      # Shared environment setup — runs on BOTH the native-build path and the
+      # reuse-hit path. With `setup-simulator: false` the action only does what
+      # both paths need: ANDROID_HOME env vars, keystore (apksigner signs the
+      # APK in either path), Java, Node + yarn install. Foundry is intentionally
+      # skipped here; the follow-up `yarn setup:github-ci` step below installs
+      # it via `installFoundryTask` (one install instead of two).
       # -------------------------------------------------------------------------
 
       - name: Setup Android Build Environment
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ inputs.runner_provider != 'namespace' }}
         timeout-minutes: 15
         uses: ./.github/actions/setup-e2e-env
         with:
           platform: android
           setup-simulator: false
           configure-keystores: true
-          android-api-level: 36
-          target: ${{ inputs.keystore_target }} # qa for taget=main and flask for target=flask
+          install-foundry: false
+          target: ${{ inputs.keystore_target }} # qa for target=main, flask for target=flask
 
       - name: Restore .metamask folder
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ inputs.runner_provider != 'namespace' }}
         id: restore-metamask
         uses: actions/cache@v4
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
-      - name: Setup project dependencies with retry
+      # -------------------------------------------------------------------------
+      # Per-path JS setup. Both invocations of `yarn setup:github-ci` install
+      # Foundry, build the inpage bridge, patch-package, etc. The only
+      # meaningful difference is `jetifyTask`:
+      #   - native build path uses `--no-build-ios`  → BUILD_ANDROID=true → jetify runs
+      #   - reuse-hit path uses `--no-build-android` → BUILD_ANDROID=false → jetify is skipped
+      # `yarn build:repack:android` doesn't need jetified node_modules, so the
+      # reuse-hit path skips that work.
+      # -------------------------------------------------------------------------
+
+      - name: Setup project dependencies with retry (native-build path)
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -233,91 +245,16 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
 
-      # -------------------------------------------------------------------------
-      # Lean setup — only runs on the reuse-hit path. Replicates just the bits
-      # that `yarn build:repack:android` needs:
-      #   - Java + ANDROID_HOME  (apksigner is invoked by @expo/repack-app)
-      #   - keystore             (apksigner signs the repacked APK)
-      #   - Node + yarn install  (Metro bundler + @expo/repack-app)
-      #   - lightweight setup    (build-inpage-bridge, patch-package, etc.)
-      # Skips AVD creation, emulator deps, jetify, and Gradle — none are
-      # needed for repack, saving ~2-3m.
-      # -------------------------------------------------------------------------
-
-      - name: Set Android environment variables (reuse-hit path)
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        run: |
-          echo "ANDROID_HOME=/opt/android-sdk" >> "$GITHUB_ENV"
-          echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> "$GITHUB_ENV"
-        shell: bash
-
-      - name: Configure Android Signing Certificates (reuse-hit path)
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        uses: MetaMask/github-tools/.github/actions/configure-keystore@0259e8a920318b02a8860e178d79796eaa08de02
-        with:
-          aws-role-to-assume: 'arn:aws:iam::363762752069:role/metamask-mobile-build-signer-qa'
-          aws-region: 'us-east-2'
-          platform: 'android'
-          target: ${{ inputs.keystore_target }}
-
-      - name: Setup Java (reuse-hit path)
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Setup Node.js (reuse-hit path)
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        uses: actions/setup-node@v6
-        with:
-          node-version: '20.18.0'
-
-      - name: Enable corepack (reuse-hit path)
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        run: |
-          corepack enable
-          corepack prepare yarn@3.8.7 --activate
-        shell: bash
-
-      # Matches the cache key used by `setup-e2e-env` so both paths share the
-      # same node_modules cache.
-      - name: Restore yarn cache (reuse-hit path)
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-          key: e2e-yarn-android-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-
-      - name: Install JS dependencies (reuse-hit path)
+      - name: Setup project dependencies with retry (reuse-hit path)
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
-        env:
-          NODE_OPTIONS: --max-old-space-size=4096
-          YARN_ENABLE_GLOBAL_CACHE: 'true'
-
-      - name: Restore .metamask folder (reuse-hit path)
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        id: restore-metamask-lean
-        uses: actions/cache@v4
-        with:
-          path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
-
-      # `--no-build-ios --no-build-android` skips the native-only setup tasks
-      # (bundler, CocoaPods, jetify) but still runs the JS-side tasks that
-      # `yarn build:repack:android` depends on: build-inpage-bridge,
-      # patch-package, allow-scripts, install-foundry, terms-of-use.
-      - name: Run lightweight project setup (reuse-hit path)
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        run: yarn setup:github-ci --no-build-ios --no-build-android
-        shell: bash
+          command: |
+            echo "📦 Setting up project (lightweight, skips jetify)..."
+            yarn setup:github-ci --no-build-ios --no-build-android
 
       # -------------------------------------------------------------------------
       # Gradle caches + native build — only on the full native-build path.

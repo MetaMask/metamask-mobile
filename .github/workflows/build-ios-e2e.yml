@@ -175,7 +175,7 @@ jobs:
             ios/build
           key: ${{ runner.os }}-xcode-main-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
 
-      # Install Node.js, Xcode tools, and other iOS development dependencies
+      # Install Node.js, Xcode tools, and other iOS development dependencies.
       - name: Installing iOS Environment Setup
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         timeout-minutes: 15
@@ -183,6 +183,7 @@ jobs:
         with:
           platform: ios
           setup-simulator: false
+          install-foundry: false
 
       - name: Print iOS tool versions
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
