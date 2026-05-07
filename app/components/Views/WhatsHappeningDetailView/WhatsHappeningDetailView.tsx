@@ -20,12 +20,14 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import type { Article } from '@metamask/ai-controllers';
 import { strings } from '../../../../locales/i18n';
 import { useWhatsHappening } from '../Homepage/Sections/WhatsHappening/hooks';
 import { WhatsHappeningCardSkeleton } from '../Homepage/Sections/WhatsHappening/components';
 import { MAX_ITEMS_DISPLAYED } from '../Homepage/Sections/WhatsHappening/constants';
 import ErrorState from '../Homepage/components/ErrorState/ErrorState';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
+import WhatsHappeningSourcesBottomSheet from './components/WhatsHappeningSourcesBottomSheet';
 import PageIndicator from './components/PageIndicator';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -57,7 +59,18 @@ const WhatsHappeningDetailView = () => {
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [cardHeight, setCardHeight] = useState(0);
+  const [sourcesArticles, setSourcesArticles] = useState<Article[] | null>(
+    null,
+  );
   const scrollViewRef = useRef<ScrollView>(null);
+
+  const handleSourcesPress = useCallback((articles: Article[]) => {
+    setSourcesArticles(articles);
+  }, []);
+
+  const handleSourcesClose = useCallback(() => {
+    setSourcesArticles(null);
+  }, []);
 
   const handleCarouselLayout = useCallback((e: LayoutChangeEvent) => {
     const { height } = e.nativeEvent.layout;
@@ -82,11 +95,12 @@ const WhatsHappeningDetailView = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleScrollEnd = useCallback(
+  const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = event.nativeEvent.contentOffset.x;
       const index = Math.round(offsetX / SNAP_INTERVAL);
-      setCurrentIndex(Math.max(0, Math.min(index, items.length - 1)));
+      const clamped = Math.max(0, Math.min(index, items.length - 1));
+      setCurrentIndex((prev) => (prev === clamped ? prev : clamped));
     },
     [items.length],
   );
@@ -147,7 +161,8 @@ const WhatsHappeningDetailView = () => {
               style={tw`flex-1`}
               contentContainerStyle={tw.style('px-4 gap-3')}
               onLayout={handleCarouselLayout}
-              onMomentumScrollEnd={handleScrollEnd}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
               testID="whats-happening-detail-carousel"
             >
               {cardHeight > 0 &&
@@ -157,6 +172,7 @@ const WhatsHappeningDetailView = () => {
                     item={item}
                     cardWidth={CARD_WIDTH}
                     cardHeight={cardHeight}
+                    onSourcesPress={handleSourcesPress}
                   />
                 ))}
             </ScrollView>
@@ -165,6 +181,12 @@ const WhatsHappeningDetailView = () => {
           </>
         )}
       </Box>
+      {sourcesArticles && (
+        <WhatsHappeningSourcesBottomSheet
+          onClose={handleSourcesClose}
+          articles={sourcesArticles}
+        />
+      )}
     </SafeAreaView>
   );
 };

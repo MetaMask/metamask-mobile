@@ -239,4 +239,35 @@ describe('WhatsHappeningExpandedCard', () => {
       }),
     });
   });
+
+  it('calls onSourcesPress with the item articles when the sources footer is pressed', () => {
+    const mockOnSourcesPress = jest.fn();
+    const article = {
+      title: 'Test article',
+      source: 'coindesk.com',
+      url: 'https://coindesk.com/test',
+      date: '2026-03-15T10:00:00.000Z',
+    };
+    const item = { ...baseItem, articles: [article] };
+
+    // Override mock so the sources footer is rendered
+    const { getUniqueSourcesByFavicon } = jest.requireMock(
+      '../../../UI/MarketInsights/utils/marketInsightsFormatting',
+    );
+    (getUniqueSourcesByFavicon as jest.Mock).mockReturnValueOnce([
+      { name: 'coindesk.com', type: 'news', url: 'https://coindesk.com' },
+    ]);
+
+    renderWithProvider(
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
+        onSourcesPress={mockOnSourcesPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByText('coindesk.com'));
+    expect(mockOnSourcesPress).toHaveBeenCalledWith([article]);
+  });
 });
