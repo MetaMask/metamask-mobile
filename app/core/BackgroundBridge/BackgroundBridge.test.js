@@ -1798,9 +1798,7 @@ describe('BackgroundBridge', () => {
 
       jest.advanceTimersByTime(1000);
 
-      // The caveat is fetched once synchronously and once again inside the
-      // setTimeout so that the latest value is used when notifying.
-      expect(PermissionController.getCaveat).toHaveBeenCalledTimes(2);
+      expect(PermissionController.getCaveat).toHaveBeenCalledOnce();
       expect(notifySpy).toHaveBeenCalledWith(mockRefetchedCaveatValue);
       expect(notifySpy).not.toHaveBeenCalledWith(mockInitialCaveatValue);
     });
