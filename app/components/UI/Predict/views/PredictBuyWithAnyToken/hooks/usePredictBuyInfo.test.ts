@@ -184,7 +184,7 @@ describe('usePredictBuyInfo', () => {
         },
       };
       mockInsufficientPayAlerts = [
-        { message: 'Insufficient payment token balance', isBlocking: true },
+        { message: 'Pay token balance alert', isBlocking: true },
       ];
 
       const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
@@ -246,7 +246,7 @@ describe('usePredictBuyInfo', () => {
   });
 
   describe('total', () => {
-    it('calculates total as currentValue + providerFee + metamaskFee + depositFee', () => {
+    it('calculates total as currentValue + metamaskFee + exchangeFee + depositFee', () => {
       mockIsPredictBalanceSelected = true;
       const params = {
         ...defaultParams,
@@ -256,6 +256,7 @@ describe('usePredictBuyInfo', () => {
             totalFee: 5,
             metamaskFee: 2,
             providerFee: 3,
+            marketFee: 0.25,
             totalFeePercentage: 0.05,
             collector: '0xCollector',
           },
@@ -264,8 +265,9 @@ describe('usePredictBuyInfo', () => {
 
       const { result } = renderHook(() => usePredictBuyInfo(params));
 
-      // 100 (currentValue) + 3 (providerFee) + 2 (metamaskFee) + 0 (depositFee, balance selected)
-      expect(result.current.total).toBe(105);
+      // 100 (currentValue) + 2 (metamaskFee) + 3.25 (exchangeFee) + 0 (depositFee, balance selected)
+      expect(result.current.total).toBe(105.25);
+      expect(result.current.exchangeFee).toBe(3.25);
     });
 
     it('includes depositFee when external token selected', () => {
@@ -285,6 +287,7 @@ describe('usePredictBuyInfo', () => {
             totalFee: 5,
             metamaskFee: 2,
             providerFee: 3,
+            marketFee: 0.25,
             totalFeePercentage: 0.05,
             collector: '0xCollector',
           },
@@ -293,7 +296,7 @@ describe('usePredictBuyInfo', () => {
 
       const { result } = renderHook(() => usePredictBuyInfo(params));
 
-      expect(result.current.total).toBe(108);
+      expect(result.current.total).toBe(108.25);
     });
   });
 
@@ -326,6 +329,27 @@ describe('usePredictBuyInfo', () => {
       const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
 
       expect(result.current.totalPayForPredictBalance).toBe(105);
+    });
+
+    it('returns the rounded all-in cost including market fee', () => {
+      const { result } = renderHook(() =>
+        usePredictBuyInfo({
+          ...defaultParams,
+          currentValue: 100,
+          preview: createMockPreview({
+            fees: {
+              totalFee: 5,
+              metamaskFee: 2,
+              providerFee: 3,
+              marketFee: 0.001,
+              totalFeePercentage: 0.05,
+              collector: '0xCollector',
+            },
+          }),
+        }),
+      );
+
+      expect(result.current.totalPayForPredictBalance).toBe(105.01);
     });
   });
 

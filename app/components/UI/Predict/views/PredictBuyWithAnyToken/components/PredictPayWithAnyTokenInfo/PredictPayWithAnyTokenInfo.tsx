@@ -10,6 +10,10 @@ import { MINIMUM_BET } from '../../../../constants/transactions';
 import { OrderPreview } from '../../../../types';
 import { Hex } from '@metamask/utils';
 import EngineService from '../../../../../../../core/EngineService';
+import {
+  getPredictExchangeFee,
+  roundUpToCents,
+} from '../../../../utils/orders';
 
 interface PredictPayWithAnyTokenInfoProps {
   currentValue: number;
@@ -53,22 +57,23 @@ function PredictPayWithAnyTokenInfoInner({
   const { updatePendingAmount, amountHuman } = useTransactionCustomAmount({
     currency: PREDICT_CURRENCY,
   });
+  const fees = preview?.fees;
 
   const totalPayForPredictBalance = useMemo(
     () =>
-      currentValue +
-      (preview?.fees?.providerFee ?? 0) +
-      (preview?.fees?.metamaskFee ?? 0),
-    [currentValue, preview?.fees?.providerFee, preview?.fees?.metamaskFee],
+      roundUpToCents(
+        currentValue + (fees?.metamaskFee ?? 0) + getPredictExchangeFee(fees),
+      ),
+    [currentValue, fees],
   );
 
   const canTriggerDepositAmountCalculation = useMemo(
     () =>
       !isPredictBalanceSelected &&
-      !!preview?.fees &&
+      !!fees &&
       currentValue >= MINIMUM_BET &&
       !isInputFocused,
-    [isPredictBalanceSelected, preview?.fees, currentValue, isInputFocused],
+    [isPredictBalanceSelected, fees, currentValue, isInputFocused],
   );
 
   const computedDepositAmount = useMemo(() => {

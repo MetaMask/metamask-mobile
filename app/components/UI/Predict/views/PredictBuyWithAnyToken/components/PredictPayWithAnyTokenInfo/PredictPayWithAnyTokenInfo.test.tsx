@@ -184,7 +184,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
       expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
     });
 
-    it('deposits the full order amount from the selected ERC20, ignoring Predict balance', () => {
+    it('deposits the all-in order amount from the selected ERC20, ignoring Predict balance', () => {
       // When an ERC20 token is selected the payment only uses that token —
       // Predict balance is never used first, so the full totalPayForPredictBalance
       // (currentValue + protocol fees) is deposited regardless of existing balance.
@@ -199,6 +199,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               totalFee: 5,
               metamaskFee: 2,
               providerFee: 3,
+              marketFee: 0.25,
               totalFeePercentage: 0.05,
               collector: '0xCollector',
             },
@@ -207,8 +208,8 @@ describe('PredictPayWithAnyTokenInfo', () => {
         />,
       );
 
-      // totalPay = 100 + 3 + 2 = 105, full amount deposited (no predict balance deduction)
-      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('105');
+      // totalPay = 100 + 3 + 0.25 + 2 = 105.25, full amount deposited (no predict balance deduction)
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('105.25');
     });
 
     it('rounds the remaining amount up to 2 decimals when a deposit is still needed', () => {

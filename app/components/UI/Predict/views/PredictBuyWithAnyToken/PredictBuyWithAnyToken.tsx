@@ -160,7 +160,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const {
     toWin,
     metamaskFee,
-    providerFee,
+    exchangeFee,
     total,
     depositFee,
     rewardsFeeAmount,
@@ -184,7 +184,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isInsufficientBalance,
     isCurrentTokenInsufficient,
     hasAlternativeBalance,
-    maxBetAmount,
     isPaySystemSettling,
   } = usePredictBuyConditions({
     currentValue,
@@ -209,7 +208,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isPlacingOrder,
     isBelowMinimum,
     isInsufficientBalance,
-    maxBetAmount,
     isConfirming,
     isPayFeesLoading,
     blockingPayAlertMessage,
@@ -497,7 +495,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
           ref={feeBreakdownSheetRef}
-          providerFee={providerFee}
+          providerFee={exchangeFee}
           metamaskFee={metamaskFee}
           depositFee={depositFee}
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
