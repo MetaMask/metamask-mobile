@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   LayoutChangeEvent,
@@ -21,14 +21,18 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { Article } from '@metamask/ai-controllers';
+import type { WhatsHappeningItem } from '../Homepage/Sections/WhatsHappening/types';
 import { strings } from '../../../../locales/i18n';
 import { useWhatsHappening } from '../Homepage/Sections/WhatsHappening/hooks';
 import { WhatsHappeningCardSkeleton } from '../Homepage/Sections/WhatsHappening/components';
 import { MAX_ITEMS_DISPLAYED } from '../Homepage/Sections/WhatsHappening/constants';
+import { getWhatsHappeningEventProps } from '../Homepage/Sections/WhatsHappening/eventProperties';
 import ErrorState from '../Homepage/components/ErrorState/ErrorState';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
 import WhatsHappeningSourcesBottomSheet from './components/WhatsHappeningSourcesBottomSheet';
 import PageIndicator from './components/PageIndicator';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -59,19 +63,35 @@ const WhatsHappeningDetailView = () => {
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [cardHeight, setCardHeight] = useState(0);
-  const [sourcesArticles, setSourcesArticles] = useState<Article[] | null>(
-    null,
-  );
+  const [sourcesContext, setSourcesContext] = useState<{
+    articles: Article[];
+    item: WhatsHappeningItem;
+    cardIndex: number;
+  } | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const hasScrolledToInitial = useRef(false);
 
-  const handleSourcesPress = useCallback((articles: Article[]) => {
-    setSourcesArticles(articles);
-  }, []);
+  const handleSourcesPress = useCallback(
+    (
+      articles: Article[],
+      pressedItem: WhatsHappeningItem,
+      pressedIndex: number,
+    ) => {
+      setSourcesContext({
+        articles,
+        item: pressedItem,
+        cardIndex: pressedIndex,
+      });
+    },
+    [],
+  );
 
   const handleSourcesClose = useCallback(() => {
-    setSourcesArticles(null);
+    setSourcesContext(null);
   }, []);
+  const hasTrackedViewRef = useRef(false);
+  const previousIndexRef = useRef(initialIndex);
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleCarouselLayout = useCallback((e: LayoutChangeEvent) => {
     const { height } = e.nativeEvent.layout;
@@ -96,18 +116,60 @@ const WhatsHappeningDetailView = () => {
     [initialIndex],
   );
 
+  useEffect(() => {
+    if (
+      !isLoading &&
+      !hasTrackedViewRef.current &&
+      items.length > 0 &&
+      items[initialIndex]
+    ) {
+      hasTrackedViewRef.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_VIEWED)
+          .addProperties(
+            getWhatsHappeningEventProps(items[initialIndex], initialIndex),
+          )
+          .build(),
+      );
+    }
+  }, [isLoading, items, initialIndex, trackEvent, createEventBuilder]);
+
   const handleBackPress = useCallback(() => {
+    const visible = items[currentIndex];
+    if (visible) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_CLOSED)
+          .addProperties(getWhatsHappeningEventProps(visible, currentIndex))
+          .build(),
+      );
+    }
     navigation.goBack();
-  }, [navigation]);
+  }, [navigation, items, currentIndex, trackEvent, createEventBuilder]);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = event.nativeEvent.contentOffset.x;
-      const index = Math.round(offsetX / SNAP_INTERVAL);
-      const clamped = Math.max(0, Math.min(index, items.length - 1));
-      setCurrentIndex((prev) => (prev === clamped ? prev : clamped));
+      const index = Math.max(
+        0,
+        Math.min(Math.round(offsetX / SNAP_INTERVAL), items.length - 1),
+      );
+
+      const prev = previousIndexRef.current;
+      if (index !== prev) {
+        const newItem = items[index];
+        if (newItem) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_VIEWED)
+              .addProperties(getWhatsHappeningEventProps(newItem, index))
+              .build(),
+          );
+        }
+        previousIndexRef.current = index;
+      }
+
+      setCurrentIndex(index);
     },
-    [items.length],
+    [items, trackEvent, createEventBuilder],
   );
 
   const hasError = !isLoading && items.length === 0 && !!error;
@@ -172,13 +234,16 @@ const WhatsHappeningDetailView = () => {
               testID="whats-happening-detail-carousel"
             >
               {cardHeight > 0 &&
-                items.map((item) => (
+                items.map((item, index) => (
                   <WhatsHappeningExpandedCard
                     key={item.id}
                     item={item}
+                    cardIndex={index}
                     cardWidth={CARD_WIDTH}
                     cardHeight={cardHeight}
-                    onSourcesPress={handleSourcesPress}
+                    onSourcesPress={(articles) =>
+                      handleSourcesPress(articles, item, index)
+                    }
                   />
                 ))}
             </ScrollView>
@@ -187,10 +252,12 @@ const WhatsHappeningDetailView = () => {
           </>
         )}
       </Box>
-      {sourcesArticles && (
+      {sourcesContext && (
         <WhatsHappeningSourcesBottomSheet
           onClose={handleSourcesClose}
-          articles={sourcesArticles}
+          articles={sourcesContext.articles}
+          item={sourcesContext.item}
+          cardIndex={sourcesContext.cardIndex}
         />
       )}
     </SafeAreaView>

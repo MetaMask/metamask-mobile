@@ -25,11 +25,16 @@ on:
         required: false
         default: 'qa'
         type: string
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
 
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg # Optimized for lg runner (48GB) with conservative memory settings
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-android-build' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }} # Optimized for lg runner (48GB) with conservative memory settings
     timeout-minutes: 40
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle

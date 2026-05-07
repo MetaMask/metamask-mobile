@@ -2,12 +2,25 @@ import React from 'react';
 import { Pressable, View } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import WhatsHappeningDetailView from './WhatsHappeningDetailView';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
 import WhatsHappeningSourcesBottomSheet from './components/WhatsHappeningSourcesBottomSheet';
+import WhatsHappeningDetailView, {
+  CARD_WIDTH,
+} from './WhatsHappeningDetailView';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+
+const GAP = 12;
+const SNAP_INTERVAL_FOR_TEST = CARD_WIDTH + GAP;
 
 const mockGoBack = jest.fn();
 const mockRefresh = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn((eventName: string) => ({
+  addProperties: jest.fn((properties: Record<string, unknown>) => ({
+    build: jest.fn(() => ({ category: eventName, properties })),
+  })),
+  build: jest.fn(() => ({ category: eventName })),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -23,6 +36,13 @@ jest.mock('./components/WhatsHappeningExpandedCard', () => ({
 jest.mock('./components/WhatsHappeningSourcesBottomSheet', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 jest.mock('../Homepage/Sections/WhatsHappening/hooks', () => ({
@@ -181,9 +201,134 @@ describe('WhatsHappeningDetailView', () => {
   });
 
   it('calls navigation.goBack when back button is pressed', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
     renderWithProvider(<WhatsHappeningDetailView />);
     fireEvent.press(screen.getByTestId('whats-happening-detail-back-button'));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks Whats Happening Viewed once for the initial card on mount', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+        properties: expect.objectContaining({
+          event_id: mockItem.id,
+          card_index: 0,
+          category: 'macro',
+          impact: 'positive',
+          asset_symbols: [],
+        }),
+      }),
+    );
+  });
+
+  it('does not fire Viewed more than once for the initial card across re-renders', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    const { rerender } = renderWithProvider(<WhatsHappeningDetailView />);
+    rerender(<WhatsHappeningDetailView />);
+    const viewedCalls = mockCreateEventBuilder.mock.calls.filter(
+      ([name]) =>
+        name ===
+        (MetaMetricsEvents.WHATS_HAPPENING_VIEWED as unknown as string),
+    );
+    expect(viewedCalls).toHaveLength(1);
+  });
+
+  it('tracks Whats Happening Viewed when scrolling to a new card', () => {
+    const secondItem = {
+      ...mockItem,
+      id: 'trend-1',
+      title: 'Second trend',
+      category: 'social' as const,
+      impact: 'negative' as const,
+    };
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem, secondItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'scroll', {
+      nativeEvent: { contentOffset: { x: SNAP_INTERVAL_FOR_TEST, y: 0 } },
+    });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+        properties: expect.objectContaining({
+          event_id: 'trend-1',
+          card_index: 1,
+          category: 'social',
+          impact: 'negative',
+        }),
+      }),
+    );
+  });
+
+  it('does not track Viewed when scroll resolves to same index', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'scroll', {
+      nativeEvent: { contentOffset: { x: 0, y: 0 } },
+    });
+    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+  });
+
+  it('tracks Whats Happening Closed with the visible card when back is pressed', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    fireEvent.press(screen.getByTestId('whats-happening-detail-back-button'));
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_CLOSED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.WHATS_HAPPENING_CLOSED,
+        properties: expect.objectContaining({
+          event_id: mockItem.id,
+          card_index: 0,
+        }),
+      }),
+    );
   });
 
   it('shows the sources bottom sheet when onSourcesPress is called from a card', () => {
@@ -236,12 +381,10 @@ describe('WhatsHappeningDetailView', () => {
     fireEvent(carousel, 'layout', {
       nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
     });
-    // SNAP_INTERVAL ≈ 343 on a 375px screen: scrolling by 1× lands on index 1
     fireEvent(carousel, 'scroll', {
       nativeEvent: { contentOffset: { x: 343, y: 0 } },
     });
     expect(screen.getByTestId('page-indicator-dot-active')).toBeOnTheScreen();
-    // Dot at index 0 is now inactive
     const inactiveDots = screen.getAllByTestId('page-indicator-dot');
     expect(inactiveDots.length).toBe(2);
   });
@@ -259,7 +402,6 @@ describe('WhatsHappeningDetailView', () => {
     fireEvent(carousel, 'layout', {
       nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
     });
-    // Fire contentSizeChange with sufficient width (> 1 × SNAP_INTERVAL ≈ 343)
     expect(() =>
       fireEvent(carousel, 'contentSizeChange', 700, 600),
     ).not.toThrow();

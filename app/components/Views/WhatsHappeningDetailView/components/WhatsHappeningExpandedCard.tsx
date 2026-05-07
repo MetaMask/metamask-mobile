@@ -29,6 +29,7 @@ import TokenRow from './TokenRow';
 
 interface WhatsHappeningExpandedCardProps {
   item: WhatsHappeningItem;
+  cardIndex: number;
   cardWidth: number;
   /** Height of the carousel container — used to give every card the same fixed height. */
   cardHeight: number;
@@ -42,6 +43,7 @@ interface WhatsHappeningExpandedCardProps {
 
 const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   item,
+  cardIndex,
   cardWidth,
   cardHeight,
   onSourcesPress,
@@ -119,7 +121,12 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
               {item.relatedAssets
                 .filter((asset) => asset.caip19?.length)
                 .map((asset) => (
-                  <TokenRow key={asset.sourceAssetId} asset={asset} />
+                  <TokenRow
+                    key={asset.sourceAssetId}
+                    asset={asset}
+                    item={item}
+                    cardIndex={cardIndex}
+                  />
                 ))}
             </Box>
           )}
@@ -143,7 +150,12 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                     asset.hlPerpsMarket?.length && !asset.caip19?.length,
                 )
                 .map((asset) => (
-                  <PerpsRow key={`perp-${asset.sourceAssetId}`} asset={asset} />
+                  <PerpsRow
+                    key={`perp-${asset.sourceAssetId}`}
+                    asset={asset}
+                    item={item}
+                    cardIndex={cardIndex}
+                  />
                 ))}
             </Box>
           )}
