@@ -19,7 +19,11 @@ jest.mock('react-native-share', () => ({
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+  useTailwind: () => {
+    const tw = (..._args: unknown[]) => ({});
+    tw.style = jest.fn(() => ({}));
+    return tw;
+  },
 }));
 
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
