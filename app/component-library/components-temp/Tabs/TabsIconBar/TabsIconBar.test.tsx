@@ -21,7 +21,7 @@ describe('TabsIconBar', () => {
     {
       key: 'tab1',
       label: 'Portfolio',
-      iconName: IconName.Portfolio,
+      iconName: IconName.PieChart,
       content: null,
     },
     {
@@ -118,7 +118,7 @@ describe('TabsIconBar', () => {
         {
           key: 'tab1',
           label: 'Portfolio',
-          iconName: IconName.Portfolio,
+          iconName: IconName.PieChart,
           content: null,
         },
         {
@@ -393,7 +393,7 @@ describe('TabsIconBar', () => {
         {
           key: 'new1',
           label: 'New A',
-          iconName: IconName.Portfolio,
+          iconName: IconName.PieChart,
           content: null,
         },
         {

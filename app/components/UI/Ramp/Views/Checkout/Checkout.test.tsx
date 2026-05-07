@@ -58,6 +58,7 @@ jest.mock('../../utils/v2OrderToast', () => ({
 jest.mock('../../headless/sessionRegistry', () => ({
   getSession: jest.fn(),
   closeSession: jest.fn(),
+  failSession: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -618,6 +619,8 @@ describe('Checkout', () => {
       .getSession as jest.Mock;
     const mockCloseSession = jest.requireMock('../../headless/sessionRegistry')
       .closeSession as jest.Mock;
+    const mockFailSession = jest.requireMock('../../headless/sessionRegistry')
+      .failSession as jest.Mock;
     const showV2OrderToastMock = jest.requireMock('../../utils/v2OrderToast')
       .showV2OrderToast as jest.Mock;
 
@@ -641,6 +644,7 @@ describe('Checkout', () => {
     beforeEach(() => {
       mockGetSession.mockReset();
       mockCloseSession.mockReset();
+      mockFailSession.mockReset();
       mockParentPop = jest.fn();
       mockNavigation.getParent.mockReturnValue({ pop: mockParentPop });
       mockGetOrderFromCallback.mockResolvedValue(mockOrder);
@@ -737,6 +741,52 @@ describe('Checkout', () => {
       expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
         reason: 'completed',
       });
+      expect(mockParentPop).toHaveBeenCalled();
+    });
+
+    it('surfaces callback processing failures through onError and skips the ErrorView', async () => {
+      mockUseParams.mockReturnValue(callbackFlowParams);
+      mockGetOrderFromCallback.mockRejectedValueOnce(
+        new Error('callback failed'),
+      );
+      mockFailSession.mockReturnValue({
+        code: 'UNKNOWN',
+        message: 'callback failed',
+      });
+
+      const { getByTestId, queryByText } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+
+      await waitFor(() => {
+        expect(mockFailSession).toHaveBeenCalledWith('hs-1', expect.any(Error));
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+      expect(showV2OrderToastMock).not.toHaveBeenCalled();
+      expect(queryByText('callback failed')).toBeNull();
+    });
+
+    it('surfaces provider WebView HTTP errors through onError when headless', async () => {
+      mockUseParams.mockReturnValue(callbackFlowParams);
+      mockFailSession.mockReturnValue({
+        code: 'UNKNOWN',
+        message: 'fiat_on_ramp_aggregator.webview_received_error',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-http-error-main-uri'));
+      });
+
+      expect(mockFailSession).toHaveBeenCalledWith('hs-1', expect.any(Error));
       expect(mockParentPop).toHaveBeenCalled();
     });
 

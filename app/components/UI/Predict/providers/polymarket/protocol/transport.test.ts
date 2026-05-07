@@ -1,7 +1,7 @@
 import type { ClobHeaders } from '../types';
 import type { ProtocolRelayerOrder } from './orderCodec';
+import { POLYMARKET_V2_PROTOCOL } from './definitions';
 import { submitProtocolClobOrder } from './transport';
-import { POLYMARKET_V1_PROTOCOL, POLYMARKET_V2_PROTOCOL } from './definitions';
 
 jest.mock('../utils', () => ({
   getPolymarketEndpoints: jest.fn(() => ({
@@ -34,30 +34,7 @@ describe('polymarket protocol transport', () => {
     jest.clearAllMocks();
   });
 
-  it('submits orders without the v2 routing header for v1', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: jest.fn().mockResolvedValue({
-        success: true,
-      }),
-    });
-
-    await submitProtocolClobOrder({
-      protocol: POLYMARKET_V1_PROTOCOL,
-      headers,
-      clobOrder,
-    });
-
-    expect(mockFetch).toHaveBeenCalledWith(
-      'https://predict.api.cx.metamask.io/order',
-      expect.objectContaining({
-        headers: expect.not.objectContaining({ 'X-Clob-Version': '2' }),
-      }),
-    );
-  });
-
-  it('adds the v2 routing header for v2', async () => {
+  it('adds the CLOB v2 routing header', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       status: 200,
