@@ -1445,18 +1445,27 @@ const Wallet = ({
   const portfolioHeaderBase = (
     <>
       {bannerContent}
-      <AccountGroupBalance />
-      <AssetDetailsActions
-        displayBuyButton={displayBuyButton}
-        displaySwapsButton={displaySwapsButton}
-        goToSwaps={goToSwaps}
-        onReceive={onReceive}
-        onSend={onSend}
-        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+      <AccountGroupBalance
+        onCoordinatedFlowExit={runWalletHomePostOnboardingComplete}
+        suspendRiveForCurtain={postOnboardingExitAnimating}
+        onTradePrimaryPress={goToSwaps}
+        onNotificationsPrimaryPress={
+          handleWalletHomeOnboardingNotificationsPrimary
+        }
       />
+      {showWalletHomeMainActions ? (
+        <AssetDetailsActions
+          displayBuyButton={displayBuyButton}
+          displaySwapsButton={displaySwapsButton}
+          goToSwaps={goToSwaps}
+          onReceive={onReceive}
+          onSend={onSend}
+          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+        />
+      ) : null}
       {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
     </>
   );
@@ -1465,19 +1474,28 @@ const Wallet = ({
     <>
       {bannerContent}
       <View style={styles.accountGroupBalanceContainer}>
-        <AccountGroupBalance />
+        <AccountGroupBalance
+          onCoordinatedFlowExit={runWalletHomePostOnboardingComplete}
+          suspendRiveForCurtain={postOnboardingExitAnimating}
+          onTradePrimaryPress={goToSwaps}
+          onNotificationsPrimaryPress={
+            handleWalletHomeOnboardingNotificationsPrimary
+          }
+        />
       </View>
-      <AssetDetailsActions
-        displayBuyButton={displayBuyButton}
-        displaySwapsButton={displaySwapsButton}
-        goToSwaps={goToSwaps}
-        onReceive={onReceive}
-        onSend={onSend}
-        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-      />
+      {showWalletHomeMainActions ? (
+        <AssetDetailsActions
+          displayBuyButton={displayBuyButton}
+          displaySwapsButton={displaySwapsButton}
+          goToSwaps={goToSwaps}
+          onReceive={onReceive}
+          onSend={onSend}
+          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+        />
+      ) : null}
       {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
     </>
   );
