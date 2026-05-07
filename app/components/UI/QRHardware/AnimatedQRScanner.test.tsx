@@ -1482,6 +1482,27 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       });
     });
 
+    it('clears inline scan error when scanner transitions from hidden to visible', async () => {
+      const errorTitle =
+        'hardware_wallet.qr_scan_errors.non_ur_qr_scanned.pair.title';
+      const { getByText, queryByText, rerender } = render(
+        <AnimatedQRScannerModal {...defaultProps} />,
+      );
+
+      await scanNonUR();
+
+      await waitFor(() => {
+        expect(getByText(errorTitle)).toBeOnTheScreen();
+      });
+
+      rerender(<AnimatedQRScannerModal {...defaultProps} visible={false} />);
+      rerender(<AnimatedQRScannerModal {...defaultProps} visible />);
+
+      await waitFor(() => {
+        expect(queryByText(errorTitle)).toBeNull();
+      });
+    });
+
     it('does not reset when visible stays true across rerenders', async () => {
       const mockDecoderInstance = {
         receivePart: jest.fn(),
