@@ -65,21 +65,17 @@ export class EmulatorConfigBuilder {
         'appium:fullReset': false,
         'appium:noReset': true,
         'appium:settings[snapshotMaxDepth]': 62,
-        'appium:waitForQuiescence': false,
-        'appium:animationCoolOffTimeout': 0,
-        'appium:reduceMotion': true,
-        'appium:waitForIdleTimeout': 0,
+        'appium:waitForQuiescence': false, // Don't wait for app idle
+        'appium:animationCoolOffTimeout': 0, // Skip animation wait
+        'appium:reduceMotion': true, // Reduce iOS animations
+        'appium:waitForIdleTimeout': 0, // Don't wait for idle
         'appium:wdaLaunchTimeout': 300_000,
         'appium:includeSafariInWebviews': true,
         'appium:settings[actionAcknowledgmentTimeout]': 3000,
         'appium:settings[ignoreUnimportantViews]': true,
         'appium:settings[waitForSelectorTimeout]': 1000,
         'appium:chromedriverAutodownload': true,
-        'appium:waitForQuiescence': false, // Don't wait for app idle
-        'appium:animationCoolOffTimeout': 0, // Skip animation wait
-        'appium:reduceMotion': true, // Reduce iOS animations
-        'appium:customSnapshotTimeout': 15, // Snapshot timeout in seconds"
-        'appium:waitForIdleTimeout': 0, // Don't wait for idle
+        'appium:customSnapshotTimeout': 15, // Snapshot timeout in seconds
         'appium:disableWindowAnimation': true, // Disable animations
         'appium:skipDeviceInitialization': true, // Skip init (faster startup)
       },

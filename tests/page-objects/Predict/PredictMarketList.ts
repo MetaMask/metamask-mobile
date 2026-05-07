@@ -124,11 +124,11 @@ class PredictMarketList {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(
-          PredictMarketListSelectorsIDs.TRENDING_MARKET_CARD + 1,
+          getPredictMarketListSelector.marketCardByCategory('trending', 1),
         ),
       appium: () =>
         PlaywrightMatchers.getElementById(
-          PredictMarketListSelectorsIDs.TRENDING_MARKET_CARD + 1,
+          getPredictMarketListSelector.marketCardByCategory('trending', 1),
         ),
     });
   }

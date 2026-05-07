@@ -128,24 +128,6 @@ class PerpsMarketListView {
     return Matchers.getElementByID(PerpsTokenSelectorSelectorsIDs.CLOSE_BUTTON);
   }
 
-  get BTCMarketRowItem() {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(getPerpsMarketRowItemSelector.rowItem('BTC')),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            getPerpsMarketRowItemSelector.rowItem('BTC'),
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            getPerpsMarketRowItemSelector.rowItem('BTC'),
-          ),
-      },
-    });
-  }
-
   // Actions
   async tapMarketRowItemBTC() {
     await encapsulatedAction({

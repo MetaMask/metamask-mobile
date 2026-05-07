@@ -390,21 +390,34 @@ class QuoteView {
    * contains a numeric value (meaning a quote result has populated the field).
    */
   async isQuoteDisplayed(): Promise<void> {
-    const el = await asPlaywrightElement(this.destinationTokenInput);
-    const timeout = TIMEOUT.QUOTE_DISPLAYED;
-    const interval = 300;
-    const start = Date.now();
-    while (Date.now() - start < timeout) {
-      const text = await el.textContent();
-      if (text && /\d/.test(text) && parseFloat(text) > 0) {
-        return;
-      }
-      await new Promise((r) => setTimeout(r, interval));
-    }
-    const finalText = await el.textContent();
-    throw new Error(
-      `Destination token input does not contain a numeric value after ${timeout}ms, got: "${finalText}"`,
-    );
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(
+          asDetoxElement(this.feeDisclaimerLabel),
+          {
+            description: 'Fee disclaimer label is visible (quote displayed)',
+            timeout: TIMEOUT.QUOTE_DISPLAYED,
+          },
+        );
+      },
+      appium: async () => {
+        const el = await asPlaywrightElement(this.destinationTokenInput);
+        const timeout = TIMEOUT.QUOTE_DISPLAYED;
+        const interval = 300;
+        const start = Date.now();
+        while (Date.now() - start < timeout) {
+          const text = await el.textContent();
+          if (text && /\d/.test(text) && parseFloat(text) > 0) {
+            return;
+          }
+          await new Promise((r) => setTimeout(r, interval));
+        }
+        const finalText = await el.textContent();
+        throw new Error(
+          `Destination token input does not contain a numeric value after ${timeout}ms, got: "${finalText}"`,
+        );
+      },
+    });
   }
 
   /**
