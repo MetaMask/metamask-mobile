@@ -5,6 +5,7 @@ import TokenRow from './TokenRow';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoToBuy = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -15,9 +16,19 @@ const mockCreateEventBuilder = jest.fn((eventName: string) => ({
   build: jest.fn(() => ({ category: eventName })),
 }));
 
+const mockNavigate = jest.fn();
+
 jest.mock('../../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({ goToBuy: mockGoToBuy }),
 }));
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: () => ({ navigate: mockNavigate }),
+  };
+});
 
 jest.mock('../utils/getRelatedAssetImageSource', () => ({
   getRelatedAssetImageSource: jest.fn(() => undefined),
@@ -37,12 +48,19 @@ const btcAsset: RelatedAsset = {
   caip19: ['eip155:1/slip44:0'],
 };
 
+const dualAsset: RelatedAsset = {
+  sourceAssetId: 'eth',
+  symbol: 'ETH',
+  name: 'Ethereum',
+  caip19: ['eip155:1/slip44:60'],
+  hlPerpsMarket: ['ETH'],
+};
+
 const perpsOnlyAsset: RelatedAsset = {
   sourceAssetId: 'tsla',
   symbol: 'TSLA',
   name: 'Tesla',
   caip19: [],
-  hlPerpsMarket: ['xyz:TSLA'],
 };
 
 const mockItem: WhatsHappeningItem = {
@@ -61,27 +79,29 @@ describe('TokenRow', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the asset symbol', () => {
-    renderWithProvider(
-      <TokenRow asset={btcAsset} item={mockItem} cardIndex={0} />,
-    );
-    expect(screen.getByText('BTC')).toBeOnTheScreen();
-  });
+  describe('when asset has only caip19 (no hlPerpsMarket)', () => {
+    it('renders the asset symbol', () => {
+      renderWithProvider(
+        <TokenRow asset={btcAsset} item={mockItem} cardIndex={0} />,
+      );
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+    });
 
-  it('renders the Buy button', () => {
-    renderWithProvider(
-      <TokenRow asset={btcAsset} item={mockItem} cardIndex={0} />,
-    );
-    expect(screen.getByText('Buy')).toBeOnTheScreen();
-  });
+    it('renders the Buy button', () => {
+      renderWithProvider(
+        <TokenRow asset={btcAsset} item={mockItem} cardIndex={0} />,
+      );
+      expect(screen.getByText('Buy')).toBeOnTheScreen();
+    });
 
-  it('calls goToBuy with the first caip19 identifier on Buy press', () => {
-    renderWithProvider(
-      <TokenRow asset={btcAsset} item={mockItem} cardIndex={0} />,
-    );
-    fireEvent.press(screen.getByText('Buy'));
-    expect(mockGoToBuy).toHaveBeenCalledWith({
-      assetId: 'eip155:1/slip44:0',
+    it('calls goToBuy with the first caip19 identifier on Buy press', () => {
+      renderWithProvider(
+        <TokenRow asset={btcAsset} item={mockItem} cardIndex={0} />,
+      );
+      fireEvent.press(screen.getByText('Buy'));
+      expect(mockGoToBuy).toHaveBeenCalledWith({
+        assetId: 'eip155:1/slip44:0',
+      });
     });
   });
 
@@ -91,6 +111,37 @@ describe('TokenRow', () => {
     );
     fireEvent.press(screen.getByText('Buy'));
     expect(mockGoToBuy).toHaveBeenCalledWith({ assetId: undefined });
+  });
+
+  describe('when asset has hlPerpsMarket (dual asset)', () => {
+    it('renders the Trade button instead of Buy', () => {
+      renderWithProvider(
+        <TokenRow asset={dualAsset} item={mockItem} cardIndex={0} />,
+      );
+      expect(screen.getByText('Trade')).toBeOnTheScreen();
+      expect(screen.queryByText('Buy')).toBeNull();
+    });
+
+    it('navigates to Perps market details on Trade press', () => {
+      renderWithProvider(
+        <TokenRow asset={dualAsset} item={mockItem} cardIndex={0} />,
+      );
+      fireEvent.press(screen.getByText('Trade'));
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: expect.objectContaining({
+          market: { symbol: 'ETH', name: 'Ethereum' },
+        }),
+      });
+    });
+
+    it('does not call goToBuy when Trade is pressed', () => {
+      renderWithProvider(
+        <TokenRow asset={dualAsset} item={mockItem} cardIndex={0} />,
+      );
+      fireEvent.press(screen.getByText('Trade'));
+      expect(mockGoToBuy).not.toHaveBeenCalled();
+    });
   });
 
   it('tracks Whats Happening Interaction with interaction_type=buy_pressed and asset details on Buy press', () => {

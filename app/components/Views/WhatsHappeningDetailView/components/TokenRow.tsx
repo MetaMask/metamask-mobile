@@ -8,6 +8,7 @@ import { WhatsHappeningInteractionType } from '../../Homepage/Sections/WhatsHapp
 import { getWhatsHappeningEventProps } from '../../Homepage/Sections/WhatsHappening/eventProperties';
 import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
 import AssetRow from './AssetRow';
+import useTradeNavigation from '../hooks/useTradeNavigation';
 
 interface TokenRowProps {
   asset: RelatedAsset;
@@ -17,13 +18,15 @@ interface TokenRowProps {
 
 /**
  * A single row in the Tokens section of the expanded What's Happening card.
- * Displays the token logo, symbol, and a Buy button that navigates to the
+ * Shows a Trade button (navigating to Perps) when the asset has an
+ * `hlPerpsMarket` entry; otherwise falls back to a Buy button that opens the
  * Ramp buy flow. Extracted as its own component so hooks can be called
  * per-asset (hooks cannot be called inside a loop).
  */
 const TokenRow: React.FC<TokenRowProps> = ({ asset, item, cardIndex }) => {
   const { goToBuy } = useRampNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { handleTrade, canTrade } = useTradeNavigation(asset);
 
   const handleBuy = useCallback(() => {
     const assetId = asset.caip19?.[0];
@@ -47,6 +50,17 @@ const TokenRow: React.FC<TokenRowProps> = ({ asset, item, cardIndex }) => {
     trackEvent,
     createEventBuilder,
   ]);
+
+  if (canTrade) {
+    return (
+      <AssetRow
+        asset={asset}
+        actionLabel={strings('bottom_nav.trade')}
+        accessibilityLabel={`${strings('bottom_nav.trade')} ${asset.symbol}`}
+        onAction={handleTrade}
+      />
+    );
+  }
 
   return (
     <AssetRow

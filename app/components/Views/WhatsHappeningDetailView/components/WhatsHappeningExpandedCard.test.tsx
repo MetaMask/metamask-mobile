@@ -47,6 +47,7 @@ jest.mock(
 );
 
 const CARD_WIDTH = 320;
+const CARD_HEIGHT = 600;
 
 const tokenAsset = {
   sourceAssetId: 'bitcoin',
@@ -94,6 +95,7 @@ describe('WhatsHappeningExpandedCard', () => {
         item={baseItem}
         cardIndex={0}
         cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
       />,
     );
     expect(screen.getByText(baseItem.title)).toBeOnTheScreen();
@@ -106,6 +108,7 @@ describe('WhatsHappeningExpandedCard', () => {
         item={baseItem}
         cardIndex={0}
         cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
       />,
     );
     expect(screen.getByText('Bullish')).toBeOnTheScreen();
@@ -118,6 +121,7 @@ describe('WhatsHappeningExpandedCard', () => {
         item={item}
         cardIndex={0}
         cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
       />,
     );
     expect(screen.getByText('Neutral')).toBeOnTheScreen();
@@ -130,6 +134,7 @@ describe('WhatsHappeningExpandedCard', () => {
         item={item}
         cardIndex={0}
         cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
       />,
     );
     expect(screen.queryByText('Neutral')).toBeNull();
@@ -144,6 +149,7 @@ describe('WhatsHappeningExpandedCard', () => {
         item={item}
         cardIndex={0}
         cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
       />,
     );
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
@@ -158,6 +164,7 @@ describe('WhatsHappeningExpandedCard', () => {
         item={item}
         cardIndex={0}
         cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
       />,
     );
     expect(screen.queryByText('Tokens')).toBeNull();
@@ -171,6 +178,7 @@ describe('WhatsHappeningExpandedCard', () => {
         item={item}
         cardIndex={0}
         cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
       />,
     );
     expect(screen.getByText('Perps')).toBeOnTheScreen();
@@ -185,6 +193,7 @@ describe('WhatsHappeningExpandedCard', () => {
         item={item}
         cardIndex={0}
         cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
       />,
     );
     expect(screen.queryByText('Perps')).toBeNull();
@@ -198,6 +207,7 @@ describe('WhatsHappeningExpandedCard', () => {
         item={item}
         cardIndex={0}
         cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
       />,
     );
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
@@ -206,19 +216,20 @@ describe('WhatsHappeningExpandedCard', () => {
     expect(screen.getByText('Trade')).toBeOnTheScreen();
   });
 
-  it('does not duplicate a dual asset (caip19 + hlPerpsMarket) into the Perps section', () => {
+  it('does not duplicate a dual asset (caip19 + hlPerpsMarket) into the Perps section, shows Trade for the token row', () => {
     const item = { ...baseItem, relatedAssets: [dualAsset] };
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
         cardIndex={0}
         cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
       />,
     );
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
-    expect(screen.getByText('Buy')).toBeOnTheScreen();
+    expect(screen.getByText('Trade')).toBeOnTheScreen();
+    expect(screen.queryByText('Buy')).toBeNull();
     expect(screen.queryByText('Perps')).toBeNull();
-    expect(screen.queryByText('Trade')).toBeNull();
   });
 
   it('renders neither section when relatedAssets is empty', () => {
@@ -227,6 +238,7 @@ describe('WhatsHappeningExpandedCard', () => {
         item={baseItem}
         cardIndex={0}
         cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
       />,
     );
     expect(screen.queryByText('Tokens')).toBeNull();
@@ -240,6 +252,7 @@ describe('WhatsHappeningExpandedCard', () => {
         item={item}
         cardIndex={0}
         cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
       />,
     );
     fireEvent.press(screen.getByText('Trade'));

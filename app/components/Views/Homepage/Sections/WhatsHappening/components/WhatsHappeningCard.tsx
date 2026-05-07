@@ -59,7 +59,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
         onPress={handlePress}
         activeOpacity={0.7}
         style={tw.style(
-          'w-[280px] h-[248px] rounded-2xl bg-background-muted overflow-hidden p-4 justify-between gap-3',
+          'w-[280px] h-[254px] rounded-2xl bg-background-muted overflow-hidden p-4 justify-between gap-3',
         )}
       >
         <Box gap={3}>
@@ -104,7 +104,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
-            numberOfLines={3}
+            numberOfLines={2}
           >
             {item.title}
           </Text>

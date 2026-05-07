@@ -96,4 +96,12 @@ describe('MoneyModalStack', () => {
 
     expect(getByTestId('money-screen-MoneyAddMoneySheet')).toBeOnTheScreen();
   });
+
+  it('registers the Money balance info sheet as a modal screen', () => {
+    const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(getByTestId('money-screen-MoneyBalanceInfoSheet')).toBeOnTheScreen();
+  });
 });

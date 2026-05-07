@@ -187,7 +187,7 @@ const WhatsHappeningSection = forwardRef<
             ))}
             <ViewMoreCard
               onPress={handleViewAll}
-              twClassName="w-[180px] h-[248px]"
+              twClassName="w-[180px] h-[254px]"
               textVariant={TextVariant.BodyLg}
             />
           </>
