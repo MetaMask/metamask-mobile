@@ -110,7 +110,12 @@ describe('BenefitCard', () => {
         uri: 'https://cdn.example.com/benefit.png',
       });
       expect(image.props.resizeMode).toBe('cover');
-      expect(image.props.style).toContain('w-full h-full rounded-lg');
+      const { useTailwind } = jest.requireMock(
+        '@metamask/design-system-twrnc-preset',
+      );
+      expect(useTailwind().style).toHaveBeenCalledWith(
+        'w-full h-full rounded-lg',
+      );
     });
 
     it('uses a unique image testID per benefit id', () => {
