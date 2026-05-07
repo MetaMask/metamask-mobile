@@ -600,6 +600,9 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         clearTimeout(fundBalanceAutoAdvanceTimerRef.current);
         fundBalanceAutoAdvanceTimerRef.current = null;
       }
+      // Match deferred-return hold cleanup: if deps change before the timer fires,
+      // clearing the timeout alone would leave buttons disabled via `isAwaitingDeferredNavResumeHold`.
+      setIsAwaitingDeferredNavResumeHold(false);
     };
   }, [
     canAdvanceFundStepAfterBalance,
