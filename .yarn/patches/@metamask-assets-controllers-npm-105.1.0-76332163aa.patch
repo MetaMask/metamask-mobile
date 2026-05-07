@@ -1,0 +1,168 @@
+diff --git a/dist/index.d.cts b/dist/index.d.cts
+index e6741164a2d67dabbd6b74ee34a07c37cb41d8c9..6dd7a98e3143c45ba3b636be3f0acd615adb87ab 100644
+--- a/dist/index.d.cts
++++ b/dist/index.d.cts
+@@ -49,5 +49,5 @@ export { calculateBalanceChangeForAllWallets, calculateBalanceChangeForAccountGr
+ export type { AssetsByAccountGroup, AccountGroupAssets, Asset, AssetListState, } from "./selectors/token-selectors.cjs";
+ export { selectAssetsBySelectedAccountGroup, selectAllAssets, } from "./selectors/token-selectors.cjs";
+ export { createFormatters } from "./utils/formatters.cjs";
+-export type { SortTrendingBy, TrendingAsset, TokenSearchItem, TokenAsset, TokenRwaData, TokenSecurityData, TokenSecurityFeature, TokenSecurityHolder, TokenSecurityMarket, TokenSecurityFees, TokenSecurityFinancialStats, TokenSecurityMetadata, } from "./token-service.cjs";
++export type { SortTrendingBy, TrendingAsset, TokenSearchItem, TokenAsset, TrendingTokensQueryParams, TokenRwaData, TokenSecurityData, TokenSecurityFeature, TokenSecurityHolder, TokenSecurityMarket, TokenSecurityFees, TokenSecurityFinancialStats, TokenSecurityMetadata, } from "./token-service.cjs";
+ //# sourceMappingURL=index.d.cts.map
+\ No newline at end of file
+diff --git a/dist/token-service.cjs b/dist/token-service.cjs
+index e420ea7b8ba28eae8efcec239e2fbe54caaa3916..54991205703a6ed3e00b73f1547fa982c6553020 100644
+--- a/dist/token-service.cjs
++++ b/dist/token-service.cjs
+@@ -98,25 +98,13 @@ function getTokenAssetsURL(options) {
+ /**
+  * Get the trending tokens URL for the given networks and search query.
+  *
+- * @param options - Options for getting trending tokens.
+- * @param options.chainIds - Array of CAIP format chain IDs (e.g., ['eip155:1', 'eip155:137', 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp']).
+- * @param options.sort - The sort field.
+- * @param options.minLiquidity - The minimum liquidity.
+- * @param options.minVolume24hUsd - The minimum volume 24h in USD.
+- * @param options.maxVolume24hUsd - The maximum volume 24h in USD.
+- * @param options.minMarketCap - The minimum market cap.
+- * @param options.maxMarketCap - The maximum market cap.
+- * @param options.excludeLabels - Array of labels to exclude (e.g., ['stable_coin', 'blue_chip']).
+- * @param options.includeRwaData - Optional flag to include RWA data in the results (defaults to false).
+- * @param options.usePriceApiData - Optional flag to use price API data in the results (defaults to false).
+- * @param options.includeTokenSecurityData - Optional flag to include token security data in the results (defaults to false).
++ * @param options - Options bag: `chainIds` (required) plus any query params.
+  * @returns The trending tokens URL.
+  */
+ function getTrendingTokensURL(options) {
+     const encodedChainIds = options.chainIds
+         .map((id) => encodeURIComponent(id))
+         .join(',');
+-    // Add the rest of query params if they are defined
+     const queryParams = new URLSearchParams();
+     const { chainIds, excludeLabels, ...rest } = options;
+     Object.entries(rest).forEach(([key, value]) => {
+@@ -201,38 +189,26 @@ exports.searchTokens = searchTokens;
+ /**
+  * Get the trending tokens for the given chains.
+  *
+- * @param options - Options for getting trending tokens.
+- * @param options.chainIds - The chains to get the trending tokens for.
+- * @param options.sortBy - The sort by field.
+- * @param options.minLiquidity - The minimum liquidity.
+- * @param options.minVolume24hUsd - The minimum volume 24h in USD.
+- * @param options.maxVolume24hUsd - The maximum volume 24h in USD.
+- * @param options.minMarketCap - The minimum market cap.
+- * @param options.maxMarketCap - The maximum market cap.
+- * @param options.excludeLabels - Array of labels to exclude (e.g., ['stable_coin', 'blue_chip']).
+- * @param options.includeRwaData - Optional flag to include RWA data in the results (defaults to true).
+- * @param options.usePriceApiData - Optional flag to use price API data in the results (defaults to true).
+- * @param options.includeTokenSecurityData - Optional flag to include token security data in the results (defaults to false).
++ * Accepts all known query parameters plus any additional ones via the
++ * index signature on {@link TrendingTokensQueryParams}. New API parameters
++ * can be passed without updating this function.
++ *
++ * @param options - Options bag: `chainIds` (required) plus any query params
++ *   supported by the v3 trending endpoint.
+  * @returns The trending tokens.
+  * @throws Will throw if the request fails.
+  */
+-async function getTrendingTokens({ chainIds, sortBy, minLiquidity, minVolume24hUsd, maxVolume24hUsd, minMarketCap, maxMarketCap, excludeLabels, includeRwaData = true, usePriceApiData = true, includeTokenSecurityData, }) {
++async function getTrendingTokens(options) {
++    const { chainIds, ...rest } = options;
+     if (chainIds.length === 0) {
+         console.error('No chains provided');
+         return [];
+     }
+     const trendingTokensURL = getTrendingTokensURL({
+         chainIds,
+-        sort: sortBy,
+-        minLiquidity,
+-        minVolume24hUsd,
+-        maxVolume24hUsd,
+-        minMarketCap,
+-        maxMarketCap,
+-        excludeLabels,
+-        includeRwaData,
+-        usePriceApiData,
+-        includeTokenSecurityData,
++        includeRwaData: true,
++        usePriceApiData: true,
++        ...rest,
+     });
+     try {
+         const result = await (0, controller_utils_1.handleFetch)(trendingTokensURL);
+diff --git a/dist/token-service.d.cts b/dist/token-service.d.cts
+index 38521c00fd2e37c5976936ec55ace02ef803b663..c0e9eb61e4622747e8dabbcfededc30c360b33bd 100644
+--- a/dist/token-service.d.cts
++++ b/dist/token-service.d.cts
+@@ -5,6 +5,27 @@ export declare const TOKEN_METADATA_NO_SUPPORT_ERROR = "TokenService Error: Netw
+  * The sort by field for trending tokens.
+  */
+ export type SortTrendingBy = 'm5_trending' | 'h1_trending' | 'h6_trending' | 'h24_trending';
++/**
++ * Shared query-parameter type for the v3 trending tokens endpoint.
++ *
++ * Known parameters are explicitly typed for autocomplete and documentation.
++ * The index signature allows new API parameters to pass through without
++ * requiring a core release — callers can add any additional key/value and
++ * it will be forwarded as a query parameter.
++ */
++export type TrendingTokensQueryParams = {
++    sort?: SortTrendingBy;
++    minLiquidity?: number;
++    minVolume24hUsd?: number;
++    maxVolume24hUsd?: number;
++    minMarketCap?: number;
++    maxMarketCap?: number;
++    excludeLabels?: string[];
++    includeRwaData?: boolean;
++    usePriceApiData?: boolean;
++    includeTokenSecurityData?: boolean;
++    [key: string]: string | number | boolean | string[] | undefined;
++};
+ /**
+  * Fetch the list of token metadata for a given network. This request is cancellable using the
+  * abort signal passed in.
+@@ -138,34 +159,18 @@ export type TrendingAsset = {
+ /**
+  * Get the trending tokens for the given chains.
+  *
+- * @param options - Options for getting trending tokens.
+- * @param options.chainIds - The chains to get the trending tokens for.
+- * @param options.sortBy - The sort by field.
+- * @param options.minLiquidity - The minimum liquidity.
+- * @param options.minVolume24hUsd - The minimum volume 24h in USD.
+- * @param options.maxVolume24hUsd - The maximum volume 24h in USD.
+- * @param options.minMarketCap - The minimum market cap.
+- * @param options.maxMarketCap - The maximum market cap.
+- * @param options.excludeLabels - Array of labels to exclude (e.g., ['stable_coin', 'blue_chip']).
+- * @param options.includeRwaData - Optional flag to include RWA data in the results (defaults to true).
+- * @param options.usePriceApiData - Optional flag to use price API data in the results (defaults to true).
+- * @param options.includeTokenSecurityData - Optional flag to include token security data in the results (defaults to false).
++ * Accepts all known query parameters plus any additional ones via the
++ * index signature on {@link TrendingTokensQueryParams}. New API parameters
++ * can be passed without updating this function.
++ *
++ * @param options - Options bag: `chainIds` (required) plus any query params
++ *   supported by the v3 trending endpoint.
+  * @returns The trending tokens.
+  * @throws Will throw if the request fails.
+  */
+-export declare function getTrendingTokens({ chainIds, sortBy, minLiquidity, minVolume24hUsd, maxVolume24hUsd, minMarketCap, maxMarketCap, excludeLabels, includeRwaData, usePriceApiData, includeTokenSecurityData, }: {
++export declare function getTrendingTokens(options: {
+     chainIds: CaipChainId[];
+-    sortBy?: SortTrendingBy;
+-    minLiquidity?: number;
+-    minVolume24hUsd?: number;
+-    maxVolume24hUsd?: number;
+-    minMarketCap?: number;
+-    maxMarketCap?: number;
+-    excludeLabels?: string[];
+-    includeRwaData?: boolean;
+-    usePriceApiData?: boolean;
+-    includeTokenSecurityData?: boolean;
+-}): Promise<TrendingAsset[]>;
++} & TrendingTokensQueryParams): Promise<TrendingAsset[]>;
+ /**
+  * The token asset type returned by the /assets endpoint.
+  */
