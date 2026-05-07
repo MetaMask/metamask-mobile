@@ -214,6 +214,23 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_main
 
+  # Release candidate with pre-imported wallet (system tests / performance tests)
+  # Same as main-rc but bakes in ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD so the app
+  # starts with an imported wallet, skipping onboarding. Used by run-system-tests.yml.
+  main-rc-with-srp:
+    script_name: main-rc
+    github_environment: build-rc
+    signing: *signing_rc
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_BUILD_TYPE: 'main'
+    secrets:
+      <<: *secrets
+      ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
+      PREDEFINED_PASSWORD: 'E2E_PASSWORD'
+    code_fencing: *code_fencing_main
+
   # Test builds (QA)
   main-test:
     github_environment: build-uat
@@ -428,69 +445,3 @@ builds:
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
-
-  # ─────────────────────────────────────────────────────────────────────────────
-  # QA Builds (legacy - for internal testing)
-  # ─────────────────────────────────────────────────────────────────────────────
-
-  # QA production build
-  qa-prod:
-    github_environment: build-uat
-    signing: *signing_uat
-    env:
-      <<: *public_envs
-      METAMASK_ENVIRONMENT: 'production'
-      METAMASK_BUILD_TYPE: 'qa'
-    secrets:
-      <<: *secrets
-      # QA uses QA Segment project
-      SEGMENT_WRITE_KEY: SEGMENT_WRITE_KEY_QA
-      SEGMENT_PROXY_URL: SEGMENT_PROXY_URL_QA
-      SEGMENT_DELETE_API_SOURCE_ID: SEGMENT_DELETE_API_SOURCE_ID_QA
-      SEGMENT_REGULATIONS_ENDPOINT: SEGMENT_REGULATIONS_ENDPOINT_QA
-      # QA uses UAT OAuth credentials
-      IOS_GOOGLE_CLIENT_ID: MAIN_IOS_GOOGLE_CLIENT_ID_UAT
-      IOS_GOOGLE_REDIRECT_URI: MAIN_IOS_GOOGLE_REDIRECT_URI_UAT
-      ANDROID_GOOGLE_CLIENT_ID: MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT
-      ANDROID_APPLE_CLIENT_ID: MAIN_ANDROID_APPLE_CLIENT_ID_UAT
-      ANDROID_GOOGLE_SERVER_CLIENT_ID: MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT
-      MM_CARD_BAANX_API_CLIENT_KEY: MM_CARD_BAANX_API_CLIENT_KEY_UAT
-    code_fencing: *code_fencing_main
-
-  # QA dev build / Expo development build (Runway .app for simulator)
-  qa-dev:
-    github_environment: build-uat
-    env:
-      <<: *public_envs
-      METAMASK_ENVIRONMENT: 'dev'
-      METAMASK_BUILD_TYPE: 'qa'
-      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
-      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
-      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
-      BAANX_API_URL: 'https://dev.api.baanx.com'
-      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
-      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
-      BRIDGE_USE_DEV_APIS: 'true'
-      RAMPS_ENVIRONMENT: 'staging'
-      RAMP_INTERNAL_BUILD: 'true'
-      RAMP_DEV_BUILD: 'true'
-      IS_TEST: 'false'
-      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
-      IS_SIM_BUILD: 'true'
-      CONFIGURATION: 'Debug'
-      DEV_OAUTH_CONFIG: 'true'
-    secrets:
-      <<: *secrets
-      # QA uses QA Segment project
-      SEGMENT_WRITE_KEY: SEGMENT_WRITE_KEY_QA
-      SEGMENT_PROXY_URL: SEGMENT_PROXY_URL_QA
-      SEGMENT_DELETE_API_SOURCE_ID: SEGMENT_DELETE_API_SOURCE_ID_QA
-      SEGMENT_REGULATIONS_ENDPOINT: SEGMENT_REGULATIONS_ENDPOINT_QA
-      # QA uses UAT OAuth credentials
-      IOS_GOOGLE_CLIENT_ID: MAIN_IOS_GOOGLE_CLIENT_ID_UAT
-      IOS_GOOGLE_REDIRECT_URI: MAIN_IOS_GOOGLE_REDIRECT_URI_UAT
-      ANDROID_GOOGLE_CLIENT_ID: MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT
-      ANDROID_APPLE_CLIENT_ID: MAIN_ANDROID_APPLE_CLIENT_ID_UAT
-      ANDROID_GOOGLE_SERVER_CLIENT_ID: MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT
-      MM_CARD_BAANX_API_CLIENT_KEY: MM_CARD_BAANX_API_CLIENT_KEY_UAT
-    code_fencing: *code_fencing_main

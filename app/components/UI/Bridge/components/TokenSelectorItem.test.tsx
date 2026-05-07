@@ -50,11 +50,6 @@ jest.mock('../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('../../../../../wdio/utils/generateTestId', () => ({
-  __esModule: true,
-  default: () => ({}),
-}));
-
 jest.mock(
   '../../../../component-library/components/Badges/BadgeWrapper',
   () => ({

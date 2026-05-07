@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
+  LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
   SafeAreaView,
@@ -10,18 +11,25 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
-  HeaderBase,
+  FontWeight,
   IconName,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { useWhatsHappening } from '../Homepage/Sections/WhatsHappening/hooks';
 import { WhatsHappeningCardSkeleton } from '../Homepage/Sections/WhatsHappening/components';
 import { MAX_ITEMS_DISPLAYED } from '../Homepage/Sections/WhatsHappening/constants';
+import { getWhatsHappeningEventProps } from '../Homepage/Sections/WhatsHappening/eventProperties';
 import ErrorState from '../Homepage/components/ErrorState/ErrorState';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
 import PageIndicator from './components/PageIndicator';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -45,54 +53,115 @@ const WhatsHappeningDetailView = () => {
   const route =
     useRoute<RouteProp<{ params: WhatsHappeningDetailParams }, 'params'>>();
 
-  const { initialIndex = 0 } = route.params;
+  const initialIndex = route.params?.initialIndex ?? 0;
 
   const { items, isLoading, error, refresh } =
     useWhatsHappening(MAX_ITEMS_DISPLAYED);
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [cardHeight, setCardHeight] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
+  const hasTrackedViewRef = useRef(false);
+  const previousIndexRef = useRef(initialIndex);
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const handleCarouselLayout = useCallback((e: LayoutChangeEvent) => {
+    const { height } = e.nativeEvent.layout;
+    if (height > 0) setCardHeight(height);
+  }, []);
 
   useEffect(() => {
-    if (initialIndex > 0 && scrollViewRef.current && !isLoading) {
+    if (
+      initialIndex > 0 &&
+      cardHeight > 0 &&
+      scrollViewRef.current &&
+      !isLoading
+    ) {
       scrollViewRef.current.scrollTo({
         x: initialIndex * SNAP_INTERVAL,
         animated: false,
       });
     }
-  }, [initialIndex, isLoading]);
+  }, [initialIndex, isLoading, cardHeight]);
+
+  useEffect(() => {
+    if (
+      !isLoading &&
+      !hasTrackedViewRef.current &&
+      items.length > 0 &&
+      items[initialIndex]
+    ) {
+      hasTrackedViewRef.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_VIEWED)
+          .addProperties(
+            getWhatsHappeningEventProps(items[initialIndex], initialIndex),
+          )
+          .build(),
+      );
+    }
+  }, [isLoading, items, initialIndex, trackEvent, createEventBuilder]);
 
   const handleBackPress = useCallback(() => {
+    const visible = items[currentIndex];
+    if (visible) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_CLOSED)
+          .addProperties(getWhatsHappeningEventProps(visible, currentIndex))
+          .build(),
+      );
+    }
     navigation.goBack();
-  }, [navigation]);
+  }, [navigation, items, currentIndex, trackEvent, createEventBuilder]);
 
   const handleScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = event.nativeEvent.contentOffset.x;
-      const index = Math.round(offsetX / SNAP_INTERVAL);
-      setCurrentIndex(Math.max(0, Math.min(index, items.length - 1)));
+      const index = Math.max(
+        0,
+        Math.min(Math.round(offsetX / SNAP_INTERVAL), items.length - 1),
+      );
+
+      const prev = previousIndexRef.current;
+      if (index !== prev) {
+        const newItem = items[index];
+        if (newItem) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_VIEWED)
+              .addProperties(getWhatsHappeningEventProps(newItem, index))
+              .build(),
+          );
+        }
+        previousIndexRef.current = index;
+      }
+
+      setCurrentIndex(index);
     },
-    [items.length],
+    [items, trackEvent, createEventBuilder],
   );
 
   const hasError = !isLoading && items.length === 0 && !!error;
 
   return (
     <SafeAreaView style={tw`flex-1 bg-default`}>
-      <HeaderBase
-        startAccessory={
-          <ButtonIcon
-            size={ButtonIconSize.Lg}
-            onPress={handleBackPress}
-            iconName={IconName.ArrowLeft}
-            testID="whats-happening-detail-back-button"
-          />
-        }
-        style={tw`p-4`}
-        twClassName="h-auto"
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="px-2 py-2"
       >
-        {strings('homepage.sections.whats_happening')}
-      </HeaderBase>
+        <ButtonIcon
+          iconName={IconName.ArrowLeft}
+          size={ButtonIconSize.Md}
+          onPress={handleBackPress}
+          testID="whats-happening-detail-back-button"
+        />
+        <Box twClassName="flex-1 items-center">
+          <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
+            {strings('homepage.sections.whats_happening')}
+          </Text>
+        </Box>
+        <Box twClassName="w-10" />
+      </Box>
 
       <Box twClassName="flex-1">
         {isLoading ? (
@@ -125,17 +194,21 @@ const WhatsHappeningDetailView = () => {
               snapToInterval={SNAP_INTERVAL}
               snapToAlignment="start"
               style={tw`flex-1`}
-              contentContainerStyle={tw.style(`px-4 gap-3 items-stretch`)}
+              contentContainerStyle={tw.style('px-4 gap-3')}
+              onLayout={handleCarouselLayout}
               onMomentumScrollEnd={handleScrollEnd}
               testID="whats-happening-detail-carousel"
             >
-              {items.map((item) => (
-                <WhatsHappeningExpandedCard
-                  key={item.id}
-                  item={item}
-                  cardWidth={CARD_WIDTH}
-                />
-              ))}
+              {cardHeight > 0 &&
+                items.map((item, index) => (
+                  <WhatsHappeningExpandedCard
+                    key={item.id}
+                    item={item}
+                    cardIndex={index}
+                    cardWidth={CARD_WIDTH}
+                    cardHeight={cardHeight}
+                  />
+                ))}
             </ScrollView>
 
             <PageIndicator count={items.length} activeIndex={currentIndex} />

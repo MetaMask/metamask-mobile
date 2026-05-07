@@ -6,8 +6,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ButtonBase,
-  ButtonBaseSize,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   Text,
   TextColor,
@@ -25,7 +26,7 @@ interface AssetRowProps {
 
 /**
  * Shared layout for a single asset row (logo + symbol + action button).
- * Used by TokenRow (Buy) and PerpsRow (Trade); each wrapper supplies its
+ * Used by TokenRow (Buy/Trade) and PerpsRow (Trade); each wrapper supplies its
  * own hook logic and passes the resolved label and handler here.
  */
 const AssetRow: React.FC<AssetRowProps> = ({
@@ -66,14 +67,14 @@ const AssetRow: React.FC<AssetRowProps> = ({
           {asset.symbol}
         </Text>
 
-        <ButtonBase
-          size={ButtonBaseSize.Md}
-          twClassName="bg-background-default rounded-2xl px-4"
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Md}
           onPress={onAction}
           accessibilityLabel={accessibilityLabel}
         >
           {actionLabel}
-        </ButtonBase>
+        </Button>
       </Box>
     </Box>
   );

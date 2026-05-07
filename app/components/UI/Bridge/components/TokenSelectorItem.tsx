@@ -4,14 +4,12 @@ import {
   ImageSourcePropType,
   View,
   TouchableOpacity,
-  Platform,
   StyleProp,
   TextStyle,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { getAssetTestId } from '../../../../../tests/selectors/Wallet/WalletView.selectors';
 import TagBase, {
   TagSeverity,
   TagShape,
@@ -333,10 +331,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
         key={token.address}
         onPress={() => onPress(token)}
         style={styles.itemWrapper}
-        {...generateTestId(
-          Platform,
-          getAssetTestId(`${token.chainId}-${token.symbol}`),
-        )}
+        testID={getAssetTestId(`${token.chainId}-${token.symbol}`)}
       >
         <Box
           flexDirection={FlexDirection.Row}
