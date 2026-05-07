@@ -110,9 +110,6 @@ function renameAndroid() {
     case 'flask':
       appFlavor = 'flask';
       break;
-    case 'qa':
-      appFlavor = 'qa';
-      break;
     default:
       console.error(`❌ Unknown build type: ${buildType}`);
       process.exit(1);
