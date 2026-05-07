@@ -246,7 +246,7 @@
     "@metamask/base-controller": "^9.0.1",
     "@metamask/bitcoin-wallet-snap": "^1.10.1",
     "@metamask/bridge-controller": "^71.0.0",
-    "@metamask/bridge-status-controller": "patch:@metamask/bridge-status-controller@npm%3A71.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-71.1.0-6140a0bdf3.patch",
+    "@metamask/bridge-status-controller": "^71.1.0",
     "@metamask/chain-agnostic-permission": "^1.5.0",
     "@metamask/client-controller": "^1.0.1",
     "@metamask/compliance-controller": "2.0.0",
@@ -265,7 +265,7 @@
     "@metamask/eth-hd-keyring": "^14.1.1",
     "@metamask/eth-json-rpc-filters": "^9.0.0",
     "@metamask/eth-json-rpc-middleware": "^23.1.2",
-    "@metamask/eth-ledger-bridge-keyring": "^12.0.2",
+    "@metamask/eth-ledger-bridge-keyring": "^12.0.3",
     "@metamask/eth-money-keyring": "^2.0.4",
     "@metamask/eth-qr-keyring": "^2.0.2",
     "@metamask/eth-query": "^4.0.0",
@@ -701,12 +701,6 @@
     "xhr2": "^0.2.1",
     "xml2js": "^0.5.0"
   },
-  "previewBuilds": {
-    "@metamask/eth-ledger-bridge-keyring": {
-      "type": "non-breaking",
-      "previewVersion": "12.0.1-7275dbc"
-    }
-  },
   "config": {
     "react-native-storybook-loader": {
       "searchDir": [
@@ -767,7 +761,6 @@
       "ethereumjs-util>ethereum-cryptography>keccak": true,
       "appium": false,
       "appium>@appium/support>sharp": false,
-      "@metamask/eth-ledger-bridge-keyring>@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false,
       "@storybook/addon-ondevice-controls>core-js": false,
       "viem>ws>bufferutil": false,
       "viem>ws>utf-8-validate": false,
