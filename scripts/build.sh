@@ -209,8 +209,8 @@ loadBuildConfig() {
 # Legacy env remapping (Bitrise). Used only when GITHUB_ACTIONS is not set.
 # GitHub Actions uses loadBuildConfig + builds.yml; secrets are set with canonical names.
 # ─────────────────────────────────────────────────────────────────────────────
-# Remap Bitrise-style vars (*_DEV, *_QA, *_PROD) to canonical names. Skip when source is unset
-# (local / builds.yml use canonical names in .js.env; no _DEV/_QA needed).
+# Remap Bitrise-style vars (*_DEV, *_PROD) to canonical names. Skip when source is unset
+# (local / builds.yml use canonical names in .js.env; no _DEV/_PROD needed).
 # Legacy path (not GHA, not builds.yml): missing source var fails fast. Local: set BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY in .js.env to use builds.yml and skip.
 remapEnvVariable() {
 	local old_var_name="$1"

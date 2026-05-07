@@ -74,7 +74,7 @@ inputs:
     required: false
     default: 'arn:aws:iam::363762752069:role/metamask-mobile-build-signer-qa'
   target:
-    description: 'Target for which the keystore is being configured (e.g., qa, flask, main)'
+    description: 'Target for which the keystore is being configured (e.g. flask, main)'
     required: false
     default: 'qa'
 
