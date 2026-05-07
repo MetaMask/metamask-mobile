@@ -309,13 +309,15 @@ function getTransactionResponse(
 
 export async function waitForDepositWalletTransaction({
   transactionID,
+  requireCompletion = false,
   maxPolls = 20,
   pollIntervalMs = 1000,
 }: {
   transactionID: string;
+  requireCompletion?: boolean;
   maxPolls?: number;
   pollIntervalMs?: number;
-}): Promise<void> {
+}): Promise<Hex> {
   for (let poll = 0; poll < maxPolls; poll++) {
     const response = await postRelayerProxy<
       DepositWalletRelayerResponse | DepositWalletRelayerResponse[]
@@ -326,15 +328,20 @@ export async function waitForDepositWalletTransaction({
     });
     const transaction = getTransactionResponse(response);
     const state = transaction?.state;
-
-    if (state && RELAYER_SUCCESS_STATES.has(state)) {
-      return;
-    }
+    const transactionHash = transaction?.transactionHash;
 
     if (state && RELAYER_FAILURE_STATES.has(state)) {
       throw new Error(
         `Polymarket deposit wallet relayer transaction ${transactionID} ${state}`,
       );
+    }
+
+    if (state && RELAYER_SUCCESS_STATES.has(state) && transactionHash) {
+      return transactionHash as Hex;
+    }
+
+    if (!requireCompletion && transactionHash) {
+      return transactionHash as Hex;
     }
 
     if (poll < maxPolls - 1) {
@@ -345,6 +352,34 @@ export async function waitForDepositWalletTransaction({
   throw new Error(
     `Timed out waiting for Polymarket deposit wallet relayer transaction ${transactionID}`,
   );
+}
+
+export async function executeDepositWalletBatchAndWaitForCompletion({
+  signer,
+  walletAddress,
+  calls,
+}: {
+  signer: Signer;
+  walletAddress: string;
+  calls: DepositWalletCall[];
+}): Promise<Hex> {
+  const response = await executeDepositWalletBatch({
+    signer,
+    walletAddress,
+    calls,
+  });
+  const transactionID = getDepositWalletRelayerTransactionId(response);
+
+  if (!transactionID) {
+    throw new Error(
+      'Polymarket deposit wallet batch response missing transactionID',
+    );
+  }
+
+  return waitForDepositWalletTransaction({
+    transactionID,
+    requireCompletion: true,
+  });
 }
 
 export async function waitForDepositWalletDeployed({

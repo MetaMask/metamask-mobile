@@ -4,6 +4,7 @@ import {
   DEPOSIT_WALLET_FACTORY_ADDRESS,
   deriveDepositWalletAddress,
   executeDepositWalletBatch,
+  executeDepositWalletBatchAndWaitForCompletion,
   getDepositWalletNonce,
   requestDepositWalletCreate,
   syncDepositWalletCollateralBalanceAllowance,
@@ -178,14 +179,23 @@ describe('depositWallet', () => {
     });
   });
 
-  it('polls by relayer id until wallet transaction is mined', async () => {
-    mockFetch.mockResolvedValue(mockResponse({ state: 'STATE_MINED' }));
+  it('polls by relayer id until wallet transaction hash is available', async () => {
+    mockFetch.mockResolvedValue(
+      mockResponse({
+        state: 'STATE_MINED',
+        transactionHash:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      }),
+    );
 
-    await waitForDepositWalletTransaction({
+    const hash = await waitForDepositWalletTransaction({
       transactionID: 'relayer-mined',
       pollIntervalMs: 0,
     });
 
+    expect(hash).toBe(
+      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    );
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(getFetchBody()).toEqual({
       path: '/transaction',
@@ -194,16 +204,52 @@ describe('depositWallet', () => {
     });
   });
 
-  it('polls until wallet transaction is confirmed', async () => {
-    mockFetch
-      .mockResolvedValueOnce(mockResponse({ state: 'STATE_NEW' }))
-      .mockResolvedValueOnce(mockResponse({ state: 'STATE_CONFIRMED' }));
+  it('returns hash before completion when completion is not required', async () => {
+    mockFetch.mockResolvedValue(
+      mockResponse({
+        state: 'STATE_NEW',
+        transactionHash:
+          '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      }),
+    );
 
-    await waitForDepositWalletTransaction({
-      transactionID: 'relayer-3',
+    const hash = await waitForDepositWalletTransaction({
+      transactionID: 'relayer-hash',
       pollIntervalMs: 0,
     });
 
+    expect(hash).toBe(
+      '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    );
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('polls until wallet transaction is confirmed when completion is required', async () => {
+    mockFetch
+      .mockResolvedValueOnce(
+        mockResponse({
+          state: 'STATE_NEW',
+          transactionHash:
+            '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+        }),
+      )
+      .mockResolvedValueOnce(
+        mockResponse({
+          state: 'STATE_CONFIRMED',
+          transactionHash:
+            '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+        }),
+      );
+
+    const hash = await waitForDepositWalletTransaction({
+      transactionID: 'relayer-3',
+      requireCompletion: true,
+      pollIntervalMs: 0,
+    });
+
+    expect(hash).toBe(
+      '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+    );
     expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
@@ -221,6 +267,29 @@ describe('depositWallet', () => {
     },
   );
 
+  it('keeps polling when completion succeeds without a hash', async () => {
+    mockFetch
+      .mockResolvedValueOnce(mockResponse({ state: 'STATE_MINED' }))
+      .mockResolvedValueOnce(
+        mockResponse({
+          state: 'STATE_MINED',
+          transactionHash:
+            '0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+        }),
+      );
+
+    const hash = await waitForDepositWalletTransaction({
+      transactionID: 'relayer-no-hash-yet',
+      requireCompletion: true,
+      pollIntervalMs: 0,
+    });
+
+    expect(hash).toBe(
+      '0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+    );
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
   it('throws when wallet transaction polling times out', async () => {
     mockFetch.mockResolvedValue(mockResponse({ state: 'STATE_NEW' }));
 
@@ -231,6 +300,64 @@ describe('depositWallet', () => {
         pollIntervalMs: 0,
       }),
     ).rejects.toThrow('Timed out');
+  });
+
+  it('executes a wallet batch and waits for relayer completion', async () => {
+    const walletAddress = deriveDepositWalletAddress(ownerAddress);
+    const calls = [
+      {
+        target: POLYMARKET_V2_PROTOCOL.collateral.tradingToken,
+        value: '0',
+        data: '0x1234',
+      },
+    ];
+    mockFetch
+      .mockResolvedValueOnce(mockResponse({ nonce: '11' }))
+      .mockResolvedValueOnce(mockResponse({ transactionID: 'relayer-5' }))
+      .mockResolvedValueOnce(
+        mockResponse({
+          state: 'STATE_CONFIRMED',
+          transactionHash:
+            '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+        }),
+      );
+
+    const hash = await executeDepositWalletBatchAndWaitForCompletion({
+      signer,
+      walletAddress,
+      calls,
+    });
+
+    expect(hash).toBe(
+      '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+    );
+    expect(getFetchBody(2)).toEqual({
+      path: '/transaction',
+      method: 'GET',
+      query: { id: 'relayer-5' },
+    });
+  });
+
+  it('throws when completed wallet batch response is missing transactionID', async () => {
+    const walletAddress = deriveDepositWalletAddress(ownerAddress);
+    const calls = [
+      {
+        target: POLYMARKET_V2_PROTOCOL.collateral.tradingToken,
+        value: '0',
+        data: '0x1234',
+      },
+    ];
+    mockFetch
+      .mockResolvedValueOnce(mockResponse({ nonce: '12' }))
+      .mockResolvedValueOnce(mockResponse({}));
+
+    await expect(
+      executeDepositWalletBatchAndWaitForCompletion({
+        signer,
+        walletAddress,
+        calls,
+      }),
+    ).rejects.toThrow('missing transactionID');
   });
 
   it('polls relayer deployment status through the MetaMask proxy until the wallet is registered', async () => {

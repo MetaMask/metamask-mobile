@@ -39,6 +39,8 @@ import {
 } from '../../types';
 import {
   AccountState,
+  BeforeSignClaimParams,
+  BeforeSignClaimResult,
   ClaimOrderParams,
   ClaimOrderResponse,
   ConnectionStatus,
@@ -59,6 +61,8 @@ import {
   PrepareWithdrawResponse,
   PreviewOrderParams,
   PriceUpdateCallback,
+  PublishClaimParams,
+  PublishClaimResult,
   Signer,
   SignWithdrawParams,
   SignWithdrawResponse,
@@ -125,7 +129,10 @@ import {
   serializeProtocolRelayerOrder,
 } from './protocol/orderCodec';
 import { submitProtocolClobOrder } from './protocol/transport';
-import { buildClaimTransaction } from './preflight/claim';
+import {
+  buildClaimTransaction,
+  planDepositWalletClaim,
+} from './preflight/claim';
 import { buildDepositMaintenanceTransaction } from './preflight/deposit';
 import { planDepositWalletPreflight } from './preflight/depositWallet';
 import { buildLegacySafeMigrationSweepTransaction } from './preflight/legacySafeMigration';
@@ -134,6 +141,7 @@ import { buildWithdrawTransaction } from './preflight/withdraw';
 import {
   deriveDepositWalletAddress,
   executeDepositWalletBatch,
+  executeDepositWalletBatchAndWaitForCompletion,
   getDepositWalletRelayerTransactionId,
   requestDepositWalletCreate,
   syncDepositWalletCollateralBalanceAllowance,
@@ -1487,7 +1495,9 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('Address is required');
     }
 
-    const predictAddress = computeProxyAddress(address);
+    const predictAddress =
+      this.#getCachedAccountState(address)?.address ??
+      (await this.getAccountState({ ownerAddress: address })).address;
 
     const queryParams = new URLSearchParams({
       limit: limit.toString(),
@@ -1821,22 +1831,15 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Signer address is required for claim');
       }
 
-      // Get safe address from cache or fetch it
-      let safeAddress: string | undefined;
+      let safeAddress: Hex;
       try {
-        safeAddress =
-          this.#getCachedAccountState(signer.address)?.address ??
-          computeProxyAddress(signer.address);
+        safeAddress = computeProxyAddress(signer.address);
       } catch (error) {
         throw new Error(
-          `Failed to retrieve account state: ${
+          `Failed to compute safe address: ${
             error instanceof Error ? error.message : 'Unknown error'
           }`,
         );
-      }
-
-      if (!safeAddress) {
-        throw new Error('Safe address not found for claim');
       }
 
       const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
@@ -1868,6 +1871,156 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
+  public async beforeSignClaim({
+    transactionMeta,
+    signer,
+    positions,
+  }: BeforeSignClaimParams): Promise<BeforeSignClaimResult | undefined> {
+    if (!positions || positions.length === 0) {
+      throw new Error('No claimable positions found for claim signing');
+    }
+
+    const accountState = await this.getAccountState({
+      ownerAddress: signer.address,
+    });
+
+    if (accountState.walletType !== 'deposit-wallet') {
+      return undefined;
+    }
+
+    DevLogger.log('PolymarketProvider: Deposit wallet claim beforeSign', {
+      operation: 'deposit_wallet_claim_before_sign',
+      walletType: 'deposit-wallet',
+      signerAddress: signer.address,
+      depositWalletAddress: accountState.address,
+      transactionId: transactionMeta.id,
+      positionCount: positions.length,
+    });
+
+    return {
+      updateTransaction: (transaction: TransactionMeta) => {
+        transaction.isExternalSign = true;
+        transaction.selectedGasFeeToken = undefined;
+        transaction.isGasFeeTokenIgnoredIfBalance = false;
+        delete transaction.txParams.nonce;
+      },
+    };
+  }
+
+  public async publishClaim({
+    transactionMeta,
+    signer,
+    positions,
+  }: PublishClaimParams): Promise<PublishClaimResult> {
+    if (!positions || positions.length === 0) {
+      throw new Error('No claimable positions found for claim publish');
+    }
+
+    const protocol = this.#getProtocol();
+    const accountState = await this.getAccountState({
+      ownerAddress: signer.address,
+    });
+
+    if (accountState.walletType !== 'deposit-wallet') {
+      return { transactionHash: undefined };
+    }
+
+    if (transactionMeta.isExternalSign !== true) {
+      throw new Error(
+        'Deposit wallet claim publish requires external-sign transaction',
+      );
+    }
+
+    try {
+      const calls = await planDepositWalletClaim({
+        positions,
+        walletAddress: accountState.address,
+        protocol,
+      });
+
+      DevLogger.log(
+        'PolymarketProvider: Deposit wallet claim publish started',
+        {
+          operation: 'deposit_wallet_claim_publish',
+          walletType: 'deposit-wallet',
+          signerAddress: signer.address,
+          depositWalletAddress: accountState.address,
+          transactionId: transactionMeta.id,
+          positionCount: positions.length,
+          callCount: calls.length,
+        },
+      );
+
+      const transactionHash =
+        await executeDepositWalletBatchAndWaitForCompletion({
+          signer,
+          walletAddress: accountState.address,
+          calls,
+        });
+
+      DevLogger.log(
+        'PolymarketProvider: Deposit wallet claim publish completed',
+        {
+          operation: 'deposit_wallet_claim_publish',
+          walletType: 'deposit-wallet',
+          signerAddress: signer.address,
+          depositWalletAddress: accountState.address,
+          transactionId: transactionMeta.id,
+          positionCount: positions.length,
+          callCount: calls.length,
+          transactionHash,
+        },
+      );
+
+      return {
+        transactionHash,
+        isIntentComplete: true,
+      };
+    } catch (error) {
+      DevLogger.log('PolymarketProvider: Deposit wallet claim publish failed', {
+        operation: 'deposit_wallet_claim_publish',
+        walletType: 'deposit-wallet',
+        signerAddress: signer.address,
+        depositWalletAddress: accountState.address,
+        transactionId: transactionMeta.id,
+        positionCount: positions.length,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('publishClaim', {
+          operation: 'deposit_wallet_claim_publish',
+          walletType: 'deposit-wallet',
+          positionCount: positions.length,
+        }),
+      );
+
+      throw error;
+    }
+  }
+
+  private async syncDepositWalletBalanceAllowanceForSignerIfNeeded({
+    signerAddress,
+  }: {
+    signerAddress: string;
+  }): Promise<void> {
+    const accountState = await this.getAccountState({
+      ownerAddress: signerAddress,
+    });
+
+    if (accountState.walletType !== 'deposit-wallet') {
+      return;
+    }
+
+    const apiKey = await this.getApiKey({ address: signerAddress });
+    await syncDepositWalletCollateralBalanceAllowance({
+      protocol: this.#getProtocol(),
+      signerAddress,
+      apiKey,
+    });
+  }
+
   public confirmClaim({
     positions,
     signer,
@@ -1883,6 +2036,26 @@ export class PolymarketProvider implements PredictProvider {
         outcomeTokenId: position.outcomeTokenId,
         marketId: position.marketId,
       });
+    });
+
+    this.syncDepositWalletBalanceAllowanceForSignerIfNeeded({
+      signerAddress: signer.address,
+    }).catch((error) => {
+      DevLogger.log(
+        'PolymarketProvider: Deposit wallet claim balance-allowance sync failed',
+        {
+          operation: 'deposit_wallet_claim_balance_allowance_sync',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      );
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('confirmClaim', {
+          operation: 'deposit_wallet_claim_balance_allowance_sync',
+          walletType: 'deposit-wallet',
+        }),
+      );
     });
   }
 
@@ -2346,7 +2519,10 @@ export class PolymarketProvider implements PredictProvider {
           depositWalletAddress,
         });
 
-        await waitForDepositWalletTransaction({ transactionID });
+        await waitForDepositWalletTransaction({
+          transactionID,
+          requireCompletion: true,
+        });
 
         DevLogger.log(
           'PolymarketProvider: Waiting for deposit wallet relayer registry',
@@ -2411,7 +2587,10 @@ export class PolymarketProvider implements PredictProvider {
           missingRequirementsCount: preflightPlan.missingRequirements.length,
         });
 
-        await waitForDepositWalletTransaction({ transactionID });
+        await waitForDepositWalletTransaction({
+          transactionID,
+          requireCompletion: true,
+        });
       }
 
       DevLogger.log('PolymarketProvider: Deposit wallet preflight completed', {

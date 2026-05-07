@@ -1,4 +1,13 @@
 jest.mock('./v2AllowanceRequirements', () => ({
+  filterDepositWalletUnsupportedRequirements: jest.fn(
+    (requirements: { type: string; spender?: string }[]) =>
+      requirements.filter(
+        (requirement: { type: string; spender?: string }) =>
+          requirement.type !== 'erc20-allowance' ||
+          requirement.spender?.toLowerCase() !==
+            '0x000000000022d473030f116ddee9f6b43ac78ba3',
+      ),
+  ),
   getActiveV2AllowanceRequirements: jest.fn(),
 }));
 
@@ -16,6 +25,7 @@ import { compileRequirementTransactions } from './compileRequirementTransactions
 import { planDepositWalletPreflight } from './depositWallet';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
 import {
+  filterDepositWalletUnsupportedRequirements,
   getActiveV2AllowanceRequirements,
   type V2AllowanceRequirement,
 } from './v2AllowanceRequirements';
@@ -46,6 +56,9 @@ const compiledTransactions: SafeTransaction[] = [
   },
 ];
 
+const mockFilterDepositWalletUnsupportedRequirements = jest.mocked(
+  filterDepositWalletUnsupportedRequirements,
+);
 const mockGetActiveV2AllowanceRequirements = jest.mocked(
   getActiveV2AllowanceRequirements,
 );
@@ -66,6 +79,9 @@ describe('planDepositWalletPreflight', () => {
     const plan = await planDepositWalletPreflight({ walletAddress });
 
     expect(mockGetActiveV2AllowanceRequirements).toHaveBeenCalledTimes(1);
+    expect(mockFilterDepositWalletUnsupportedRequirements).toHaveBeenCalledWith(
+      activeRequirements,
+    );
     expect(mockInspectMissingRequirements).toHaveBeenCalledWith({
       address: walletAddress,
       requirements: depositWalletRequirements,

@@ -7,12 +7,13 @@ import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { Interface } from 'ethers/lib/utils';
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
 import type { OrderPreview } from '../types';
-import { Side } from '../../types';
+import { Side, type PredictPosition } from '../../types';
 import type { PredictFeatureFlags } from '../../types/flags';
 import { PolymarketProvider } from './PolymarketProvider';
 import {
   deriveDepositWalletAddress,
   executeDepositWalletBatch,
+  executeDepositWalletBatchAndWaitForCompletion,
   getDepositWalletRelayerTransactionId,
   requestDepositWalletCreate,
   syncDepositWalletCollateralBalanceAllowance,
@@ -46,6 +47,10 @@ import {
 import { submitProtocolClobOrder } from './protocol/transport';
 import { buildDepositMaintenanceTransaction } from './preflight/deposit';
 import type { SignedSafeExecution } from './preflight/core';
+import {
+  buildClaimTransaction,
+  planDepositWalletClaim,
+} from './preflight/claim';
 import { planDepositWalletPreflight } from './preflight/depositWallet';
 import { buildLegacySafeMigrationSweepTransaction } from './preflight/legacySafeMigration';
 import { buildTradeAllowancesTx } from './preflight/trade';
@@ -115,6 +120,7 @@ jest.mock('./protocol/transport', () => ({
 jest.mock('./depositWallet', () => ({
   deriveDepositWalletAddress: jest.fn(),
   executeDepositWalletBatch: jest.fn(),
+  executeDepositWalletBatchAndWaitForCompletion: jest.fn(),
   getDepositWalletRelayerTransactionId: jest.fn(),
   requestDepositWalletCreate: jest.fn(),
   syncDepositWalletCollateralBalanceAllowance: jest.fn(),
@@ -125,6 +131,11 @@ jest.mock('./depositWallet', () => ({
 
 jest.mock('./preflight/deposit', () => ({
   buildDepositMaintenanceTransaction: jest.fn(),
+}));
+
+jest.mock('./preflight/claim', () => ({
+  buildClaimTransaction: jest.fn(),
+  planDepositWalletClaim: jest.fn(),
 }));
 
 jest.mock('./preflight/depositWallet', () => ({
@@ -147,6 +158,9 @@ const mockComputeProxyAddress = jest.mocked(computeProxyAddress);
 const mockCreateApiKey = jest.mocked(createApiKey);
 const mockDeriveDepositWalletAddress = jest.mocked(deriveDepositWalletAddress);
 const mockExecuteDepositWalletBatch = jest.mocked(executeDepositWalletBatch);
+const mockExecuteDepositWalletBatchAndWaitForCompletion = jest.mocked(
+  executeDepositWalletBatchAndWaitForCompletion,
+);
 const mockGetDepositWalletRelayerTransactionId = jest.mocked(
   getDepositWalletRelayerTransactionId,
 );
@@ -170,6 +184,8 @@ const mockSubmitProtocolClobOrder = jest.mocked(submitProtocolClobOrder);
 const mockBuildDepositMaintenanceTransaction = jest.mocked(
   buildDepositMaintenanceTransaction,
 );
+const mockBuildClaimTransaction = jest.mocked(buildClaimTransaction);
+const mockPlanDepositWalletClaim = jest.mocked(planDepositWalletClaim);
 const mockPlanDepositWalletPreflight = jest.mocked(planDepositWalletPreflight);
 const mockBuildLegacySafeMigrationSweepTransaction = jest.mocked(
   buildLegacySafeMigrationSweepTransaction,
@@ -225,6 +241,40 @@ function createDepositTransactionMeta({
       },
     ],
   } as TransactionMeta;
+}
+
+function createClaimPosition(
+  overrides: Partial<PredictPosition> = {},
+): PredictPosition {
+  return {
+    id: 'position-1',
+    providerId: POLYMARKET_PROVIDER_ID,
+    marketId: 'market-1',
+    outcomeId:
+      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    outcome: 'Yes',
+    outcomeTokenId: 'token-1',
+    currentValue: 1,
+    title: 'Market',
+    icon: '',
+    amount: 1,
+    price: 1,
+    status: 'open',
+    size: 1,
+    outcomeIndex: 0,
+    percentPnl: 0,
+    cashPnl: 0,
+    claimable: true,
+    initialValue: 1,
+    avgPrice: 1,
+    endDate: new Date(0).toISOString(),
+    negRisk: false,
+    ...overrides,
+  } as PredictPosition;
+}
+
+async function flushPromises(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 const basePreview: OrderPreview = {
@@ -319,6 +369,20 @@ describe('PolymarketProvider', () => {
       type: TransactionType.contractInteraction,
     });
     mockBuildDepositMaintenanceTransaction.mockResolvedValue(undefined);
+    mockBuildClaimTransaction.mockResolvedValue({
+      params: {
+        to: legacySafeAddress as `0x${string}`,
+        data: '0xsignedClaim' as `0x${string}`,
+      },
+      type: TransactionType.predictClaim,
+    });
+    mockPlanDepositWalletClaim.mockResolvedValue([
+      {
+        target: MATIC_CONTRACTS_V2.collateral,
+        value: '0',
+        data: '0xclaim',
+      },
+    ]);
     mockBuildLegacySafeMigrationSweepTransaction.mockResolvedValue(undefined);
     mockGetDepositWalletRelayerTransactionId.mockImplementation(
       (response) => response.transactionID ?? response.id,
@@ -341,7 +405,12 @@ describe('PolymarketProvider', () => {
       transactionID: 'batch-1',
     });
     mockWaitForDepositWalletDeployed.mockResolvedValue(undefined);
-    mockWaitForDepositWalletTransaction.mockResolvedValue(undefined);
+    mockWaitForDepositWalletTransaction.mockResolvedValue(
+      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    );
+    mockExecuteDepositWalletBatchAndWaitForCompletion.mockResolvedValue(
+      '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    );
     mockSyncDepositWalletCollateralBalanceAllowance.mockResolvedValue(
       undefined,
     );
@@ -667,6 +736,7 @@ describe('PolymarketProvider', () => {
     });
     expect(mockWaitForDepositWalletTransaction).toHaveBeenNthCalledWith(1, {
       transactionID: 'create-1',
+      requireCompletion: true,
     });
     expect(mockWaitForDepositWalletDeployed).toHaveBeenCalledWith({
       walletAddress: depositWalletAddress,
@@ -691,6 +761,7 @@ describe('PolymarketProvider', () => {
     });
     expect(mockWaitForDepositWalletTransaction).toHaveBeenNthCalledWith(2, {
       transactionID: 'batch-1',
+      requireCompletion: true,
     });
   });
 
@@ -703,8 +774,11 @@ describe('PolymarketProvider', () => {
       value: '0',
     };
     let resolveCreateWait: () => void = jest.fn();
-    const createWaitPromise = new Promise<void>((resolve) => {
-      resolveCreateWait = resolve;
+    const createWaitPromise = new Promise<`0x${string}`>((resolve) => {
+      resolveCreateWait = () =>
+        resolve(
+          '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+        );
     });
     mockIsSmartContractAddress.mockResolvedValueOnce(false);
     mockPlanDepositWalletPreflight.mockResolvedValue({
@@ -719,7 +793,9 @@ describe('PolymarketProvider', () => {
     });
     mockWaitForDepositWalletTransaction
       .mockImplementationOnce(() => createWaitPromise)
-      .mockResolvedValueOnce(undefined);
+      .mockResolvedValueOnce(
+        '0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+      );
 
     const publishPromise = provider.beforePublishDepositWalletDeposit({
       transactionMeta: createDepositTransactionMeta({
@@ -759,6 +835,181 @@ describe('PolymarketProvider', () => {
     expect(result).toBe(true);
     expect(mockRequestDepositWalletCreate).not.toHaveBeenCalled();
     expect(mockPlanDepositWalletPreflight).not.toHaveBeenCalled();
+  });
+
+  it('marks deposit-wallet claim transactions as externally signed before signing', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue([]),
+    });
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true);
+    const provider = createProvider();
+    const transactionMeta = {
+      id: 'claim-tx',
+      txParams: {
+        from: signer.address,
+        nonce: '0x1',
+      },
+    } as TransactionMeta;
+
+    const result = await provider.beforeSignClaim({
+      transactionMeta,
+      signer,
+      positions: [createClaimPosition()],
+    });
+
+    expect(result?.updateTransaction).toBeDefined();
+
+    result?.updateTransaction?.(transactionMeta);
+    expect(transactionMeta.isExternalSign).toBe(true);
+    expect(transactionMeta.isGasFeeTokenIgnoredIfBalance).toBe(false);
+    expect(transactionMeta.selectedGasFeeToken).toBe(undefined);
+    expect(transactionMeta.isIntentComplete).toBeUndefined();
+    expect(transactionMeta.txParams.nonce).toBeUndefined();
+  });
+
+  it('passes through Safe claims before signing', async () => {
+    const result = await createProvider().beforeSignClaim({
+      transactionMeta: {
+        id: 'claim-tx',
+        txParams: { from: signer.address },
+      } as TransactionMeta,
+      signer,
+      positions: [createClaimPosition()],
+    });
+
+    expect(result).toBeUndefined();
+  });
+
+  it('passes through Safe claim publishing', async () => {
+    const result = await createProvider().publishClaim({
+      transactionMeta: {
+        id: 'claim-tx',
+        isExternalSign: true,
+        txParams: { from: signer.address },
+      } as TransactionMeta,
+      signer,
+      positions: [createClaimPosition()],
+    });
+
+    expect(result).toEqual({ transactionHash: undefined });
+    expect(mockPlanDepositWalletClaim).not.toHaveBeenCalled();
+    expect(
+      mockExecuteDepositWalletBatchAndWaitForCompletion,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('publishes deposit-wallet claims through the relayer batch', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue([]),
+    });
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true);
+    mockExecuteDepositWalletBatchAndWaitForCompletion.mockResolvedValue(
+      '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+    );
+
+    const positions = [createClaimPosition()];
+    const result = await createProvider().publishClaim({
+      transactionMeta: {
+        id: 'claim-tx',
+        isExternalSign: true,
+        txParams: { from: signer.address },
+      } as TransactionMeta,
+      signer,
+      positions,
+    });
+
+    expect(mockPlanDepositWalletClaim).toHaveBeenCalledWith({
+      positions,
+      walletAddress: depositWalletAddress,
+      protocol: expect.objectContaining({ key: 'v2' }),
+    });
+    expect(
+      mockExecuteDepositWalletBatchAndWaitForCompletion,
+    ).toHaveBeenCalledWith({
+      signer,
+      walletAddress: depositWalletAddress,
+      calls: [
+        {
+          target: MATIC_CONTRACTS_V2.collateral,
+          value: '0',
+          data: '0xclaim',
+        },
+      ],
+    });
+    expect(result).toEqual({
+      transactionHash:
+        '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+      isIntentComplete: true,
+    });
+  });
+
+  it('requires external-sign metadata before publishing deposit-wallet claims', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue([]),
+    });
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true);
+
+    await expect(
+      createProvider().publishClaim({
+        transactionMeta: {
+          id: 'claim-tx',
+          txParams: { from: signer.address },
+        } as TransactionMeta,
+        signer,
+        positions: [createClaimPosition()],
+      }),
+    ).rejects.toThrow(
+      'Deposit wallet claim publish requires external-sign transaction',
+    );
+  });
+
+  it('syncs deposit-wallet CLOB balance allowance after confirmed claims', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue([]),
+    });
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true);
+
+    createProvider().confirmClaim({
+      positions: [createClaimPosition()],
+      signer,
+    });
+    await flushPromises();
+
+    expect(
+      mockSyncDepositWalletCollateralBalanceAllowance,
+    ).toHaveBeenCalledWith({
+      protocol: expect.objectContaining({ key: 'v2' }),
+      signerAddress: signer.address,
+      apiKey: {
+        apiKey: 'api-key',
+        secret: 'secret',
+        passphrase: 'passphrase',
+      },
+    });
+  });
+
+  it('does not sync claim balance allowance for Safe users', async () => {
+    createProvider().confirmClaim({
+      positions: [createClaimPosition()],
+      signer,
+    });
+    await flushPromises();
+
+    expect(
+      mockSyncDepositWalletCollateralBalanceAllowance,
+    ).not.toHaveBeenCalled();
   });
 
   it('syncs deposit-wallet CLOB balance allowance after matching deposits', async () => {

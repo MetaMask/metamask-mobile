@@ -44,7 +44,10 @@ import {
 import type { PredictFeatureFlags } from '../types/flags';
 
 import { PREDICT_ERROR_CODES } from '../constants/errors';
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
+import {
+  MATIC_CONTRACTS_V2,
+  POLYMARKET_PROVIDER_ID,
+} from '../providers/polymarket/constants';
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
 
@@ -280,6 +283,8 @@ describe('PredictController', () => {
       getCryptoTargetPrice: jest.fn(),
       invalidateAccountState: jest.fn(),
       beforePublishDepositWalletDeposit: jest.fn(),
+      beforeSignClaim: jest.fn(),
+      publishClaim: jest.fn(),
       syncDepositWalletBalanceAllowanceForDepositTransaction: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
@@ -289,6 +294,9 @@ describe('PredictController', () => {
     mockPolymarketProvider.syncDepositWalletBalanceAllowanceForDepositTransaction.mockResolvedValue(
       undefined,
     );
+    mockPolymarketProvider.publishClaim?.mockResolvedValue({
+      transactionHash: undefined,
+    });
 
     // Default safe mocks for async fire-and-forget methods
     // (prevents unhandled rejections when payWithAnyTokenConfirmation is
@@ -2732,7 +2740,14 @@ describe('PredictController', () => {
             address: '0x1234567890123456789012345678901234567890',
           }),
         });
-        expect(addTransactionBatch).toHaveBeenCalled();
+        expect(addTransactionBatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            disableHook: true,
+            disableSequential: true,
+            gasFeeToken: MATIC_CONTRACTS_V2.collateral,
+            skipInitialGasEstimate: true,
+          }),
+        );
       });
     });
 
@@ -6521,6 +6536,157 @@ describe('PredictController', () => {
         });
 
         expect(result).toBeUndefined();
+      });
+    });
+
+    it('delegates pending claim beforeSign even when no withdraw state exists', async () => {
+      const updateTransaction = jest.fn();
+      (mockPolymarketProvider.beforeSignClaim as jest.Mock).mockResolvedValue({
+        updateTransaction,
+      });
+
+      await withController(async ({ controller }) => {
+        const claimablePositions = [createMockPosition({ claimable: true })];
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims[MOCK_ADDRESS] = 'batch-claim';
+          state.claimablePositions[MOCK_ADDRESS] = claimablePositions;
+        });
+
+        const transactionMeta = {
+          ...mockTransactionMeta,
+          batchId: 'batch-claim',
+          nestedTransactions: [
+            {
+              id: 'nested-claim',
+              type: TransactionType.predictClaim,
+              data: '0xclaim' as `0x${string}`,
+            },
+          ],
+        } as unknown as TransactionMeta;
+
+        const result = await controller.beforeSign({ transactionMeta });
+
+        expect(result).toEqual({ updateTransaction });
+        expect(mockPolymarketProvider.beforeSignClaim).toHaveBeenCalledWith({
+          transactionMeta,
+          signer: expect.objectContaining({ address: MOCK_ADDRESS }),
+          positions: claimablePositions,
+        });
+        expect(
+          (mockPolymarketProvider.beforeSignClaim as jest.Mock).mock.calls[0][0]
+            .positions,
+        ).not.toBe(claimablePositions);
+      });
+    });
+
+    it('throws when pending claim has no claimable positions', async () => {
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims[MOCK_ADDRESS] = 'batch-claim';
+          state.claimablePositions[MOCK_ADDRESS] = [];
+        });
+
+        await expect(
+          controller.beforeSign({
+            transactionMeta: {
+              ...mockTransactionMeta,
+              batchId: 'batch-claim',
+              nestedTransactions: [
+                {
+                  type: TransactionType.predictClaim,
+                  data: '0xclaim' as `0x${string}`,
+                },
+              ],
+            } as unknown as TransactionMeta,
+          }),
+        ).rejects.toThrow('No claimable positions found for pending claim');
+      });
+    });
+  });
+
+  describe('publish', () => {
+    const claimTransactionMeta = {
+      id: 'tx-claim',
+      batchId: 'batch-claim',
+      txParams: {
+        from: MOCK_ADDRESS,
+        to: '0xTarget',
+        data: '0xdata',
+        value: '0x0',
+      },
+      nestedTransactions: [
+        {
+          id: 'nested-claim',
+          type: TransactionType.predictClaim,
+          data: '0xclaim' as `0x${string}`,
+        },
+      ],
+    } as unknown as TransactionMeta;
+
+    it('passes through non-claim transactions', async () => {
+      await withController(async ({ controller }) => {
+        const result = await controller.publish({
+          transactionMeta: {
+            ...claimTransactionMeta,
+            nestedTransactions: [],
+          },
+        });
+
+        expect(result).toEqual({ transactionHash: undefined });
+        expect(mockPolymarketProvider.publishClaim).not.toHaveBeenCalled();
+      });
+    });
+
+    it('delegates pending claims to provider.publishClaim', async () => {
+      (mockPolymarketProvider.publishClaim as jest.Mock).mockResolvedValue({
+        transactionHash:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        isIntentComplete: true,
+      });
+
+      await withController(async ({ controller }) => {
+        const claimablePositions = [createMockPosition({ claimable: true })];
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims[MOCK_ADDRESS.toUpperCase()] = 'batch-claim';
+          state.claimablePositions[MOCK_ADDRESS.toUpperCase()] =
+            claimablePositions;
+        });
+
+        const result = await controller.publish({
+          transactionMeta: claimTransactionMeta,
+        });
+
+        expect(result).toEqual({
+          transactionHash:
+            '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          isIntentComplete: true,
+        });
+        expect(mockPolymarketProvider.publishClaim).toHaveBeenCalledWith({
+          transactionMeta: claimTransactionMeta,
+          signer: expect.objectContaining({ address: MOCK_ADDRESS }),
+          positions: claimablePositions,
+        });
+        expect(
+          (mockPolymarketProvider.publishClaim as jest.Mock).mock.calls[0][0]
+            .positions,
+        ).not.toBe(claimablePositions);
+      });
+    });
+
+    it('throws on pending claim batch mismatch', async () => {
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims[MOCK_ADDRESS] = 'different-batch';
+          state.claimablePositions[MOCK_ADDRESS] = [
+            createMockPosition({ claimable: true }),
+          ];
+        });
+
+        await expect(
+          controller.publish({ transactionMeta: claimTransactionMeta }),
+        ).rejects.toThrow(
+          'Pending claim batch does not match transaction batch',
+        );
       });
     });
   });

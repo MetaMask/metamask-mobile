@@ -95,7 +95,9 @@ const MOCK_TRANSACTION_META = {
 function buildControllerMock(
   partialMock?: Partial<NetworkController>,
 ): NetworkController {
-  const defaultControllerMocks = {};
+  const defaultControllerMocks = {
+    publish: jest.fn().mockResolvedValue({ transactionHash: undefined }),
+  };
 
   // @ts-expect-error Incomplete mock, just includes properties used by code-under-test.
   return {
@@ -359,6 +361,128 @@ describe('Transaction Controller Init', () => {
       await hooks?.publish?.(MOCK_TRANSACTION_META);
 
       expect(payHookMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls Predict publish before pay hook and continues on passthrough', async () => {
+      const predictPublishMock = jest
+        .fn()
+        .mockResolvedValue({ transactionHash: undefined });
+      const hooks = testConstructorOption('hooks', {
+        publish: predictPublishMock,
+      });
+
+      await hooks?.publish?.(MOCK_TRANSACTION_META);
+
+      expect(predictPublishMock).toHaveBeenCalledWith({
+        transactionMeta: MOCK_TRANSACTION_META,
+      });
+      expect(payHookMock).toHaveBeenCalledTimes(1);
+      expect(predictPublishMock.mock.invocationCallOrder[0]).toBeLessThan(
+        payHookMock.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('short-circuits publish when Predict returns a transaction hash', async () => {
+      const predictPublishMock = jest.fn().mockResolvedValue({
+        transactionHash:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      });
+      const hooks = testConstructorOption('hooks', {
+        publish: predictPublishMock,
+      });
+
+      const result = await hooks?.publish?.(MOCK_TRANSACTION_META);
+
+      expect(result).toEqual({
+        transactionHash:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      });
+      expect(payHookMock).not.toHaveBeenCalled();
+      expect(submitSmartTransactionHookMock).not.toHaveBeenCalled();
+    });
+
+    it('marks latest Predict transaction intent complete before returning hash', async () => {
+      const predictPublishMock = jest.fn().mockResolvedValue({
+        transactionHash:
+          '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        isIntentComplete: true,
+      });
+      const latestMeta = {
+        ...MOCK_TRANSACTION_META,
+        txParams: { from: '0x456' },
+      };
+      const getTransactionByIdMock = jest.requireMock(
+        '../../../../util/transactions',
+      ).getTransactionById;
+      getTransactionByIdMock.mockReturnValueOnce(latestMeta);
+
+      const hooks = testConstructorOption('hooks', {
+        publish: predictPublishMock,
+      });
+
+      const result = await hooks?.publish?.(MOCK_TRANSACTION_META);
+      const transactionControllerInstance =
+        transactionControllerClassMock.mock.instances[0];
+
+      expect(result).toEqual({
+        transactionHash:
+          '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      });
+      expect(getTransactionByIdMock).toHaveBeenCalledWith(
+        MOCK_TRANSACTION_META.id,
+        transactionControllerInstance,
+      );
+      expect(
+        transactionControllerInstance.updateTransaction,
+      ).toHaveBeenCalledWith(
+        {
+          ...latestMeta,
+          isIntentComplete: true,
+        },
+        'Predict claim relayer intent complete',
+      );
+    });
+
+    it('returns Predict hash without throwing when latest transaction is missing', async () => {
+      const predictPublishMock = jest.fn().mockResolvedValue({
+        transactionHash:
+          '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+        isIntentComplete: true,
+      });
+      const getTransactionByIdMock = jest.requireMock(
+        '../../../../util/transactions',
+      ).getTransactionById;
+      getTransactionByIdMock.mockReturnValueOnce(undefined);
+
+      const hooks = testConstructorOption('hooks', {
+        publish: predictPublishMock,
+      });
+
+      const result = await hooks?.publish?.(MOCK_TRANSACTION_META);
+      const transactionControllerInstance =
+        transactionControllerClassMock.mock.instances[0];
+
+      expect(result).toEqual({
+        transactionHash:
+          '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+      });
+      expect(
+        transactionControllerInstance.updateTransaction,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('propagates Predict publish errors', async () => {
+      const predictPublishMock = jest
+        .fn()
+        .mockRejectedValue(new Error('predict publish failed'));
+      const hooks = testConstructorOption('hooks', {
+        publish: predictPublishMock,
+      });
+
+      await expect(hooks?.publish?.(MOCK_TRANSACTION_META)).rejects.toThrow(
+        'predict publish failed',
+      );
+      expect(payHookMock).not.toHaveBeenCalled();
     });
 
     it('passes isSmartTransaction returning false to pay hook when stxDisabled is true', async () => {
