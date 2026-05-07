@@ -13,7 +13,7 @@ import {
   GasFeeTokenFlags,
   selectPayQuoteConfig,
   selectMetaMaskPayFiatFlags,
-  PAY_FIAT_ENABLED_DEFAULT,
+  PAY_FIAT_ENABLED_TRANSACTION_TYPES,
   selectMetaMaskPayHardwareFlags,
   PAY_HARDWARE_ENABLED_DEFAULT,
   PreferredToken,
@@ -507,18 +507,22 @@ describe('getPreferredTokensForTransactionType', () => {
 describe('selectMetaMaskPayFiatFlags', () => {
   it('returns default when flag is absent', () => {
     expect(selectMetaMaskPayFiatFlags(mockedEmptyFlagsState)).toEqual({
-      enabled: PAY_FIAT_ENABLED_DEFAULT,
+      enabledTransactionTypes: PAY_FIAT_ENABLED_TRANSACTION_TYPES,
     });
   });
 
-  it('returns enabled from flag value', () => {
+  it('returns enabledTransactionTypes from flag value', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmations_pay_fiat: { enabled: true },
+        confirmations_pay_fiat: {
+          enabledTransactionTypes: ['simpleSend', 'swap'],
+        },
       };
 
-    expect(selectMetaMaskPayFiatFlags(state)).toEqual({ enabled: true });
+    expect(selectMetaMaskPayFiatFlags(state)).toEqual({
+      enabledTransactionTypes: ['simpleSend', 'swap'],
+    });
   });
 });
 
