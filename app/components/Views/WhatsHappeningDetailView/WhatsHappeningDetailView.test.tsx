@@ -175,11 +175,11 @@ describe('WhatsHappeningDetailView', () => {
     });
     renderWithProvider(<WhatsHappeningDetailView />);
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_CARD_VIEWED,
+      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_CARD_VIEWED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
         properties: expect.objectContaining({
           trend_id: mockItem.id,
           card_index: 0,
@@ -203,7 +203,7 @@ describe('WhatsHappeningDetailView', () => {
     const viewedCalls = mockCreateEventBuilder.mock.calls.filter(
       ([name]) =>
         name ===
-        (MetaMetricsEvents.WHATS_HAPPENING_CARD_VIEWED as unknown as string),
+        (MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED as unknown as string),
     );
     expect(viewedCalls).toHaveLength(1);
   });
@@ -230,11 +230,11 @@ describe('WhatsHappeningDetailView', () => {
       nativeEvent: { contentOffset: { x: SNAP_INTERVAL_FOR_TEST } },
     });
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_CARD_VIEWED,
+      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_CARD_VIEWED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
         properties: expect.objectContaining({
           trend_id: 'trend-1',
           card_index: 1,

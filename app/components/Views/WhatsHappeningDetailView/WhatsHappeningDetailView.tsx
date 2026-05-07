@@ -93,7 +93,7 @@ const WhatsHappeningDetailView = () => {
     ) {
       hasTrackedViewRef.current = true;
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_CARD_VIEWED)
+        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED)
           .addProperties(
             getWhatsHappeningEventProps(items[initialIndex], initialIndex),
           )
@@ -127,7 +127,7 @@ const WhatsHappeningDetailView = () => {
         const newItem = items[index];
         if (newItem) {
           trackEvent(
-            createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_CARD_VIEWED)
+            createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED)
               .addProperties(getWhatsHappeningEventProps(newItem, index))
               .build(),
           );
