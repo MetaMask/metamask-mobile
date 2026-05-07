@@ -8427,7 +8427,6 @@
       "empty": "Sie haben keine Positionen",
       "empty_description": "Sammeln Sie Belohnungen, indem Sie eine Position in tokenisierten realen Assets eröffnen.",
       "empty_cta": "Eine Position öffnen",
-      "position_units": "{{units}} Aktien",
       "positions_title": "Positionen",
       "activity_title": "Aktivität",
       "view_activity": "Aktivität anzeigen",
