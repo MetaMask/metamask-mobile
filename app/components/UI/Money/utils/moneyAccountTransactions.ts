@@ -171,16 +171,21 @@ export async function buildMoneyAccountDepositBatch({
 }): Promise<MoneyAccountDepositBatchResult> {
   const musdAddress = getMoneyAccountDepositAssetAddress(chainId);
 
-  const expectedShares = await getExpectedDepositShares({
-    lensAddress,
-    boringVault,
-    accountantAddress,
-    musdAddress,
-    amount,
-    provider,
-  });
+  // Skip the RPC call for zero-amount placeholder batches (e.g. initial deposit submission).
+  const minimumMint =
+    amount === 0n
+      ? 0n
+      : applySlippage(
+          await getExpectedDepositShares({
+            lensAddress,
+            boringVault,
+            accountantAddress,
+            musdAddress,
+            amount,
+            provider,
+          }),
+        );
 
-  const minimumMint = applySlippage(expectedShares);
   const approveData = buildApproveData(boringVault, amount);
   const depositData = buildDepositData(musdAddress, amount, minimumMint);
 
@@ -208,16 +213,47 @@ export async function buildMoneyAccountDepositBatch({
  * Returns the per-nested-call data updates required when the user changes
  * the deposit amount on a Money Account deposit confirmation.
  *
- * Stub implementation — real encoding will replace this once the deposit
- * batch re-encoding logic is wired in.
+ * Reads vault config from the Redux store, calls `previewDeposit` on the
+ * lens contract to derive an accurate `minimumMint`, and returns the
+ * re-encoded approve + deposit calldata ready for `updateAtomicBatchData`.
+ *
+ * Returns `[]` (no-op) if vault config or provider is unavailable.
+ * Lets `buildMoneyAccountDepositBatch` errors propagate so the dispatcher
+ * can log them via its prep-error handler.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function updateMoneyAccountDepositTokenAmount(
-  _transactionMeta: TransactionMeta,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _amountHuman: string,
+  transactionMeta: TransactionMeta,
+  amountHuman: string,
 ): Promise<UpdateTransactionPayAmountCall[]> {
-  return [];
+  const vaultConfig = selectMoneyAccountVaultConfig(
+    ReduxService.store.getState() as RootState,
+  );
+  if (!vaultConfig) return [];
+
+  const chainIdHex = transactionMeta.chainId as Hex;
+  const provider = getProviderByChainId(chainIdHex);
+  if (!provider) return [];
+
+  const amount = BigInt(
+    calcTokenValue(amountHuman, MUSD_DECIMALS)
+      .decimalPlaces(0, BigNumber.ROUND_UP)
+      .toFixed(0),
+  );
+
+  const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
+    amount,
+    chainId: chainIdHex,
+    boringVault: vaultConfig.boringVault,
+    tellerAddress: vaultConfig.tellerAddress,
+    accountantAddress: vaultConfig.accountantAddress,
+    lensAddress: vaultConfig.lensAddress,
+    provider,
+  });
+
+  return [
+    { nestedTransactionIndex: 0, transactionData: approveTx.params.data },
+    { nestedTransactionIndex: 1, transactionData: depositTx.params.data },
+  ];
 }
 
 /**

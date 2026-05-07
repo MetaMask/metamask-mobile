@@ -158,7 +158,7 @@ describe('useMoneyAccountDeposit', () => {
 
     await expect(
       act(async () => {
-        await result.current.initiateDeposit(BigInt(1_000_000));
+        await result.current.initiateDeposit();
       }),
     ).rejects.toThrow('Missing vault config');
 
@@ -173,7 +173,7 @@ describe('useMoneyAccountDeposit', () => {
 
     await expect(
       act(async () => {
-        await result.current.initiateDeposit(BigInt(1_000_000));
+        await result.current.initiateDeposit();
       }),
     ).rejects.toThrow('No provider available');
 
@@ -184,12 +184,12 @@ describe('useMoneyAccountDeposit', () => {
     const { result } = renderHook(() => useMoneyAccountDeposit());
 
     await act(async () => {
-      await result.current.initiateDeposit(BigInt(1_000_000));
+      await result.current.initiateDeposit();
     });
 
     expect(mockBuildDepositBatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        amount: BigInt(1_000_000),
+        amount: BigInt(0),
         chainId: MOCK_VAULT_CONFIG.chainId,
         boringVault: MOCK_VAULT_CONFIG.boringVault,
       }),
@@ -220,7 +220,7 @@ describe('useMoneyAccountDeposit', () => {
     let caught: Error | undefined;
     await act(async () => {
       try {
-        await result.current.initiateDeposit(BigInt(1_000_000));
+        await result.current.initiateDeposit();
       } catch (error) {
         caught = error as Error;
       }
@@ -242,7 +242,7 @@ describe('useMoneyAccountDeposit', () => {
 
     await expect(
       act(async () => {
-        await result.current.initiateDeposit(BigInt(1_000_000));
+        await result.current.initiateDeposit();
       }),
     ).rejects.toThrow('Network client not found');
 

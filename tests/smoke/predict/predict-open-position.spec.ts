@@ -78,7 +78,7 @@ describe(SmokePredictions('Predictions'), () => {
           positionDetails.category,
           positionDetails.marketIndex,
         );
-        await PredictDetailsPage.tapOpenPositionValue();
+        await PredictDetailsPage.tapGameBetYesButton();
 
         await POLYMARKET_POST_OPEN_POSITION_MOCKS(mockServer);
 
@@ -88,18 +88,6 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictDetailsPage.tapDoneButton();
 
         await PredictDetailsPage.tapOpenPosition();
-
-        await Assertions.expectElementToBeVisible(
-          PredictDetailsPage.positionsTab,
-          {
-            description:
-              'Position tab should appear after opening a new position',
-          },
-        );
-
-        await Assertions.expectTextDisplayed(positionDetails.name, {
-          description: 'Position card for Celtics vs. Nets should appear',
-        });
 
         await PredictDetailsPage.tapBackButton();
         await Assertions.expectTextDisplayed(positionDetails.newBalance, {

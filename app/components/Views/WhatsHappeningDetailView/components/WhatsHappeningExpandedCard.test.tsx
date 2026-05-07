@@ -8,6 +8,18 @@ import Routes from '../../../../constants/navigation/Routes';
 const mockNavigate = jest.fn();
 const mockGoToBuy = jest.fn();
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn((eventName: string) => ({
+      addProperties: jest.fn(() => ({
+        build: jest.fn(() => ({ category: eventName })),
+      })),
+      build: jest.fn(() => ({ category: eventName })),
+    })),
+  }),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -81,6 +93,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={baseItem}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -93,6 +106,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={baseItem}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -105,6 +119,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -117,6 +132,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -131,6 +147,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -145,6 +162,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -158,6 +176,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -172,6 +191,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -185,6 +205,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -200,6 +221,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -214,6 +236,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={baseItem}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
@@ -227,6 +250,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
       />,
