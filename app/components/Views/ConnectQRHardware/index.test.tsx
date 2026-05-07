@@ -508,7 +508,9 @@ describe('ConnectQRHardware', () => {
     );
 
     await act(async () => {
-      fireEvent.press(getByTestId(QR_CONTINUE_BUTTON));
+      fireEvent.press(
+        getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON),
+      );
     });
 
     await act(async () => {
