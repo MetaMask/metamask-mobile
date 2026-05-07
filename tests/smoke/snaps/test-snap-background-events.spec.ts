@@ -9,8 +9,6 @@ import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { TestSnapResultSelectorWebIDS } from '../../selectors/Browser/TestSnaps.selectors';
 
-jest.setTimeout(150_000);
-
 describe(SmokeSnaps('Background Events Snap Tests'), () => {
   it('can connect to the background events Snap', async () => {
     await withFixtures(

@@ -6,8 +6,6 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
 
-jest.setTimeout(150_000);
-
 describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
   it('can connect to BIP-32 snap', async () => {
     await withFixtures(

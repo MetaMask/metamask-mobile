@@ -6,8 +6,6 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
 
-jest.setTimeout(150_000);
-
 /**
  * The account-activity mock WebSocket (started with default fixtures) keeps the
  * iOS UI busy in Detox's view; disable sync for the test body so gestures and
