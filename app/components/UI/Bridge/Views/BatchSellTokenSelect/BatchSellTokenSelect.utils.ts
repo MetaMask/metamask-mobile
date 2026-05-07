@@ -49,11 +49,19 @@ function getChecksummedEvmAssetId(assetId: CaipAssetType): CaipAssetType {
   }
 }
 
+/**
+ * Returns the first destination stablecoin for a chain that has local metadata.
+ *
+ * `stablecoinsByChain` comes from the batch sell feature flag and is ordered by
+ * preference. This helper walks that ordered list and returns the first asset ID
+ * that exists in `BridgeTokenMetadata`; if none of the configured assets have
+ * metadata, there is no displayable destination token yet.
+ */
 export function getBatchSellDestinationToken(
-  sourceToken: BridgeToken,
+  chainId: BridgeToken['chainId'],
   stablecoinsByChain: Record<CaipChainId, CaipAssetType[]>,
 ): BridgeToken | undefined {
-  const caipChainId = formatChainIdToCaip(sourceToken.chainId);
+  const caipChainId = formatChainIdToCaip(chainId);
   const stablecoinAssetIds = stablecoinsByChain[caipChainId] ?? [];
 
   for (const stablecoinAssetId of stablecoinAssetIds) {

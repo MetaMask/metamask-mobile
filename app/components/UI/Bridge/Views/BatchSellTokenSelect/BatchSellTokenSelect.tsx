@@ -205,7 +205,7 @@ export function BatchSellTokenSelect() {
         params: {
           sourceToken,
           destToken: getBatchSellDestinationToken(
-            sourceToken,
+            sourceToken.chainId,
             stablecoinsByChain,
           ),
         },

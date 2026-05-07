@@ -11,6 +11,7 @@ import { BatchSellTokenSelect } from './BatchSellTokenSelect';
 import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
 import {
   buildBatchSellEligibleChains,
+  getBatchSellDestinationToken,
   removeStablecoinsFromSourceTokens,
   MAX_BATCH_SELL_SOURCE_TOKENS,
   SUPPORTED_BATCH_SELL_CHAIN_IDS,
@@ -476,6 +477,37 @@ describe('buildBatchSellEligibleNetworks', () => {
       'eip155:8453',
       'eip155:1',
     ]);
+  });
+});
+
+describe('getBatchSellDestinationToken', () => {
+  const usdcAssetId =
+    'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+  const unknownStablecoinAssetId =
+    'eip155:1/erc20:0x0000000000000000000000000000000000000001' as CaipAssetType;
+
+  it('returns the first configured stablecoin with local metadata', () => {
+    const result = getBatchSellDestinationToken('0x1' as Hex, {
+      ['eip155:1' as CaipChainId]: [unknownStablecoinAssetId, usdcAssetId],
+    });
+
+    expect(result).toEqual(BridgeTokenMetadata[usdcAssetId]);
+  });
+
+  it('returns undefined when no configured stablecoin has local metadata', () => {
+    const result = getBatchSellDestinationToken('0x1' as Hex, {
+      ['eip155:1' as CaipChainId]: [unknownStablecoinAssetId],
+    });
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the chain has no configured stablecoins', () => {
+    const result = getBatchSellDestinationToken('0x38' as Hex, {
+      ['eip155:1' as CaipChainId]: [usdcAssetId],
+    });
+
+    expect(result).toBeUndefined();
   });
 });
 
