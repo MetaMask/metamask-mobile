@@ -6,7 +6,7 @@ Renders a Braze-managed HTML banner for a given placement ID. Visibility is driv
 
 `setBrazeUser()` must be called before this component is mounted. It identifies the current user with Braze and calls `requestBannersRefresh`, which causes the SDK to emit `bannerCardsUpdated` with fresh server data.
 
-Returning users with a cached banner will see it immediately via the warm-cache probe regardless of `setBrazeUser()` timing. The skeleton-persistence risk applies only to first-time users who have no local cache — without `setBrazeUser()`, the skeleton may persist until the 5-second timeout elapses.
+Returning users with a cached banner will see it immediately via the warm-cache probe regardless of `setBrazeUser()` timing. First-time users with no local cache will see nothing until a `bannerCardsUpdated` event arrives; without `setBrazeUser()`, the component stays invisible until the 5-second timeout elapses and transitions to `empty`.
 
 ## Props
 
@@ -22,12 +22,14 @@ The Braze placement ID this banner should render for. Must match the placement c
 
 The banner moves through four states managed by `useBrazeBanner`:
 
-| State       | UI                       | Transition                                                    |
-| ----------- | ------------------------ | ------------------------------------------------------------- |
-| `loading`   | Skeleton shown           | → `visible` when a valid banner arrives; → `empty` on timeout |
-| `visible`   | WebView + dismiss button | → `dismissed` when user taps the close button                 |
-| `empty`     | Nothing rendered         | Terminal                                                      |
-| `dismissed` | Nothing rendered         | Terminal for the session                                      |
+| State       | UI                                | Transition                                                    |
+| ----------- | --------------------------------- | ------------------------------------------------------------- |
+| `loading`   | Nothing rendered (see note below) | → `visible` when a valid banner arrives; → `empty` on timeout |
+| `visible`   | BrazeBannerCard rendered          | → `dismissed` when user taps the close button                 |
+| `empty`     | Nothing rendered                  | Terminal                                                      |
+| `dismissed` | Nothing rendered                  | Terminal for the session                                      |
+
+> **Why no loading skeleton?** At mount time it is unknown whether the current user has a banner assigned. Showing a skeleton and then removing it — with nothing taking its place — is not ideal. The component renders nothing during `loading` and the banner only appears if a valid banner arrives.
 
 ### Why a banner transitions to `empty`
 
