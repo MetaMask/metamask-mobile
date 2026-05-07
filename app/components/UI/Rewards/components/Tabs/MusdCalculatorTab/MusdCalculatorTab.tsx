@@ -1,5 +1,11 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { Keyboard, Pressable, ScrollView, TextInput } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -78,10 +84,22 @@ const SLIDER_ROW_HEIGHT = 32;
 /** ms between JS amount updates while dragging — keeps labels in sync without a re-render every frame */
 const SLIDER_AMOUNT_THROTTLE_MS = 48;
 
+const normalizeAmountInput = (value: string) => {
+  const numeric = value.replace(/[^0-9.]/g, '');
+  const [whole = '', ...decimalParts] = numeric.split('.');
+
+  if (decimalParts.length === 0) {
+    return whole;
+  }
+
+  return `${whole}.${decimalParts.join('')}`;
+};
+
 const MusdCalculatorTab: React.FC = () => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [amount, setAmount] = useState(1000);
+  const amountRef = useRef(1000);
 
   const thumbScale = useSharedValue(1);
   const trackWidthShared = useSharedValue(0);
@@ -99,6 +117,18 @@ const MusdCalculatorTab: React.FC = () => {
     (value: number) => formatFiat(new BigNumber(value)),
     [formatFiat],
   );
+  const [amountInputValue, setAmountInputValue] = useState(() =>
+    formatCurrency(1000),
+  );
+  const [isAmountInputFocused, setIsAmountInputFocused] = useState(false);
+
+  useEffect(() => {
+    amountRef.current = amount;
+    if (!isAmountInputFocused) {
+      setAmountInputValue(formatCurrency(amount));
+    }
+    thumbLinearPctShared.value = amountToPercent(amount);
+  }, [amount, formatCurrency, isAmountInputFocused, thumbLinearPctShared]);
 
   const scaleMinLabel = useMemo(
     () => formatCurrency(SNAP_POINTS[0]),
@@ -230,6 +260,25 @@ const MusdCalculatorTab: React.FC = () => {
     goToSwaps();
   }, [goToSwaps, trackEvent, createEventBuilder]);
 
+  const handleAmountInputFocus = useCallback(() => {
+    setIsAmountInputFocused(true);
+    setAmountInputValue(String(amount));
+  }, [amount]);
+
+  const handleAmountInputChange = useCallback((value: string) => {
+    const normalizedValue = normalizeAmountInput(value);
+    setAmountInputValue(normalizedValue);
+
+    const nextAmount = Number(normalizedValue);
+    amountRef.current = Number.isFinite(nextAmount) ? nextAmount : 0;
+    setAmount(amountRef.current);
+  }, []);
+
+  const handleAmountInputEndEditing = useCallback(() => {
+    setIsAmountInputFocused(false);
+    setAmountInputValue(formatCurrency(amountRef.current));
+  }, [formatCurrency]);
+
   return (
     <ScrollView
       style={tw.style('flex-1')}
@@ -322,13 +371,22 @@ const MusdCalculatorTab: React.FC = () => {
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('rewards.musd.slider_amount_label')}
               </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
+              <TextInput
+                keyboardType="numeric"
+                returnKeyType="done"
+                onFocus={handleAmountInputFocus}
+                onChangeText={handleAmountInputChange}
+                onEndEditing={handleAmountInputEndEditing}
+                onSubmitEditing={Keyboard.dismiss}
+                blurOnSubmit
+                selectTextOnFocus
+                value={amountInputValue}
+                accessibilityLabel={strings('rewards.musd.slider_amount_label')}
                 testID="musd-slider-amount-display"
-              >
-                {formatCurrency(amount)}
-              </Text>
+                style={tw.style(
+                  'min-w-[96px] p-0 text-right text-base font-medium text-default',
+                )}
+              />
             </Box>
 
             <GestureDetector gesture={panGesture}>

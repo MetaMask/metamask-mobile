@@ -137,7 +137,8 @@ describe('MusdCalculatorTab', () => {
     });
 
     await waitFor(() => {
-      expect(getByTestId('musd-slider-amount-display')).toHaveTextContent(
+      expect(getByTestId('musd-slider-amount-display')).toHaveProp(
+        'value',
         '$5,000',
       );
       expect(
@@ -148,6 +149,38 @@ describe('MusdCalculatorTab', () => {
       ).toBeNull();
       expect(getByText(/\$0\.41/)).toBeOnTheScreen();
       expect(getByText(/\$150/)).toBeOnTheScreen();
+    });
+  });
+
+  it('allows editing the amount and updates earnings from typed values', async () => {
+    const { getByTestId, getByText } = render(<MusdCalculatorTab />);
+    const amountInput = getByTestId('musd-slider-amount-display');
+
+    fireEvent(amountInput, 'focus');
+    fireEvent.changeText(amountInput, '5000');
+
+    await waitFor(() => {
+      expect(amountInput).toHaveProp('value', '5000');
+      expect(getByText(/\$150/)).toBeOnTheScreen();
+    });
+
+    fireEvent(amountInput, 'endEditing');
+
+    await waitFor(() => {
+      expect(amountInput).toHaveProp('value', '$5,000');
+    });
+  });
+
+  it('accepts amounts over the slider maximum', async () => {
+    const { getByTestId, getByText } = render(<MusdCalculatorTab />);
+    const amountInput = getByTestId('musd-slider-amount-display');
+
+    fireEvent(amountInput, 'focus');
+    fireEvent.changeText(amountInput, '12000');
+
+    await waitFor(() => {
+      expect(amountInput).toHaveProp('value', '12000');
+      expect(getByText(/\$360/)).toBeOnTheScreen();
     });
   });
 });
