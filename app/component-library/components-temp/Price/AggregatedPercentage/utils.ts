@@ -4,13 +4,15 @@ import { formatWithThreshold } from '../../../../util/assets';
 import { renderFiat } from '../../../../util/number/bigint';
 import { TextColor } from '../../../components/Texts/Text';
 
+type RenderFiatCurrencyCode = Parameters<typeof renderFiat>[1];
+
 export const getFormattedAmountChange = (
   input: number,
   currentCurrency: string,
 ) =>
   `${input >= 0 ? '+' : ''}${renderFiat(
     input,
-    currentCurrency,
+    currentCurrency as RenderFiatCurrencyCode,
     DECIMALS_TO_SHOW,
   )} `;
 
