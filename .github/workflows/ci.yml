@@ -94,10 +94,19 @@ jobs:
       - get_requirements
     steps:
       - uses: actions/checkout@v6
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -130,10 +139,19 @@ jobs:
       - get_requirements
     steps:
       - uses: actions/checkout@v6
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -170,10 +188,19 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 2
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -205,10 +232,19 @@ jobs:
       statuses: write
     steps:
       - uses: actions/checkout@v6
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -469,10 +505,19 @@ jobs:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
       - uses: actions/checkout@v6
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -488,7 +533,7 @@ jobs:
       # in sync with the length of matrix.shard
       - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
-          NODE_OPTIONS: --max_old_space_size=20480
+          NODE_OPTIONS: ${{ inputs.runner_provider == 'namespace' && '--max_old_space_size=12288' || '--max_old_space_size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
@@ -520,7 +565,17 @@ jobs:
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v6
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - name: Restore node_modules cache
+        if: ${{ inputs.runner_provider != 'namespace' }}
         id: cache-node-modules
         uses: actions/cache@v4
         with:
@@ -531,9 +586,9 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        if: ${{ inputs.runner_provider == 'namespace' || steps.cache-node-modules.outputs.cache-hit != 'true' }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
@@ -641,7 +696,17 @@ jobs:
         shard: [1, 2]
     steps:
       - uses: actions/checkout@v6
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - name: Restore node_modules cache
+        if: ${{ inputs.runner_provider != 'namespace' }}
         id: cache-node-modules
         uses: actions/cache@v4
         with:
@@ -652,9 +717,9 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        if: ${{ inputs.runner_provider == 'namespace' || steps.cache-node-modules.outputs.cache-hit != 'true' }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
@@ -671,7 +736,7 @@ jobs:
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
-          NODE_OPTIONS: --max-old-space-size=20480
+          NODE_OPTIONS: ${{ inputs.runner_provider == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
@@ -860,6 +925,15 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
