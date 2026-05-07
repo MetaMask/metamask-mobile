@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { mockTheme } from '../../../../../../util/theme';
 import { Theme } from '../../../../../../util/theme/models';
 import styleSheet from './custom-amount-info.styles';
 
@@ -19,7 +20,7 @@ describe('custom-amount-info.styles', () => {
         writable: true,
       });
 
-      const styles = styleSheet({ theme: {} as Theme });
+      const styles = styleSheet({ theme: mockTheme as Theme });
 
       expect(styles.extraBottomPadding.paddingBottom).toBe(56);
     });
@@ -30,7 +31,7 @@ describe('custom-amount-info.styles', () => {
         writable: true,
       });
 
-      const styles = styleSheet({ theme: {} as Theme });
+      const styles = styleSheet({ theme: mockTheme as Theme });
 
       expect(styles.extraBottomPadding.paddingBottom).toBe(0);
     });

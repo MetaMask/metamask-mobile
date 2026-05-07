@@ -56,6 +56,7 @@ interface TokensProps {
    * (e.g. network filter set to a chain without mUSD).
    */
   hasMusdBalanceOnAnyChain?: boolean;
+  listHeaderComponent?: React.ReactElement;
   listFooterComponent?: React.ReactElement;
   /**
    * Optional external RefreshControl. When provided, overrides the internal
@@ -69,6 +70,11 @@ interface TokensProps {
    * already handles its own loading state (e.g. CashTokensFullView).
    */
   hideLoadingSkeleton?: boolean;
+  /**
+   * When true, mUSD rows render only the native balance on the secondary row
+   * (no token price / 24h change). Used by the Money Hub.
+   */
+  hideSecondaryPriceRow?: boolean;
 }
 
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
@@ -77,9 +83,11 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       isFullView = false,
       showOnlyMusd = false,
       hasMusdBalanceOnAnyChain: hasMusdBalanceOnAnyChainProp,
+      listHeaderComponent,
       listFooterComponent,
       refreshControl,
       hideLoadingSkeleton = false,
+      hideSecondaryPriceRow = false,
     },
     ref,
   ) => {
@@ -269,8 +277,10 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
               setShowScamWarningModal={handleScamWarningModal}
               maxItems={maxItems}
               isFullView={isFullView}
+              listHeaderComponent={listHeaderComponent}
               listFooterComponent={listFooterComponent}
               refreshControl={refreshControl}
+              hideSecondaryPriceRow={hideSecondaryPriceRow}
             />
           </>
         );
@@ -278,9 +288,9 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
       const cashEmptyDescription =
         showOnlyMusd && hasMusdBalanceOnAnyChainProp
-          ? strings('homepage.sections.cash_empty_description_network_filter')
+          ? strings('homepage.sections.money_empty_description_network_filter')
           : showOnlyMusd
-            ? strings('homepage.sections.cash_empty_description')
+            ? strings('homepage.sections.money_empty_description')
             : undefined;
 
       const emptyState = (
@@ -293,13 +303,14 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         </Box>
       );
 
-      if (listFooterComponent || refreshControl) {
+      if (listHeaderComponent || listFooterComponent || refreshControl) {
         return (
           <ScrollView
             style={tw`flex-1`}
             showsVerticalScrollIndicator={false}
             refreshControl={refreshControl}
           >
+            {listHeaderComponent}
             {emptyState}
             {listFooterComponent}
           </ScrollView>
@@ -322,8 +333,10 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       handleScamWarningModal,
       maxItems,
       isGeoEligible,
+      listHeaderComponent,
       listFooterComponent,
       refreshControl,
+      hideSecondaryPriceRow,
     ]);
 
     return (
