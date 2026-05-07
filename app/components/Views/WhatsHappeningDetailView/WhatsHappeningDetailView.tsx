@@ -107,10 +107,7 @@ const WhatsHappeningDetailView = () => {
     if (visible) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_CLOSED)
-          .addProperties({
-            event_id: visible.id,
-            card_index: currentIndex,
-          })
+          .addProperties(getWhatsHappeningEventProps(visible, currentIndex))
           .build(),
       );
     }
