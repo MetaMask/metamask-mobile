@@ -272,7 +272,7 @@ describe('WhatsHappeningDetailView', () => {
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
     const carousel = screen.getByTestId('whats-happening-detail-carousel');
-    fireEvent(carousel, 'scroll', {
+    fireEvent(carousel, 'momentumScrollEnd', {
       nativeEvent: { contentOffset: { x: SNAP_INTERVAL_FOR_TEST, y: 0 } },
     });
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -302,7 +302,7 @@ describe('WhatsHappeningDetailView', () => {
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
     const carousel = screen.getByTestId('whats-happening-detail-carousel');
-    fireEvent(carousel, 'scroll', {
+    fireEvent(carousel, 'momentumScrollEnd', {
       nativeEvent: { contentOffset: { x: 0, y: 0 } },
     });
     expect(mockCreateEventBuilder).not.toHaveBeenCalled();

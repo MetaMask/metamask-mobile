@@ -146,17 +146,31 @@ const WhatsHappeningDetailView = () => {
     navigation.goBack();
   }, [navigation, items, currentIndex, trackEvent, createEventBuilder]);
 
+  // Updates the dot indicator live during the drag.
+  // Flips at 20% visibility (bias = 0.8) — responsive without being erratic.
+  // No analytics here: mid-drag index changes are not reliable view signals.
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = event.nativeEvent.contentOffset.x;
-      // Flip the dot when the incoming card is 20% visible (bias = 1 − 0.2).
-      // Using Math.floor with a bias is symmetric and avoids the direction
-      // tracking that caused erratic jumps with ceil/floor switching.
       const index = Math.max(
         0,
         Math.min(Math.floor(offsetX / SNAP_INTERVAL + 0.8), items.length - 1),
       );
+      setCurrentIndex(index);
+    },
+    [items.length],
+  );
 
+  // Fires analytics once the carousel has fully settled on a card.
+  // onMomentumScrollEnd always fires with snapToInterval, giving the true
+  // final position — immune to mid-drag back-and-forth inflation.
+  const handleScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offsetX = event.nativeEvent.contentOffset.x;
+      const index = Math.max(
+        0,
+        Math.min(Math.round(offsetX / SNAP_INTERVAL), items.length - 1),
+      );
       const prev = previousIndexRef.current;
       if (index !== prev) {
         const newItem = items[index];
@@ -169,8 +183,6 @@ const WhatsHappeningDetailView = () => {
         }
         previousIndexRef.current = index;
       }
-
-      setCurrentIndex(index);
     },
     [items, trackEvent, createEventBuilder],
   );
@@ -234,6 +246,7 @@ const WhatsHappeningDetailView = () => {
               onContentSizeChange={handleContentSizeChange}
               onScroll={handleScroll}
               scrollEventThrottle={16}
+              onMomentumScrollEnd={handleScrollEnd}
               testID="whats-happening-detail-carousel"
             >
               {cardHeight > 0 &&
