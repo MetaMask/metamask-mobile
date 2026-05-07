@@ -348,6 +348,25 @@ describe('HeadlessHost', () => {
       expect(screen.getByText('quote expired')).toBeOnTheScreen();
     });
 
+    it('surfaces limit failures as onError(LIMIT_EXCEEDED, ...)', async () => {
+      const limitError = new Error('Daily limit exceeded');
+      limitError.name = 'LimitExceededError';
+      mockContinueWithQuote.mockRejectedValueOnce(limitError);
+      const quote = buildNativeQuote();
+      const session = seedSession(quote);
+      const callbacks = session.callbacks;
+      renderHost({ headlessSessionId: session.id });
+      await waitFor(() => {
+        expect(callbacks.onError).toHaveBeenCalledWith({
+          code: 'LIMIT_EXCEEDED',
+          message: 'Daily limit exceeded',
+        });
+      });
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
+      expect(getSession(session.id)).toBeUndefined();
+      expect(screen.getByText('Daily limit exceeded')).toBeOnTheScreen();
+    });
+
     it('does not run the continueWithQuote rejection path after unmount', async () => {
       let rejectDeferred: ((error: Error) => void) | undefined;
       mockContinueWithQuote.mockImplementation(
