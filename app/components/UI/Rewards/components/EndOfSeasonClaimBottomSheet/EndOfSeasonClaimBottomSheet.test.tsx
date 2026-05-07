@@ -146,6 +146,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactActual = jest.requireActual('react');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
 
@@ -210,6 +211,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     );
 
   return {
+    ...actual,
     Box,
     Text: TextComponent,
     Button,
@@ -270,40 +272,6 @@ jest.mock(
         children?: React.ReactNode;
         testID?: string;
       }) => ReactActual.createElement(View, { testID }, children),
-    };
-  },
-);
-
-// Mock HeaderCompactStandard
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        title,
-        onClose,
-        closeButtonProps,
-      }: {
-        title?: React.ReactNode;
-        onClose?: () => void;
-        closeButtonProps?: { testID?: string };
-      }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'bottom-sheet-header' },
-          ReactActual.createElement(Text, {}, title),
-          ReactActual.createElement(
-            TouchableOpacity,
-            {
-              onPress: onClose,
-              testID: closeButtonProps?.testID ?? 'close-button',
-            },
-            ReactActual.createElement(Text, {}, 'Close'),
-          ),
-        ),
     };
   },
 );
