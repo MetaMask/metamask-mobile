@@ -50,6 +50,7 @@ describe('useFiatPaymentHighlightedActions', () => {
 
     useMMPayFiatConfigMock.mockReturnValue({
       enabledTransactionTypes: [TRANSACTION_TYPE_MOCK],
+      maxDelayMinutesForPaymentMethods: 10,
     });
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
     useRampsPaymentMethodsMock.mockReturnValue({
@@ -64,6 +65,7 @@ describe('useFiatPaymentHighlightedActions', () => {
   it('returns empty array when transaction type is not in enabledTransactionTypes', () => {
     useMMPayFiatConfigMock.mockReturnValue({
       enabledTransactionTypes: [TransactionType.swap],
+      maxDelayMinutesForPaymentMethods: 10,
     });
 
     const { result } = renderHook(() => useFiatPaymentHighlightedActions());
@@ -74,6 +76,18 @@ describe('useFiatPaymentHighlightedActions', () => {
   it('returns empty array when enabledTransactionTypes is empty', () => {
     useMMPayFiatConfigMock.mockReturnValue({
       enabledTransactionTypes: [],
+      maxDelayMinutesForPaymentMethods: 10,
+    });
+
+    const { result } = renderHook(() => useFiatPaymentHighlightedActions());
+
+    expect(result.current).toEqual([]);
+  });
+
+  it('filters out payment methods whose upper delay exceeds maxDelayMinutesForPaymentMethods', () => {
+    useMMPayFiatConfigMock.mockReturnValue({
+      enabledTransactionTypes: [TRANSACTION_TYPE_MOCK],
+      maxDelayMinutesForPaymentMethods: 5,
     });
 
     const { result } = renderHook(() => useFiatPaymentHighlightedActions());

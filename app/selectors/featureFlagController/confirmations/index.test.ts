@@ -14,6 +14,7 @@ import {
   selectPayQuoteConfig,
   selectMetaMaskPayFiatFlags,
   PAY_FIAT_ENABLED_TRANSACTION_TYPES,
+  PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
   selectMetaMaskPayHardwareFlags,
   PAY_HARDWARE_ENABLED_DEFAULT,
   PreferredToken,
@@ -505,9 +506,11 @@ describe('getPreferredTokensForTransactionType', () => {
 });
 
 describe('selectMetaMaskPayFiatFlags', () => {
-  it('returns default when flag is absent', () => {
+  it('returns defaults when flag is absent', () => {
     expect(selectMetaMaskPayFiatFlags(mockedEmptyFlagsState)).toEqual({
       enabledTransactionTypes: PAY_FIAT_ENABLED_TRANSACTION_TYPES,
+      maxDelayMinutesForPaymentMethods:
+        PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
     });
   });
 
@@ -522,6 +525,23 @@ describe('selectMetaMaskPayFiatFlags', () => {
 
     expect(selectMetaMaskPayFiatFlags(state)).toEqual({
       enabledTransactionTypes: ['simpleSend', 'swap'],
+      maxDelayMinutesForPaymentMethods:
+        PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
+    });
+  });
+
+  it('returns maxDelayMinutesForPaymentMethods from flag value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_fiat: {
+          maxDelayMinutesForPaymentMethods: 30,
+        },
+      };
+
+    expect(selectMetaMaskPayFiatFlags(state)).toEqual({
+      enabledTransactionTypes: PAY_FIAT_ENABLED_TRANSACTION_TYPES,
+      maxDelayMinutesForPaymentMethods: 30,
     });
   });
 });

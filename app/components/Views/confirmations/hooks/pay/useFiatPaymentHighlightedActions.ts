@@ -9,8 +9,6 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { HighlightedItem } from '../../types/token';
 import { hasTransactionType } from '../../utils/transaction';
 
-const MAX_DELAY_MINUTES = 10;
-
 /**
  * Converts available Ramps payment methods into {@link HighlightedItem}s for
  * the Pay-With modal. Returns `[]` when the fiat feature flag is off or no
@@ -18,7 +16,8 @@ const MAX_DELAY_MINUTES = 10;
  * `fiatPayment.selectedPaymentMethodId` on the current transaction.
  */
 export function useFiatPaymentHighlightedActions(): HighlightedItem[] {
-  const { enabledTransactionTypes } = useMMPayFiatConfig();
+  const { enabledTransactionTypes, maxDelayMinutesForPaymentMethods } =
+    useMMPayFiatConfig();
   const { paymentMethods } = useRampsPaymentMethods();
   const fiatPayment = useTransactionPayFiatPayment();
   const transactionMeta = useTransactionMetadataRequest();
@@ -35,11 +34,17 @@ export function useFiatPaymentHighlightedActions(): HighlightedItem[] {
     }
 
     return paymentMethods
-      .filter(isWithinDelayLimit)
+      .filter((pm) => isWithinDelayLimit(pm, maxDelayMinutesForPaymentMethods))
       .map((pm) =>
         toHighlightedItem(pm, transactionId, selectedPaymentMethodId),
       );
-  }, [isFiatEnabled, paymentMethods, transactionId, selectedPaymentMethodId]);
+  }, [
+    isFiatEnabled,
+    maxDelayMinutesForPaymentMethods,
+    paymentMethods,
+    transactionId,
+    selectedPaymentMethodId,
+  ]);
 }
 
 function toHighlightedItem(
@@ -71,6 +76,9 @@ function toHighlightedItem(
   };
 }
 
-function isWithinDelayLimit(pm: PaymentMethod): boolean {
-  return !pm.delay || pm.delay[1] <= MAX_DELAY_MINUTES;
+function isWithinDelayLimit(
+  pm: PaymentMethod,
+  maxDelayMinutesForPaymentMethods: number,
+): boolean {
+  return !pm.delay || pm.delay[1] <= maxDelayMinutesForPaymentMethods;
 }
