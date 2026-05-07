@@ -77,13 +77,6 @@ jobs:
             ${{ env.GRADLE_USER_HOME }}/caches
             ${{ env.GRADLE_USER_HOME }}/wrapper
 
-      - name: Restore .metamask folder (Foundry download cache for install:foundryup)
-        if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/cache@v4
-        with:
-          path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
-
       # Use the canonical fingerprint computed upstream by `post-build-source-hash`.
       # Do NOT recompute it here — Cirrus ubuntu `node_modules/` differs from
       # ubuntu-latest `node_modules/` (different Node/yarn versions, prebuilt

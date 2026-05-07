@@ -68,7 +68,7 @@ runs:
         if [[ -n "$PR_NUMBER" ]]; then
           if gh pr view "$PR_NUMBER" --repo "$REPOSITORY" \
               --json labels --jq '.labels[].name' \
-              | grep -qx "$LABEL_NAME"; then
+              | grep --fixed-strings --line-regexp --quiet "$LABEL_NAME"; then
             echo "-> force=true because '$LABEL_NAME' label is applied to PR #$PR_NUMBER"
             FORCE="true"
           fi
