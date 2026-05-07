@@ -709,7 +709,11 @@
     "smart_contract_address": "Smart contract address",
     "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
     "i_understand": "I understand",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "new_address_title": "New address",
+    "new_address_message": "You're sending to this address for the first time. Make sure that it's correct before you continue:",
+    "alert_navigation_previous": "Previous alert",
+    "alert_navigation_next": "Next alert"
   },
   "unified_ramp": {
     "networks_filter_bar": {
@@ -6472,10 +6476,17 @@
       },
       "education": {
         "heading": "GET {{percentage}}% ON\nSTABLECOINS",
-        "description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "description": "Convert your stablecoins to mUSD and earn a {{percentage}}% annualized bonus.",
         "terms_apply": "Terms apply.",
         "primary_button": "Get Started",
-        "secondary_button": "Not now"
+        "secondary_button": "Not now",
+        "checklist": {
+          "dollar_backed": "Dollar-backed",
+          "no_lockups": "No lockups",
+          "daily_bonus": "Daily bonus",
+          "metamask_stablecoins": "MetaMask stablecoins",
+          "no_metamask_fee": "No MetaMask fee"
+        }
       },
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
@@ -6519,6 +6530,7 @@
   },
   "money": {
     "title": "Money",
+    "your_balance": "Your balance",
     "apy_label": "{{percentage}}% APY",
     "apy_info_label": "APY info",
     "onboarding": {
@@ -6539,9 +6551,9 @@
       "card": "Card"
     },
     "earnings": {
-      "title": "Earnings",
-      "lifetime": "Lifetime earnings",
-      "projected": "Projected earnings",
+      "title": "Estimated earnings",
+      "estimated_monthly": "Monthly",
+      "estimated_yearly": "Annual",
       "info_label": "Earnings info"
     },
     "how_it_works": {
@@ -6551,6 +6563,12 @@
     },
     "musd_row": {
       "add": "Add"
+    },
+    "balance_card": {
+      "label": "Money balance",
+      "add": "Add",
+      "info_sheet_title": "Money Home",
+      "info_sheet_body": "Your dollar-backed balance, always available. Spend it, send it, or trade it anytime. We don't calculate this into your total account balance."
     },
     "potential_earnings": {
       "title": "Earn on your crypto",
@@ -6565,11 +6583,11 @@
       "subtitle": "Spend your money anywhere.",
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
-      "cashback": "{{percentage}}% cashback",
+      "cashback": "{{percentage}}% mUSD back",
       "get_now": "Get now",
       "link_title": "Link MetaMask Card",
       "link_subtitle": "Spend your Money balance and earn.",
-      "link_bullet_cashback": "Up to 3% cash back",
+      "link_bullet_cashback": "Up to 3% mUSD back",
       "link_bullet_apy": "Up to {{apy}}% APY",
       "link_card": "Link card"
     },
@@ -6579,7 +6597,7 @@
       "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
       "benefit_liquidity": "Get full liquidity with no lockups, so you can trade or withdraw anytime",
       "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
-      "benefit_spend_cashback": "1-3% cashback",
+      "benefit_spend_cashback": "1-3% mUSD back",
       "benefit_transfer": "Transfer money to any of your wallets across MetaMask",
       "benefit_global": "Send and receive money globally",
       "learn_more": "Learn more"
@@ -6618,12 +6636,8 @@
       "learn_more": "Learn more"
     },
     "earnings_tooltip": {
-      "title": "Earnings",
-      "lifetime_heading": "Lifetime earnings",
-      "lifetime_body": "The total yield you've earned since opening your Money account.",
-      "projected_heading": "Projected earnings",
-      "projected_body": "A projection of what you'd earn over a year based on your current balance and rate.",
-      "disclaimer": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for 1 year. APY is variable and may change due to various factors. No guarantee of return."
+      "title": "Estimated earnings",
+      "body": "An estimate of how much you could earn over a period based on your current balance and today's APY. Estimates are not guaranteed returns and remain subject to change."
     },
     "activity": {
       "title": "Activity",
@@ -6680,7 +6694,7 @@
       "faq_q7": "Does the APY rate change?",
       "faq_q8": "Is this a savings account or a spending account?",
       "faq_q9": "Who controls my money?",
-      "faq_q10": "What cash back do I get with the MetaMask Card?",
+      "faq_q10": "What mUSD back do I get with the MetaMask Card?",
       "sounds_good": "Sounds good"
     }
   },
@@ -7616,17 +7630,17 @@
         "price": "Free",
         "feature_1": "Virtual card for Apple Pay and Google Pay",
         "feature_2": "Pay with crypto (USDC, USDT, WETH, and more)",
-        "feature_3": "1% USDC cashback on every purchase"
+        "feature_3": "1% mUSD back on every purchase"
       },
       "metal_card": {
         "name": "Metal Card",
         "price": "$199/year",
         "everything_in_virtual": "Everything in virtual, plus:",
         "feature_1": "Premium engraved metal card",
-        "feature_2": "3% cashback on first $10,000/year",
+        "feature_2": "3% mUSD back on first $10,000/year",
         "feature_3": "No foreign transaction fees"
       },
-      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "earn_up_to_badge": "Earn up to $300 in mUSD back annually",
       "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
@@ -7647,7 +7661,7 @@
     "order_completed": {
       "title": "YOUR CARD\nIS ORDERED",
       "subtitle": "It should arrive in 4 to 6 weeks.",
-      "description": "Set up your virtual card and add it to your digital wallet to start earning cashback.",
+      "description": "Set up your virtual card and add it to your digital wallet to start earning mUSD back.",
       "set_up_card_button": "Set up card",
       "back_to_card_button": "Back to Card"
     },
@@ -7666,7 +7680,7 @@
     },
     "card_onboarding": {
       "title": "Spend\nand Earn",
-      "description": "The MetaMask Card is the fast and\neasy way to spend your crypto and\nearn up to 3% cashback.",
+      "description": "The MetaMask Card is the fast and\neasy way to spend your crypto and\nearn up to 3% mUSD back.",
       "apply_now_button": "Set up now",
       "login_button": "Log in",
       "not_now_button": "Not now",
@@ -7948,9 +7962,9 @@
         "card_tos_title": "Terms and conditions",
         "order_metal_card": "Metal Card",
         "order_metal_card_description": "Order your physical Metal Card now",
-        "cashback": "Cashback",
-        "cashback_description": "Earn 1% back on all spending",
-        "cashback_description_metal": "Earn 3% back on all spending",
+        "cashback": "mUSD Back",
+        "cashback_description": "Earn 1% mUSD back on all spending",
+        "cashback_description_metal": "Earn 3% mUSD back on all spending",
         "freeze_card": "Freeze card",
         "unfreeze_card": "Unfreeze card",
         "freeze_card_description": "Pause all spending on your card",
@@ -7992,8 +8006,8 @@
       "token_label": "Token"
     },
     "cashback_screen": {
-      "title": "Cashback",
-      "available_cashback": "Available cashback",
+      "title": "mUSD Back",
+      "available_cashback": "Available mUSD",
       "network_fee": "Network fee",
       "expected_to_receive": "Expected to receive",
       "withdraw": "Withdraw",
@@ -8001,11 +8015,11 @@
       "withdrawal_initiated": "Withdrawal has been initiated",
       "withdrawal_success": "Withdrawal completed successfully",
       "withdrawal_failed": "Withdrawal failed. Please try again.",
-      "no_cashback": "No cashback available",
-      "loading_error": "Failed to load cashback. Please try again.",
+      "no_cashback": "No mUSD back available",
+      "loading_error": "Failed to load mUSD back. Please try again.",
       "funding_required": {
         "title": "Set up Linea funding",
-        "description": "You need at least one approved funding source on Linea before redeeming cashback.",
+        "description": "You need at least one approved funding source on Linea before redeeming mUSD back.",
         "confirm_button_label": "Set up funding"
       }
     },
@@ -8128,6 +8142,15 @@
     "optin_error": {
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
+    },
+    "notifications_nudge": {
+      "title": "Don't miss out",
+      "description": "Enable notifications to stay informed on campaigns.",
+      "turn_on_button": "Turn on",
+      "loading": "Enabling notifications...",
+      "loading_description": "This may take a moment.",
+      "enable_error": "Failed to enable notifications",
+      "success": "Notifications enabled"
     },
     "version_guard": {
       "title": "Update required",
@@ -8512,7 +8535,6 @@
       "empty": "You don't have any positions",
       "empty_description": "Start earning rewards by opening a position in tokenized real-world assets.",
       "empty_cta": "Open a position",
-      "position_units": "{{units}} shares",
       "positions_title": "Positions",
       "activity_title": "Activity",
       "view_activity": "View activity",
@@ -8632,7 +8654,11 @@
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
       "stats_error_title": "Unable to load stats",
       "stats_error_description": "We had a problem loading your stats. Please try again.",
-      "stats_retry": "Retry"
+      "stats_retry": "Retry",
+      "completed_label_total_participants": "Total participants",
+      "completed_label_total_volume": "Total volume",
+      "completed_label_top_pnl": "Top PnL",
+      "completed_label_winners": "Winners"
     },
     "campaigns_preview": {
       "title": "Campaigns",
@@ -8658,29 +8684,29 @@
       "retry_button": "Retry",
       "refreshing": "Refreshing..."
     },
-    "ondo_campaign_winning": {
+    "campaign_winning": {
       "you_won": "You won",
       "rank_label": "{{place}} place",
-      "email_instructions": "Email ondocampaign@consensys.net with your code to claim your prize.",
+      "email_instructions": "Email {{email}} with your code to claim your prize.",
       "open_mail": "Open mail",
       "skip_for_now": "Skip for now",
-      "mail_subject": "Ondo campaign prize claim",
+      "mail_subject": "{{campaignName}} prize claim",
       "mail_body": "My winning code: {{code}}",
       "winning_code": "Winning code",
       "close_a11y": "Close"
     },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "You won",
-        "description": "Claim your prize today.",
-        "a11y": "Open winner details"
+        "title": "You won!",
+        "description": "Verify your winning code and claim your prize today.",
+        "a11y": "View details"
       },
       "participant_pending": {
         "title": "Campaign has ended.",
         "description": "We're determining the results. Check back soon."
       },
       "participant_finalized": {
-        "title": "Campaign results are in",
+        "title": "Campaign results are in.",
         "description": "You didn't win this time. Check the leaderboard to see where you finished."
       },
       "winner_finalized": {
@@ -8688,15 +8714,15 @@
         "description": "Your reward is on its way — we'll be in touch shortly."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "You won 💰",
-        "description": "Claim your prize from the {{campaignName}}",
+        "description": "Claim your prize from the {{campaignName}} today.",
         "cta": "View details"
       },
-      "participant_no_winner": {
-        "title": "The results are in. 🏅",
-        "description": "See your ranking in the {{campaignName}}",
+      "non_winner": {
+        "title": "The results are in 🏅",
+        "description": "See your ranking in the {{campaignName}}.",
         "cta": "View"
       }
     }
@@ -8987,21 +9013,27 @@
   },
   "homepage": {
     "sections": {
-      "cash": "Money",
-      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Money section on the homepage.",
-      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
-      "cash_empty_state": {
+      "money": "Money",
+      "money_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Money section on the homepage.",
+      "money_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
+      "money_empty_state": {
         "get_started": "Get started",
         "earn_apy": "Earn {{percentage}}% APY"
       },
-      "cash_filled_state": {
+      "money_filled_state": {
         "add": "Add",
         "apy": "{{percentage}}% APY"
       },
       "tokens": "Tokens",
+      "perps": "Perps",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
       "whats_happening": "What's happening",
+      "whats_happening_impact": {
+        "bullish": "Bullish",
+        "bearish": "Bearish",
+        "neutral": "Neutral"
+      },
       "top_traders": "Top Traders",
       "whats_happening_categories": {
         "geopolitical": "Geopolitical",

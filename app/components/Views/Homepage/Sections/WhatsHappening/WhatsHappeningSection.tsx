@@ -16,6 +16,7 @@ import { SectionRefreshHandle } from '../../types';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MAX_ITEMS_DISPLAYED } from './constants';
 import { useWhatsHappening } from './hooks';
 import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
 import useHomeViewedEvent, {
@@ -23,8 +24,6 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
-
-const MAX_ITEMS_DISPLAYED = 5;
 
 const CARD_WIDTH = 280;
 const GAP = 12;
@@ -91,14 +90,11 @@ const WhatsHappeningSection = forwardRef<
 
   const navigateToDetail = useCallback(
     (initialIndex: number) => {
-      // TODO: When WhatsHappeningDetailView is implemented, pass only { initialIndex } — the
-      // detail screen should call useWhatsHappening(); AiDigestController caches the response.
       navigation.navigate(Routes.WHATS_HAPPENING_DETAIL, {
-        items,
         initialIndex,
       });
     },
-    [navigation, items],
+    [navigation],
   );
 
   const handleViewAll = useCallback(() => {
@@ -170,7 +166,7 @@ const WhatsHappeningSection = forwardRef<
             ))}
             <ViewMoreCard
               onPress={handleViewAll}
-              twClassName="w-[180px] h-[248px]"
+              twClassName="w-[180px] h-[254px]"
               textVariant={TextVariant.BodyLg}
             />
           </>

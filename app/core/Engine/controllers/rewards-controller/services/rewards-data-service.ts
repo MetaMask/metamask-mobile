@@ -38,6 +38,7 @@ import type {
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
   PerpsTradingCampaignVolumeDto,
+  PerpsTradingCampaignParticipantOutcomeDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -280,6 +281,10 @@ export interface RewardsDataServiceGetPerpsTradingCampaignVolumeAction {
   type: `${typeof SERVICE_NAME}:getPerpsTradingCampaignVolume`;
   handler: RewardsDataService['getPerpsTradingCampaignVolume'];
 }
+export interface RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction {
+  type: `${typeof SERVICE_NAME}:getPerpsTradingCampaignParticipantOutcome`;
+  handler: RewardsDataService['getPerpsTradingCampaignParticipantOutcome'];
+}
 
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
@@ -355,7 +360,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
-  | RewardsDataServiceGetPerpsTradingCampaignVolumeAction;
+  | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
+  | RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -541,6 +547,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getPerpsTradingCampaignVolume`,
       this.getPerpsTradingCampaignVolume.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPerpsTradingCampaignParticipantOutcome`,
+      this.getPerpsTradingCampaignParticipantOutcome.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -1826,5 +1836,23 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as PerpsTradingCampaignVolumeDto;
+  }
+
+  async getPerpsTradingCampaignParticipantOutcome(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<PerpsTradingCampaignParticipantOutcomeDto> {
+    const response = await this.makeRequest(
+      `/perps-trading/${campaignId}/outcome/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+    if (!response.ok) {
+      throw new Error(
+        `Get Perps Trading participant outcome failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as PerpsTradingCampaignParticipantOutcomeDto;
   }
 }

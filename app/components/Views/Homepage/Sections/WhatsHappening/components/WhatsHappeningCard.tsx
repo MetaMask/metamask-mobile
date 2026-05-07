@@ -13,6 +13,11 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import type { WhatsHappeningItem } from '../types';
 import { formatShortDate } from '../util/formatDate';
+import {
+  getImpactLabel,
+  getImpactBackgroundClass,
+  getImpactTextColor,
+} from '../util/impact';
 
 interface WhatsHappeningCardProps {
   item: WhatsHappeningItem;
@@ -33,22 +38,43 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
       onPress={handlePress}
       activeOpacity={0.7}
       style={tw.style(
-        'w-[280px] h-[248px] rounded-2xl bg-background-muted overflow-hidden p-4 justify-between gap-3',
+        'w-[280px] h-[254px] rounded-2xl bg-background-muted overflow-hidden p-4 justify-between gap-3',
       )}
     >
       <Box gap={3}>
-        {/* Category badge */}
-        {item.category && (
-          <Box twClassName="self-start rounded-full bg-background-default px-2 py-0.5">
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-              fontWeight={FontWeight.Medium}
-            >
-              {strings(
-                `homepage.sections.whats_happening_categories.${item.category}`,
-              )}
-            </Text>
+        {/* Impact + Category badges */}
+        {(item.impact || item.category) && (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="flex-wrap gap-2"
+          >
+            {item.impact && (
+              <Box
+                twClassName={`self-start rounded-full ${getImpactBackgroundClass(item.impact)} px-2 py-0.5`}
+              >
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={getImpactTextColor(item.impact)}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {getImpactLabel(item.impact)}
+                </Text>
+              </Box>
+            )}
+            {item.category && (
+              <Box twClassName="self-start rounded-full bg-background-default px-2 py-0.5">
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings(
+                    `homepage.sections.whats_happening_categories.${item.category}`,
+                  )}
+                </Text>
+              </Box>
+            )}
           </Box>
         )}
 
@@ -57,7 +83,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
-          numberOfLines={3}
+          numberOfLines={2}
         >
           {item.title}
         </Text>
