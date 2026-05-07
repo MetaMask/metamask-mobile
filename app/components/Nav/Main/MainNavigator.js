@@ -102,7 +102,7 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
-import { MoneyScreenStack, MoneyModalStack } from '../../UI/Money/routes';
+import { MoneyAccountStackGate, MoneyModalStack } from '../../UI/Money/routes';
 import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
@@ -869,7 +869,7 @@ const HomeTabs = () => {
         <Tab.Screen
           name={Routes.MONEY.ROOT}
           options={options.money}
-          component={MoneyScreenStack}
+          component={MoneyAccountStackGate}
         />
       ) : (
         <Tab.Screen
@@ -1223,6 +1223,11 @@ const MainNavigator = () => {
       />
       {isMoneyHomeScreenEnabled && (
         <>
+          <Stack.Screen
+            name={Routes.MONEY.ROOT}
+            component={MoneyAccountStackGate}
+            options={{ headerShown: false, ...slideFromRightAnimation }}
+          />
           <Stack.Screen
             name={Routes.MONEY.MODALS.ROOT}
             component={MoneyModalStack}
