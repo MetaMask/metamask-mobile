@@ -3,7 +3,7 @@
  *
  * When non-null, the checklist tile is hidden. Distinguishes:
  * - `flow_completed` — user finished or skipped through the last step
- * - `account_funded` — aggregate balance became positive (also clears eligibility in reducer)
+ * - `account_funded` — programmatic suppression; clears eligibility in reducer (not tied to fund→trade advance)
  */
 export type WalletHomeOnboardingStepsSuppressedReason =
   | 'flow_completed'

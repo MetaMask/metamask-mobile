@@ -91,7 +91,7 @@ const testState = {
   },
 };
 
-describe('AccountGroupBalance / wallet home onboarding account_funded', () => {
+describe('AccountGroupBalance / wallet home onboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     const {
@@ -116,7 +116,7 @@ describe('AccountGroupBalance / wallet home onboarding account_funded', () => {
     jest.useRealTimers();
   });
 
-  it('does not suppress when stale positive aggregate corrects to zero before account_funded can apply', () => {
+  it('does not suppress when stale positive aggregate corrects to zero', () => {
     const {
       selectBalanceBySelectedAccountGroup,
       selectAccountGroupBalanceForEmptyState,
@@ -169,7 +169,7 @@ describe('AccountGroupBalance / wallet home onboarding account_funded', () => {
     expect(suppressCalls).toHaveLength(0);
   });
 
-  it('dispatches account_funded after balance settled when aggregate is positive', () => {
+  it('does not dispatch account_funded when fund step advances to trade with positive balance', () => {
     const {
       selectBalanceBySelectedAccountGroup,
       selectAccountGroupBalanceForEmptyState,
@@ -219,10 +219,6 @@ describe('AccountGroupBalance / wallet home onboarding account_funded', () => {
     const suppressCalls = dispatchSpy.mock.calls.filter(
       (call) => call[0]?.type === SUPPRESS_WALLET_HOME_ONBOARDING_STEPS,
     );
-    expect(suppressCalls).toHaveLength(1);
-    expect(suppressCalls[0][0]).toMatchObject({
-      type: SUPPRESS_WALLET_HOME_ONBOARDING_STEPS,
-      reason: 'account_funded',
-    });
+    expect(suppressCalls).toHaveLength(0);
   });
 });
