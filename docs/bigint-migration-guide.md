@@ -89,7 +89,6 @@ The table below maps each burndown path to the GitHub team(s) from [`.github/COD
 - `app/components/Views/confirmations/external/staking/hooks/useStakingDetails.ts`
 
 ### @MetaMask/design-system-engineers
-
 - `app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.tsx`
 - `app/component-library/components-temp/Price/AggregatedPercentage/utils.ts`
 

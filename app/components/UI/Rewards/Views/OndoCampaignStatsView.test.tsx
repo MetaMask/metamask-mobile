@@ -72,11 +72,21 @@ jest.mock('react-native-safe-area-context', () => {
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
-  return { ...actual };
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Skeleton: ({ children }: { children?: React.ReactNode }) =>
+      ReactActual.createElement(View, { testID: 'skeleton' }, children),
+  };
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+  useTailwind: () => {
+    const tw = (...args: unknown[]) => args;
+    tw.style = (...args: unknown[]) => args;
+    return tw;
+  },
 }));
 
 jest.mock(
@@ -186,6 +196,9 @@ jest.mock('../utils/formatUtils', () => ({
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`,
+  formatRewardsTimeOnly: () => '12:00 PM',
+  getPortfolioReturnColor: (pnl?: string) =>
+    pnl && parseFloat(pnl) < 0 ? 'errorDefault' : 'textDefault',
 }));
 
 // Mock Engine to prevent @metamask/social-controllers resolution chain
@@ -297,6 +310,7 @@ const createTestCampaign = (
       ],
     },
     featured: true,
+    showUpcomingDate: false,
     type: 'ONDO_HOLDING' as never,
     ...overrides,
   };
@@ -431,7 +445,9 @@ describe('OndoCampaignStatsView', () => {
       hasError: false,
     });
     const { getByText } = render(<OndoCampaignStatsView />);
-    const title = getByText('rewards.ondo_outcome_banner.winner_pending.title');
+    const title = getByText(
+      'rewards.campaign_outcome_banner.winner_pending.title',
+    );
     fireEvent.press(title);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
@@ -461,7 +477,7 @@ describe('OndoCampaignStatsView', () => {
     });
     const { queryByText } = render(<OndoCampaignStatsView />);
     expect(
-      queryByText('rewards.ondo_outcome_banner.winner_pending.title'),
+      queryByText('rewards.campaign_outcome_banner.winner_pending.title'),
     ).toBeNull();
   });
 
@@ -1010,7 +1026,9 @@ describe('OndoCampaignStatsView', () => {
       hasError: false,
     });
     const { getByText } = render(<OndoCampaignStatsView />);
-    const title = getByText('rewards.ondo_outcome_banner.winner_pending.title');
+    const title = getByText(
+      'rewards.campaign_outcome_banner.winner_pending.title',
+    );
     fireEvent.press(title);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
@@ -1038,5 +1056,52 @@ describe('OndoCampaignStatsView', () => {
     expect(
       getByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
     ).toBeDefined();
+  });
+});
+
+describe('OndoCampaignStatsView — last updated', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseGetCampaignParticipantStatus.mockReturnValue({
+      status: { optedIn: true, participantCount: 1 },
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetOndoPortfolioPosition.mockReturnValue({
+      portfolio: null,
+      isLoading: false,
+      hasError: false,
+      hasFetched: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetOndoLeaderboard.mockReturnValue(leaderboardDefaults);
+    mockUseOndoCampaignParticipantOutcome.mockReturnValue({
+      outcome: null,
+      isLoading: false,
+      hasError: false,
+    });
+    mockRewardsState.campaigns = [createTestCampaign()];
+  });
+
+  it('shows last updated timestamp when position has computedAt', () => {
+    mockUseGetOndoLeaderboardPosition.mockReturnValue({
+      ...positionDefaults,
+      position: makeQualifiedPosition({
+        computedAt: '2024-03-20T12:00:00.000Z',
+      }),
+    });
+    const { getByText } = render(<OndoCampaignStatsView />);
+    expect(
+      getByText(/rewards\.ondo_campaign_leaderboard\.updated_at/),
+    ).toBeDefined();
+  });
+
+  it('does not show last updated timestamp when position is null', () => {
+    mockUseGetOndoLeaderboardPosition.mockReturnValue(positionDefaults);
+    const { queryByText } = render(<OndoCampaignStatsView />);
+    expect(
+      queryByText(/rewards\.ondo_campaign_leaderboard\.updated_at/),
+    ).toBeNull();
   });
 });

@@ -49,35 +49,27 @@ jest.mock('@react-navigation/stack', () => ({
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
+  const Actual = jest.requireActual('@metamask/design-system-react-native');
   const stub = () => ReactActual.createElement(View, null);
   return {
-    BadgeWrapper: ({ children }: { children: React.ReactNode }) =>
-      ReactActual.createElement(View, null, children),
-    BadgeWrapperPosition: { BottomRight: 'bottom-right' },
-    Box: ({ children }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(View, null, children),
-    BoxAlignItems: { Center: 'center' },
-    BoxFlexDirection: { Row: 'row' },
+    ...Actual,
     Icon: stub,
-    IconColor: { IconAlternative: 'alternative' },
-    IconName: { Search: 'search', Close: 'close' },
-    IconSize: { Sm: 'sm' },
     Skeleton: stub,
-    Text: ({ children }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(Text, null, children),
-    TextColor: { TextAlternative: 'alternative' },
-    TextVariant: { BodyMd: 'body-md', HeadingSm: 'heading-sm' },
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const tw = () => ({});
-    tw.style = (..._args: unknown[]) => ({});
-    return tw;
-  },
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const { Theme } = jest.requireActual('@metamask/design-system-twrnc-preset');
+  const tw = Object.assign(() => ({}), {
+    style: (..._args: unknown[]) => ({}),
+  });
+  return {
+    Theme,
+    useTailwind: () => tw,
+    useTheme: () => Theme.Light,
+  };
+});
 
 jest.mock(
   '../../../../component-library/components-temp/HeaderCompactStandard',
@@ -90,16 +82,25 @@ jest.mock(
         title,
         onBack,
         onClose,
+        backButtonProps,
+        endButtonIconProps,
+        testID,
       }: {
         title: React.ReactNode;
         onBack?: () => void;
         onClose?: () => void;
+        backButtonProps?: { onPress?: () => void };
+        endButtonIconProps?: {
+          onPress?: () => void;
+          testID?: string;
+        }[];
+        testID?: string;
       }) =>
         ReactActual.createElement(
           View,
-          { testID: 'header' },
+          { testID: testID ?? 'header' },
           ReactActual.createElement(Pressable, {
-            onPress: onBack ?? onClose,
+            onPress: backButtonProps?.onPress ?? onBack ?? onClose,
             testID: 'header-back-button',
           }),
           typeof title === 'string'
@@ -109,6 +110,13 @@ jest.mock(
                 title,
               )
             : title,
+          ...(endButtonIconProps ?? []).map((iconProps, index) =>
+            ReactActual.createElement(Pressable, {
+              key: `end-icon-${index}`,
+              onPress: iconProps.onPress,
+              testID: iconProps.testID ?? 'search-toggle',
+            }),
+          ),
         ),
     };
   },
@@ -294,59 +302,6 @@ jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: jest.requireActual('react-native').View,
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
-
-// Mock the shared ListHeaderWithSearch used by TrendingListHeader
-jest.mock('../../shared/ListHeaderWithSearch', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text, Pressable, TextInput } =
-    jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      title,
-      isSearchVisible,
-      searchQuery,
-      onSearchQueryChange,
-      onBack,
-      onSearchToggle,
-      searchPlaceholder,
-      testID,
-    }: {
-      title: React.ReactNode;
-      isSearchVisible: boolean;
-      searchQuery: string;
-      onSearchQueryChange: (q: string) => void;
-      onBack: () => void;
-      onSearchToggle: () => void;
-      searchPlaceholder?: string;
-      cancelText?: string;
-      testID?: string;
-    }) =>
-      ReactActual.createElement(
-        View,
-        { testID: testID ?? 'header' },
-        ReactActual.createElement(Pressable, {
-          onPress: onBack,
-          testID: 'header-back-button',
-        }),
-        typeof title === 'string'
-          ? ReactActual.createElement(Text, { testID: 'header-title' }, title)
-          : title,
-        ReactActual.createElement(Pressable, {
-          onPress: onSearchToggle,
-          testID: 'search-toggle',
-        }),
-        isSearchVisible
-          ? ReactActual.createElement(TextInput, {
-              testID: 'search-input',
-              placeholder: searchPlaceholder,
-              value: searchQuery,
-              onChangeText: onSearchQueryChange,
-            })
-          : null,
-      ),
-  };
-});
 
 // Mock FilterBar
 jest.mock('../../Trending/components/FilterBar/FilterBar', () => {
@@ -653,18 +608,8 @@ describe('OndoCampaignRwaSelectorView', () => {
     });
   });
 
-  describe('token name sanitization', () => {
-    it('strips "Ondo Tokenized " prefix from token names in list rows', () => {
-      const token = { ...buildToken('AAPL'), name: 'Ondo Tokenized Apple' };
-      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
-      const { getByText, queryByText } = render(
-        <OndoCampaignRwaSelectorView />,
-      );
-      expect(getByText('Apple')).toBeDefined();
-      expect(queryByText('Ondo Tokenized Apple')).toBeNull();
-    });
-
-    it('strips "(Ondo Tokenized)" suffix from token names in list rows', () => {
+  describe('Ondo token name display', () => {
+    it('preserves backend-provided suffix names in list rows', () => {
       const token = {
         ...buildToken('AAPL'),
         name: 'Apple (Ondo Tokenized)',
@@ -673,25 +618,21 @@ describe('OndoCampaignRwaSelectorView', () => {
       const { getByText, queryByText } = render(
         <OndoCampaignRwaSelectorView />,
       );
-      expect(getByText('Apple')).toBeDefined();
-      expect(queryByText('Apple (Ondo Tokenized)')).toBeNull();
+      expect(getByText('Apple (Ondo Tokenized)')).toBeDefined();
+      expect(queryByText('Apple')).toBeNull();
     });
 
-    it('leaves unrelated token names unchanged', () => {
-      const token = { ...buildToken('USDY'), name: 'Ondo USD Yield' };
-      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
-      const { getByText } = render(<OndoCampaignRwaSelectorView />);
-      expect(getByText('Ondo USD Yield')).toBeDefined();
-    });
-
-    it('passes original unsanitized name to goToSwaps when token has Ondo prefix', () => {
-      const token = { ...buildToken('AAPL'), name: 'Ondo Tokenized Apple' };
+    it('passes the backend-provided name to goToSwaps', () => {
+      const token = {
+        ...buildToken('AAPL'),
+        name: 'Apple (Ondo Tokenized)',
+      };
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
       fireEvent.press(getByTestId('token-row-AAPL'));
       expect(mockGoToSwaps).toHaveBeenCalledWith(
         undefined,
-        expect.objectContaining({ name: 'Ondo Tokenized Apple' }),
+        expect.objectContaining({ name: 'Apple (Ondo Tokenized)' }),
       );
     });
   });
@@ -806,15 +747,15 @@ describe('OndoCampaignRwaSelectorView', () => {
         <OndoCampaignRwaSelectorView />,
       );
       expect(getByTestId('filter-bar')).toBeDefined();
-      fireEvent.press(getByTestId('search-toggle'));
+      fireEvent.press(getByTestId('ondo-rwa-selector-header-search-toggle'));
       expect(queryByTestId('filter-bar')).toBeNull();
     });
 
     it('shows filter bar again when search is dismissed', () => {
       mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
-      fireEvent.press(getByTestId('search-toggle'));
-      fireEvent.press(getByTestId('search-toggle'));
+      fireEvent.press(getByTestId('ondo-rwa-selector-header-search-toggle'));
+      fireEvent.press(getByTestId('ondo-rwa-selector-header-search-close'));
       expect(getByTestId('filter-bar')).toBeDefined();
     });
   });

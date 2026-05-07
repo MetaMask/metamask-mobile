@@ -1,7 +1,8 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Badge, {
   BadgeVariant,
@@ -20,12 +21,7 @@ import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { FlashListAssetKey } from '../TokenList';
-import {
-  selectIsMusdConversionFlowEnabledFlag,
-  selectMusdQuickConvertEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../../Earn/selectors/featureFlags';
-import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
+import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -68,12 +64,15 @@ import {
   selectNativeCurrencyByChainId,
   selectProviderType,
 } from '../../../../../selectors/networkController';
+import { selectTokenListSecurityBadgesEnabled } from '../../../../../selectors/featureFlagController/tokenListSecurityBadges';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import {
+  getNativeTokenAddress,
+  type TokenSecurityData,
+} from '@metamask/assets-controllers';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { safeToChecksumAddress } from '../../../../../util/address';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
-import { getAssetTestId } from '../../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { getAssetTestId } from '../../../../../../tests/selectors/Wallet/WalletView.selectors';
 import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
 import {
   TOKEN_BALANCE_LOADING,
@@ -87,6 +86,7 @@ import {
 } from '../../../AssetElement/index.constants';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
@@ -94,7 +94,9 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
+import TokenListSecurityBadge from '../../components/TokenListSecurityBadge/TokenListSecurityBadge';
+import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys';
+import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -110,7 +112,8 @@ const createStyles = (colors: Colors) =>
     },
     assetName: {
       flexDirection: 'row',
-      gap: 8,
+      alignItems: 'center',
+      gap: 4,
       flexShrink: 1,
     },
     assetNameText: {
@@ -147,6 +150,11 @@ interface TokenListItemProps {
   showPercentageChange?: boolean;
   isFullView?: boolean;
   shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
+  /**
+   * When true, mUSD rows render only the native balance on the secondary row
+   * (no token price / 24h change). Used by the Money Hub.
+   */
+  hideSecondaryPriceRow?: boolean;
 }
 
 export const TokenListItem = React.memo(
@@ -158,9 +166,11 @@ export const TokenListItem = React.memo(
     showPercentageChange = true,
     isFullView = false,
     shouldShowTokenListItemCta,
+    hideSecondaryPriceRow = false,
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
+    const queryClient = useQueryClient();
     const { colors } = useTheme();
     const styles = createStyles(colors);
 
@@ -180,6 +190,39 @@ export const TokenListItem = React.memo(
     );
 
     const { isStockToken } = useRWAToken();
+
+    const basicFunctionalityEnabled = useSelector(
+      (state: RootState) => state.settings.basicFunctionalityEnabled,
+    );
+
+    const isTokenListSecurityBadgesEnabled = useSelector(
+      selectTokenListSecurityBadgesEnabled,
+    );
+
+    const skipTokenListSecurityBadge = useMemo(() => {
+      if (!asset) {
+        return true;
+      }
+      return isStockToken(asset as BridgeToken);
+    }, [asset, isStockToken]);
+
+    const shouldResolveCaipForSecurityBadge =
+      basicFunctionalityEnabled &&
+      isTokenListSecurityBadgesEnabled &&
+      !skipTokenListSecurityBadge;
+
+    const { data: caipAssetIdForSecurity } = useQuery({
+      queryKey: tokenListSecurityBadgeKeys.caipFromToken({
+        chainId: asset?.chainId,
+        address: asset?.address,
+        isNative: asset?.isNative,
+        isETH: asset?.isETH,
+      }),
+      queryFn: () => getCaipAssetIdForToken(asset),
+      enabled: shouldResolveCaipForSecurityBadge && Boolean(asset?.chainId),
+      staleTime: Infinity,
+      cacheTime: Infinity,
+    });
 
     const chainId = asset?.chainId as Hex;
 
@@ -207,15 +250,6 @@ export const TokenListItem = React.memo(
       selectStablecoinLendingEnabledFlag,
     );
 
-    const isQuickConvertEnabled = useSelector(
-      selectMusdQuickConvertEnabledFlag,
-    );
-
-    const isMusdConversionFlowEnabled = useSelector(
-      selectIsMusdConversionFlowEnabledFlag,
-    );
-    const { isEligible: isMusdGeoEligible } = useMusdConversionEligibility();
-
     const { getEarnToken } = useEarnTokens();
 
     const earnToken = getEarnToken(asset as TokenI);
@@ -229,8 +263,6 @@ export const TokenListItem = React.memo(
     );
 
     const isMusdAsset = !!asset && isMusdToken(asset.address);
-    const showMusdBonusRow =
-      isMusdAsset && isMusdConversionFlowEnabled && isMusdGeoEligible;
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
@@ -304,9 +336,7 @@ export const TokenListItem = React.memo(
             return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
           }
 
-          return isQuickConvertEnabled
-            ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
-            : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+          return EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
         };
 
         trackEvent(
@@ -344,7 +374,6 @@ export const TokenListItem = React.memo(
             chainId: assetChainId,
           },
           navigationStack: Routes.EARN.ROOT,
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       } catch (error) {
         Logger.error(
@@ -360,7 +389,6 @@ export const TokenListItem = React.memo(
       createEventBuilder,
       hasSeenConversionEducationScreen,
       initiateCustomConversion,
-      isQuickConvertEnabled,
       networkName,
       trackEvent,
     ]);
@@ -376,14 +404,30 @@ export const TokenListItem = React.memo(
     const onItemPress = useCallback(
       (token: TokenI) => {
         trace({ name: TraceName.AssetDetails });
+
+        let securityData: TokenSecurityData | undefined;
+        if (shouldResolveCaipForSecurityBadge && caipAssetIdForSecurity) {
+          securityData =
+            queryClient.getQueryData<TokenSecurityData | null>(
+              tokenListSecurityBadgeKeys.byAsset(caipAssetIdForSecurity),
+            ) ?? undefined;
+        }
+
         navigation.navigate('Asset', {
           ...token,
           source: isFullView
             ? TokenDetailsSource.MobileTokenListPage
             : TokenDetailsSource.MobileTokenList,
+          ...(securityData !== undefined && { securityData }),
         });
       },
-      [isFullView, navigation],
+      [
+        isFullView,
+        navigation,
+        shouldResolveCaipForSecurityBadge,
+        caipAssetIdForSecurity,
+        queryClient,
+      ],
     );
 
     const handleLendingRedirect = useStablecoinLendingRedirect({
@@ -392,16 +436,6 @@ export const TokenListItem = React.memo(
     });
 
     const secondaryBalanceDisplay = useMemo(() => {
-      if (showMusdBonusRow) {
-        return {
-          text: strings('earn.musd_conversion.percentage_bonus', {
-            percentage: MUSD_CONVERSION_APY,
-          }),
-          color: CLTextColor.Success,
-          onPress: undefined,
-        };
-      }
-
       if (shouldShowConvertToMusdCta) {
         return {
           text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
@@ -444,7 +478,6 @@ export const TokenListItem = React.memo(
 
       return { text, color, onPress: undefined };
     }, [
-      showMusdBonusRow,
       shouldShowConvertToMusdCta,
       isStablecoinLendingEnabled,
       earnToken?.experience?.type,
@@ -503,6 +536,68 @@ export const TokenListItem = React.memo(
       fiatBalanceDisplay = fiatBalance;
     }
 
+    // Money Hub compact mUSD layout: name vertically centered, fiat over
+    // native on the right, no price/24h-change row.
+    if (hideSecondaryPriceRow && isMusdAsset) {
+      return (
+        <TouchableOpacity
+          onPress={() => onItemPress?.(asset)}
+          style={styles.itemWrapper}
+          testID={getAssetTestId(asset.symbol)}
+        >
+          <BadgeWrapper
+            style={styles.badge}
+            badgePosition={BadgePosition.BottomRight}
+            badgeElement={
+              networkBadgeSource && (
+                <Badge
+                  variant={BadgeVariant.Network}
+                  imageSource={networkBadgeSource}
+                />
+              )
+            }
+          >
+            <AssetLogo asset={asset} />
+          </BadgeWrapper>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="flex-1 ml-5 gap-2.5"
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              numberOfLines={1}
+              style={styles.assetNameText}
+            >
+              {asset.name || asset.symbol}
+            </Text>
+            <Box twClassName="items-end">
+              <SensitiveText
+                variant={CLTextVariant.BodyMDMedium}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Medium}
+                testID={BALANCE_TEST_ID}
+              >
+                {fiatBalanceDisplay}
+              </SensitiveText>
+              <SensitiveText
+                variant={CLTextVariant.BodySMMedium}
+                style={styles.secondaryBalance}
+                length={SensitiveTextLength.Short}
+                isHidden={privacyMode}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {tokenBalance}
+              </SensitiveText>
+            </Box>
+          </Box>
+        </TouchableOpacity>
+      );
+    }
+
     return (
       <TouchableOpacity
         onPress={() => {
@@ -514,7 +609,7 @@ export const TokenListItem = React.memo(
           onLongPress?.(asset);
         }}
         style={styles.itemWrapper}
-        {...generateTestId(Platform, getAssetTestId(asset.symbol))}
+        testID={getAssetTestId(asset.symbol)}
       >
         {/* Column: 1 - Token logo */}
         <BadgeWrapper
@@ -559,6 +654,12 @@ export const TokenListItem = React.memo(
                 {label && (
                   <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
                 )}
+                {shouldResolveCaipForSecurityBadge &&
+                  caipAssetIdForSecurity && (
+                    <TokenListSecurityBadge
+                      caipAssetId={caipAssetIdForSecurity}
+                    />
+                  )}
               </View>
 
               {renderEarnCta()}
@@ -601,93 +702,64 @@ export const TokenListItem = React.memo(
             justifyContent={BoxJustifyContent.Between}
             twClassName="gap-2.5"
           >
-            {showMusdBonusRow ? (
-              <>
-                <Box twClassName="shrink min-w-0">
-                  <SensitiveText
-                    variant={CLTextVariant.BodySMMedium}
-                    color={CLTextColor.Alternative}
-                    length={SensitiveTextLength.Short}
-                    isHidden={privacyMode}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {tokenBalance}
-                  </SensitiveText>
-                </Box>
+            {/* Token price and percentage change */}
+            <View style={styles.percentageChange}>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+                twClassName="uppercase"
+              >
+                {tokenPriceInFiat && !hideFiatForScamWarning
+                  ? formatPriceWithSubscriptNotation(
+                      tokenPriceInFiat,
+                      currentCurrency,
+                    )
+                  : '-'}
+                {' \u2022 '}
+              </Text>
 
-                <SensitiveText
-                  variant={CLTextVariant.BodySMMedium}
-                  color={secondaryBalanceDisplay.color}
-                  isHidden={false}
-                  length={SensitiveTextLength.Short}
-                  testID={SECONDARY_BALANCE_TEST_ID}
+              {hideFiatForScamWarning ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                  twClassName="uppercase"
                 >
-                  {secondaryBalanceDisplay.text}
-                </SensitiveText>
-              </>
-            ) : (
-              <>
-                {/* Token price and percentage change */}
-                <View style={styles.percentageChange}>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextAlternative}
-                    twClassName="uppercase"
-                  >
-                    {tokenPriceInFiat && !hideFiatForScamWarning
-                      ? formatPriceWithSubscriptNotation(
-                          tokenPriceInFiat,
-                          currentCurrency,
-                        )
-                      : '-'}
-                    {' \u2022 '}
-                  </Text>
-
-                  {hideFiatForScamWarning ? (
-                    <Text
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                      twClassName="uppercase"
-                    >
-                      {'-'}
-                    </Text>
-                  ) : (
-                    <TouchableOpacity
-                      disabled={!secondaryBalanceDisplay.onPress}
-                      onPress={secondaryBalanceDisplay.onPress}
-                      testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
-                    >
-                      <SensitiveText
-                        variant={CLTextVariant.BodySMMedium}
-                        color={secondaryBalanceDisplay.color}
-                        isHidden={false}
-                        length={SensitiveTextLength.Short}
-                        testID={SECONDARY_BALANCE_TEST_ID}
-                      >
-                        {secondaryBalanceDisplay.text || '-'}
-                      </SensitiveText>
-                    </TouchableOpacity>
-                  )}
-                </View>
-
-                {/* Token balance */}
-                <Box twClassName="shrink">
+                  {'-'}
+                </Text>
+              ) : (
+                <TouchableOpacity
+                  disabled={!secondaryBalanceDisplay.onPress}
+                  onPress={secondaryBalanceDisplay.onPress}
+                  testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
+                >
                   <SensitiveText
                     variant={CLTextVariant.BodySMMedium}
-                    style={styles.secondaryBalance}
+                    color={secondaryBalanceDisplay.color}
+                    isHidden={false}
                     length={SensitiveTextLength.Short}
-                    isHidden={privacyMode}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
+                    testID={SECONDARY_BALANCE_TEST_ID}
                   >
-                    {tokenBalance}
+                    {secondaryBalanceDisplay.text || '-'}
                   </SensitiveText>
-                </Box>
-              </>
-            )}
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Token balance */}
+            <Box twClassName="shrink">
+              <SensitiveText
+                variant={CLTextVariant.BodySMMedium}
+                style={styles.secondaryBalance}
+                length={SensitiveTextLength.Short}
+                isHidden={privacyMode}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {tokenBalance}
+              </SensitiveText>
+            </Box>
           </Box>
         </Box>
       </TouchableOpacity>

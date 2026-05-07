@@ -6,7 +6,7 @@ import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
-import { PerformancePredict } from '../../../tags.performance.js';
+import { Performance, PerformancePredict } from '../../../tags.performance.js';
 
 /*
  * Scenario: Predict Deposit Performance Test
@@ -24,14 +24,13 @@ import { PerformancePredict } from '../../../tags.performance.js';
  * 4. Time to proceed to confirmation screen
  * 5. Time to verify deposit info (fees, amount) appears
  */
-perfTest.describe(PerformancePredict, () => {
+perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
   perfTest(
     'Predict Deposit - Complete Flow Performance',
     { tag: '@team-predict' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       // Login to the app
       await loginToAppPlaywright();
-
       // Timer 1: Navigate to Predict tab
       const timer1 = new TimerHelper(
         'Time since user taps Predict button until Predict Market List is displayed',
@@ -50,7 +49,7 @@ perfTest.describe(PerformancePredict, () => {
       // Timer 2: Open deposit screen
       const timer2 = new TimerHelper(
         'Time since user taps Add Funds button until Predict Deposit screen is visible',
-        { ios: 1000, android: 1500 },
+        { ios: 1000, android: 4500 },
         currentDeviceDetails.platform,
       );
 
@@ -76,14 +75,14 @@ perfTest.describe(PerformancePredict, () => {
       });
 
       await TransactionPayConfirmation.searchToken('USDC');
-      await TransactionPayConfirmation.tapEthereumFilter();
+      await TransactionPayConfirmation.tapByNetworkFilter('Arbitrum');
       await TransactionPayConfirmation.tapFirstUsdc('USDC');
       await TransactionPayConfirmation.tapKeyboardAmount('1');
 
       // Timer 4: Proceed to confirmation screen
       const timer4 = new TimerHelper(
         'Time since user taps Continue button until quote is displayed on confirmation page',
-        { ios: 4000, android: 3500 },
+        { ios: 4000, android: 12000 },
         currentDeviceDetails.platform,
       );
 

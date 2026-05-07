@@ -15,6 +15,10 @@ import {
 } from './Ledger';
 import Engine from '../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import {
+  LedgerKeyring,
+  LedgerMobileBridge,
+} from '@metamask/eth-ledger-bridge-keyring';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import PAGINATION_OPERATIONS from '../../constants/pagination';
 import {
@@ -51,30 +55,21 @@ const MockRemoveAccountsFromPermissions = jest.mocked(
   removeAccountsFromPermissions,
 );
 
-interface mockKeyringType {
-  addAccounts: jest.Mock;
-  getAccounts: jest.Mock;
-  bridge: {
-    getAppNameAndVersion: jest.Mock;
-    updateTransportMethod: jest.Mock;
-    openEthApp: jest.Mock;
-    closeApps: jest.Mock;
-  };
-  deserialize: jest.Mock;
-  forgetDevice: jest.Mock;
-  getDeviceId: jest.Mock;
-  getFirstPage: jest.Mock;
-  getNextPage: jest.Mock;
-  getPreviousPage: jest.Mock;
-  setDeviceId: jest.Mock;
-  setHdPath: jest.Mock;
-  hdPath: string;
-  setAccountToUnlock: jest.Mock;
-}
+// Bridge stub used by the real LedgerKeyring instance below. We don't run
+// the real bridge methods — production code reads them off `keyring.bridge`
+// (e.g. `getAppNameAndVersion`, `openEthApp`), so they need to be jest mocks.
+const mockBridge = {
+  getAppNameAndVersion: jest.fn(),
+  updateTransportMethod: jest.fn(),
+  openEthApp: jest.fn(),
+  closeApps: jest.fn(),
+};
+
+const ledgerKeyring = new LedgerKeyring({
+  bridge: mockBridge as unknown as LedgerMobileBridge,
+});
 
 describe('Ledger core', () => {
-  let ledgerKeyring: mockKeyringType;
-
   beforeEach(() => {
     jest.resetAllMocks();
 
@@ -83,73 +78,74 @@ describe('Ledger core', () => {
 
     const mockKeyringController = MockEngine.context.KeyringController;
 
-    ledgerKeyring = {
-      addAccounts: jest
-        .fn()
-        .mockResolvedValue(['0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2']),
-      bridge: {
-        getAppNameAndVersion: jest
-          .fn()
-          .mockResolvedValue({ appName: 'appName' }),
-        updateTransportMethod: jest.fn(),
-        openEthApp: jest.fn(),
-        closeApps: jest.fn(),
+    // Re-establish bridge mock implementations after `jest.resetAllMocks`
+    // wipes them.
+    mockBridge.getAppNameAndVersion.mockResolvedValue({
+      appName: 'appName',
+    });
+
+    // Re-establish LedgerKeyring spies each test. `testSetup.js` runs
+    // `jest.restoreAllMocks()` in afterEach, which restores spied methods to
+    // their real implementations, so spies must be recreated here.
+    jest
+      .spyOn(ledgerKeyring, 'addAccounts')
+      .mockResolvedValue(['0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2']);
+    jest.spyOn(ledgerKeyring, 'deserialize').mockImplementation();
+    jest.spyOn(ledgerKeyring, 'forgetDevice').mockImplementation();
+    jest.spyOn(ledgerKeyring, 'getDeviceId').mockReturnValue('deviceId');
+    jest.spyOn(ledgerKeyring, 'getFirstPage').mockResolvedValue([
+      {
+        address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+        index: 0,
+        balance: 0,
       },
-      deserialize: jest.fn(),
-      forgetDevice: jest.fn(),
-      getDeviceId: jest.fn().mockReturnValue('deviceId'),
-      getFirstPage: jest.fn().mockResolvedValue([
-        {
-          balance: '0',
-          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
-          index: 0,
-        },
-        {
-          balance: '1',
-          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
-          index: 1,
-        },
-      ]),
-      getNextPage: jest.fn().mockResolvedValue([
-        {
-          balance: '4',
-          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB4',
-          index: 4,
-        },
-        {
-          balance: '5',
-          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB5',
-          index: 5,
-        },
-      ]),
-      getPreviousPage: jest.fn().mockResolvedValue([
-        {
-          balance: '2',
-          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB6',
-          index: 2,
-        },
-        {
-          balance: '3',
-          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB7',
-          index: 3,
-        },
-      ]),
-      setDeviceId: jest.fn(),
-      setHdPath: jest.fn(),
-      hdPath: LEDGER_LIVE_PATH,
-      setAccountToUnlock: jest.fn(),
-      getAccounts: jest
-        .fn()
-        .mockResolvedValue([
-          '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
-          '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
-        ]),
-    };
+      {
+        address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
+        index: 1,
+        balance: 0,
+      },
+    ]);
+    jest.spyOn(ledgerKeyring, 'getNextPage').mockResolvedValue([
+      {
+        address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB4',
+        index: 4,
+        balance: 0,
+      },
+      {
+        address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB5',
+        index: 5,
+        balance: 0,
+      },
+    ]);
+    jest.spyOn(ledgerKeyring, 'getPreviousPage').mockResolvedValue([
+      {
+        address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB6',
+        index: 2,
+        balance: 0,
+      },
+      {
+        address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB7',
+        index: 3,
+        balance: 0,
+      },
+    ]);
+    jest.spyOn(ledgerKeyring, 'setDeviceId').mockImplementation();
+    jest.spyOn(ledgerKeyring, 'setHdPath').mockImplementation();
+    ledgerKeyring.hdPath = LEDGER_LIVE_PATH;
+    jest.spyOn(ledgerKeyring, 'setAccountToUnlock').mockImplementation();
+    jest
+      .spyOn(ledgerKeyring, 'getAccounts')
+      .mockResolvedValue([
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
+      ]);
 
     mockKeyringController.withKeyring.mockImplementation(
       (_selector, operation) =>
-        // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
-        operation({ keyring: ledgerKeyring, metadata: { id: '1234' } }),
+        operation({
+          keyring: ledgerKeyring,
+          metadata: { id: '1234', name: '' },
+        }),
     );
     mockKeyringController.signTypedMessage.mockResolvedValue('signature');
   });
@@ -158,12 +154,12 @@ describe('Ledger core', () => {
     const mockTransport = 'foo' as unknown as BleTransport;
     it('calls keyring.setTransport', async () => {
       await connectLedgerHardware(mockTransport, 'bar');
-      expect(ledgerKeyring.bridge.updateTransportMethod).toHaveBeenCalled();
+      expect(mockBridge.updateTransportMethod).toHaveBeenCalled();
     });
 
     it('calls keyring.getAppAndVersion', async () => {
       await connectLedgerHardware(mockTransport, 'bar');
-      expect(ledgerKeyring.bridge.getAppNameAndVersion).toHaveBeenCalled();
+      expect(mockBridge.getAppNameAndVersion).toHaveBeenCalled();
     });
 
     it('returns app name correctly', async () => {
@@ -176,19 +172,144 @@ describe('Ledger core', () => {
       expect(ledgerKeyring.setHdPath).toHaveBeenCalled();
       expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
     });
+
+    it('releases the keyring lock before requesting app metadata from the device', async () => {
+      const events: string[] = [];
+      mockBridge.getAppNameAndVersion.mockImplementationOnce(async () => {
+        events.push('getAppNameAndVersion');
+        return { appName: 'Ethereum' };
+      });
+      MockEngine.context.KeyringController.withKeyring.mockImplementationOnce(
+        async (_selector, operation) => {
+          const result = await operation({
+            keyring: ledgerKeyring,
+            metadata: { id: '1234', name: 'Ledger Hardware' },
+          });
+          events.push('withKeyring settled');
+          return result;
+        },
+      );
+
+      await expect(connectLedgerHardware(mockTransport, 'bar')).resolves.toBe(
+        'Ethereum',
+      );
+
+      expect(mockBridge.updateTransportMethod).toHaveBeenCalled();
+      expect(mockBridge.getAppNameAndVersion).toHaveBeenCalled();
+      expect(events).toEqual(['withKeyring settled', 'getAppNameAndVersion']);
+    });
+
+    it('skips app metadata request when aborted before the BLE exchange starts', async () => {
+      const abortController = new AbortController();
+      mockBridge.updateTransportMethod.mockImplementationOnce(async () => {
+        abortController.abort();
+      });
+
+      const resultPromise = connectLedgerHardware(
+        mockTransport,
+        'bar',
+        abortController.signal,
+      );
+      const error = await resultPromise.catch((caughtError) => caughtError);
+
+      expect(error).toMatchObject({
+        name: 'LedgerOperationAbortedError',
+      });
+
+      expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
+    });
+
+    it('throws before acquiring the keyring lock when the abort signal is already aborted', async () => {
+      const abortController = new AbortController();
+      abortController.abort();
+
+      const error = await connectLedgerHardware(
+        mockTransport,
+        'bar',
+        abortController.signal,
+      ).catch((caughtError) => caughtError);
+
+      expect(error).toMatchObject({
+        name: 'LedgerOperationAbortedError',
+      });
+
+      expect(
+        MockEngine.context.KeyringController.withKeyring,
+      ).not.toHaveBeenCalled();
+      expect(mockBridge.updateTransportMethod).not.toHaveBeenCalled();
+      expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
+    });
+
+    it('throws when the resolved keyring is not a LedgerKeyring instance', async () => {
+      MockEngine.context.KeyringController.withKeyring.mockImplementationOnce(
+        async (_selector, operation) =>
+          operation({
+            // The withKeyring helper guards against the keyring controller
+            // resolving a non-Ledger keyring (e.g. due to a controller bug).
+            keyring: {} as unknown as LedgerKeyring,
+            metadata: { id: '1234', name: '' },
+          }),
+      );
+
+      await expect(connectLedgerHardware(mockTransport, 'bar')).rejects.toThrow(
+        'Expected LedgerKeyring',
+      );
+    });
   });
 
   describe('openEthereumAppOnLedger', () => {
     it('calls keyring.openEthApp', async () => {
       await openEthereumAppOnLedger();
-      expect(ledgerKeyring.bridge.openEthApp).toHaveBeenCalled();
+      expect(mockBridge.openEthApp).toHaveBeenCalled();
+    });
+
+    it('releases the keyring lock before opening the Ethereum app on the device', async () => {
+      const events: string[] = [];
+      mockBridge.openEthApp.mockImplementationOnce(async () => {
+        events.push('openEthApp');
+      });
+      MockEngine.context.KeyringController.withKeyring.mockImplementationOnce(
+        async (_selector, operation) => {
+          const result = await operation({
+            keyring: ledgerKeyring,
+            metadata: { id: '1234', name: 'Ledger Hardware' },
+          });
+          events.push('withKeyring settled');
+          return result;
+        },
+      );
+
+      await openEthereumAppOnLedger();
+
+      expect(events).toEqual(['withKeyring settled', 'openEthApp']);
     });
   });
 
   describe('closeRunningAppOnLedger', () => {
     it('calls keyring.quitApp', async () => {
       await closeRunningAppOnLedger();
-      expect(ledgerKeyring.bridge.closeApps).toHaveBeenCalled();
+      expect(mockBridge.closeApps).toHaveBeenCalled();
+    });
+
+    it('releases the keyring lock before closing the current app on the device', async () => {
+      const events: string[] = [];
+      mockBridge.closeApps.mockImplementationOnce(async () => {
+        events.push('closeApps');
+      });
+      MockEngine.context.KeyringController.withKeyring.mockImplementationOnce(
+        async (_selector, operation) => {
+          const result = await operation({
+            keyring: ledgerKeyring,
+            metadata: { id: '1234', name: 'Ledger Hardware' },
+          });
+          events.push('withKeyring settled');
+          return result;
+        },
+      );
+
+      await closeRunningAppOnLedger();
+
+      expect(events).toEqual(['withKeyring settled', 'closeApps']);
     });
   });
 
@@ -359,7 +480,9 @@ describe('Ledger core', () => {
       transportError.name = 'TransportStatusError';
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x6d00;
-      ledgerKeyring.getFirstPage.mockRejectedValueOnce(transportError);
+      jest
+        .mocked(ledgerKeyring.getFirstPage)
+        .mockRejectedValueOnce(transportError);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
@@ -371,7 +494,9 @@ describe('Ledger core', () => {
       transportError.name = 'TransportStatusError';
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x6e00;
-      ledgerKeyring.getNextPage.mockRejectedValueOnce(transportError);
+      jest
+        .mocked(ledgerKeyring.getNextPage)
+        .mockRejectedValueOnce(transportError);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_NEXT_PAGE),
@@ -383,7 +508,9 @@ describe('Ledger core', () => {
       transportError.name = 'TransportStatusError';
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x650f;
-      ledgerKeyring.getFirstPage.mockRejectedValueOnce(transportError);
+      jest
+        .mocked(ledgerKeyring.getFirstPage)
+        .mockRejectedValueOnce(transportError);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
@@ -392,7 +519,7 @@ describe('Ledger core', () => {
 
     it('throws ETH app not open error when error message contains 0x650f', async () => {
       const error = new Error('Ledger device: UNKNOWN_ERROR (0x650f)');
-      ledgerKeyring.getFirstPage.mockRejectedValueOnce(error);
+      jest.mocked(ledgerKeyring.getFirstPage).mockRejectedValueOnce(error);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
@@ -400,9 +527,9 @@ describe('Ledger core', () => {
     });
 
     it('throws unspecified error for other errors', async () => {
-      ledgerKeyring.getFirstPage.mockRejectedValueOnce(
-        new Error('Some other error'),
-      );
+      jest
+        .mocked(ledgerKeyring.getFirstPage)
+        .mockRejectedValueOnce(new Error('Some other error'));
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
@@ -414,7 +541,9 @@ describe('Ledger core', () => {
       transportError.name = 'TransportStatusError';
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x6e01;
-      ledgerKeyring.getFirstPage.mockRejectedValueOnce(transportError);
+      jest
+        .mocked(ledgerKeyring.getFirstPage)
+        .mockRejectedValueOnce(transportError);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
@@ -426,7 +555,9 @@ describe('Ledger core', () => {
       transportError.name = 'TransportStatusError';
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x6511;
-      ledgerKeyring.getPreviousPage.mockRejectedValueOnce(transportError);
+      jest
+        .mocked(ledgerKeyring.getPreviousPage)
+        .mockRejectedValueOnce(transportError);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE),
@@ -438,7 +569,9 @@ describe('Ledger core', () => {
       transportError.name = 'TransportStatusError';
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x6700;
-      ledgerKeyring.getFirstPage.mockRejectedValueOnce(transportError);
+      jest
+        .mocked(ledgerKeyring.getFirstPage)
+        .mockRejectedValueOnce(transportError);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
@@ -447,7 +580,7 @@ describe('Ledger core', () => {
 
     it('throws ETH app not open error when error message contains 0x6511', async () => {
       const error = new Error('Ledger device: APP_NOT_OPEN (0x6511)');
-      ledgerKeyring.getFirstPage.mockRejectedValueOnce(error);
+      jest.mocked(ledgerKeyring.getFirstPage).mockRejectedValueOnce(error);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
@@ -456,7 +589,7 @@ describe('Ledger core', () => {
 
     it('throws ETH app not open error when error message contains 0x6d00', async () => {
       const error = new Error('TransportError: CLA_NOT_SUPPORTED (0x6d00)');
-      ledgerKeyring.getNextPage.mockRejectedValueOnce(error);
+      jest.mocked(ledgerKeyring.getNextPage).mockRejectedValueOnce(error);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_NEXT_PAGE),
@@ -465,7 +598,7 @@ describe('Ledger core', () => {
 
     it('throws ETH app not open error when error message contains 0x6e00', async () => {
       const error = new Error('TransportError: INS_NOT_SUPPORTED (0x6e00)');
-      ledgerKeyring.getFirstPage.mockRejectedValueOnce(error);
+      jest.mocked(ledgerKeyring.getFirstPage).mockRejectedValueOnce(error);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
@@ -474,7 +607,7 @@ describe('Ledger core', () => {
 
     it('throws ETH app not open error when error message contains 0x6e01', async () => {
       const error = new Error('Ledger: INS_NOT_SUPPORTED variant (0x6e01)');
-      ledgerKeyring.getFirstPage.mockRejectedValueOnce(error);
+      jest.mocked(ledgerKeyring.getFirstPage).mockRejectedValueOnce(error);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
@@ -483,7 +616,7 @@ describe('Ledger core', () => {
 
     it('throws ETH app not open error when error message contains 0x6700', async () => {
       const error = new Error('Ledger: INCORRECT_LENGTH (0x6700)');
-      ledgerKeyring.getFirstPage.mockRejectedValueOnce(error);
+      jest.mocked(ledgerKeyring.getFirstPage).mockRejectedValueOnce(error);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
@@ -492,7 +625,7 @@ describe('Ledger core', () => {
 
     it('throws ETH app not open error for unknown_error pattern with 0x650f', async () => {
       const error = new Error('ledger device: unknown_error (0x650f)');
-      ledgerKeyring.getFirstPage.mockRejectedValueOnce(error);
+      jest.mocked(ledgerKeyring.getFirstPage).mockRejectedValueOnce(error);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
@@ -501,7 +634,7 @@ describe('Ledger core', () => {
 
     it('throws ETH app not open error for unknown_error pattern with 0x6511', async () => {
       const error = new Error('ledger device: unknown_error (0x6511)');
-      ledgerKeyring.getFirstPage.mockRejectedValueOnce(error);
+      jest.mocked(ledgerKeyring.getFirstPage).mockRejectedValueOnce(error);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
@@ -513,7 +646,9 @@ describe('Ledger core', () => {
       transportError.name = 'TransportStatusError';
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x1234; // Non-matching code
-      ledgerKeyring.getFirstPage.mockRejectedValueOnce(transportError);
+      jest
+        .mocked(ledgerKeyring.getFirstPage)
+        .mockRejectedValueOnce(transportError);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
@@ -521,7 +656,9 @@ describe('Ledger core', () => {
     });
 
     it('does not throw ETH app not open error for non-Error objects', async () => {
-      ledgerKeyring.getFirstPage.mockRejectedValueOnce('string error');
+      jest
+        .mocked(ledgerKeyring.getFirstPage)
+        .mockRejectedValueOnce('string error');
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
@@ -726,7 +863,9 @@ describe('Ledger core', () => {
       transportError.name = 'TransportStatusError';
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x6d00;
-      ledgerKeyring.addAccounts.mockRejectedValueOnce(transportError);
+      jest
+        .mocked(ledgerKeyring.addAccounts)
+        .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
         'Please open the Ethereum app on your Ledger device.',
@@ -738,7 +877,9 @@ describe('Ledger core', () => {
       transportError.name = 'TransportStatusError';
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x6e00;
-      ledgerKeyring.addAccounts.mockRejectedValueOnce(transportError);
+      jest
+        .mocked(ledgerKeyring.addAccounts)
+        .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
         'Please open the Ethereum app on your Ledger device.',
@@ -750,7 +891,9 @@ describe('Ledger core', () => {
       transportError.name = 'TransportStatusError';
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x6e01;
-      ledgerKeyring.addAccounts.mockRejectedValueOnce(transportError);
+      jest
+        .mocked(ledgerKeyring.addAccounts)
+        .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
         'Please open the Ethereum app on your Ledger device.',
@@ -762,7 +905,9 @@ describe('Ledger core', () => {
       transportError.name = 'TransportStatusError';
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x6511;
-      ledgerKeyring.addAccounts.mockRejectedValueOnce(transportError);
+      jest
+        .mocked(ledgerKeyring.addAccounts)
+        .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
         'Please open the Ethereum app on your Ledger device.',
@@ -774,7 +919,9 @@ describe('Ledger core', () => {
       transportError.name = 'TransportStatusError';
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x6700;
-      ledgerKeyring.addAccounts.mockRejectedValueOnce(transportError);
+      jest
+        .mocked(ledgerKeyring.addAccounts)
+        .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
         'Please open the Ethereum app on your Ledger device.',
@@ -786,7 +933,9 @@ describe('Ledger core', () => {
       transportError.name = 'TransportStatusError';
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x650f;
-      ledgerKeyring.addAccounts.mockRejectedValueOnce(transportError);
+      jest
+        .mocked(ledgerKeyring.addAccounts)
+        .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
         'Please open the Ethereum app on your Ledger device.',
@@ -795,7 +944,7 @@ describe('Ledger core', () => {
 
     it('throws ETH app not open error when error message contains 0x650f', async () => {
       const error = new Error('Ledger device: UNKNOWN_ERROR (0x650f)');
-      ledgerKeyring.addAccounts.mockRejectedValueOnce(error);
+      jest.mocked(ledgerKeyring.addAccounts).mockRejectedValueOnce(error);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
         'Please open the Ethereum app on your Ledger device.',
@@ -804,7 +953,7 @@ describe('Ledger core', () => {
 
     it('throws ETH app not open error when error message contains 0x6511', async () => {
       const error = new Error('Ledger device: APP_NOT_OPEN (0x6511)');
-      ledgerKeyring.addAccounts.mockRejectedValueOnce(error);
+      jest.mocked(ledgerKeyring.addAccounts).mockRejectedValueOnce(error);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
         'Please open the Ethereum app on your Ledger device.',
@@ -813,7 +962,7 @@ describe('Ledger core', () => {
 
     it('throws original error for non-ETH app not open errors', async () => {
       const error = new Error('Some other error');
-      ledgerKeyring.addAccounts.mockRejectedValueOnce(error);
+      jest.mocked(ledgerKeyring.addAccounts).mockRejectedValueOnce(error);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
         'Some other error',
@@ -825,7 +974,9 @@ describe('Ledger core', () => {
       transportError.name = 'TransportStatusError';
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x1234; // Non-matching code
-      ledgerKeyring.addAccounts.mockRejectedValueOnce(transportError);
+      jest
+        .mocked(ledgerKeyring.addAccounts)
+        .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
         'TransportStatusError',

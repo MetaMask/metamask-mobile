@@ -46,6 +46,7 @@ import {
   handleTransactionFinalizedEventForMetrics,
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
+import { handleUnapprovedTransactionAddedForMoneyAccount } from './event-handlers/money-account-override';
 import {
   TransactionPayControllerMessenger,
   TransactionPayPublishHook,
@@ -548,5 +549,10 @@ function addTransactionControllerListeners(
         transactionEventHandlerRequest,
       );
     },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:unapprovedTransactionAdded',
+    handleUnapprovedTransactionAddedForMoneyAccount,
   );
 }

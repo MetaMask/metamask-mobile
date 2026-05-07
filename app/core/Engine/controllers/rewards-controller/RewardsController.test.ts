@@ -114,6 +114,7 @@ import {
   SeasonNotFoundError,
   RewardsDataService,
 } from './services/rewards-data-service';
+import { captureException } from '@sentry/react-native';
 
 // Type the mocked modules
 // Note: mockStore is kept for potential future use but currently unused after feature flag removal
@@ -136,6 +137,9 @@ const mockToHex = toHex as jest.MockedFunction<typeof toHex>;
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
 const mockStoreSubscriptionToken =
   storeSubscriptionToken as jest.MockedFunction<typeof storeSubscriptionToken>;
+const mockCaptureException = captureException as jest.MockedFunction<
+  typeof captureException
+>;
 const mockRemoveSubscriptionToken =
   removeSubscriptionToken as jest.MockedFunction<
     typeof removeSubscriptionToken
@@ -4560,6 +4564,48 @@ describe('RewardsController', () => {
         expect.anything(),
       );
     });
+
+    it('reports non-401 login errors to Sentry', async () => {
+      // Arrange — a 500 server error is unexpected and should be reported
+      const unexpectedError = new Error('Internal server error');
+      mockMessenger.call.mockClear();
+      mockStoreSubscriptionToken.mockResolvedValue({ success: true });
+      mockMessenger.call.mockImplementation(
+        (method: string, ..._args: unknown[]): any => {
+          if (method === 'AccountsController:listMultichainAccounts') {
+            return [mockInternalAccount];
+          }
+          if (method === 'RewardsDataService:getOptInStatus') {
+            return Promise.resolve({ ois: [true], sids: ['sub123'] });
+          }
+          if (method === 'KeyringController:signPersonalMessage') {
+            return Promise.resolve('0xsignature');
+          }
+          if (method === 'RewardsDataService:login') {
+            return Promise.reject(unexpectedError);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      // Act — call performSilentAuth directly with an opted-in account
+      await testController.performSilentAuth(mockInternalAccount, false, false);
+
+      // Assert — captureException called with the unexpected error
+      expect(mockCaptureException).toHaveBeenCalledWith(unexpectedError, {
+        tags: {
+          feature: 'rewards',
+          context: 'performSilentAuth.unexpected_error',
+        },
+        extra: { accountType: 'eip155:eoa' },
+      });
+    });
   });
 
   describe('getSeasonStatus', () => {
@@ -5229,6 +5275,14 @@ describe('RewardsController', () => {
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Attempting reauth with active account after 403',
+      );
+      expect(mockCaptureException).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('Reauth failed'),
+        }),
+        {
+          tags: { feature: 'rewards', context: 'withAuthRetry.reauth_failed' },
+        },
       );
     });
 
@@ -10238,6 +10292,13 @@ describe('RewardsController', () => {
       await expect(controller.optIn(mockAccounts)).rejects.toThrow(
         'Failed to opt in any account from the account group',
       );
+      expect(mockCaptureException).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Optin service error' }),
+        {
+          tags: { feature: 'rewards', context: 'optIn.unexpected_error' },
+          extra: { accountType: 'eip155:eoa' },
+        },
+      );
     });
 
     it('handles signature generation errors', async () => {
@@ -11266,6 +11327,35 @@ describe('RewardsController', () => {
       // Verify that the other subscription remains intact
       expect(newState.subscriptions[subscriptionId2]).toBeDefined();
       expect(newState.subscriptions[subscriptionId2].id).toBe(subscriptionId2);
+    });
+
+    it('reports unexpected opt-out failures to Sentry', async () => {
+      // Arrange — a non-403 server error is unexpected and should be captured
+      const unexpectedError = new Error('Internal server error');
+      mockMessenger.call.mockRejectedValue(unexpectedError);
+
+      const testController = new TestableRewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            sub123: {
+              id: 'sub123',
+              referralCode: 'REF123',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      // Act
+      const result = await testController.optOut('sub123');
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockCaptureException).toHaveBeenCalledWith(unexpectedError, {
+        tags: { feature: 'rewards', context: 'optOut.failed' },
+      });
     });
   });
 
@@ -13133,6 +13223,13 @@ describe('RewardsController', () => {
 
       // Assert
       expect(result).toBe(false);
+      expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
+        tags: {
+          feature: 'rewards',
+          context: 'linkAccountToSubscriptionCandidate.failed',
+        },
+        extra: { accountType: 'eip155:eoa' },
+      });
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Failed to link account to subscription',
         CAIP_ACCOUNT_1,
@@ -16027,6 +16124,9 @@ describe('RewardsController', () => {
       ondoCampaignLeaderboard: {},
       ondoCampaignLeaderboardPositions: {},
       ondoCampaignPortfolio: {},
+      perpsTradingCampaignLeaderboard: {},
+      perpsTradingCampaignLeaderboardPositions: {},
+      perpsTradingCampaignVolume: {},
       pointsEstimateHistory: [],
       pointsEvents: {},
       seasonStatuses: {},
@@ -16053,6 +16153,9 @@ describe('RewardsController', () => {
       ondoCampaignLeaderboard: {},
       ondoCampaignLeaderboardPositions: {},
       ondoCampaignPortfolio: {},
+      perpsTradingCampaignLeaderboard: {},
+      perpsTradingCampaignLeaderboardPositions: {},
+      perpsTradingCampaignVolume: {},
       pointsEstimateHistory: [],
       pointsEvents: {},
       rewardsEnvUrl: null,
@@ -16084,6 +16187,9 @@ describe('RewardsController', () => {
       ondoCampaignLeaderboard: {},
       ondoCampaignLeaderboardPositions: {},
       ondoCampaignPortfolio: {},
+      perpsTradingCampaignLeaderboard: {},
+      perpsTradingCampaignLeaderboardPositions: {},
+      perpsTradingCampaignVolume: {},
       pointsEvents: {},
       rewardsEnvUrl: null,
       seasonStatuses: {},
@@ -17116,6 +17222,7 @@ describe('RewardsController', () => {
             image: null,
             details: null,
             featured: false,
+            showUpcomingDate: false,
           },
         ],
         lastFetched: Date.now(),
@@ -17190,6 +17297,7 @@ describe('RewardsController', () => {
             image: null,
             details: null,
             featured: false,
+            showUpcomingDate: false,
           },
           {
             id: campaignId2,
@@ -17203,6 +17311,7 @@ describe('RewardsController', () => {
             image: null,
             details: null,
             featured: false,
+            showUpcomingDate: false,
           },
         ],
         lastFetched: Date.now(),
@@ -19051,6 +19160,7 @@ describe('RewardsController', () => {
         statusLabel: string;
         details: null;
         featured: boolean;
+        showUpcomingDate: boolean;
       }> = {},
     ) => ({
       id: 'campaign-1',
@@ -19063,6 +19173,7 @@ describe('RewardsController', () => {
       statusLabel: 'Active',
       details: null,
       featured: false,
+      showUpcomingDate: false,
       ...overrides,
     });
 
@@ -20375,6 +20486,161 @@ describe('RewardsController', () => {
 
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching Ondo campaign participant outcome',
+      );
+    });
+  });
+
+  describe('getPerpsTradingCampaignParticipantOutcome', () => {
+    let perpsParticipantOutcomeMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockCampaignId = 'perps-outcome-campaign-1';
+    const mockSubscriptionId = 'sub-perps-outcome-1';
+    const mockOutcome = {
+      subscriptionId: mockSubscriptionId,
+      outcomeStatus: 'pending' as const,
+      winnerVerificationCode: 'VERIFY-123',
+      rank: 1,
+    };
+
+    beforeEach(() => {
+      perpsParticipantOutcomeMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns null when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: perpsParticipantOutcomeMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result =
+        await disabledController.getPerpsTradingCampaignParticipantOutcome(
+          mockCampaignId,
+          mockSubscriptionId,
+        );
+
+      expect(result).toBeNull();
+      expect(perpsParticipantOutcomeMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches outcome from API and caches result', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsParticipantOutcomeMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
+
+      const result = await ctrl.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(perpsParticipantOutcomeMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getPerpsTradingCampaignParticipantOutcome',
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      expect(result).toEqual(mockOutcome);
+    });
+
+    it('returns cached outcome on second call within TTL', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsParticipantOutcomeMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
+
+      await ctrl.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      perpsParticipantOutcomeMessenger.call.mockClear();
+
+      const result = await ctrl.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockOutcome);
+      expect(perpsParticipantOutcomeMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('returns null when API returns null and does not cache', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsParticipantOutcomeMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsParticipantOutcomeMessenger.call.mockResolvedValue(null);
+
+      const result = await ctrl.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+
+      perpsParticipantOutcomeMessenger.call.mockClear();
+      perpsParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
+      const second = await ctrl.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      expect(perpsParticipantOutcomeMessenger.call).toHaveBeenCalledTimes(1);
+      expect(second).toEqual(mockOutcome);
+    });
+
+    it('returns null and logs on API error', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsParticipantOutcomeMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsParticipantOutcomeMessenger.call.mockRejectedValue(
+        new Error('Perps API error'),
+      );
+      mockLogger.error.mockClear();
+
+      const result = await ctrl.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'RewardsController: Failed to fetch Perps Trading participant outcome',
+      );
+    });
+
+    it('logs when fetching fresh outcome', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsParticipantOutcomeMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
+      mockLogger.log.mockClear();
+
+      await ctrl.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching Perps Trading campaign participant outcome',
       );
     });
   });
