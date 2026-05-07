@@ -52,10 +52,6 @@ jest.mock('../../../Views/confirmations/utils/transaction', () => ({
   hasTransactionType: jest.fn(),
 }));
 
-jest.mock('../../../../util/networks', () => ({
-  getNetworkImageSource: jest.fn(() => 'polygon-network-badge'),
-}));
-
 const mockHasTransactionType = hasTransactionType as jest.MockedFunction<
   typeof hasTransactionType
 >;
@@ -85,7 +81,7 @@ describe('usePredictBalanceTokenFilter', () => {
     mockPredictBalance = 100;
     mockTransactionMeta = null;
     mockHasTransactionType.mockReturnValue(false);
-    mockUseSelector.mockReturnValue({ image: 'usdce-token-image' });
+    mockUseSelector.mockReturnValue({ image: 'pusd-token-image' });
     mockNavigate.mockReset();
   });
 
@@ -165,7 +161,7 @@ describe('usePredictBalanceTokenFilter', () => {
     expect((filteredTokens[0] as HighlightedItem).fiat).toBe('$42.50');
   });
 
-  it('shows name_description as USDC.e on the Predict balance row', () => {
+  it('shows name_description as pUSD on the Predict balance row', () => {
     mockHasTransactionType.mockReturnValue(true);
     const tokens = [createMockToken()];
 
@@ -173,11 +169,11 @@ describe('usePredictBalanceTokenFilter', () => {
     const filteredTokens = result.current(tokens);
 
     expect((filteredTokens[0] as HighlightedItem).name_description).toBe(
-      'USDC.e',
+      'pUSD',
     );
   });
 
-  it('uses empty string for icon when usdceToken is null', () => {
+  it('uses empty string for icon when pusdToken is null', () => {
     mockHasTransactionType.mockReturnValue(true);
     mockUseSelector.mockReturnValue(null);
     const tokens = [createMockToken()];
