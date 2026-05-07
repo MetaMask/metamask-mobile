@@ -6,45 +6,39 @@ import { HighRateAlertModalSelectorsIDs } from './HighRateAlertModal.testIds';
 import { BridgeToken } from '../../types';
 
 const mockGoToSwaps = jest.fn();
+const mockGoBack = jest.fn();
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-
-    return {
-      __esModule: true,
-      default: ReactActual.forwardRef(
-        (
-          {
-            children,
-            testID,
-          }: {
-            children?: React.ReactNode;
-            testID?: string;
-          },
-          ref: React.Ref<{
-            onCloseBottomSheet: (callback?: () => void) => void;
-          }>,
-        ) => {
-          ReactActual.useImperativeHandle(ref, () => ({
-            onCloseBottomSheet: (callback?: () => void) => {
-              callback?.();
-            },
-          }));
-
-          return <View testID={testID}>{children}</View>;
-        },
-      ),
-    };
-  },
-);
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ goBack: mockGoBack }),
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
   const { Pressable, Text, View } = jest.requireActual('react-native');
 
   return {
+    BottomSheet: ReactActual.forwardRef(
+      (
+        {
+          children,
+          testID,
+        }: {
+          children?: React.ReactNode;
+          testID?: string;
+        },
+        ref: React.Ref<{
+          onCloseBottomSheet: (callback?: () => void) => void;
+        }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: (callback?: () => void) => {
+            callback?.();
+          },
+        }));
+
+        return <View testID={testID}>{children}</View>;
+      },
+    ),
     BottomSheetFooter: ({
       primaryButtonProps,
     }: {

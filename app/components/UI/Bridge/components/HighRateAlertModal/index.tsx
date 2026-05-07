@@ -1,16 +1,16 @@
 import React, { useCallback, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
+  BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
+  BottomSheetRef,
   Box,
   ButtonIconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { BridgeToken } from '../../types';
@@ -27,6 +27,7 @@ export interface HighRateAlertModalParams {
 
 export function HighRateAlertModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const { goBack } = useNavigation();
   const { sourceToken, destToken } = useParams<HighRateAlertModalParams>();
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
@@ -44,7 +45,11 @@ export function HighRateAlertModal() {
   }, [destToken, goToSwaps, sourceToken]);
 
   return (
-    <BottomSheet ref={sheetRef} testID={HighRateAlertModalSelectorsIDs.SHEET}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={goBack}
+      testID={HighRateAlertModalSelectorsIDs.SHEET}
+    >
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{
