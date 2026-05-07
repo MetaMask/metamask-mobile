@@ -4473,15 +4473,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo/repack-app@npm:^0.2.9":
-  version: 0.2.10
-  resolution: "@expo/repack-app@npm:0.2.10"
+"@expo/repack-app@npm:0.2.17":
+  version: 0.2.17
+  resolution: "@expo/repack-app@npm:0.2.17"
   dependencies:
     commander: "npm:^13.1.0"
     picocolors: "npm:^1.1.1"
   bin:
     repack-app: bin/cli.js
-  checksum: 10/62fce601a95d517faa66c77d7fdf7506cc6e3850d1b39078833c3d6420b302bc7884b31a418ff211031e2fdfa6bd5353e73813fe990336c9108875880e1529da
+  checksum: 10/f25a238e660cff223cc4507bb96ac307298811ec1c164167a3cc492a71e1acf10f337b12cbc066583c9a8a0721ffef65cdcd964e935e283eeb84ea7018c51c9a
+  languageName: node
+  linkType: hard
+
+"@expo/repack-app@patch:@expo/repack-app@npm%3A0.2.17#~/.yarn/patches/@expo-repack-app-npm-0.2.17-84024b51d3.patch":
+  version: 0.2.17
+  resolution: "@expo/repack-app@patch:@expo/repack-app@npm%3A0.2.17#~/.yarn/patches/@expo-repack-app-npm-0.2.17-84024b51d3.patch::version=0.2.17&hash=9339ce"
+  dependencies:
+    commander: "npm:^13.1.0"
+    picocolors: "npm:^1.1.1"
+  bin:
+    repack-app: bin/cli.js
+  checksum: 10/72d09a8457315366ef7c328ccfbd213a987d2c5ae9904471df3e0b25fdc8241cac72be8b869b60dd2fb29647bb65dcab673f25e362080822cd5e68c313df4c9a
   languageName: node
   linkType: hard
 
@@ -35822,7 +35834,7 @@ __metadata:
     "@ethersproject/providers": "npm:^5.7.2"
     "@expensify/react-native-wallet": "npm:^0.1.15"
     "@expo/fingerprint": "npm:~0.15.4"
-    "@expo/repack-app": "npm:^0.2.9"
+    "@expo/repack-app": "patch:@expo/repack-app@npm%3A0.2.17#~/.yarn/patches/@expo-repack-app-npm-0.2.17-84024b51d3.patch"
     "@google/generative-ai": "npm:^0.24.1"
     "@img/sharp-darwin-arm64": "npm:^0.34.3"
     "@img/sharp-libvips-darwin-arm64": "npm:^1.2.1"
