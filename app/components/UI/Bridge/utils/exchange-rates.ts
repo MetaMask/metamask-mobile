@@ -163,6 +163,8 @@ export const calcTokenFiatRate = ({
 
 /**
  * Calculates the fiat value of a token amount in the user's current currency
+ * Keep this amount-based legacy path separate from calcTokenFiatRate so existing
+ * display, balance, and analytics consumers preserve their rounding/fallback behavior.
  * @returns The numeric fiat value (not formatted)
  */
 export const calcTokenFiatValue = ({
@@ -177,17 +179,45 @@ export const calcTokenFiatValue = ({
     return 0;
   }
 
-  const tokenFiatRate = calcTokenFiatRate({
-    token,
-    evmMultiChainMarketData,
-    networkConfigurationsByChainId,
-    evmMultiChainCurrencyRates,
-    nonEvmMultichainAssetRates,
-  });
+  if (isNonEvmChainId(token.chainId)) {
+    const assetId = token.address as CaipAssetType;
+    // This rate is asset to fiat. Whatever the user selected display fiat currency is.
+    // We don't need to have an additional conversion from native token to fiat.
+    const rate = nonEvmMultichainAssetRates?.[assetId]?.rate;
+    if (rate) {
+      return Number(balanceToFiatNumber(amount, Number(rate), 1));
+    }
+    return token?.currencyExchangeRate && amount
+      ? Number(amount) * token?.currencyExchangeRate
+      : 0;
+  }
 
-  return tokenFiatRate
-    ? Number(balanceToFiatNumber(amount, tokenFiatRate, 1))
-    : 0;
+  // EVM
+  const evmChainId = token.chainId as Hex;
+  const evmMultiChainExchangeRates = evmMultiChainMarketData?.[evmChainId];
+  const evmTokenMarketData = evmMultiChainExchangeRates?.[token.address as Hex];
+
+  const nativeCurrency =
+    networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
+  const multiChainConversionRate =
+    evmMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate;
+
+  if (multiChainConversionRate && evmTokenMarketData?.price) {
+    return Number(
+      balanceToFiatNumber(
+        amount,
+        multiChainConversionRate,
+        evmTokenMarketData.price,
+      ),
+    );
+  }
+
+  const currentCurrencyValue =
+    token?.currencyExchangeRate && amount
+      ? Number(amount) * token?.currencyExchangeRate
+      : 0;
+
+  return currentCurrencyValue;
 };
 
 interface GetDisplayCurrencyValueParams extends CalcTokenFiatValueParams {
