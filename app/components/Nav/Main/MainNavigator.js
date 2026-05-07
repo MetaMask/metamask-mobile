@@ -867,9 +867,9 @@ const HomeTabs = () => {
       {/* Activity Tab (replaced by Money when feature flag is on) */}
       {isMoneyHomeScreenEnabled ? (
         <Tab.Screen
-          name={Routes.MONEY.HOME}
+          name={Routes.MONEY.ROOT}
           options={options.money}
-          component={WalletTabModalFlow}
+          component={MoneyScreenStack}
         />
       ) : (
         <Tab.Screen
@@ -1223,11 +1223,6 @@ const MainNavigator = () => {
       />
       {isMoneyHomeScreenEnabled && (
         <>
-          <Stack.Screen
-            name={Routes.MONEY.ROOT}
-            component={MoneyScreenStack}
-            options={{ headerShown: false, ...slideFromRightAnimation }}
-          />
           <Stack.Screen
             name={Routes.MONEY.MODALS.ROOT}
             component={MoneyModalStack}

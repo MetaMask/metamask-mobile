@@ -11,6 +11,7 @@ import {
 import type { TrendingFilterContext } from '../../components/TrendingTokensList/TrendingTokensList';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import { useNetworkName } from '../useNetworkName/useNetworkName';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 interface UseTokenListFiltersOptions {
   /**
@@ -49,6 +50,7 @@ export interface TokenListFilters {
   ) => void;
   handlePriceChangePress: () => void;
   priceChangeButtonText: string;
+  priceChangeSortDirectionIcon: IconName;
 
   // Time
   selectedTimeOption: TimeOption;
@@ -189,6 +191,14 @@ export const useTokenListFilters = (
     }
   }, [selectedPriceChangeOption]);
 
+  const priceChangeSortDirectionIcon = useMemo(
+    () =>
+      priceChangeSortDirection === SortDirection.Ascending
+        ? IconName.Arrow2Up
+        : IconName.Arrow2Down,
+    [priceChangeSortDirection],
+  );
+
   const filterContext: TrendingFilterContext = useMemo(
     () => ({
       timeFilter: selectedTimeOption,
@@ -226,6 +236,7 @@ export const useTokenListFilters = (
     handlePriceChangeSelect,
     handlePriceChangePress,
     priceChangeButtonText,
+    priceChangeSortDirectionIcon,
     selectedTimeOption,
     setSelectedTimeOption,
     refreshing,
