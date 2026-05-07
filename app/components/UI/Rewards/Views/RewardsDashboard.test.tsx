@@ -42,6 +42,7 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
 }));
 
 jest.mock('../../../../selectors/rewards', () => ({
+  selectIsCurrentSubscriptionVipEnabled: jest.fn(),
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
@@ -57,7 +58,10 @@ import {
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
 } from '../../../../reducers/rewards/selectors';
-import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import {
+  selectIsCurrentSubscriptionVipEnabled,
+  selectRewardsSubscriptionId,
+} from '../../../../selectors/rewards';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 const mockSelectActiveTab = selectActiveTab as jest.MockedFunction<
@@ -66,6 +70,10 @@ const mockSelectActiveTab = selectActiveTab as jest.MockedFunction<
 const mockSelectRewardsSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
     typeof selectRewardsSubscriptionId
+  >;
+const mockSelectIsCurrentSubscriptionVipEnabled =
+  selectIsCurrentSubscriptionVipEnabled as jest.MockedFunction<
+    typeof selectIsCurrentSubscriptionVipEnabled
   >;
 const mockSelectHideUnlinkedAccountsBanner =
   selectHideUnlinkedAccountsBanner as jest.MockedFunction<
@@ -93,11 +101,20 @@ const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
+jest.mock('../../../../images/rewards/crown.svg', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockCrownIcon() {
+    return ReactActual.createElement(View, { testID: 'mock-crown-icon' });
+  };
+});
+
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'rewards.main_title': 'Rewards',
+      'rewards.vip.title': 'VIP',
     };
     return translations[key] || key;
   }),
@@ -222,6 +239,7 @@ describe('RewardsDashboard', () => {
   const defaultSelectorValues = {
     activeTab: 'campaigns' as const,
     subscriptionId: 'test-subscription-id',
+    isVipEnabled: false,
     hideUnlinkedAccountsBanner: false,
     hideCurrentAccountNotOptedInBannerArray: [],
     selectedAccountGroup: mockSelectedAccountGroup,
@@ -288,6 +306,9 @@ describe('RewardsDashboard', () => {
     mockSelectRewardsSubscriptionId.mockReturnValue(
       defaultSelectorValues.subscriptionId,
     );
+    mockSelectIsCurrentSubscriptionVipEnabled.mockReturnValue(
+      defaultSelectorValues.isVipEnabled,
+    );
     mockSelectHideUnlinkedAccountsBanner.mockReturnValue(
       defaultSelectorValues.hideUnlinkedAccountsBanner,
     );
@@ -314,6 +335,8 @@ describe('RewardsDashboard', () => {
       if (selector === selectActiveTab) return defaultSelectorValues.activeTab;
       if (selector === selectRewardsSubscriptionId)
         return defaultSelectorValues.subscriptionId;
+      if (selector === selectIsCurrentSubscriptionVipEnabled)
+        return defaultSelectorValues.isVipEnabled;
       if (selector === selectHideUnlinkedAccountsBanner)
         return defaultSelectorValues.hideUnlinkedAccountsBanner;
       if (selector === selectHideCurrentAccountNotOptedInBannerArray)
@@ -413,6 +436,57 @@ describe('RewardsDashboard', () => {
 
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REFERRAL_REWARDS_VIEW);
+    });
+
+    it('does not render the VIP button when VIP is disabled', () => {
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      expect(queryByTestId(REWARDS_VIEW_SELECTORS.VIP_BUTTON)).toBeNull();
+    });
+
+    it('renders the VIP button when VIP is enabled', () => {
+      mockSelectIsCurrentSubscriptionVipEnabled.mockReturnValue(true);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectIsCurrentSubscriptionVipEnabled) return true;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        return undefined;
+      });
+
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.VIP_BUTTON)).toBeOnTheScreen();
+    });
+
+    it('navigates to VIP view when the VIP button is pressed', () => {
+      mockSelectIsCurrentSubscriptionVipEnabled.mockReturnValue(true);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectIsCurrentSubscriptionVipEnabled) return true;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        return undefined;
+      });
+
+      const { getByTestId } = render(<RewardsDashboard />);
+      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.VIP_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIP_VIEW);
     });
   });
 

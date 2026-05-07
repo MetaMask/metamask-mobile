@@ -17,6 +17,16 @@ export interface LoginResponseDto {
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipFeatureDto = {
+  enabled: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionFeaturesDto = {
+  vip: VipFeatureDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SubscriptionDto = {
   id: string;
   referralCode: string;
@@ -24,6 +34,7 @@ export type SubscriptionDto = {
     address: string;
     chainId: number;
   }[];
+  features: SubscriptionFeaturesDto;
 };
 
 export interface MobileLoginDto {
