@@ -187,7 +187,6 @@ export enum IconName {
   Flower = 'Flower',
   Folder = 'Folder',
   Forest = 'Forest',
-  Frame = 'Frame',
   FullCircle = 'FullCircle',
   Gas = 'Gas',
   Gift = 'Gift',

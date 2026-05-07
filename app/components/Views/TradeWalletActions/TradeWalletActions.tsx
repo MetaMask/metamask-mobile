@@ -2,21 +2,18 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  BackHandler,
   Platform,
   StyleSheet,
   View,
+  type ViewStyle,
   useWindowDimensions,
-  BackHandler,
 } from 'react-native';
 import Animated, {
   FadeInDown,
   FadeOutDown,
   runOnJS,
 } from 'react-native-reanimated';
-import LegacyIcon, {
-  IconName as LegacyIconName,
-  IconSize as LegacyIconSize,
-} from '../../../component-library/components/Icons/Icon';
 import Overlay from '../../../component-library/components/Overlay';
 import { useParams } from '../../../util/navigation/navUtils';
 import { Box } from '../../UI/Box/Box';
@@ -72,6 +69,9 @@ import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
+const batchSellIconStyle = {
+  transform: [{ rotate: '180deg' }],
+} satisfies ViewStyle;
 
 interface TradeWalletActionsParams {
   onDismiss?: () => void;
@@ -314,13 +314,10 @@ function TradeWalletActions() {
                     description={strings(
                       'asset_overview.batch_sell_description',
                     )}
-                    startAccessory={
-                      // eslint-disable-next-line @typescript-eslint/no-deprecated -- Frame is only available in the local icon registry.
-                      <LegacyIcon
-                        name={LegacyIconName.Frame}
-                        size={LegacyIconSize.Lg}
-                      />
-                    }
+                    iconName={IconName.Merge}
+                    iconProps={{
+                      style: batchSellIconStyle,
+                    }}
                     onPress={onBatchSell}
                     testID={
                       WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON

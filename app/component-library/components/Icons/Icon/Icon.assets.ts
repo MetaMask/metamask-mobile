@@ -117,7 +117,6 @@ import flaskSVG from './assets/flask.svg';
 import flowerSVG from './assets/flower.svg';
 import folderSVG from './assets/folder.svg';
 import forestSVG from './assets/forest.svg';
-import frameSVG from './assets/frame.svg';
 import fullcircleSVG from './assets/full-circle.svg';
 import gasSVG from './assets/gas.svg';
 import giftSVG from './assets/gift.svg';
@@ -407,7 +406,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Flower]: flowerSVG,
   [IconName.Folder]: folderSVG,
   [IconName.Forest]: forestSVG,
-  [IconName.Frame]: frameSVG,
   [IconName.FullCircle]: fullcircleSVG,
   [IconName.Gas]: gasSVG,
   [IconName.Gift]: giftSVG,
