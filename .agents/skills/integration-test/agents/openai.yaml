@@ -1,0 +1,4 @@
+interface:
+  display_name: "Integration Test"
+  short_description: "Write and fix *.integration.test.ts tests for MetaMask Mobile."
+  default_prompt: "Use $integration-test to write, fix, or update integration tests with the tests/integration/ framework."
