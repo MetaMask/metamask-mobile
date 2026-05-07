@@ -125,13 +125,35 @@ jobs:
             ios/build
           key: ${{ runner.os }}-xcode-main-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
 
+      # Cache only the CocoaPods download/spec cache (~/.cocoapods), NOT ios/Pods.
+      # nscloud-cache-action mounts each path as a volume at /Volumes/cache/<path>, which would put
+      # ios/Pods on a different filesystem than node_modules. CocoaPods generates xcconfig and build
+      # scripts with relative paths like ../../node_modules/ from ios/Pods/, which break across
+      # filesystems (resolves to /Volumes/node_modules/, which doesn't exist) and cause the
+      # hermes-engine build script to fail with "No such file or directory".
       - name: Configure Namespace iOS cache
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |
             ~/.cocoapods
-            ios/Pods
+
+      # Namespace runner profiles persist DerivedData, ios/build, and ios/Pods at the infrastructure
+      # level between runs (the 70GB User Bundled Cache reported in the runner setup logs). Without
+      # clearing all three on Namespace:
+      # - DerivedData: Xcode reports "nothing to rebuild" in ~22s and produces no output in ios/build
+      # - ios/build: stale Intermediates.noindex/ scripts reference /Volumes/cache/ios/Pods/ (the
+      #   nscloud volume mount path from a prior run), causing "No such file or directory" failures
+      # - ios/Pods: stale Pods generated when ios/Pods was mounted at /Volumes/cache/ios/Pods/ contain
+      #   xcconfig files with cross-filesystem relative paths to node_modules that break this build
+      # Must run BEFORE Setup project dependencies (which runs pod install) so pod install regenerates
+      # ios/Pods with correct workspace-relative paths.
+      - name: Clear stale Xcode and CocoaPods artifacts for clean Namespace build
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        run: |
+          rm -rf ~/Library/Developer/Xcode/DerivedData
+          rm -rf ios/build
+          rm -rf ios/Pods
 
       - name: Restore .metamask folder (Foundry download cache for install:foundryup)
         uses: actions/cache@v4
@@ -203,17 +225,6 @@ jobs:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           key: ios-app-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
-
-      # Namespace runner profiles persist ~/Library/Developer/Xcode/DerivedData and ios/build at the
-      # infrastructure level between runs (independent of nscloud-cache-action). Without clearing:
-      # - DerivedData: Xcode reports "nothing to rebuild" in ~22s and produces no output in ios/build
-      # - ios/build: stale intermediate scripts reference /Volumes/cache/ios/Pods/ (the nscloud volume
-      #   mount path from a prior run), causing "No such file or directory" build failures
-      - name: Clear Xcode build artifacts for clean Namespace build
-        if: ${{ inputs.runner_provider == 'namespace' }}
-        run: |
-          rm -rf ~/Library/Developer/Xcode/DerivedData
-          rm -rf ios/build
 
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
