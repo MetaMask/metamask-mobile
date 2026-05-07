@@ -303,13 +303,14 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         </Box>
       );
 
-      if (listFooterComponent || refreshControl) {
+      if (listHeaderComponent || listFooterComponent || refreshControl) {
         return (
           <ScrollView
             style={tw`flex-1`}
             showsVerticalScrollIndicator={false}
             refreshControl={refreshControl}
           >
+            {listHeaderComponent}
             {emptyState}
             {listFooterComponent}
           </ScrollView>
