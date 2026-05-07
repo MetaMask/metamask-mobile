@@ -35,8 +35,8 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const tw = (...args: unknown[]) => args;
-  tw.style = (...args: unknown[]) => args;
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
   return { useTailwind: () => tw };
 });
 
@@ -110,7 +110,7 @@ describe('PerpsTradingCampaignWinningView', () => {
           params: { campaignId: 'campaign-perps-1' },
         },
       }),
-      {},
+      undefined,
     );
   });
 
@@ -131,7 +131,7 @@ describe('PerpsTradingCampaignWinningView', () => {
         winningCode: null,
         hasOutcomeLoaded: true,
       }),
-      {},
+      undefined,
     );
   });
 
@@ -147,7 +147,7 @@ describe('PerpsTradingCampaignWinningView', () => {
         winningCode: null,
         hasOutcomeLoaded: false,
       }),
-      {},
+      undefined,
     );
   });
 
@@ -159,7 +159,7 @@ describe('PerpsTradingCampaignWinningView', () => {
         isRankLoading: false,
         isResultLoading: false,
       }),
-      {},
+      undefined,
     );
   });
 
@@ -179,7 +179,7 @@ describe('PerpsTradingCampaignWinningView', () => {
         isRankLoading: false,
         isResultLoading: false,
       }),
-      {},
+      undefined,
     );
   });
 
@@ -200,7 +200,7 @@ describe('PerpsTradingCampaignWinningView', () => {
         rankDisplay: null,
         isRankLoading: false,
       }),
-      {},
+      undefined,
     );
   });
 });
