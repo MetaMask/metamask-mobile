@@ -51,7 +51,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'SignatureController:stateChange',
   'SmartTransactionsController:stateChange',
   'TokenBalancesController:stateChange',
-  'TokenListController:stateChange',
   'TokenRatesController:stateChange',
   'TokensController:stateChange',
   'TokenSearchDiscoveryDataController:stateChange',

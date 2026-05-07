@@ -29,9 +29,6 @@ export const perpsEngineStateMock = {
           },
         },
       },
-      TokenListController: {
-        tokensChainsCache: {},
-      },
       PreferencesController: {
         selectedAddress: '0x1234567890abcdef',
         useTokenDetection: true,
