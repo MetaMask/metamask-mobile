@@ -6559,9 +6559,9 @@
       "card": "Card"
     },
     "earnings": {
-      "title": "Earnings",
-      "lifetime": "Lifetime earnings",
-      "projected": "Projected earnings",
+      "title": "Estimated earnings",
+      "estimated_monthly": "Monthly",
+      "estimated_yearly": "Annual",
       "info_label": "Earnings info"
     },
     "how_it_works": {
@@ -6638,12 +6638,8 @@
       "learn_more": "Learn more"
     },
     "earnings_tooltip": {
-      "title": "Earnings",
-      "lifetime_heading": "Lifetime earnings",
-      "lifetime_body": "The total yield you've earned since opening your Money account.",
-      "projected_heading": "Projected earnings",
-      "projected_body": "A projection of what you'd earn over a year based on your current balance and rate.",
-      "disclaimer": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for 1 year. APY is variable and may change due to various factors. No guarantee of return."
+      "title": "Estimated earnings",
+      "body": "An estimate of how much you could earn over a period based on your current balance and today's APY. Estimates are not guaranteed returns and remain subject to change."
     },
     "activity": {
       "title": "Activity",

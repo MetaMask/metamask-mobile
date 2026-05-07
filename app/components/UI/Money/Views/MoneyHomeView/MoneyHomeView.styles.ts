@@ -7,8 +7,11 @@ const styleSheet = (params: { theme: Theme }) =>
       flex: 1,
       backgroundColor: params.theme.colors.background.default,
     },
-    scrollContent: {
-      paddingBottom: 0,
+    footerOverlay: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
     },
   });
 
