@@ -3672,6 +3672,11 @@
         "description": "Clears the persisted authentication session. Use this after toggling MM_DEV_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_DEV_API_ENV: {{env}}.",
         "clear_auth_session_button": "Clear persisted auth session"
       },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Reset the push notification pre-prompt flag to re-trigger the sheet on next eligible launch.",
+        "reset_prompt": "Reset push pre-prompt"
+      },
       "haptics": {
         "title": "Haptics",
         "description": "Preview haptic feedback on a physical device. This bypasses in-app reduced-haptics and the remote kill switch so you can evaluate each pattern. Simulators often do not play haptics.",
