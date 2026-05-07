@@ -178,4 +178,40 @@ describe('hardwareWalletsSwapsReducer', () => {
 
     expect(result).toBe(state);
   });
+
+  it('does not overwrite Rejected status with TRANSACTION_FAILED', () => {
+    const state = hardwareWalletsSwapsReducer(
+      initialHardwareWalletsSwapsState,
+      { type: 'START', payload: { totalSteps: 2 } },
+    );
+
+    const rejected = hardwareWalletsSwapsReducer(state, {
+      type: 'REJECTED',
+      payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
+    });
+
+    const result = hardwareWalletsSwapsReducer(rejected, {
+      type: 'TRANSACTION_FAILED',
+    });
+
+    expect(result.status).toBe(HardwareWalletsSwapsStatus.Rejected);
+  });
+
+  it('does not overwrite Submitted status with TRANSACTION_FAILED', () => {
+    const started = hardwareWalletsSwapsReducer(
+      initialHardwareWalletsSwapsState,
+      { type: 'START', payload: { totalSteps: 1 } },
+    );
+
+    const signed = hardwareWalletsSwapsReducer(started, {
+      type: 'SIGNED',
+      payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
+    });
+
+    const result = hardwareWalletsSwapsReducer(signed, {
+      type: 'TRANSACTION_FAILED',
+    });
+
+    expect(result.status).toBe(HardwareWalletsSwapsStatus.Submitted);
+  });
 });

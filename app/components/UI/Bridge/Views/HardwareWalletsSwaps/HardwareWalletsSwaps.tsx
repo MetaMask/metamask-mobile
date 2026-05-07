@@ -48,6 +48,11 @@ import {
 } from './HardwareWalletsSwaps.state';
 import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
+import {
+  getBridgeSubmissionCache,
+  clearBridgeSubmissionCache,
+} from '../../hooks/bridgeSubmissionCache';
 
 const HARDWARE_WALLET_RIVE_ARTBOARD = 'Generic';
 const HARDWARE_WALLET_RIVE_STATE_MACHINE = 'wallet_states';
@@ -210,6 +215,7 @@ export function HardwareWalletsSwaps() {
   const riveRef = useRef<RiveRef>(null);
   const [isRivePlaying, setIsRivePlaying] = useState(false);
   const progress = useSelector(selectHardwareWalletsSwaps);
+  const { submitBridgeTx } = useSubmitBridgeTx();
 
   const animationTrigger = useMemo(
     () => getHardwareWalletRiveTrigger(progress),
@@ -251,19 +257,29 @@ export function HardwareWalletsSwaps() {
   }, [progress.currentStep, progress.status, progress.totalSteps]);
 
   const handleCancel = useCallback(() => {
+    clearBridgeSubmissionCache();
     dispatch(resetHardwareWalletsSwaps());
     navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW as never);
   }, [dispatch, navigation]);
 
-  const handleTryAgain = useCallback(() => {
+  const handleTryAgain = useCallback(async () => {
     dispatch(updateHardwareWalletsSwaps({ type: 'RETRY' }));
-  }, [dispatch]);
+    const cachedParams = getBridgeSubmissionCache();
+    if (cachedParams) {
+      try {
+        await submitBridgeTx(cachedParams);
+      } catch {
+        // The tracker in useBridgeConfirm dispatches REJECTED/TRANSACTION_FAILED
+      }
+    }
+  }, [dispatch, submitBridgeTx]);
 
-  const handleReconnect = useCallback(() => {
+  const handleReconnect = useCallback(async () => {
     dispatch(updateHardwareWalletsSwaps({ type: 'RETRY' }));
   }, [dispatch]);
 
   const handleDone = useCallback(() => {
+    clearBridgeSubmissionCache();
     dispatch(resetHardwareWalletsSwaps());
     navigation.navigate(Routes.TRANSACTIONS_VIEW as never);
   }, [dispatch, navigation]);

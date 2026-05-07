@@ -307,7 +307,7 @@ describe('useBridgeConfirm', () => {
       });
     });
 
-    it('shows rejected progress for hardware wallet submissions after the error', async () => {
+    it('shows failed progress for hardware wallet submissions after the error', async () => {
       jest.spyOn(console, 'error').mockImplementation();
       jest.mocked(isHardwareAccount).mockReturnValue(true);
       const { result, store } = renderHook();
@@ -324,7 +324,7 @@ describe('useBridgeConfirm', () => {
             };
           }
         ).bridge.hardwareWalletsSwaps.status,
-      ).toBe(HardwareWalletsSwapsStatus.Rejected);
+      ).toBe(HardwareWalletsSwapsStatus.Failed);
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });
   });

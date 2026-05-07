@@ -143,6 +143,12 @@ export function hardwareWalletsSwapsReducer(
         disconnectedStep: state.currentStep,
       };
     case 'TRANSACTION_FAILED':
+      if (
+        state.status === HardwareWalletsSwapsStatus.Rejected ||
+        state.status === HardwareWalletsSwapsStatus.Submitted
+      ) {
+        return state;
+      }
       return {
         ...state,
         status: HardwareWalletsSwapsStatus.Failed,

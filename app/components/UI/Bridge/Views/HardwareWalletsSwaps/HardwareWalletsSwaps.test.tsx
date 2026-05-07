@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -33,6 +33,25 @@ jest.mock(
   '../../../../../animations/generic_hardware_wallet.riv',
   () => 'mockGenericHardwareWalletRiv',
 );
+
+const mockSubmitBridgeTx = jest.fn();
+jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
+  __esModule: true,
+  default: () => ({ submitBridgeTx: mockSubmitBridgeTx }),
+}));
+
+jest.mock('../../hooks/bridgeSubmissionCache', () => ({
+  getBridgeSubmissionCache: jest.fn(() => null),
+  clearBridgeSubmissionCache: jest.fn(),
+  setBridgeSubmissionCache: jest.fn(),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  controllerMessenger: {
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
+}));
 
 const renderScreen = (
   hardwareWalletsSwaps: Partial<HardwareWalletsSwapsState>,
@@ -201,7 +220,18 @@ describe('HardwareWalletsSwaps', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
   });
 
-  it('dispatches RETRY when try again is pressed', () => {
+  it('dispatches RETRY and re-submits when try again is pressed', async () => {
+    const cachedParams = {
+      quoteResponse: { id: 'test' } as any,
+      location: undefined,
+      transactionActiveAbTests: undefined,
+    };
+    const { getBridgeSubmissionCache } = jest.requireMock(
+      '../../hooks/bridgeSubmissionCache',
+    );
+    getBridgeSubmissionCache.mockReturnValue(cachedParams);
+    mockSubmitBridgeTx.mockResolvedValue({ success: true });
+
     const { getByTestId, store } = renderScreen({
       status: HardwareWalletsSwapsStatus.Rejected,
       steps: [
@@ -224,6 +254,10 @@ describe('HardwareWalletsSwaps', () => {
     expect(state.bridge.hardwareWalletsSwaps.status).toBe(
       HardwareWalletsSwapsStatus.Waiting,
     );
+
+    await waitFor(() => {
+      expect(mockSubmitBridgeTx).toHaveBeenCalledWith(cachedParams);
+    });
   });
 
   it('navigates to transactions when done is pressed', () => {

@@ -12,7 +12,11 @@ import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { isHardwareAccount } from '../../../../../util/address';
-import { HardwareWalletsSwapsStepKind } from '../../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
+import { useHwBatchSignTracker } from '../useHwBatchSignTracker';
+import {
+  setBridgeSubmissionCache,
+  clearBridgeSubmissionCache,
+} from '../bridgeSubmissionCache';
 
 interface Params {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] | null;
@@ -33,6 +37,11 @@ export const useBridgeConfirm = ({
     ? Boolean(isHardwareAccount(walletAddress))
     : false;
 
+  useHwBatchSignTracker({
+    fromAddress: walletAddress ?? undefined,
+    isEnabled: isHardwareWalletAccount,
+  });
+
   const handleConfirm = async () => {
     const isHardwareWalletBridgeSubmission =
       Boolean(activeQuote && walletAddress) && isHardwareWalletAccount;
@@ -49,6 +58,11 @@ export const useBridgeConfirm = ({
               payload: { totalSteps: activeQuote.approval ? 2 : 1 },
             }),
           );
+          setBridgeSubmissionCache({
+            quoteResponse: activeQuote,
+            location,
+            transactionActiveAbTests,
+          });
           navigation.navigate(Routes.BRIDGE.ROOT, {
             screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
           });
@@ -64,20 +78,15 @@ export const useBridgeConfirm = ({
       console.error('Error submitting bridge tx', error);
       if (isHardwareWalletBridgeSubmission) {
         dispatch(
-          updateHardwareWalletsSwaps({
-            type: 'REJECTED',
-            payload: {
-              stepKind: activeQuote?.approval
-                ? HardwareWalletsSwapsStepKind.Approval
-                : HardwareWalletsSwapsStepKind.Transaction,
-            },
-          }),
+          updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }),
         );
       }
     } finally {
       dispatch(setIsSubmittingTx(false));
       if (!isHardwareWalletBridgeSubmission) {
         navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      } else {
+        clearBridgeSubmissionCache();
       }
     }
   };
