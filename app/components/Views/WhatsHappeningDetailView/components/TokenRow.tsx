@@ -28,6 +28,28 @@ const TokenRow: React.FC<TokenRowProps> = ({ asset, item, cardIndex }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { handleTrade, canTrade } = useTradeNavigation(asset);
 
+  const handleTradeWithTracking = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTION)
+        .addProperties({
+          ...getWhatsHappeningEventProps(item, cardIndex),
+          interaction_type: WhatsHappeningInteractionType.TradePressed,
+          asset_symbol: asset.symbol,
+          perps_market: asset.hlPerpsMarket?.[0],
+        })
+        .build(),
+    );
+    handleTrade();
+  }, [
+    handleTrade,
+    asset.symbol,
+    asset.hlPerpsMarket,
+    item,
+    cardIndex,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
   const handleBuy = useCallback(() => {
     const assetId = asset.caip19?.[0];
     trackEvent(
@@ -57,7 +79,7 @@ const TokenRow: React.FC<TokenRowProps> = ({ asset, item, cardIndex }) => {
         asset={asset}
         actionLabel={strings('bottom_nav.trade')}
         accessibilityLabel={`${strings('bottom_nav.trade')} ${asset.symbol}`}
-        onAction={handleTrade}
+        onAction={handleTradeWithTracking}
       />
     );
   }
