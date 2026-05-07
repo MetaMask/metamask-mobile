@@ -37,6 +37,18 @@ export type ClobHeaders = {
   POLY_PASSPHRASE: string;
 };
 
+export interface ClobFeeDetails {
+  r?: number | null;
+  e?: number | null;
+  to?: boolean | null;
+}
+
+export interface ClobMarketInfo {
+  fd?: ClobFeeDetails;
+  mts?: number;
+  mos?: number;
+}
+
 // Polymarket API response types
 export interface PolymarketApiMarket {
   conditionId: string;

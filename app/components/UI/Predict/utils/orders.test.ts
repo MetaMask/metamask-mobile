@@ -1,4 +1,13 @@
-import { calculateMaxBetAmount, generateOrderId } from './orders';
+import { Side, type OrderPreview } from '../types';
+import {
+  calculateMaxBetAmount,
+  generateOrderId,
+  getPredictBuyAllInCost,
+  getPredictExchangeFee,
+  getPredictMarketFee,
+  roundToFiveDecimals,
+  roundUpToCents,
+} from './orders';
 
 // Mock react-native-quick-crypto
 jest.mock('react-native-quick-crypto', () => ({
@@ -82,6 +91,76 @@ describe('orders utils', () => {
 
       // 100.123456 * 0.96 = 96.11851776, rounded to 4 decimals = 96.1185
       expect(result).toBe(96.1185);
+    });
+  });
+
+  describe('roundUpToCents', () => {
+    it('rounds up to the nearest cent', () => {
+      expect(roundUpToCents(10.001)).toBe(10.01);
+    });
+
+    it('keeps exact cent values unchanged', () => {
+      expect(roundUpToCents(10.01)).toBe(10.01);
+    });
+
+    it('returns zero for non-finite values', () => {
+      expect(roundUpToCents(Number.NaN)).toBe(0);
+    });
+  });
+
+  describe('roundToFiveDecimals', () => {
+    it('rounds to five decimals', () => {
+      expect(roundToFiveDecimals(0.123456)).toBe(0.12346);
+    });
+
+    it('rounds values below half of the smallest unit to zero', () => {
+      expect(roundToFiveDecimals(0.000004)).toBe(0);
+    });
+
+    it('returns zero for non-positive values', () => {
+      expect(roundToFiveDecimals(-1)).toBe(0);
+    });
+  });
+
+  describe('predict fee helpers', () => {
+    const preview: OrderPreview = {
+      marketId: 'market-1',
+      outcomeId: 'outcome-1',
+      outcomeTokenId: 'token-1',
+      timestamp: 1,
+      side: Side.BUY,
+      sharePrice: 0.5,
+      maxAmountSpent: 10,
+      minAmountReceived: 20,
+      slippage: 0.03,
+      tickSize: 0.01,
+      minOrderSize: 0.01,
+      negRisk: false,
+      feeRateBps: '0',
+      fees: {
+        metamaskFee: 0.111,
+        providerFee: 0.222,
+        marketFee: 0.003,
+        totalFee: 0.333,
+        totalFeePercentage: 3.33,
+        collector: '0x0',
+      },
+    };
+
+    it('returns zero when marketFee is missing', () => {
+      expect(getPredictMarketFee()).toBe(0);
+    });
+
+    it('combines provider fee and market fee for exchange fee', () => {
+      expect(getPredictExchangeFee(preview.fees)).toBe(0.225);
+    });
+
+    it('returns the rounded all-in buy cost', () => {
+      expect(getPredictBuyAllInCost(preview)).toBe(10.34);
+    });
+
+    it('returns zero all-in cost when preview is missing', () => {
+      expect(getPredictBuyAllInCost(null)).toBe(0);
     });
   });
 });
