@@ -12,6 +12,7 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdraw,
+  getMoneyAccountDepositAssetAddress,
 } from '../utils/moneyAccountTransactions';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Logger from '../../../../util/Logger';
@@ -95,6 +96,13 @@ export function useMoneyAccountDeposit() {
           disableHook: true,
           disableSequential: true,
           transactions: [approveTx, depositTx],
+          requiredAssets: [
+            {
+              address: getMoneyAccountDepositAssetAddress(chainIdHex),
+              amount: '0x0' as Hex,
+              standard: 'erc20',
+            },
+          ],
         });
       } catch (error) {
         Logger.error(error as Error, `${LOG_TAG} Deposit transaction failed`);
