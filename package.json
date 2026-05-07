@@ -229,7 +229,7 @@
     "@ethersproject/abi": "^5.7.0",
     "@expensify/react-native-wallet": "^0.1.15",
     "@expo/fingerprint": "~0.15.4",
-    "@expo/repack-app": "^0.2.9",
+    "@expo/repack-app": "patch:@expo/repack-app@npm%3A0.2.17#~/.yarn/patches/@expo-repack-app-npm-0.2.17-84024b51d3.patch",
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
     "@keystonehq/ur-decoder": "^0.12.2",
     "@lavamoat/react-native-lockdown": "^0.0.2",
