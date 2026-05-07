@@ -17,7 +17,7 @@ export interface FilterButtonProps {
   ellipsizeMode?: 'tail' | 'head' | 'middle' | 'clip';
   /** Optional Tailwind class overrides for layout in custom contexts */
   twClassName?: string;
-  /** Optional icon name to replace the default ArrowDown icon */
+  /** Optional icon name to show before the label (e.g., for sort direction indicators) */
   iconName?: IconName;
 }
 
@@ -29,7 +29,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
   numberOfLines,
   ellipsizeMode,
   twClassName,
-  iconName = IconName.ArrowDown,
+  iconName,
 }) => {
   const tw = useTailwind();
 
@@ -46,11 +46,13 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
       disabled={disabled}
     >
       <View style={tw`flex-row items-center justify-center gap-1`}>
-        <Icon
-          name={iconName}
-          color={IconColor.Alternative}
-          size={IconSize.Xs}
-        />
+        {iconName && (
+          <Icon
+            name={iconName}
+            color={IconColor.Alternative}
+            size={IconSize.Xs}
+          />
+        )}
         <Text
           style={tw`min-w-0 text-[14px] font-medium text-default`}
           numberOfLines={numberOfLines}
