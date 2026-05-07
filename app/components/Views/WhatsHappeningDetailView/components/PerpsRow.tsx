@@ -1,11 +1,8 @@
-import React, { useCallback } from 'react';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+import React from 'react';
 import type { RelatedAsset } from '@metamask/ai-controllers';
-import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import AssetRow from './AssetRow';
+import useTradeNavigation from '../hooks/useTradeNavigation';
 
 interface PerpsRowProps {
   asset: RelatedAsset;
@@ -18,19 +15,7 @@ interface PerpsRowProps {
  * be called per-asset (hooks cannot be called inside a loop).
  */
 const PerpsRow: React.FC<PerpsRowProps> = ({ asset }) => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const hlPerpsMarket = asset.hlPerpsMarket?.[0];
-
-  const handleTrade = useCallback(() => {
-    if (!hlPerpsMarket) return;
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_DETAILS,
-      params: {
-        market: { symbol: hlPerpsMarket, name: asset.name },
-        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-      },
-    });
-  }, [navigation, hlPerpsMarket, asset.name]);
+  const { handleTrade } = useTradeNavigation(asset);
 
   return (
     <AssetRow

@@ -8512,7 +8512,6 @@
       "empty": "Wala kang anumang posisyon",
       "empty_description": "Simulang kumita ng mga reward sa pamamagitan ng pagbubukas ng posisyon sa naka-token na mga asset sa totoong mundo.",
       "empty_cta": "Magbukas ng posisyon",
-      "position_units": "{{units}} (na) share",
       "positions_title": "Mga Posisyon",
       "activity_title": "Aktibidad",
       "view_activity": "Tingnan ang aktibidad",
