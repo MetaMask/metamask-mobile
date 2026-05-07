@@ -567,10 +567,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const marginRequired = useMemo(() => {
     if (!isLoadingMarketData && orderForm.amount) {
-      // For limit orders, use the limit price (via effectivePrice) for margin calculation.
-      // For market orders, use markPrice (oracle price) which is the standard margin basis.
-      const priceForMargin =
-        orderForm.type === 'limit' ? effectivePrice : assetData.markPrice;
+      // For limit orders with a valid limit price, use that price for margin calculation.
+      // Otherwise use markPrice (oracle price) which is the standard margin basis.
+      const hasValidLimitPrice =
+        orderForm.type === 'limit' &&
+        orderForm.limitPrice &&
+        parseFloat(orderForm.limitPrice) > 0;
+      const priceForMargin = hasValidLimitPrice
+        ? effectivePrice
+        : assetData.markPrice;
       return calculateMarginRequired({
         amount: BigNumber(priceForMargin).times(positionSize).toString(),
         leverage: orderForm.leverage,
@@ -579,6 +584,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, [
     orderForm.amount,
     orderForm.type,
+    orderForm.limitPrice,
     effectivePrice,
     assetData.markPrice,
     orderForm.leverage,
