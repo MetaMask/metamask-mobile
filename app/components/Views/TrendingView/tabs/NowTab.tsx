@@ -104,7 +104,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   }, [refresh.trigger]);
 
   const predictions = usePredictionsFeed({ refresh });
-  const cryptoMovers = useTokensFeed({ refresh });
+  const cryptoMovers = useTokensFeed({ refresh, hideRiskyTokens: true });
   const stocks = useStocksFeed({ refresh });
 
   const renderPredictionItem: ListRenderItem<PredictMarketType> = useCallback(

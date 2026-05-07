@@ -32,6 +32,7 @@ import { useDiscoveryScrollManager } from '../../../../UI/Predict/hooks/useDisco
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { TabIconAnimationContext } from '../../../../../component-library/components-temp/Tabs/TabsIconTab/TabsIconAnimationContext';
+import useTabViewedEvent, { HomeTabNames } from '../../hooks/useTabViewedEvent';
 
 // Tab indices — kept as a const so future tabs can be added without renumbering.
 const TAB_INDEX = {
@@ -46,6 +47,12 @@ const PERPS_WS_TABS = new Set<number>([
   TAB_INDEX.PORTFOLIO,
   TAB_INDEX.PERPETUALS,
 ]);
+
+const TAB_NAMES = {
+  [TAB_INDEX.PORTFOLIO]: HomeTabNames.PORTFOLIO,
+  [TAB_INDEX.PERPETUALS]: HomeTabNames.PERPETUALS,
+  [TAB_INDEX.PREDICTIONS]: HomeTabNames.PREDICTIONS,
+} as const;
 
 // Static per-tab gradient color stops. Keyed by TAB_INDEX so adding a new tab
 // only requires adding an entry here.
@@ -212,6 +219,11 @@ const HomepageDiscoveryTabs = forwardRef<
       },
       [],
     );
+    const { trackTabViewed } = useTabViewedEvent();
+
+    useEffect(() => {
+      trackTabViewed(TAB_NAMES[TAB_INDEX.PORTFOLIO]);
+    }, [trackTabViewed]);
 
     const handleChangeTab = useCallback(
       ({ i }: { i: number }) => {
@@ -228,6 +240,7 @@ const HomepageDiscoveryTabs = forwardRef<
           } else {
             // First visit — Perps not mounted yet so ref is null. It will mount
             // at the top of scroll, so show the header/icons immediately.
+            // eslint-disable-next-line react-compiler/react-compiler
             walletHeaderTranslateY &&
               (walletHeaderTranslateY.value = withTiming(0, {
                 duration: 250,
@@ -280,6 +293,8 @@ const HomepageDiscoveryTabs = forwardRef<
         }
 
         if (prevIndex !== i) {
+          trackTabViewed(TAB_NAMES[i as keyof typeof TAB_NAMES]);
+
           // Snap outgoing to 1 and incoming to 0 before animating, in case a
           // previous transition was interrupted mid-flight.
           tabGradientOpacities[prevIndex].setValue(1);
@@ -299,7 +314,12 @@ const HomepageDiscoveryTabs = forwardRef<
           ]).start();
         }
       },
-      [tabGradientOpacities, portfolioOnTabEnter, walletHeaderTranslateY],
+      [
+        tabGradientOpacities,
+        portfolioOnTabEnter,
+        walletHeaderTranslateY,
+        trackTabViewed,
+      ],
     );
 
     return (
@@ -321,7 +341,7 @@ const HomepageDiscoveryTabs = forwardRef<
               >
                 <DiscoveryTabView
                   tabLabel="Portfolio"
-                  tabIcon={IconName.Portfolio}
+                  tabIcon={IconName.PieChart}
                 >
                   <Reanimated.ScrollView
                     showsVerticalScrollIndicator={false}

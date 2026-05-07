@@ -3,6 +3,18 @@ import { InteractionManager, Text } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { SectionRefreshHandle } from '../../types';
 import HomepageDiscoveryTabs from './HomepageDiscoveryTabs';
+import { HomeTabNames } from '../../hooks/useTabViewedEvent';
+
+const mockTrackTabViewed = jest.fn();
+jest.mock('../../hooks/useTabViewedEvent', () => ({
+  __esModule: true,
+  HomeTabNames: {
+    PORTFOLIO: 'portfolio',
+    PERPETUALS: 'perpetuals',
+    PREDICTIONS: 'predictions',
+  },
+  default: () => ({ trackTabViewed: mockTrackTabViewed }),
+}));
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
@@ -19,6 +31,7 @@ jest
     if (typeof task === 'function') {
       task();
     } else {
+      // eslint-disable-next-line no-void
       void task.gen();
     }
     return { cancel: jest.fn(), then: jest.fn(), done: jest.fn() };
@@ -206,71 +219,93 @@ describe('HomepageDiscoveryTabs', () => {
     });
   });
 
-  describe('Perps WS pause/resume on tab switch', () => {
-    it('pauses channels when switching from Portfolio to Predictions', async () => {
+  describe('tab_viewed analytics', () => {
+    it('fires trackTabViewed with portfolio on initial mount', () => {
       renderComponent();
-      await pressTab('Predictions');
-      expect(mockPauseAllChannels).toHaveBeenCalledTimes(1);
-      expect(mockResumeAllChannels).not.toHaveBeenCalled();
+      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PORTFOLIO);
     });
 
-    it('pauses channels when switching from Perpetuals to Predictions', async () => {
+    it('fires trackTabViewed with perpetuals when switching to Perpetuals tab', async () => {
+      renderComponent();
+      mockTrackTabViewed.mockClear();
+      await pressTab('Perpetuals');
+      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PERPETUALS);
+    });
+
+    it('fires trackTabViewed with predictions when switching to Predictions tab', async () => {
+      renderComponent();
+      mockTrackTabViewed.mockClear();
+      await pressTab('Predictions');
+      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PREDICTIONS);
+    });
+
+    it('fires trackTabViewed with portfolio when switching back to Portfolio', async () => {
       renderComponent();
       await pressTab('Perpetuals');
-      mockPauseAllChannels.mockClear();
-      mockResumeAllChannels.mockClear();
-      await pressTab('Predictions');
-      expect(mockPauseAllChannels).toHaveBeenCalledTimes(1);
-      expect(mockResumeAllChannels).not.toHaveBeenCalled();
-    });
-
-    it('resumes channels when switching from Predictions to Portfolio', async () => {
-      renderComponent();
-      await pressTab('Predictions');
-      mockPauseAllChannels.mockClear();
-      mockResumeAllChannels.mockClear();
+      mockTrackTabViewed.mockClear();
       await pressTab('Portfolio');
-      expect(mockResumeAllChannels).toHaveBeenCalledTimes(1);
-      expect(mockPauseAllChannels).not.toHaveBeenCalled();
+      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PORTFOLIO);
     });
 
-    it('resumes channels when switching from Predictions to Perpetuals', async () => {
+    it('does not fire trackTabViewed again when pressing the active tab', async () => {
       renderComponent();
-      await pressTab('Predictions');
-      mockPauseAllChannels.mockClear();
-      mockResumeAllChannels.mockClear();
+      mockTrackTabViewed.mockClear();
+      await pressTab('Portfolio');
+      expect(mockTrackTabViewed).not.toHaveBeenCalled();
+    });
+
+    it('fires once per distinct tab switch across multiple switches', async () => {
+      renderComponent();
+      mockTrackTabViewed.mockClear();
       await pressTab('Perpetuals');
-      expect(mockResumeAllChannels).toHaveBeenCalledTimes(1);
-      expect(mockPauseAllChannels).not.toHaveBeenCalled();
-    });
-
-    it('does not pause or resume when switching between Portfolio and Perpetuals', async () => {
-      renderComponent();
-      mockPauseAllChannels.mockClear();
-      mockResumeAllChannels.mockClear();
-      await pressTab('Perpetuals');
+      await pressTab('Predictions');
       await pressTab('Portfolio');
-      expect(mockPauseAllChannels).not.toHaveBeenCalled();
-      expect(mockResumeAllChannels).not.toHaveBeenCalled();
-    });
-
-    it('does not pause or resume when pressing the active tab', async () => {
-      renderComponent();
-      mockPauseAllChannels.mockClear();
-      mockResumeAllChannels.mockClear();
-      await pressTab('Portfolio');
-      expect(mockPauseAllChannels).not.toHaveBeenCalled();
-      expect(mockResumeAllChannels).not.toHaveBeenCalled();
+      expect(mockTrackTabViewed).toHaveBeenCalledTimes(3);
     });
   });
 
-  describe('Perps WS cleanup on unmount', () => {
-    it('calls resumeAllChannels on unmount so channels are never left paused', async () => {
-      const { unmount } = renderComponent();
+  describe('tab_viewed analytics', () => {
+    it('fires trackTabViewed with portfolio on initial mount', () => {
+      renderComponent();
+      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PORTFOLIO);
+    });
+
+    it('fires trackTabViewed with perpetuals when switching to Perpetuals tab', async () => {
+      renderComponent();
+      mockTrackTabViewed.mockClear();
+      await pressTab('Perpetuals');
+      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PERPETUALS);
+    });
+
+    it('fires trackTabViewed with predictions when switching to Predictions tab', async () => {
+      renderComponent();
+      mockTrackTabViewed.mockClear();
       await pressTab('Predictions');
-      mockResumeAllChannels.mockClear();
-      unmount();
-      expect(mockResumeAllChannels).toHaveBeenCalledTimes(1);
+      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PREDICTIONS);
+    });
+
+    it('fires trackTabViewed with portfolio when switching back to Portfolio', async () => {
+      renderComponent();
+      await pressTab('Perpetuals');
+      mockTrackTabViewed.mockClear();
+      await pressTab('Portfolio');
+      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PORTFOLIO);
+    });
+
+    it('does not fire trackTabViewed again when pressing the active tab', async () => {
+      renderComponent();
+      mockTrackTabViewed.mockClear();
+      await pressTab('Portfolio');
+      expect(mockTrackTabViewed).not.toHaveBeenCalled();
+    });
+
+    it('fires once per distinct tab switch across multiple switches', async () => {
+      renderComponent();
+      mockTrackTabViewed.mockClear();
+      await pressTab('Perpetuals');
+      await pressTab('Predictions');
+      await pressTab('Portfolio');
+      expect(mockTrackTabViewed).toHaveBeenCalledTimes(3);
     });
   });
 });
