@@ -31,11 +31,14 @@ import WhatsHappeningSourcesBottomSheet from './WhatsHappeningSourcesBottomSheet
 interface WhatsHappeningExpandedCardProps {
   item: WhatsHappeningItem;
   cardWidth: number;
+  /** Height of the carousel container — used to give every card the same fixed height. */
+  cardHeight: number;
 }
 
 const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   item,
   cardWidth,
+  cardHeight,
 }) => {
   const tw = useTailwind();
   const [sourcesVisible, setSourcesVisible] = useState(false);
@@ -61,17 +64,15 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   }, [uniqueSources]);
 
   return (
-    <Box style={{ width: cardWidth }} twClassName="flex-1">
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={tw.style('pb-4 flex-grow')}
-      >
-        <Box
-          twClassName="rounded-2xl bg-background-muted overflow-hidden flex-1"
-          gap={4}
-          padding={5}
+    <Box style={{ width: cardWidth, height: cardHeight }}>
+      {/* Card surface — fills the fixed height so all cards are the same size */}
+      <Box twClassName="rounded-2xl bg-background-muted overflow-hidden flex-1">
+        {/* Scrollable main content */}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={tw.style('p-5 gap-4')}
         >
-          {/* Impact badge — only rendered when impact is explicitly set */}
+          {/* Impact badge */}
           {item.impact && (
             <Box twClassName={`${impactBgClass} rounded px-2 py-1 self-start`}>
               <Text variant={TextVariant.BodySm} color={impactTextColor}>
@@ -99,7 +100,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
             </Text>
           )}
 
-          {/* Tokens section — only assets with a purchasable CAIP-19 identifier */}
+          {/* Tokens section */}
           {item.relatedAssets.some((asset) => asset.caip19?.length) && (
             <Box gap={1}>
               <Text
@@ -141,54 +142,54 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                 ))}
             </Box>
           )}
+        </ScrollView>
 
-          {/* Sources trigger */}
-          {uniqueSources.length > 0 && (
-            <>
-              <Box twClassName="h-px bg-border-muted" />
+        {/* Fixed sources footer — always pinned to the bottom of the card */}
+        {uniqueSources.length > 0 && (
+          <Box twClassName="px-5 pb-5" gap={4}>
+            <Box twClassName="h-px bg-border-muted" />
 
-              <Pressable
-                onPress={() => setSourcesVisible(true)}
-                accessibilityRole="button"
-              >
-                {({ pressed }) => (
+            <Pressable
+              onPress={() => setSourcesVisible(true)}
+              accessibilityRole="button"
+            >
+              {({ pressed }) => (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  justifyContent={BoxJustifyContent.Between}
+                  twClassName={pressed ? 'opacity-60' : ''}
+                >
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
-                    justifyContent={BoxJustifyContent.Between}
-                    twClassName={pressed ? 'opacity-60' : ''}
+                    gap={2}
                   >
-                    <Box
-                      flexDirection={BoxFlexDirection.Row}
-                      alignItems={BoxAlignItems.Center}
-                      gap={2}
-                    >
-                      <SourceLogoGroup sources={uniqueSources} />
-                      {sourceLabel ? (
-                        <Text
-                          variant={TextVariant.BodySm}
-                          color={TextColor.TextAlternative}
-                        >
-                          {sourceLabel}
-                        </Text>
-                      ) : null}
-                    </Box>
-
-                    {item.date ? (
+                    <SourceLogoGroup sources={uniqueSources} />
+                    {sourceLabel ? (
                       <Text
                         variant={TextVariant.BodySm}
                         color={TextColor.TextAlternative}
                       >
-                        {formatRelativeTime(item.date, { nowLabel: 'now' })}
+                        {sourceLabel}
                       </Text>
                     ) : null}
                   </Box>
-                )}
-              </Pressable>
-            </>
-          )}
-        </Box>
-      </ScrollView>
+
+                  {item.date ? (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                    >
+                      {formatRelativeTime(item.date, { nowLabel: 'now' })}
+                    </Text>
+                  ) : null}
+                </Box>
+              )}
+            </Pressable>
+          </Box>
+        )}
+      </Box>
 
       {sourcesVisible && (
         <WhatsHappeningSourcesBottomSheet

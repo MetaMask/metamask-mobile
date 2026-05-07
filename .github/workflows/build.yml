@@ -68,8 +68,6 @@ on:
           - flask-test
           - flask-e2e
           - flask-dev
-          - qa-prod
-          - qa-dev
       platform:
         required: true
         type: choice
@@ -119,12 +117,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
+          cache: 'yarn'
       - run: yarn install --immutable
       - run: node scripts/validate-build-config.js
 
@@ -316,6 +314,16 @@ jobs:
           CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
           SECRETS_JSON: ${{ toJSON(secrets) }}
         run: node scripts/validate-secrets-from-config.js
+
+      - name: Restore CocoaPods specs cache (iOS)
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cocoapods/repos
+          key: ${{ runner.os }}-cocoapods-specs-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cocoapods-specs-
+        continue-on-error: true
 
       # iOS: Install Pods here so generated paths match this runner (setup-node-modules skips pod install with --no-install-pods).
       - name: Install CocoaPods dependencies (iOS)
@@ -519,7 +527,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
 
       - name: Setup Node.js

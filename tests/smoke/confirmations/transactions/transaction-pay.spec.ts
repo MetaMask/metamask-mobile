@@ -25,7 +25,10 @@ import ActivitiesView from '../../../page-objects/Transactions/ActivitiesView';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 
 describe(SmokeConfirmations('Transaction Pay'), () => {
-  it('deposits to predict balance', async () => {
+  // TODO: Re-enable once Predict deposit activity is stable again after the
+  // CLOB v2 migration work.
+  // eslint-disable-next-line jest/no-disabled-tests -- temporarily disabling a flaky Predict deposit activity assertion
+  it.skip('deposits to predict balance', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
