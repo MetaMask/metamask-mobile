@@ -46,15 +46,20 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
       disabled={disabled}
     >
       <View style={tw`flex-row items-center justify-center gap-1`}>
+        <Icon
+          name={iconName}
+          color={IconColor.Alternative}
+          size={IconSize.Xs}
+        />
         <Text
-          style={tw`min-w-0 shrink text-[14px] font-medium text-default`}
+          style={tw`min-w-0 text-[14px] font-medium text-default`}
           numberOfLines={numberOfLines}
           ellipsizeMode={ellipsizeMode}
         >
           {label}
         </Text>
         <Icon
-          name={iconName}
+          name={IconName.ArrowDown}
           color={IconColor.Alternative}
           size={IconSize.Xs}
         />
