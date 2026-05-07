@@ -85,6 +85,7 @@ import { Permit2FeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
   OrderType,
+  SignatureType,
   PolymarketApiActivity,
   PolymarketApiEvent,
   PolymarketApiTeam,
@@ -124,9 +125,9 @@ import {
 import {
   buildProtocolUnsignedOrder,
   getPreviewFeeRateBpsForProtocol,
-  getProtocolOrderTypedData,
   getProtocolVerifyingContract,
   serializeProtocolRelayerOrder,
+  signProtocolOrder,
 } from './protocol/orderCodec';
 import { submitProtocolClobOrder } from './protocol/transport';
 import {
@@ -421,12 +422,14 @@ export class PolymarketProvider implements PredictProvider {
     fakOrdersEnabled,
     permit2FeeReady,
     permit2AllowanceReady,
+    manualFeeCollectionSupported = true,
   }: {
     preview: OrderPreview;
     feeCollection: PredictFeatureFlags['feeCollection'];
     fakOrdersEnabled: boolean;
     permit2FeeReady: boolean;
     permit2AllowanceReady: boolean;
+    manualFeeCollectionSupported?: boolean;
   }): OrderType {
     if (
       !this.#shouldUseFakOrderType({
@@ -440,7 +443,11 @@ export class PolymarketProvider implements PredictProvider {
 
     const hasFees = preview.fees !== undefined && preview.fees.totalFee > 0;
 
-    if (!hasFees || (permit2FeeReady && permit2AllowanceReady)) {
+    if (
+      !hasFees ||
+      !manualFeeCollectionSupported ||
+      (permit2FeeReady && permit2AllowanceReady)
+    ) {
       return OrderType.FAK;
     }
 
@@ -481,9 +488,15 @@ export class PolymarketProvider implements PredictProvider {
     preview: OrderPreview;
     protocol: PolymarketProtocolDefinition;
   }) {
-    const safeAddress =
-      this.#getCachedAccountState(signer.address)?.address ??
-      computeProxyAddress(signer.address);
+    const accountState = await this.getAccountState({
+      ownerAddress: signer.address,
+    });
+    const isDepositWallet = accountState.walletType === 'deposit-wallet';
+    const tradingWalletAddress = accountState.address;
+    const verifyingContract = getProtocolVerifyingContract({
+      protocol,
+      negRisk: preview.negRisk,
+    });
 
     const order = buildProtocolUnsignedOrder({
       protocol,
@@ -491,23 +504,21 @@ export class PolymarketProvider implements PredictProvider {
         ...preview,
         feeRateBps: getPreviewFeeRateBpsForProtocol(),
       },
-      makerAddress: safeAddress,
-      signerAddress: getAddress(signer.address),
+      makerAddress: tradingWalletAddress,
+      signerAddress: isDepositWallet
+        ? tradingWalletAddress
+        : getAddress(signer.address),
+      signatureType: isDepositWallet
+        ? SignatureType.POLY_1271
+        : SignatureType.POLY_GNOSIS_SAFE,
     });
 
-    const typedData = getProtocolOrderTypedData({
+    const signature = await signProtocolOrder({
+      signer,
       protocol,
       order,
-      verifyingContract: getProtocolVerifyingContract({
-        protocol,
-        negRisk: preview.negRisk,
-      }),
+      verifyingContract,
     });
-
-    const signature = await signer.signTypedMessage(
-      { data: typedData, from: signer.address },
-      SignTypedDataVersion.V4,
-    );
 
     const signedOrder = {
       ...order,
@@ -517,10 +528,12 @@ export class PolymarketProvider implements PredictProvider {
       address: signer.address,
     });
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
-    const shouldUsePermit2 = this.#hasPermit2Config({
-      permit2Enabled: preview.fees?.permit2Enabled,
-      executors: preview.fees?.executors,
-    });
+    const shouldUsePermit2 =
+      !isDepositWallet &&
+      this.#hasPermit2Config({
+        permit2Enabled: preview.fees?.permit2Enabled,
+        executors: preview.fees?.executors,
+      });
 
     let feeAuthorization: Permit2FeeAuthorization | undefined;
     let executor: string | undefined;
@@ -536,7 +549,7 @@ export class PolymarketProvider implements PredictProvider {
       );
       executor = this.#pickExecutor(preview.fees.executors ?? []);
       feeAuthorization = await createPermit2FeeAuthorization({
-        safeAddress,
+        safeAddress: tradingWalletAddress,
         signer,
         amount: feeAmount,
         spender: executor,
@@ -548,32 +561,34 @@ export class PolymarketProvider implements PredictProvider {
     let allowancesTx: { to: string; data: string } | undefined;
     let permit2AllowanceReady = false;
 
-    try {
-      const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
-        safeAddress,
-        protocol,
-      });
-      allowancesTx = await buildTradeAllowancesTx({
-        signer,
-        safeAddress,
-        protocol,
-        safeUsdceBalance: safeLegacyUsdceBalance,
-      });
-      permit2AllowanceReady = true;
-    } catch (allowanceError) {
-      DevLogger.log(
-        'PolymarketProvider: Failed to generate v2 allowances transaction',
-        { error: allowanceError },
-      );
-      Logger.error(
-        allowanceError instanceof Error
-          ? allowanceError
-          : new Error(String(allowanceError)),
-        this.getErrorContext('placeOrder:v2AllowancesTx', {
-          operation: 'generate_allowances_tx_v2',
-        }),
-      );
-      throw new Error('Failed to prepare v2 trade preflight');
+    if (!isDepositWallet) {
+      try {
+        const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
+          safeAddress: tradingWalletAddress,
+          protocol,
+        });
+        allowancesTx = await buildTradeAllowancesTx({
+          signer,
+          safeAddress: tradingWalletAddress,
+          protocol,
+          safeUsdceBalance: safeLegacyUsdceBalance,
+        });
+        permit2AllowanceReady = true;
+      } catch (allowanceError) {
+        DevLogger.log(
+          'PolymarketProvider: Failed to generate v2 allowances transaction',
+          { error: allowanceError },
+        );
+        Logger.error(
+          allowanceError instanceof Error
+            ? allowanceError
+            : new Error(String(allowanceError)),
+          this.getErrorContext('placeOrder:v2AllowancesTx', {
+            operation: 'generate_allowances_tx_v2',
+          }),
+        );
+        throw new Error('Failed to prepare v2 trade preflight');
+      }
     }
 
     const orderType = this.#getPlaceOrderType({
@@ -582,6 +597,7 @@ export class PolymarketProvider implements PredictProvider {
       fakOrdersEnabled,
       permit2FeeReady,
       permit2AllowanceReady,
+      manualFeeCollectionSupported: !isDepositWallet,
     });
 
     const clobOrder = serializeProtocolRelayerOrder({
@@ -597,7 +613,7 @@ export class PolymarketProvider implements PredictProvider {
         requestPath: `/order`,
         body,
       },
-      address: clobOrder.order.signer ?? '',
+      address: signer.address,
       apiKey: signerApiKey,
     });
 
