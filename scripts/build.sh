@@ -144,10 +144,10 @@ checkParameters(){
 			exit 1
 	esac
 
-	VALID_METAMASK_BUILD_TYPES="main|flask|qa"
+	VALID_METAMASK_BUILD_TYPES="main|flask"
 	# Check if the METAMASK_BUILD_TYPE is valid
 	case "${METAMASK_BUILD_TYPE}" in
-		main|flask|qa)
+		main|flask)
 			# Valid build type - continue
 			;;
 		*)
