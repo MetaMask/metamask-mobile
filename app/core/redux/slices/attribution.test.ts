@@ -108,6 +108,24 @@ describe('attribution slice', () => {
 
       expect(next.attribution?.capturedAt).toBe(1_000);
     });
+
+    it('refreshes capturedAt when the same campaign is saved after the TTL expires', () => {
+      const capturedAt = 1_000;
+      dateNowSpy.mockReturnValue(capturedAt);
+      const withFirst = reducer(
+        emptyState,
+        saveAttribution({ utm_source: 'email', utm_campaign: 'spring' }),
+      );
+
+      const afterTtl = capturedAt + ATTRIBUTION_DEFAULT_TTL_MS + 1;
+      dateNowSpy.mockReturnValue(afterTtl);
+      const next = reducer(
+        withFirst,
+        saveAttribution({ utm_source: 'email', utm_campaign: 'spring' }),
+      );
+
+      expect(next.attribution?.capturedAt).toBe(afterTtl);
+    });
   });
 
   describe('clearAttribution', () => {
