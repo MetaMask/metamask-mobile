@@ -263,49 +263,4 @@ describe('HomepageDiscoveryTabs', () => {
       expect(mockTrackTabViewed).toHaveBeenCalledTimes(3);
     });
   });
-
-  describe('tab_viewed analytics', () => {
-    it('fires trackTabViewed with portfolio on initial mount', () => {
-      renderComponent();
-      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PORTFOLIO);
-    });
-
-    it('fires trackTabViewed with perpetuals when switching to Perpetuals tab', async () => {
-      renderComponent();
-      mockTrackTabViewed.mockClear();
-      await pressTab('Perpetuals');
-      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PERPETUALS);
-    });
-
-    it('fires trackTabViewed with predictions when switching to Predictions tab', async () => {
-      renderComponent();
-      mockTrackTabViewed.mockClear();
-      await pressTab('Predictions');
-      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PREDICTIONS);
-    });
-
-    it('fires trackTabViewed with portfolio when switching back to Portfolio', async () => {
-      renderComponent();
-      await pressTab('Perpetuals');
-      mockTrackTabViewed.mockClear();
-      await pressTab('Portfolio');
-      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PORTFOLIO);
-    });
-
-    it('does not fire trackTabViewed again when pressing the active tab', async () => {
-      renderComponent();
-      mockTrackTabViewed.mockClear();
-      await pressTab('Portfolio');
-      expect(mockTrackTabViewed).not.toHaveBeenCalled();
-    });
-
-    it('fires once per distinct tab switch across multiple switches', async () => {
-      renderComponent();
-      mockTrackTabViewed.mockClear();
-      await pressTab('Perpetuals');
-      await pressTab('Predictions');
-      await pressTab('Portfolio');
-      expect(mockTrackTabViewed).toHaveBeenCalledTimes(3);
-    });
-  });
 });
