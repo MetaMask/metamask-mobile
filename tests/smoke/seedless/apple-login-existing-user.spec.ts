@@ -12,6 +12,10 @@ import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
 import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
 import { SmokeSeedlessOnboarding } from '../../tags';
+import {
+  completeSocialLoginOnboarding,
+  lockAndResetWalletToOnboarding,
+} from './utils';
 
 describe(SmokeSeedlessOnboarding('Apple Login - Existing User'), () => {
   beforeAll(async () => {
@@ -20,30 +24,29 @@ describe(SmokeSeedlessOnboarding('Apple Login - Existing User'), () => {
 
   beforeEach(async () => {
     E2EOAuthHelpers.reset();
-    E2EOAuthHelpers.configureAppleExistingUser();
+    E2EOAuthHelpers.configureAppleNewUser();
   });
 
-  it('shows Account Already Exists screen for existing Apple user', async () => {
+  it('registers new user then re-logins as existing user and sees Account Already Exists', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder({ onboarding: true }).build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           const oAuthMockttpService = createOAuthMockttpService();
-          oAuthMockttpService.configureAppleExistingUser();
+          oAuthMockttpService.configureAppleNewUser();
           await oAuthMockttpService.setup(mockServer);
         },
       },
       async () => {
-        await Assertions.expectElementToBeVisible(OnboardingView.container, {
-          description: 'Onboarding screen should be visible',
-        });
+        await completeSocialLoginOnboarding('apple');
+
+        await lockAndResetWalletToOnboarding();
 
         await OnboardingView.tapCreateWallet();
 
         await Assertions.expectElementToBeVisible(OnboardingSheet.container, {
-          description:
-            'Onboarding sheet with social login options should appear',
+          description: 'Onboarding sheet should appear for second login',
         });
 
         await OnboardingSheet.tapAppleLoginButton();
@@ -70,39 +73,6 @@ describe(SmokeSeedlessOnboarding('Apple Login - Existing User'), () => {
             description: 'Use different login method button should be visible',
           },
         );
-      },
-    );
-  });
-
-  it('can tap Login button on Account Already Exists screen', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder({ onboarding: true }).build(),
-        restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          const oAuthMockttpService = createOAuthMockttpService();
-          oAuthMockttpService.configureAppleExistingUser();
-          await oAuthMockttpService.setup(mockServer);
-        },
-      },
-      async () => {
-        await Assertions.expectElementToBeVisible(OnboardingView.container, {
-          description: 'Onboarding screen should be visible',
-        });
-
-        await OnboardingView.tapCreateWallet();
-
-        await Assertions.expectElementToBeVisible(OnboardingSheet.container, {
-          description: 'Onboarding sheet should appear',
-        });
-
-        await OnboardingSheet.tapAppleLoginButton();
-
-        await SocialLoginView.isAccountFoundScreenVisible();
-
-        await SocialLoginView.tapLoginButton();
-
-        console.log('[E2E] Login button tapped successfully');
       },
     );
   });
