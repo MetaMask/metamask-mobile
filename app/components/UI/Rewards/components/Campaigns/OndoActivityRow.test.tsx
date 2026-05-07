@@ -135,7 +135,7 @@ describe('OndoActivityRow', () => {
   it('renders token symbols in detail line', () => {
     const { getByText } = render(<OndoActivityRow entry={createEntry()} />);
 
-    expect(getByText('USDC → AAPLon')).toBeDefined();
+    expect(getByText('USDC → AAPLON')).toBeDefined();
   });
 
   it('renders only source token when destToken is null', () => {
