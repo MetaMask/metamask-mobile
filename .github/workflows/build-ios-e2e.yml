@@ -32,10 +32,6 @@ on:
         type: string
         default: current
 
-permissions:
-  contents: read
-  id-token: write
-
 jobs:
   build-ios-apps:
     name: Build iOS E2E Apps
