@@ -214,7 +214,7 @@ export function BatchSellTokenSelect() {
     }
 
     dispatch(setBatchSellSourceTokens(selectedTokens));
-    navigation.navigate(Routes.BRIDGE.QUOTE_SELECTOR_VIEW);
+    navigation.navigate(Routes.BRIDGE.BATCH_SELL_REVIEW);
   }, [dispatch, navigation, selectedTokens, stablecoinsByChain]);
 
   const handleExploreTokensPress = useCallback(() => {

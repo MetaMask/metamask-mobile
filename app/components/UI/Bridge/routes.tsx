@@ -4,6 +4,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { BridgeTokenSelector } from './components/BridgeTokenSelector';
 import BridgeView from './Views/BridgeView';
 import { BatchSellTokenSelect } from './Views/BatchSellTokenSelect';
+import { BatchSellReview } from './Views/BatchSellReview';
 import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
@@ -35,6 +36,11 @@ export const BridgeScreenStack = () => (
     <Stack.Screen
       name={Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT}
       component={BatchSellTokenSelect}
+      options={{ title: '' }}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.BATCH_SELL_REVIEW}
+      component={BatchSellReview}
       options={{ title: '' }}
     />
     <Stack.Screen

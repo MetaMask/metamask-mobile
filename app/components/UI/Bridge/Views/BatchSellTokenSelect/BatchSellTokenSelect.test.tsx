@@ -939,7 +939,7 @@ describe('BatchSellTokenSelect', () => {
 
     expect(mockDispatch).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.BRIDGE.QUOTE_SELECTOR_VIEW,
+      Routes.BRIDGE.BATCH_SELL_REVIEW,
     );
   });
 
@@ -988,8 +988,6 @@ describe('BatchSellTokenSelect', () => {
       type: 'bridge/setBatchSellSourceTokens',
       payload: [firstToken, secondToken],
     });
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.BRIDGE.QUOTE_SELECTOR_VIEW,
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BATCH_SELL_REVIEW);
   });
 });
