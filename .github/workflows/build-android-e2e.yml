@@ -77,12 +77,6 @@ jobs:
             ${{ env.GRADLE_USER_HOME }}/caches
             ${{ env.GRADLE_USER_HOME }}/wrapper
 
-      # Use the canonical fingerprint computed upstream by `post-build-source-hash`.
-      # Do NOT recompute it here — Cirrus ubuntu `node_modules/` differs from
-      # ubuntu-latest `node_modules/` (different Node/yarn versions, prebuilt
-      # binaries), so recomputing per-runner would give a different value than
-      # the one posted as the `build-source-hash` commit status and break
-      # cross-run artifact reuse.
       - name: Report source fingerprint
         run: |
           if [[ -z "$SOURCE_FINGERPRINT" ]]; then
@@ -196,15 +190,6 @@ jobs:
           fi
         shell: bash
 
-      # -------------------------------------------------------------------------
-      # Shared environment setup — runs on BOTH the native-build path and the
-      # reuse-hit path. With `setup-simulator: false` the action only does what
-      # both paths need: ANDROID_HOME env vars, keystore (apksigner signs the
-      # APK in either path), Java, Node + yarn install. Foundry is intentionally
-      # skipped here; the follow-up `yarn setup:github-ci` step below installs
-      # it via `installFoundryTask` (one install instead of two).
-      # -------------------------------------------------------------------------
-
       - name: Setup Android Build Environment
         if: ${{ inputs.runner_provider != 'namespace' }}
         timeout-minutes: 15
@@ -223,16 +208,6 @@ jobs:
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
-
-      # -------------------------------------------------------------------------
-      # Per-path JS setup. Both invocations of `yarn setup:github-ci` install
-      # Foundry, build the inpage bridge, patch-package, etc. The only
-      # meaningful difference is `jetifyTask`:
-      #   - native build path uses `--no-build-ios`  → BUILD_ANDROID=true → jetify runs
-      #   - reuse-hit path uses `--no-build-android` → BUILD_ANDROID=false → jetify is skipped
-      # `yarn build:repack:android` doesn't need jetified node_modules, so the
-      # reuse-hit path skips that work.
-      # -------------------------------------------------------------------------
 
       - name: Setup project dependencies with retry (native-build path)
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}

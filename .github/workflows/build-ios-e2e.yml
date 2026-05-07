@@ -84,12 +84,6 @@ jobs:
         with:
           github-token: ${{ github.token }}
 
-      # Use the canonical fingerprint computed upstream by `post-build-source-hash`.
-      # Do NOT recompute it here — macOS `node_modules/` differs from Linux
-      # `node_modules/` in ways @expo/fingerprint hashes (prebuilt binaries,
-      # platform-conditional deps), so recomputing per-runner would give a
-      # different value than the one posted as the `build-source-hash` commit
-      # status and break cross-run artifact reuse.
       - name: Report source fingerprint
         run: |
           if [[ -z "$SOURCE_FINGERPRINT" ]]; then
@@ -221,13 +215,6 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --build-ios --no-build-android
 
-      # -------------------------------------------------------------------------
-      # Lean JS-only setup — only runs on the reuse-hit path so that
-      # `yarn build:repack:ios` has Node, @expo/repack-app, and the inpage
-      # bridge + terms-of-use assets. Skips Ruby/Bundler/CocoaPods/Xcode entirely
-      # (not needed for repack — saves ~6m wall time on cache-hit builds).
-      # -------------------------------------------------------------------------
-
       - name: Setup Node.js (reuse-hit path)
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
         uses: actions/setup-node@v6
@@ -241,8 +228,6 @@ jobs:
           corepack prepare yarn@3.8.7 --activate
         shell: bash
 
-      # Matches the cache key used by `setup-e2e-env` so both paths share the
-      # same node_modules cache.
       - name: Restore yarn cache (reuse-hit path)
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
         uses: actions/cache@v4
@@ -271,18 +256,10 @@ jobs:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
-      # `--no-build-ios --no-build-android` skips the native setup tasks
-      # (bundler, CocoaPods, jetify) but still runs the JS-side tasks that
-      # `yarn build:repack:ios` depends on: build-inpage-bridge,
-      # patch-package, allow-scripts, install-foundry, terms-of-use.
       - name: Run lightweight project setup (reuse-hit path)
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
         run: yarn setup:github-ci --no-build-ios --no-build-android
         shell: bash
-
-      # -------------------------------------------------------------------------
-      # Build (fresh) or Repack (reuse) — exactly one of these runs per job.
-      # -------------------------------------------------------------------------
 
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
