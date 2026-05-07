@@ -11,7 +11,6 @@ import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { AddressBookControllerState } from '@metamask/address-book-controller';
 
 export const PAY_TYPES = [
-  TransactionType.moneyAccountDeposit,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
 ];

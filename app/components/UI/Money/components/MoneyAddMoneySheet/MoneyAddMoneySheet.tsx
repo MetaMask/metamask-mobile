@@ -17,8 +17,8 @@ import {
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
@@ -40,7 +40,7 @@ const MoneyAddMoneySheet: React.FC = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
 
-  const { totalFiatFormatted } = useMoneyAccountBalance();
+  const { fiatBalanceAggregatedFormatted } = useMusdBalance();
   const { getChainIdForBuyFlow } = useMusdConversionFlowData();
   const { goToBuy } = useRampNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
@@ -94,9 +94,9 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
     },
     {
-      label: totalFiatFormatted
+      label: fiatBalanceAggregatedFormatted
         ? strings('money.add_money_sheet.move_musd', {
-            amount: totalFiatFormatted,
+            amount: fiatBalanceAggregatedFormatted,
           })
         : strings('money.add_money_sheet.move_musd_no_amount'),
       icon: IconName.Add,

@@ -207,11 +207,6 @@ const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
     teamOrder: 'home-away',
     tagSlug: 'coupe-de-france',
   },
-  fifwc: {
-    pattern: /^fifwc-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
-    teamOrder: 'home-away',
-    tagSlug: 'fifa-world-cup',
-  },
 };
 
 export type TeamLookup = (

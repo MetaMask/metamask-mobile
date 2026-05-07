@@ -43,39 +43,6 @@ import Icon, {
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
-import {
-  createQRHardwareScanError,
-  getQRHardwareScanErrorTitle,
-  type QRHardwareScanError,
-  QRHardwareScanErrorType,
-} from '../../../core/HardwareWallet/errors';
-
-/**
- * Builds {@link MetaMetricsEvents.HARDWARE_WALLET_ERROR} properties for QR hardware flows.
- *
- * - `error_category` — set for decode / scan pipeline failures (not for native camera errors).
- * - `received_ur_type` — only when `error_category` is `wrong_ur_type` (decoded UR type mismatch).
- * - `is_ur_format` — whether the scanned payload (trimmed) starts with `ur:` (case-insensitive).
- */
-function buildQrHardwareWalletErrorAnalyticsProperties(options: {
-  error: string;
-  error_category?: QRHardwareScanErrorType;
-  is_ur_format: boolean;
-  received_ur_type?: string;
-}): Record<string, unknown> {
-  const { error, error_category, is_ur_format, received_ur_type } = options;
-  const payload: Record<string, unknown> = {
-    error,
-    is_ur_format,
-  };
-  if (error_category !== undefined) {
-    payload.error_category = error_category;
-  }
-  if (error_category === QRHardwareScanErrorType.WrongURType) {
-    payload.received_ur_type = received_ur_type ?? '';
-  }
-  return payload;
-}
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -174,91 +141,31 @@ const createStyles = (theme: Theme) =>
       textAlign: 'center',
       ...fontStyles.normal,
     },
-    errorContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      paddingHorizontal: 24,
-    },
-    errorTitle: {
-      color: theme.brandColors.white,
-      fontSize: 28,
-      lineHeight: 36,
-      textAlign: 'center',
-      marginBottom: 16,
-      ...fontStyles.bold,
-    },
-    errorBody: {
-      color: theme.brandColors.white,
-      fontSize: 16,
-      lineHeight: 24,
-      textAlign: 'center',
-      ...fontStyles.normal,
-    },
-    errorFooter: {
-      marginTop: 32,
-      gap: 12,
-    },
-    errorButton: {
-      minHeight: 52,
-      borderRadius: 26,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 24,
-      paddingVertical: 14,
-    },
-    errorButtonPrimary: {
-      backgroundColor: theme.brandColors.white,
-    },
-    errorButtonSecondary: {
-      borderWidth: 1,
-      borderColor: theme.brandColors.white,
-    },
-    errorButtonPrimaryText: {
-      color: theme.brandColors.black,
-      fontSize: 16,
-      ...fontStyles.bold,
-    },
-    errorButtonSecondaryText: {
-      color: theme.brandColors.white,
-      fontSize: 16,
-      ...fontStyles.bold,
-    },
   });
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import-x/no-commonjs
-const QR_HARDWARE_LEARN_MORE_URL =
-  'https://support.metamask.io/more-web3/wallets/hardware-wallet-hub/#qr-codean-gapped-wallets';
 
 interface AnimatedQRScannerProps {
   visible: boolean;
   purpose: QrScanRequestType;
   onScanSuccess: (ur: UR) => void;
   onScanError: (error: string) => void;
-  onQRHardwareScanError?: (error: QRHardwareScanError) => void;
   hideModal: () => void;
   pauseQRCode?: (x: boolean) => void;
-  onModalHideComplete?: () => void;
 }
 
 const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   const {
     visible,
     onScanError,
-    onQRHardwareScanError,
     purpose,
     onScanSuccess,
     hideModal,
     pauseQRCode,
-    onModalHideComplete,
   } = props;
 
   const [urDecoder, setURDecoder] = useState(new URRegistryDecoder());
   const [progress, setProgress] = useState(0);
-  const [scanError, setScanError] = useState<QRHardwareScanError | null>(null);
-
-  const scanErrorActiveRef = useRef(false);
-  const onQRHardwareScanErrorRef = useRef(onQRHardwareScanError);
-  onQRHardwareScanErrorRef.current = onQRHardwareScanError;
   const theme = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(theme);
@@ -314,16 +221,10 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     };
   }, [refreshCameraPermission, visible]);
 
-  const resetDecoder = useCallback(() => {
+  const reset = useCallback(() => {
     setURDecoder(new URRegistryDecoder());
     setProgress(0);
   }, []);
-
-  const reset = useCallback(() => {
-    scanErrorActiveRef.current = false;
-    resetDecoder();
-    setScanError(null);
-  }, [resetDecoder]);
 
   // Helper to send analytics with device name
   const sendErrorAnalytics = useCallback(
@@ -356,129 +257,64 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     [trackEvent, createEventBuilder],
   );
 
-  useEffect(() => {
-    if (scanError && onQRHardwareScanErrorRef.current) {
-      const errorCallback = onQRHardwareScanErrorRef.current;
-      scanErrorActiveRef.current = false;
-      setScanError(null);
-      errorCallback(scanError);
-    }
-  }, [onQRHardwareScanError, scanError]);
-
   const onError = useCallback(
     async (error: Error) => {
       if (onScanError && error) {
-        sendErrorAnalytics(
-          buildQrHardwareWalletErrorAnalyticsProperties({
-            error: error.message,
-            is_ur_format: false,
-          }),
-        );
+        sendErrorAnalytics({ error: error.message });
         onScanError(error.message);
       }
     },
     [onScanError, sendErrorAnalytics],
   );
 
-  const showScannerError = useCallback(
-    async (error: QRHardwareScanError) => {
-      if (scanErrorActiveRef.current) {
-        return;
-      }
-
-      scanErrorActiveRef.current = true;
-      resetDecoder();
-
-      const errorCallback = onQRHardwareScanErrorRef.current;
-      if (errorCallback) {
-        errorCallback(error);
-      } else {
-        setScanError(error);
-      }
-
-      sendErrorAnalytics(
-        buildQrHardwareWalletErrorAnalyticsProperties({
-          error: error.message,
-          error_category: error.metadata.qrHardwareScanErrorType,
-          is_ur_format: error.metadata.isUrFormat,
-          received_ur_type: error.metadata.receivedUrType,
-        }),
-      ).catch(() => undefined);
-    },
-    [resetDecoder, sendErrorAnalytics],
-  );
-
   const onBarCodeRead = useCallback(
     async (codes: Code[]) => {
-      if (!visible || scanErrorActiveRef.current || !codes.length) {
+      if (!visible || !codes.length) {
         return;
       }
       const response = { data: codes[0].value };
       if (!response.data) {
         return;
       }
-      const content = response.data.trim();
-      const isUrFormat = content.toLowerCase().startsWith('ur:');
 
       try {
-        if (!isUrFormat) {
-          await showScannerError(
-            createQRHardwareScanError({
-              errorType: QRHardwareScanErrorType.NonURQrScanned,
-              purpose,
-              isUrFormat: false,
-            }),
-          );
-          return;
-        }
-
+        const content = response.data;
         urDecoder.receivePart(content);
         setProgress(Math.ceil(urDecoder.getProgress() * 100));
 
         if (urDecoder.isError()) {
-          await showScannerError(
-            createQRHardwareScanError({
-              errorType: QRHardwareScanErrorType.URDecodeError,
-              purpose,
-              technicalMessage: urDecoder.resultError(),
-              isUrFormat: true,
-            }),
-          );
+          sendErrorAnalytics({ error: urDecoder.resultError() });
+          onScanError(strings('transaction.unknown_qr_code'));
         } else if (urDecoder.isSuccess()) {
           const ur = urDecoder.resultUR();
           if (expectedURTypes.includes(ur.type)) {
             onScanSuccess(ur);
             setProgress(0);
             setURDecoder(new URRegistryDecoder());
+          } else if (purpose === QrScanRequestType.PAIR) {
+            sendErrorAnalytics({
+              received_ur_type: ur.type,
+              error: 'invalid `sync` qr code',
+            });
+            onScanError(strings('transaction.invalid_qr_code_sync'));
           } else {
-            await showScannerError(
-              createQRHardwareScanError({
-                errorType: QRHardwareScanErrorType.WrongURType,
-                purpose,
-                receivedUrType: ur.type,
-                isUrFormat: true,
-              }),
-            );
+            sendErrorAnalytics({ error: 'invalid `sign` qr code' });
+            onScanError(strings('transaction.invalid_qr_code_sign'));
           }
         }
       } catch (e) {
-        await showScannerError(
-          createQRHardwareScanError({
-            errorType: QRHardwareScanErrorType.ScanException,
-            purpose,
-            technicalMessage: e instanceof Error ? e.message : String(e),
-            isUrFormat,
-          }),
-        );
+        sendErrorAnalytics({ error: strings('transaction.unknown_qr_code') });
+        onScanError(strings('transaction.unknown_qr_code'));
       }
     },
     [
       visible,
       urDecoder,
+      onScanError,
       expectedURTypes,
       purpose,
       onScanSuccess,
-      showScannerError,
+      sendErrorAnalytics,
     ],
   );
 
@@ -500,19 +336,6 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     [purpose, styles],
   );
 
-  const errorTitle = useMemo(
-    () => (scanError ? getQRHardwareScanErrorTitle(scanError) : null),
-    [scanError],
-  );
-
-  const handleLearnMore = useCallback(() => {
-    Linking.openURL(QR_HARDWARE_LEARN_MORE_URL);
-  }, []);
-
-  const handleTryAgain = useCallback(() => {
-    reset();
-  }, [reset]);
-
   return (
     <Modal
       isVisible={visible}
@@ -522,77 +345,39 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
       onModalHide={() => {
         reset();
         pauseQRCode?.(false);
-        onModalHideComplete?.();
       }}
       onModalWillShow={() => pauseQRCode?.(true)}
     >
       <View style={styles.container}>
         {cameraDevice && hasPermission ? (
           <>
-            {!scanError ? (
-              <>
-                <Camera
-                  style={styles.preview}
-                  device={cameraDevice}
-                  isActive={visible}
-                  codeScanner={codeScanner}
-                  torch="off"
-                  onError={onError}
-                />
-                {/* Overlay layout matching other QR scanner */}
-                <View style={styles.overlayContainerColumn}>
-                  <View style={styles.overlay} />
+            <Camera
+              style={styles.preview}
+              device={cameraDevice}
+              isActive={visible}
+              codeScanner={codeScanner}
+              torch="off"
+              onError={onError}
+            />
+            {/* Overlay layout matching other QR scanner */}
+            <View style={styles.overlayContainerColumn}>
+              <View style={styles.overlay} />
 
-                  <View style={styles.overlayContainerRow}>
-                    {hintText}
-                    <View style={styles.overlay} />
-                    <Image source={frameImage} style={styles.frame} />
-                    <View style={styles.overlay} />
-                  </View>
-
-                  <View style={styles.overlay}>
-                    {progress > 0 && (
-                      <Text style={styles.scanningText}>{`${strings(
-                        'qr_scanner.scanning',
-                      )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
-                    )}
-                  </View>
-                </View>
-              </>
-            ) : (
-              <View style={styles.innerView}>
-                <View style={styles.errorContainer}>
-                  {errorTitle ? (
-                    <Text style={styles.errorTitle}>{errorTitle}</Text>
-                  ) : null}
-                  {scanError.userMessage ? (
-                    <Text style={styles.errorBody}>
-                      {scanError.userMessage}
-                    </Text>
-                  ) : null}
-                  <View style={styles.errorFooter}>
-                    <TouchableOpacity
-                      style={[styles.errorButton, styles.errorButtonSecondary]}
-                      onPress={handleLearnMore}
-                      testID="qr-scanner-error-learn-more-button"
-                    >
-                      <Text style={styles.errorButtonSecondaryText}>
-                        {strings('hardware_wallet.common.learn_more')}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.errorButton, styles.errorButtonPrimary]}
-                      onPress={handleTryAgain}
-                      testID="qr-scanner-error-try-again-button"
-                    >
-                      <Text style={styles.errorButtonPrimaryText}>
-                        {strings('hardware_wallet.common.try_again')}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
+              <View style={styles.overlayContainerRow}>
+                {hintText}
+                <View style={styles.overlay} />
+                <Image source={frameImage} style={styles.frame} />
+                <View style={styles.overlay} />
               </View>
-            )}
+
+              <View style={styles.overlay}>
+                {progress > 0 && (
+                  <Text style={styles.scanningText}>{`${strings(
+                    'qr_scanner.scanning',
+                  )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
+                )}
+              </View>
+            </View>
             {/* Close button */}
             <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
               <Icon name={IconName.Close} size={IconSize.Xl} />

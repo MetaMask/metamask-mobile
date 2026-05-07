@@ -18,8 +18,6 @@ const TRANSACTION_TYPES_FOR_ACTIVE_AB_TESTS: ReadonlySet<TransactionType> =
     TransactionType.swapApproval,
     TransactionType.swapAndSend,
     TransactionType.bridgeApproval,
-    TransactionType.moneyAccountDeposit,
-    TransactionType.moneyAccountWithdraw,
     TransactionType.perpsAcrossDeposit,
     TransactionType.perpsDeposit,
     TransactionType.perpsDepositAndOrder,

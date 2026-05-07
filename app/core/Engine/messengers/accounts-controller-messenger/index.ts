@@ -1,4 +1,5 @@
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
+import { SnapControllerStateChangeEvent } from '../../controllers/snaps';
 import { RootExtendedMessenger, RootMessenger } from '../../types';
 import {
   SnapKeyringAccountAssetListUpdatedEvent,
@@ -40,6 +41,7 @@ export function getAccountsControllerMessenger(
     ],
     events: [
       'KeyringController:stateChange',
+      SnapControllerStateChangeEvent,
       SnapKeyringAccountAssetListUpdatedEvent,
       SnapKeyringAccountBalancesUpdatedEvent,
       SnapKeyringAccountTransactionsUpdatedEvent,

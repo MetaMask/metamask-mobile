@@ -28,7 +28,7 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { CaipAccountId } from '@metamask/utils';
 import { areAddressesEqual } from '../../../../util/address';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import {
   PerpsTransaction,
   PerpsTransactionType,
@@ -120,8 +120,9 @@ export const usePerpsTransactionHistory = ({
 
   // Wallet perps deposits and withdrawals for the Deposits tab
   const walletTransactions = useSelector(selectNonReplacedTransactions);
-  const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
-  const selectedAddress = evmAccount?.address;
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
   const { walletDepositTransactions, walletWithdrawalTransactions } =
     useMemo(() => {
       if (!selectedAddress) {

@@ -16,7 +16,6 @@ import handleBrowserUrl from '../handleBrowserUrl';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
 import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
-import { handleSocialLeaderboardUrl } from '../handleSocialLeaderboardUrl';
 import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
@@ -42,7 +41,6 @@ jest.mock('../handleRewardsUrl');
 jest.mock('../handlePredictUrl');
 jest.mock('../handleFastOnboarding');
 jest.mock('../handleTrendingUrl');
-jest.mock('../handleSocialLeaderboardUrl');
 jest.mock('../handleSocialTraderPositionUrl');
 jest.mock('../../../../redux', () => ({
   __esModule: true,
@@ -859,32 +857,6 @@ describe('handleUniversalLink', () => {
         actionPath:
           '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy',
       });
-      expect(handled).toHaveBeenCalled();
-    });
-  });
-
-  describe('ACTIONS.SOCIAL_LEADERBOARD', () => {
-    it('navigates to social leaderboard without showing interstitial', async () => {
-      const leaderboardUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_LEADERBOARD}?ignored=true`;
-      const leaderboardUrlObj = {
-        ...urlObj,
-        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        href: leaderboardUrl,
-        pathname: `/${ACTIONS.SOCIAL_LEADERBOARD}`,
-        search: '?ignored=true',
-      };
-
-      await handleUniversalLink({
-        instance,
-        handled,
-        urlObj: leaderboardUrlObj,
-        browserCallBack: mockBrowserCallBack,
-        url: leaderboardUrl,
-        source: 'test-source',
-      });
-
-      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
-      expect(handleSocialLeaderboardUrl).toHaveBeenCalledTimes(1);
       expect(handled).toHaveBeenCalled();
     });
   });

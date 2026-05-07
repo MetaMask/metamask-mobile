@@ -18,7 +18,6 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
-import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import MusdAggregatedRow from './MusdAggregatedRow';
 import { useCashNavigation } from './useCashNavigation';
 
@@ -43,13 +42,11 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     const isMusdConversionEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
-    const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
     const { hasMusdBalanceOnAnyChain } = useMusdBalance();
     const { navigateToCash } = useCashNavigation();
 
-    const isCashSectionEnabled =
-      isMusdConversionEnabled && isGeoEligible && !isMoneyHomeEnabled;
+    const isCashSectionEnabled = isMusdConversionEnabled && isGeoEligible;
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: sectionViewRef,
@@ -76,17 +73,13 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
     if (!isCashSectionEnabled) {
-      let reason = 'flag_off';
-      if (isMusdConversionEnabled) {
-        reason = !isGeoEligible ? 'geo_ineligible' : 'money_home_on';
-      }
       Logger.log(
-        `[CashSection] not rendered flag=${isMusdConversionEnabled} geo=${isGeoEligible} moneyHome=${isMoneyHomeEnabled} reason=${reason}`,
+        `[CashSection] not rendered flag=${isMusdConversionEnabled} geo=${isGeoEligible} reason=${!isMusdConversionEnabled ? 'flag_off' : 'geo_ineligible'}`,
       );
       return null;
     }
 
-    const title = strings('homepage.sections.money');
+    const title = strings('homepage.sections.cash');
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>

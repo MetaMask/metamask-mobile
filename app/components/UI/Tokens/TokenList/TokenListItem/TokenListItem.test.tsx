@@ -30,6 +30,7 @@ import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTo
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
 import {
   selectIsMusdConversionFlowEnabledFlag,
+  selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import {
@@ -37,6 +38,7 @@ import {
   MUSD_TOKEN_ADDRESS,
 } from '../../../Earn/constants/musd';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
   __esModule: true,
@@ -199,6 +201,7 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => true),
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
+  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
   selectMusdConversionPaymentTokensAllowlist: jest.fn(() => ({})),
 }));
 
@@ -210,6 +213,11 @@ const mockSelectIsMusdConversionFlowEnabledFlag =
 const mockSelectStablecoinLendingEnabledFlag =
   selectStablecoinLendingEnabledFlag as jest.MockedFunction<
     typeof selectStablecoinLendingEnabledFlag
+  >;
+
+const mockSelectMusdQuickConvertEnabledFlag =
+  selectMusdQuickConvertEnabledFlag as jest.MockedFunction<
+    typeof selectMusdQuickConvertEnabledFlag
   >;
 
 jest.mock('../../util/deriveBalanceFromAssetMarketDetails', () => ({
@@ -333,6 +341,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     asset?: TokenI;
     pricePercentChange1d?: number;
     isMusdConversionEnabled?: boolean;
+    isQuickConvertEnabled?: boolean;
     isTokenWithCta?: boolean;
     isGeoEligible?: boolean;
     isStockToken?: boolean;
@@ -350,6 +359,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     asset,
     pricePercentChange1d = 5.67,
     isMusdConversionEnabled = false,
+    isQuickConvertEnabled = false,
     isTokenWithCta = false,
     isGeoEligible = true,
     isStockToken = false,
@@ -386,6 +396,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     mockSelectIsMusdConversionFlowEnabledFlag.mockReturnValue(
       isMusdConversionEnabled,
     );
+    mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(
+      isQuickConvertEnabled,
+    );
     mockUseMusdConversionTokens.mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
       hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
@@ -413,6 +426,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
         if (selector === selectStablecoinLendingEnabledFlag) {
           return isStablecoinLendingEnabled;
+        }
+
+        if (selector === selectMusdQuickConvertEnabledFlag) {
+          return isQuickConvertEnabled;
         }
 
         if (selector === selectTokenMarketData) {
@@ -795,6 +812,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
             chainId: toHex('0x1'),
           },
           navigationStack: Routes.EARN.ROOT,
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       });
     }, 10000);
@@ -932,6 +950,80 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: 'token_list_item',
         redirects_to: 'custom_amount_screen',
+        cta_type: 'musd_conversion_secondary_cta',
+        cta_text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+        network_chain_id: usdcAsset.chainId,
+        network_name: 'Ethereum Mainnet',
+        asset_symbol: usdcAsset.symbol,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    }, 10000);
+
+    it('tracks mUSD conversion CTA clicked event with quick convert redirect when education screen has been seen and quick convert is enabled', async () => {
+      // Arrange
+      mockHasSeenConversionEducationScreen = true;
+      prepareMocks({
+        asset: usdcAsset,
+        isMusdConversionEnabled: true,
+        isQuickConvertEnabled: true,
+        isTokenWithCta: true,
+      });
+
+      const convertAssetKey: FlashListAssetKey = {
+        address: usdcAsset.address,
+        chainId: usdcAsset.chainId,
+        isStaked: false,
+      };
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={convertAssetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+        />,
+      );
+
+      await waitFor(
+        () => {
+          expect(getByText('Get 3% mUSD bonus')).toBeOnTheScreen();
+        },
+        { timeout: 3000 },
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      // Act
+      await act(async () => {
+        fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
+      });
+
+      // Assert
+      await waitFor(
+        () => {
+          expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+        },
+        { timeout: 3000 },
+      );
+      const { MetaMetricsEvents } = jest.requireActual(
+        '../../../../hooks/useMetrics',
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: 'token_list_item',
+        redirects_to: 'quick_convert_home_screen',
         cta_type: 'musd_conversion_secondary_cta',
         cta_text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
           percentage: MUSD_CONVERSION_APY,
@@ -1138,56 +1230,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     });
   });
 
-  describe('hideSecondaryPriceRow (Money Hub compact mUSD layout)', () => {
-    const musdAsset = {
-      ...defaultAsset,
-      address: MUSD_TOKEN_ADDRESS,
-      symbol: 'mUSD',
-      name: 'MetaMask USD',
-      isNative: false,
-      balance: '1280.34',
-      balanceFiat: '$1,280.34',
-    };
-    const musdKey: FlashListAssetKey = {
-      address: MUSD_TOKEN_ADDRESS,
-      chainId: '0x1',
-      isStaked: false,
-    };
-    const renderCompact = (key: FlashListAssetKey) =>
-      renderWithProvider(
-        <TokenListItem
-          assetKey={key}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
-          hideSecondaryPriceRow
-        />,
-      );
-
-    it('renders compact mUSD layout and navigates on press', () => {
-      prepareMocks({ asset: musdAsset });
-      const { getByText } = renderCompact(musdKey);
-      expect(getByText('MetaMask USD')).toBeOnTheScreen();
-      expect(getByText('1280.34 mUSD')).toBeOnTheScreen();
-      fireEvent.press(getByText('MetaMask USD'));
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'Asset',
-        expect.objectContaining({ symbol: 'mUSD' }),
-      );
-    });
-
-    it('does not affect non-mUSD rows', () => {
-      prepareMocks({ asset: defaultAsset });
-      const { getByText } = renderCompact({
-        address: '0x456',
-        chainId: '0x1',
-        isStaked: false,
-      });
-      expect(getByText('Test Token')).toBeOnTheScreen();
-    });
-  });
-
   describe('mUSD Bonus Row', () => {
     const claimableAsset = {
       ...defaultAsset,
@@ -1201,14 +1243,14 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       isStaked: false,
     };
 
-    it('does not render the "3% bonus" label on mUSD rows (MUSD-729)', () => {
+    it('shows green "3% bonus" on mUSD rows when conversion is enabled', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 5.0,
         isMusdConversionEnabled: true,
       });
 
-      const { queryByText, getByText } = renderWithProvider(
+      const { getByText, queryByText } = renderWithProvider(
         <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
@@ -1219,15 +1261,15 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(
-        queryByText(
+        getByText(
           strings('earn.musd_conversion.percentage_bonus', {
             percentage: MUSD_CONVERSION_APY,
           }),
         ),
-      ).toBeNull();
-      // Without the bonus label or a Convert CTA, the row falls back to the
-      // standard percentage-change rail.
-      expect(getByText('+5.00%')).toBeOnTheScreen();
+      ).toBeOnTheScreen();
+      expect(queryByText('+5.00%')).toBeNull();
+      // Price rail must stay hidden on mUSD bonus rows per Figma.
+      expect(queryByText(/\u2022/)).toBeNull();
     });
 
     it('shows normal percentage when mUSD but conversion flow is disabled', () => {

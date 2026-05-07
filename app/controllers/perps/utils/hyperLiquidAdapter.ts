@@ -290,10 +290,9 @@ export function adaptAccountStateFromSDK(
 
   const perpsBalance = parseFloat(perpsState.marginSummary.accountValue);
 
-  const withdrawable = perpsState.withdrawable || '0';
   const accountState: AccountState = {
-    spendableBalance: withdrawable,
-    withdrawableBalance: withdrawable,
+    availableBalance: perpsState.withdrawable || '0',
+    availableToTradeBalance: perpsState.withdrawable || '0',
     totalBalance: perpsBalance.toString() || '0',
     marginUsed: perpsState.marginSummary.totalMarginUsed || '0',
     unrealizedPnl: totalUnrealizedPnl.toString() || '0',

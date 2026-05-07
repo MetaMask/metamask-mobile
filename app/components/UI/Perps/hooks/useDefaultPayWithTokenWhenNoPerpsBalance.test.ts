@@ -18,7 +18,7 @@ const mockUsePerpsPaymentTokens = jest.requireMock<
 
 function getState(
   overrides: {
-    perpsAccount?: { spendableBalance: string } | null;
+    perpsAccount?: { availableBalance: string } | null;
     allowlistAssets?: string[];
     isTestnet?: boolean;
     activeProvider?: 'hyperliquid' | 'myx' | 'aggregated';
@@ -26,7 +26,7 @@ function getState(
   } = {},
 ) {
   const {
-    perpsAccount = { spendableBalance: '0' },
+    perpsAccount = { availableBalance: '0' },
     allowlistAssets = [],
     isTestnet = false,
     activeProvider,
@@ -82,7 +82,7 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
 
     const { result } = runHook(
       getState({
-        perpsAccount: { spendableBalance: '100' },
+        perpsAccount: { availableBalance: '100' },
         allowlistAssets: ['0xa4b1.0xusdc'],
       }),
     );

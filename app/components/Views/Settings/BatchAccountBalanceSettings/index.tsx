@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Switch } from 'react-native';
+import { View, Switch, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectIsMultiAccountBalancesEnabled } from '../../../../selectors/preferencesController';
@@ -10,6 +10,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 import styleSheet from './index.styles';
 import {
   BATCH_BALANCE_REQUESTS_SECTION,
@@ -60,7 +61,10 @@ const BatchAccountBalanceSettings = () => {
             thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
-            testID={SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID}
+            {...generateTestId(
+              Platform,
+              SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
+            )}
           />
         </View>
       </View>

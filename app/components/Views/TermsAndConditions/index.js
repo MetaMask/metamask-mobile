@@ -1,11 +1,12 @@
 import React, { PureComponent } from 'react';
-import { Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { TermsAndConditionsSelectorsIDs } from './TermsAndConditions.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { TERMS_AND_CONDITIONS_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Components/TermsAndConditions.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -48,7 +49,7 @@ export default class TermsAndConditions extends PureComponent {
 
     return (
       <TouchableOpacity
-        testID={TermsAndConditionsSelectorsIDs.ACCEPT_BUTTON}
+        {...generateTestId(Platform, TERMS_AND_CONDITIONS_BUTTON_ID)}
         onPress={this.press}
       >
         <Text style={styles.text}>

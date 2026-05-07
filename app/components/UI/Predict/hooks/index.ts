@@ -14,6 +14,12 @@ export {
 } from './useLiveMarketPrices';
 
 export {
+  usePredictLivePositions,
+  type UseLivePositionsOptions,
+  type UseLivePositionsResult,
+} from './usePredictLivePositions';
+
+export {
   usePredictTabs,
   type FeedTab,
   type UsePredictTabsResult,

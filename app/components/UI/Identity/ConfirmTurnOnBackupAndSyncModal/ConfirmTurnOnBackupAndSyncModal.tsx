@@ -1,13 +1,15 @@
 import React, { useRef } from 'react';
 
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../component-library/components/BottomSheets/BottomSheet';
+import { strings } from '../../../../../locales/i18n';
+
 import {
-  BottomSheet,
-  type BottomSheetRef,
   IconColor,
   IconName,
   IconSize,
-} from '@metamask/design-system-react-native';
-import { strings } from '../../../../../locales/i18n';
+} from '../../../../component-library/components/Icons/Icon';
 import ModalContent from '../../Notification/Modal';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
 import { useParams } from '../../../../util/navigation/navUtils';
@@ -43,7 +45,7 @@ const ConfirmTurnOnBackupAndSyncModal = () => {
   const turnContent = {
     icon: {
       name: IconName.Check,
-      color: IconColor.SuccessDefault,
+      color: IconColor.Success,
     },
     bottomSheetTitle: strings('backupAndSync.enable.title'),
     bottomSheetMessage: strings('backupAndSync.enable.confirmation'),

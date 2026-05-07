@@ -1,33 +1,21 @@
 import React from 'react';
-import { fireEvent, act, waitFor } from '@testing-library/react-native';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import SitesFullView from './SitesFullView';
 import { useSitesData } from '../../UI/Sites/hooks/useSiteData/useSitesData';
 import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
 
 // Mock dependencies
 jest.mock('../../UI/Sites/hooks/useSiteData/useSitesData');
-jest.mock(
-  '../../UI/Sites/hooks/useBrowserFavoritesSites/useBrowserFavoritesSites',
-  () => ({
-    useBrowserFavoritesSites: jest.fn(() => ({ sites: [], isLoading: false })),
-  }),
-);
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      goBack: mockGoBack,
-    }),
-    useRoute: () => ({ params: {} }),
-  };
-});
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    goBack: mockGoBack,
+  }),
+}));
 
 jest.mock('../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../util/theme');
@@ -197,7 +185,7 @@ describe('SitesFullView', () => {
         refetch: mockRefetch,
       });
 
-      const { getByTestId } = renderWithProvider(<SitesFullView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       expect(getByTestId('sites-full-view-header')).toBeOnTheScreen();
       expect(
@@ -216,7 +204,7 @@ describe('SitesFullView', () => {
         refetch: mockRefetch,
       });
 
-      const { getByTestId } = renderWithProvider(<SitesFullView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       expect(getByTestId('sites-list')).toBeOnTheScreen();
       expect(getByTestId('site-item-1')).toBeOnTheScreen();
@@ -231,7 +219,7 @@ describe('SitesFullView', () => {
         refetch: mockRefetch,
       });
 
-      const { getAllByTestId } = renderWithProvider(<SitesFullView />);
+      const { getAllByTestId } = render(<SitesFullView />);
 
       const skeletons = getAllByTestId('site-skeleton');
       expect(skeletons.length).toBe(15);
@@ -244,7 +232,7 @@ describe('SitesFullView', () => {
         refetch: mockRefetch,
       });
 
-      const { getByTestId } = renderWithProvider(<SitesFullView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       expect(getByTestId('refresh-control')).toBeOnTheScreen();
     });
@@ -258,7 +246,7 @@ describe('SitesFullView', () => {
         refetch: mockRefetch,
       });
 
-      const { getByTestId } = renderWithProvider(<SitesFullView />);
+      const { getByTestId } = render(<SitesFullView />);
       const backButton = getByTestId('sites-full-view-header-back-button');
 
       fireEvent.press(backButton);
@@ -271,9 +259,7 @@ describe('SitesFullView', () => {
     it('filters sites by name, URL, and display URL', () => {
       setupMockWithSearchFilter();
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <SitesFullView />,
-      );
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Activate search
       fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
@@ -298,7 +284,7 @@ describe('SitesFullView', () => {
     it('shows all sites when search query is empty', () => {
       setupMockWithSearchFilter();
 
-      const { getByTestId } = renderWithProvider(<SitesFullView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       // Activate search
       fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
@@ -320,7 +306,7 @@ describe('SitesFullView', () => {
         refetch: mockRefetch,
       });
 
-      const { getByTestId } = renderWithProvider(<SitesFullView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       // Activate search
       fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));
@@ -347,9 +333,7 @@ describe('SitesFullView', () => {
         refetch: mockRefetch,
       });
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <SitesFullView />,
-      );
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Initially no footer
       expect(queryByTestId('sites-search-footer')).toBeNull();
@@ -372,9 +356,7 @@ describe('SitesFullView', () => {
         refetch: mockRefetch,
       });
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <SitesFullView />,
-      );
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Footer should not appear when search is inactive
       expect(queryByTestId('sites-search-footer')).toBeNull();
@@ -395,7 +377,7 @@ describe('SitesFullView', () => {
         refetch: mockRefetch,
       });
 
-      renderWithProvider(<SitesFullView />);
+      render(<SitesFullView />);
 
       expect(mockUseSitesData).toHaveBeenCalledWith('');
     });
@@ -407,7 +389,7 @@ describe('SitesFullView', () => {
         refetch: mockRefetch,
       });
 
-      renderWithProvider(<SitesFullView />);
+      render(<SitesFullView />);
 
       const SitesListMock = jest.requireMock(
         '../../UI/Sites/components/SitesList/SitesList',
@@ -447,7 +429,7 @@ describe('SitesFullView', () => {
         refetch: mockRefetch,
       });
 
-      const { getByTestId } = renderWithProvider(<SitesFullView />);
+      const { getByTestId } = render(<SitesFullView />);
 
       expect(getByTestId('site-item-1')).toBeOnTheScreen();
     });
@@ -459,9 +441,7 @@ describe('SitesFullView', () => {
         refetch: mockRefetch,
       });
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <SitesFullView />,
-      );
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       expect(getByTestId('sites-list')).toBeOnTheScreen();
       expect(queryByTestId('site-item-1')).toBeNull();
@@ -470,9 +450,7 @@ describe('SitesFullView', () => {
     it('performs case-insensitive search', () => {
       setupMockWithSearchFilter();
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <SitesFullView />,
-      );
+      const { getByTestId, queryByTestId } = render(<SitesFullView />);
 
       // Activate search
       fireEvent.press(getByTestId('sites-full-view-header-search-toggle'));

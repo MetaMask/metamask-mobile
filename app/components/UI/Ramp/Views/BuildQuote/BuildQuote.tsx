@@ -69,7 +69,6 @@ import {
 
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
-import { failSession } from '../../headless/sessionRegistry';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -160,24 +159,10 @@ function BuildQuote() {
 
   useEffect(() => {
     if (params?.nativeFlowError) {
-      if (
-        params.headlessSessionId &&
-        failSession(
-          params.headlessSessionId,
-          {
-            code: 'AUTH_FAILED',
-            message: params.nativeFlowError,
-          },
-          'AUTH_FAILED',
-        )
-      ) {
-        navigation.setParams({ nativeFlowError: undefined });
-        return;
-      }
       setRampsError(params.nativeFlowError);
       navigation.setParams({ nativeFlowError: undefined });
     }
-  }, [params?.headlessSessionId, params?.nativeFlowError, navigation]);
+  }, [params?.nativeFlowError, navigation]);
 
   const {
     userRegion,
@@ -642,9 +627,6 @@ function BuildQuote() {
         assetId: selectedToken?.assetId ?? '',
       });
     } catch (err) {
-      if (failSession(params?.headlessSessionId, err)) {
-        return;
-      }
       setRampsError((err as Error).message);
     } finally {
       setIsContinueLoading(false);
@@ -660,7 +642,6 @@ function BuildQuote() {
     selectedPaymentMethod?.id,
     rampRoutingDecision,
     userRegion?.regionCode,
-    params?.headlessSessionId,
     trackEvent,
     createEventBuilder,
     continueWithQuote,

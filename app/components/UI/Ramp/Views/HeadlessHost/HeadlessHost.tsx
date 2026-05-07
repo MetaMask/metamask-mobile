@@ -27,7 +27,7 @@ import Logger from '../../../../../util/Logger';
 // Going through the barrel would leave the registry exports `undefined`
 // at evaluation time inside this module.
 import {
-  failSession,
+  closeSession,
   getSession,
   setStatus,
 } from '../../headless/sessionRegistry';
@@ -132,17 +132,26 @@ function HeadlessHost() {
     if (!nativeFlowError) {
       return;
     }
-    const headlessError = failSession(
-      headlessSessionId,
-      {
+    const liveSession = getSession(headlessSessionId);
+    if (!liveSession) {
+      return;
+    }
+    setErrorMessage(nativeFlowError);
+    try {
+      liveSession.callbacks.onError({
         code: 'AUTH_FAILED',
         message: nativeFlowError,
-      },
-      'AUTH_FAILED',
-    );
-    if (headlessError) {
-      setErrorMessage(headlessError.message ?? nativeFlowError);
+      });
+    } catch (e) {
+      Logger.error(e as Error, 'HeadlessHost: onError callback threw');
     }
+    closeSession(
+      headlessSessionId,
+      { reason: 'unknown' },
+      {
+        terminalStatus: 'failed',
+      },
+    );
   }, [nativeFlowError, headlessSessionId]);
 
   // Process the session. Uses `useEffect` (not `useFocusEffect`) so that
@@ -193,11 +202,25 @@ function HeadlessHost() {
     if (!chainId) {
       const message = `HeadlessHost: invalid assetId "${currentSession.params.assetId}"`;
       Logger.error(new Error(message));
+      try {
+        currentSession.callbacks.onError({
+          code: 'UNKNOWN',
+          message,
+        });
+      } catch (e) {
+        Logger.error(e as Error, 'HeadlessHost: onError callback threw');
+      }
       // closeSession alone does not trigger a re-render; without setState the
       // render-time `session` ref stays truthy and the loader would spin
       // forever. Surface the same message in UI as other error paths.
       setErrorMessage(message);
-      failSession(headlessSessionId, { code: 'UNKNOWN', message });
+      closeSession(
+        headlessSessionId,
+        { reason: 'unknown' },
+        {
+          terminalStatus: 'failed',
+        },
+      );
       return;
     }
     // Defer until walletAddress resolves — avoids calling continueWithQuote
@@ -247,8 +270,22 @@ function HeadlessHost() {
       if (!liveSession) {
         return;
       }
-      const headlessError = failSession(headlessSessionId, error);
-      setErrorMessage(headlessError?.message ?? message);
+      setErrorMessage(message);
+      try {
+        liveSession.callbacks.onError({
+          code: 'UNKNOWN',
+          message,
+        });
+      } catch (e) {
+        Logger.error(e as Error, 'HeadlessHost: onError callback threw');
+      }
+      closeSession(
+        headlessSessionId,
+        { reason: 'unknown' },
+        {
+          terminalStatus: 'failed',
+        },
+      );
     });
     return () => {
       cancelled = true;

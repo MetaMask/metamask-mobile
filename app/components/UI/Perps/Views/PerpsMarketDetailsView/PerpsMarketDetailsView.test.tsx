@@ -755,8 +755,7 @@ describe('PerpsMarketDetailsView', () => {
   beforeEach(() => {
     mockUsePerpsAccount.mockReturnValue({
       account: {
-        spendableBalance: '1000.00',
-        withdrawableBalance: '1000.00',
+        availableBalance: '1000.00',
         marginUsed: '0.00',
         unrealizedPnl: '0.00',
         returnOnEquity: '0.00',
@@ -767,8 +766,7 @@ describe('PerpsMarketDetailsView', () => {
 
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
-        spendableBalance: '1000',
-        withdrawableBalance: '1000',
+        availableBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -994,8 +992,7 @@ describe('PerpsMarketDetailsView', () => {
       });
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          spendableBalance: '0.00',
-          withdrawableBalance: '0.00',
+          availableBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1006,8 +1003,7 @@ describe('PerpsMarketDetailsView', () => {
 
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          spendableBalance: '0',
-          withdrawableBalance: '0',
+          availableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1043,8 +1039,7 @@ describe('PerpsMarketDetailsView', () => {
       mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          spendableBalance: '0.00',
-          withdrawableBalance: '0.00',
+          availableBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1054,8 +1049,7 @@ describe('PerpsMarketDetailsView', () => {
       });
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          spendableBalance: '0',
-          withdrawableBalance: '0',
+          availableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1086,8 +1080,7 @@ describe('PerpsMarketDetailsView', () => {
       mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          spendableBalance: '0.00',
-          withdrawableBalance: '0.00',
+          availableBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1097,8 +1090,7 @@ describe('PerpsMarketDetailsView', () => {
       });
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          spendableBalance: '0',
-          withdrawableBalance: '0',
+          availableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1129,8 +1121,7 @@ describe('PerpsMarketDetailsView', () => {
       mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          spendableBalance: '0.00',
-          withdrawableBalance: '0.00',
+          availableBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1140,8 +1131,7 @@ describe('PerpsMarketDetailsView', () => {
       });
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          spendableBalance: '0',
-          withdrawableBalance: '0',
+          availableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1179,8 +1169,7 @@ describe('PerpsMarketDetailsView', () => {
       mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          spendableBalance: '0.00',
-          withdrawableBalance: '0.00',
+          availableBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1190,8 +1179,7 @@ describe('PerpsMarketDetailsView', () => {
       });
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          spendableBalance: '0',
-          withdrawableBalance: '0',
+          availableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1225,8 +1213,7 @@ describe('PerpsMarketDetailsView', () => {
       // Override with non-zero balance and existing position
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          spendableBalance: '1000.00',
-          withdrawableBalance: '1000.00',
+          availableBalance: '1000.00',
           marginUsed: '500.00',
           unrealizedPnl: '50.00',
           returnOnEquity: '3.33',

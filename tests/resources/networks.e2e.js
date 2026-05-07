@@ -192,7 +192,7 @@ const CustomNetworks = {
       rpcUrl: 'https://sei-mainnet.infura.io',
       nickname: 'Sei Testnet',
       ticker: 'SEI',
-      BlockExplorerUrl: 'https://seiscan.io/',
+      BlockExplorerUrl: 'https://seitrace.com/',
     },
   },
 };

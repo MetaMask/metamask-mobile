@@ -114,6 +114,12 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
 
     DevLogger.log('[QRWalletAdapter] Device is ready');
 
+    // For QR wallets, we consider the "app" to always be open
+    // since there's no app concept like on Ledger
+    this.#emitEvent({
+      event: DeviceEvent.AppOpened,
+    });
+
     return true;
   }
 
@@ -265,8 +271,12 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
         if (newStatus === 'granted') {
           return true;
         }
+
+        this.#emitCameraPermissionDenied();
+        return false;
       }
 
+      // status === 'denied' - emit error event
       this.#emitCameraPermissionDenied();
       return false;
     } catch (error) {

@@ -1,8 +1,7 @@
 import { useCallback, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { setCampaignParticipantStatus } from '../../../../reducers/rewards';
 import type { CampaignParticipantStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 export interface UseOptInToCampaignResult {
@@ -23,7 +22,6 @@ export interface UseOptInToCampaignResult {
  */
 export const useOptInToCampaign = (): UseOptInToCampaignResult => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const dispatch = useDispatch();
   const [isOptingIn, setIsOptingIn] = useState(false);
   const [optInError, setOptInError] = useState<string | undefined>(undefined);
 
@@ -38,19 +36,11 @@ export const useOptInToCampaign = (): UseOptInToCampaignResult => {
       try {
         setIsOptingIn(true);
         setOptInError(undefined);
-        const result = await Engine.controllerMessenger.call(
+        return await Engine.controllerMessenger.call(
           'RewardsController:optInToCampaign',
           campaignId,
           subscriptionId,
         );
-        dispatch(
-          setCampaignParticipantStatus({
-            subscriptionId,
-            campaignId,
-            status: result,
-          }),
-        );
-        return result;
       } catch (error) {
         const message =
           error instanceof Error ? error.message : 'Opt-in failed';
@@ -60,7 +50,7 @@ export const useOptInToCampaign = (): UseOptInToCampaignResult => {
         setIsOptingIn(false);
       }
     },
-    [dispatch, subscriptionId],
+    [subscriptionId],
   );
 
   const clearOptInError = useCallback(() => setOptInError(undefined), []);

@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import {
   HardwareWalletError,
   HardwareWalletType,
@@ -16,14 +15,7 @@ import {
   ERROR_CONTENT_TITLE_TEST_ID,
   ERROR_CONTENT_MESSAGE_TEST_ID,
   ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID,
-  ERROR_CONTENT_LEARN_MORE_BUTTON_TEST_ID,
 } from './ErrorContent';
-import {
-  createQRHardwareScanError,
-  QRHardwareScanErrorType,
-  isQRHardwareScanError as actualIsQRHardwareScanError,
-} from '../../../errors';
-import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 // Mock dependencies
 jest.mock('../../../../../util/theme', () => ({
@@ -41,26 +33,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('../../../errors', () => {
-  const actual = jest.requireActual('../../../errors/qrScan');
-  const actualQr = jest.requireActual('../../../errors/qrHardwareScanError');
-  return {
-    ...actual,
-    ...actualQr,
-    getIconForErrorCode: jest.fn().mockReturnValue('Danger'),
-    getIconColorForErrorCode: jest.fn().mockReturnValue('Error'),
-    getTitleForErrorCode: jest.fn().mockReturnValue('Error Title'),
-    getRecoveryActionForErrorCode: jest.fn().mockReturnValue('retry'),
-    getQRHardwareScanErrorTitle: jest
-      .fn()
-      .mockReturnValue('QR Scan Error Title'),
-    RecoveryAction: {
-      RETRY: 'retry',
-      ACKNOWLEDGE: 'acknowledge',
-      OPEN_SETTINGS: 'open_settings',
-    },
-  };
-});
+jest.mock('../../../errors', () => ({
+  getIconForErrorCode: jest.fn().mockReturnValue('Danger'),
+  getIconColorForErrorCode: jest.fn().mockReturnValue('Error'),
+  getTitleForErrorCode: jest.fn().mockReturnValue('Error Title'),
+  getRecoveryActionForErrorCode: jest.fn().mockReturnValue('retry'),
+  RecoveryAction: {
+    RETRY: 'retry',
+    ACKNOWLEDGE: 'acknowledge',
+  },
+}));
 
 // Mock component library
 jest.mock('../../../../../component-library/components/Texts/Text', () => {
@@ -79,17 +61,17 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
   };
 });
 
-jest.mock('@metamask/design-system-react-native', () => {
+jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    Button: ({
-      children,
+    default: ({
+      label,
       onPress,
       testID,
       isDisabled,
     }: {
-      children: React.ReactNode;
+      label: React.ReactNode;
       onPress?: () => void;
       testID?: string;
       isDisabled?: boolean;
@@ -97,17 +79,18 @@ jest.mock('@metamask/design-system-react-native', () => {
       <TouchableOpacity
         testID={testID}
         onPress={isDisabled ? undefined : onPress}
-        disabled={isDisabled}
+        isDisabled={isDisabled}
       >
-        {typeof children === 'string' ? (
-          <Text>{children}</Text>
+        {typeof label === 'string' ? (
+          <Text>{label}</Text>
         ) : (
-          <View>{children}</View>
+          <View>{label}</View>
         )}
       </TouchableOpacity>
     ),
-    ButtonVariant: { Primary: 'primary', Secondary: 'secondary' },
-    ButtonSize: { Lg: 'lg' },
+    ButtonVariants: { Primary: 'Primary', Secondary: 'Secondary' },
+    ButtonSize: { Lg: 'Lg' },
+    ButtonWidthTypes: { Full: 'Full' },
   };
 });
 
@@ -143,10 +126,6 @@ describe('ErrorContent', () => {
       category: Category.Unknown,
       userMessage: userMessage ?? message,
     });
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
 
   it('renders with test ID', () => {
     const error = createError('Test error');
@@ -291,145 +270,5 @@ describe('ErrorContent', () => {
     await waitFor(() => {
       expect(onContinue).toHaveBeenCalledTimes(1);
     });
-  });
-
-  it('renders QR scan error title without the generic icon', () => {
-    const error = createQRHardwareScanError({
-      errorType: QRHardwareScanErrorType.NonURQrScanned,
-      purpose: QrScanRequestType.SIGN,
-      isUrFormat: false,
-    });
-
-    const { queryByTestId, getByTestId } = render(
-      <ErrorContent error={error} deviceType={HardwareWalletType.Qr} />,
-    );
-
-    expect(queryByTestId(ERROR_CONTENT_ICON_TEST_ID)).toBeNull();
-    expect(getByTestId(ERROR_CONTENT_TITLE_TEST_ID)).toBeOnTheScreen();
-  });
-
-  it('renders learn more button for QR scan errors', () => {
-    const error = createQRHardwareScanError({
-      errorType: QRHardwareScanErrorType.WrongURType,
-      purpose: QrScanRequestType.SIGN,
-      receivedUrType: 'crypto-account',
-      isUrFormat: true,
-    });
-
-    const { getByTestId } = render(
-      <ErrorContent error={error} deviceType={HardwareWalletType.Qr} />,
-    );
-
-    expect(
-      getByTestId(ERROR_CONTENT_LEARN_MORE_BUTTON_TEST_ID),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID),
-    ).toBeOnTheScreen();
-  });
-
-  it('opens support article when learn more is pressed for QR scan errors', async () => {
-    const openUrlSpy = jest.spyOn(Linking, 'openURL');
-    openUrlSpy.mockResolvedValueOnce(undefined);
-    const error = createQRHardwareScanError({
-      errorType: QRHardwareScanErrorType.URDecodeError,
-      purpose: QrScanRequestType.SIGN,
-      isUrFormat: true,
-    });
-
-    const { getByTestId } = render(
-      <ErrorContent error={error} deviceType={HardwareWalletType.Qr} />,
-    );
-
-    fireEvent.press(getByTestId(ERROR_CONTENT_LEARN_MORE_BUTTON_TEST_ID));
-
-    await waitFor(() => {
-      expect(openUrlSpy).toHaveBeenCalledWith(
-        'https://support.metamask.io/more-web3/wallets/hardware-wallet-hub/#qr-codean-gapped-wallets',
-      );
-    });
-
-    openUrlSpy.mockRestore();
-  });
-
-  it('calls onContinue when try again is pressed for QR scan errors', async () => {
-    const onContinue = jest.fn().mockResolvedValue(undefined);
-    const error = createQRHardwareScanError({
-      errorType: QRHardwareScanErrorType.NonURQrScanned,
-      purpose: QrScanRequestType.SIGN,
-      isUrFormat: false,
-    });
-
-    const { getByTestId } = render(
-      <ErrorContent
-        error={error}
-        onContinue={onContinue}
-        deviceType={HardwareWalletType.Qr}
-      />,
-    );
-
-    fireEvent.press(getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID));
-
-    await waitFor(() => {
-      expect(onContinue).toHaveBeenCalled();
-    });
-  });
-
-  it('calls onDismiss when continue pressed for ACKNOWLEDGE recovery action', async () => {
-    const onDismiss = jest.fn();
-    const { getRecoveryActionForErrorCode } =
-      jest.requireMock('../../../errors');
-    getRecoveryActionForErrorCode.mockReturnValue('acknowledge');
-    const error = createError('Test error');
-
-    const { getByTestId } = render(
-      <ErrorContent
-        error={error}
-        onDismiss={onDismiss}
-        deviceType={HardwareWalletType.Ledger}
-      />,
-    );
-
-    fireEvent.press(getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID));
-
-    await waitFor(() => {
-      expect(onDismiss).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('opens device settings when continue pressed for OPEN_SETTINGS recovery action', async () => {
-    const openSettingsSpy = jest.spyOn(Linking, 'openSettings');
-    openSettingsSpy.mockResolvedValueOnce(undefined);
-    const { getRecoveryActionForErrorCode } =
-      jest.requireMock('../../../errors');
-    getRecoveryActionForErrorCode.mockReturnValue('open_settings');
-    const error = createError('Test error');
-
-    const { getByTestId } = render(
-      <ErrorContent error={error} deviceType={HardwareWalletType.Ledger} />,
-    );
-
-    fireEvent.press(getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID));
-
-    await waitFor(() => {
-      expect(openSettingsSpy).toHaveBeenCalledTimes(1);
-    });
-
-    openSettingsSpy.mockRestore();
-  });
-
-  it('renders view settings label for OPEN_SETTINGS recovery action', () => {
-    const { getRecoveryActionForErrorCode } =
-      jest.requireMock('../../../errors');
-    getRecoveryActionForErrorCode.mockReturnValue('open_settings');
-    const error = createError('Test error');
-
-    const { getByTestId } = render(
-      <ErrorContent error={error} deviceType={HardwareWalletType.Ledger} />,
-    );
-
-    expect(
-      getByTestId(ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID),
-    ).toBeOnTheScreen();
   });
 });

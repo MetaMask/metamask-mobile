@@ -4,8 +4,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  ButtonIcon,
-  ButtonIconSize,
   Icon,
   IconColor,
   IconName,
@@ -24,22 +22,9 @@ interface MoneySectionHeaderProps {
    * When provided, renders a chevron and makes the header tappable
    */
   onPress?: () => void;
-  /**
-   * When provided, renders an info icon button next to the title
-   */
-  onInfoPress?: () => void;
-  /**
-   * Accessibility label for the info icon button
-   */
-  infoAccessibilityLabel?: string;
 }
 
-const MoneySectionHeader = ({
-  title,
-  onPress,
-  onInfoPress,
-  infoAccessibilityLabel,
-}: MoneySectionHeaderProps) => {
+const MoneySectionHeader = ({ title, onPress }: MoneySectionHeaderProps) => {
   const handlePress = useCallback(() => {
     onPress?.();
   }, [onPress]);
@@ -56,16 +41,6 @@ const MoneySectionHeader = ({
       >
         {title}
       </Text>
-      {onInfoPress && (
-        <ButtonIcon
-          iconName={IconName.Info}
-          iconProps={{ color: IconColor.IconAlternative }}
-          size={ButtonIconSize.Sm}
-          onPress={onInfoPress}
-          accessibilityLabel={infoAccessibilityLabel}
-          testID={MoneySectionHeaderTestIds.INFO_BUTTON}
-        />
-      )}
       {onPress && (
         <Icon
           name={IconName.ArrowRight}

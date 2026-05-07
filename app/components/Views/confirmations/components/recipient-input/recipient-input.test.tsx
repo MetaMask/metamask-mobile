@@ -80,6 +80,7 @@ describe('RecipientInput', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });

@@ -28,11 +28,6 @@ import useRampAccountAddress from './useRampAccountAddress';
 import { isHttpUnauthorized } from '../utils/isHttpUnauthorized';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
 import { useRampsOrders } from './useRampsOrders';
-import {
-  closeSession,
-  failSession,
-  getSession,
-} from '../headless/sessionRegistry';
 
 interface RampStackParamList {
   /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
@@ -73,14 +68,9 @@ interface RampStackParamList {
 }
 
 class LimitExceededError extends Error {
-  readonly headlessBuyErrorCode = 'LIMIT_EXCEEDED';
-
-  readonly details?: Record<string, unknown>;
-
-  constructor(message: string, details?: Record<string, unknown>) {
+  constructor(message: string) {
     super(message);
     this.name = 'LimitExceededError';
-    this.details = details;
   }
 }
 
@@ -109,14 +99,6 @@ interface UseTransakRoutingConfig {
 export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const baseRoute = config?.baseRoute;
   const baseRouteParams = config?.baseRouteParams;
-  // Headless-mode marker extracted from the caller's config. When the
-  // Host wires `baseRouteParams: { headlessSessionId }` through, this
-  // lets post-checkout success paths hand the orderId to the session's
-  // `onOrderCreated` callback and unwind the ramp stack instead of
-  // resetting to `RAMPS_ORDER_DETAILS`.
-  const headlessSessionId = (
-    baseRouteParams as { headlessSessionId?: string } | undefined
-  )?.headlessSessionId;
   // Composes the stack base entry used by `navigation.reset` calls below.
   // - When the caller didn't override `baseRoute`, we keep BuildQuote as the
   //   base and merge the per-call `amount` (so the input is pre-filled when
@@ -203,11 +185,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               period: 'daily',
               remaining: `${dailyLimit} ${fiatCurrency}`,
             }),
-            {
-              period: 'daily',
-              remaining: dailyLimit,
-              currency: fiatCurrency,
-            },
           );
         }
 
@@ -217,11 +194,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               period: 'monthly',
               remaining: `${monthlyLimit} ${fiatCurrency}`,
             }),
-            {
-              period: 'monthly',
-              remaining: monthlyLimit,
-              currency: fiatCurrency,
-            },
           );
         }
 
@@ -231,11 +203,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               period: 'yearly',
               remaining: `${yearlyLimit} ${fiatCurrency}`,
             }),
-            {
-              period: 'yearly',
-              remaining: yearlyLimit,
-              currency: fiatCurrency,
-            },
           );
         }
       } catch (error) {
@@ -320,26 +287,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
   const navigateToOrderProcessingCallback = useCallback(
     ({ orderId }: { orderId: string }) => {
-      // Headless mode: fire `onOrderCreated`, close the session, and pop
-      // out of the ramp stack so the caller regains foreground. The
-      // consumer drives post-order UI themselves — no RAMPS_ORDER_DETAILS.
-      const session = getSession(headlessSessionId);
-      if (headlessSessionId && session) {
-        try {
-          session.callbacks.onOrderCreated(orderId);
-        } catch (callbackError) {
-          Logger.error(
-            callbackError as Error,
-            'useTransakRouting: onOrderCreated callback threw',
-          );
-        }
-        closeSession(headlessSessionId, { reason: 'completed' });
-        // @ts-expect-error `pop` exists on the parent stack navigator at
-        // runtime but is not surfaced on the generic `NavigationProp`
-        // type returned by `getParent()`.
-        navigation.getParent()?.pop();
-        return;
-      }
       navigation.reset({
         index: 0,
         routes: [
@@ -350,7 +297,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         ],
       });
     },
-    [navigation, headlessSessionId],
+    [navigation],
   );
 
   const navigateToAdditionalVerificationCallback = useCallback(
@@ -419,18 +366,12 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           paymentDetails: depositOrder.paymentDetails,
         });
 
-        // Suppress the toast when a headless session is driving this
-        // flow — the consumer handles its own notification UI. Keep
-        // `addOrder` and the analytics event in both modes so Redux
-        // state + telemetry parity is preserved.
-        if (!getSession(headlessSessionId)) {
-          showV2OrderToast({
-            orderId: rampsOrder.providerOrderId,
-            cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
-            cryptoAmount: rampsOrder.cryptoAmount,
-            status: rampsOrder.status,
-          });
-        }
+        showV2OrderToast({
+          orderId: rampsOrder.providerOrderId,
+          cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
+          cryptoAmount: rampsOrder.cryptoAmount,
+          status: rampsOrder.status,
+        });
 
         navigateToOrderProcessingCallback({
           orderId: rampsOrder.providerOrderId,
@@ -459,12 +400,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         Logger.error(error as Error, {
           message: 'useTransakRouting: Failed to process order after checkout',
         });
-        if (failSession(headlessSessionId, error)) {
-          // @ts-expect-error `pop` exists on the parent stack navigator at
-          // runtime but is not surfaced on the generic `NavigationProp`
-          // type returned by `getParent()`.
-          navigation.getParent()?.pop();
-        }
       }
     },
     [
@@ -475,8 +410,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       navigateToOrderProcessingCallback,
       regionIsoCode,
       trackEvent,
-      headlessSessionId,
-      navigation,
     ],
   );
 
@@ -595,13 +528,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   paymentDetails: depositOrder.paymentDetails,
                 });
 
-                if (getSession(headlessSessionId)) {
-                  navigateToOrderProcessingCallback({
-                    orderId: rampsOrder.providerOrderId,
-                  });
-                  return true;
-                }
-
                 showV2OrderToast({
                   orderId: rampsOrder.providerOrderId,
                   cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
@@ -638,9 +564,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               }
               return true;
             } catch (error) {
-              if (error instanceof LimitExceededError) {
-                throw error;
-              }
               throw new Error(
                 parseUserFacingError(
                   error,
@@ -764,8 +687,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       addOrder,
       refreshOrder,
       navigateToBankDetailsCallback,
-      navigateToOrderProcessingCallback,
-      headlessSessionId,
       navigateToWebviewModalCallback,
       navigateToKycProcessingCallback,
       submitPurposeOfUsageForm,

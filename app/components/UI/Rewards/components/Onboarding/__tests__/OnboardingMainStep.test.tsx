@@ -210,17 +210,14 @@ jest.mock('@metamask/design-system-react-native', () => {
       onChangeText?: (text: string) => void;
       placeholder?: string;
       isDisabled?: boolean;
-      inputProps?: { testID?: string; [key: string]: unknown };
       [key: string]: unknown;
     }) => {
       const { TextInput: RNTextInput } = jest.requireActual('react-native');
-      const wrapperTestId = props.testID ?? 'text-field';
-      const inputTestId = props.inputProps?.testID ?? `${wrapperTestId}-input`;
       return ReactActual.createElement(
         View,
-        { testID: wrapperTestId },
+        { testID: props.testID || 'text-field' },
         ReactActual.createElement(RNTextInput, {
-          testID: inputTestId,
+          testID: `${props.testID || 'text-field'}-input`,
           value: props.value,
           onChangeText: props.onChangeText,
           placeholder: props.placeholder,

@@ -747,19 +747,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const renderPasswordField = () => (
     <TextField
       placeholder={strings('login.password_placeholder')}
+      testID={LoginViewSelectors.PASSWORD_INPUT}
+      returnKeyType={'done'}
+      autoCapitalize="none"
+      secureTextEntry
       onChangeText={handlePasswordChange}
       value={password}
+      onSubmitEditing={handleLogin}
+      keyboardAppearance={themeAppearance}
       isDisabled={disabledInput}
       isError={!!error}
-      inputProps={{
-        testID: LoginViewSelectors.PASSWORD_INPUT,
-        accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
-        returnKeyType: 'done',
-        autoCapitalize: 'none',
-        secureTextEntry: true,
-        onSubmitEditing: handleLogin,
-        keyboardAppearance: themeAppearance,
-      }}
     />
   );
 

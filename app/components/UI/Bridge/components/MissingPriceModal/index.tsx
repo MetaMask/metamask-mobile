@@ -7,7 +7,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { selectSourceToken } from '../../../../../core/redux/slices/bridge';
 import {
   BottomSheet,
@@ -43,12 +42,9 @@ export const MissingPriceModal = () => {
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
   });
-  const { activeQuote } = useBridgeQuoteData({
-    latestSourceAtomicBalance: tokenBalance?.atomicBalance,
-  });
 
   const confirmBridge = useBridgeConfirm({
-    activeQuote,
+    latestSourceBalance: tokenBalance,
     location,
   });
 

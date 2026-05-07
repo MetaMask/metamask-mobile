@@ -6,7 +6,6 @@ import {
   setupMockRequest,
   setupSSEMockRequest,
 } from '../../api-mocking/helpers/mockHelpers';
-import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers';
 import {
   GET_QUOTE_ETH_USDC_RESPONSE,
   GET_QUOTE_ETH_USDC_RESPONSE_CUSTOM_SLIPPAGE,
@@ -30,9 +29,6 @@ const USDT_MAINNET = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const WETH_MAINNET = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
 const GOOGLON_MAINNET = '0xba47214edd2bb43099611b208f75e4b42fdcfedc';
 const MUSD_MAINNET = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
-
-/** SocialService leaderboard response shape (empty list is valid for E2E). */
-const SOCIAL_LEADERBOARD_EMPTY_RESPONSE = { traders: [] };
 
 /**
  * Mock spot prices so balance display (balance * price) does not show NaN.
@@ -81,64 +77,10 @@ export async function setupSpotPricesMock(mockServer: Mockttp): Promise<void> {
   });
 }
 
-/**
- * Social leaderboard + compliance batch — used by swap `testSpecificMock` and
- * bridge/trending specs that do not use swap-mocks’ full mock bundle.
- */
-export async function setupSwapSocialAndComplianceMocks(
-  mockServer: Mockttp,
-): Promise<void> {
-  await setupMockRequest(
-    mockServer,
-    {
-      requestMethod: 'GET',
-      url: /social\.api\.cx\.metamask\.io\/api\/v1\/leaderboard/,
-      response: SOCIAL_LEADERBOARD_EMPTY_RESPONSE,
-      responseCode: 200,
-    },
-    1001,
-  );
-
-  await mockServer
-    .forPost('/proxy')
-    .matching((request) => {
-      try {
-        const decodedUrl = getDecodedProxiedURL(request.url);
-        return /compliance\.(dev-api|api|uat-api)\.cx\.metamask\.io\/v1\/wallet\/batch/.test(
-          decodedUrl,
-        );
-      } catch {
-        return false;
-      }
-    })
-    .asPriority(1001)
-    .thenCallback(async (request) => {
-      let addresses: string[] = [];
-      try {
-        const text = await request.body.getText();
-        if (text) {
-          const parsed = JSON.parse(text) as unknown;
-          if (Array.isArray(parsed)) {
-            addresses = parsed.filter(
-              (a): a is string => typeof a === 'string',
-            );
-          }
-        }
-      } catch {
-        /* ignore malformed body */
-      }
-      return {
-        statusCode: 200,
-        json: addresses.map((address) => ({ address, blocked: false })),
-      };
-    });
-}
-
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
   await setupSpotPricesMock(mockServer);
-  await setupSwapSocialAndComplianceMocks(mockServer);
 
   // Catch-all for getQuoteStream with no slippage param (initial render before
   // useInitialSlippage fires). Registered first so specific mocks below at
@@ -264,10 +206,7 @@ export const testSpecificMock: TestSpecificMock = async (
 
   await interceptProxyUrl(
     mockServer,
-    (url) =>
-      url.includes('getQuote') &&
-      !url.includes('getQuoteStream') &&
-      url.includes('insufficientBal=false'),
+    (url) => url.includes('getQuote') && url.includes('insufficientBal=false'),
     (url) => url.replace('insufficientBal=false', 'insufficientBal=true'),
   );
 };

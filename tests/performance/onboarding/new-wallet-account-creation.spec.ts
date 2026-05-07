@@ -2,8 +2,6 @@ import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import {
-  Performance,
-  System,
   PerformanceOnboarding,
   PerformanceAccountList,
 } from '../../tags.performance.js';
@@ -27,7 +25,7 @@ import PredictModalView from '../../page-objects/Predict/PredictModalView.js';
 const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || '';
 
 /* Scenario 2: Account creation after fresh install */
-test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
+test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
   test(
     'Account creation after fresh install',
     { tag: '@metamask-onboarding-team' },

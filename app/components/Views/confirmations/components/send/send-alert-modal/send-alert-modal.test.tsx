@@ -2,7 +2,6 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import type { SendAlert } from '../../../hooks/send/alerts/types';
 import { SendAlertModal } from './send-alert-modal';
 
 jest.mock('../../../../../../../locales/i18n', () => ({
@@ -10,8 +9,6 @@ jest.mock('../../../../../../../locales/i18n', () => ({
     const mockStrings: Record<string, string> = {
       'send.cancel': 'Cancel',
       'send.i_understand': 'I understand',
-      'send.alert_navigation_previous': 'Previous alert',
-      'send.alert_navigation_next': 'Next alert',
     };
     return mockStrings[key] || key;
   }),
@@ -73,32 +70,11 @@ jest.mock(
   },
 );
 
-const singleAlert: SendAlert[] = [
-  {
-    key: 'tokenContract',
-    title: 'Token Contract Address',
-    message: 'Sending to a token contract may result in lost tokens.',
-  },
-];
-
-const twoAlerts: SendAlert[] = [
-  {
-    key: 'tokenContract',
-    title: 'Smart contract address',
-    message: 'Token contract warning text.',
-  },
-  {
-    key: 'firstTimeInteraction',
-    title: 'New address',
-    message: 'First time message',
-    acknowledgeButtonLabel: 'Continue',
-  },
-];
-
 describe('SendAlertModal', () => {
   const defaultProps = {
     isOpen: true,
-    alerts: singleAlert,
+    title: 'Token Contract Address',
+    errorMessage: 'Sending to a token contract may result in lost tokens.',
     onAcknowledge: jest.fn(),
     onClose: jest.fn(),
   };
@@ -115,14 +91,6 @@ describe('SendAlertModal', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('returns null when alerts is empty', () => {
-    const { toJSON } = renderWithProvider(
-      <SendAlertModal {...defaultProps} alerts={[]} />,
-    );
-
-    expect(toJSON()).toBeNull();
-  });
-
   it('renders modal content when isOpen is true', () => {
     const { getByText } = renderWithProvider(
       <SendAlertModal {...defaultProps} />,
@@ -132,6 +100,22 @@ describe('SendAlertModal', () => {
     expect(
       getByText('Sending to a token contract may result in lost tokens.'),
     ).toBeOnTheScreen();
+  });
+
+  it('displays the title text', () => {
+    const { getByText } = renderWithProvider(
+      <SendAlertModal {...defaultProps} title="Custom Title" />,
+    );
+
+    expect(getByText('Custom Title')).toBeOnTheScreen();
+  });
+
+  it('displays the error message text', () => {
+    const { getByText } = renderWithProvider(
+      <SendAlertModal {...defaultProps} errorMessage="Custom error message" />,
+    );
+
+    expect(getByText('Custom error message')).toBeOnTheScreen();
   });
 
   it('calls onClose when cancel button is pressed', () => {
@@ -145,7 +129,7 @@ describe('SendAlertModal', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onAcknowledge when acknowledge is pressed on last alert', () => {
+  it('calls onAcknowledge when acknowledge button is pressed', () => {
     const onAcknowledge = jest.fn();
     const { getByTestId } = renderWithProvider(
       <SendAlertModal {...defaultProps} onAcknowledge={onAcknowledge} />,
@@ -156,22 +140,37 @@ describe('SendAlertModal', () => {
     expect(onAcknowledge).toHaveBeenCalledTimes(1);
   });
 
-  it('advances to second alert when multiple alerts and first acknowledge', () => {
+  it('does not call onAcknowledge when cancel is pressed', () => {
     const onAcknowledge = jest.fn();
-    const { getByText, getByTestId } = renderWithProvider(
+    const onClose = jest.fn();
+    const { getByTestId } = renderWithProvider(
       <SendAlertModal
         {...defaultProps}
-        alerts={twoAlerts}
         onAcknowledge={onAcknowledge}
+        onClose={onClose}
       />,
     );
 
-    expect(getByText('Smart contract address')).toBeOnTheScreen();
-    fireEvent.press(getByTestId('send-alert-modal-acknowledge-button'));
-    expect(getByText('New address')).toBeOnTheScreen();
+    fireEvent.press(getByTestId('send-alert-modal-cancel-button'));
+
     expect(onAcknowledge).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onClose when acknowledge is pressed', () => {
+    const onAcknowledge = jest.fn();
+    const onClose = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <SendAlertModal
+        {...defaultProps}
+        onAcknowledge={onAcknowledge}
+        onClose={onClose}
+      />,
+    );
 
     fireEvent.press(getByTestId('send-alert-modal-acknowledge-button'));
+
+    expect(onClose).not.toHaveBeenCalled();
     expect(onAcknowledge).toHaveBeenCalledTimes(1);
   });
 });

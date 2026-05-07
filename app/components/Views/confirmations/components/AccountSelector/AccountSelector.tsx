@@ -1,11 +1,6 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  Modal,
-  StyleProp,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Modal, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
@@ -20,8 +15,6 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import {
-  BottomSheet,
-  BottomSheetRef,
   Skeleton,
   Text,
   TextColor,
@@ -29,7 +22,6 @@ import {
 } from '@metamask/design-system-react-native';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList';
 import { AccountSection } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
@@ -43,8 +35,6 @@ import stylesheet from './AccountSelector.styles';
 export const ACCOUNT_SELECTOR_TEST_IDS = {
   PILL: 'account-selector-pill',
   MODAL: 'account-selector-modal',
-  /** Used when `BottomSheet` is mocked in unit tests (production sheet has no wrapper testID). */
-  BOTTOM_SHEET: 'account-selector-bottom-sheet',
 };
 
 export interface AccountSelectorProps {
@@ -52,22 +42,16 @@ export interface AccountSelectorProps {
   onAccountSelected: (address: string) => void;
   /** Label shown on the left side of the row. Defaults to the "To" i18n string. */
   label?: string;
-  /** Title in the account selection bottom sheet (header). */
-  selectorTitle?: string;
-  style?: StyleProp<ViewStyle>;
 }
 
 const AccountSelector: React.FC<AccountSelectorProps> = ({
   selectedAddress,
   onAccountSelected,
   label = strings('confirm.label.to'),
-  selectorTitle = strings('bridge.select_recipient'),
-  style,
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  const { styles } = useStyles(stylesheet, {});
+  const { styles, theme } = useStyles(stylesheet, {});
 
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
@@ -80,20 +64,6 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
     [internalAccountsById],
   );
 
-  const openModal = useCallback(() => setIsModalVisible(true), []);
-
-  const closeAccountSheet = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet();
-  }, []);
-
-  const handleSheetClosed = useCallback(() => {
-    setIsModalVisible(false);
-  }, []);
-
-  const handleModalRequestClose = useCallback(() => {
-    closeAccountSheet();
-  }, [closeAccountSheet]);
-
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
       const internalAccountId = accountGroup.accounts.find((accountId) =>
@@ -102,15 +72,10 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       if (internalAccountId) {
         const internalAccount = internalAccountsById[internalAccountId];
         onAccountSelected(internalAccount.address);
-        closeAccountSheet();
+        setIsModalVisible(false);
       }
     },
-    [
-      closeAccountSheet,
-      getIsAccountSupported,
-      internalAccountsById,
-      onAccountSelected,
-    ],
+    [getIsAccountSupported, internalAccountsById, onAccountSelected],
   );
 
   const filteredAccountSections = useMemo(() => {
@@ -151,8 +116,11 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 
   const accountName = selectedAccountGroup?.metadata?.name;
 
+  const openModal = useCallback(() => setIsModalVisible(true), []);
+  const closeModal = useCallback(() => setIsModalVisible(false), []);
+
   return (
-    <View style={[styles.container, style]}>
+    <View style={styles.container}>
       <TouchableOpacity
         onPress={openModal}
         style={styles.row}
@@ -196,37 +164,34 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       </TouchableOpacity>
       <Modal
         visible={isModalVisible}
-        animationType="none"
-        transparent
-        presentationStyle="overFullScreen"
-        onRequestClose={handleModalRequestClose}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={closeModal}
         testID={ACCOUNT_SELECTOR_TEST_IDS.MODAL}
       >
-        <View style={styles.modalRoot}>
-          <BottomSheet
-            testID={ACCOUNT_SELECTOR_TEST_IDS.BOTTOM_SHEET}
-            ref={bottomSheetRef}
-            isFullscreen
-            keyboardAvoidingViewEnabled={false}
-            onClose={handleSheetClosed}
-          >
-            <HeaderCompactStandard
-              title={selectorTitle}
-              onClose={() => closeAccountSheet()}
-            />
-            <View style={styles.modalSheetBody}>
-              <MultichainAccountSelectorList
-                selectedAccountGroups={
-                  selectedAccountGroup ? [selectedAccountGroup] : []
-                }
-                showFooter={false}
-                onSelectAccount={handleSelectAccount}
-                accountSections={filteredAccountSections}
-                hideAccountCellMenu
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text variant={TextVariant.HeadingMd}>
+              {strings('bridge.select_recipient')}
+            </Text>
+            <TouchableOpacity onPress={closeModal}>
+              <Icon
+                name={IconName.Close}
+                size={IconSize.Md}
+                color={theme.colors.icon.default}
               />
-            </View>
-          </BottomSheet>
-        </View>
+            </TouchableOpacity>
+          </View>
+          <MultichainAccountSelectorList
+            selectedAccountGroups={
+              selectedAccountGroup ? [selectedAccountGroup] : []
+            }
+            showFooter={false}
+            onSelectAccount={handleSelectAccount}
+            accountSections={filteredAccountSections}
+            hideAccountCellMenu
+          />
+        </SafeAreaView>
       </Modal>
     </View>
   );

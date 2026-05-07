@@ -27,7 +27,6 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { getNetworkImageSource } from '../../../util/networks';
 import { parseCaipAssetType } from '@metamask/utils';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -103,13 +102,10 @@ const MultichainBridgeTransactionListItem = ({
     const networkImageSource = getNetworkImageSource({ chainId });
     return (
       <BadgeWrapper
-        badgePosition={{ bottom: -4, right: -4 }}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
             imageSource={networkImageSource}
-            isScaled={false}
-            size={AvatarSize.Xs}
           />
         }
       >

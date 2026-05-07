@@ -15,7 +15,6 @@ import Banner, {
 } from '../../../../../../component-library/components/Banners/Banner';
 import { useSendContext } from '../../../context/send-context/send-context';
 import { RecipientInputMethod } from '../../../context/send-context/send-metrics-context';
-import { useSendAlerts } from '../../../hooks/send/alerts/useSendAlerts';
 import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useAccounts } from '../../../hooks/send/useAccounts';
 import { useContacts } from '../../../hooks/send/useContacts';
@@ -42,20 +41,15 @@ export const Recipient = () => {
   const styles = styleSheet();
   const {
     toAddressError,
+    toAddressErrorAllowAcknowledge,
     toAddressWarning,
     toAddressValidated,
     loading,
     resolvedAddress,
   } = useToAddressValidation();
 
-  const {
-    alerts,
-    hasUnacknowledgedAlerts,
-    acknowledgeAlerts,
-    isAlertCheckPending,
-  } = useSendAlerts();
-
-  const hasBlockingError = Boolean(toAddressError);
+  const hasBlockingError =
+    Boolean(toAddressError) && !toAddressErrorAllowAcknowledge;
   // This hook needs to be called to update ERC721 NFTs in send flow
   // because that flow is triggered directly from the asset details page and user is redirected to the recipient page
   useRouteParams();
@@ -104,16 +98,15 @@ export const Recipient = () => {
 
   const handleAlertModalAcknowledge = useCallback(async () => {
     setIsAlertModalOpen(false);
-    acknowledgeAlerts();
     await proceedWithSubmit(false);
-  }, [acknowledgeAlerts, proceedWithSubmit]);
+  }, [proceedWithSubmit]);
 
   const handleReview = useCallback(
     async (isPasted?: boolean) => {
       if (hasBlockingError || isSubmittingTransaction) {
         return;
       }
-      if (hasUnacknowledgedAlerts) {
+      if (toAddressErrorAllowAcknowledge) {
         setIsAlertModalOpen(true);
         return;
       }
@@ -121,7 +114,7 @@ export const Recipient = () => {
     },
     [
       hasBlockingError,
-      hasUnacknowledgedAlerts,
+      toAddressErrorAllowAcknowledge,
       isSubmittingTransaction,
       proceedWithSubmit,
     ],
@@ -133,9 +126,7 @@ export const Recipient = () => {
       pastedRecipient === toAddressValidated &&
       !toAddressError &&
       !toAddressWarning &&
-      !loading &&
-      !isAlertCheckPending &&
-      !hasUnacknowledgedAlerts
+      !loading
     ) {
       handleReview(true);
     }
@@ -146,8 +137,6 @@ export const Recipient = () => {
     toAddressValidated,
     toAddressWarning,
     loading,
-    isAlertCheckPending,
-    hasUnacknowledgedAlerts,
   ]);
 
   const onRecipientSelected = useCallback(
@@ -251,10 +240,7 @@ export const Recipient = () => {
                 twClassName="w-full"
                 isDanger={!loading && hasBlockingError}
                 disabled={
-                  hasBlockingError ||
-                  isSubmittingTransaction ||
-                  loading ||
-                  isAlertCheckPending
+                  hasBlockingError || isSubmittingTransaction || loading
                 }
                 isLoading={isSubmittingTransaction || loading}
               >
@@ -264,7 +250,8 @@ export const Recipient = () => {
           )}
           <SendAlertModal
             isOpen={isAlertModalOpen}
-            alerts={alerts}
+            title={strings('send.smart_contract_address')}
+            errorMessage={strings('send.smart_contract_address_warning')}
             onAcknowledge={handleAlertModalAcknowledge}
             onClose={handleAlertModalClose}
           />

@@ -6,7 +6,6 @@ export {
   getErrorTypeFromConnectionState,
   getAnalyticsDeviceType,
   getErrorDetails,
-  getQrHardwareScanErrorAnalyticsProperties,
 } from './helpers';
 
 export { useHardwareWalletAnalytics } from './useHardwareWalletAnalytics';

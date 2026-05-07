@@ -47,11 +47,6 @@ interface TokenListProps {
    * refresh orchestrator (e.g. Money Hub).
    */
   refreshControl?: React.ReactElement;
-  /**
-   * When true, mUSD rows render only the native balance on the secondary row
-   * (no token price / 24h change). Used by the Money Hub.
-   */
-  hideSecondaryPriceRow?: boolean;
 }
 
 const TokenListComponent = ({
@@ -65,7 +60,6 @@ const TokenListComponent = ({
   isFullView = false,
   listFooterComponent,
   refreshControl,
-  hideSecondaryPriceRow = false,
 }: TokenListProps) => {
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -161,7 +155,6 @@ const TokenListComponent = ({
         showPercentageChange={showPercentageChange}
         isFullView={isFullView}
         shouldShowTokenListItemCta={shouldShowTokenListItemCta}
-        hideSecondaryPriceRow={hideSecondaryPriceRow}
       />
     ),
     [
@@ -171,7 +164,6 @@ const TokenListComponent = ({
       showPercentageChange,
       isFullView,
       shouldShowTokenListItemCta,
-      hideSecondaryPriceRow,
     ],
   );
 
@@ -190,7 +182,6 @@ const TokenListComponent = ({
           showPercentageChange={showPercentageChange}
           isFullView={isFullView}
           shouldShowTokenListItemCta={shouldShowTokenListItemCta}
-          hideSecondaryPriceRow={hideSecondaryPriceRow}
         />
       ))}
       {shouldShowViewAllButton && (

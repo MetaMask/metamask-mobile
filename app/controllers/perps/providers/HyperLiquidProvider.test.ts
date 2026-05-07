@@ -181,9 +181,6 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
   spotClearinghouseState: jest.fn().mockResolvedValue({
     balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
   }),
-  // Mode-aware fold gate reads userAbstraction; default to unifiedAccount
-  // so tests that predated the gate still see spot folded into spendable/withdrawable.
-  userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
   meta: jest.fn().mockResolvedValue({
     universe: [
       { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
@@ -219,6 +216,7 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
     ],
   ]),
   perpDexs: jest.fn().mockResolvedValue([null]),
+  userAbstraction: jest.fn().mockResolvedValue('default'),
   allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
   frontendOpenOrders: jest.fn().mockResolvedValue([]),
   referral: jest.fn().mockResolvedValue({
@@ -1226,7 +1224,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('retries with adjusted USD when price-less order hits $10 minimum (uses fetched price from allMids)', async () => {
+    it('validates price requirement before attempting order placement', async () => {
       // Create provider with PUMP in the asset mapping
       provider = createTestProvider({
         initialAssetMapping: [
@@ -1256,38 +1254,24 @@ describe('HyperLiquidProvider', () => {
         isBuy: true,
         size: '2553',
         orderType: 'market',
-        // No currentPrice: provider fetches live price (0.003918) and uses it
-        // for both validation and the $10-minimum retry path.
       };
-
-      const mockOrder = jest
-        .fn()
-        .mockRejectedValueOnce(
-          new Error('Order must have minimum value of $10'),
-        )
-        .mockResolvedValueOnce({
-          status: 'ok',
-          response: {
-            data: {
-              statuses: [
-                { filled: { oid: 123, totalSz: '2553', avgPx: '0.004' } },
-              ],
-            },
-          },
-        });
 
       mockClientService.getExchangeClient = jest.fn().mockReturnValue({
         ...createMockExchangeClient(),
-        order: mockOrder,
+        order: jest
+          .fn()
+          .mockRejectedValueOnce(
+            new Error('Order must have minimum value of $10'),
+          ),
       });
 
       const result = await provider.placeOrder(orderParams);
 
-      // The live price is fetched → validation passes → order is submitted →
-      // first call hits $10 minimum → retry uses fetched price to compute
-      // adjusted usdAmount → second call succeeds.
-      expect(result.success).toBe(true);
-      expect(mockOrder).toHaveBeenCalledTimes(2);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
+      expect(
+        mockClientService.getExchangeClient().order,
+      ).not.toHaveBeenCalled();
     });
 
     it('closes a position successfully', async () => {
@@ -2236,12 +2220,11 @@ describe('HyperLiquidProvider', () => {
 
       const accountState = await hip3Provider.getAccountState();
 
-      expect(accountState.spendableBalance).toBe('0');
-      expect(accountState.withdrawableBalance).toBe('0');
+      expect(accountState.availableToTradeBalance).toBe('0');
       expect(accountState.totalBalance).toBe('0');
     });
 
-    it('folds USDC spot balance into spendable/withdrawable in Unified Account mode', async () => {
+    it('folds USDC spot balance into availableToTradeBalance in Unified Account mode', async () => {
       const hip3Provider = createTestProvider({
         hip3Enabled: true,
         allowlistMarkets: ['xyz:*'],
@@ -2275,8 +2258,8 @@ describe('HyperLiquidProvider', () => {
 
       const accountState = await hip3Provider.getAccountState();
 
-      expect(accountState.spendableBalance).toBe('90');
-      expect(accountState.withdrawableBalance).toBe('90');
+      expect(accountState.availableBalance).toBe('0');
+      expect(accountState.availableToTradeBalance).toBe('90');
       expect(accountState.totalBalance).toBe('90');
     });
 
@@ -2316,8 +2299,7 @@ describe('HyperLiquidProvider', () => {
 
         const accountState = await hip3Provider.getAccountState();
 
-        expect(accountState.spendableBalance).toBe('0');
-        expect(accountState.withdrawableBalance).toBe('0');
+        expect(accountState.availableToTradeBalance).toBe('0');
         expect(accountState.totalBalance).toBe('90');
       },
     );
@@ -2826,7 +2808,6 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('handles missing price data', async () => {
-      mockSubscriptionService.getCachedPrice.mockReturnValueOnce(undefined);
       (
         mockClientService.getInfoClient().allMids as jest.Mock
       ).mockResolvedValueOnce({});
@@ -2840,10 +2821,8 @@ describe('HyperLiquidProvider', () => {
 
       const result = await provider.placeOrder(orderParams);
 
-      // allMids returns {} so #getOrFetchPrice parses price as 0, which is
-      // invalid. The error surfaces from #getAssetInfo before validation runs.
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Invalid price for BTC: 0');
+      expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
     });
 
     it('handles missing position in close operation', async () => {
@@ -3562,45 +3541,19 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toContain('Failed to update leverage');
       });
 
-      it('succeeds with market order without current price or usdAmount (uses fetched price)', async () => {
-        // The provider now fetches the live price before validation so callers
-        // that intentionally omit currentPrice (e.g. flipPosition) work correctly.
+      it('fails market order without current price or usdAmount', async () => {
         const orderParams: OrderParams = {
           symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
-          // No currentPrice or usdAmount: provider fetches live price (50000)
+          // No currentPrice or usdAmount provided - should fail validation
         };
 
         const result = await provider.placeOrder(orderParams);
 
-        expect(result.success).toBe(true);
-        expect(mockClientService.getExchangeClient().order).toHaveBeenCalled();
-      });
-
-      it('placeOrder validates against fetched price when params omit currentPrice (flipPosition path)', async () => {
-        // Simulate the exact OrderParams shape that TradingService.flipPosition
-        // builds: symbol + isBuy + size + orderType + leverage, no price fields.
-        const flipOrderParams: OrderParams = {
-          symbol: 'BTC',
-          isBuy: false, // flipping long → short
-          size: '1', // 2× the 0.5 BTC position
-          orderType: 'market',
-          leverage: 10,
-          // currentPrice, usdAmount, price intentionally absent
-        };
-
-        const result = await provider.placeOrder(flipOrderParams);
-
-        // Live price (50000) is fetched from allMids → validation passes
-        // (0.1 BTC × $50 000 = $5 000 >> $10 minimum) → order executes.
-        expect(result.success).toBe(true);
-        expect(
-          mockClientService.getExchangeClient().order,
-        ).toHaveBeenCalledWith(
-          expect.objectContaining({ orders: expect.any(Array) }),
-        );
+        expect(result.success).toBe(false);
+        expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
       });
 
       it('handles order with custom slippage', async () => {
@@ -4395,8 +4348,7 @@ describe('HyperLiquidProvider', () => {
         // Mock account state for balance validation
         Object.defineProperty(provider, 'getAccountState', {
           value: jest.fn().mockResolvedValue({
-            spendableBalance: '5000',
-            withdrawableBalance: '5000',
+            availableBalance: '5000',
           }),
           writable: true,
         });
@@ -4419,7 +4371,7 @@ describe('HyperLiquidProvider', () => {
         });
       });
 
-      it('validates withdrawal against withdrawableBalance populated by spot fold for Unified Account', async () => {
+      it('validates withdrawal against availableToTradeBalance when Unified Account has zero availableBalance', async () => {
         const exchangeClient = createMockExchangeClient();
         mockClientService.getExchangeClient = jest
           .fn()
@@ -4427,8 +4379,8 @@ describe('HyperLiquidProvider', () => {
 
         Object.defineProperty(provider, 'getAccountState', {
           value: jest.fn().mockResolvedValue({
-            spendableBalance: '2500',
-            withdrawableBalance: '2500',
+            availableBalance: '0',
+            availableToTradeBalance: '2500',
             totalBalance: '2500',
             marginUsed: '0',
             unrealizedPnl: '0',
@@ -4465,8 +4417,7 @@ describe('HyperLiquidProvider', () => {
         // Mock account state for balance validation
         Object.defineProperty(provider, 'getAccountState', {
           value: jest.fn().mockResolvedValue({
-            spendableBalance: '5000',
-            withdrawableBalance: '5000',
+            availableBalance: '5000',
           }),
           writable: true,
         });
@@ -5694,7 +5645,6 @@ describe('HyperLiquidProvider', () => {
         spotClearinghouseState: jest.fn().mockResolvedValue({
           balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
         }),
-        userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
         meta: jest.fn().mockResolvedValue({
           universe: [
             { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
@@ -5826,7 +5776,6 @@ describe('HyperLiquidProvider', () => {
         spotClearinghouseState: jest.fn().mockResolvedValue({
           balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
         }),
-        userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
         meta: jest.fn().mockResolvedValue({
           universe: [
             { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
@@ -9661,8 +9610,6 @@ describe('HyperLiquidProvider', () => {
         frontendOpenOrders: jest.fn(),
         perpDexs: jest.fn().mockResolvedValue([null]),
         spotClearinghouseState: jest.fn().mockResolvedValue({ balances: [] }),
-        // Mode-aware fold gate requires userAbstraction on standalone info
-        // clients as well; default to unifiedAccount for pre-existing tests.
         userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
       };
     });
@@ -9872,8 +9819,7 @@ describe('HyperLiquidProvider', () => {
 
         // Assert — all DEX queries failed, aggregateAccountStates([]) returns fallback
         expect(result).toEqual({
-          spendableBalance: '--',
-          withdrawableBalance: '--',
+          availableBalance: '--',
           totalBalance: '--',
           marginUsed: '--',
           unrealizedPnl: '--',

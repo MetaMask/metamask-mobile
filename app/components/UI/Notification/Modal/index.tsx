@@ -1,16 +1,18 @@
 import React from 'react';
 import { View } from 'react-native';
 import Checkbox from '../../../../component-library/components/Checkbox/Checkbox';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import {
   Button,
   ButtonVariant,
   ButtonSize,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import createStyles from './styles';
 import { useTheme } from '../../../../util/theme';
@@ -58,10 +60,10 @@ const ModalContent = ({
         size={iconSize}
         style={styles.icon}
       />
-      <Text variant={TextVariant.HeadingMd} style={styles.title}>
+      <Text variant={TextVariant.HeadingMD} style={styles.title}>
         {title}
       </Text>
-      <Text variant={TextVariant.BodyMd} style={styles.description}>
+      <Text variant={TextVariant.BodyMD} style={styles.description}>
         {message}
       </Text>
       <View style={styles.bottom}>

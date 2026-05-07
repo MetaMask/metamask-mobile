@@ -15,7 +15,7 @@ import {
   NGRAVE_BUY,
   NGRAVE_LEARN_MORE,
 } from '../../../../constants/urls';
-import { ConnectQRHardwareSelectorsIDs } from '../ConnectQRHardware.testIds';
+import { QR_CONTINUE_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
 import { AppThemeKey } from '../../../../util/theme/models';
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -175,9 +175,7 @@ describe('ConnectQRInstruction', () => {
       { state: initialState },
     );
 
-    const continueButton = getByTestId(
-      ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON,
-    );
+    const continueButton = getByTestId(QR_CONTINUE_BUTTON);
     fireEvent.press(continueButton);
 
     expect(mockOnConnect).toHaveBeenCalledTimes(1);

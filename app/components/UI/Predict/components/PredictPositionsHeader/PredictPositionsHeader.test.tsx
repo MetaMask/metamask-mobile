@@ -3,7 +3,6 @@ import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
-import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 import MarketsWonCard from './PredictPositionsHeader';
 
@@ -95,9 +94,14 @@ jest.mock('../../hooks/usePredictActionGuard', () => ({
 }));
 
 const mockRefetchClaimablePositions = jest.fn();
-let mockActivePositions: PredictPosition[] = [];
-let mockClaimablePositions: PredictPosition[] = [];
-jest.mock('../../hooks/usePredictPositions');
+jest.mock('../../hooks/usePredictPositions', () => ({
+  usePredictPositions: () => ({
+    data: [{ id: 'position-1' }],
+    isLoading: false,
+    error: null,
+    refetch: mockRefetchClaimablePositions,
+  }),
+}));
 
 const mockClaim = jest.fn();
 jest.mock('../../hooks/usePredictClaim', () => ({
@@ -123,13 +127,36 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-function createTestState(_availableBalance?: number, privacyMode = false) {
+function createTestState(
+  _availableBalance?: number,
+  claimableAmount?: number,
+  privacyMode = false,
+) {
   const testAddress = '0x1234567890123456789012345678901234567890';
   const testAccountId = 'test-account-id';
+
+  const claimablePositions = claimableAmount
+    ? ([
+        {
+          id: 'position-1',
+          status: PredictPositionStatus.WON,
+          cashPnl: claimableAmount,
+          currentValue: claimableAmount,
+          marketId: 'market-1',
+          title: 'Test Market',
+          outcome: 'Yes',
+        },
+      ] as unknown as PredictPosition[])
+    : [];
 
   return {
     engine: {
       backgroundState: {
+        PredictController: {
+          claimablePositions: {
+            [testAddress]: claimablePositions,
+          },
+        },
         AccountsController: {
           internalAccounts: {
             selectedAccount: testAccountId,
@@ -158,16 +185,11 @@ describe('MarketsWonCard', () => {
   const mockUseUnrealizedPnL = useUnrealizedPnL as jest.MockedFunction<
     typeof useUnrealizedPnL
   >;
-  const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
-    typeof usePredictPositions
-  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockBalanceResult.data = 100.5;
     mockBalanceResult.isLoading = false;
-    mockActivePositions = [{ id: 'position-1' } as PredictPosition];
-    mockClaimablePositions = [];
 
     mockUseUnrealizedPnL.mockReturnValue({
       data: {
@@ -179,35 +201,13 @@ describe('MarketsWonCard', () => {
       isFetching: false,
       error: null,
     } as unknown as ReturnType<typeof useUnrealizedPnL>);
-    mockUsePredictPositions.mockImplementation(
-      ({ claimable }: { claimable?: boolean } = {}) =>
-        ({
-          data: claimable ? mockClaimablePositions : mockActivePositions,
-          isLoading: false,
-          error: null,
-          refetch: mockRefetchClaimablePositions,
-        }) as unknown as ReturnType<typeof usePredictPositions>,
-    );
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('rendering', () => {
-    it('does not enable live updates for active position count query', () => {
-      const state = createTestState(100.5);
-
-      renderWithProvider(<MarketsWonCard />, { state });
-
-      const activePositionsCall = mockUsePredictPositions.mock.calls.find(
-        ([options]) => options?.claimable === false,
-      );
-
-      expect(activePositionsCall?.[0]).toMatchObject({ claimable: false });
-      expect(activePositionsCall?.[0]?.livePriceUpdates).toBeUndefined();
-    });
-
     it('displays available balance and unrealized P&L', () => {
       const state = createTestState(100.5);
 
@@ -230,18 +230,7 @@ describe('MarketsWonCard', () => {
     });
 
     it('hides monetary values when privacy mode is enabled', () => {
-      mockClaimablePositions = [
-        {
-          id: 'position-1',
-          status: PredictPositionStatus.WON,
-          cashPnl: 24.66,
-          currentValue: 24.66,
-          marketId: 'market-1',
-          title: 'Test Market',
-          outcome: 'Yes',
-        } as PredictPosition,
-      ];
-      const state = createTestState(100.5, true);
+      const state = createTestState(100.5, 24.66, true);
 
       renderWithProvider(<MarketsWonCard />, { state });
 
@@ -249,7 +238,7 @@ describe('MarketsWonCard', () => {
       expect(screen.queryByText('+$8.63 (+3.9%)')).toBeNull();
       expect(screen.queryByText('Claim $24.66')).toBeNull();
       expect(screen.getByText('••••••••••••')).toBeOnTheScreen();
-      expect(screen.getAllByText('•••••••••').length).toBeGreaterThan(0);
+      expect(screen.getByText('•••••••••')).toBeOnTheScreen();
     });
   });
 

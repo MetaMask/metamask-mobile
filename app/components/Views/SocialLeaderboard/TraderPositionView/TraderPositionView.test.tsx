@@ -92,17 +92,6 @@ jest.mock('../../../../core/ClipboardManager', () => ({
   setString: jest.fn().mockResolvedValue(undefined),
 }));
 
-// Pressing buy mounts QuickBuyBottomSheet. Jest's global mock for design-system
-// `BottomSheet` (see app/util/test/testSetup.js) invokes `onOpenBottomSheet`'s
-// callback synchronously, so `QuickBuyBottomSheetContent` mounts in the same turn
-// and runs `useQuickBuyBottomSheet` (bridge selectors, device version compare,
-// NetworkController, …). This file intentionally uses a minimal Redux store, so
-// we stub the sheet here.
-jest.mock('./components/QuickBuyBottomSheet', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
 jest.mock('../../../../util/haptics', () => {
   const actual = jest.requireActual<typeof import('../../../../util/haptics')>(
     '../../../../util/haptics',

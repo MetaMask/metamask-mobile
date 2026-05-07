@@ -1,19 +1,6 @@
-import { useEffect, useMemo } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { useIsFocused } from '@react-navigation/native';
+import { useMemo } from 'react';
 import { PredictPosition } from '../types';
-import { predictQueries } from '../queries';
 import { useLiveMarketPrices } from './useLiveMarketPrices';
-
-/**
- * Stable empty Map reference to avoid unnecessary useEffect cycles.
- * When livePositionUpdates computes an empty Map, returning this constant
- * preserves referential equality and prevents the cache-sync effect from firing.
- */
-const EMPTY_POSITION_UPDATES = new Map<
-  string,
-  Pick<PredictPosition, 'currentValue' | 'cashPnl' | 'percentPnl' | 'price'>
->();
 
 export interface UseLivePositionsOptions {
   /**
@@ -21,54 +8,57 @@ export interface UseLivePositionsOptions {
    * @default true
    */
   enabled?: boolean;
+}
+
+export interface UseLivePositionsResult {
   /**
-   * Address-scoped positions cache to sync live values into
-   * @internal
+   * Positions with live-updated values based on current market prices
    */
-  cacheAddress?: string;
+  livePositions: PredictPosition[];
+  /**
+   * Whether the WebSocket connection is active
+   */
+  isConnected: boolean;
+  /**
+   * Timestamp of the last price update
+   */
+  lastUpdateTime: number | null;
 }
 
 /**
- * Side-effect hook that subscribes to live market prices and syncs
- * computed position values (currentValue, cashPnl, percentPnl, price)
- * into the address-scoped positions query cache.
+ * Hook that takes positions and returns live-updated positions based on real-time market prices.
+ *
+ * Uses the bestBid price from live market data to calculate:
+ * - currentValue: size * bestBid (what you can sell for right now)
+ * - cashPnl: currentValue - initialValue (profit/loss)
+ * - percentPnl: ((currentValue - initialValue) / initialValue) * 100
  *
  * @param positions - Array of positions to track (from usePredictPositions)
- * @param options - Configuration options
- * @internal Only consumed by usePredictPositions
+ * @param options - Configuration options (enabled: boolean)
+ * @returns Live-updated positions, connection status, and last update timestamp
  */
 export const usePredictLivePositions = (
   positions: PredictPosition[],
   options: UseLivePositionsOptions = {},
-): void => {
-  const { enabled = true, cacheAddress } = options;
-  const queryClient = useQueryClient();
-  const isScreenFocused = useIsFocused();
+): UseLivePositionsResult => {
+  const { enabled = true } = options;
 
   const tokenIds = useMemo(
-    () =>
-      positions
-        .filter((position) => !position.claimable)
-        .map((position) => position.outcomeTokenId),
+    () => positions.map((position) => position.outcomeTokenId),
     [positions],
   );
 
-  const { prices } = useLiveMarketPrices(tokenIds, {
-    enabled: enabled && isScreenFocused && tokenIds.length > 0,
-  });
+  const { prices, isConnected, lastUpdateTime } = useLiveMarketPrices(
+    tokenIds,
+    { enabled: enabled && positions.length > 0 },
+  );
 
   const livePositions = useMemo(() => {
     if (positions.length === 0) {
       return [];
     }
 
-    let hasChanges = false;
-
-    const nextPositions = positions.map((position) => {
-      if (position.claimable) {
-        return position;
-      }
-
+    return positions.map((position) => {
       const priceUpdate = prices.get(position.outcomeTokenId);
 
       if (!priceUpdate) {
@@ -85,17 +75,6 @@ export const usePredictLivePositions = (
             100
           : 0;
 
-      if (
-        position.currentValue === liveCurrentValue &&
-        position.cashPnl === liveCashPnl &&
-        position.percentPnl === livePercentPnl &&
-        position.price === bestBid
-      ) {
-        return position;
-      }
-
-      hasChanges = true;
-
       return {
         ...position,
         currentValue: liveCurrentValue,
@@ -104,90 +83,11 @@ export const usePredictLivePositions = (
         price: bestBid,
       };
     });
-
-    return hasChanges ? nextPositions : positions;
   }, [positions, prices]);
 
-  const livePositionUpdates = useMemo(() => {
-    const updates = new Map<
-      string,
-      Pick<PredictPosition, 'currentValue' | 'cashPnl' | 'percentPnl' | 'price'>
-    >();
-
-    livePositions.forEach((livePosition, index) => {
-      const originalPosition = positions[index];
-
-      if (
-        !originalPosition ||
-        originalPosition.id !== livePosition.id ||
-        originalPosition === livePosition ||
-        livePosition.claimable
-      ) {
-        return;
-      }
-
-      updates.set(livePosition.id, {
-        currentValue: livePosition.currentValue,
-        cashPnl: livePosition.cashPnl,
-        percentPnl: livePosition.percentPnl,
-        price: livePosition.price,
-      });
-    });
-
-    return updates.size > 0 ? updates : EMPTY_POSITION_UPDATES;
-  }, [livePositions, positions]);
-
-  useEffect(() => {
-    if (
-      !enabled ||
-      !isScreenFocused ||
-      !cacheAddress ||
-      livePositionUpdates.size === 0
-    ) {
-      return;
-    }
-
-    queryClient.setQueryData<PredictPosition[]>(
-      predictQueries.positions.keys.byAddress(cacheAddress),
-      (cachedPositions) => {
-        if (!cachedPositions || cachedPositions.length === 0) {
-          return cachedPositions;
-        }
-
-        let hasChanges = false;
-
-        const nextPositions = cachedPositions.map((cachedPosition) => {
-          const livePositionUpdate = livePositionUpdates.get(cachedPosition.id);
-
-          if (!livePositionUpdate || cachedPosition.claimable) {
-            return cachedPosition;
-          }
-
-          if (
-            cachedPosition.currentValue === livePositionUpdate.currentValue &&
-            cachedPosition.cashPnl === livePositionUpdate.cashPnl &&
-            cachedPosition.percentPnl === livePositionUpdate.percentPnl &&
-            cachedPosition.price === livePositionUpdate.price
-          ) {
-            return cachedPosition;
-          }
-
-          hasChanges = true;
-
-          return {
-            ...cachedPosition,
-            ...livePositionUpdate,
-          };
-        });
-
-        return hasChanges ? nextPositions : cachedPositions;
-      },
-    );
-  }, [
-    cacheAddress,
-    enabled,
-    isScreenFocused,
-    livePositionUpdates,
-    queryClient,
-  ]);
+  return {
+    livePositions,
+    isConnected,
+    lastUpdateTime,
+  };
 };

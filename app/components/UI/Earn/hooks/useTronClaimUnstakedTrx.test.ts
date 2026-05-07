@@ -29,6 +29,8 @@ describe('useTronClaimUnstakedTrx', () => {
       name: 'Tron Account',
       snap: {
         id: 'npm:@metamask/tron-wallet-snap',
+        name: 'Tron Wallet Snap',
+        enabled: true,
       },
       importTime: 0,
       keyring: { type: 'snap' },

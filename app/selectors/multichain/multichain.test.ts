@@ -686,6 +686,10 @@ describe('MultichainNonEvm Selectors', () => {
         // eslint-disable-next-line prefer-const
         let mockSelectedGroupAccounts: InternalAccount[] | undefined;
 
+        jest.doMock('../multichain', () => ({
+          selectAccountTokensAcrossChains: () => mockEvmTokensByChain,
+        }));
+
         jest.doMock('./evm', () => ({
           selectAccountTokensAcrossChainsForAddress: () => mockEvmTokensByChain,
         }));
@@ -728,6 +732,10 @@ describe('MultichainNonEvm Selectors', () => {
         let mockEvmTokensByChain: Record<string, unknown> | undefined;
         // eslint-disable-next-line prefer-const
         let mockSelectedGroupAccounts: InternalAccount[] | undefined;
+
+        jest.doMock('../multichain', () => ({
+          selectAccountTokensAcrossChains: () => mockEvmTokensByChain,
+        }));
 
         jest.doMock('./evm', () => ({
           selectAccountTokensAcrossChainsForAddress: () => mockEvmTokensByChain,

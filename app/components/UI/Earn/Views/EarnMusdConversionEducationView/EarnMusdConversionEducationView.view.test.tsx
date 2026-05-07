@@ -58,7 +58,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
     ).toBeOnTheScreen();
     expect(
       getByText(
-        /Convert your stablecoins to mUSD.*earn a \d+%.+annualized bonus/,
+        /Convert your stablecoins to mUSD.*earn up to a \d+% annualized bonus/,
       ),
     ).toBeOnTheScreen();
     expect(
@@ -391,10 +391,10 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
 
     // Assert
     const description = getByText(
-      /Convert your stablecoins to mUSD.*earn a \d+%.+annualized bonus/,
+      /Convert your stablecoins to mUSD.*earn up to a \d+% annualized bonus/,
     );
     expect(description).toBeOnTheScreen();
-    expect(description.props.children).toContain(`${MUSD_CONVERSION_APY}%`);
+    expect(description.props.children[0]).toContain(`${MUSD_CONVERSION_APY}%`);
   });
 
   it('renders education screen when education has been seen', () => {

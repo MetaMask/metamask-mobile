@@ -25,7 +25,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectChainId } from '../../../../../selectors/networkController';
 import {
   formatAccountToCaipAccountId,
@@ -70,8 +70,9 @@ const PerpsTransactionsView: React.FC = () => {
 
   const { isConnected, isConnecting } = usePerpsConnection();
 
-  const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
-  const selectedAddress = evmAccount?.address;
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
   const currentChainId = useSelector(selectChainId);
   const accountId = useMemo(() => {
     if (!selectedAddress || !currentChainId) {

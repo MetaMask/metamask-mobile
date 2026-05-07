@@ -5,13 +5,11 @@ import { MissingPriceModal } from './index';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useSelector } from 'react-redux';
 import { selectSourceToken } from '../../../../../core/redux/slices/bridge';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
-import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactModule = jest.requireActual('react');
@@ -58,10 +56,6 @@ jest.mock('../../hooks/useBridgeConfirm', () => ({
   useBridgeConfirm: jest.fn(),
 }));
 
-jest.mock('../../hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest.fn(),
-}));
-
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
@@ -78,9 +72,6 @@ const mockUseLatestBalance = useLatestBalance as jest.MockedFunction<
 >;
 const mockUseBridgeConfirm = useBridgeConfirm as jest.MockedFunction<
   typeof useBridgeConfirm
->;
-const mockUseBridgeQuoteData = useBridgeQuoteData as jest.MockedFunction<
-  typeof useBridgeQuoteData
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
@@ -107,9 +98,6 @@ describe('MissingPriceModal', () => {
       location: MetaMetricsSwapsEventSource.MainView,
     });
     mockUseLatestBalance.mockReturnValue(undefined);
-    mockUseBridgeQuoteData.mockReturnValue({
-      activeQuote: mockQuoteWithMetadata,
-    } as ReturnType<typeof useBridgeQuoteData>);
     mockUseBridgeConfirm.mockReturnValue(mockConfirmBridge);
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSourceToken) {

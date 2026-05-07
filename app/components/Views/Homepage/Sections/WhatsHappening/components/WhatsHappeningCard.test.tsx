@@ -40,38 +40,6 @@ describe('WhatsHappeningCard', () => {
     expect(screen.queryByText('Macro')).toBeNull();
   });
 
-  it('renders Bullish impact badge for positive impact', () => {
-    const item = { ...baseItem, impact: 'positive' as const };
-    renderWithProvider(<WhatsHappeningCard item={item} />);
-    expect(screen.getByText('Bullish')).toBeOnTheScreen();
-  });
-
-  it('renders Bearish impact badge for negative impact', () => {
-    const item = { ...baseItem, impact: 'negative' as const };
-    renderWithProvider(<WhatsHappeningCard item={item} />);
-    expect(screen.getByText('Bearish')).toBeOnTheScreen();
-  });
-
-  it('renders Neutral impact badge for neutral impact', () => {
-    const item = { ...baseItem, impact: 'neutral' as const };
-    renderWithProvider(<WhatsHappeningCard item={item} />);
-    expect(screen.getByText('Neutral')).toBeOnTheScreen();
-  });
-
-  it('does not render impact badge when impact is absent', () => {
-    const item = { ...baseItem, impact: undefined };
-    renderWithProvider(<WhatsHappeningCard item={item} />);
-    expect(screen.queryByText('Bullish')).toBeNull();
-    expect(screen.queryByText('Bearish')).toBeNull();
-    expect(screen.queryByText('Neutral')).toBeNull();
-  });
-
-  it('renders impact badge alongside category badge', () => {
-    renderWithProvider(<WhatsHappeningCard item={baseItem} />);
-    expect(screen.getByText('Bullish')).toBeOnTheScreen();
-    expect(screen.getByText('Macro')).toBeOnTheScreen();
-  });
-
   it('renders related asset symbol pills', () => {
     renderWithProvider(<WhatsHappeningCard item={baseItem} />);
     expect(screen.getByText('BTC')).toBeOnTheScreen();

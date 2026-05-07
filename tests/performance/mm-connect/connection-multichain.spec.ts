@@ -1,5 +1,4 @@
 import { test } from '../../framework/fixture';
-import { Performance } from '../../tags.performance.js';
 import TimerHelper from '../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp';
@@ -36,80 +35,76 @@ const playgroundServer = new DappServer({
   dappVariant: DappVariants.BROWSER_PLAYGROUND,
 });
 
-test.describe(Performance, () => {
-  // Start local playground server before all tests
-  test.beforeAll(async () => {
-    playgroundServer.setServerPort(DAPP_PORT);
-    await playgroundServer.start();
-    await waitForDappServerReady(DAPP_PORT);
-    setupAdbReverse(DAPP_PORT);
+// Start local playground server before all tests
+test.beforeAll(async () => {
+  playgroundServer.setServerPort(DAPP_PORT);
+  await playgroundServer.start();
+  await waitForDappServerReady(DAPP_PORT);
+  setupAdbReverse(DAPP_PORT);
+});
+
+// Stop local playground server after all tests
+test.afterAll(async () => {
+  cleanupAdbReverse(DAPP_PORT);
+  await playgroundServer.stop();
+});
+
+test('@metamask/connect-multichain - Connect via Multichain API to Local Browser Playground', async ({
+  currentDeviceDetails,
+  driver,
+}) => {
+  const useBrowserStackLocal =
+    process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+  const DAPP_URL = useBrowserStackLocal
+    ? `http://bs-local.com:${DAPP_PORT}`
+    : getDappUrlForBrowser(currentDeviceDetails.platform);
+
+  //
+  // Login and navigate to dapp
+  //
+
+  await PlaywrightContextHelpers.withNativeAction(async () => {
+    await loginToAppPlaywright();
+    await launchMobileBrowser();
+    await navigateToDapp(DAPP_URL);
   });
 
-  // Stop local playground server after all tests
-  test.afterAll(async () => {
-    cleanupAdbReverse(DAPP_PORT);
-    await playgroundServer.stop();
+  //
+  // Connect via Multichain API
+  //
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.waitForConnectButtonVisible(15000);
+    await BrowserPlaygroundDapp.tapConnect();
+  }, DAPP_URL);
+
+  // Handle connection approval in MetaMask
+  await PlaywrightContextHelpers.withNativeAction(async () => {
+    await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await unlockIfLockScreenVisible();
+    await DappConnectionModal.tapConnectButton();
   });
 
-  test('@metamask/connect-multichain - Connect via Multichain API to Local Browser Playground', async ({
-    currentDeviceDetails,
-    driver,
-  }) => {
-    const useBrowserStackLocal =
-      process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
-    const DAPP_URL = useBrowserStackLocal
-      ? `http://bs-local.com:${DAPP_PORT}`
-      : getDappUrlForBrowser(currentDeviceDetails.platform);
+  // Switch back to browser
+  await switchToMobileBrowser();
+  await sleep(500);
 
-    //
-    // Login and navigate to dapp
-    //
+  //
+  // Verify connection
+  //
 
-    await PlaywrightContextHelpers.withNativeAction(async () => {
-      await loginToAppPlaywright();
-      await launchMobileBrowser();
-      await navigateToDapp(DAPP_URL);
-    });
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertMultichainConnected(true);
+    await PlaywrightGestures.scrollIntoView(
+      await asPlaywrightElement(BrowserPlaygroundDapp.getScopeCard('eip155:1')),
+    );
+    await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
+  }, DAPP_URL);
 
-    //
-    // Connect via Multichain API
-    //
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.waitForConnectButtonVisible(15000);
-      await BrowserPlaygroundDapp.tapConnect();
-    }, DAPP_URL);
+  //
+  // Cleanup - disconnect
+  //
 
-    // Handle connection approval in MetaMask
-    await PlaywrightContextHelpers.withNativeAction(async () => {
-      await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-      await unlockIfLockScreenVisible();
-      await DappConnectionModal.tapConnectButton();
-    });
-
-    // Switch back to browser
-    await switchToMobileBrowser();
-    await sleep(500);
-
-    //
-    // Verify connection
-    //
-
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.assertMultichainConnected(true);
-      await PlaywrightGestures.scrollIntoView(
-        await asPlaywrightElement(
-          BrowserPlaygroundDapp.getScopeCard('eip155:1'),
-        ),
-      );
-      await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
-    }, DAPP_URL);
-
-    //
-    // Cleanup - disconnect
-    //
-
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.tapDisconnect();
-    }, DAPP_URL);
-  });
-}); // end describe
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.tapDisconnect();
+  }, DAPP_URL);
+});

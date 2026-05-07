@@ -20,7 +20,7 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ARBITRARY_ALLOWANCE } from '../constants';
-import { toTokenMinimalUnit } from '../../../../util/number/bigint';
+import { toTokenMinimalUnit } from '../../../../util/number';
 import AppConstants from '../../../../core/AppConstants';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { handleSnapRequest } from '../../../../core/Snaps/utils';

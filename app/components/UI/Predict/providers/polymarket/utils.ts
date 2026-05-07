@@ -976,9 +976,6 @@ export const fetchEventsFromPolymarketApi = async (
 
     queryParamsEvents = `${limitParam}&${active}&${archived}&${closed}&${ascending}&${offsetParam}&${liquidity}&${volume}`;
     queryParamsEvents += categoryTagMap[category];
-    if (customQueryParams) {
-      queryParamsEvents += `&${customQueryParams}`;
-    }
   }
 
   const limitPerType = `limit_per_type=${limit}`;

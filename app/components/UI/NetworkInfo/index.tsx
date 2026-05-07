@@ -9,6 +9,7 @@ import Description from './InfoDescription';
 import { useTheme } from '../../../util/theme';
 import { fontStyles } from '../../../styles/common';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
+import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
 import {
   selectChainId,
   selectProviderConfig,
@@ -222,7 +223,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
           type="confirm"
           onPress={onClose}
           containerStyle={styles.closeButton}
-          testID={NetworkEducationModalSelectorsIDs.CLOSE_BUTTON}
+          testID={NETWORK_EDUCATION_MODAL_CLOSE_BUTTON}
         >
           {strings('network_information.got_it')}
         </StyledButton>

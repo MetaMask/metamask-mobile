@@ -27,7 +27,7 @@ describe('MoneyWhatYouGet', () => {
     expect(container).toHaveTextContent(/Auto-earn/);
     expect(container).toHaveTextContent(/dollar-backed stablecoin/);
     expect(container).toHaveTextContent(/Get full liquidity/);
-    expect(container).toHaveTextContent(/1-3% mUSD back/);
+    expect(container).toHaveTextContent(/1-3% cashback/);
     expect(container).toHaveTextContent(
       /Transfer money to any of your wallets/,
     );

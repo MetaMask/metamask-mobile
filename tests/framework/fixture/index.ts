@@ -22,7 +22,6 @@ import {
 import { getTeamInfoFromTags } from '../utils/teams';
 import { publishPerformanceScenarioToSentry } from '../../reporters/providers/sentry/PerformanceSentryPublisher';
 
-import { setDeviceInfo } from '../DeviceInfoCache.ts';
 // Extend globalThis to include driver property
 declare global {
   // eslint-disable-next-line no-var
@@ -167,16 +166,6 @@ export const test = base.extend<TestLevelFixtures>({
 
       // Make driver globally accessible for utilities
       globalThis.driver = driver;
-
-      // Populate device info cache once per session (avoid repeated Appium calls during tests).
-      const platformName = (await driver.capabilities)?.platformName;
-      const windowSize = await driver.getWindowSize();
-      setDeviceInfo(
-        (platformName?.toLowerCase() === 'android' ? 'android' : 'ios') as
-          | 'android'
-          | 'ios',
-        { width: windowSize.width, height: windowSize.height },
-      );
 
       // Add test metadata as annotations
       const deviceProviderName = project.use.device?.provider;

@@ -29,9 +29,18 @@ export class AccountTreeInitService {
   };
 
   clearState = async (): Promise<void> => {
-    const { AccountTreeController } = Engine.context;
+    const {
+      AccountTreeController,
+      MoneyAccountController,
+      RemoteFeatureFlagController,
+    } = Engine.context;
+    const { remoteFeatureFlags } = RemoteFeatureFlagController.state;
 
     AccountTreeController.clearState();
+
+    if (isMoneyAccountEnabled(remoteFeatureFlags)) {
+      MoneyAccountController.clearState();
+    }
   };
 }
 

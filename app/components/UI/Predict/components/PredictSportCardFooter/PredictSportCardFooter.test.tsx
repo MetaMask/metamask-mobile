@@ -306,7 +306,7 @@ describe('PredictSportCardFooter', () => {
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'specific-market-123',
         claimable: false,
-        livePriceUpdates: true,
+        refetchInterval: 10000,
       });
     });
 

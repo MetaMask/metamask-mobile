@@ -145,16 +145,20 @@ describe('CashSection', () => {
     );
   });
 
-  it('returns null when Money home screen flag is enabled', () => {
+  it('navigates to Money home screen when Money home screen flag is enabled', () => {
     jest
       .requireMock('../../../../UI/Money/selectors/featureFlags')
       .selectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
 
-    const { queryByText } = renderWithProvider(
+    renderWithProvider(
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(queryByText('Money')).toBeNull();
+    fireEvent.press(screen.getByText('Money'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT, {
+      screen: Routes.MONEY.HOME,
+    });
   });
 
   it('shows Get mUSD empty state when user has no mUSD balance', () => {

@@ -105,35 +105,6 @@ describe('useBridgeTxHistoryData', () => {
     });
   });
 
-  it('should find bridge history item by EVM transaction hash', async () => {
-    const tx: TransactionMeta = {
-      id: 'api-normalized-transaction-id',
-      hash: mockTxHash,
-      status: TransactionStatus.confirmed,
-      chainId: mockChainId,
-      networkClientId: 'mainnet',
-      time: Date.now(),
-      txParams: {
-        to: '0x123',
-        from: '0x456',
-        value: '0x0',
-        data: '0x',
-      },
-    };
-
-    const { result } = renderHookWithProvider(
-      () => useBridgeTxHistoryData({ evmTxMeta: tx }),
-      {
-        state: initialState,
-      },
-    );
-
-    await waitFor(() => {
-      expect(result.current.bridgeTxHistoryItem?.txMetaId).toBe(mockTxId);
-      expect(result.current.isBridgeComplete).toBe(true);
-    });
-  });
-
   it('should find bridge history item by multi-chain transaction hash', async () => {
     const multiChainTx: Transaction = {
       id: mockTxHash,

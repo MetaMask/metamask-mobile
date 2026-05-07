@@ -28,7 +28,7 @@ import {
 } from './Sections';
 import { selectProviderType } from '../../../../selectors/networkController';
 import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
-import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
+import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import createStyles from './SecuritySettings.styles';
 import { HeadingProps, SecuritySettingsParams } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -360,7 +360,7 @@ const Settings: React.FC = () => {
       />
       <ScrollView
         style={styles.content}
-        testID={SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL}
+        testID={SECURITY_PRIVACY_VIEW_ID}
         ref={scrollViewRef}
       >
         <View style={styles.inner}>

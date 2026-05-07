@@ -3,7 +3,6 @@ import { usePredictPositionsForHomepage } from './usePredictPositionsForHomepage
 import type { PredictPosition } from '../../../../../UI/Predict/types';
 
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
-const mockUsePredictPositions = jest.fn();
 let mockUsePredictPositionsReturn: {
   data: PredictPosition[] | undefined;
   isLoading: boolean;
@@ -17,12 +16,7 @@ let mockUsePredictPositionsReturn: {
 };
 
 jest.mock('../../../../../UI/Predict/hooks/usePredictPositions', () => ({
-  usePredictPositions: (
-    ...args: Parameters<typeof mockUsePredictPositions>
-  ) => {
-    mockUsePredictPositions(...args);
-    return mockUsePredictPositionsReturn;
-  },
+  usePredictPositions: () => mockUsePredictPositionsReturn,
 }));
 
 const createMockPosition = (id: string, currentValue = 12): PredictPosition =>
@@ -42,7 +36,6 @@ const createMockPosition = (id: string, currentValue = 12): PredictPosition =>
 describe('usePredictPositionsForHomepage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUsePredictPositions.mockClear();
     mockUsePredictPositionsReturn = {
       data: [
         createMockPosition('1'),
@@ -162,28 +155,6 @@ describe('usePredictPositionsForHomepage', () => {
       );
 
       expect(result.current.totalClaimableValue).toBe(0);
-    });
-
-    it('enables live updates for active positions', () => {
-      renderHook(() => usePredictPositionsForHomepage({ claimable: false }));
-
-      expect(mockUsePredictPositions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          claimable: false,
-          livePriceUpdates: true,
-        }),
-      );
-    });
-
-    it('disables live updates for claimable positions', () => {
-      renderHook(() => usePredictPositionsForHomepage({ claimable: true }));
-
-      expect(mockUsePredictPositions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          claimable: true,
-          livePriceUpdates: false,
-        }),
-      );
     });
 
     it('treats undefined currentValue as 0 in totalClaimableValue sum', () => {

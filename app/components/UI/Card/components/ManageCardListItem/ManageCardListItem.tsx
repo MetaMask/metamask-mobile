@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
+import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import Icon, {
   IconName,
   IconSize,
@@ -42,7 +43,7 @@ const ManageCardListItem: React.FC<ManageCardListItemProps> = ({
   const styles = createStyles(colors, descriptionOrientation);
 
   return (
-    <TouchableOpacity onPress={onPress} testID={testID}>
+    <TouchableOpacity onPress={onPress} {...generateTestId(Platform, testID)}>
       <ListItem style={styles.root}>
         <ListItemColumn widthType={WidthType.Fill} style={styles.description}>
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>

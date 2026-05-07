@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
   Platform,
   Image,
-  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
@@ -101,7 +100,7 @@ interface LoginProps {
  * View where returning users can authenticate
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
-  const fieldRef = useRef<TextInput | null>(null);
+  const fieldRef = useRef<React.ElementRef<typeof TextField> | null>(null);
 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -422,9 +421,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             >
               <TextField
                 placeholder={strings('login.password_placeholder')}
-                inputRef={fieldRef}
+                testID={LoginViewSelectors.PASSWORD_INPUT}
+                accessibilityLabel={LoginViewSelectors.PASSWORD_INPUT}
+                returnKeyType={'done'}
+                autoCapitalize="none"
+                secureTextEntry
+                ref={fieldRef}
                 onChangeText={handlePasswordChange}
                 value={password}
+                onSubmitEditing={unlockWithPassword}
                 endAccessory={
                   capabilities ? (
                     <DeviceAuthenticationButton
@@ -435,17 +440,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                     />
                   ) : null
                 }
+                keyboardAppearance={themeAppearance}
                 isError={!!error}
                 isDisabled={loading}
-                inputProps={{
-                  testID: LoginViewSelectors.PASSWORD_INPUT,
-                  accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
-                  returnKeyType: 'done',
-                  autoCapitalize: 'none',
-                  secureTextEntry: true,
-                  onSubmitEditing: unlockWithPassword,
-                  keyboardAppearance: themeAppearance,
-                }}
               />
             </Box>
 

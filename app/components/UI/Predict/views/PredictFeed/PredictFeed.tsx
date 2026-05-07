@@ -604,15 +604,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   );
 };
 
-interface PredictFeedProps {
-  hideHeader?: boolean;
-  onHeaderHiddenChange?: (hidden: boolean) => void;
-}
-
-const PredictFeed: React.FC<PredictFeedProps> = ({
-  hideHeader = false,
-  onHeaderHiddenChange,
-}) => {
+const PredictFeed: React.FC = () => {
   const {
     tabs,
     activeIndex,
@@ -692,7 +684,6 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     headerRef,
     tabBarRef,
     setActiveIndex,
-    onHeaderHiddenChange,
   });
 
   const handleTabPress = useCallback(
@@ -723,29 +714,27 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
         twClassName="flex-1"
         style={{ backgroundColor: colors.background.default }}
       >
-        {!hideHeader && (
-          <Box
-            style={tw.style('z-20', {
-              backgroundColor: colors.background.default,
-            })}
-          >
-            <HeaderCompactStandard
-              includesTopInset
-              title={strings('wallet.predict')}
-              onBack={handleBackPress}
-              backButtonProps={{
-                testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
-              }}
-              endButtonIconProps={[
-                {
-                  iconName: IconName.Search,
-                  onPress: showSearch,
-                  testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
-                },
-              ]}
-            />
-          </Box>
-        )}
+        <Box
+          style={tw.style('z-20', {
+            backgroundColor: colors.background.default,
+          })}
+        >
+          <HeaderCompactStandard
+            includesTopInset
+            title={strings('wallet.predict')}
+            onBack={handleBackPress}
+            backButtonProps={{
+              testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
+            }}
+            endButtonIconProps={[
+              {
+                iconName: IconName.Search,
+                onPress: showSearch,
+                testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
+              },
+            ]}
+          />
+        </Box>
 
         <Box twClassName="flex-1 relative">
           <AnimatedHeader

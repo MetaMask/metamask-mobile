@@ -70,8 +70,7 @@ describe('usePerpsPortfolioBalance', () => {
     // Set up default mock for usePerpsLiveAccount with zero balances
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
-        spendableBalance: '0',
-        withdrawableBalance: '0',
+        availableBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -117,8 +116,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const accountData = {
-        spendableBalance: '1000.50',
-        withdrawableBalance: '1000.50',
+        availableBalance: '1000.50',
         marginUsed: '0',
         unrealizedPnl: '50.25',
         returnOnEquity: '0',
@@ -157,8 +155,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const accountData = {
-        spendableBalance: '1500.75',
-        withdrawableBalance: '1500.75',
+        availableBalance: '1500.75',
         marginUsed: '0',
         unrealizedPnl: '-25.15',
         returnOnEquity: '0',
@@ -186,8 +183,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const accountData = {
-        spendableBalance: '2500.00',
-        withdrawableBalance: '2500.00',
+        availableBalance: '2500.00',
         marginUsed: '0',
         unrealizedPnl: '100.00',
         returnOnEquity: '0',
@@ -217,8 +213,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const accountData = {
-        spendableBalance: '1000.00',
-        withdrawableBalance: '1000.00',
+        availableBalance: '1000.00',
         marginUsed: '0',
         unrealizedPnl: '50.00',
         returnOnEquity: '0',
@@ -245,8 +240,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const accountData = {
-        spendableBalance: '1000.00',
-        withdrawableBalance: '1000.00',
+        availableBalance: '1000.00',
         marginUsed: '0',
         unrealizedPnl: '50.00',
         returnOnEquity: '0',
@@ -335,8 +329,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const accountData = {
-        spendableBalance: '1000.00',
-        withdrawableBalance: '1000.00',
+        availableBalance: '1000.00',
         marginUsed: '0',
         unrealizedPnl: '50.00',
         returnOnEquity: '0',
@@ -369,8 +362,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const accountData = {
-        spendableBalance: 'invalid',
-        withdrawableBalance: 'invalid',
+        availableBalance: 'invalid',
         marginUsed: '0',
         unrealizedPnl: 'NaN',
         returnOnEquity: '0',
@@ -399,8 +391,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const accountData = {
-        spendableBalance: '-100.50',
-        withdrawableBalance: '-100.50',
+        availableBalance: '-100.50',
         marginUsed: '0',
         unrealizedPnl: '-200.25',
         returnOnEquity: '0',
@@ -427,8 +418,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const accountData = {
-        spendableBalance: '999999999.99',
-        withdrawableBalance: '999999999.99',
+        availableBalance: '999999999.99',
         marginUsed: '0',
         unrealizedPnl: '123456789.12',
         returnOnEquity: '0',
@@ -454,8 +444,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const accountData = {
-        spendableBalance: '1000.00',
-        withdrawableBalance: '1000.00',
+        availableBalance: '1000.00',
         marginUsed: '0',
         unrealizedPnl: '0', // Missing field defaults to 0
         returnOnEquity: '0',
@@ -483,8 +472,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const accountData = {
-        spendableBalance: '500.00',
-        withdrawableBalance: '500.00',
+        availableBalance: '500.00',
         marginUsed: '0',
         unrealizedPnl: '25.00',
         returnOnEquity: '0',
@@ -514,8 +502,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const accountData = {
-        spendableBalance: '1000.00',
-        withdrawableBalance: '1000.00',
+        availableBalance: '1000.00',
         marginUsed: '0',
         unrealizedPnl: '50.00',
         returnOnEquity: '0',
@@ -550,8 +537,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       let accountData = {
-        spendableBalance: '1000.00',
-        withdrawableBalance: '1000.00',
+        availableBalance: '1000.00',
         marginUsed: '0',
         unrealizedPnl: '50.00',
         returnOnEquity: '0',
@@ -575,8 +561,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       accountData = {
-        spendableBalance: '2000.00',
-        withdrawableBalance: '2000.00',
+        availableBalance: '2000.00',
         marginUsed: '0',
         unrealizedPnl: '100.00',
         returnOnEquity: '0',
@@ -603,8 +588,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const accountData = {
-        spendableBalance: '1000.00',
-        withdrawableBalance: '1000.00',
+        availableBalance: '1000.00',
         marginUsed: '0',
         unrealizedPnl: '50.00',
         returnOnEquity: '0',
