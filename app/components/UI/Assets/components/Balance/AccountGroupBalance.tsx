@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from 'react';
 import { View, TouchableOpacity } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import createStyles from './AccountGroupBalance.styles';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -21,11 +21,8 @@ import {
 } from '../../../../../selectors/featureFlagController/homepage';
 import {
   selectShouldShowWalletHomeOnboardingSteps,
-  selectWalletHomeOnboardingSteps,
-  selectWalletHomeOnboardingStepsEligible,
   selectWalletHomeOnboardingSkipInitialBalanceWait,
 } from '../../../../../selectors/onboarding';
-import { suppressWalletHomeOnboardingSteps } from '../../../../../actions/onboarding';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TEST_NETWORK_IDS } from '../../../../../constants/network';
@@ -69,7 +66,6 @@ const AccountGroupBalance = ({
   onTradePrimaryPress,
   onNotificationsPrimaryPress,
 }: AccountGroupBalanceProps) => {
-  const dispatch = useDispatch();
   const { PreferencesController } = Engine.context;
   const styles = createStyles();
   const { formatCurrency } = useFormatters();
@@ -78,12 +74,6 @@ const AccountGroupBalance = ({
   );
   const isWalletHomeOnboardingStepsEnabled = useSelector(
     selectWalletHomeOnboardingStepsEnabled,
-  );
-  const walletHomeOnboardingStepsEligible = useSelector(
-    selectWalletHomeOnboardingStepsEligible,
-  );
-  const walletHomeOnboardingSteps = useSelector(
-    selectWalletHomeOnboardingSteps,
   );
   const shouldShowWalletHomeOnboardingSteps = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,
@@ -180,37 +170,6 @@ const AccountGroupBalance = ({
       }
     }
   }, [groupBalance, accountGroupBalance]);
-
-  // First funding suppresses the post-onboarding steps flow so it cannot reappear if balance later hits zero.
-  // Gate on the same "balance settled" signal as empty state: without this, stale persisted totals > 0 can fire
-  // before hasBalanceFetched flips, suppressing the flow while the UI later shows zero-balance empty state.
-  useEffect(() => {
-    if (!groupBalance || !hasBalanceFetched) {
-      return;
-    }
-    if (!walletHomeOnboardingStepsEligible) {
-      return;
-    }
-    if (walletHomeOnboardingSteps.suppressedReason !== null) {
-      return;
-    }
-    // Fund checklist step: positive balance advances the checklist in WalletHomeOnboardingSteps.
-    if ((walletHomeOnboardingSteps.stepIndex ?? 0) === 0) {
-      return;
-    }
-    const total = accountGroupBalance?.totalBalanceInUserCurrency;
-    if (total !== undefined && total > 0) {
-      dispatch(suppressWalletHomeOnboardingSteps('account_funded'));
-    }
-  }, [
-    accountGroupBalance?.totalBalanceInUserCurrency,
-    dispatch,
-    groupBalance,
-    hasBalanceFetched,
-    walletHomeOnboardingSteps.stepIndex,
-    walletHomeOnboardingSteps.suppressedReason,
-    walletHomeOnboardingStepsEligible,
-  ]);
 
   // Cleanup timeout on unmount
   useEffect(
