@@ -49,6 +49,7 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import {
   getFontFamily,
@@ -100,6 +101,10 @@ const createStyles = (colors, typography) =>
     icon: {
       width: 32,
       height: 32,
+    },
+    iconBadgePosition: {
+      bottom: -4,
+      right: -4,
     },
     importText: {
       color: colors.text.alternative,
@@ -271,13 +276,13 @@ class TransactionElement extends PureComponent {
   mounted = false;
 
   componentDidMount = async () => {
+    this.mounted = true;
     const [transactionElement, transactionDetails] = await decodeTransaction({
       ...this.props,
       swapsTransactions: this.props.swapsTransactions,
       assetSymbol: this.props.assetSymbol,
       ticker: this.props.ticker,
     });
-    this.mounted = true;
 
     this.mounted && this.setState({ transactionElement, transactionDetails });
   };
@@ -469,10 +474,13 @@ class TransactionElement extends PureComponent {
 
     return (
       <BadgeWrapper
+        badgePosition={styles.iconBadgePosition}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
             imageSource={NetworkBadgeSource(chainId)}
+            isScaled={false}
+            size={AvatarSize.Xs}
           />
         }
       >
@@ -715,6 +723,35 @@ class TransactionElement extends PureComponent {
     );
   };
 
+  renderPendingElement = () => {
+    const { i, tx } = this.props;
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
+
+    return (
+      <ListItem>
+        <ListItem.Date style={styles.listItemDate}>
+          {this.renderTxTime()}
+        </ListItem.Date>
+        <ListItem.Content style={styles.listItemContent}>
+          <ListItem.Icon>
+            <View style={styles.icon} />
+          </ListItem.Icon>
+          <ListItem.Body>
+            <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
+              ...
+            </ListItem.Title>
+            <StatusText
+              testID={`transaction-status-${i}`}
+              status={tx.status}
+              style={styles.listItemStatus}
+            />
+          </ListItem.Body>
+        </ListItem.Content>
+      </ListItem>
+    );
+  };
+
   render() {
     const { tx, selectedInternalAccount } = this.props;
     const { transactionElement, transactionDetails } = this.state;
@@ -722,7 +759,7 @@ class TransactionElement extends PureComponent {
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
 
-    if (!transactionElement || !transactionDetails) return null;
+    const isReady = Boolean(transactionElement && transactionDetails);
 
     const accountImportTime = selectedInternalAccount?.metadata.importTime;
     const { time } = tx;
@@ -734,11 +771,13 @@ class TransactionElement extends PureComponent {
           style={
             this.props.showBottomBorder ? styles.rowWithBorder : styles.row
           }
-          onPress={this.onPressItem}
+          onPress={isReady ? this.onPressItem : undefined}
           underlayColor={colors.background.alternative}
           activeOpacity={1}
         >
-          {this.renderTxElement(transactionElement)}
+          {isReady
+            ? this.renderTxElement(transactionElement)
+            : this.renderPendingElement()}
         </TouchableHighlight>
         {accountImportTime <= time && this.renderImportTime()}
       </>
