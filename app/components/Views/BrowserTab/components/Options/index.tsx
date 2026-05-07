@@ -1,18 +1,27 @@
 import React, { MutableRefObject, useCallback } from 'react';
 import {
   Linking,
+  Platform,
   Text,
   TouchableWithoutFeedback,
   View,
   ImageSourcePropType,
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import Device from '../../../../../util/device';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
 import Button from '../../../../UI/Button';
 import { strings } from '../../../../../../locales/i18n';
-import { BrowserOptionsSelectorsIDs } from './Options.testIds';
+import {
+  ADD_FAVORITES_OPTION,
+  MENU_ID,
+  NEW_TAB_OPTION,
+  OPEN_IN_BROWSER_OPTION,
+  RELOAD_OPTION,
+  SHARE_OPTION,
+} from '../../../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -185,7 +194,7 @@ const Options = ({
           <Text
             style={styles.optionText}
             numberOfLines={2}
-            testID={BrowserOptionsSelectorsIDs.SHARE}
+            {...generateTestId(Platform, SHARE_OPTION)}
           >
             {strings('browser.share')}
           </Text>
@@ -207,7 +216,7 @@ const Options = ({
           <Text
             style={styles.optionText}
             numberOfLines={2}
-            testID={BrowserOptionsSelectorsIDs.RELOAD}
+            {...generateTestId(Platform, RELOAD_OPTION)}
           >
             {strings('browser.reload')}
           </Text>
@@ -226,7 +235,7 @@ const Options = ({
               ? styles.optionsWrapperAndroid
               : styles.optionsWrapperIos,
           ]}
-          testID={BrowserOptionsSelectorsIDs.MENU}
+          {...generateTestId(Platform, MENU_ID)}
         >
           <Button onPress={onNewTabPress} style={styles.option}>
             <View style={styles.optionIconWrapper}>
@@ -239,7 +248,7 @@ const Options = ({
             <Text
               style={styles.optionText}
               numberOfLines={1}
-              testID={BrowserOptionsSelectorsIDs.NEW_TAB}
+              {...generateTestId(Platform, NEW_TAB_OPTION)}
             >
               {strings('browser.new_tab')}
             </Text>
@@ -253,7 +262,7 @@ const Options = ({
               <Text
                 style={styles.optionText}
                 numberOfLines={2}
-                testID={BrowserOptionsSelectorsIDs.ADD_FAVORITES}
+                {...generateTestId(Platform, ADD_FAVORITES_OPTION)}
               >
                 {strings('browser.add_to_favorites')}
               </Text>
@@ -267,7 +276,7 @@ const Options = ({
             <Text
               style={styles.optionText}
               numberOfLines={2}
-              testID={BrowserOptionsSelectorsIDs.OPEN_IN_BROWSER}
+              {...generateTestId(Platform, OPEN_IN_BROWSER_OPTION)}
             >
               {strings('browser.open_in_browser')}
             </Text>

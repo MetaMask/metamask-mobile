@@ -16,10 +16,7 @@ import {
   getAnalyticsDeviceType,
   getErrorDetails,
   getAnalyticsFlowFromApproval,
-  getQrHardwareScanErrorAnalyticsProperties,
 } from './helpers';
-import { createQRHardwareScanError, QRHardwareScanErrorType } from '../errors';
-import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 describe('analytics helpers', () => {
   describe('getAnalyticsErrorType', () => {
@@ -363,107 +360,6 @@ describe('analytics helpers', () => {
       expect(getAnalyticsFlowFromApproval({ approvalType: undefined })).toBe(
         HardwareWalletAnalyticsFlow.Connection,
       );
-    });
-  });
-
-  describe('getQrHardwareScanErrorAnalyticsProperties', () => {
-    it('returns empty object for non-ErrorState', () => {
-      const state: HardwareWalletConnectionState = {
-        status: ConnectionStatus.Disconnected,
-      };
-
-      expect(getQrHardwareScanErrorAnalyticsProperties(state)).toEqual({});
-    });
-
-    it('returns empty object for ErrorState with non-QR error', () => {
-      const error = new HardwareWalletError('Test', {
-        code: ErrorCode.Unknown,
-        severity: Severity.Err,
-        category: Category.Connection,
-        userMessage: 'Test',
-      });
-
-      const state: HardwareWalletConnectionState = {
-        status: ConnectionStatus.ErrorState,
-        error,
-      };
-
-      expect(getQrHardwareScanErrorAnalyticsProperties(state)).toEqual({});
-    });
-
-    it('returns QR scan properties for non-UR QR scanned error', () => {
-      const qrError = createQRHardwareScanError({
-        errorType: QRHardwareScanErrorType.NonURQrScanned,
-        purpose: QrScanRequestType.SIGN,
-        isUrFormat: false,
-      });
-
-      const state: HardwareWalletConnectionState = {
-        status: ConnectionStatus.ErrorState,
-        error: qrError,
-      };
-
-      const result = getQrHardwareScanErrorAnalyticsProperties(state);
-      expect(result).toEqual({
-        error_category: 'non_ur_qr_scanned',
-        is_ur_format: false,
-      });
-    });
-
-    it('returns received_ur_type for wrong UR type error', () => {
-      const qrError = createQRHardwareScanError({
-        errorType: QRHardwareScanErrorType.WrongURType,
-        purpose: QrScanRequestType.SIGN,
-        receivedUrType: 'crypto-account',
-        isUrFormat: true,
-      });
-
-      const state: HardwareWalletConnectionState = {
-        status: ConnectionStatus.ErrorState,
-        error: qrError,
-      };
-
-      const result = getQrHardwareScanErrorAnalyticsProperties(state);
-      expect(result).toEqual({
-        error_category: 'wrong_ur_type',
-        is_ur_format: true,
-        received_ur_type: 'crypto-account',
-      });
-    });
-
-    it('returns empty string for received_ur_type when not provided', () => {
-      const qrError = createQRHardwareScanError({
-        errorType: QRHardwareScanErrorType.WrongURType,
-        purpose: QrScanRequestType.PAIR,
-        isUrFormat: true,
-      });
-
-      const state: HardwareWalletConnectionState = {
-        status: ConnectionStatus.ErrorState,
-        error: qrError,
-      };
-
-      const result = getQrHardwareScanErrorAnalyticsProperties(state);
-      expect(result.received_ur_type).toBe('');
-    });
-
-    it('returns QR scan properties for UR decode error', () => {
-      const qrError = createQRHardwareScanError({
-        errorType: QRHardwareScanErrorType.URDecodeError,
-        purpose: QrScanRequestType.SIGN,
-        isUrFormat: true,
-      });
-
-      const state: HardwareWalletConnectionState = {
-        status: ConnectionStatus.ErrorState,
-        error: qrError,
-      };
-
-      const result = getQrHardwareScanErrorAnalyticsProperties(state);
-      expect(result).toEqual({
-        error_category: 'ur_decode_error',
-        is_ur_format: true,
-      });
     });
   });
 });

@@ -142,6 +142,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Please try again',
       'rewards.ondo_campaign_portfolio.retry': 'Retry',
       'rewards.ondo_campaign_portfolio.updated_at': `Updated: ${params?.time ?? ''}`,
+      'rewards.ondo_campaign_portfolio.position_units': `${params?.units ?? ''} units`,
     };
     return translations[key] ?? key;
   },
@@ -166,6 +167,10 @@ jest.mock('../../../Trending/utils/getTrendingTokenImageUrl', () => ({
 
 jest.mock('../../../../../util/ondoGeoRestrictions', () => ({
   isGeoRestricted: jest.fn(() => false),
+}));
+
+jest.mock('./OndoLeaderboard.utils', () => ({
+  formatComputedAt: jest.fn(),
 }));
 
 jest.mock('../../../../../images/rewards/rewards-no-positions.svg', () => {
@@ -216,11 +221,10 @@ jest.mock(
 );
 
 const mockRefetch = jest.fn();
-const MOCK_POSITION_DISPLAY_NAME = 'Apple Inc. (Ondo Tokenized)';
 
 const MOCK_POSITION: OndoGmPortfolioPositionDto = {
   tokenSymbol: 'AAPLon',
-  tokenName: MOCK_POSITION_DISPLAY_NAME,
+  tokenName: 'Apple Inc.',
   tokenAsset: 'eip155:1/erc20:0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c',
   units: '45.2',
   bookPrice: '200.000000',
@@ -369,7 +373,7 @@ describe('OndoPortfolio', () => {
     it('renders the token name', () => {
       const { getByText } = render(<OndoPortfolio {...loadedProps} />);
 
-      expect(getByText(MOCK_POSITION_DISPLAY_NAME)).toBeDefined();
+      expect(getByText('Apple Inc.')).toBeDefined();
     });
   });
 
@@ -395,8 +399,8 @@ describe('OndoPortfolio', () => {
 
     it('pressing a position row does not throw', () => {
       const { getByText } = render(<OndoPortfolio {...loadedProps} />);
-      fireEvent.press(getByText(MOCK_POSITION_DISPLAY_NAME));
-      expect(getByText(MOCK_POSITION_DISPLAY_NAME)).toBeDefined();
+      fireEvent.press(getByText('Apple Inc.'));
+      expect(getByText('Apple Inc.')).toBeDefined();
     });
 
     it('renders empty banner when portfolio has no positions', () => {
@@ -480,7 +484,7 @@ describe('OndoPortfolio', () => {
         const props = buildPropsWithBalance(rawHexBalance);
         const { getByText } = render(<OndoPortfolio {...props} />);
 
-        fireEvent.press(getByText(MOCK_POSITION_DISPLAY_NAME));
+        fireEvent.press(getByText('Apple Inc.'));
 
         expect(props.onOpenAccountPicker).not.toHaveBeenCalled();
       },
@@ -493,9 +497,7 @@ describe('OndoPortfolio', () => {
       // empty and the component navigates directly (length === 0 branch).
       // Picker not opened either way — we just confirm no throw.
       const { getByText } = render(<OndoPortfolio {...props} />);
-      expect(() =>
-        fireEvent.press(getByText(MOCK_POSITION_DISPLAY_NAME)),
-      ).not.toThrow();
+      expect(() => fireEvent.press(getByText('Apple Inc.'))).not.toThrow();
     });
   });
 
@@ -505,9 +507,9 @@ describe('OndoPortfolio', () => {
       portfolio: MOCK_PORTFOLIO,
     };
 
-    it('renders units with the uppercased ticker', () => {
+    it('renders the units text', () => {
       const { getByText } = render(<OndoPortfolio {...loadedProps} />);
-      expect(getByText('45.2 AAPLON')).toBeDefined();
+      expect(getByText('45.2 units')).toBeDefined();
     });
 
     it('renders positive PnL percent in green', () => {
@@ -574,7 +576,7 @@ describe('OndoPortfolio', () => {
           onOpenAccountPicker={onOpenAccountPicker}
         />,
       );
-      fireEvent.press(getByText(MOCK_POSITION_DISPLAY_NAME));
+      fireEvent.press(getByText('Apple Inc.'));
       expect(onOpenAccountPicker).not.toHaveBeenCalled();
     });
   });
@@ -675,7 +677,7 @@ describe('OndoPortfolio', () => {
         />,
       );
 
-      fireEvent.press(getByText(MOCK_POSITION_DISPLAY_NAME));
+      fireEvent.press(getByText('Apple Inc.'));
 
       expect(onOpenAccountPicker).toHaveBeenCalledTimes(1);
       const config = (onOpenAccountPicker as jest.Mock).mock.calls[0][0];
@@ -728,7 +730,7 @@ describe('OndoPortfolio', () => {
         />,
       );
 
-      fireEvent.press(getByText(MOCK_POSITION_DISPLAY_NAME));
+      fireEvent.press(getByText('Apple Inc.'));
 
       expect(onOpenAccountPicker).not.toHaveBeenCalled();
     });
@@ -790,7 +792,7 @@ describe('OndoPortfolio', () => {
         />,
       );
 
-      fireEvent.press(getByText(MOCK_POSITION_DISPLAY_NAME));
+      fireEvent.press(getByText('Apple Inc.'));
 
       // Account must be found despite key case mismatch → picker opened
       expect(onOpenAccountPicker).toHaveBeenCalledTimes(1);
@@ -852,7 +854,7 @@ describe('OndoPortfolio', () => {
         />,
       );
 
-      fireEvent.press(getByText(MOCK_POSITION_DISPLAY_NAME));
+      fireEvent.press(getByText('Apple Inc.'));
 
       expect(onOpenAccountPicker).toHaveBeenCalledTimes(1);
       const config = (onOpenAccountPicker as jest.Mock).mock.calls[0][0];
@@ -910,7 +912,7 @@ describe('OndoPortfolio', () => {
         />,
       );
 
-      fireEvent.press(getByText(MOCK_POSITION_DISPLAY_NAME));
+      fireEvent.press(getByText('Apple Inc.'));
 
       // No subscribed account has balance → navigate directly, picker not opened
       expect(onOpenAccountPicker).not.toHaveBeenCalled();

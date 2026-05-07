@@ -128,10 +128,6 @@ interface PredictMarketSingleProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
-  /** Called synchronously before the card's navigation press fires. */
-  onCardPress?: () => void;
-  /** Called when the user taps a buy button (before betslip opens). */
-  onBuyButtonPress?: (marketId: string) => void;
 }
 
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
@@ -139,8 +135,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   testID,
   entryPoint: propEntryPoint,
   isCarousel = false,
-  onCardPress,
-  onBuyButtonPress,
 }) => {
   const contextEntryPoint = usePredictEntryPoint();
   const baseEntryPoint =
@@ -191,7 +185,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const yesPercentage = getYesPercentage();
 
   const handleBuy = (token: PredictOutcomeToken) => {
-    onBuyButtonPress?.(market.id);
     executeGuardedAction(
       () => {
         openBuySheet({
@@ -211,7 +204,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
     <TouchableOpacity
       testID={testID}
       onPress={() => {
-        onCardPress?.();
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {

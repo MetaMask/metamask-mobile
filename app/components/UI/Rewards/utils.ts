@@ -106,7 +106,6 @@ export enum RewardsMetricsButtons {
   VISIT_APP_STORE = 'visit_app_store',
   BUY_MUSD = 'buy_musd',
   SWAP_TO_MUSD = 'swap_to_musd',
-  COPY_WINNER_VERIFICATION_CODE = 'copy_winner_verification_code',
 }
 
 export const deriveAccountMetricProps = (account?: InternalAccount) => {

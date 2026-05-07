@@ -129,7 +129,11 @@ export const assetsControllerInit: MessengerClientInitFunction<
   // Create the controller - it now creates all data sources internally
   const controller = new AssetsController({
     messenger: controllerMessenger,
-    state: persistedState?.AssetsController,
+    state: persistedState?.AssetsController ?? {
+      assetPreferences: {},
+      assetsInfo: {},
+      assetsBalance: {},
+    },
     isBasicFunctionality: () =>
       selectBasicFunctionalityEnabled(store.getState()),
     isEnabled,

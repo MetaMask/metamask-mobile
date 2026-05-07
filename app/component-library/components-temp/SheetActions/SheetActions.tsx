@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
@@ -10,6 +10,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../components/Buttons/Button';
 import Loader from '../Loader';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 // Internal dependencies.
 import { SheetActionsProps } from './SheetActions.types';
@@ -45,7 +46,7 @@ const SheetActions = ({ actions }: SheetActionsProps) => {
                   disabled={disabled || isLoading}
                   style={buttonStyle}
                   isDanger={isDanger}
-                  testID={testID}
+                  {...generateTestId(Platform, testID)}
                 />
                 {isLoading && <Loader size={'small'} />}
               </View>

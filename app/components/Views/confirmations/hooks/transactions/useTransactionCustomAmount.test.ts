@@ -11,7 +11,7 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import { act } from 'react';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
+import { useUpdateTokenAmount } from './useUpdateTokenAmount';
 import {
   TransactionMeta,
   TransactionType,
@@ -38,7 +38,7 @@ import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEve
 import Engine from '../../../../../core/Engine';
 
 jest.mock('../tokens/useTokenFiatRates');
-jest.mock('../pay/useUpdateTransactionPayAmount');
+jest.mock('../transactions/useUpdateTokenAmount');
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../pay/useTransactionPayHasSourceAmount');
@@ -103,9 +103,7 @@ function runHook({
 
 describe('useTransactionCustomAmount', () => {
   const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
-  const useUpdateTransactionPayAmountMock = jest.mocked(
-    useUpdateTransactionPayAmount,
-  );
+  const useUpdateTokenAmountMock = jest.mocked(useUpdateTokenAmount);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useParamsMock = jest.mocked(useParams);
   const usePredictBalanceMock = jest.mocked(usePredictBalance);
@@ -127,9 +125,9 @@ describe('useTransactionCustomAmount', () => {
     useConfirmationMetricEvents,
   );
 
-  const updateTransactionPayAmountMock: ReturnType<
-    typeof useUpdateTransactionPayAmount
-  >['updateTransactionPayAmount'] = jest.fn();
+  const updateTokenAmountMock: ReturnType<
+    typeof useUpdateTokenAmount
+  >['updateTokenAmount'] = jest.fn();
 
   const setConfirmationMetricMock = jest.fn();
 
@@ -138,9 +136,9 @@ describe('useTransactionCustomAmount', () => {
 
     useTokenFiatRateMock.mockReturnValue(2);
 
-    useUpdateTransactionPayAmountMock.mockReturnValue({
-      updateTransactionPayAmount: updateTransactionPayAmountMock,
-    } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
+    useUpdateTokenAmountMock.mockReturnValue({
+      updateTokenAmount: updateTokenAmountMock,
+    } as ReturnType<typeof useUpdateTokenAmountMock>);
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
@@ -257,7 +255,7 @@ describe('useTransactionCustomAmount', () => {
     expect(result.current.amountFiat).toBe('1'.repeat(27));
   });
 
-  it('updateTokenAmount delegates to updateTransactionPayAmount with the human amount', async () => {
+  it('updateTokenAmount updates token amount in transaction data', async () => {
     const { result } = runHook();
 
     await act(async () => {
@@ -268,7 +266,7 @@ describe('useTransactionCustomAmount', () => {
       result.current.updateTokenAmount();
     });
 
-    expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('61.725');
+    expect(updateTokenAmountMock).toHaveBeenCalledWith('61.725');
   });
 
   it('sets mm_pay_quote_requested metric only when hasSourceAmount becomes true after updateTokenAmount was called', async () => {
@@ -516,8 +514,7 @@ describe('useTransactionCustomAmount', () => {
       (Engine.context as Record<string, unknown>).PerpsController = {
         state: {
           accountState: {
-            spendableBalance: '500.00',
-            withdrawableBalance: '500.00',
+            availableBalance: '500.00',
           },
         },
       };
@@ -542,8 +539,7 @@ describe('useTransactionCustomAmount', () => {
       (Engine.context as Record<string, unknown>).PerpsController = {
         state: {
           accountState: {
-            spendableBalance: '50.389',
-            withdrawableBalance: '50.389',
+            availableBalance: '50.389',
           },
         },
       };
@@ -570,8 +566,7 @@ describe('useTransactionCustomAmount', () => {
       (Engine.context as Record<string, unknown>).PerpsController = {
         state: {
           accountState: {
-            spendableBalance: '500.00',
-            withdrawableBalance: '500.00',
+            availableBalance: '500.00',
           },
         },
       };
@@ -597,8 +592,7 @@ describe('useTransactionCustomAmount', () => {
       (Engine.context as Record<string, unknown>).PerpsController = {
         state: {
           accountState: {
-            spendableBalance: '500.00',
-            withdrawableBalance: '500.00',
+            availableBalance: '500.00',
           },
         },
       };

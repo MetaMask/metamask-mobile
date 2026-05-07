@@ -8,29 +8,24 @@ import React, {
   useState,
 } from 'react';
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
-  Modal,
   Platform,
+  ActivityIndicator,
+  Modal,
+  useWindowDimensions,
+  View,
 } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
-import {
-  useSafeAreaFrame,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  FontWeight,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  runOnJS,
+  useDerivedValue,
+  interpolate,
+} from 'react-native-reanimated';
 
 // External dependencies.
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
@@ -41,6 +36,13 @@ import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
+import { TextVariant } from '../../../component-library/components/Texts/Text';
+import Text from '../../../component-library/components/Texts/Text/Text';
 import AddAccountActions from '../AddAccountActions';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
@@ -48,10 +50,12 @@ import { selectSelectedAccountGroup } from '../../../selectors/multichainAccount
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 // Internal dependencies.
+import { useStyles } from '../../../component-library/hooks';
 import {
   AccountSelectorProps,
   AccountSelectorScreens,
 } from './AccountSelector.types';
+import styleSheet from './AccountSelector.styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
@@ -63,16 +67,24 @@ import {
   trace,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
+import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAccountsOperationsLoadingStates';
+import { Box } from '../../UI/Box/Box';
+import {
+  AlignItems,
+  FlexDirection,
+  JustifyContent,
+} from '../../UI/Box/box.types';
+import { AnimationDuration } from '../../../component-library/constants/animation.constants';
 import Routes from '../../../constants/navigation/Routes';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
-  const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { y: frameY } = useSafeAreaFrame();
+  const { width: screenWidth } = useWindowDimensions();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const routeParams = useMemo(() => route?.params, [route?.params]);
 
@@ -136,14 +148,18 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [navigation, shouldRedirectToAddWallet]);
 
+  // Tracing for the account list rendering:
   const isAccountSelector = useMemo(
     () => screen === AccountSelectorScreens.AccountSelector,
     [screen],
   );
 
-  const handleClose = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  const translateX = useSharedValue(screenWidth);
+
+  // Backdrop opacity animation - fades in as screen slides in from right
+  const backdropOpacity = useDerivedValue(() =>
+    interpolate(translateX.value, [screenWidth, 0], [0, 0.5]),
+  );
 
   useEffect(() => {
     if (reloadAccounts) {
@@ -151,38 +167,45 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [dispatch, reloadAccounts]);
 
-  // Tracing for the account list: start at layout flush, end after paint (useEffect).
   useLayoutEffect(() => {
-    if (!isAccountSelector) {
-      return undefined;
-    }
-    trace({
-      name: TraceName.ShowAccountList,
-      op: TraceOperation.AccountUi,
-      tags: getTraceTags(store.getState()),
-    });
-    return () => {
+    if (!isAccountSelector) return;
+
+    const onAnimationComplete = () => {
       endTrace({
         name: TraceName.ShowAccountList,
       });
     };
+
+    translateX.value = withSpring(
+      0,
+      {
+        damping: 20,
+        stiffness: 500,
+        mass: 0.3,
+      },
+      () => runOnJS(onAnimationComplete)(),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAccountSelector]);
 
-  useEffect(() => {
-    if (!isAccountSelector) {
-      return;
-    }
-    endTrace({
-      name: TraceName.ShowAccountList,
-    });
-  }, [isAccountSelector]);
+  const closeModal = useCallback(() => {
+    const onCloseComplete = () => {
+      navigation.goBack();
+    };
+
+    translateX.value = withTiming(
+      screenWidth,
+      { duration: AnimationDuration.Fast },
+      () => runOnJS(onCloseComplete)(),
+    );
+  }, [translateX, navigation, screenWidth]);
 
   const _onSelectMultichainAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
       Engine.context.AccountTreeController.setSelectedAccountGroup(
         accountGroup.id,
       );
-      handleClose();
+      closeModal();
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
@@ -193,7 +216,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           .build(),
       );
     },
-    [accounts?.length, trackEvent, createEventBuilder, handleClose],
+    [accounts?.length, trackEvent, createEventBuilder, closeModal],
   );
 
   const handleAddAccount = useCallback(() => {
@@ -203,6 +226,43 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const handleBackToSelector = useCallback(() => {
     setScreen(AccountSelectorScreens.AccountSelector);
   }, []);
+
+  // Tracing for the account list rendering:
+  useEffect(() => {
+    if (isAccountSelector) {
+      trace({
+        name: TraceName.ShowAccountList,
+        op: TraceOperation.AccountUi,
+        tags: getTraceTags(store.getState()),
+      });
+      // Trace ends in animation callback
+    }
+  }, [isAccountSelector]);
+
+  const addAccountButtonProps: ButtonProps[] = useMemo(
+    () => [
+      {
+        variant: ButtonVariants.Secondary,
+        isDisabled: isAccountSyncingInProgress,
+        label: (
+          <Box
+            alignItems={AlignItems.center}
+            justifyContent={JustifyContent.center}
+            flexDirection={FlexDirection.Row}
+            gap={8}
+          >
+            {isAccountSyncingInProgress && <ActivityIndicator size="small" />}
+            <Text variant={TextVariant.BodyMDMedium}>{buttonLabel}</Text>
+          </Box>
+        ),
+        size: ButtonSize.Lg,
+        width: ButtonWidthTypes.Full,
+        onPress: handleAddAccount,
+        testID: AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      },
+    ],
+    [handleAddAccount, buttonLabel, isAccountSyncingInProgress],
+  );
 
   const renderAccountSelector = useCallback(
     () => (
@@ -217,38 +277,24 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           />
         ) : null}
         {!disableAddAccountButton && (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="px-4 pt-6 pb-5"
+          <View
+            style={[
+              styles.accountSelectorFooter,
+              styles.accountSelectorFooterContent,
+            ]}
           >
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              onPress={handleAddAccount}
-              isDisabled={isAccountSyncingInProgress}
-              testID={
-                AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
-              }
-              twClassName="flex-1"
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                gap={2}
-              >
-                {isAccountSyncingInProgress ? (
-                  <ActivityIndicator size="small" />
-                ) : null}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                >
-                  {buttonLabel}
-                </Text>
-              </Box>
-            </Button>
-          </Box>
+            {addAccountButtonProps.map((buttonProp, index) => (
+              <Button
+                key={index}
+                style={
+                  index > 0
+                    ? styles.footerButtonSubsequent
+                    : styles.footerButton
+                }
+                {...buttonProp}
+              />
+            ))}
+          </View>
         )}
       </Fragment>
     ),
@@ -256,9 +302,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       selectedAccountGroup,
       _onSelectMultichainAccount,
       disableAddAccountButton,
-      handleAddAccount,
-      buttonLabel,
-      isAccountSyncingInProgress,
+      addAccountButtonProps,
+      styles.accountSelectorFooterContent,
+      styles.accountSelectorFooter,
+      styles.footerButton,
+      styles.footerButtonSubsequent,
     ],
   );
 
@@ -272,6 +320,14 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [handleBackToSelector],
   );
 
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value,
+  }));
+
   const showAddWalletModal =
     screen === AccountSelectorScreens.AddAccountActions ||
     screen === AccountSelectorScreens.MultichainAddWalletActions;
@@ -282,28 +338,31 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   return (
     <>
+      <Animated.View style={[styles.backdrop, backdropStyle]} />
       <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         enabled={keyboardAvoidingViewEnabled}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? -insets.bottom : frameY}
-        style={tw.style('flex-1')}
       >
-        <Box
-          twClassName="flex-1 bg-default"
-          style={{
-            paddingTop: insets.top,
-            paddingBottom: insets.bottom,
-          }}
+        <Animated.View
+          style={[
+            styles.container,
+            {
+              paddingTop: insets.top,
+              paddingBottom: insets.bottom,
+            },
+            animatedStyle,
+          ]}
         >
           <HeaderCompactStandard
             title={strings('accounts.accounts_title')}
-            onBack={handleClose}
+            onBack={closeModal}
             backButtonProps={{
               testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
             }}
           />
           {renderAccountSelector()}
-        </Box>
+        </Animated.View>
       </KeyboardAvoidingView>
 
       <Modal
@@ -312,12 +371,14 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         onRequestClose={handleBackToSelector}
       >
         {showAddWalletModal ? (
-          <Box
-            twClassName="flex-1 bg-default"
-            style={{
-              paddingTop: insets.top,
-              paddingBottom: insets.bottom,
-            }}
+          <View
+            style={[
+              styles.addWalletModalContainer,
+              {
+                paddingTop: insets.top,
+                paddingBottom: insets.bottom,
+              },
+            ]}
           >
             <HeaderCompactStandard
               title={
@@ -333,7 +394,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             {screen === AccountSelectorScreens.AddAccountActions
               ? renderAddAccountActions()
               : renderMultichainAddWalletActions()}
-          </Box>
+          </View>
         ) : null}
       </Modal>
     </>

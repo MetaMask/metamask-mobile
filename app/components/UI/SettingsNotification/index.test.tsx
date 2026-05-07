@@ -1,30 +1,23 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { render } from '@testing-library/react-native';
 import SettingsNotification from './';
 
 describe('SettingsNotification', () => {
-  it('renders children in warning variant', () => {
-    const { getByTestId } = render(
+  it('should render correctly as warning', () => {
+    const { toJSON } = render(
       <SettingsNotification isWarning>
-        <Text testID="settings-notification-label">this is a warning</Text>
+        {'this is a warning'}
       </SettingsNotification>,
     );
-
-    expect(getByTestId('settings-notification-label').props.children).toBe(
-      'this is a warning',
-    );
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders children in notification variant', () => {
-    const { getByTestId } = render(
+  it('should render correctly as notification', () => {
+    const { toJSON } = render(
       <SettingsNotification isWarning isNotification>
-        <Text testID="settings-notification-label">this is a notification</Text>
+        {'this is a notification'}
       </SettingsNotification>,
     );
-
-    expect(getByTestId('settings-notification-label').props.children).toBe(
-      'this is a notification',
-    );
+    expect(toJSON()).toMatchSnapshot();
   });
 });

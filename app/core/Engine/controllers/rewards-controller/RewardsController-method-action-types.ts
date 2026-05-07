@@ -515,19 +515,6 @@ export type RewardsControllerGetOndoCampaignDepositsAction = {
 };
 
 /**
- * Fetch the participant outcome for the current user in a completed Perps Trading campaign.
- * Results are cached for 10 minutes using a private in-memory Map.
- *
- * @param campaignId - The campaign ID.
- * @param subscriptionId - The subscription ID for authentication.
- * @returns The participant outcome DTO, or null if unavailable.
- */
-export type RewardsControllerGetPerpsTradingCampaignParticipantOutcomeAction = {
-  type: `RewardsController:getPerpsTradingCampaignParticipantOutcome`;
-  handler: RewardsController['getPerpsTradingCampaignParticipantOutcome'];
-};
-
-/**
  * Get the current user's position on the campaign leaderboard.
  * This is an authenticated endpoint.
  * Results are cached for 5 minutes.
@@ -716,47 +703,6 @@ export type RewardsControllerInvalidateSubscriptionCacheAction = {
 };
 
 /**
- * Get the perps trading campaign leaderboard.
- * This is a public endpoint - no authentication required.
- * Results are cached for 5 minutes.
- *
- * @param campaignId - The campaign ID to get leaderboard for.
- * @returns The leaderboard entries and metadata.
- */
-export type RewardsControllerGetPerpsTradingCampaignLeaderboardAction = {
-  type: `RewardsController:getPerpsTradingCampaignLeaderboard`;
-  handler: RewardsController['getPerpsTradingCampaignLeaderboard'];
-};
-
-/**
- * Get the current user's position on the perps trading campaign leaderboard.
- * This is an authenticated endpoint.
- * Results are cached for 5 minutes.
- *
- * @param campaignId - The campaign ID to get position for.
- * @param subscriptionId - The subscription ID for authentication.
- * @returns The user's leaderboard position, or null if not found.
- */
-export type RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction =
-  {
-    type: `RewardsController:getPerpsTradingCampaignLeaderboardPosition`;
-    handler: RewardsController['getPerpsTradingCampaignLeaderboardPosition'];
-  };
-
-/**
- * Get the perps trading campaign aggregate volume (public stats).
- * This is a public endpoint - no authentication required.
- * Results are cached for 1 minute.
- *
- * @param campaignId - The campaign ID to get volume for.
- * @returns Current aggregate notional volume for the campaign.
- */
-export type RewardsControllerGetPerpsTradingCampaignVolumeAction = {
-  type: `RewardsController:getPerpsTradingCampaignVolume`;
-  handler: RewardsController['getPerpsTradingCampaignVolume'];
-};
-
-/**
  * Union of all RewardsController action types.
  */
 export type RewardsControllerMethodActions =
@@ -810,7 +756,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetOndoCampaignLeaderboardAction
   | RewardsControllerGetOndoCampaignDepositsAction
-  | RewardsControllerGetPerpsTradingCampaignParticipantOutcomeAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
   | RewardsControllerGetOndoCampaignParticipantOutcomeAction
   | RewardsControllerGetOndoCampaignPortfolioPositionAction
@@ -826,7 +771,4 @@ export type RewardsControllerMethodActions =
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
   | RewardsControllerInvalidateReferralDetailsCacheAction
-  | RewardsControllerInvalidateSubscriptionCacheAction
-  | RewardsControllerGetPerpsTradingCampaignLeaderboardAction
-  | RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction
-  | RewardsControllerGetPerpsTradingCampaignVolumeAction;
+  | RewardsControllerInvalidateSubscriptionCacheAction;

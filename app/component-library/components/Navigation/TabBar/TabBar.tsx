@@ -34,7 +34,6 @@ const FILLED_ICONS: Partial<Record<TabBarIconKey, IconName>> = {
   [TabBarIconKey.Activity]: IconName.ClockFilled,
   [TabBarIconKey.Trending]: IconName.Search,
   [TabBarIconKey.Rewards]: IconName.MetamaskFoxFilled,
-  [TabBarIconKey.Money]: IconName.Bank,
 };
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
@@ -110,11 +109,6 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             break;
           case Routes.TRENDING_VIEW:
             navigation.navigate(Routes.TRENDING_VIEW);
-            break;
-          case Routes.MONEY.HOME:
-            navigation.navigate(Routes.MONEY.ROOT, {
-              screen: Routes.MONEY.HOME,
-            });
             break;
         }
       };

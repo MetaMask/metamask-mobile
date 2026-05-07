@@ -4,11 +4,11 @@ import React, {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { TextVariant } from '@metamask/design-system-react-native';
+import { Box, TextVariant } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import ErrorState from '../../components/ErrorState';
 import ViewMoreCard from '../../components/ViewMoreCard';
@@ -16,14 +16,14 @@ import { SectionRefreshHandle } from '../../types';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MAX_ITEMS_DISPLAYED } from './constants';
 import { useWhatsHappening } from './hooks';
 import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
-import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
+
+const MAX_ITEMS_DISPLAYED = 5;
 
 const CARD_WIDTH = 280;
 const GAP = 12;
@@ -37,10 +37,6 @@ const SKELETON_KEYS = Array.from(
   { length: MAX_ITEMS_DISPLAYED },
   (__, i) => `skeleton-${i}`,
 );
-
-const styles = StyleSheet.create({
-  sectionGap: { gap: 12 },
-});
 
 interface WhatsHappeningSectionProps {
   sectionIndex: number;
@@ -90,11 +86,14 @@ const WhatsHappeningSection = forwardRef<
 
   const navigateToDetail = useCallback(
     (initialIndex: number) => {
+      // TODO: When WhatsHappeningDetailView is implemented, pass only { initialIndex } — the
+      // detail screen should call useWhatsHappening(); AiDigestController caches the response.
       navigation.navigate(Routes.WHATS_HAPPENING_DETAIL, {
+        items,
         initialIndex,
       });
     },
-    [navigation],
+    [navigation, items],
   );
 
   const handleViewAll = useCallback(() => {
@@ -114,20 +113,16 @@ const WhatsHappeningSection = forwardRef<
 
   if (hasError) {
     return (
-      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-        <SectionHeader
-          title={title}
-          onPress={handleViewAll}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-            'whats-happening',
-          )}
-        />
-        <ErrorState
-          title={strings('homepage.error.unable_to_load', {
-            section: title.toLowerCase(),
-          })}
-          onRetry={refresh}
-        />
+      <View ref={sectionViewRef} onLayout={onLayout}>
+        <Box gap={3}>
+          <SectionHeader title={title} onPress={handleViewAll} />
+          <ErrorState
+            title={strings('homepage.error.unable_to_load', {
+              section: title.toLowerCase(),
+            })}
+            onRetry={refresh}
+          />
+        </Box>
       </View>
     );
   }
@@ -137,41 +132,37 @@ const WhatsHappeningSection = forwardRef<
   }
 
   return (
-    <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-      <SectionHeader
-        title={title}
-        onPress={handleViewAll}
-        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-          'whats-happening',
-        )}
-      />
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={tw.style('px-4 gap-3')}
-        snapToOffsets={SNAP_OFFSETS}
-        decelerationRate="fast"
-        testID="homepage-whats-happening-carousel"
-      >
-        {isLoading ? (
-          SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
-        ) : (
-          <>
-            {items.map((item, index) => (
-              <WhatsHappeningCard
-                key={item.id}
-                item={item}
-                onPress={() => handleCardPress(index)}
+    <View ref={sectionViewRef} onLayout={onLayout}>
+      <Box gap={3}>
+        <SectionHeader title={title} onPress={handleViewAll} />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={tw.style('px-4 gap-3')}
+          snapToOffsets={SNAP_OFFSETS}
+          decelerationRate="fast"
+          testID="homepage-whats-happening-carousel"
+        >
+          {isLoading ? (
+            SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
+          ) : (
+            <>
+              {items.map((item, index) => (
+                <WhatsHappeningCard
+                  key={item.id}
+                  item={item}
+                  onPress={() => handleCardPress(index)}
+                />
+              ))}
+              <ViewMoreCard
+                onPress={handleViewAll}
+                twClassName="w-[180px] h-[248px]"
+                textVariant={TextVariant.BodyLg}
               />
-            ))}
-            <ViewMoreCard
-              onPress={handleViewAll}
-              twClassName="w-[180px] h-[254px]"
-              textVariant={TextVariant.BodyLg}
-            />
-          </>
-        )}
-      </ScrollView>
+            </>
+          )}
+        </ScrollView>
+      </Box>
     </View>
   );
 });

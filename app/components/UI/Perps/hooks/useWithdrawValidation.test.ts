@@ -63,8 +63,7 @@ describe('useWithdrawValidation', () => {
     jest.clearAllMocks();
     (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       account: {
-        spendableBalance: '$1000.00',
-        withdrawableBalance: '$1000.00',
+        availableBalance: '$1000.00',
       },
       isInitialLoading: false,
     });
@@ -79,14 +78,14 @@ describe('useWithdrawValidation', () => {
       useWithdrawValidation({ withdrawAmount: '100' }),
     );
 
-    expect(result.current.withdrawableBalance).toBe('1000');
+    expect(result.current.availableBalance).toBe('1000');
   });
 
-  it('uses withdrawableBalance populated by spot fold for Unified Account', () => {
+  it('prefers availableToTradeBalance for Unified Account target state', () => {
     (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       account: {
-        spendableBalance: '$2500.00',
-        withdrawableBalance: '$2500.00',
+        availableBalance: '$0.00',
+        availableToTradeBalance: '$2500.00',
       },
       isInitialLoading: false,
     });
@@ -95,15 +94,14 @@ describe('useWithdrawValidation', () => {
       useWithdrawValidation({ withdrawAmount: '100' }),
     );
 
-    expect(result.current.withdrawableBalance).toBe('2500');
+    expect(result.current.availableBalance).toBe('2500');
     expect(result.current.hasInsufficientBalance).toBe(false);
   });
 
   it('should handle empty balance', () => {
     (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       account: {
-        spendableBalance: null,
-        withdrawableBalance: null,
+        availableBalance: null,
       },
       isInitialLoading: false,
     });
@@ -112,7 +110,7 @@ describe('useWithdrawValidation', () => {
       useWithdrawValidation({ withdrawAmount: '100' }),
     );
 
-    expect(result.current.withdrawableBalance).toBe('0');
+    expect(result.current.availableBalance).toBe('0');
   });
 
   it('should detect insufficient balance', () => {
@@ -126,8 +124,7 @@ describe('useWithdrawValidation', () => {
   it('should truncate available balance to 2 decimal places for validation', () => {
     (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       account: {
-        spendableBalance: '$16.069',
-        withdrawableBalance: '$16.069',
+        availableBalance: '$16.069',
       },
       isInitialLoading: false,
     });
@@ -136,15 +133,14 @@ describe('useWithdrawValidation', () => {
       useWithdrawValidation({ withdrawAmount: '16.06' }),
     );
 
-    expect(result.current.withdrawableBalance).toBe('16.06');
+    expect(result.current.availableBalance).toBe('16.06');
     expect(result.current.hasInsufficientBalance).toBe(false);
   });
 
   it('should show insufficient balance when typing more than truncated balance', () => {
     (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       account: {
-        spendableBalance: '$16.069',
-        withdrawableBalance: '$16.069',
+        availableBalance: '$16.069',
       },
       isInitialLoading: false,
     });

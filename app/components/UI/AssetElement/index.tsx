@@ -1,13 +1,14 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, Platform, View } from 'react-native';
 import {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import SkeletonText from '../Ramp/Aggregator/components/SkeletonText';
 import { TokenI } from '../Tokens/types';
-import { getAssetTestId } from '../../../../tests/selectors/Wallet/WalletView.selectors';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
@@ -112,7 +113,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
       onPress={handleOnPress}
       onLongPress={handleOnLongPress}
       style={styles.itemWrapper}
-      testID={getAssetTestId(asset.symbol)}
+      {...generateTestId(Platform, getAssetTestId(asset.symbol))}
     >
       {children}
       <View style={styles.arrow}>

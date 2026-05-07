@@ -74,18 +74,6 @@ export function getTransactionTypeValue(
     return 'predict_claim';
   }
 
-  if (
-    hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
-  ) {
-    return 'money_account_deposit';
-  }
-
-  if (
-    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
-  ) {
-    return 'money_account_withdraw';
-  }
-
   if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {
     return 'musd_conversion';
   }

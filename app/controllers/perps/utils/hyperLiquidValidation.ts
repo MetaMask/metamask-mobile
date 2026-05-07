@@ -288,30 +288,30 @@ export function validateAssetSupport(
  * Validate balance against withdrawal amount.
  *
  * @param withdrawAmount - The amount to withdraw
- * @param withdrawableBalance - Max USD that can leave the venue right now
+ * @param availableBalance - The available balance
  * @param debugLogger - Optional debug logger for detailed logging
  * @returns Validation result with isValid flag and optional error message
  */
 export function validateBalance(
   withdrawAmount: number,
-  withdrawableBalance: number,
+  availableBalance: number,
   debugLogger?: ValidationDebugLogger,
 ): { isValid: boolean; error?: string } {
   debugLogger?.log('validateBalance: Checking balance sufficiency', {
     withdrawAmount,
-    withdrawableBalance,
-    difference: withdrawableBalance - withdrawAmount,
+    availableBalance,
+    difference: availableBalance - withdrawAmount,
   });
 
-  if (withdrawAmount > withdrawableBalance) {
-    const shortfall = withdrawAmount - withdrawableBalance;
+  if (withdrawAmount > availableBalance) {
+    const shortfall = withdrawAmount - availableBalance;
 
     debugLogger?.log('validateBalance: Insufficient balance', {
       error: PERPS_ERROR_CODES.WITHDRAW_INSUFFICIENT_BALANCE,
       withdrawAmount,
-      withdrawableBalance,
+      availableBalance,
       shortfall,
-      percentageOfAvailable: `${((withdrawAmount / withdrawableBalance) * 100).toFixed(2)}%`,
+      percentageOfAvailable: `${((withdrawAmount / availableBalance) * 100).toFixed(2)}%`,
     });
 
     return {
@@ -320,12 +320,12 @@ export function validateBalance(
     };
   }
 
-  const remainingBalance = withdrawableBalance - withdrawAmount;
+  const remainingBalance = availableBalance - withdrawAmount;
   debugLogger?.log('validateBalance: Balance is sufficient', {
     withdrawAmount,
-    withdrawableBalance,
+    availableBalance,
     remainingBalance,
-    percentageUsed: `${((withdrawAmount / withdrawableBalance) * 100).toFixed(2)}%`,
+    percentageUsed: `${((withdrawAmount / availableBalance) * 100).toFixed(2)}%`,
   });
 
   return { isValid: true };

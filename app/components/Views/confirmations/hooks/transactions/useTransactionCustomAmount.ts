@@ -7,7 +7,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
+import { useUpdateTokenAmount } from './useUpdateTokenAmount';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
@@ -80,7 +80,8 @@ export function useTransactionCustomAmount({
     : payTokenFiatRate;
   const balanceUsd = useTokenBalance(tokenFiatRate);
 
-  const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
+  const { updateTokenAmount: updateTokenAmountCallback } =
+    useUpdateTokenAmount();
 
   const amountFiat = useMemo(() => {
     const targetAmountUsd = totals?.targetAmount.usd;
@@ -205,10 +206,10 @@ export function useTransactionCustomAmount({
     ],
   );
 
-  const updateTokenAmount = useCallback(async () => {
-    await updateTransactionPayAmount(amountHuman);
+  const updateTokenAmount = useCallback(() => {
+    updateTokenAmountCallback(amountHuman);
     setIsTokenAmountUpdated(true);
-  }, [amountHuman, updateTransactionPayAmount]);
+  }, [amountHuman, updateTokenAmountCallback]);
 
   useEffect(() => {
     if (isTokenAmountUpdated && (hasSourceAmount || isPostQuote)) {
@@ -257,8 +258,14 @@ function useTokenBalance(tokenUsdRate: number) {
 
   if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
     const perpsState = Engine.context.PerpsController?.state;
-    const withdrawableBalance = perpsState?.accountState?.withdrawableBalance;
-    return withdrawableBalance ? parseFloat(withdrawableBalance) : 0;
+    // Prefer `availableToTradeBalance` so Unified Account / Portfolio Margin
+    // users see the correct balance behind the percentage buttons. Falls back
+    // to `availableBalance` for Standard-mode accounts where the unified
+    // field isn't populated.
+    const availableBalance =
+      perpsState?.accountState?.availableToTradeBalance ??
+      perpsState?.accountState?.availableBalance;
+    return availableBalance ? parseFloat(availableBalance) : 0;
   }
 
   if (

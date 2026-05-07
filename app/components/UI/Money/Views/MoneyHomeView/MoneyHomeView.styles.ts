@@ -8,7 +8,7 @@ const styleSheet = (params: { theme: Theme }) =>
       backgroundColor: params.theme.colors.background.default,
     },
     scrollContent: {
-      paddingBottom: 40,
+      paddingBottom: 0,
     },
   });
 

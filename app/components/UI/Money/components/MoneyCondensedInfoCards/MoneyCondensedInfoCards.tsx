@@ -15,10 +15,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyCondensedInfoCardsTestIds } from './MoneyCondensedInfoCards.testIds';
-import ethTreeImage from '../../../../../images/eth-tree.png';
-import musdCoinImage from '../../../../../images/musd-icon-no-background-2x.png';
-import purpleOrangeRibbonImage from '../../../../../images/purple-orange-ribbon.png';
-import { Image, ImageProps } from 'expo-image';
 
 interface MoneyCondensedInfoCardsProps {
   onHowItWorksPress?: () => void;
@@ -27,13 +23,13 @@ interface MoneyCondensedInfoCardsProps {
 }
 
 const CondensedCard = ({
-  image,
+  iconName,
   title,
   subtitle,
   onPress,
   testID,
 }: {
-  image: Pick<ImageProps, 'source' | 'style' | 'testID'>;
+  iconName: IconName;
   title: string;
   subtitle: string;
   onPress?: () => void;
@@ -49,19 +45,11 @@ const CondensedCard = ({
         alignItems={BoxAlignItems.Center}
         twClassName="bg-muted rounded-xl size-[78px] justify-center"
       >
-        {image?.source ? (
-          <Image
-            source={image.source}
-            style={image.style}
-            testID={image.testID}
-          />
-        ) : (
-          <Icon
-            name={IconName.Info}
-            size={IconSize.Xl}
-            color={IconColor.IconAlternative}
-          />
-        )}
+        <Icon
+          name={iconName}
+          size={IconSize.Xl}
+          color={IconColor.IconAlternative}
+        />
       </Box>
       <Box twClassName="flex-1 gap-1">
         <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
@@ -89,33 +77,21 @@ const MoneyCondensedInfoCards = ({
     testID={MoneyCondensedInfoCardsTestIds.CONTAINER}
   >
     <CondensedCard
-      image={{
-        source: ethTreeImage,
-        style: { height: 50, width: 64 },
-        testID: MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_IMAGE,
-      }}
+      iconName={IconName.Stake}
       title={strings('money.condensed_cards.how_it_works_title')}
       subtitle={strings('money.condensed_cards.how_it_works_subtitle')}
       onPress={onHowItWorksPress}
       testID={MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_CARD}
     />
     <CondensedCard
-      image={{
-        source: musdCoinImage,
-        style: { height: 50, width: 50 },
-        testID: MoneyCondensedInfoCardsTestIds.MUSD_IMAGE,
-      }}
+      iconName={IconName.Coin}
       title={strings('money.condensed_cards.musd_title')}
       subtitle={strings('money.condensed_cards.musd_subtitle')}
       onPress={onMusdPress}
       testID={MoneyCondensedInfoCardsTestIds.MUSD_CARD}
     />
     <CondensedCard
-      image={{
-        source: purpleOrangeRibbonImage,
-        style: { height: 64, width: 64 },
-        testID: MoneyCondensedInfoCardsTestIds.WHAT_YOU_GET_IMAGE,
-      }}
+      iconName={IconName.SwapHorizontal}
       title={strings('money.condensed_cards.what_you_get_title')}
       subtitle={strings('money.condensed_cards.what_you_get_subtitle')}
       onPress={onWhatYouGetPress}

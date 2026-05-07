@@ -183,8 +183,7 @@ export type PredictSportsLeague =
   | 'bol1'
   | 'itc'
   | 'dfb'
-  | 'cde'
-  | 'fifwc';
+  | 'cde';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';

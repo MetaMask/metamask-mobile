@@ -258,8 +258,6 @@ export class ConnectionRegistry {
         transport_type: TransportType.MWP,
         sdk_version: connReq.metadata.sdk.version,
         sdk_platform: connReq.metadata.sdk.platform,
-        dapp_name: connReq.metadata.dapp.name,
-        dapp_url: connReq.metadata.dapp.url,
       });
 
       // Defense-in-depth: block connections whose self-reported dapp metadata
@@ -307,8 +305,6 @@ export class ConnectionRegistry {
         transport_type: TransportType.MWP,
         sdk_version: connReq?.metadata?.sdk?.version,
         sdk_platform: connReq?.metadata?.sdk?.platform,
-        dapp_name: connReq?.metadata?.dapp?.name,
-        dapp_url: connReq?.metadata?.dapp?.url,
         failure_reason: error instanceof Error ? error.message : String(error),
       });
 

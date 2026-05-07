@@ -87,10 +87,7 @@ export function useTransactionPayMetrics() {
   if (
     payToken &&
     (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit]) ||
-      hasTransactionType(transactionMeta, [TransactionType.predictDeposit]) ||
-      hasTransactionType(transactionMeta, [
-        TransactionType.moneyAccountDeposit,
-      ]))
+      hasTransactionType(transactionMeta, [TransactionType.predictDeposit]))
   ) {
     properties.simulation_sending_assets_total_value = sendingValue;
   }

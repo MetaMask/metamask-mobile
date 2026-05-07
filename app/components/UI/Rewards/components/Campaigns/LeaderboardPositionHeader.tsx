@@ -14,11 +14,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  StatCell,
-  PendingTag,
-  IneligibleTag,
-} from './OndoCampaignStatsSummary';
+import { StatCell, PendingTag, IneligibleTag } from './CampaignStatsSummary';
 import { strings } from '../../../../../../locales/i18n';
 
 export const LEADERBOARD_POSITION_HEADER_TEST_IDS = {
@@ -27,7 +23,6 @@ export const LEADERBOARD_POSITION_HEADER_TEST_IDS = {
   RETURN_VALUE: 'leaderboard-position-header-return',
   TIER_VALUE: 'leaderboard-position-header-tier',
   PRIZE_POOL_VALUE: 'leaderboard-position-header-prize-pool',
-  COMPUTED_AT: 'leaderboard-position-header-computed-at',
   PENDING_TAG: 'leaderboard-position-header-pending-tag',
   INELIGIBLE_TAG: 'leaderboard-position-header-ineligible-tag',
   QUALIFIED_ICON: 'leaderboard-position-header-qualified-icon',
@@ -46,8 +41,6 @@ interface LeaderboardPositionHeaderProps {
   showPrizePool?: boolean;
   prizePoolValue?: string;
   prizePoolLoading?: boolean;
-  showComputedAt?: boolean;
-  computedAt?: string | null;
 }
 
 const LeaderboardPositionHeader: React.FC<LeaderboardPositionHeaderProps> = ({
@@ -65,7 +58,6 @@ const LeaderboardPositionHeader: React.FC<LeaderboardPositionHeaderProps> = ({
   prizePoolLoading = false,
 }) => {
   const tw = useTailwind();
-  const showSubtextRow = showReturn && Boolean(returnValue);
 
   return (
     <Box
@@ -103,12 +95,7 @@ const LeaderboardPositionHeader: React.FC<LeaderboardPositionHeaderProps> = ({
         </Box>
 
         {isLoading ? (
-          <>
-            <Skeleton style={tw.style('h-9 w-28 rounded')} />
-            {showSubtextRow && (
-              <Skeleton style={tw.style('mt-1 h-4 w-full max-w-xs rounded')} />
-            )}
-          </>
+          <Skeleton style={tw.style('h-9 w-28 rounded')} />
         ) : (
           <>
             <Text
@@ -118,25 +105,15 @@ const LeaderboardPositionHeader: React.FC<LeaderboardPositionHeaderProps> = ({
             >
               {rank}
             </Text>
-            {showSubtextRow && (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="mt-1 w-full"
+            {showReturn && returnValue && (
+              <Text
+                variant={TextVariant.BodySm}
+                color={returnColor}
+                fontWeight={FontWeight.Medium}
+                testID={LEADERBOARD_POSITION_HEADER_TEST_IDS.RETURN_VALUE}
               >
-                <Box twClassName="min-w-0 flex-1">
-                  {showReturn && returnValue && (
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={returnColor}
-                      fontWeight={FontWeight.Medium}
-                      testID={LEADERBOARD_POSITION_HEADER_TEST_IDS.RETURN_VALUE}
-                    >
-                      {returnValue}
-                    </Text>
-                  )}
-                </Box>
-              </Box>
+                {returnValue}
+              </Text>
             )}
           </>
         )}

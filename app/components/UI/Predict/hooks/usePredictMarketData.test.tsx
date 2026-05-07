@@ -147,27 +147,6 @@ describe('usePredictMarketData', () => {
     expect(mockGetMarkets).not.toHaveBeenCalled();
   });
 
-  it('marks fetching when enabled becomes true before async fetch settles (no empty flash)', () => {
-    mockGetMarkets.mockImplementation(
-      () =>
-        new Promise<PredictMarket[]>((_resolve) => {
-          /* unresolved until test ends */
-        }),
-    );
-
-    const { result, rerender } = renderHook(
-      ({ enabled }: { enabled: boolean }) => usePredictMarketData({ enabled }),
-      { initialProps: { enabled: false } },
-    );
-
-    expect(result.current.isFetching).toBe(false);
-
-    rerender({ enabled: true });
-
-    expect(result.current.isFetching).toBe(true);
-    expect(result.current.marketData).toEqual([]);
-  });
-
   it('should fetch market data successfully', async () => {
     mockGetMarkets.mockResolvedValue(mockMarketData);
 

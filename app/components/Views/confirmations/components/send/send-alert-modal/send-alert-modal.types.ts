@@ -1,8 +1,7 @@
-import type { SendAlert } from '../../../hooks/send/alerts/types';
-
 export interface SendAlertModalProps {
   isOpen: boolean;
-  alerts: SendAlert[];
+  title: string;
+  errorMessage: string;
   onAcknowledge: () => void;
   onClose: () => void;
 }

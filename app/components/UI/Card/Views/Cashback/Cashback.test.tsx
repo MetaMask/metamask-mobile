@@ -60,7 +60,7 @@ jest.mock('../../../../../util/theme', () => {
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
-      'card.cashback_screen.available_cashback': 'Available mUSD',
+      'card.cashback_screen.available_cashback': 'Available cashback',
       'card.cashback_screen.network_fee': 'Network fee',
       'card.cashback_screen.expected_to_receive': 'Expected to receive',
       'card.cashback_screen.withdraw': 'Withdraw',
@@ -221,7 +221,7 @@ describe('Cashback Component', () => {
       render();
 
       expect(screen.getByTestId(CashbackSelectors.CONTAINER)).toBeOnTheScreen();
-      expect(screen.queryByText('Available mUSD')).toBeOnTheScreen();
+      expect(screen.queryByText('Available cashback')).toBeOnTheScreen();
     });
   });
 

@@ -47,11 +47,7 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 /* eslint-disable-next-line */
 import { NavigationContext } from '@react-navigation/core';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
-import {
-  clearNativeStackNavigatorOptions,
-  clearStackNavigatorOptions,
-  transparentModalScreenOptions,
-} from '../../../../constants/navigation/clearStackNavigatorOptions';
+import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
 const Stack = createNativeStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createStackNavigator();
@@ -77,7 +73,7 @@ function getRedesignedConfirmationsHeaderOptions({
     title: '',
     headerBackVisible: false,
     contentStyle: { backgroundColor: 'transparent' },
-    ...transparentModalScreenOptions,
+    presentation: 'transparentModal',
   };
 }
 
@@ -357,9 +353,9 @@ const PerpsScreenStack = () => {
             name={Routes.PERPS.TPSL}
             component={PerpsTPSLView}
             options={{
-              ...transparentModalScreenOptions,
               title: strings('perps.tpsl.title'),
               headerShown: false,
+              presentation: 'transparentModal',
             }}
           />
 
@@ -415,8 +411,12 @@ const PerpsScreenStack = () => {
             name={Routes.PERPS.MODALS.CLOSE_POSITION_MODALS}
             component={PerpsClosePositionBottomSheetStack}
             options={{
-              ...clearNativeStackNavigatorOptions,
-              ...transparentModalScreenOptions,
+              headerShown: false,
+              contentStyle: {
+                backgroundColor: 'transparent',
+              },
+              animation: 'none',
+              presentation: 'transparentModal',
             }}
           />
 
@@ -425,8 +425,12 @@ const PerpsScreenStack = () => {
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}
             options={{
-              ...clearNativeStackNavigatorOptions,
-              ...transparentModalScreenOptions,
+              headerShown: false,
+              contentStyle: {
+                backgroundColor: 'transparent',
+              },
+              animation: 'none',
+              presentation: 'transparentModal',
             }}
           />
 
@@ -438,7 +442,7 @@ const PerpsScreenStack = () => {
             component={PayWithModal}
             options={{
               headerShown: false,
-              ...transparentModalScreenOptions,
+              presentation: 'transparentModal',
             }}
           />
 

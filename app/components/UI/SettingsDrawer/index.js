@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 import Icon, {
   IconColor,
   IconName,
@@ -54,6 +55,10 @@ const propTypes = {
    */
   description: PropTypes.string,
   /**
+   * Disable bottom border
+   */
+  noBorder: PropTypes.bool,
+  /**
    * Handler called when this drawer is pressed
    */
   onPress: PropTypes.func,
@@ -91,7 +96,7 @@ const SettingsDrawer = ({
   const { colors } = useTheme();
   const styles = createStyles(colors, titleColor);
   return (
-    <TouchableOpacity onPress={onPress} testID={testID}>
+    <TouchableOpacity onPress={onPress} {...generateTestId(Platform, testID)}>
       <ListItem style={styles.root} gap={16}>
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
           <Text variant={TextVariant.BodyLGMedium} color={titleColor}>

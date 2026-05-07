@@ -64,7 +64,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
       decimals: 18,
     },
     network: 'sei-mainnet',
-    explorer: 'https://seiscan.io',
+    explorer: 'https://seitrace.com',
     confirmations: true,
     smartTransactions: false,
     relayTransactions: false,

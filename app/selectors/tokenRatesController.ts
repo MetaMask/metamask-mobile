@@ -5,7 +5,6 @@ import { RootState } from '../reducers';
 import { selectEvmChainId } from './networkController';
 import { Hex } from '@metamask/utils';
 import { createDeepEqualSelector } from './util';
-import { getTokenRatesControllerMarketData } from './assets/assets-migration';
 
 /**
  * utility similar to lodash.mapValues.
@@ -22,28 +21,35 @@ const mapValues = <K extends string, T, U>(
     Object.entries(obj ?? {}).map(([key, value]) => [key, fn(value as T)]),
   ) as Record<K, U>;
 
+const selectTokenRatesControllerState = (state: RootState) =>
+  state.engine.backgroundState.TokenRatesController;
+
 export const selectContractExchangeRates = createSelector(
   selectEvmChainId,
-  getTokenRatesControllerMarketData,
-  (chainId: Hex, marketData: TokenRatesControllerState['marketData']) =>
-    marketData[chainId],
+  selectTokenRatesControllerState,
+  (chainId: Hex, tokenRatesControllerState: TokenRatesControllerState) =>
+    tokenRatesControllerState.marketData[chainId],
 );
 
 export const selectContractExchangeRatesByChainId = createSelector(
-  getTokenRatesControllerMarketData,
+  selectTokenRatesControllerState,
   (_state: RootState, chainId: Hex) => chainId,
-  (marketData: TokenRatesControllerState['marketData'], chainId: Hex) =>
-    marketData[chainId],
+  (tokenRatesControllerState: TokenRatesControllerState, chainId: Hex) =>
+    tokenRatesControllerState.marketData[chainId],
 );
 
-export { getTokenRatesControllerMarketData as selectTokenMarketData };
+export const selectTokenMarketData = createSelector(
+  selectTokenRatesControllerState,
+  (tokenRatesControllerState: TokenRatesControllerState) =>
+    tokenRatesControllerState.marketData,
+);
 
 export function selectPricePercentChange1d(
   state: RootState,
   chainId: Hex,
   tokenAddress: Hex,
 ) {
-  const marketData = getTokenRatesControllerMarketData(state);
+  const marketData = selectTokenMarketData(state);
   const pricePercentage1d: number | undefined =
     marketData?.[chainId]?.[tokenAddress]?.pricePercentChange1d;
   return pricePercentage1d;
@@ -52,7 +58,7 @@ export function selectPricePercentChange1d(
 export const selectSingleTokenPriceMarketData = createSelector(
   [
     (state: RootState, chainId: Hex, tokenAddress: Hex) => {
-      const marketData = getTokenRatesControllerMarketData(state);
+      const marketData = selectTokenMarketData(state);
       const price = marketData?.[chainId]?.[tokenAddress]?.price;
       return price;
     },
@@ -67,7 +73,7 @@ export const selectSingleTokenPriceMarketData = createSelector(
 );
 
 export const selectTokenMarketPriceData = createDeepEqualSelector(
-  [getTokenRatesControllerMarketData],
+  [selectTokenMarketData],
   (marketData) => {
     const marketPriceData = mapValues(marketData, (tokenData) =>
       mapValues(tokenData, (tokenInfo) => ({ price: tokenInfo?.price })),
@@ -78,9 +84,6 @@ export const selectTokenMarketPriceData = createDeepEqualSelector(
 );
 
 export const selectTokenMarketDataByChainId = createSelector(
-  [
-    getTokenRatesControllerMarketData,
-    (_state: RootState, chainId: Hex) => chainId,
-  ],
+  [selectTokenMarketData, (_state: RootState, chainId: Hex) => chainId],
   (marketData, chainId) => marketData?.[chainId] || {},
 );

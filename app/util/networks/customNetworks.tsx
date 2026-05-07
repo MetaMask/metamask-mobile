@@ -159,7 +159,7 @@ export const PopularList = [
     ticker: 'SEI',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://seiscan.io/',
+      blockExplorerUrl: 'https://seitrace.com/',
       imageUrl: 'SEI',
       imageSource: require('../../images/sei.png'),
     },

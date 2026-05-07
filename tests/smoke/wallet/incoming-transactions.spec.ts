@@ -20,8 +20,8 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ToastModal from '../../page-objects/wallet/ToastModal';
 import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import UnifiedTransactionsView from '../../page-objects/Transactions/UnifiedTransactionsView';
-import NetworkManager from '../../page-objects/wallet/NetworkManager';
 
 // EVM-only account tree to prevent Solana snap from fetching live transactions
 const EVM_ONLY_ACCOUNT_TREE = {
@@ -104,15 +104,16 @@ function mockAccountsApi(
   transactions: Record<string, unknown>[] = [],
 ): MockApiEndpoint {
   return {
-    urlEndpoint:
-      /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/transactions(\?.*)?$/,
+    urlEndpoint: new RegExp(
+      `^https://accounts\\.api\\.cx\\.metamask\\.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions\\?.*sortDirection=DESC`,
+    ),
     response: {
       data:
         transactions.length > 0
           ? transactions
           : [RESPONSE_STANDARD_MOCK, RESPONSE_STANDARD_2_MOCK],
       pageInfo: {
-        count: transactions.length || 2,
+        count: 2,
         hasNextPage: false,
       },
     },
@@ -124,17 +125,17 @@ function createAccountsTestSpecificMock(
   transactions: Record<string, unknown>[] = [],
 ): TestSpecificMock {
   return async (mockServer: Mockttp) => {
+    await setupRemoteFeatureFlagsMock(mockServer, {
+      homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
+      homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
+    });
     const mock = mockAccountsApi(transactions);
-    await setupMockRequest(
-      mockServer,
-      {
-        requestMethod: 'GET',
-        url: mock.urlEndpoint,
-        response: mock.response,
-        responseCode: mock.responseCode,
-      },
-      1000,
-    );
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: mock.urlEndpoint,
+      response: mock.response,
+      responseCode: mock.responseCode,
+    });
   };
 }
 
@@ -187,17 +188,10 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       {
         fixture,
         restartDevice: true,
-        testSpecificMock: createAccountsTestSpecificMock([
-          RESPONSE_STANDARD_MOCK,
-        ]),
+        testSpecificMock: createAccountsTestSpecificMock(),
       },
       async () => {
         await loginToApp();
-        await NetworkManager.navigateToTokensFullView();
-        await NetworkManager.openNetworkManager();
-        await NetworkManager.tapSelectAllPopularNetworks();
-        await NetworkManager.navigateBackFromTokensFullView();
-
         await TabBarComponent.tapActivity();
         await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextDisplayed('Received ETH');
@@ -255,11 +249,6 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       },
       async () => {
         await loginToApp();
-        await NetworkManager.navigateToTokensFullView();
-        await NetworkManager.openNetworkManager();
-        await NetworkManager.tapSelectAllPopularNetworks();
-        await NetworkManager.navigateBackFromTokensFullView();
-
         await TabBarComponent.tapActivity();
         await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextDisplayed('Sent ETH');
@@ -267,7 +256,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     );
   });
 
-  it.skip('displays nothing if privacyMode is enabled', async () => {
+  it('displays nothing if privacyMode is enabled', async () => {
     const fixture = new FixtureBuilder()
       .withAccountTreeController(
         EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
@@ -285,11 +274,6 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       },
       async () => {
         await loginToApp();
-        await NetworkManager.navigateToTokensFullView();
-        await NetworkManager.openNetworkManager();
-        await NetworkManager.tapSelectAllPopularNetworks();
-        await NetworkManager.navigateBackFromTokensFullView();
-
         await TabBarComponent.tapActivity();
         await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextNotDisplayed('Received ETH');

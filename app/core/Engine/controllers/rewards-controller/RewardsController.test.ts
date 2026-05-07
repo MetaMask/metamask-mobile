@@ -16124,9 +16124,6 @@ describe('RewardsController', () => {
       ondoCampaignLeaderboard: {},
       ondoCampaignLeaderboardPositions: {},
       ondoCampaignPortfolio: {},
-      perpsTradingCampaignLeaderboard: {},
-      perpsTradingCampaignLeaderboardPositions: {},
-      perpsTradingCampaignVolume: {},
       pointsEstimateHistory: [],
       pointsEvents: {},
       seasonStatuses: {},
@@ -16153,9 +16150,6 @@ describe('RewardsController', () => {
       ondoCampaignLeaderboard: {},
       ondoCampaignLeaderboardPositions: {},
       ondoCampaignPortfolio: {},
-      perpsTradingCampaignLeaderboard: {},
-      perpsTradingCampaignLeaderboardPositions: {},
-      perpsTradingCampaignVolume: {},
       pointsEstimateHistory: [],
       pointsEvents: {},
       rewardsEnvUrl: null,
@@ -16187,9 +16181,6 @@ describe('RewardsController', () => {
       ondoCampaignLeaderboard: {},
       ondoCampaignLeaderboardPositions: {},
       ondoCampaignPortfolio: {},
-      perpsTradingCampaignLeaderboard: {},
-      perpsTradingCampaignLeaderboardPositions: {},
-      perpsTradingCampaignVolume: {},
       pointsEvents: {},
       rewardsEnvUrl: null,
       seasonStatuses: {},
@@ -20486,161 +20477,6 @@ describe('RewardsController', () => {
 
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching Ondo campaign participant outcome',
-      );
-    });
-  });
-
-  describe('getPerpsTradingCampaignParticipantOutcome', () => {
-    let perpsParticipantOutcomeMessenger: jest.Mocked<RewardsControllerMessenger>;
-    const mockCampaignId = 'perps-outcome-campaign-1';
-    const mockSubscriptionId = 'sub-perps-outcome-1';
-    const mockOutcome = {
-      subscriptionId: mockSubscriptionId,
-      outcomeStatus: 'pending' as const,
-      winnerVerificationCode: 'VERIFY-123',
-      rank: 1,
-    };
-
-    beforeEach(() => {
-      perpsParticipantOutcomeMessenger = {
-        subscribe: jest.fn(),
-        call: jest.fn(),
-        registerActionHandler: jest.fn(),
-        registerMethodActionHandlers: jest.fn(),
-        unregisterActionHandler: jest.fn(),
-        publish: jest.fn(),
-        clearEventSubscriptions: jest.fn(),
-        registerInitialEventPayload: jest.fn(),
-        unsubscribe: jest.fn(),
-      } as unknown as jest.Mocked<RewardsControllerMessenger>;
-    });
-
-    it('returns null when rewards feature flag is disabled', async () => {
-      const disabledController = new RewardsController({
-        messenger: perpsParticipantOutcomeMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-      });
-
-      const result =
-        await disabledController.getPerpsTradingCampaignParticipantOutcome(
-          mockCampaignId,
-          mockSubscriptionId,
-        );
-
-      expect(result).toBeNull();
-      expect(perpsParticipantOutcomeMessenger.call).not.toHaveBeenCalled();
-    });
-
-    it('fetches outcome from API and caches result', async () => {
-      const ctrl = new RewardsController({
-        messenger: perpsParticipantOutcomeMessenger,
-        state: getRewardsControllerDefaultState(),
-      });
-
-      perpsParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
-
-      const result = await ctrl.getPerpsTradingCampaignParticipantOutcome(
-        mockCampaignId,
-        mockSubscriptionId,
-      );
-
-      expect(perpsParticipantOutcomeMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getPerpsTradingCampaignParticipantOutcome',
-        mockCampaignId,
-        mockSubscriptionId,
-      );
-      expect(result).toEqual(mockOutcome);
-    });
-
-    it('returns cached outcome on second call within TTL', async () => {
-      const ctrl = new RewardsController({
-        messenger: perpsParticipantOutcomeMessenger,
-        state: getRewardsControllerDefaultState(),
-      });
-
-      perpsParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
-
-      await ctrl.getPerpsTradingCampaignParticipantOutcome(
-        mockCampaignId,
-        mockSubscriptionId,
-      );
-
-      perpsParticipantOutcomeMessenger.call.mockClear();
-
-      const result = await ctrl.getPerpsTradingCampaignParticipantOutcome(
-        mockCampaignId,
-        mockSubscriptionId,
-      );
-
-      expect(result).toEqual(mockOutcome);
-      expect(perpsParticipantOutcomeMessenger.call).not.toHaveBeenCalled();
-    });
-
-    it('returns null when API returns null and does not cache', async () => {
-      const ctrl = new RewardsController({
-        messenger: perpsParticipantOutcomeMessenger,
-        state: getRewardsControllerDefaultState(),
-      });
-
-      perpsParticipantOutcomeMessenger.call.mockResolvedValue(null);
-
-      const result = await ctrl.getPerpsTradingCampaignParticipantOutcome(
-        mockCampaignId,
-        mockSubscriptionId,
-      );
-
-      expect(result).toBeNull();
-
-      perpsParticipantOutcomeMessenger.call.mockClear();
-      perpsParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
-      const second = await ctrl.getPerpsTradingCampaignParticipantOutcome(
-        mockCampaignId,
-        mockSubscriptionId,
-      );
-      expect(perpsParticipantOutcomeMessenger.call).toHaveBeenCalledTimes(1);
-      expect(second).toEqual(mockOutcome);
-    });
-
-    it('returns null and logs on API error', async () => {
-      const ctrl = new RewardsController({
-        messenger: perpsParticipantOutcomeMessenger,
-        state: getRewardsControllerDefaultState(),
-      });
-
-      perpsParticipantOutcomeMessenger.call.mockRejectedValue(
-        new Error('Perps API error'),
-      );
-      mockLogger.error.mockClear();
-
-      const result = await ctrl.getPerpsTradingCampaignParticipantOutcome(
-        mockCampaignId,
-        mockSubscriptionId,
-      );
-
-      expect(result).toBeNull();
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        'RewardsController: Failed to fetch Perps Trading participant outcome',
-      );
-    });
-
-    it('logs when fetching fresh outcome', async () => {
-      const ctrl = new RewardsController({
-        messenger: perpsParticipantOutcomeMessenger,
-        state: getRewardsControllerDefaultState(),
-      });
-
-      perpsParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
-      mockLogger.log.mockClear();
-
-      await ctrl.getPerpsTradingCampaignParticipantOutcome(
-        mockCampaignId,
-        mockSubscriptionId,
-      );
-
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Fetching Perps Trading campaign participant outcome',
       );
     });
   });

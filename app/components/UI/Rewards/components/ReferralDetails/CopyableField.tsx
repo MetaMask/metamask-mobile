@@ -14,7 +14,7 @@ import {
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 
 interface CopyableFieldProps {
-  label?: string;
+  label: string;
   value?: string | null;
   onCopy?: () => void;
   valueLoading?: boolean;
@@ -40,11 +40,9 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
 
   return (
     <Box twClassName="flex-col gap-1">
-      {label && (
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {label}
-        </Text>
-      )}
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        {label}
+      </Text>
       <Box
         twClassName="flex-1 bg-muted rounded-lg px-4 py-1 border border-solid border-muted"
         flexDirection={BoxFlexDirection.Row}

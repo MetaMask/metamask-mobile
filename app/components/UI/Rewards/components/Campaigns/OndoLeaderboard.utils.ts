@@ -1,12 +1,11 @@
 import { strings } from '../../../../../../locales/i18n';
-import type {
-  CampaignLeaderboardEntry,
-  CampaignLeaderboardPositionDto,
-  OndoCampaignTier,
-} from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type { OndoCampaignTier } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 // Re-export shared helpers so existing consumers keep working
-export { formatPercentChange as formatRateOfReturn } from '../../utils/formatUtils';
+export {
+  formatPercentChange as formatRateOfReturn,
+  formatComputedAt,
+} from '../../utils/formatUtils';
 
 // ── Tier display names ──────────────────────────────────────────────────
 
@@ -24,28 +23,6 @@ export const formatTierDisplayName = (tier: string): string => {
   const key = TIER_I18N_KEYS[tier.toUpperCase()];
   return key ? strings(key) : tier;
 };
-
-export const getCampaignTierNames = (
-  campaign:
-    | { details?: { tiers?: OndoCampaignTier[] } | null }
-    | null
-    | undefined,
-): string[] => campaign?.details?.tiers?.map((t) => t.name) ?? [];
-
-export const buildLeaderboardUserPosition = (
-  position: CampaignLeaderboardPositionDto | null,
-): {
-  projectedTier: string;
-  rank: number;
-  neighbors: CampaignLeaderboardEntry[];
-} | null =>
-  position
-    ? {
-        projectedTier: position.projectedTier,
-        rank: position.rank,
-        neighbors: position.neighbors,
-      }
-    : null;
 
 /**
  * Looks up the minNetDeposit for a tier from campaign config tiers.

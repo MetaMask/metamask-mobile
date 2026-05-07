@@ -4,8 +4,7 @@ import {
   type CampaignDto,
   type CampaignStatus,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import I18n, { strings } from '../../../../../../locales/i18n';
-import { getIntlDateTimeFormatter } from '../../../../../util/intl';
+import { strings } from '../../../../../../locales/i18n';
 
 /**
  * Set of campaign types that have full UI support (details view, opt-in, etc.)
@@ -13,7 +12,6 @@ import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 const SUPPORTED_CAMPAIGN_TYPES = new Set<CampaignType>([
   CampaignType.ONDO_HOLDING,
   CampaignType.SEASON_1,
-  CampaignType.PERPS_TRADING,
 ]);
 
 /**
@@ -54,18 +52,32 @@ export function getCampaignStatus(campaign: CampaignDto): CampaignStatus {
   return 'complete';
 }
 
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
 /**
- * Formats a date for display in campaign tiles (localized month and day).
+ * Formats a date for display in campaign tiles.
  *
  * @param date - The date to format
- * @param locale - BCP 47 locale; defaults to the app locale
- * @returns Formatted date string (e.g., "March 15" in en-US)
+ * @returns Formatted date string (e.g., "March 15")
  */
-function formatCampaignDate(date: Date, locale: string = I18n.locale): string {
-  return getIntlDateTimeFormatter(locale, {
-    month: 'long',
-    day: 'numeric',
-  }).format(date);
+function formatCampaignDate(date: Date): string {
+  const month = MONTHS[date.getMonth()];
+  const day = date.getDate();
+
+  return `${month} ${day}`;
 }
 
 /**

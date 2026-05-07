@@ -61,10 +61,6 @@ export const useBridgeQuoteData = ({
   const [blockaidError, setBlockaidError] = useState<string | null>(null);
   // Ref to track the current validation ID to prevent race conditions
   const currentValidationIdRef = useRef<number>(0);
-  const lastValidatedQuoteRef = useRef<{
-    requestId: string;
-    validateBridgeTx: typeof validateBridgeTx;
-  } | null>(null);
 
   const {
     quoteFetchError,
@@ -283,71 +279,49 @@ export const useBridgeQuoteData = ({
   );
 
   const validateQuote = useCallback(async () => {
-    if (!activeQuote || (!isSolanaSwap && !isSolanaToNonSolana)) {
-      lastValidatedQuoteRef.current = null;
-      setBlockaidError(null);
-      return;
-    }
-
-    const activeQuoteRequestId = activeQuote.quote.requestId;
-    const hasValidatedCurrentQuote =
-      lastValidatedQuoteRef.current?.requestId === activeQuoteRequestId &&
-      lastValidatedQuoteRef.current?.validateBridgeTx === validateBridgeTx;
-
-    if (hasValidatedCurrentQuote) {
-      return;
-    }
-
-    lastValidatedQuoteRef.current = {
-      requestId: activeQuoteRequestId,
-      validateBridgeTx,
-    };
-
     // Increment validation ID for this request
     const validationId = ++currentValidationIdRef.current;
     // Cancel any ongoing request
     abortController.current?.abort();
     abortController.current = new AbortController();
 
-    try {
-      const validationResult = await validateBridgeTx({
-        quoteResponse: activeQuote,
-        signal: abortController.current?.signal,
-      });
+    if (activeQuote && (isSolanaSwap || isSolanaToNonSolana)) {
+      try {
+        const validationResult = await validateBridgeTx({
+          quoteResponse: activeQuote,
+          signal: abortController.current?.signal,
+        });
 
-      // Check if this is still the current validation after async operation
-      if (validationId !== currentValidationIdRef.current) {
-        // This validation is outdated, ignore the result
-        return;
-      }
+        // Check if this is still the current validation after async operation
+        if (validationId !== currentValidationIdRef.current) {
+          // This validation is outdated, ignore the result
+          return;
+        }
 
-      if (validationResult.status === 'ERROR') {
-        const isValidationError = !!validationResult.result.validation.reason;
-        const { error_details } = validationResult;
-        const fallbackErrorMessage = isValidationError
-          ? validationResult.result.validation.reason
-          : validationResult.error;
-        const error = error_details?.message
-          ? `The ${error_details.message}.`
-          : fallbackErrorMessage;
-        setBlockaidError(error);
-      } else {
+        if (validationResult.status === 'ERROR') {
+          const isValidationError = !!validationResult.result.validation.reason;
+          const { error_details } = validationResult;
+          const fallbackErrorMessage = isValidationError
+            ? validationResult.result.validation.reason
+            : validationResult.error;
+          const error = error_details?.message
+            ? `The ${error_details.message}.`
+            : fallbackErrorMessage;
+          setBlockaidError(error);
+        } else {
+          setBlockaidError(null);
+        }
+      } catch (error) {
+        // Check if this is still the current validation after async operation
+        if (validationId !== currentValidationIdRef.current) {
+          // This validation is outdated, ignore the result
+          return;
+        }
+
+        console.error('Swaps Quote Data Validation error:', error);
         setBlockaidError(null);
       }
-    } catch (error) {
-      // Check if this is still the current validation after async operation
-      if (validationId !== currentValidationIdRef.current) {
-        // This validation is outdated, ignore the result
-        return;
-      }
-
-      console.error('Swaps Quote Data Validation error:', error);
-      if (
-        lastValidatedQuoteRef.current?.requestId === activeQuoteRequestId &&
-        lastValidatedQuoteRef.current?.validateBridgeTx === validateBridgeTx
-      ) {
-        lastValidatedQuoteRef.current = null;
-      }
+    } else {
       setBlockaidError(null);
     }
   }, [activeQuote, isSolanaSwap, isSolanaToNonSolana, validateBridgeTx]);
@@ -362,7 +336,7 @@ export const useBridgeQuoteData = ({
     }
   }, [manuallySelectedQuote, dispatch]);
 
-  const returnValue = {
+  return {
     bestQuote,
     quoteFetchError,
     activeQuote,
@@ -380,6 +354,4 @@ export const useBridgeQuoteData = ({
     isActiveQuoteForCurrentTokenPair:
       isQuoteSourceTokenMatch && isQuoteDestTokenMatch,
   };
-
-  return returnValue;
 };

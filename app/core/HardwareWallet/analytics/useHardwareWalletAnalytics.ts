@@ -12,7 +12,6 @@ import {
   getErrorTypeFromConnectionState,
   getAnalyticsDeviceType,
   getErrorDetails,
-  getQrHardwareScanErrorAnalyticsProperties,
   type ErrorDetails,
 } from './helpers';
 
@@ -60,7 +59,6 @@ export function useHardwareWalletAnalytics({
     error_code: '',
     error_message: '',
   });
-  const lastQrScanAnalyticsRef = useRef<Record<string, string | boolean>>({});
   const prevStatusRef = useRef<ConnectionStatus>(ConnectionStatus.Disconnected);
 
   const resetAnalyticsState = useCallback(() => {
@@ -68,7 +66,6 @@ export function useHardwareWalletAnalytics({
     lastErrorTypeRef.current = null;
     lastErrorTypeViewCountRef.current = 0;
     lastErrorDetailsRef.current = { error_code: '', error_message: '' };
-    lastQrScanAnalyticsRef.current = {};
   }, []);
 
   useEffect(() => {
@@ -93,9 +90,6 @@ export function useHardwareWalletAnalytics({
       viewCountsRef.current.set(errorType, newCount);
 
       const errorDetails = getErrorDetails(connectionState);
-      const qrScanAnalytics =
-        getQrHardwareScanErrorAnalyticsProperties(connectionState);
-      lastQrScanAnalyticsRef.current = qrScanAnalytics;
 
       lastErrorTypeRef.current = errorType;
       lastErrorTypeViewCountRef.current = newCount;
@@ -113,7 +107,6 @@ export function useHardwareWalletAnalytics({
             error_type_view_count: newCount,
             error_code: errorDetails.error_code,
             error_message: errorDetails.error_message,
-            ...qrScanAnalytics,
           })
           .build(),
       );
@@ -135,7 +128,6 @@ export function useHardwareWalletAnalytics({
               error_type_view_count: lastErrorTypeViewCountRef.current,
               error_code: lastErrorDetailsRef.current.error_code,
               error_message: lastErrorDetailsRef.current.error_message,
-              ...lastQrScanAnalyticsRef.current,
             }),
           })
           .build(),
@@ -158,8 +150,6 @@ export function useHardwareWalletAnalytics({
     if (!errorType) return;
 
     const errorDetails = getErrorDetails(connectionState);
-    const qrScanAnalytics =
-      getQrHardwareScanErrorAnalyticsProperties(connectionState);
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_CTA_CLICKED)
@@ -171,7 +161,6 @@ export function useHardwareWalletAnalytics({
           error_type_view_count: viewCountsRef.current.get(errorType) ?? 1,
           error_code: errorDetails.error_code,
           error_message: errorDetails.error_message,
-          ...qrScanAnalytics,
         })
         .build(),
     );

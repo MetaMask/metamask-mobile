@@ -27,7 +27,6 @@ import {
   selectInternalEvmAccounts,
   selectInternalAccountsByScope,
   selectInternalAccountByAddresses,
-  selectEvmAddress,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -765,24 +764,6 @@ describe('selectInternalEvmAccounts', () => {
     } as RootState);
 
     expect(result).toHaveLength(4);
-  });
-});
-
-describe('selectEvmAddress', () => {
-  it('returns selected EVM account address', () => {
-    const state = getStateWithAccount(internalAccount1);
-
-    const result = selectEvmAddress(state);
-
-    expect(result).toBe(internalAccount1.address);
-  });
-
-  it('returns undefined when selected account is not EVM', () => {
-    const state = getStateWithAccount(internalSolanaAccount1);
-
-    const result = selectEvmAddress(state);
-
-    expect(result).toBeUndefined();
   });
 });
 

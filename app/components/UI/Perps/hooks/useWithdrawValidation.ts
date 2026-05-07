@@ -28,9 +28,12 @@ export const useWithdrawValidation = ({
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
 
-  // Truncate to 2 decimal places so validation matches the displayed balance.
-  const withdrawableBalance = useMemo(() => {
-    const balance = account?.withdrawableBalance || '0';
+  // Release-branch bridge for Unified Account: availableToTradeBalance includes
+  // collateral HL can use in target mode. The full balance contract will replace
+  // this with an explicit withdrawableBalance field.
+  const availableBalance = useMemo(() => {
+    const balance =
+      account?.availableToTradeBalance ?? account?.availableBalance ?? '0';
     return truncateToTwoDecimals(parseCurrencyString(balance)).toString();
   }, [account]);
 
@@ -49,11 +52,11 @@ export const useWithdrawValidation = ({
 
   // Validation checks
   const hasInsufficientBalance = useMemo(() => {
-    if (!withdrawAmount || !withdrawableBalance) return false;
+    if (!withdrawAmount || !availableBalance) return false;
     return (
-      Number.parseFloat(withdrawAmount) > Number.parseFloat(withdrawableBalance)
+      Number.parseFloat(withdrawAmount) > Number.parseFloat(availableBalance)
     );
-  }, [withdrawAmount, withdrawableBalance]);
+  }, [withdrawAmount, availableBalance]);
 
   const isBelowMinimum = useMemo(() => {
     if (!withdrawAmount) return false;
@@ -92,7 +95,7 @@ export const useWithdrawValidation = ({
     );
 
   return {
-    withdrawableBalance,
+    availableBalance,
     withdrawalRoute,
     hasInsufficientBalance,
     isBelowMinimum,

@@ -1,12 +1,10 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import React from 'react';
-import { View } from 'react-native';
 import Main from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 
 const mockReact = React;
-const mockView = View;
 
 // Mock Ramp SDK dependencies to prevent SdkEnvironment.Production errors
 jest.mock('../../../components/UI/Ramp', () => ({
@@ -32,8 +30,7 @@ jest.mock('react-native-device-info', () => ({
 
 // Mock heavy child components to avoid deep dependency issues
 jest.mock('./MainNavigator', () => {
-  const MockMainNavigator = () =>
-    mockReact.createElement(mockView, { testID: 'mocked-main-navigator' });
+  const MockMainNavigator = () => mockReact.createElement('MainNavigatorMock');
   MockMainNavigator.router = {};
   return {
     __esModule: true,
@@ -116,8 +113,8 @@ describe('Main', () => {
     jest.clearAllMocks();
   });
 
-  it('mounts the main flow with mocked navigator and shell components', () => {
-    const { getByTestId } = renderWithProvider(<Main />, {
+  it('should render correctly', () => {
+    const { toJSON } = renderWithProvider(<Main />, {
       state: {
         ...initialRootState,
         user: {
@@ -126,7 +123,19 @@ describe('Main', () => {
         },
       },
     });
+    expect(toJSON()).toMatchSnapshot();
+  });
 
-    expect(getByTestId('mocked-main-navigator')).toBeOnTheScreen();
+  it('should render correctly with isConnectionRemoved true', () => {
+    const { toJSON } = renderWithProvider(<Main />, {
+      state: {
+        ...initialRootState,
+        user: {
+          ...initialRootState.user,
+          isConnectionRemoved: true,
+        },
+      },
+    });
+    expect(toJSON()).toMatchSnapshot();
   });
 });

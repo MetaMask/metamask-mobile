@@ -11,7 +11,6 @@ import {
   parseAccountGroupId,
 } from '@metamask/account-api';
 import { AccountId } from '@metamask/accounts-controller';
-import { isEvmAccountType } from '@metamask/keyring-api';
 import {
   AccountWalletObject,
   AccountGroupObject,
@@ -418,18 +417,6 @@ export const selectSelectedAccountGroupInternalAccounts = createSelector(
 
     return (group?.accounts ?? EMPTY_ARR) as readonly InternalAccount[];
   },
-);
-
-/**
- * Selector to get the EVM internal account (if any) from the currently selected account group.
- *
- * @param state - The Redux root state
- * @returns The EVM internal account if any, null otherwise.
- */
-export const selectSelectedAccountGroupEvmInternalAccount = createSelector(
-  selectSelectedAccountGroupInternalAccounts,
-  (accounts): InternalAccount | null =>
-    accounts.find((account) => isEvmAccountType(account.type)) ?? null,
 );
 
 /**

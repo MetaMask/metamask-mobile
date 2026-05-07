@@ -2,11 +2,11 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector, useDispatch } from 'react-redux';
 import { useGetOndoLeaderboardPosition } from './useGetOndoLeaderboardPosition';
 import Engine from '../../../../core/Engine';
-import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import {
+  selectRewardsSubscriptionId,
   selectCampaignParticipantOptedIn,
-  selectOndoCampaignLeaderboardPositionById,
-} from '../../../../reducers/rewards/selectors';
+} from '../../../../selectors/rewards';
+import { selectOndoCampaignLeaderboardPositionById } from '../../../../reducers/rewards/selectors';
 import { setOndoCampaignLeaderboardPosition } from '../../../../reducers/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import type { CampaignLeaderboardPositionDto } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -26,10 +26,10 @@ jest.mock('./useInvalidateByRewardEvents', () => ({
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
+  selectCampaignParticipantOptedIn: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
-  selectCampaignParticipantOptedIn: jest.fn(),
   selectOndoCampaignLeaderboardPositionById: jest.fn(),
 }));
 
@@ -83,18 +83,16 @@ interface SelectorState {
 function setupSelectors(state: SelectorState) {
   const isOptedIn = state.isOptedIn ?? true;
   const mockPositionSelector = jest.fn().mockReturnValue(state.position);
-  const mockParticipantOptedInSelector = jest.fn().mockReturnValue(isOptedIn);
+  const mockOptedInSelector = jest.fn().mockReturnValue(isOptedIn);
   mockSelectCampaignLeaderboardPositionById.mockReturnValue(
     mockPositionSelector,
   );
-  mockSelectCampaignParticipantOptedIn.mockReturnValue(
-    mockParticipantOptedInSelector,
-  );
+  mockSelectCampaignParticipantOptedIn.mockReturnValue(mockOptedInSelector);
 
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectRewardsSubscriptionId) return state.subscriptionId;
     if (selector === mockPositionSelector) return state.position;
-    if (selector === mockParticipantOptedInSelector) return isOptedIn;
+    if (selector === mockOptedInSelector) return isOptedIn;
     return undefined;
   });
 }

@@ -8,6 +8,7 @@ import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import Engine from '../../../../core/Engine';
+import { balanceToFiatNumber } from '../../../../util/number';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { TokenI } from '../../Tokens/types';
 import { MarketDataDetails } from '@metamask/assets-controllers';
@@ -16,7 +17,6 @@ import I18n from '../../../../../locales/i18n';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { CARD_CHAIN_IDS } from '../constants';
-import { balanceToFiatNumber } from '../../../../util/number/bigint';
 
 const extractTrailingCurrencyCode = (value: string): string | undefined => {
   const match = value.trim().match(/([A-Za-z]{3})$/);

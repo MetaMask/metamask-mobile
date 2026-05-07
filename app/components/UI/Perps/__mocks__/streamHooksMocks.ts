@@ -16,8 +16,7 @@ import {
  * Default mock account state for testing
  */
 export const defaultMockAccountState: AccountState = {
-  spendableBalance: '1000.50',
-  withdrawableBalance: '1000.50',
+  availableBalance: '1000.50',
   totalBalance: '1500.00',
   marginUsed: '500.00',
   unrealizedPnl: '25.50',

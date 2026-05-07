@@ -1,15 +1,15 @@
 import React, { useMemo, useCallback, useState } from 'react';
-import { Linking, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import {
   HardwareWalletError,
   HardwareWalletType,
 } from '@metamask/hw-wallet-sdk';
 
-import {
-  Button,
-  ButtonVariant,
+import Button, {
+  ButtonVariants,
   ButtonSize,
-} from '@metamask/design-system-react-native';
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
@@ -26,8 +26,6 @@ import {
   getIconColorForErrorCode,
   getTitleForErrorCode,
   getRecoveryActionForErrorCode,
-  getQRHardwareScanErrorTitle,
-  isQRHardwareScanError,
   RecoveryAction,
 } from '../../../errors';
 import { ContentLayout } from './ContentLayout';
@@ -38,11 +36,6 @@ export const ERROR_CONTENT_TITLE_TEST_ID = 'error-content-title';
 export const ERROR_CONTENT_MESSAGE_TEST_ID = 'error-content-message';
 export const ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID =
   'error-content-continue-button';
-export const ERROR_CONTENT_LEARN_MORE_BUTTON_TEST_ID =
-  'error-content-learn-more-button';
-
-const QR_HARDWARE_LEARN_MORE_URL =
-  'https://support.metamask.io/more-web3/wallets/hardware-wallet-hub/#qr-codean-gapped-wallets';
 
 const styles = StyleSheet.create({
   message: {
@@ -83,49 +76,19 @@ export const ErrorContent: React.FC<ErrorContentProps> = ({
     return getRecoveryActionForErrorCode(error.code);
   }, [error]);
 
-  const isQrScanError = useMemo(
-    () => Boolean(error && isQRHardwareScanError(error)),
-    [error],
-  );
-
   const showLoading =
-    !isQrScanError &&
-    recoveryAction === RecoveryAction.RETRY &&
-    (isLoading || isRetrying);
+    recoveryAction === RecoveryAction.RETRY && (isLoading || isRetrying);
 
   const errorTitle = useMemo(() => {
     if (!error) return strings('hardware_wallet.error.something_went_wrong');
-    if (isQRHardwareScanError(error)) {
-      return getQRHardwareScanErrorTitle(error);
-    }
     return getTitleForErrorCode(error.code, deviceType);
   }, [error, deviceType]);
 
   const errorMessage = useMemo(() => error?.userMessage ?? null, [error]);
 
-  const buttonLabel = useMemo(() => {
-    if (isQrScanError) {
-      return strings('hardware_wallet.common.try_again');
-    }
-    if (recoveryAction === RecoveryAction.OPEN_SETTINGS) {
-      return strings('hardware_wallet.error.view_settings');
-    }
-    return strings('hardware_wallet.common.continue');
-  }, [isQrScanError, recoveryAction]);
-
   const handleContinue = useCallback(async () => {
-    if (isQrScanError) {
-      await onContinue?.();
-      return;
-    }
-
     if (recoveryAction === RecoveryAction.ACKNOWLEDGE) {
       onDismiss?.();
-      return;
-    }
-
-    if (recoveryAction === RecoveryAction.OPEN_SETTINGS) {
-      await Linking.openSettings();
       return;
     }
 
@@ -137,11 +100,7 @@ export const ErrorContent: React.FC<ErrorContentProps> = ({
     } finally {
       setIsRetrying(false);
     }
-  }, [isQrScanError, onContinue, onDismiss, recoveryAction, showLoading]);
-
-  const handleLearnMore = useCallback(async () => {
-    await Linking.openURL(QR_HARDWARE_LEARN_MORE_URL);
-  }, []);
+  }, [onContinue, onDismiss, recoveryAction, showLoading]);
 
   if (!error) {
     return null;
@@ -152,14 +111,12 @@ export const ErrorContent: React.FC<ErrorContentProps> = ({
       testID={ERROR_CONTENT_TEST_ID}
       titleTestID={ERROR_CONTENT_TITLE_TEST_ID}
       icon={
-        isQrScanError ? undefined : (
-          <Icon
-            testID={ERROR_CONTENT_ICON_TEST_ID}
-            name={getIconForErrorCode(error.code)}
-            size={IconSize.Xl}
-            color={getIconColorForErrorCode(error.code)}
-          />
-        )
+        <Icon
+          testID={ERROR_CONTENT_ICON_TEST_ID}
+          name={getIconForErrorCode(error.code)}
+          size={IconSize.Xl}
+          color={getIconColorForErrorCode(error.code)}
+        />
       }
       title={errorTitle}
       body={
@@ -175,30 +132,16 @@ export const ErrorContent: React.FC<ErrorContentProps> = ({
         ) : undefined
       }
       footer={
-        <>
-          {isQrScanError ? (
-            <Button
-              testID={ERROR_CONTENT_LEARN_MORE_BUTTON_TEST_ID}
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={handleLearnMore}
-            >
-              {strings('hardware_wallet.common.learn_more')}
-            </Button>
-          ) : null}
-          <Button
-            testID={ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID}
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleContinue}
-            isDisabled={showLoading}
-            isLoading={showLoading}
-          >
-            {buttonLabel}
-          </Button>
-        </>
+        <Button
+          testID={ERROR_CONTENT_CONTINUE_BUTTON_TEST_ID}
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          label={strings('hardware_wallet.common.continue')}
+          onPress={handleContinue}
+          isDisabled={showLoading}
+          loading={showLoading}
+        />
       }
     />
   );

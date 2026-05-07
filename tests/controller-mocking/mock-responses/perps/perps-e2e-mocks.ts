@@ -28,8 +28,7 @@ export class PerpsE2EMockService {
 
   // Mock state that persists across the E2E session
   private mockAccount: AccountState = {
-    spendableBalance: '8000.00',
-    withdrawableBalance: '8000.00',
+    availableBalance: '8000.00',
     marginUsed: '2000.00',
     unrealizedPnl: '150.00',
     returnOnEquity: '0',
@@ -76,8 +75,7 @@ export class PerpsE2EMockService {
     // Default account state
     this.mockAccount = {
       totalBalance: profile === 'no-funds' ? '0.00' : '10000.00',
-      spendableBalance: profile === 'no-funds' ? '0.00' : '8000.00',
-      withdrawableBalance: profile === 'no-funds' ? '0.00' : '8000.00',
+      availableBalance: profile === 'no-funds' ? '0.00' : '8000.00',
       marginUsed: profile === 'no-funds' ? '0.00' : '2000.00',
       // Set a temporary value; we will recompute from positions below
       unrealizedPnl: '0.00',
@@ -252,13 +250,12 @@ export class PerpsE2EMockService {
 
     // Update available balance
     const newAvailableBalance =
-      parseFloat(this.mockAccount.spendableBalance) - marginUsed;
+      parseFloat(this.mockAccount.availableBalance) - marginUsed;
     const newMarginUsed = parseFloat(this.mockAccount.marginUsed) + marginUsed;
 
     this.mockAccount = {
       ...this.mockAccount,
-      spendableBalance: newAvailableBalance.toString(),
-      withdrawableBalance: newAvailableBalance.toString(),
+      availableBalance: newAvailableBalance.toString(),
       marginUsed: newMarginUsed.toString(),
     };
 
@@ -328,7 +325,7 @@ export class PerpsE2EMockService {
   // Mock withdrawal (reserved for upcoming tests)
   public mockWithdraw(params: WithdrawParams): WithdrawResult {
     const withdrawAmount = parseFloat(params.amount);
-    const currentBalance = parseFloat(this.mockAccount.spendableBalance);
+    const currentBalance = parseFloat(this.mockAccount.availableBalance);
 
     if (withdrawAmount > currentBalance) {
       return {
@@ -345,8 +342,7 @@ export class PerpsE2EMockService {
     this.mockAccount = {
       ...this.mockAccount,
       totalBalance: newTotalBalance.toString(),
-      spendableBalance: newAvailableBalance.toString(),
-      withdrawableBalance: newAvailableBalance.toString(),
+      availableBalance: newAvailableBalance.toString(),
     };
 
     // Notify subscribers
@@ -362,7 +358,7 @@ export class PerpsE2EMockService {
 
   /**
    * Mock deposit in USD into the perps trading account.
-   * Increases both spendableBalance and totalBalance by the provided fiat amount.
+   * Increases both availableBalance and totalBalance by the provided fiat amount.
    */
   public mockDepositUSD(amountFiat: string): { success: boolean } {
     const delta = parseFloat(amountFiat || '0');
@@ -370,13 +366,12 @@ export class PerpsE2EMockService {
       return { success: false };
     }
 
-    const newAvailable = parseFloat(this.mockAccount.spendableBalance) + delta;
+    const newAvailable = parseFloat(this.mockAccount.availableBalance) + delta;
     const newTotal = parseFloat(this.mockAccount.totalBalance) + delta;
 
     this.mockAccount = {
       ...this.mockAccount,
-      spendableBalance: newAvailable.toString(),
-      withdrawableBalance: newAvailable.toString(),
+      availableBalance: newAvailable.toString(),
       totalBalance: newTotal.toString(),
     };
 
@@ -403,7 +398,7 @@ export class PerpsE2EMockService {
 
     // Update account balances with realized PnL
     const newAvailableBalance =
-      parseFloat(this.mockAccount.spendableBalance) +
+      parseFloat(this.mockAccount.availableBalance) +
       parseFloat(existingPosition.marginUsed) +
       pnl;
     const newMarginUsed =
@@ -412,8 +407,7 @@ export class PerpsE2EMockService {
     const newTotalBalance = parseFloat(this.mockAccount.totalBalance) + pnl;
     this.mockAccount = {
       ...this.mockAccount,
-      spendableBalance: newAvailableBalance.toString(),
-      withdrawableBalance: newAvailableBalance.toString(),
+      availableBalance: newAvailableBalance.toString(),
       marginUsed: newMarginUsed.toString(),
       totalBalance: newTotalBalance.toString(),
     };
@@ -503,7 +497,7 @@ export class PerpsE2EMockService {
   private notifyAccountCallbacks(): void {
     console.log(
       '🎭 E2E Mock: Notifying account callbacks, balance:',
-      this.mockAccount.spendableBalance,
+      this.mockAccount.availableBalance,
     );
     this.accountCallbacks.forEach((callback) => {
       try {
@@ -787,7 +781,7 @@ export class PerpsE2EMockService {
     const pnl = parseFloat(existingPosition.unrealizedPnl || '0');
 
     const newAvailableBalance =
-      parseFloat(this.mockAccount.spendableBalance) +
+      parseFloat(this.mockAccount.availableBalance) +
       parseFloat(existingPosition.marginUsed) +
       pnl;
     const newMarginUsed =
@@ -796,8 +790,7 @@ export class PerpsE2EMockService {
     const newTotalBalance = parseFloat(this.mockAccount.totalBalance) + pnl;
     this.mockAccount = {
       ...this.mockAccount,
-      spendableBalance: newAvailableBalance.toString(),
-      withdrawableBalance: newAvailableBalance.toString(),
+      availableBalance: newAvailableBalance.toString(),
       marginUsed: newMarginUsed.toString(),
       totalBalance: newTotalBalance.toString(),
     };
@@ -933,13 +926,12 @@ export class PerpsE2EMockService {
 
         // Update account balances for margin usage
         const newAvailableBalance =
-          parseFloat(this.mockAccount.spendableBalance) - marginUsed;
+          parseFloat(this.mockAccount.availableBalance) - marginUsed;
         const newMarginUsed =
           parseFloat(this.mockAccount.marginUsed) + marginUsed;
         this.mockAccount = {
           ...this.mockAccount,
-          spendableBalance: newAvailableBalance.toString(),
-          withdrawableBalance: newAvailableBalance.toString(),
+          availableBalance: newAvailableBalance.toString(),
           marginUsed: newMarginUsed.toString(),
         };
 
@@ -1055,7 +1047,7 @@ export class PerpsE2EMockService {
         // Realize PnL and close this position
         const pnl = parseFloat(pos.unrealizedPnl || '0');
         const newAvailableBalance =
-          parseFloat(this.mockAccount.spendableBalance) +
+          parseFloat(this.mockAccount.availableBalance) +
           parseFloat(pos.marginUsed) +
           pnl;
         const newMarginUsed =
@@ -1064,8 +1056,7 @@ export class PerpsE2EMockService {
 
         this.mockAccount = {
           ...this.mockAccount,
-          spendableBalance: newAvailableBalance.toString(),
-          withdrawableBalance: newAvailableBalance.toString(),
+          availableBalance: newAvailableBalance.toString(),
           marginUsed: newMarginUsed.toString(),
           totalBalance: newTotalBalance.toString(),
         };

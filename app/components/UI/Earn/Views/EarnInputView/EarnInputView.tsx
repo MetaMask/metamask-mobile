@@ -45,7 +45,8 @@ import Keypad from '../../../../Base/Keypad';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useStyles } from '../../../../hooks/useStyles';
-import { HeaderStandard, IconName } from '@metamask/design-system-react-native';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import { IconName } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
@@ -1004,7 +1005,7 @@ const EarnInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
-      <HeaderStandard
+      <HeaderCompactStandard
         title={headerTitle}
         onBack={handleBackPress}
         endButtonIconProps={

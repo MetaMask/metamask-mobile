@@ -23,9 +23,6 @@ export function getMonetizedPrimitive(
     case TransactionType.predictWithdraw:
     case TransactionType.predictClaim:
       return MonetizedPrimitive.Predict;
-    case TransactionType.moneyAccountDeposit:
-    case TransactionType.moneyAccountWithdraw:
-      return MonetizedPrimitive.MoneyAccount;
     default:
       return undefined;
   }

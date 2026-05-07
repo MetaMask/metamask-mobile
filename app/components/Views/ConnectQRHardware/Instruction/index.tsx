@@ -2,7 +2,7 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import {
@@ -15,7 +15,8 @@ import {
 import { useTheme } from '../../../../util/theme';
 import { createStyles } from './styles';
 import StyledButton from '../../../UI/StyledButton';
-import { ConnectQRHardwareSelectorsIDs } from '../ConnectQRHardware.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { QR_CONTINUE_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -185,7 +186,7 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
           type={'confirm'}
           onPress={onConnect}
           style={styles.button}
-          testID={ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON}
+          {...generateTestId(Platform, QR_CONTINUE_BUTTON)}
         >
           {strings('connect_qr_hardware.button_continue')}
         </StyledButton>

@@ -136,8 +136,7 @@ jest.mock('../../contexts/PerpsOrderContext', () => {
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
-      spendableBalance: '1000',
-      withdrawableBalance: '1000',
+      availableBalance: '1000',
       marginUsed: '0',
       unrealizedPnl: '0',
       returnOnEquity: '0',
@@ -571,8 +570,7 @@ jest.mock('../../../../../core/Engine', () => ({
       subscribeToPrices: jest.fn(() => jest.fn()),
       getAccountState: jest.fn().mockResolvedValue({
         totalBalance: '1000',
-        spendableBalance: '1000',
-        withdrawableBalance: '1000',
+        availableBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
       }),
@@ -716,8 +714,7 @@ const defaultMockRoute = {
 const defaultMockHooks = {
   usePerpsLiveAccount: {
     account: {
-      spendableBalance: '1000',
-      withdrawableBalance: '1000',
+      availableBalance: '1000',
       marginUsed: '0',
       unrealizedPnl: '0',
       returnOnEquity: '0',
@@ -1572,8 +1569,7 @@ describe('PerpsOrderView', () => {
   it('handles zero balance warning', async () => {
     (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       balance: '0',
-      spendableBalance: '0',
-      withdrawableBalance: '0',
+      availableBalance: '0',
       accountInfo: {
         marginSummary: {
           accountValue: 0,
@@ -1594,8 +1590,7 @@ describe('PerpsOrderView', () => {
     // Mock insufficient balance
     (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       balance: '10',
-      spendableBalance: '10',
-      withdrawableBalance: '10',
+      availableBalance: '10',
       accountInfo: {
         marginSummary: {
           accountValue: 10,
@@ -3749,8 +3744,7 @@ describe('PerpsOrderView', () => {
       // appear while account data is still loading
       (usePerpsLiveAccount as jest.Mock).mockReturnValue({
         account: {
-          spendableBalance: '0', // Zero balance
-          withdrawableBalance: '0', // Zero balance
+          availableBalance: '0', // Zero balance
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -3779,8 +3773,7 @@ describe('PerpsOrderView', () => {
       // Arrange - Mock sufficient balance and adjust order form amount
       (usePerpsLiveAccount as jest.Mock).mockReturnValue({
         account: {
-          spendableBalance: '10000', // High balance
-          withdrawableBalance: '10000', // High balance
+          availableBalance: '10000', // High balance
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',

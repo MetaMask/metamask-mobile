@@ -26,15 +26,14 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 12,
       padding,
       flexDirection: 'row',
-      alignItems: 'flex-start',
+      alignItems: 'center',
     },
     avatar: {
-      marginTop: -4,
       marginRight: 16,
     },
     labelsContainer: {
       flex: 1,
-      justifyContent: 'flex-start',
+      justifyContent: 'center',
     },
     label: {
       color: colors.text.default,

@@ -3,11 +3,9 @@ import {
   closeSession,
   createSession,
   endSession,
-  failSession,
   getActiveSessionId,
   getSession,
   setStatus,
-  toHeadlessBuyError,
 } from './sessionRegistry';
 import type { HeadlessBuyCallbacks, HeadlessBuyParams } from './types';
 import type { Quote } from '../types';
@@ -185,79 +183,6 @@ describe('sessionRegistry', () => {
       const s = createSession(baseParams, buildCallbacks());
       setStatus(s.id, 'failed');
       expect(getActiveSessionId()).toBeUndefined();
-    });
-  });
-
-  describe('toHeadlessBuyError', () => {
-    it('preserves explicit headless error codes and details', () => {
-      expect(
-        toHeadlessBuyError({
-          code: 'LIMIT_EXCEEDED',
-          message: 'Daily limit exceeded',
-          details: { period: 'daily' },
-        }),
-      ).toEqual({
-        code: 'LIMIT_EXCEEDED',
-        message: 'Daily limit exceeded',
-        details: { period: 'daily' },
-      });
-    });
-
-    it('maps LimitExceededError instances to LIMIT_EXCEEDED', () => {
-      const error = new Error('Daily limit exceeded');
-      error.name = 'LimitExceededError';
-      expect(toHeadlessBuyError(error)).toEqual({
-        code: 'LIMIT_EXCEEDED',
-        message: 'Daily limit exceeded',
-      });
-    });
-
-    it('falls back to UNKNOWN for regular errors', () => {
-      expect(toHeadlessBuyError(new Error('provider failed'))).toEqual({
-        code: 'UNKNOWN',
-        message: 'provider failed',
-      });
-    });
-  });
-
-  describe('failSession', () => {
-    it('fires onError then onClose and removes the session', () => {
-      const callbacks = buildCallbacks();
-      const session = createSession(baseParams, callbacks);
-
-      const headlessError = failSession(session.id, {
-        code: 'QUOTE_FAILED',
-        message: 'Quote expired',
-      });
-
-      expect(headlessError).toEqual({
-        code: 'QUOTE_FAILED',
-        message: 'Quote expired',
-        details: undefined,
-      });
-      expect(callbacks.onError).toHaveBeenCalledWith(headlessError);
-      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
-      expect(session.status).toBe('failed');
-      expect(getSession(session.id)).toBeUndefined();
-    });
-
-    it('logs onError failures but still closes the session', () => {
-      const callbacks = {
-        ...buildCallbacks(),
-        onError: jest.fn(() => {
-          throw new Error('consumer onError boom');
-        }),
-      };
-      const session = createSession(baseParams, callbacks);
-
-      failSession(session.id, new Error('provider failed'));
-
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        expect.any(Error),
-        'headless sessionRegistry: onError callback threw',
-      );
-      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
-      expect(getSession(session.id)).toBeUndefined();
     });
   });
 });

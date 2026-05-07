@@ -43,7 +43,7 @@ export interface UsePerpsAdjustMarginDataReturn {
   /** New liquidation distance percentage */
   newLiquidationDistance: number;
   /** Available balance for add mode */
-  spendableBalance: number;
+  availableBalance: number;
   /** Current market price */
   currentPrice: number;
   /** Whether this is add mode */
@@ -129,8 +129,8 @@ export function usePerpsAdjustMarginData(
     [livePrices, symbol],
   );
 
-  const spendableBalance = useMemo(
-    () => parseFloat(account?.spendableBalance || '0'),
+  const availableBalance = useMemo(
+    () => parseFloat(account?.availableBalance || '0'),
     [account],
   );
 
@@ -139,7 +139,7 @@ export function usePerpsAdjustMarginData(
   // Calculate max removable/addable amount
   const maxAmount = useMemo(() => {
     if (isAddMode) {
-      return Math.max(0, spendableBalance);
+      return Math.max(0, availableBalance);
     }
     return calculateMaxRemovableMargin({
       currentMargin,
@@ -151,7 +151,7 @@ export function usePerpsAdjustMarginData(
     });
   }, [
     isAddMode,
-    spendableBalance,
+    availableBalance,
     currentMargin,
     positionSize,
     entryPrice,
@@ -221,7 +221,7 @@ export function usePerpsAdjustMarginData(
     newLiquidationPrice,
     currentLiquidationDistance,
     newLiquidationDistance,
-    spendableBalance,
+    availableBalance,
     currentPrice,
     isAddMode,
     positionLeverage,

@@ -1,4 +1,3 @@
-import { RpcEndpointType } from '@metamask/network-controller';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../constants/navigation/Routes';
 import { backgroundState } from '../../util/test/initial-root-state';
@@ -456,70 +455,6 @@ describe('useBlockExplorer', () => {
 
         expect(url).toBe('https://polygonscan.com');
       });
-    });
-  });
-
-  describe('NetworkController block explorer for token chain', () => {
-    const stateWithEthereumSelectedAndGnosisConfigured = {
-      ...mockInitialState,
-      engine: {
-        ...mockInitialState.engine,
-        backgroundState: {
-          ...mockInitialState.engine.backgroundState,
-          NetworkController: mockNetworkState(
-            {
-              chainId: '0x1',
-              id: 'mainnet',
-              type: RpcEndpointType.Infura,
-              nickname: 'Ethereum Mainnet',
-              ticker: 'ETH',
-              blockExplorerUrl: 'https://etherscan.io',
-            },
-            {
-              chainId: '0x64',
-              id: 'gnosis',
-              nickname: 'Gnosis Chain',
-              ticker: 'xDAI',
-              blockExplorerUrl: 'https://gnosisscan.io',
-            },
-          ),
-        },
-      },
-    };
-
-    beforeEach(() => {
-      const reactRedux =
-        jest.requireMock<typeof import('react-redux')>('react-redux');
-      jest
-        .spyOn(reactRedux, 'useSelector')
-        .mockImplementation((fn) =>
-          fn(stateWithEthereumSelectedAndGnosisConfigured),
-        );
-    });
-
-    afterEach(() => {
-      const reactRedux =
-        jest.requireMock<typeof import('react-redux')>('react-redux');
-      jest.mocked(reactRedux.useSelector).mockRestore();
-    });
-
-    it('resolves Gnosis block explorer from network configurations when Ethereum is selected', () => {
-      const { result } = renderHookWithProvider(() => useBlockExplorer());
-      const tokenChainId = '0x64';
-      const address = '0x0000000000000000000000000000000000000001';
-
-      expect(result.current.getBlockExplorerBaseUrl(tokenChainId)).toBe(
-        'https://gnosisscan.io',
-      );
-      expect(result.current.getBlockExplorerUrl(address, tokenChainId)).toBe(
-        `https://gnosisscan.io/address/${address}`,
-      );
-    });
-
-    it('resolves block explorer name from configured explorer URL for that chain', () => {
-      const { result } = renderHookWithProvider(() => useBlockExplorer());
-      const name = result.current.getBlockExplorerName('0x64');
-      expect(name).toMatch(/gnosis/i);
     });
   });
 });

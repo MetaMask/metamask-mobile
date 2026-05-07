@@ -11,7 +11,6 @@ export default defineConfig({
   fullyParallel: false,
   timeout: 7 * 60 * 1000,
   retries: 1,
-  grep: /@System/,
   reporter: [
     [
       'html',

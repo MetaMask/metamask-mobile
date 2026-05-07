@@ -608,8 +608,18 @@ describe('OndoCampaignRwaSelectorView', () => {
     });
   });
 
-  describe('Ondo token name display', () => {
-    it('preserves backend-provided suffix names in list rows', () => {
+  describe('token name sanitization', () => {
+    it('strips "Ondo Tokenized " prefix from token names in list rows', () => {
+      const token = { ...buildToken('AAPL'), name: 'Ondo Tokenized Apple' };
+      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
+      const { getByText, queryByText } = render(
+        <OndoCampaignRwaSelectorView />,
+      );
+      expect(getByText('Apple')).toBeDefined();
+      expect(queryByText('Ondo Tokenized Apple')).toBeNull();
+    });
+
+    it('strips "(Ondo Tokenized)" suffix from token names in list rows', () => {
       const token = {
         ...buildToken('AAPL'),
         name: 'Apple (Ondo Tokenized)',
@@ -618,21 +628,25 @@ describe('OndoCampaignRwaSelectorView', () => {
       const { getByText, queryByText } = render(
         <OndoCampaignRwaSelectorView />,
       );
-      expect(getByText('Apple (Ondo Tokenized)')).toBeDefined();
-      expect(queryByText('Apple')).toBeNull();
+      expect(getByText('Apple')).toBeDefined();
+      expect(queryByText('Apple (Ondo Tokenized)')).toBeNull();
     });
 
-    it('passes the backend-provided name to goToSwaps', () => {
-      const token = {
-        ...buildToken('AAPL'),
-        name: 'Apple (Ondo Tokenized)',
-      };
+    it('leaves unrelated token names unchanged', () => {
+      const token = { ...buildToken('USDY'), name: 'Ondo USD Yield' };
+      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
+      const { getByText } = render(<OndoCampaignRwaSelectorView />);
+      expect(getByText('Ondo USD Yield')).toBeDefined();
+    });
+
+    it('passes original unsanitized name to goToSwaps when token has Ondo prefix', () => {
+      const token = { ...buildToken('AAPL'), name: 'Ondo Tokenized Apple' };
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
       fireEvent.press(getByTestId('token-row-AAPL'));
       expect(mockGoToSwaps).toHaveBeenCalledWith(
         undefined,
-        expect.objectContaining({ name: 'Apple (Ondo Tokenized)' }),
+        expect.objectContaining({ name: 'Ondo Tokenized Apple' }),
       );
     });
   });

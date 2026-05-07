@@ -3,11 +3,10 @@ import React, { useCallback, useEffect } from 'react';
 import { View, Switch, Linking, InteractionManager } from 'react-native';
 // import { useNavigation } from '@react-navigation/native';
 
-import {
-  Text,
+import Text, {
   TextVariant,
   TextColor,
-} from '@metamask/design-system-react-native';
+} from '../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../util/theme';
 // import { strings } from '../../../../../locales/i18n';
 import styles from './BackupAndSyncToggle.styles';
@@ -151,7 +150,7 @@ const BackupAndSyncToggle = ({
   return (
     <View style={styles.setting}>
       <View style={styles.heading}>
-        <Text variant={TextVariant.HeadingSm}>
+        <Text variant={TextVariant.HeadingSM}>
           {strings('backupAndSync.title')}
         </Text>
         <Switch
@@ -166,9 +165,9 @@ const BackupAndSyncToggle = ({
           testID={BACKUP_AND_SYNC_TOGGLE_TEST_IDS.TOGGLE}
         />
       </View>
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
         {strings('backupAndSync.enable.description')}
-        <Text color={TextColor.InfoDefault} onPress={handleLink}>
+        <Text color={TextColor.Info} onPress={handleLink}>
           {strings('backupAndSync.privacyLink')}
         </Text>
       </Text>

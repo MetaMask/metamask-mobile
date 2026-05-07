@@ -12,8 +12,6 @@ import {
   HardwareWalletConnectionState,
   ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
-import { QrScanRequestType } from '@metamask/eth-qr-keyring';
-import { isQRHardwareScanError } from '../../errors';
 
 import {
   ConnectingContent,
@@ -56,8 +54,6 @@ export interface HardwareWalletBottomSheetProps {
   onAwaitingConfirmationCancel?: () => void;
   /** Callback fired when the user taps the CTA on an error/recovery screen. */
   onCTAClicked?: () => void;
-  /** Callback when the user retries a QR scan error from the bottom sheet. */
-  onRetryQrScan?: () => void;
 }
 
 /**
@@ -86,13 +82,11 @@ export const HardwareWalletBottomSheet: React.FC<
   onConnectionSuccess,
   onAwaitingConfirmationCancel,
   onCTAClicked,
-  onRetryQrScan,
 }) => {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const [openQrScannerOnMount, setOpenQrScannerOnMount] = React.useState(false);
 
   const { devices, selectedDevice, isScanning } = deviceSelection;
 
@@ -134,27 +128,8 @@ export const HardwareWalletBottomSheet: React.FC<
 
   const handleErrorContinue = useCallback(async () => {
     onCTAClicked?.();
-    if (
-      walletType === HardwareWalletType.Qr &&
-      connectionState.status === ConnectionStatus.ErrorState &&
-      isQRHardwareScanError(connectionState.error)
-    ) {
-      const qrErrorMetadata = connectionState.error.metadata;
-      setOpenQrScannerOnMount(
-        qrErrorMetadata.qrScanPurpose === QrScanRequestType.SIGN,
-      );
-      onRetryQrScan?.();
-      return;
-    }
-    setOpenQrScannerOnMount(false);
     await retryEnsureDeviceReady();
-  }, [
-    connectionState,
-    onCTAClicked,
-    onRetryQrScan,
-    retryEnsureDeviceReady,
-    walletType,
-  ]);
+  }, [retryEnsureDeviceReady, onCTAClicked]);
 
   const handleErrorDismiss = useCallback(() => {
     onCTAClicked?.();
@@ -189,10 +164,6 @@ export const HardwareWalletBottomSheet: React.FC<
   const handleCancelDeviceSelection = useCallback(() => {
     onClose();
   }, [onClose]);
-
-  const handleQrScannerOpened = useCallback(() => {
-    setOpenQrScannerOnMount(false);
-  }, []);
 
   const renderContent = () => {
     if (!walletType) return null;
@@ -239,8 +210,6 @@ export const HardwareWalletBottomSheet: React.FC<
             deviceType={walletType}
             operationType={connectionState.operationType}
             onCancel={handleAwaitingConfirmationCancel}
-            openQrScannerOnMount={openQrScannerOnMount}
-            onQrScannerOpened={handleQrScannerOpened}
           />
         );
 

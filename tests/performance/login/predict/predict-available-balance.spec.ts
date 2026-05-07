@@ -5,7 +5,7 @@ import { asPlaywrightElement, PlaywrightAssertions } from '../../../framework';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
-import { Performance, PerformancePredict } from '../../../tags.performance.js';
+import { PerformancePredict } from '../../../tags.performance.js';
 
 /*
  * Scenario: Predict Available Balance Performance Test
@@ -21,7 +21,7 @@ import { Performance, PerformancePredict } from '../../../tags.performance.js';
  * 1. Time to navigate to Predict tab
  * 2. Time to verify available balance info is displayed
  */
-perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
+perfTest.describe(PerformancePredict, () => {
   perfTest(
     'Predict Available Balance - Complete Flow Performance',
     { tag: '@team-predict' },

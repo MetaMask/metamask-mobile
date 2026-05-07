@@ -106,20 +106,23 @@ const PerpsWithdrawView: React.FC = () => {
   // Get withdrawal tokens from hook
   const { destToken } = useWithdrawTokens();
 
-  // Truncate to 2 decimals so the user can withdraw exactly what they see.
-  const withdrawableBalance = useMemo(() => {
-    if (!account?.withdrawableBalance) return 0;
-    return truncateToTwoDecimals(
-      parseCurrencyString(account.withdrawableBalance),
-    );
-  }, [account?.withdrawableBalance]);
+  // Release-branch bridge for Unified Account: availableToTradeBalance includes
+  // collateral HL can use in target mode. The full balance contract will replace
+  // this with an explicit withdrawableBalance field. Truncate so users can
+  // withdraw exactly the amount they see.
+  const availableBalance = useMemo(() => {
+    const balance =
+      account?.availableToTradeBalance ?? account?.availableBalance;
+    if (!balance) return 0;
+    return truncateToTwoDecimals(parseCurrencyString(balance));
+  }, [account?.availableBalance, account?.availableToTradeBalance]);
 
   const formattedBalance = useMemo(
-    () => formatPerpsFiat(withdrawableBalance),
-    [withdrawableBalance],
+    () => formatPerpsFiat(availableBalance),
+    [availableBalance],
   );
 
-  const hasPositiveBalance = withdrawableBalance > 0;
+  const hasPositiveBalance = availableBalance > 0;
 
   // Get withdrawal validation
   const {
@@ -154,9 +157,9 @@ const PerpsWithdrawView: React.FC = () => {
   usePerpsMeasurement({
     traceName: TraceName.PerpsWithdrawView,
     conditions: [
-      !!account?.withdrawableBalance,
+      !!(account?.availableToTradeBalance ?? account?.availableBalance),
       !!destToken,
-      withdrawableBalance !== undefined,
+      availableBalance !== undefined,
     ],
   });
 
@@ -215,7 +218,7 @@ const PerpsWithdrawView: React.FC = () => {
     (percentage: number) => {
       if (!hasPositiveBalance) return;
 
-      const amount = withdrawableBalance * percentage;
+      const amount = availableBalance * percentage;
       // Format to 2 or 6 decimal places for USDC
       let formattedAmount = '0';
       if (amount < 0.01) {
@@ -235,10 +238,10 @@ const PerpsWithdrawView: React.FC = () => {
       DevLogger.log(
         `Percentage selected: ${
           percentage * 100
-        }%, Amount: ${formattedAmount}, Withdrawable Balance: ${withdrawableBalance}`,
+        }%, Amount: ${formattedAmount}, Available Perps Balance: ${availableBalance}`,
       );
     },
-    [withdrawableBalance, hasPositiveBalance],
+    [availableBalance, hasPositiveBalance],
   );
 
   const handleMaxPress = useCallback(() => {

@@ -5,35 +5,19 @@
  * Use these tags to categorize and filter performance tests.
  *
  * Usage in tests:
- *   import { Performance, System, PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
+ *   import { PerformanceLogin, PerformanceSwaps } from '../../tags.js';
  *
- *   // Both perf and system test (most common):
- *   test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`, () => { ... });
+ *   test.describe(PerformanceLogin, () => {
+ *     test('My login test', async ({ device }) => { ... });
+ *   });
  *
- *   // System-only test (functional verification, no perf measurement):
- *   test.describe(`${System} ${PerformanceLogin}`, () => { ... });
- *
- *   // Perf-only test (not run in system test suite):
- *   test.describe(`${Performance} ${PerformanceLaunch}`, () => { ... });
+ * Or with multiple tags:
+ *   test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => { ... });
  *
  * Running tests with tags:
- *   yarn playwright test --grep "@Performance"          # All performance tests
- *   yarn playwright test --grep "@System"               # All system tests
- *   yarn playwright test --grep "@PerformanceLogin"     # By area
+ *   yarn playwright test --grep "@PerformanceLogin"
  *   yarn playwright test --grep "@PerformanceSwaps|@PerformanceOnboarding"
  */
-
-// ---------- Test type tags ----------
-// Runner-agnostic tags that control which config/runner picks up a test.
-// Used in test.describe() names and filtered via --grep / config grep.
-
-/** Tag for performance tests (measured with TimerHelper, quality gates enforced). */
-export const Performance = '@Performance';
-
-/** Tag for system tests (functional verification, no quality gates or metrics). */
-export const System = '@System';
-
-// ---------- Area tags ----------
 
 export const PerformanceAccountList = '@PerformanceAccountList';
 export const PerformanceOnboarding = '@PerformanceOnboarding';

@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import Logger from '../../../../../util/Logger';
-import { prefixUrlWithProtocol } from '../../../../../util/browser';
 import type { SiteData } from '../../components/SiteRowItem/SiteRowItem';
 
 interface ApiDappResponse {
@@ -61,10 +60,9 @@ const PORTFOLIO_SITE: SiteData = {
 };
 
 /**
- * Returns just the hostname (no www., no path) — used for curated site cards
- * where a clean domain label is preferred.
+ * Helper function to extract display URL from full URL
  */
-export const extractDisplayUrl = (url: string): string => {
+const extractDisplayUrl = (url: string): string => {
   try {
     const urlObj = new URL(url);
     return urlObj.hostname.replace('www.', '');
@@ -73,35 +71,14 @@ export const extractDisplayUrl = (url: string): string => {
   }
 };
 
-/**
- * Returns the full URL without the protocol (e.g. `uniswap.org/swap?chain=1`).
- * Used for user-generated entries (recents, favorites) where the full path
- * provides meaningful context.
- */
-export const extractFullDisplayUrl = (url: string): string => {
-  try {
-    const urlObj = new URL(url);
-    const withoutProtocol = url.slice(urlObj.protocol.length + 2); // strip "scheme://"
-    return withoutProtocol.replace(/^www\./, '');
-  } catch {
-    return url;
-  }
-};
-
-export const matchesSiteQuery = (site: SiteData, query: string): boolean => {
-  const q = query.toLowerCase();
-  return (
-    site.name.toLowerCase().includes(q) ||
-    site.displayUrl.toLowerCase().includes(q) ||
-    site.url.toLowerCase().includes(q)
-  );
-};
-
 const isPortfolioSiteUrl = (url: string): boolean => {
   try {
-    return (
-      new URL(prefixUrlWithProtocol(url.trim())).hostname === PORTFOLIO_HOSTNAME
-    );
+    const trimmedUrl = url.trim();
+    const normalizedUrl =
+      trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')
+        ? trimmedUrl
+        : `https://${trimmedUrl}`;
+    return new URL(normalizedUrl).hostname === PORTFOLIO_HOSTNAME;
   } catch {
     return false;
   }
@@ -197,10 +174,17 @@ export const useSitesData = (searchQuery?: string): UseSitesDataResult => {
 
   // Filter sites locally based on search query
   const sites = useMemo(() => {
-    const query = searchQuery?.trim() ?? '';
-    return query
-      ? allSites.filter((site) => matchesSiteQuery(site, query))
-      : allSites;
+    if (!searchQuery?.trim()) {
+      return allSites;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return allSites.filter(
+      (site) =>
+        site.name.toLowerCase().includes(query) ||
+        site.displayUrl.toLowerCase().includes(query) ||
+        site.url.toLowerCase().includes(query),
+    );
   }, [allSites, searchQuery]);
 
   return { sites, isLoading, error, refetch };

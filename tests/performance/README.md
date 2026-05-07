@@ -218,22 +218,7 @@ npx playwright test --grep "@PerformanceLogin.*@PerformanceLaunch" --project and
 
 ## Test Tags
 
-Tags are defined in `tests/tags.performance.js` and embedded in `test.describe()` names. They are runner-agnostic — any runner with `--grep` support can filter by them.
-
-### Test Type Tags
-
-These tags control which Playwright config picks up a test:
-
-| Tag            | Description                                                            | Config that filters for it                                                                 |
-| -------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `@Performance` | Test measures performance (uses `TimerHelper`, quality gates enforced) | `playwright.config.ts` (`grep: /@Performance/`)                                            |
-| `@System`      | Test verifies functionality (no quality gates or metrics)              | `playwright.system.config.ts` / `playwright.system-emulator.config.ts` (`grep: /@System/`) |
-
-Most existing tests are tagged with **both** `@Performance @System` — they measure perf and also serve as system smoke tests. A test can use just one tag if it should only run in one suite.
-
-### Area Tags
-
-These tags categorize tests by feature area and can be used with `--grep` for ad-hoc filtering:
+Tests are tagged with area-specific tags defined in `tests/tags.performance.js`. These tags allow for selective test execution based on which areas of the app are affected by code changes.
 
 | Tag                        | Description                                                   |
 | -------------------------- | ------------------------------------------------------------- |
@@ -247,41 +232,18 @@ These tags categorize tests by feature area and can be used with `--grep` for ad
 | `@PerformancePredict`      | Predict market performance (market list, details, deposits)   |
 | `@PerformancePreps`        | Perpetuals trading performance (positions, add funds, orders) |
 
-### Tagging Convention
-
-Import type tags and area tags from `tests/tags.performance.js`:
+Tags are imported into test files from `tests/tags.performance.js`:
 
 ```typescript
-import {
-  Performance,
-  System,
-  PerformanceLogin,
-  PerformanceSwaps,
-} from '../../tags.performance.js';
+import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
 
-// Both perf and system test (most common):
-perfTest.describe(
-  `${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`,
-  () => {
-    perfTest(
-      'Swap flow performance',
-      async (
-        { currentDeviceDetails, driver, performanceTracker },
-        testInfo,
-      ) => {
-        // test implementation with TimerHelper and thresholds
-      },
-    );
-  },
-);
-
-// System-only test (functional verification, no perf measurement):
-test.describe(`${System} ${PerformanceLogin}`, () => {
-  test('Verify wallet loads after login', async ({ driver }) => {
-    // No TimerHelper — pure functional check
-    await loginToAppPlaywright();
-    await WalletView.waitForAccountName('Account 1');
-  });
+perfTest.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
+  perfTest(
+    'Swap flow performance',
+    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      // test implementation
+    },
+  );
 });
 ```
 

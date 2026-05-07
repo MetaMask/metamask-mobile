@@ -34,15 +34,6 @@ jest.mock('../../../../selectors/accountsController', () => ({
     .mockReturnValue('0x1234567890123456789012345678901234567890'),
 }));
 
-jest.mock(
-  '../../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    selectSelectedAccountGroupEvmInternalAccount: jest.fn().mockReturnValue({
-      address: '0x1234567890123456789012345678901234567890',
-    }),
-  }),
-);
-
 jest.mock('../../../../selectors/networkController', () => ({
   selectChainId: jest.fn().mockReturnValue('0xa4b1'),
 }));

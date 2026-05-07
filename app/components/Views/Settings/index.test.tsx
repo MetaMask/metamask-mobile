@@ -52,6 +52,11 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isPermissionsSettingsV1Enabled: true,
+}));
+
 jest.mock('../../../util/notifications/constants/config', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => true),
 }));

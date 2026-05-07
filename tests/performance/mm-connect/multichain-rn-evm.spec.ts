@@ -1,5 +1,4 @@
 import { test } from '../../framework/fixture';
-import { Performance } from '../../tags.performance.js';
 
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import RNPlaygroundDapp from '../../page-objects/MMConnect/RNPlaygroundDapp';
@@ -78,153 +77,145 @@ async function returnToPlayground() {
 //    - Assert session is disconnected
 //    - Switch to MetaMask and unlock if needed to confirm no active session
 
-test.describe(Performance, () => {
-  test('@metamask/connect-multichain-rn-evm - Connect across 3 EVM chains, invoke read/write methods, and disconnect', async ({
-    currentDeviceDetails,
-    driver,
-  }) => {
-    // When running on BrowserStack we skip the test if the RN playground is not installed
-    test.skip(
-      currentDeviceDetails.isBrowserstack &&
-        !process.env.BROWSERSTACK_RN_PLAYGROUND_URL,
-      'Skipped: BROWSERSTACK_RN_PLAYGROUND_URL is not set',
+test('@metamask/connect-multichain-rn-evm - Connect across 3 EVM chains, invoke read/write methods, and disconnect', async ({
+  currentDeviceDetails,
+  driver,
+}) => {
+  // When running on BrowserStack we skip the test if the RN playground is not installed
+  test.skip(
+    currentDeviceDetails.isBrowserstack &&
+      !process.env.BROWSERSTACK_RN_PLAYGROUND_URL,
+    'Skipped: BROWSERSTACK_RN_PLAYGROUND_URL is not set',
+  );
+
+  // handle local installs of the RN playground
+  if (!currentDeviceDetails.isBrowserstack) {
+    ensurePlaygroundInstalled(currentDeviceDetails);
+  }
+
+  //
+  // 1. Login to MetaMask wallet
+  //
+  await loginToAppPlaywright();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(WalletView.container),
+    { timeout: 15000 },
+  );
+
+  await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
+
+  //
+  // 2. Switch to the RN playground and select networks
+  //
+  await RNPlaygroundDapp.switchToPlayground();
+  await RNPlaygroundDapp.waitForPlaygroundReady();
+
+  // Ethereum (eip155:1) is selected by default; add two more EVM networks
+  await RNPlaygroundDapp.tapNetworkCheckbox(CHAINS.LINEA);
+  await RNPlaygroundDapp.tapNetworkCheckbox(CHAINS.POLYGON);
+
+  //
+  // 3. Connect via Multichain API
+  //
+  await RNPlaygroundDapp.tapConnect();
+  await sleep(3000);
+
+  await unlockIfLockScreenVisible();
+  await sleep(5000);
+  await DappConnectionModal.tapConnectButton({
+    shouldCooldown: true,
+    timeToCooldown: 3000,
+  });
+
+  //
+  // 4. Return to playground, verify EVM connections, and invoke read requests
+  //
+  await returnToPlayground();
+  await RNPlaygroundDapp.assertConnected();
+
+  for (const chain of EVM_CHAINS) {
+    await RNPlaygroundDapp.scrollToElement(
+      RNPlaygroundDapp.getInvokeButton(chain),
+      {
+        percent: 0.5,
+      },
+    );
+    await RNPlaygroundDapp.tapInvoke(chain);
+    await sleep(5000);
+
+    await RNPlaygroundDapp.scrollToElement(
+      RNPlaygroundDapp.getResultCode(chain, 'eth_blockNumber'),
+      {
+        percent: 0.5,
+      },
+    );
+    await RNPlaygroundDapp.assertResultCodeContains(
+      chain,
+      'eth_blockNumber',
+      '0x',
     );
 
-    // handle local installs of the RN playground
-    if (!currentDeviceDetails.isBrowserstack) {
-      ensurePlaygroundInstalled(currentDeviceDetails);
-    }
+    // Test the write request
+    await RNPlaygroundDapp.selectMethod(chain, 'personal_sign', 10, 2, 'down');
 
-    //
-    // 1. Login to MetaMask wallet
-    //
-    await loginToAppPlaywright();
-    await PlaywrightAssertions.expectElementToBeVisible(
-      await asPlaywrightElement(WalletView.container),
-      { timeout: 15000 },
+    await RNPlaygroundDapp.scrollToElement(
+      RNPlaygroundDapp.getInvokeButton(chain),
+      {
+        percent: 0.5,
+      },
     );
-
-    await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
-
-    //
-    // 2. Switch to the RN playground and select networks
-    //
-    await RNPlaygroundDapp.switchToPlayground();
-    await RNPlaygroundDapp.waitForPlaygroundReady();
-
-    // Ethereum (eip155:1) is selected by default; add two more EVM networks
-    await RNPlaygroundDapp.tapNetworkCheckbox(CHAINS.LINEA);
-    await RNPlaygroundDapp.tapNetworkCheckbox(CHAINS.POLYGON);
-
-    //
-    // 3. Connect via Multichain API
-    //
-    await RNPlaygroundDapp.tapConnect();
+    await RNPlaygroundDapp.tapInvoke(chain);
     await sleep(3000);
 
+    // Handle MetaMask sign approval
     await unlockIfLockScreenVisible();
-    await sleep(5000);
-    await DappConnectionModal.tapConnectButton({
+    await sleep(1000);
+
+    // Verify request was routed to the correct network
+    const networkName = NETWORK_DISPLAY_NAMES[chain];
+    if (networkName) {
+      try {
+        await SignModal.assertNetworkText(networkName);
+      } catch {
+        // Network label may not appear for all signing modals; continue
+      }
+    }
+
+    await SignModal.tapConfirmButton({
       shouldCooldown: true,
       timeToCooldown: 3000,
     });
-
-    //
-    // 4. Return to playground, verify EVM connections, and invoke read requests
-    //
     await returnToPlayground();
-    await RNPlaygroundDapp.assertConnected();
 
-    for (const chain of EVM_CHAINS) {
-      await RNPlaygroundDapp.scrollToElement(
-        RNPlaygroundDapp.getInvokeButton(chain),
-        {
-          percent: 0.5,
-        },
-      );
-      await RNPlaygroundDapp.tapInvoke(chain);
-      await sleep(5000);
+    // Verify a signature was returned (hex string starting with 0x)
+    await RNPlaygroundDapp.scrollToElement(
+      RNPlaygroundDapp.getResultCode(chain, 'personal_sign'),
+      {
+        percent: 0.5,
+        scrollParams: { direction: 'up' },
+      },
+    );
+    await RNPlaygroundDapp.assertResultCodeContains(
+      chain,
+      'personal_sign',
+      '0x',
+    );
+  }
 
-      await RNPlaygroundDapp.scrollToElement(
-        RNPlaygroundDapp.getResultCode(chain, 'eth_blockNumber'),
-        {
-          percent: 0.5,
-        },
-      );
-      await RNPlaygroundDapp.assertResultCodeContains(
-        chain,
-        'eth_blockNumber',
-        '0x',
-      );
-
-      // Test the write request
-      await RNPlaygroundDapp.selectMethod(
-        chain,
-        'personal_sign',
-        10,
-        2,
-        'down',
-      );
-
-      await RNPlaygroundDapp.scrollToElement(
-        RNPlaygroundDapp.getInvokeButton(chain),
-        {
-          percent: 0.5,
-        },
-      );
-      await RNPlaygroundDapp.tapInvoke(chain);
-      await sleep(3000);
-
-      // Handle MetaMask sign approval
-      await unlockIfLockScreenVisible();
-      await sleep(1000);
-
-      // Verify request was routed to the correct network
-      const networkName = NETWORK_DISPLAY_NAMES[chain];
-      if (networkName) {
-        try {
-          await SignModal.assertNetworkText(networkName);
-        } catch {
-          // Network label may not appear for all signing modals; continue
-        }
-      }
-
-      await SignModal.tapConfirmButton({
-        shouldCooldown: true,
-        timeToCooldown: 3000,
-      });
-      await returnToPlayground();
-
-      // Verify a signature was returned (hex string starting with 0x)
-      await RNPlaygroundDapp.scrollToElement(
-        RNPlaygroundDapp.getResultCode(chain, 'personal_sign'),
-        {
-          percent: 0.5,
-          scrollParams: { direction: 'up' },
-        },
-      );
-      await RNPlaygroundDapp.assertResultCodeContains(
-        chain,
-        'personal_sign',
-        '0x',
-      );
-    }
-
-    // Eager swipe up as the disconnect button sits at the top of the Dapp
-    await PlaywrightGestures.swipe({
-      scrollParams: { direction: 'down' },
-      duration: 100,
-      from: { x: 100, y: 300 },
-      to: { x: 100, y: 1700 },
-      percent: 0.5,
-    });
-
-    // Scroll back to the top where the disconnect button lives
-    await RNPlaygroundDapp.scrollToElement(RNPlaygroundDapp.disconnectButton, {
-      scrollParams: { direction: 'down' },
-      percent: 0.5,
-    });
-    await RNPlaygroundDapp.tapDisconnect();
-    await RNPlaygroundDapp.assertDisconnected();
+  // Eager swipe up as the disconnect button sits at the top of the Dapp
+  await PlaywrightGestures.swipe({
+    scrollParams: { direction: 'down' },
+    duration: 100,
+    from: { x: 100, y: 300 },
+    to: { x: 100, y: 1700 },
+    percent: 0.5,
   });
-}); // end describe
+
+  // Scroll back to the top where the disconnect button lives
+  await RNPlaygroundDapp.scrollToElement(RNPlaygroundDapp.disconnectButton, {
+    scrollParams: { direction: 'down' },
+    percent: 0.5,
+  });
+  await RNPlaygroundDapp.tapDisconnect();
+  await RNPlaygroundDapp.assertDisconnected();
+});

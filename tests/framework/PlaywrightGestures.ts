@@ -1,4 +1,3 @@
-import { getWindowSize } from './DeviceInfoCache.ts';
 import { CurrentDeviceDetails } from './fixture';
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement } from './PlaywrightAdapter';
@@ -253,7 +252,7 @@ export default class PlaywrightGestures {
 
     const location = await elem.unwrap().getLocation();
     const size = await elem.unwrap().getSize();
-    const windowSize = getWindowSize();
+    const windowSize = await drv.getWindowSize();
     const elementBottom = location.y + size.height;
     const safeBottom = windowSize.height * 0.85;
 
@@ -295,14 +294,11 @@ export default class PlaywrightGestures {
     let retries = maxRetries;
 
     if (
-      currentDeviceDetails.platform === 'android' &&
+      (await PlatformDetector.isAndroid()) &&
       currentDeviceDetails.packageName
     ) {
       bundleId = currentDeviceDetails.packageName;
-    } else if (
-      currentDeviceDetails.platform === 'ios' &&
-      currentDeviceDetails.appId
-    ) {
+    } else if ((await PlatformDetector.isIOS()) && currentDeviceDetails.appId) {
       bundleId = currentDeviceDetails.appId;
     } else {
       throw new Error('Package name or app id is not available');
@@ -380,7 +376,7 @@ export default class PlaywrightGestures {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
-    if (PlatformDetector.isAndroid()) {
+    if (await PlatformDetector.isAndroid()) {
       await drv.hideKeyboard();
     } else {
       // iOS - try pressKey strategy first, fallback to tap outside

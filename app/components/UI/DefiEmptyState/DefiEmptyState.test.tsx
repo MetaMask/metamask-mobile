@@ -23,15 +23,19 @@ describe('DefiEmptyState', () => {
     expect(getByText('Explore DeFi')).toBeDefined();
   });
 
-  it('opens Explore on the main feed then Sites full view', () => {
+  it('should navigate to explore tokens page in in-app browser', () => {
     const { getByText } = renderWithProvider(<DefiEmptyState />);
 
     const button = getByText('Explore DeFi');
     fireEvent.press(button);
 
-    expect(mockNavigate).toHaveBeenNthCalledWith(1, 'TrendingView', {
-      screen: 'TrendingFeed',
+    expect(mockNavigate).toHaveBeenCalledWith('BrowserTabHome', {
+      screen: 'BrowserView',
+      params: {
+        newTabUrl:
+          'https://portfolio.metamask.io/explore/tokens?MetaMaskEntry=mobile',
+        timestamp: expect.any(Number),
+      },
     });
-    expect(mockNavigate).toHaveBeenNthCalledWith(2, 'SitesFullView');
   });
 });

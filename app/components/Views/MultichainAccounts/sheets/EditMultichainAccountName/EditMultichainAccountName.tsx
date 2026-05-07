@@ -1,11 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  StatusBar,
-  TextInput,
-} from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import {
@@ -14,28 +8,31 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import {
-  Box,
-  BoxFlexDirection,
-  Button,
-  ButtonIcon,
-  ButtonIconSize,
-  ButtonSize,
-  ButtonVariant,
-  HeaderBase,
-  IconName,
-  Text,
+import Text, {
   TextColor,
   TextVariant,
-  FontWeight,
+} from '../../../../../component-library/components/Texts/Text';
+import { Box } from '../../../../UI/Box/Box';
+import {
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import styleSheet from './EditMultichainAccountName.styles';
+import { useStyles } from '../../../../hooks/useStyles';
+import { useTheme } from '../../../../../util/theme';
+import { TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EditAccountNameIds } from '../EditAccountName.testIds';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RootState } from '../../../../../reducers';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { useTheme } from '../../../../../util/theme';
+import HeaderBase from '../../../../../component-library/components/HeaderBase/HeaderBase';
+import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 
 interface RootNavigationParamList extends ParamListBase {
   EditMultichainAccountName: {
@@ -49,7 +46,7 @@ type EditMultichainAccountNameRouteProp = RouteProp<
 >;
 
 export const EditMultichainAccountName = () => {
-  const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, {});
   const { colors, themeAppearance } = useTheme();
   const route = useRoute<EditMultichainAccountNameRouteProp>();
   const { accountGroup: initialAccountGroup } = route.params;
@@ -67,18 +64,6 @@ export const EditMultichainAccountName = () => {
 
   const [accountName, setAccountName] = useState(initialName);
   const [error, setError] = useState<string | null>(null);
-
-  const safeAreaStyle = tw.style(
-    'flex-1 bg-default',
-    Platform.OS === 'android' && StatusBar.currentHeight
-      ? { paddingTop: StatusBar.currentHeight }
-      : undefined,
-  );
-
-  const inputStyle = tw.style(
-    'h-10 w-full rounded-lg border-2 border-default p-2.5',
-    { color: colors.text.default },
-  );
 
   const handleAccountNameChange = useCallback(() => {
     // Validate that account name is not empty
@@ -108,14 +93,13 @@ export const EditMultichainAccountName = () => {
   }, [accountName, accountGroup, navigation]);
 
   return (
-    <SafeAreaView style={safeAreaStyle}>
+    <SafeAreaView style={styles.safeArea}>
       <HeaderBase
-        twClassName="m-4 flex-row items-center justify-center"
+        style={styles.header}
         startAccessory={
-          <ButtonIcon
-            testID={EditAccountNameIds.BACK_BUTTON}
-            iconName={IconName.ArrowLeft}
-            size={ButtonIconSize.Md}
+          <ButtonLink
+            labelTextVariant={TextVariant.BodyMDMedium}
+            label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
             onPress={() => navigation.goBack()}
           />
         }
@@ -123,20 +107,19 @@ export const EditMultichainAccountName = () => {
         {accountGroup?.metadata?.name || 'Account Group'}
       </HeaderBase>
       <KeyboardAvoidingView
-        style={tw.style('flex-1 justify-between')}
+        style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <Box
-          flexDirection={BoxFlexDirection.Column}
-          twClassName="mt-4 gap-4 px-6"
+          style={styles.contentContainer}
           testID={EditAccountNameIds.EDIT_ACCOUNT_NAME_CONTAINER}
         >
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.edit_account_name.account_name')}
           </Text>
           <TextInput
             testID={EditAccountNameIds.ACCOUNT_NAME_INPUT}
-            style={inputStyle}
+            style={styles.input}
             value={accountName}
             onChangeText={(newName: string) => {
               setAccountName(newName);
@@ -153,13 +136,13 @@ export const EditMultichainAccountName = () => {
             autoFocus
             editable
           />
-          {error ? <Text color={TextColor.ErrorDefault}>{error}</Text> : null}
+          {error && <Text color={TextColor.Error}>{error}</Text>}
         </Box>
-        <Box twClassName="mt-4 w-full px-6 py-2.5">
+        <Box style={styles.saveButtonContainer}>
           <Button
             isFullWidth
             variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
+            size={ButtonBaseSize.Lg}
             onPress={handleAccountNameChange}
             testID={EditAccountNameIds.SAVE_BUTTON}
           >

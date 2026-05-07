@@ -6,14 +6,12 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 
 import {
-  Performance,
-  System,
   PerformanceLogin,
   PerformanceAssetLoading,
 } from '../../tags.performance.js';
 
 /* Scenario: Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3 */
-test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
+test.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
   test(
     'Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3',
     { tag: '@assets-dev-team' },
