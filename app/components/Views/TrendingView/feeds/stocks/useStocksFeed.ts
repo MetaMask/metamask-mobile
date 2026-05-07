@@ -4,7 +4,7 @@ import { useRwaTokens } from '../../../../UI/Trending/hooks/useRwaTokens/useRwaT
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 
-const ETHEREUM_CAIP_CHAIN_ID = 'eip155:1';
+const ETHEREUM_CAIP_CHAIN_ID = 'eip155:1/';
 
 interface UseStocksFeedOptions {
   query?: string;
@@ -26,6 +26,8 @@ export const useStocksFeed = ({
     searchQuery: query,
   });
 
+  // Keep mainnet filtering here (not in the request) so all surfaces share the same
+  // RWA cache (server-side); chain-specific params would split the cache and diverge from the main feed.
   const ethereumData = useMemo(
     () =>
       data.filter((asset) => asset.assetId.startsWith(ETHEREUM_CAIP_CHAIN_ID)),
