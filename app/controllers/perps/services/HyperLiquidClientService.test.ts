@@ -1645,6 +1645,22 @@ describe('HyperLiquidClientService', () => {
       expect(service.isInitialized()).toBe(true);
     });
 
+    it('reconnect() skips exchangeClient when wallet was never provided', async () => {
+      const { ExchangeClient } = require('@nktkas/hyperliquid');
+
+      // Create a fresh service without calling initialize() — no wallet stored
+      const freshService = new HyperLiquidClientService(mockDeps);
+      const exchangeCallsBefore = (ExchangeClient as jest.Mock).mock.calls
+        .length;
+
+      await freshService.reconnect();
+
+      // ExchangeClient should NOT be created since no wallet params exist
+      expect((ExchangeClient as jest.Mock).mock.calls.length).toBe(
+        exchangeCallsBefore,
+      );
+    });
+
     it('performDisconnection resets isReconnecting flag', async () => {
       const {
         WebSocketConnectionState,

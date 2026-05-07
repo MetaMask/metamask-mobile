@@ -949,6 +949,24 @@ describe('PerpsController', () => {
         }),
       );
     });
+
+    it('logs fallback message when initializationError is null on Failed state', () => {
+      controller.testSetInitialized(false);
+      controller.testUpdate((state) => {
+        state.initializationState = InitializationState.Failed;
+        state.initializationError = null;
+      });
+
+      expect(() => controller.getActiveProvider()).toThrow(
+        PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED,
+      );
+      expect(mockInfrastructure.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Initialization failed',
+        }),
+        expect.any(Object),
+      );
+    });
   });
 
   describe('getActiveProviderOrNull', () => {
