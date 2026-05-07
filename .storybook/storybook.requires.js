@@ -64,7 +64,6 @@ const getStories = () => {
     "./app/component-library/components-temp/QuickActionButtons/QuickActionButton/QuickActionButton.stories.tsx": require("../app/component-library/components-temp/QuickActionButtons/QuickActionButton/QuickActionButton.stories.tsx"),
     "./app/component-library/components-temp/QuickActionButtons/QuickActionButtons.stories.tsx": require("../app/component-library/components-temp/QuickActionButtons/QuickActionButtons.stories.tsx"),
     "./app/component-library/components-temp/SectionHeader/SectionHeader.stories.tsx": require("../app/component-library/components-temp/SectionHeader/SectionHeader.stories.tsx"),
-    "./app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx": require("../app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx"),
     "./app/component-library/components-temp/TabBar/TabBar.stories.tsx": require("../app/component-library/components-temp/TabBar/TabBar.stories.tsx"),
     "./app/component-library/components-temp/TabEmptyState/TabEmptyState.stories.tsx": require("../app/component-library/components-temp/TabEmptyState/TabEmptyState.stories.tsx"),
     "./app/component-library/components-temp/Tabs/Tabs.stories.tsx": require("../app/component-library/components-temp/Tabs/Tabs.stories.tsx"),
