@@ -83,8 +83,10 @@ abstract class StreamChannel<T> {
   protected accountAddress: string | null = null;
   // Track WebSocket connection timing for first data measurement
   protected wsConnectionStartTime: number | null = null;
-  // Flag to pause emission during operations (keeps WebSocket alive)
-  protected isPaused = false;
+  // Reference count for pause requests. Emission is blocked whenever > 0,
+  // allowing independent callers (tab visibility, controller operations) to
+  // pause/resume without clobbering each other.
+  protected pauseCount = 0;
   // Retry counter for deferred connect() calls
   protected connectRetryCount = 0;
   // Timer handle for deferConnect so it can be cancelled on disconnect
@@ -92,8 +94,8 @@ abstract class StreamChannel<T> {
   private static readonly MAX_CONNECT_RETRIES = 150; // 30s at 200ms
 
   protected notifySubscribers(updates: T) {
-    // Block emission if paused (WebSocket continues receiving updates)
-    if (this.isPaused) {
+    // Block emission while any pause is held (WebSocket continues receiving updates)
+    if (this.pauseCount > 0) {
       return;
     }
 
@@ -314,15 +316,16 @@ abstract class StreamChannel<T> {
    * Used during batch operations to prevent UI re-renders from stale data
    */
   public pause(): void {
-    this.isPaused = true;
+    this.pauseCount += 1;
   }
 
   /**
-   * Resume emission of updates to subscribers
-   * Subscribers will receive the next update from the WebSocket
+   * Resume emission of updates to subscribers.
+   * Each pause() call must be matched by exactly one resume(). Emission
+   * resumes only when all callers have released their pause.
    */
   public resume(): void {
-    this.isPaused = false;
+    this.pauseCount = Math.max(0, this.pauseCount - 1);
   }
 
   protected getCachedData(): T | null {

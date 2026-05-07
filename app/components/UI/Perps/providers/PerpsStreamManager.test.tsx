@@ -2708,6 +2708,211 @@ describe('PerpsStreamManager', () => {
     });
   });
 
+  describe('StreamChannel pause reference counting', () => {
+    let mockOrdersSubscribe: jest.Mock;
+    let mockOrdersUnsubscribe: jest.Mock;
+    let orderCallback: ((orders: Order[]) => void) | null;
+
+    const SAMPLE_ORDER: Order = {
+      orderId: '1',
+      symbol: 'BTC',
+      side: 'buy',
+      orderType: 'limit',
+      size: '1.0',
+      originalSize: '1.0',
+      price: '50000',
+      filledSize: '0',
+      remainingSize: '1.0',
+      status: 'open',
+      timestamp: Date.now(),
+      detailedOrderType: 'Limit',
+      isTrigger: false,
+      reduceOnly: false,
+    };
+
+    beforeEach(() => {
+      orderCallback = null;
+      mockOrdersUnsubscribe = jest.fn();
+      mockOrdersSubscribe = jest
+        .fn()
+        .mockImplementation(
+          (params: { callback: (orders: Order[]) => void }) => {
+            orderCallback = params.callback;
+            return mockOrdersUnsubscribe;
+          },
+        );
+      mockEngine.context.PerpsController.subscribeToOrders =
+        mockOrdersSubscribe;
+      mockEngine.context.PerpsController.isCurrentlyReinitializing = jest
+        .fn()
+        .mockReturnValue(false);
+    });
+
+    it('requires all pause holders to resume before emission unblocks', async () => {
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => expect(mockOrdersSubscribe).toHaveBeenCalled());
+
+      // Deliver first update so hasReceivedFirstUpdate is set
+      act(() => {
+        orderCallback?.([SAMPLE_ORDER]);
+      });
+      await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
+      callback.mockClear();
+
+      // Two independent callers pause — simulating tab visibility + controller op
+      act(() => {
+        testStreamManager.orders.pause(); // caller A: tab
+        testStreamManager.orders.pause(); // caller B: controller
+      });
+
+      act(() => {
+        orderCallback?.([{ ...SAMPLE_ORDER, orderId: '2' }]);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(callback).not.toHaveBeenCalled();
+
+      // Caller A releases — count drops to 1, still blocked
+      act(() => {
+        testStreamManager.orders.resume();
+      }); // caller A: tab
+      act(() => {
+        orderCallback?.([{ ...SAMPLE_ORDER, orderId: '3' }]);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(callback).not.toHaveBeenCalled();
+
+      // Caller B releases — count drops to 0, emission resumes
+      act(() => {
+        testStreamManager.orders.resume();
+      }); // caller B: controller
+      act(() => {
+        orderCallback?.([{ ...SAMPLE_ORDER, orderId: '4' }]);
+      });
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledTimes(1);
+        expect(callback).toHaveBeenCalledWith(
+          expect.arrayContaining([expect.objectContaining({ orderId: '4' })]),
+        );
+      });
+
+      unsubscribe();
+    });
+
+    it('tab resume does not release a concurrent controller pause', async () => {
+      // Regression: the old boolean would allow tab resume to unblock the channel
+      // while a controller operation (e.g. closePosition) was still in-flight.
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => expect(mockOrdersSubscribe).toHaveBeenCalled());
+
+      act(() => {
+        orderCallback?.([SAMPLE_ORDER]);
+      });
+      await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
+      callback.mockClear();
+
+      act(() => {
+        // Predictions tab becomes active
+        testStreamManager.orders.pause(); // tab: count → 1
+        // Controller starts a trade operation on the same channel
+        testStreamManager.orders.pause(); // controller: count → 2
+      });
+
+      // User switches back to Portfolio — tab releases its pause
+      act(() => {
+        testStreamManager.orders.resume();
+      }); // tab: count → 1
+
+      // Update arrives while controller op is still running — must be blocked
+      act(() => {
+        orderCallback?.([{ ...SAMPLE_ORDER, orderId: 'mid-op' }]);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(callback).not.toHaveBeenCalled();
+
+      // Controller finally block releases — count → 0, emission resumes
+      act(() => {
+        testStreamManager.orders.resume();
+      }); // controller: count → 0
+      act(() => {
+        orderCallback?.([{ ...SAMPLE_ORDER, orderId: 'after-op' }]);
+      });
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(
+          expect.arrayContaining([
+            expect.objectContaining({ orderId: 'after-op' }),
+          ]),
+        );
+      });
+
+      unsubscribe();
+    });
+
+    it('resume() never drives pauseCount below zero (unmatched resume guard)', async () => {
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => expect(mockOrdersSubscribe).toHaveBeenCalled());
+
+      act(() => {
+        orderCallback?.([SAMPLE_ORDER]);
+      });
+      await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
+      callback.mockClear();
+
+      // Extra resume calls with no matching pause should be no-ops
+      act(() => {
+        testStreamManager.orders.resume();
+        testStreamManager.orders.resume();
+        testStreamManager.orders.resume();
+      });
+
+      // Emission must still work — count is 0, not negative
+      act(() => {
+        orderCallback?.([{ ...SAMPLE_ORDER, orderId: 'after-unmatched' }]);
+      });
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledTimes(1);
+        expect(callback).toHaveBeenCalledWith(
+          expect.arrayContaining([
+            expect.objectContaining({ orderId: 'after-unmatched' }),
+          ]),
+        );
+      });
+
+      unsubscribe();
+    });
+
+    it('each channel tracks its own pause count independently', () => {
+      // Pausing orders should not affect prices
+      const orderPauseSpy = jest.spyOn(testStreamManager.orders, 'pause');
+      const pricesPauseSpy = jest.spyOn(testStreamManager.prices, 'pause');
+
+      testStreamManager.orders.pause();
+
+      expect(orderPauseSpy).toHaveBeenCalledTimes(1);
+      expect(pricesPauseSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('pauseAllChannels / resumeAllChannels', () => {
     const CHANNEL_NAMES = [
       'prices',
