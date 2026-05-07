@@ -7,26 +7,18 @@ import {
   BottomSheetHeader,
   ButtonSize,
   type BottomSheetRef,
-  FontWeight,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useParams } from '../../../../../util/navigation/navUtils';
 import styleSheet from './MoneyEarningsInfoSheet.styles';
 import { MoneyEarningsInfoSheetTestIds } from './MoneyEarningsInfoSheet.testIds';
-
-interface MoneyEarningsInfoSheetParams {
-  apy: number;
-}
 
 const MoneyEarningsInfoSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { apy } = useParams<MoneyEarningsInfoSheetParams>();
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -54,21 +46,7 @@ const MoneyEarningsInfoSheet = () => {
       </BottomSheetHeader>
       <View style={styles.content}>
         <Text variant={TextVariant.BodyMd}>
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-            {strings('money.earnings_tooltip.lifetime_heading')}
-          </Text>
-          {'\n'}
-          {strings('money.earnings_tooltip.lifetime_body')}
-        </Text>
-        <Text variant={TextVariant.BodyMd}>
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-            {strings('money.earnings_tooltip.projected_heading')}
-          </Text>
-          {'\n'}
-          {strings('money.earnings_tooltip.projected_body')}
-        </Text>
-        <Text variant={TextVariant.BodyMd}>
-          {strings('money.earnings_tooltip.disclaimer', { percentage: apy })}
+          {strings('money.earnings_tooltip.body')}
         </Text>
       </View>
       <BottomSheetFooter
