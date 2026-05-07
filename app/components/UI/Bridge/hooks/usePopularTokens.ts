@@ -42,9 +42,15 @@ export const usePopularTokens = ({
         setPopularTokens(tokens);
       })
       .catch((error) => {
+        if (abortController.signal.aborted) {
+          return;
+        }
         console.error('Error fetching popular tokens:', error);
       })
       .finally(() => {
+        if (abortController.signal.aborted) {
+          return;
+        }
         setIsLoading(false);
       });
 

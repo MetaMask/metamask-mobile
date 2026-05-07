@@ -64,7 +64,7 @@ export const cleanupExpiredEntries = (): void => {
 
   lastCleanupTime = now;
 
-  for (const [key, entry] of Object.entries(popularTokensCache)) {
+  for (const [key, entry] of popularTokensCache) {
     if (now - entry.timestamp >= CACHE_TTL_MS) {
       popularTokensCache.delete(key);
     }

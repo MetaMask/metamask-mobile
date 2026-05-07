@@ -205,5 +205,59 @@ describe('usePopularTokens', () => {
       // Should STILL show chain 2 tokens
       expect(result.current.popularTokens).toEqual(chain2Tokens);
     });
+
+    it('keeps isLoading true until the latest fetch completes when a prior fetch is aborted', async () => {
+      const chain2Tokens = [mockPopularTokens[1]];
+
+      const fetchThatRejectsOnAbort = (signal?: AbortSignal) =>
+        new Promise<PopularToken[] | undefined>((resolve, reject) => {
+          if (signal?.aborted) {
+            reject(new DOMException('Aborted', 'AbortError'));
+            return;
+          }
+          const onAbort = () =>
+            reject(new DOMException('Aborted', 'AbortError'));
+          signal?.addEventListener('abort', onAbort, { once: true });
+        });
+
+      let resolveSlow: ((value: PopularToken[]) => void) | undefined;
+      const slowSecondFetch = jest.fn(
+        () =>
+          new Promise<PopularToken[]>((resolve) => {
+            resolveSlow = resolve;
+          }),
+      );
+
+      const { result, rerender } = renderHook(
+        ({
+          fetchTokens,
+        }: {
+          fetchTokens?: (
+            signal?: AbortSignal,
+          ) => Promise<PopularToken[] | undefined>;
+        }) =>
+          usePopularTokens({
+            fetchTokens: fetchTokens ?? fetchThatRejectsOnAbort,
+            includeAssets: [],
+          }),
+        {
+          initialProps: {
+            fetchTokens: fetchThatRejectsOnAbort,
+          },
+        },
+      );
+
+      expect(result.current.isLoading).toBe(true);
+
+      rerender({ fetchTokens: slowSecondFetch });
+
+      await waitFor(() => expect(result.current.isLoading).toBe(true));
+
+      resolveSlow?.(chain2Tokens);
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(result.current.popularTokens).toEqual(chain2Tokens);
+      expect(slowSecondFetch).toHaveBeenCalledTimes(1);
+    });
   });
 });
