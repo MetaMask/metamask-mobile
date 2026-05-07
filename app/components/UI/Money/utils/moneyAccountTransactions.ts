@@ -15,6 +15,25 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import ReduxService from '../../../../core/redux';
 import type { RootState } from '../../../../reducers';
 
+/**
+ * Returns the deposit asset address (the token the user pays in) for a given chain.
+ * TODO: Replace with mUSD address once deployed; until then, USDC mainnet is used.
+ *
+ * Single source of truth for the deposit asset so both calldata encoding
+ * (`buildMoneyAccountDepositBatch`) and Pay's `requiredAssets` agree.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function getMoneyAccountDepositAssetAddress(_chainId: Hex): Hex {
+  // TODO: uncomment when mUSD is deployed
+  // const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[_chainId];
+  // if (!musdAddress) {
+  //   throw new Error(`mUSD not deployed on chain ${_chainId}`);
+  // }
+  // return musdAddress;
+  // TODO: remove when mUSD is deployed - temporarily hardcoded USDC
+  return '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
+}
+
 const LENS_ABI = [
   'function previewDeposit(address depositAsset, uint256 depositAmount, address boringVault, address accountant) view returns (uint256 shares)',
 ];
