@@ -285,6 +285,7 @@ describe('WhatsHappeningExpandedCard', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
+        cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
         onSourcesPress={mockOnSourcesPress}

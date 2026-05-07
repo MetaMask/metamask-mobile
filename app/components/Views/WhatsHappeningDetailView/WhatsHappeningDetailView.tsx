@@ -149,9 +149,12 @@ const WhatsHappeningDetailView = () => {
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = event.nativeEvent.contentOffset.x;
+      // Flip the dot when the incoming card is 20% visible (bias = 1 − 0.2).
+      // Using Math.floor with a bias is symmetric and avoids the direction
+      // tracking that caused erratic jumps with ceil/floor switching.
       const index = Math.max(
         0,
-        Math.min(Math.round(offsetX / SNAP_INTERVAL), items.length - 1),
+        Math.min(Math.floor(offsetX / SNAP_INTERVAL + 0.8), items.length - 1),
       );
 
       const prev = previousIndexRef.current;
