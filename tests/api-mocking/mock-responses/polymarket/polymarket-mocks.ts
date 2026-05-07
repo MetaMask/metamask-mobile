@@ -211,7 +211,11 @@ export const POLYMARKET_EVENT_DETAILS_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      return Boolean(url?.includes('gamma-api.polymarket.com/events/'));
+      // Match only /events/{numericId}, NOT /events/pagination or
+      // /events?parent_event_id=... — those have their own dedicated mocks.
+      return Boolean(
+        url && /gamma-api\.polymarket\.com\/events\/[0-9]+/.test(url),
+      );
     })
     .asPriority(PRIORITY.BASE)
     .thenCallback((request) => {
