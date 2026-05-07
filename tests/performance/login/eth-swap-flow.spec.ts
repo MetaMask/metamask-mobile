@@ -38,13 +38,13 @@ test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`
 
       await swapTimer.measure(() => QuoteView.isQuoteDisplayed());
 
+      performanceTracker.addTimers(swapLoadTimer, swapTimer);
+
       if (process.env.SUBMIT_SWAP === 'true') {
         await QuoteView.dismissKeypad();
         await QuoteView.tapConfirmSwap();
         await checkSwapActivity('ETH', 'USDC');
       }
-
-      performanceTracker.addTimers(swapLoadTimer, swapTimer);
     },
   );
 });
