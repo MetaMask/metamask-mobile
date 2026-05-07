@@ -68,6 +68,7 @@ jest.mock('../../hooks/usePredictOrderRetry', () => ({
 let mockExpectedAmount = 120;
 let mockMetamaskFee = 0.5;
 let mockProviderFee = 1.0;
+let mockMarketFee = 0;
 let mockTotalFeePercentage = 4;
 let mockIsCalculating = false;
 let mockPreviewError: string | null = null;
@@ -93,6 +94,7 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
             fees: {
               metamaskFee: mockMetamaskFee,
               providerFee: mockProviderFee,
+              marketFee: mockMarketFee,
               totalFee: mockMetamaskFee + mockProviderFee,
               totalFeePercentage: mockTotalFeePercentage,
             },
@@ -266,6 +268,7 @@ describe('PredictBuyPreview', () => {
     mockBalanceLoading = false;
     mockMetamaskFee = 0.5;
     mockProviderFee = 1.0;
+    mockMarketFee = 0;
     mockTotalFeePercentage = 4;
     mockIsCalculating = false;
     mockPreviewError = null;
@@ -491,6 +494,28 @@ describe('PredictBuyPreview', () => {
       fireEvent.press(doneButton);
 
       expect(screen.queryByText('Total')).toBeOnTheScreen();
+    });
+
+    it('includes market fee in the displayed total', () => {
+      mockMarketFee = 0.25;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByText('$50'));
+      fireEvent.press(screen.getByText('Done'));
+
+      expect(screen.getByText('$51.75')).toBeOnTheScreen();
+    });
+
+    it('passes provider plus market fee as the exchange fee in the breakdown sheet', () => {
+      mockMarketFee = 0.25;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByText('Done'));
+      fireEvent.press(screen.getAllByText('Total')[0]);
+
+      expect(screen.getByText('$1.25')).toBeOnTheScreen();
     });
 
     it('hides disclaimer on initial render when input is focused', () => {

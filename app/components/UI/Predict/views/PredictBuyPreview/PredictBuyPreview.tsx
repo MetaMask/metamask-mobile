@@ -73,6 +73,7 @@ import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { MINIMUM_BET } from '../../constants/transactions';
+import { getPredictExchangeFee, roundUpToCents } from '../../utils/orders';
 
 /**
  * Module-level ref so PredictPreviewSheetContext can distinguish a programmatic
@@ -242,8 +243,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const isRateLimited = preview?.rateLimited ?? false;
 
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
-  const providerFee = preview?.fees?.providerFee ?? 0;
-  const total = currentValue + providerFee + metamaskFee;
+  const exchangeFee = getPredictExchangeFee(preview?.fees);
+  const total = roundUpToCents(currentValue + metamaskFee + exchangeFee);
 
   const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
   const canPlaceBet =
@@ -594,7 +595,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
           ref={feeBreakdownSheetRef}
-          providerFee={providerFee}
+          providerFee={exchangeFee}
           metamaskFee={metamaskFee}
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
           contractCount={preview?.minAmountReceived ?? 0}
