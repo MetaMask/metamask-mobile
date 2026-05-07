@@ -51,6 +51,7 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
+import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSectionResultsFullView from '../../Views/TrendingView/Views/ExploreSectionResultsFullView/ExploreSectionResultsFullView';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
@@ -866,9 +867,9 @@ const HomeTabs = () => {
       {/* Activity Tab (replaced by Money when feature flag is on) */}
       {isMoneyHomeScreenEnabled ? (
         <Tab.Screen
-          name={Routes.MONEY.HOME}
+          name={Routes.MONEY.ROOT}
           options={options.money}
-          component={WalletTabModalFlow}
+          component={MoneyScreenStack}
         />
       ) : (
         <Tab.Screen
@@ -891,7 +892,7 @@ const HomeTabs = () => {
 };
 
 const Webview = () => (
-  <Stack.Navigator>
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="SimpleWebview" component={SimpleWebview} />
   </Stack.Navigator>
 );
@@ -1223,11 +1224,6 @@ const MainNavigator = () => {
       {isMoneyHomeScreenEnabled && (
         <>
           <Stack.Screen
-            name={Routes.MONEY.ROOT}
-            component={MoneyScreenStack}
-            options={{ headerShown: false, ...slideFromRightAnimation }}
-          />
-          <Stack.Screen
             name={Routes.MONEY.MODALS.ROOT}
             component={MoneyModalStack}
             options={{
@@ -1366,6 +1362,11 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SITES_FULL_VIEW}
           component={SitesFullView}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+        <Stack.Screen
+          name={Routes.WHATS_HAPPENING_DETAIL}
+          component={WhatsHappeningDetailView}
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
         <Stack.Screen

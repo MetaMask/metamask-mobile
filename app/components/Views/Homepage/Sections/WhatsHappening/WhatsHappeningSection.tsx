@@ -16,6 +16,7 @@ import { SectionRefreshHandle } from '../../types';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MAX_ITEMS_DISPLAYED, WhatsHappeningEntryPoint } from './constants';
 import { useWhatsHappening } from './hooks';
 import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
 import useHomeViewedEvent, {
@@ -23,8 +24,9 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
-
-const MAX_ITEMS_DISPLAYED = 5;
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { getWhatsHappeningEventProps } from './eventProperties';
 
 const CARD_WIDTH = 280;
 const GAP = 12;
@@ -57,6 +59,7 @@ const WhatsHappeningSection = forwardRef<
   const navigation = useNavigation();
   const isEnabled = useSelector(selectWhatsHappeningEnabled);
   const title = strings('homepage.sections.whats_happening');
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { items, isLoading, error, refresh } =
     useWhatsHappening(MAX_ITEMS_DISPLAYED);
@@ -91,25 +94,38 @@ const WhatsHappeningSection = forwardRef<
 
   const navigateToDetail = useCallback(
     (initialIndex: number) => {
-      // TODO: When WhatsHappeningDetailView is implemented, pass only { initialIndex } — the
-      // detail screen should call useWhatsHappening(); AiDigestController caches the response.
       navigation.navigate(Routes.WHATS_HAPPENING_DETAIL, {
-        items,
         initialIndex,
       });
     },
-    [navigation, items],
+    [navigation],
   );
 
   const handleViewAll = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_OPENED)
+        .addProperties({ entry_point: WhatsHappeningEntryPoint.ViewAll })
+        .build(),
+    );
     navigateToDetail(0);
-  }, [navigateToDetail]);
+  }, [navigateToDetail, trackEvent, createEventBuilder]);
 
   const handleCardPress = useCallback(
     (index: number) => {
+      const item = items[index];
+      if (item) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_OPENED)
+            .addProperties({
+              ...getWhatsHappeningEventProps(item, index),
+              entry_point: WhatsHappeningEntryPoint.Card,
+            })
+            .build(),
+        );
+      }
       navigateToDetail(index);
     },
-    [navigateToDetail],
+    [items, navigateToDetail, trackEvent, createEventBuilder],
   );
 
   if (!isEnabled) {
@@ -165,12 +181,13 @@ const WhatsHappeningSection = forwardRef<
               <WhatsHappeningCard
                 key={item.id}
                 item={item}
+                cardIndex={index}
                 onPress={() => handleCardPress(index)}
               />
             ))}
             <ViewMoreCard
               onPress={handleViewAll}
-              twClassName="w-[180px] h-[248px]"
+              twClassName="w-[180px] h-[254px]"
               textVariant={TextVariant.BodyLg}
             />
           </>
