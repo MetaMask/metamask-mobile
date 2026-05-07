@@ -146,13 +146,13 @@ function setupDefaults({
   subscriptionId = SUBSCRIPTION_ID,
   outcome = null,
 }: {
-  campaigns?: ReturnType<typeof makeCompletedCampaign>[];
+  campaigns?: ReturnType<typeof makeCompletedCampaign>[] | undefined;
   dismissed?: Record<string, boolean>;
   subscriptionId?: string | null;
   outcome?: BaseCampaignParticipantOutcomeDto | null;
 } = {}) {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectCampaigns) return campaigns;
+    if (selector === selectCampaigns) return campaigns ?? [];
     if (selector === selectDismissedCampaignOutcomeToasts) return dismissed;
     if (selector === selectRewardsSubscriptionId) return subscriptionId;
     return undefined;
@@ -190,6 +190,14 @@ describe('useCampaignOutcomeToast', () => {
     it('no campaigns match the campaignType', () => {
       setupDefaults({ campaigns: [] });
       renderHook(() => useCampaignOutcomeToast(mockConfig));
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('campaigns are missing from persisted state', () => {
+      setupDefaults({ campaigns: undefined });
+      expect(() =>
+        renderHook(() => useCampaignOutcomeToast(mockConfig)),
+      ).not.toThrow();
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
