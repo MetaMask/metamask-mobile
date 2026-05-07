@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   Dimensions,
   LayoutChangeEvent,
@@ -63,6 +63,7 @@ const WhatsHappeningDetailView = () => {
     null,
   );
   const scrollViewRef = useRef<ScrollView>(null);
+  const hasScrolledToInitial = useRef(false);
 
   const handleSourcesPress = useCallback((articles: Article[]) => {
     setSourcesArticles(articles);
@@ -77,19 +78,23 @@ const WhatsHappeningDetailView = () => {
     if (height > 0) setCardHeight(height);
   }, []);
 
-  useEffect(() => {
-    if (
-      initialIndex > 0 &&
-      cardHeight > 0 &&
-      scrollViewRef.current &&
-      !isLoading
-    ) {
-      scrollViewRef.current.scrollTo({
-        x: initialIndex * SNAP_INTERVAL,
-        animated: false,
-      });
-    }
-  }, [initialIndex, isLoading, cardHeight]);
+  const handleContentSizeChange = useCallback(
+    (contentWidth: number) => {
+      if (
+        !hasScrolledToInitial.current &&
+        initialIndex > 0 &&
+        contentWidth > initialIndex * SNAP_INTERVAL &&
+        scrollViewRef.current
+      ) {
+        hasScrolledToInitial.current = true;
+        scrollViewRef.current.scrollTo({
+          x: initialIndex * SNAP_INTERVAL,
+          animated: false,
+        });
+      }
+    },
+    [initialIndex],
+  );
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -161,6 +166,7 @@ const WhatsHappeningDetailView = () => {
               style={tw`flex-1`}
               contentContainerStyle={tw.style('px-4 gap-3')}
               onLayout={handleCarouselLayout}
+              onContentSizeChange={handleContentSizeChange}
               onScroll={handleScroll}
               scrollEventThrottle={16}
               testID="whats-happening-detail-carousel"
