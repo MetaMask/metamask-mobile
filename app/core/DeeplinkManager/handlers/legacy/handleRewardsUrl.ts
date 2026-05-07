@@ -18,7 +18,7 @@ interface HandleRewardsUrlParams {
 interface RewardsNavigationParams {
   referral?: string;
   page?: 'campaigns' | 'musd' | 'benefits';
-  campaign?: 'ondo' | 'season1';
+  campaign?: 'ondo' | 'season1' | 'perps-comp';
 }
 
 /**
