@@ -691,6 +691,51 @@ describe('PredictionsSection', () => {
       expect(screen.queryByText('Test Position 1')).not.toBeOnTheScreen();
       expect(screen.queryByText('Test Position 2')).not.toBeOnTheScreen();
     });
+
+    it('does not duplicate the section header when trending carousel is shown above positions', async () => {
+      setupClaimableOnly();
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+      });
+
+      // Title should appear exactly once — from the trending carousel header.
+      // The positions header is gated by showHeader=false in this branch.
+      expect(screen.getAllByText('Predictions')).toHaveLength(1);
+    });
+
+    it('does not show unrealized PnL row when trending carousel is above positions', async () => {
+      setupClaimableOnly();
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+      });
+
+      // showHeader=false when trending carousel is above positions,
+      // so the unrealized PnL row must not render even if the hook returns data
+      expect(screen.queryByText(/P&L/i)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/PnL/i)).not.toBeOnTheScreen();
+    });
   });
 
   describe('positions-only mode with claimable-only', () => {
