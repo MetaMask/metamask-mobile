@@ -33,10 +33,30 @@ import { formatCents, getCashoutInfoText } from '../utils/format';
 import PredictPreviewSheet, {
   type PredictPreviewSheetRef,
 } from '../components/PredictPreviewSheet/PredictPreviewSheet';
-import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
+import Engine from '../../../../core/Engine';
+import PredictBuyPreview, {
+  predictBuyPreviewDismissedViaBackRef,
+  predictBuyPreviewOrderInitiatedRef,
+  predictBuyPreviewSessionRef,
+} from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken/PredictBuyWithAnyToken';
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../Predict.testIds';
+import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
+import { PredictDismissalMethod } from '../constants/eventNames';
+import { parseAnalyticsProperties } from '../utils/analytics';
+
+let _providerMounted = false;
+
+/**
+ * Returns whether `PredictPreviewSheetProvider` is currently mounted somewhere
+ * in the tree. Used by `usePredictToastRegistrations` to decide whether to
+ * suppress the order-failure toast (the provider auto-reopens the sheet with
+ * an inline error banner instead).
+ */
+export function isPredictSheetProviderMounted(): boolean {
+  return _providerMounted;
+}
 
 const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
   params,
@@ -140,6 +160,7 @@ export const PredictPreviewSheetProvider: React.FC<
   const payWithAnyTokenEnabled = useSelector(
     selectPredictWithAnyTokenEnabledFlag,
   );
+  const { activeOrder, clearOrderError } = usePredictActiveOrder();
 
   const buySheetRef = useRef<PredictPreviewSheetRef>(null);
   const sellSheetRef = useRef<PredictPreviewSheetRef>(null);
@@ -154,8 +175,30 @@ export const PredictPreviewSheetProvider: React.FC<
   const [buyNonce, setBuyNonce] = useState(0);
   const [sellNonce, setSellNonce] = useState(0);
 
+  /**
+   * Remembers the last params passed to `openBuySheet` so we can auto-reopen
+   * the sheet when an order fails in the background after the sheet was
+   * dismissed (e.g. closed during DEPOSITING).
+   */
+  const lastBuyParamsRef = useRef<PredictBuyPreviewParams | null>(null);
+  /**
+   * Set when the user dismisses the sheet while an error is already visible.
+   * Prevents the auto-reopen effect from re-triggering the sheet before
+   * `clearOrderError` has propagated through Redux. Reset once the error
+   * becomes falsy (i.e. the clear has landed).
+   */
+  const dismissedWithErrorRef = useRef(false);
+
+  useEffect(() => {
+    _providerMounted = true;
+    return () => {
+      _providerMounted = false;
+    };
+  }, []);
+
   const openBuySheet = useCallback(
     (params: PredictBuyPreviewParams) => {
+      lastBuyParamsRef.current = params;
       if (bottomSheetEnabled) {
         setBuyParams(params);
         buyNonceRef.current += 1;
@@ -192,12 +235,65 @@ export const PredictPreviewSheetProvider: React.FC<
     }
   }, [sellParams, sellNonce]);
 
+  // Auto-reopen the buy sheet when a background order fails so the user can
+  // see the inline error banner and retry instead of getting a toast.
+  useEffect(() => {
+    if (!activeOrder?.error) {
+      dismissedWithErrorRef.current = false;
+    }
+
+    if (
+      bottomSheetEnabled &&
+      activeOrder?.error &&
+      !buyParams &&
+      lastBuyParamsRef.current &&
+      !dismissedWithErrorRef.current
+    ) {
+      const savedParams = lastBuyParamsRef.current;
+      lastBuyParamsRef.current = null;
+      setBuyParams(savedParams);
+      buyNonceRef.current += 1;
+      setBuyNonce(buyNonceRef.current);
+    }
+  }, [activeOrder?.error, buyParams, bottomSheetEnabled]);
+
   const BuyComponent = useMemo(
     () => (payWithAnyTokenEnabled ? PredictBuyWithAnyToken : PredictBuyPreview),
     [payWithAnyTokenEnabled],
   );
 
-  const onBuyDismiss = useCallback(() => setBuyParams(null), []);
+  const onBuyDismiss = useCallback(() => {
+    if (activeOrder?.error) {
+      dismissedWithErrorRef.current = true;
+    }
+
+    // Fire Predict Betslip Dismissed for swipe / hardware-back paths.
+    // Skip if: the back-button handler already fired it, or the sheet is
+    // closing because the user confirmed an order (not a dismissal).
+    if (
+      !predictBuyPreviewDismissedViaBackRef.current &&
+      !predictBuyPreviewOrderInitiatedRef.current &&
+      buyParams
+    ) {
+      const dismissAnalyticsProperties = parseAnalyticsProperties(
+        buyParams.market,
+        buyParams.outcomeToken,
+        buyParams.entryPoint,
+      );
+      Engine.context.PredictController.trackBetslipDismissed({
+        analyticsProperties: dismissAnalyticsProperties,
+        dismissalMethod: PredictDismissalMethod.SWIPE,
+        hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
+        timeOnScreenMs: Date.now() - predictBuyPreviewSessionRef.mountTimestamp,
+        activeAbTests: buyParams.transactionActiveAbTests,
+      });
+    }
+    predictBuyPreviewDismissedViaBackRef.current = false;
+    predictBuyPreviewOrderInitiatedRef.current = false;
+
+    setBuyParams(null);
+    clearOrderError();
+  }, [clearOrderError, activeOrder?.error, buyParams]);
   const onSellDismiss = useCallback(() => setSellParams(null), []);
 
   const contextValue = React.useMemo(

@@ -1,4 +1,4 @@
-import { IconName } from '@metamask/design-system-react-native';
+import { IconName, TextColor } from '@metamask/design-system-react-native';
 import {
   type CaipAssetType,
   type CaipChainId,
@@ -8,7 +8,7 @@ import {
   parseCaipChainId,
 } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
-import I18n from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
 import formatFiat from '../../../../util/formatFiat';
 import { getIntlNumberFormatter } from '../../../../util/intl';
@@ -367,10 +367,10 @@ export const formatCompactUsd = (value: number): string => {
  * @example formatSignedUsd('-1250.50')     // '-$1,250.50'
  * @example formatSignedUsd(null)           // '—'
  */
-export const formatSignedUsd = (value: string | null): string => {
+export const formatSignedUsd = (value: string | number | null): string => {
   if (value === null) return '—';
-  const num = parseFloat(value);
-  if (Number.isNaN(num)) return value;
+  const num = typeof value === 'number' ? value : parseFloat(value);
+  if (Number.isNaN(num)) return '—';
   const sign = num > 0 ? '+' : '';
   return `${sign}${formatUsd(value)}`;
 };
@@ -424,22 +424,6 @@ export function formatOrdinalRank(rank: number): string {
   }
   return `${n}${suffix}`;
 }
-
-// ── Timestamp formatting ────────────────────────────────────────────────
-
-/**
- * Formats an ISO 8601 timestamp to `HH:MM:SS`.
- * Returns '' for null or unparseable values.
- */
-export const formatComputedAt = (isoString: string | null): string => {
-  if (!isoString) return '';
-  const date = new Date(isoString);
-  if (isNaN(date.getTime())) return '';
-  const h = date.getHours().toString().padStart(2, '0');
-  const m = date.getMinutes().toString().padStart(2, '0');
-  const s = date.getSeconds().toString().padStart(2, '0');
-  return `${h}:${m}:${s}`;
-};
 
 // ── CAIP-19 / address helpers ───────────────────────────────────────────
 
@@ -506,19 +490,11 @@ export const shortenAddress = (address: string): string => {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
 
-const MAX_ONDO_TOKEN_NAME_LENGTH = 28;
-
-/**
- * Strips Ondo branding from a token name and truncates to
- * MAX_ONDO_TOKEN_NAME_LENGTH characters with an ellipsis if needed.
- *
- * Handles two forms: prefix ("Ondo Tokenized Apple" → "Apple") and
- * suffix ("US Dollar (Ondo Tokenized)" → "US Dollar").
- */
-export function sanitizeOndoTokenName(raw: string): string {
-  const cleaned = raw
-    .replace(/(?:^ondo\s+tokenized\s+|\s*\(ondo\s+tokenized\))/gi, '')
-    .trim();
-  if (cleaned.length <= MAX_ONDO_TOKEN_NAME_LENGTH) return cleaned;
-  return `${cleaned.slice(0, MAX_ONDO_TOKEN_NAME_LENGTH).trim()}...`;
+export function getPortfolioReturnColor(
+  portfolioPnlPercent: string | undefined,
+): TextColor {
+  if (!portfolioPnlPercent) return TextColor.TextDefault;
+  return parseFloat(portfolioPnlPercent) < 0
+    ? TextColor.ErrorDefault
+    : TextColor.SuccessDefault;
 }

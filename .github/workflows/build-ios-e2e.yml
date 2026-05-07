@@ -26,11 +26,16 @@ on:
         required: false
         default: ''
         type: string
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
 
 jobs:
   build-ios-apps:
     name: Build iOS E2E Apps
-    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe-xl
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' }}
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
@@ -63,11 +68,6 @@ jobs:
       SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
       MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
       MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
-      MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-      MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-      MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-      MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-      MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
       GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
       GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
       MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
@@ -76,7 +76,7 @@ jobs:
     steps:
       # Get the source code from the repository
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Check force-builds override
         id: force-builds
@@ -84,12 +84,6 @@ jobs:
         with:
           github-token: ${{ github.token }}
 
-      # Use the canonical fingerprint computed upstream by `post-build-source-hash`.
-      # Do NOT recompute it here — macOS `node_modules/` differs from Linux
-      # `node_modules/` in ways @expo/fingerprint hashes (prebuilt binaries,
-      # platform-conditional deps), so recomputing per-runner would give a
-      # different value than the one posted as the `build-source-hash` commit
-      # status and break cross-run artifact reuse.
       - name: Report source fingerprint
         run: |
           if [[ -z "$SOURCE_FINGERPRINT" ]]; then
@@ -171,7 +165,7 @@ jobs:
             ios/build
           key: ${{ runner.os }}-xcode-main-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
 
-      # Install Node.js, Xcode tools, and other iOS development dependencies
+      # Install Node.js, Xcode tools, and other iOS development dependencies.
       - name: Installing iOS Environment Setup
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         timeout-minutes: 15
@@ -179,6 +173,7 @@ jobs:
         with:
           platform: ios
           setup-simulator: false
+          install-foundry: false
 
       - name: Print iOS tool versions
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
@@ -220,13 +215,6 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --build-ios --no-build-android
 
-      # -------------------------------------------------------------------------
-      # Lean JS-only setup — only runs on the reuse-hit path so that
-      # `yarn build:repack:ios` has Node, @expo/repack-app, and the inpage
-      # bridge + terms-of-use assets. Skips Ruby/Bundler/CocoaPods/Xcode entirely
-      # (not needed for repack — saves ~6m wall time on cache-hit builds).
-      # -------------------------------------------------------------------------
-
       - name: Setup Node.js (reuse-hit path)
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
         uses: actions/setup-node@v6
@@ -240,8 +228,6 @@ jobs:
           corepack prepare yarn@3.8.7 --activate
         shell: bash
 
-      # Matches the cache key used by `setup-e2e-env` so both paths share the
-      # same node_modules cache.
       - name: Restore yarn cache (reuse-hit path)
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
         uses: actions/cache@v4
@@ -270,18 +256,10 @@ jobs:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
-      # `--no-build-ios --no-build-android` skips the native setup tasks
-      # (bundler, CocoaPods, jetify) but still runs the JS-side tasks that
-      # `yarn build:repack:ios` depends on: build-inpage-bridge,
-      # patch-package, allow-scripts, install-foundry, terms-of-use.
       - name: Run lightweight project setup (reuse-hit path)
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
         run: yarn setup:github-ci --no-build-ios --no-build-android
         shell: bash
-
-      # -------------------------------------------------------------------------
-      # Build (fresh) or Repack (reuse) — exactly one of these runs per job.
-      # -------------------------------------------------------------------------
 
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
@@ -311,11 +289,6 @@ jobs:
           MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
           MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
 
-          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
@@ -350,11 +323,6 @@ jobs:
           SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
           MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
           MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
-          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}

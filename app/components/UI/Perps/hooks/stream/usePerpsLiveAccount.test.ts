@@ -74,7 +74,8 @@ describe('usePerpsLiveAccount', () => {
   describe('state from PerpsController', () => {
     it('returns account state from the channel snapshot before controller cache', () => {
       const mockAccountState: AccountState = {
-        availableBalance: '7000',
+        spendableBalance: '7000',
+        withdrawableBalance: '7000',
         marginUsed: '500',
         unrealizedPnl: '25',
         returnOnEquity: '1.0',
@@ -96,7 +97,8 @@ describe('usePerpsLiveAccount', () => {
 
     it('returns account state from PerpsController', () => {
       const mockAccountState: AccountState = {
-        availableBalance: '3000',
+        spendableBalance: '3000',
+        withdrawableBalance: '3000',
         marginUsed: '1000',
         unrealizedPnl: '50',
         returnOnEquity: '5.0',
@@ -121,7 +123,8 @@ describe('usePerpsLiveAccount', () => {
 
     it('handles zero balance account state', () => {
       const mockAccountState: AccountState = {
-        availableBalance: '0',
+        spendableBalance: '0',
+        withdrawableBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -143,7 +146,7 @@ describe('usePerpsLiveAccount', () => {
         account: mockAccountState,
         isInitialLoading: false,
       });
-      expect(result.current?.account?.availableBalance).toBe('0');
+      expect(result.current?.account?.spendableBalance).toBe('0');
       expect(result.current?.account?.totalBalance).toBe('0');
     });
   });
@@ -151,7 +154,8 @@ describe('usePerpsLiveAccount', () => {
   describe('partial state handling', () => {
     it('handles partial account state', () => {
       const partialAccountState: AccountState = {
-        availableBalance: '100',
+        spendableBalance: '100',
+        withdrawableBalance: '100',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -168,7 +172,7 @@ describe('usePerpsLiveAccount', () => {
         state: {},
       });
 
-      expect(result.current?.account?.availableBalance).toBe('100');
+      expect(result.current?.account?.spendableBalance).toBe('100');
       expect(result.current?.account?.totalBalance).toBe('200');
     });
 
@@ -190,7 +194,8 @@ describe('usePerpsLiveAccount', () => {
   describe('account state scenarios', () => {
     it('handles account with positive PnL', () => {
       const positivePnlState: AccountState = {
-        availableBalance: '5000',
+        spendableBalance: '5000',
+        withdrawableBalance: '5000',
         marginUsed: '1000',
         unrealizedPnl: '500',
         returnOnEquity: '50.0',
@@ -213,7 +218,8 @@ describe('usePerpsLiveAccount', () => {
 
     it('handles account with negative PnL', () => {
       const negativePnlState: AccountState = {
-        availableBalance: '3000',
+        spendableBalance: '3000',
+        withdrawableBalance: '3000',
         marginUsed: '2000',
         unrealizedPnl: '-500',
         returnOnEquity: '-25.0',
@@ -236,7 +242,8 @@ describe('usePerpsLiveAccount', () => {
 
     it('handles account with high margin usage', () => {
       const highMarginState: AccountState = {
-        availableBalance: '500',
+        spendableBalance: '500',
+        withdrawableBalance: '500',
         marginUsed: '9500',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -255,12 +262,13 @@ describe('usePerpsLiveAccount', () => {
 
       expect(result.current?.account?.marginUsed).toBe('9500');
       expect(Number(result.current?.account?.marginUsed)).toBe(9500);
-      expect(Number(result.current?.account?.availableBalance)).toBe(500);
+      expect(Number(result.current?.account?.spendableBalance)).toBe(500);
     });
 
     it('handles account with no margin used', () => {
       const noMarginState: AccountState = {
-        availableBalance: '10000',
+        spendableBalance: '10000',
+        withdrawableBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -278,7 +286,7 @@ describe('usePerpsLiveAccount', () => {
       });
 
       expect(result.current?.account?.marginUsed).toBe('0');
-      expect(result.current?.account?.availableBalance).toBe(
+      expect(result.current?.account?.spendableBalance).toBe(
         result.current?.account?.totalBalance,
       );
     });
@@ -287,7 +295,8 @@ describe('usePerpsLiveAccount', () => {
   describe('initial state from cache', () => {
     it('seeds account from cache when fresh cached data exists', () => {
       const cachedAccount: AccountState = {
-        availableBalance: '5000',
+        spendableBalance: '5000',
+        withdrawableBalance: '5000',
         marginUsed: '2000',
         unrealizedPnl: '100',
         returnOnEquity: '2.0',
@@ -348,7 +357,8 @@ describe('usePerpsLiveAccount', () => {
   describe('memoization', () => {
     it('returns same reference for same state', () => {
       const mockAccountState: AccountState = {
-        availableBalance: '1000',
+        spendableBalance: '1000',
+        withdrawableBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',

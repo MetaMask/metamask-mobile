@@ -20,11 +20,7 @@ import {
   LEDGER_LIVE_PATH,
 } from '../../../core/Ledger/constants';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  ACCOUNT_SELECTOR_FORGET_BUTTON,
-  ACCOUNT_SELECTOR_NEXT_BUTTON,
-  ACCOUNT_SELECTOR_PREVIOUS_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
+import { AccountSelectorSelectorsIDs } from '../../UI/HardwareWallet/AccountSelector/AccountSelector.testIds';
 import { SELECT_DROP_DOWN } from '../../UI/SelectOptionSheet/constants';
 import { useHardwareWallet } from '../../../core/HardwareWallet';
 import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
@@ -167,6 +163,12 @@ const defaultHardwareWalletValues = {
   showHardwareWalletError: mockShowHardwareWalletError,
   showAwaitingConfirmation: mockShowAwaitingConfirmation,
   hideAwaitingConfirmation: mockHideAwaitingConfirmation,
+  qr: {
+    isSigningQRObject: false,
+    setRequestCompleted: jest.fn(),
+    isRequestCompleted: false,
+    cancelQRScanRequestIfPresent: jest.fn(),
+  },
 };
 
 describe('LedgerSelectAccount', () => {
@@ -347,9 +349,15 @@ describe('LedgerSelectAccount', () => {
 
       expect(queryByText('Select an account')).toBeOnTheScreen();
       expect(queryByText('Select HD Path')).toBeOnTheScreen();
-      expect(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON)).toBeOnTheScreen();
-      expect(getByTestId(ACCOUNT_SELECTOR_PREVIOUS_BUTTON)).toBeOnTheScreen();
-      expect(getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON)).toBeOnTheScreen();
+      expect(
+        getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(AccountSelectorSelectorsIDs.PREVIOUS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(AccountSelectorSelectorsIDs.FORGET_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('displays HD path selector dropdown', async () => {
@@ -367,7 +375,7 @@ describe('LedgerSelectAccount', () => {
       mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
 
       await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON));
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON));
       });
 
       await waitFor(() => {
@@ -384,7 +392,9 @@ describe('LedgerSelectAccount', () => {
       mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
 
       await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_PREVIOUS_BUTTON));
+        fireEvent.press(
+          getByTestId(AccountSelectorSelectorsIDs.PREVIOUS_BUTTON),
+        );
       });
 
       await waitFor(() => {
@@ -403,7 +413,7 @@ describe('LedgerSelectAccount', () => {
       );
 
       await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON));
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON));
       });
 
       await waitFor(() => {
@@ -421,7 +431,7 @@ describe('LedgerSelectAccount', () => {
       mockGetLedgerAccountsByOperation.mockReturnValue(slowPromise);
 
       await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON));
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON));
       });
 
       expect(queryByText('Please wait')).toBeOnTheScreen();
@@ -559,7 +569,7 @@ describe('LedgerSelectAccount', () => {
       const { getByTestId, queryByText } = await renderAndWaitForAccounts();
 
       await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON));
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.FORGET_BUTTON));
       });
 
       await waitFor(() => {
@@ -724,7 +734,7 @@ describe('LedgerSelectAccount', () => {
       mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
 
       await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON));
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON));
       });
 
       expect(mockGetLedgerAccountsByOperation).toHaveBeenCalledWith(
@@ -735,7 +745,9 @@ describe('LedgerSelectAccount', () => {
       mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
 
       await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_PREVIOUS_BUTTON));
+        fireEvent.press(
+          getByTestId(AccountSelectorSelectorsIDs.PREVIOUS_BUTTON),
+        );
       });
 
       expect(mockGetLedgerAccountsByOperation).toHaveBeenCalledWith(
@@ -749,7 +761,7 @@ describe('LedgerSelectAccount', () => {
       const { getByTestId, queryByText } = await renderAndWaitForAccounts();
 
       await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON));
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.FORGET_BUTTON));
       });
 
       await waitFor(() => {
@@ -763,7 +775,7 @@ describe('LedgerSelectAccount', () => {
       const { getByTestId, queryByText } = await renderAndWaitForAccounts();
 
       await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON));
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.FORGET_BUTTON));
       });
 
       expect(queryByText('Please wait')).toBeOnTheScreen();
@@ -780,7 +792,7 @@ describe('LedgerSelectAccount', () => {
       );
 
       await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON));
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON));
       });
 
       await waitFor(() => {
@@ -797,7 +809,9 @@ describe('LedgerSelectAccount', () => {
       );
 
       await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_PREVIOUS_BUTTON));
+        fireEvent.press(
+          getByTestId(AccountSelectorSelectorsIDs.PREVIOUS_BUTTON),
+        );
       });
 
       await waitFor(() => {

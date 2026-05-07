@@ -72,93 +72,79 @@ describe('MainNavigator', () => {
     process.env.METAMASK_ENVIRONMENT = originalEnv;
   });
 
-  it('matches rendered snapshot', () => {
-    // Given the initial app state
-    // When rendering the MainNavigator
-    const { toJSON } = renderWithProvider(<MainNavigator />, {
-      state: initialRootState,
-    });
-
-    // Then it should match the expected navigation structure
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   describe('Tab Bar Visibility', () => {
-    it('hides tab bar when browser is active', () => {
-      // Given a state where browser is the active route
-      const stateWithBrowserActive = {
-        ...initialRootState,
-        browser: {
-          ...initialRootState.browser,
-          activeTab: 0,
-          tabs: [{ url: 'https://example.com', id: 0 }],
-        },
-      };
+    const getHomeTabsComponent = (): React.ComponentType<
+      Record<string, unknown>
+    > => {
+      const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+      const homeScreen = mainRoot.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
+      )[0];
+      return homeScreen?.props?.component;
+    };
 
-      // When rendering the MainNavigator
-      const { toJSON } = renderWithProvider(<MainNavigator />, {
-        state: stateWithBrowserActive,
+    const getTabBarFn = (
+      HomeTabsComponent: React.ComponentType<Record<string, unknown>>,
+    ) => {
+      const { root: homeRoot } = renderWithProvider(
+        <HomeTabsComponent route={{ params: {} }} />,
+        { state: initialRootState },
+      );
+      const tabNavigatorNode = homeRoot.findAll(
+        (node: ReactTestInstance) => node.type?.toString?.() === 'TabNavigator',
+      )[0];
+      return tabNavigatorNode?.props?.tabBar as (args: {
+        state: {
+          routes: { name: string; state?: unknown }[];
+          index: number;
+        };
+        descriptors: Record<string, unknown>;
+        navigation: Record<string, unknown>;
+      }) => React.ReactNode;
+    };
+
+    it('hides tab bar when browser is active', () => {
+      // Given HomeTabs is rendered and the active route is the browser
+      const HomeTabs = getHomeTabsComponent();
+      const renderTabBar = getTabBarFn(HomeTabs);
+
+      // When renderTabBar is called with a browser route as the active tab
+      const result = renderTabBar({
+        state: {
+          routes: [{ name: Routes.BROWSER.HOME }],
+          index: 0,
+        },
+        descriptors: {},
+        navigation: {},
       });
 
-      // Then the tab bar should be hidden (returns null in renderTabBar)
-      expect(toJSON()).toMatchSnapshot();
+      // Then the tab bar should be hidden
+      expect(result).toBeNull();
     });
 
     it('shows tab bar when not in browser', () => {
-      // Given a state where wallet is the active route
-      const stateWithWalletActive = {
-        ...initialRootState,
-        browser: {
-          ...initialRootState.browser,
-          activeTab: null,
-          tabs: [],
-        },
-      };
+      // Given HomeTabs is rendered and the active route is the wallet
+      const HomeTabs = getHomeTabsComponent();
+      const renderTabBar = getTabBarFn(HomeTabs);
 
-      // When rendering the MainNavigator
-      const { toJSON } = renderWithProvider(<MainNavigator />, {
-        state: stateWithWalletActive,
+      // When renderTabBar is called with a non-browser route as the active tab
+      const result = renderTabBar({
+        state: {
+          routes: [{ name: Routes.WALLET.HOME }],
+          index: 0,
+        },
+        descriptors: {},
+        navigation: {},
       });
 
       // Then the tab bar should be visible
-      expect(toJSON()).toMatchSnapshot();
+      expect(result).not.toBeNull();
     });
 
     describe('Rewards sub-page tab bar visibility', () => {
-      const getHomeTabsComponent = (): React.ComponentType<
-        Record<string, unknown>
-      > => {
-        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
-          state: initialRootState,
-        });
-        const homeScreen = mainRoot.findAll(
-          (node: ReactTestInstance) =>
-            node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
-        )[0];
-        return homeScreen?.props?.component;
-      };
-
-      const getTabBarFn = (
-        HomeTabsComponent: React.ComponentType<Record<string, unknown>>,
-      ) => {
-        const { root: homeRoot } = renderWithProvider(
-          <HomeTabsComponent route={{ params: {} }} />,
-          { state: initialRootState },
-        );
-        const tabNavigatorNode = homeRoot.findAll(
-          (node: ReactTestInstance) =>
-            node.type?.toString?.() === 'TabNavigator',
-        )[0];
-        return tabNavigatorNode?.props?.tabBar as (args: {
-          state: {
-            routes: { name: string; state?: unknown }[];
-            index: number;
-          };
-          descriptors: Record<string, unknown>;
-          navigation: Record<string, unknown>;
-        }) => React.ReactNode;
-      };
-
       // rewardsViewRoute is found via .find(r => r.name === Routes.REWARDS_VIEW),
       // so the inner route that wraps the nested nav state must carry that name.
       const buildRewardsState = (activeRouteName: string | undefined) => ({
@@ -1059,6 +1045,19 @@ describe('MainNavigator', () => {
       expect(screen).toBeDefined();
     });
 
+    it('includes WhatsHappeningDetailView screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === Routes.WHATS_HAPPENING_DETAIL,
+      );
+
+      expect(screen).toBeDefined();
+    });
+
     it('includes Browser home screen in main navigator', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
@@ -1447,45 +1446,50 @@ describe('MainNavigator', () => {
     });
 
     describe('Money home screen conditional rendering', () => {
-      it('includes Money route when feature flag is enabled', () => {
-        mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
-
-        const container = renderWithProvider(<MainNavigator />, {
+      const getHomeTabsScreenNames = (): string[] => {
+        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-
-        const screenProps = container.root.children
+        const homeScreen = mainRoot.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
+        )[0];
+        const HomeTabs = homeScreen?.props?.component as React.ComponentType<
+          Record<string, unknown>
+        >;
+        const { root: homeRoot } = renderWithProvider(
+          <HomeTabs route={{ params: {} }} />,
+          { state: initialRootState },
+        );
+        const tabNavigatorNode = homeRoot.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabNavigator',
+        )[0];
+        return (tabNavigatorNode?.children ?? [])
           .filter(
             (child): child is ReactTestInstance =>
               typeof child === 'object' &&
-              'type' in child &&
               'props' in child &&
-              child.type?.toString() === 'Screen',
+              typeof child.props?.name === 'string',
           )
-          .map((child) => child.props.name);
+          .map((child) => child.props.name as string);
+      };
 
-        expect(screenProps).toContain(Routes.MONEY.ROOT);
+      it('includes Money route when feature flag is enabled', () => {
+        mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
+
+        const tabScreenNames = getHomeTabsScreenNames();
+
+        expect(tabScreenNames).toContain(Routes.MONEY.ROOT);
         mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
       });
 
       it('excludes Money route when feature flag is disabled', () => {
         mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
 
-        const container = renderWithProvider(<MainNavigator />, {
-          state: initialRootState,
-        });
+        const tabScreenNames = getHomeTabsScreenNames();
 
-        const screenProps = container.root.children
-          .filter(
-            (child): child is ReactTestInstance =>
-              typeof child === 'object' &&
-              'type' in child &&
-              'props' in child &&
-              child.type?.toString() === 'Screen',
-          )
-          .map((child) => child.props.name);
-
-        expect(screenProps).not.toContain(Routes.MONEY.ROOT);
+        expect(tabScreenNames).not.toContain(Routes.MONEY.ROOT);
       });
     });
   });

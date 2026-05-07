@@ -6,17 +6,14 @@ import {
   CampaignType,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
+import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
+import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 
 const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack }),
 }));
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return { ...actual };
-});
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
@@ -30,10 +27,17 @@ const mockUseRewardCampaigns = useRewardCampaigns as jest.MockedFunction<
 jest.mock('../hooks/useOndoOutcomeToast', () => ({
   useOndoOutcomeToast: jest.fn(),
 }));
-import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 const mockUseOndoOutcomeToast = useOndoOutcomeToast as jest.MockedFunction<
   typeof useOndoOutcomeToast
 >;
+
+jest.mock('../hooks/usePerpsTradingCampaignEndedOutcomeToast', () => ({
+  usePerpsTradingCampaignEndedOutcomeToast: jest.fn(),
+}));
+const mockUsePerpsTradingCampaignEndedOutcomeToast =
+  usePerpsTradingCampaignEndedOutcomeToast as jest.MockedFunction<
+    typeof usePerpsTradingCampaignEndedOutcomeToast
+  >;
 
 jest.mock('../components/Campaigns/CampaignsGroup', () => {
   const ReactActual = jest.requireActual('react');
@@ -93,27 +97,6 @@ jest.mock('../components/RewardsErrorBanner', () => {
   };
 });
 
-jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text, Pressable } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({ title, onBack }: { title: string; onBack: () => void }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'header' },
-          ReactActual.createElement(Text, null, title),
-          ReactActual.createElement(Pressable, {
-            onPress: onBack,
-            testID: 'header-back-button',
-          }),
-        ),
-    };
-  },
-);
-
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
   return {
@@ -153,6 +136,7 @@ const createTestCampaign = (
   excludedRegions: [],
   details: null,
   featured: true,
+  showUpcomingDate: false,
   ...overrides,
 });
 
@@ -172,7 +156,6 @@ describe('CampaignsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRewardCampaigns.mockReturnValue(hookDefaults);
-    mockUseOndoOutcomeToast.mockReturnValue(undefined);
   });
 
   it('renders the header with the correct title', () => {
@@ -182,6 +165,15 @@ describe('CampaignsView', () => {
       getByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_VIEW),
     ).toBeOnTheScreen();
     expect(getByText('Campaigns')).toBeOnTheScreen();
+  });
+
+  it('mounts campaign outcome toast hooks on render', () => {
+    render(<CampaignsView />);
+
+    expect(mockUseOndoOutcomeToast).toHaveBeenCalledTimes(1);
+    expect(mockUsePerpsTradingCampaignEndedOutcomeToast).toHaveBeenCalledTimes(
+      1,
+    );
   });
 
   it('navigates back when the back button is pressed', () => {
@@ -371,13 +363,6 @@ describe('CampaignsView', () => {
       const { queryByText } = render(<CampaignsView />);
 
       expect(queryByText('Refreshing...')).toBeNull();
-    });
-  });
-
-  describe('hook integration', () => {
-    it('calls useOndoOutcomeToast on render', () => {
-      render(<CampaignsView />);
-      expect(mockUseOndoOutcomeToast).toHaveBeenCalledTimes(1);
     });
   });
 });

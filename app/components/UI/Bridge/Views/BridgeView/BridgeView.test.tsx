@@ -34,6 +34,7 @@ import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
 import { Button } from '@metamask/design-system-react-native';
+import { FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -271,6 +272,16 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     .fn()
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
+
+jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
+  const { useBridgeQuoteData } = jest.requireMock(
+    '../../hooks/useBridgeQuoteData',
+  );
+  return {
+    BridgeQuoteDataProvider: ({ children }: { children: unknown }) => children,
+    useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteData()),
+  };
+});
 
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
@@ -682,7 +693,7 @@ describe('BridgeView', () => {
     });
   });
 
-  it('switch tokens and preserve keypad state when clicking arrow button', () => {
+  it('switch tokens and preserve keypad state when clicking arrow button', async () => {
     const mockStateWithTokens = {
       ...mockState,
       bridge: {
@@ -800,7 +811,7 @@ describe('BridgeView', () => {
     const arrowButton = getByTestId('arrow-button');
 
     // Button should be disabled when dest network is disabled
-    expect(arrowButton.props.disabled).toBe(true);
+    expect(arrowButton).toBeDisabled();
     // When disabled, onPress is set to undefined in FLipQuoteButton
     expect(arrowButton.props.onPress).toBeUndefined();
   });
@@ -846,6 +857,74 @@ describe('BridgeView', () => {
       );
 
       // Wait for the useEffect to run and update the state
+      await waitFor(() => {
+        expect(store.getState().bridge.slippage).toBeUndefined();
+      });
+    });
+  });
+
+  describe('RWA same-chain EVM swap', () => {
+    it('sets slippage to undefined for stock RWA swap with RWA flag enabled', async () => {
+      const mockQuote = mockQuoteWithMetadata;
+      const ethChainId = '0x1' as const;
+      const testState = createBridgeTestState(
+        {
+          bridgeControllerOverrides: {
+            quoteRequest: {
+              insufficientBal: false,
+            },
+            quotesLoadingStatus: RequestStatus.FETCHED,
+            quotes: [mockQuote as unknown as QuoteResponse],
+          },
+          bridgeReducerOverrides: {
+            sourceAmount: '1.0',
+            sourceToken: {
+              address: '0x0000000000000000000000000000000000000001',
+              chainId: ethChainId,
+              decimals: 18,
+              image: '',
+              name: 'Token A',
+              symbol: 'TKA',
+              rwaData: { instrumentType: 'stock' } as BridgeToken['rwaData'],
+            },
+            destToken: {
+              address: '0x0000000000000000000000000000000000000002',
+              chainId: ethChainId,
+              decimals: 6,
+              image: '',
+              name: 'USDC',
+              symbol: 'USDC',
+            },
+          },
+        },
+        {
+          ...initialState,
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine.backgroundState,
+              RemoteFeatureFlagController: {
+                ...initialState.engine.backgroundState
+                  .RemoteFeatureFlagController,
+                remoteFeatureFlags: {
+                  ...initialState.engine.backgroundState
+                    .RemoteFeatureFlagController.remoteFeatureFlags,
+                  [FEATURE_FLAG_NAME]: true,
+                },
+              },
+            },
+          },
+        },
+      );
+
+      const { store } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
       await waitFor(() => {
         expect(store.getState().bridge.slippage).toBeUndefined();
       });
@@ -1323,7 +1402,7 @@ describe('BridgeView', () => {
       } as BridgeRouteParams;
     });
 
-    it('uses sourceToken from route params when provided', async () => {
+    it('uses sourceToken from route params when provided', () => {
       mockRoute.params.sourceToken = mockDeepLinkSourceToken;
 
       // Update the mock state to include the deep link source token
@@ -1397,7 +1476,7 @@ describe('BridgeView', () => {
       expect(input.props.value).toBe('1,000,000');
     });
 
-    it('uses all deep link params when all are provided', async () => {
+    it('uses all deep link params when all are provided', () => {
       mockRoute.params = {
         ...mockRoute.params,
         sourceToken: mockDeepLinkSourceToken,
