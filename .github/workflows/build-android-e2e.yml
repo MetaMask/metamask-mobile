@@ -117,7 +117,7 @@ jobs:
           github-token: ${{ github.token }}
 
       - name: Restore APKs matching fingerprint from branch cache
-        if: ${{ inputs.runner_provider != 'namespace' && steps.find-reusable-build.outputs.found != 'true' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' }}
         id: apk-cache-restore
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -128,7 +128,7 @@ jobs:
           key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Restore APKs matching fingerprint from main cache
-        if: ${{ inputs.runner_provider != 'namespace' && steps.find-reusable-build.outputs.found != 'true' && steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: apk-cache-restore-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
