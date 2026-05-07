@@ -18,12 +18,7 @@ on:
       metamask_environment:
         description: 'The environment to build for'
         required: false
-        default: 'qa'
-        type: string
-      keystore_target:
-        description: 'The target to use for the keystore'
-        required: false
-        default: 'qa'
+        default: 'e2e'
         type: string
       runner_provider:
         description: Runner provider forwarded from the caller
@@ -77,7 +72,6 @@ jobs:
           setup-simulator: false
           configure-keystores: true
           android-api-level: 36
-          target: ${{ inputs.keystore_target }} # qa for taget=main and flask for target=flask
 
       - name: Setup project dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2

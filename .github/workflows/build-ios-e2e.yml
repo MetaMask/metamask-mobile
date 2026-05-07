@@ -15,7 +15,7 @@ on:
       metamask_environment:
         description: 'The environment to build for'
         required: false
-        default: 'qa'
+        default: 'e2e'
         type: string
       runner_provider:
         description: Runner provider forwarded from the caller
