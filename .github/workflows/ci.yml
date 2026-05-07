@@ -15,6 +15,16 @@ on:
     # Run the full suite "overnight," once every hour from 2:00am UTC until 6:00am UTC.
     # This helps to identy the flaky and failed tests on main branch
     - cron: '0 2-6 * * *'
+  workflow_dispatch:
+    inputs:
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: true
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
@@ -27,7 +37,7 @@ jobs:
 
   check-diff:
     name: Check diff
-    runs-on: macos-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'macos-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -78,7 +88,7 @@ jobs:
 
   dedupe:
     name: Dedupe
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -114,7 +124,7 @@ jobs:
 
   git-safe-dependencies:
     name: Run `@lavamoat/git-safe-dependencies`
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -143,7 +153,7 @@ jobs:
 
   scripts:
     name: Run `${{ matrix.scripts }}`
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -186,7 +196,7 @@ jobs:
 
   js-bundle-size-check:
     name: JS bundle size check
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -396,7 +406,7 @@ jobs:
 
   ship-js-bundle-size-check:
     name: Ship JS bundle size check
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [js-bundle-size-check]
     if: ${{ github.ref == 'refs/heads/main' }}
     steps:
@@ -434,7 +444,7 @@ jobs:
 
   check-workflows:
     name: Check workflows
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -450,7 +460,7 @@ jobs:
 
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -505,7 +515,7 @@ jobs:
   # We need to merge both unit and component view tests into a single coverage report so the PR coverage
   # threshold calculation is accurate.
   merge-unit-and-component-view-tests:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [unit-tests, component-view-tests]
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
@@ -622,7 +632,7 @@ jobs:
 
   component-view-tests:
     name: Component view tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -678,7 +688,7 @@ jobs:
 
   smart-e2e-selection:
     name: 'Smart E2E Selection'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.run_smart_e2e_selection == 'true' }}
     needs:
       - get_requirements
@@ -729,6 +739,7 @@ jobs:
       build_type: 'main'
       metamask_environment: 'e2e'
       keystore_target: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   e2e-smoke-tests-android:
@@ -746,6 +757,7 @@ jobs:
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   build-ios-apps:
@@ -761,11 +773,13 @@ jobs:
       id-token: write
     needs: [get_requirements, smart-e2e-selection]
     uses: ./.github/workflows/build-ios-e2e.yml
+    with:
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   ios-tests-ready:
     name: 'iOS Tests Ready'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && needs.build-ios-apps.result == 'success' }}
     needs: [build-ios-apps]
     steps:
@@ -787,6 +801,7 @@ jobs:
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
@@ -806,11 +821,12 @@ jobs:
       total_splits: 1
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   report-fixture-validation:
     name: 'Report Fixture Validation'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
     needs: [validate-e2e-fixtures]
     permissions:
@@ -837,7 +853,7 @@ jobs:
 
   sonar-cloud:
     name: SonarCloud analysis
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: merge-unit-and-component-view-tests
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
@@ -882,7 +898,7 @@ jobs:
 
   sonar-cloud-quality-gate-status:
     name: SonarCloud quality gate status
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: sonar-cloud
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
@@ -942,7 +958,7 @@ jobs:
     # Run the aggregate gate even when optional dependencies are skipped.
     # The composite action decides which skipped jobs are acceptable.
     if: ${{ always() && !cancelled() }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs:
       - get_requirements
       - check-diff
@@ -975,7 +991,7 @@ jobs:
 
   log-merge-group-failure:
     name: Log merge group failure
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     # Only run this job if the merge group event fails, skip on forks
     if: ${{ github.event_name == 'merge_group' && failure() }}
     needs:
