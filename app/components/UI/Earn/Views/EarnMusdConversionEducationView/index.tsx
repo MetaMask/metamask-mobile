@@ -48,7 +48,7 @@ import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags'
 import { toChecksumAddress } from '../../../../../util/address';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
 import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
-import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags.ts';
+import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags';
 interface EarnMusdConversionEducationViewRouteParams {
   /**
    * Indicates if this navigation originated from a deeplink
@@ -223,6 +223,8 @@ const EarnMusdConversionEducationView = () => {
       ? MUSD_EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
       : MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
     if (returnTo) {
+      redirectsTo = MONEY_EVENT_LOCATIONS.MONEY_HUB;
+    } else if (deeplinkState?.action === 'navigate_money_hub') {
       redirectsTo = MONEY_EVENT_LOCATIONS.MONEY_HUB;
     } else if (deeplinkState?.action === 'navigate_home') {
       redirectsTo = MUSD_EVENT_LOCATIONS.HOME_SCREEN;
