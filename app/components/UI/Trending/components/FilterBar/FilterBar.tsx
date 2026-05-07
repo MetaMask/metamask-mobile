@@ -47,11 +47,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
     >
       <View style={tw`flex-row items-center justify-center gap-1`}>
         {iconName && (
-          <Icon
-            name={iconName}
-            color={IconColor.Alternative}
-            size={IconSize.Xs}
-          />
+          <Icon name={iconName} color={IconColor.Default} size={IconSize.Sm} />
         )}
         <Text
           style={tw`min-w-0 text-[14px] font-medium text-default`}
