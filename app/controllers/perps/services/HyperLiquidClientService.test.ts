@@ -1621,6 +1621,30 @@ describe('HyperLiquidClientService', () => {
       ).toBeGreaterThan(subscriptionClientCallsBefore);
     });
 
+    it('reconnect() recreates exchangeClient and isInitialized() returns true', async () => {
+      const { ExchangeClient, InfoClient } = require('@nktkas/hyperliquid');
+      await service.initialize(mockWallet);
+
+      expect(service.isInitialized()).toBe(true);
+
+      const exchangeCallsBefore = (ExchangeClient as jest.Mock).mock.calls
+        .length;
+      const infoCallsBefore = (InfoClient as jest.Mock).mock.calls.length;
+
+      await service.reconnect();
+
+      // ExchangeClient should have been recreated with HTTP transport
+      expect((ExchangeClient as jest.Mock).mock.calls.length).toBeGreaterThan(
+        exchangeCallsBefore,
+      );
+      // InfoClient should have additional calls (WS + HTTP fallback)
+      expect((InfoClient as jest.Mock).mock.calls.length).toBeGreaterThan(
+        infoCallsBefore,
+      );
+      // isInitialized() must return true after reconnection
+      expect(service.isInitialized()).toBe(true);
+    });
+
     it('performDisconnection resets isReconnecting flag', async () => {
       const {
         WebSocketConnectionState,

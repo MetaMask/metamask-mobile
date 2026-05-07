@@ -1034,6 +1034,21 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Awaits the in-flight initialization promise if init is currently running.
+   * Trading action methods should call this before getActiveProvider() so that
+   * actions attempted during a cold-start or reconnection wait for init to
+   * finish instead of failing immediately with CLIENT_NOT_INITIALIZED.
+   */
+  async #awaitInitializationIfInProgress(): Promise<void> {
+    if (
+      this.state.initializationState === InitializationState.Initializing &&
+      this.#initializationPromise
+    ) {
+      await this.#initializationPromise;
+    }
+  }
+
+  /**
    * Resolve the provider ids that should participate in aggregated cache reads.
    *
    * Providers can still be registering when the first render happens, so we
@@ -1958,16 +1973,20 @@ export class PerpsController extends BaseController<
       this.state.initializationState !== InitializationState.Initialized ||
       !this.isInitialized
     ) {
-      const errorMessage =
-        this.state.initializationState === InitializationState.Failed
-          ? `${PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED}: ${this.state.initializationError ?? 'Initialization failed'}`
-          : PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
+      if (this.state.initializationState === InitializationState.Failed) {
+        this.#logError(
+          new Error(this.state.initializationError ?? 'Initialization failed'),
+          this.#getErrorContext('getActiveProvider', {
+            initializationState: this.state.initializationState,
+          }),
+        );
+      }
 
       this.update((state) => {
-        state.lastError = errorMessage;
+        state.lastError = PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
         state.lastUpdateTimestamp = Date.now();
       });
-      throw new Error(errorMessage);
+      throw new Error(PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED);
     }
 
     // Return the active provider instance (set during initialization based on providerMode)
@@ -2015,6 +2034,7 @@ export class PerpsController extends BaseController<
    * @returns The order result with order ID and status.
    */
   async placeOrder(params: OrderParams): Promise<OrderResult> {
+    await this.#awaitInitializationIfInProgress();
     const provider = this.getActiveProvider();
     this.#ensureTradingServiceDeps();
 
@@ -2038,6 +2058,7 @@ export class PerpsController extends BaseController<
    * @returns The updated order result with order ID and status.
    */
   async editOrder(params: EditOrderParams): Promise<OrderResult> {
+    await this.#awaitInitializationIfInProgress();
     const provider = this.getActiveProvider();
     this.#ensureTradingServiceDeps();
 
@@ -2055,6 +2076,7 @@ export class PerpsController extends BaseController<
    * @returns The cancellation result with status.
    */
   async cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult> {
+    await this.#awaitInitializationIfInProgress();
     const provider = this.getActiveProvider();
 
     return this.#tradingService.cancelOrder({
@@ -2072,6 +2094,7 @@ export class PerpsController extends BaseController<
    * @returns The batch cancellation results for each order.
    */
   async cancelOrders(params: CancelOrdersParams): Promise<CancelOrdersResult> {
+    await this.#awaitInitializationIfInProgress();
     const provider = this.getActiveProvider();
 
     return this.#tradingService.cancelOrders({
@@ -2095,6 +2118,7 @@ export class PerpsController extends BaseController<
    * @returns The order result from the close position request.
    */
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
+    await this.#awaitInitializationIfInProgress();
     const provider = this.getActiveProvider();
     this.#ensureTradingServiceDeps();
 
@@ -2119,6 +2143,7 @@ export class PerpsController extends BaseController<
   async closePositions(
     params: ClosePositionsParams,
   ): Promise<ClosePositionsResult> {
+    await this.#awaitInitializationIfInProgress();
     const provider = this.getActiveProvider();
     this.#ensureTradingServiceDeps();
 
@@ -2140,6 +2165,7 @@ export class PerpsController extends BaseController<
   async updatePositionTPSL(
     params: UpdatePositionTPSLParams,
   ): Promise<OrderResult> {
+    await this.#awaitInitializationIfInProgress();
     const provider = this.getActiveProvider();
     this.#ensureTradingServiceDeps();
 
@@ -2157,6 +2183,7 @@ export class PerpsController extends BaseController<
    * @returns The margin update result.
    */
   async updateMargin(params: UpdateMarginParams): Promise<MarginResult> {
+    await this.#awaitInitializationIfInProgress();
     const provider = this.getActiveProvider();
     this.#ensureTradingServiceDeps();
 
@@ -2175,6 +2202,7 @@ export class PerpsController extends BaseController<
    * @returns The order result from the position flip.
    */
   async flipPosition(params: FlipPositionParams): Promise<OrderResult> {
+    await this.#awaitInitializationIfInProgress();
     const provider = this.getActiveProvider();
     this.#ensureTradingServiceDeps();
 
@@ -2197,6 +2225,8 @@ export class PerpsController extends BaseController<
   async depositWithConfirmation(
     params: DepositWithConfirmationParams = {},
   ): Promise<{ result: Promise<string> }> {
+    await this.#awaitInitializationIfInProgress();
+
     const { amount, placeOrder } = params;
 
     let currentDepositId: string | undefined;
@@ -2714,6 +2744,7 @@ export class PerpsController extends BaseController<
    * @returns WithdrawResult with withdrawal ID and tracking info
    */
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
+    await this.#awaitInitializationIfInProgress();
     const provider = this.getActiveProvider();
 
     return this.#accountService.withdraw({

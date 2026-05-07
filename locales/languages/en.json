@@ -1594,7 +1594,7 @@
       "unknownError": "Unknown error occurred",
       "position_not_found": "Position not found",
       "order_not_found": "Order not found",
-      "clientNotInitialized": "HyperLiquid SDK clients not properly initialized",
+      "clientNotInitialized": "Connection not ready. Please wait a moment and try again.",
       "exchangeClientNotAvailable": "ExchangeClient not available after initialization",
       "infoClientNotAvailable": "InfoClient not available after initialization",
       "subscriptionClientNotInitialized": "SubscriptionClient is not initialized",

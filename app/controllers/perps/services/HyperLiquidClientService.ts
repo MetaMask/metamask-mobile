@@ -78,6 +78,8 @@ export class HyperLiquidClientService {
 
   #httpTransport?: HttpTransport;
 
+  #walletParams?: HyperLiquidWalletParams;
+
   #isTestnet: boolean;
 
   #connectionState: WebSocketConnectionState =
@@ -128,6 +130,7 @@ export class HyperLiquidClientService {
 
     try {
       this.#updateConnectionState(WebSocketConnectionState.Connecting);
+      this.#walletParams = wallet;
       this.#createTransports();
 
       // Ensure transports are created
@@ -1189,14 +1192,25 @@ export class HyperLiquidClientService {
       this.#wsTransport = undefined;
       this.#httpTransport = undefined;
 
-      // Recreate WebSocket transport - returns the new transport for type safety
+      // Recreate transports (both WS and HTTP)
       const newWsTransport = this.#createTransports();
 
-      // Recreate clients that use WebSocket transport
+      // Recreate all SDK clients so isInitialized() returns true after reconnection
       this.#infoClient = new InfoClient({ transport: newWsTransport });
       this.#subscriptionClient = new SubscriptionClient({
         transport: newWsTransport,
       });
+      if (this.#httpTransport) {
+        this.#infoClientHttp = new InfoClient({
+          transport: this.#httpTransport,
+        });
+        if (this.#walletParams) {
+          this.#exchangeClient = new ExchangeClient({
+            wallet: this.#walletParams as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type widening for SDK compatibility
+            transport: this.#httpTransport,
+          });
+        }
+      }
 
       await newWsTransport.ready();
 

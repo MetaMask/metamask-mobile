@@ -62,6 +62,7 @@ jest.mock('../../util/transaction-controller', () => ({
 jest.mock('./utils/wait', () => ({
   wait: jest.fn().mockResolvedValue(undefined),
 }));
+import { wait as mockWait } from './utils/wait';
 
 // Mock stream manager
 const mockStreamManager = {
@@ -906,6 +907,48 @@ describe('PerpsController', () => {
       const provider = controller.getActiveProvider();
       expect(provider).toBe(mockProvider);
     });
+
+    it('throws plain CLIENT_NOT_INITIALIZED on Failed state (not compound string)', () => {
+      controller.testSetInitialized(false);
+      controller.testUpdate((state) => {
+        state.initializationState = InitializationState.Failed;
+        state.initializationError = 'WebSocket transport failed';
+      });
+
+      expect(() => controller.getActiveProvider()).toThrow(
+        PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED,
+      );
+
+      try {
+        controller.getActiveProvider();
+      } catch (e: any) {
+        expect(e.message).toBe(PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED);
+        expect(e.message).not.toContain(':');
+      }
+    });
+
+    it('logs initializationError to Sentry when state is Failed', () => {
+      controller.testSetInitialized(false);
+      controller.testUpdate((state) => {
+        state.initializationState = InitializationState.Failed;
+        state.initializationError = 'WebSocket transport failed';
+      });
+
+      expect(() => controller.getActiveProvider()).toThrow();
+      expect(mockInfrastructure.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'WebSocket transport failed',
+        }),
+        expect.objectContaining({
+          tags: expect.objectContaining({ feature: 'perps' }),
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'getActiveProvider',
+            }),
+          }),
+        }),
+      );
+    });
   });
 
   describe('getActiveProviderOrNull', () => {
@@ -934,6 +977,84 @@ describe('PerpsController', () => {
       const result = controller.getActiveProviderOrNull();
 
       expect(result).toBe(mockProvider);
+    });
+  });
+
+  describe('action calls during initialization', () => {
+    it('waits for init to complete before resolving when state is Initializing', async () => {
+      let resolveBlock!: () => void;
+      const blockingPromise = new Promise<void>((resolve) => {
+        resolveBlock = resolve;
+      });
+
+      // Make provider construction fail on the first attempt so init enters
+      // the retry path; the mocked wait() blocks on the retry delay, keeping
+      // initializationState === Initializing while we issue the action call.
+      let attempt = 0;
+      (
+        HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
+      ).mockImplementation(() => {
+        attempt++;
+        if (attempt === 1) {
+          throw new Error('Transient failure');
+        }
+        return mockProvider;
+      });
+
+      // Block the first retry delay so init stays in Initializing
+      (mockWait as jest.Mock).mockImplementationOnce(() => blockingPromise);
+
+      const mockOrderResult = {
+        success: true,
+        orderId: '123',
+        status: 'filled',
+      };
+      jest
+        .spyOn(mockTradingServiceInstance, 'placeOrder')
+        .mockResolvedValue(mockOrderResult);
+
+      // Start init (will fail first attempt → block on retry wait)
+      const initPromise = controller.init();
+
+      // Yield so init reaches the blocking wait
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(controller.state.initializationState).toBe(
+        InitializationState.Initializing,
+      );
+
+      // Call placeOrder while init is still in-flight — should not throw
+      const orderPromise = controller.placeOrder({
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+      } as any);
+
+      // Unblock init retry so initialization completes
+      resolveBlock();
+
+      await initPromise;
+      const result = await orderPromise;
+
+      expect(result).toEqual(expect.objectContaining({ orderId: '123' }));
+    });
+
+    it('throws CLIENT_NOT_INITIALIZED immediately when state is Failed', async () => {
+      controller.testSetInitialized(false);
+      controller.testUpdate((state) => {
+        state.initializationState = InitializationState.Failed;
+        state.initializationError = 'Network error';
+      });
+
+      await expect(
+        controller.placeOrder({
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+        } as any),
+      ).rejects.toThrow(PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED);
     });
   });
 
