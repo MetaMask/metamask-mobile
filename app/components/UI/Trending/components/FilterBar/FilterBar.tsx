@@ -50,7 +50,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
           <Icon name={iconName} color={IconColor.Default} size={IconSize.Sm} />
         )}
         <Text
-          style={tw`min-w-0 text-[14px] font-medium text-default`}
+          style={tw`min-w-0 shrink text-[14px] font-medium text-default`}
           numberOfLines={numberOfLines}
           ellipsizeMode={ellipsizeMode}
         >
