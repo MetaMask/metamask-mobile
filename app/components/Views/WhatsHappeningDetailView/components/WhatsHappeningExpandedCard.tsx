@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Pressable, ScrollView } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -75,98 +76,119 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
 
   const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(item);
 
+  /** Theme token resolved to a concrete color for `LinearGradient` */
+  const cardBgColor = tw.color('bg-background-muted');
+
   return (
     <Box style={{ width: cardWidth, height: cardHeight }}>
-      {/* Card surface — fills the fixed height so all cards are the same size */}
-      <Box twClassName="rounded-2xl bg-background-muted overflow-hidden flex-1 mt-4">
-        {/* Scrollable main content */}
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('pt-7 px-5 pb-5 gap-4')}
+      {/* Card surface */}
+      <Box
+        flexDirection={BoxFlexDirection.Column}
+        twClassName="rounded-2xl bg-background-muted overflow-hidden flex-1 mt-4"
+      >
+        {/* Scroll region with a persistent bottom fade hinting at more content */}
+        <Box
+          flexDirection={BoxFlexDirection.Column}
+          twClassName="relative flex-1 min-h-0"
         >
-          {/* Tag row: AI pill + impact badge */}
-          {item.impact && (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={1}
-              twClassName="flex-wrap"
-            >
-              {/* AI pill — inverted (white bg, dark content) */}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('pt-7 px-5 pb-5 gap-4')}
+          >
+            {/* Tag row: AI pill + impact badge */}
+            {item.impact && (
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 gap={1}
-                twClassName="bg-icon-default rounded px-1.5 py-1 self-start"
+                twClassName="flex-wrap"
               >
-                <Icon
-                  name={IconName.Sparkle}
-                  size={IconSize.Md}
-                  twClassName="text-icon-inverse"
-                />
+                {/* AI pill — inverted (dark bg, white content) */}
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                  twClassName="bg-icon-default rounded px-1.5 py-1 self-start"
+                >
+                  <Icon
+                    name={IconName.Sparkle}
+                    size={IconSize.Md}
+                    twClassName="text-icon-inverse"
+                  />
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    twClassName="text-icon-inverse"
+                  >
+                    {strings('homepage.sections.whats_happening_ai')}
+                  </Text>
+                </Box>
+
+                <Box
+                  twClassName={`${impactBgClass} rounded px-2 py-1 self-start`}
+                >
+                  <Text variant={TextVariant.BodySm} color={impactTextColor}>
+                    {impactLabel}
+                  </Text>
+                </Box>
+              </Box>
+            )}
+
+            {/* Title */}
+            <Text
+              variant={TextVariant.HeadingLg}
+              fontWeight={FontWeight.Bold}
+              color={TextColor.TextDefault}
+            >
+              {item.title}
+            </Text>
+
+            {/* Description */}
+            {item.description && (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {item.description}
+              </Text>
+            )}
+
+            {/* Markets section */}
+            {item.relatedAssets.length > 0 && (
+              <Box gap={1}>
                 <Text
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
-                  twClassName="text-icon-inverse"
+                  color={TextColor.TextDefault}
                 >
-                  {strings('homepage.sections.whats_happening_ai')}
+                  {strings('homepage.sections.markets')}
                 </Text>
+
+                {item.relatedAssets.map((asset) => (
+                  <PerpsRow
+                    key={asset.sourceAssetId}
+                    asset={asset}
+                    item={item}
+                    cardIndex={cardIndex}
+                    perpsPriceBySymbol={perpsPriceBySymbol}
+                  />
+                ))}
               </Box>
+            )}
+          </ScrollView>
 
-              <Box
-                twClassName={`${impactBgClass} rounded px-2 py-1 self-start`}
-              >
-                <Text variant={TextVariant.BodySm} color={impactTextColor}>
-                  {impactLabel}
-                </Text>
-              </Box>
-            </Box>
-          )}
+          {/* Bottom fade — blends into the card bg; omitted if theme color cannot resolve */}
+          {cardBgColor ? (
+            <LinearGradient
+              pointerEvents="none"
+              colors={['transparent', cardBgColor]}
+              style={tw.style('absolute left-0 right-0 bottom-0 h-12')}
+            />
+          ) : null}
+        </Box>
 
-          {/* Title */}
-          <Text
-            variant={TextVariant.HeadingLg}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-          >
-            {item.title}
-          </Text>
-
-          {/* Description */}
-          {item.description && (
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {item.description}
-            </Text>
-          )}
-
-          {/* Markets section — all related assets are perps markets */}
-          {item.relatedAssets.length > 0 && (
-            <Box gap={1}>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {strings('homepage.sections.markets')}
-              </Text>
-
-              {item.relatedAssets.map((asset) => (
-                <PerpsRow
-                  key={asset.sourceAssetId}
-                  asset={asset}
-                  item={item}
-                  cardIndex={cardIndex}
-                  perpsPriceBySymbol={perpsPriceBySymbol}
-                />
-              ))}
-            </Box>
-          )}
-        </ScrollView>
-
-        {/* Fixed sources footer — always pinned to the bottom of the card */}
+        {/* Fixed sources footer */}
         {uniqueSources.length > 0 && (
           <Box twClassName="px-5 pb-5" gap={4}>
             <Box twClassName="h-px bg-border-muted" />

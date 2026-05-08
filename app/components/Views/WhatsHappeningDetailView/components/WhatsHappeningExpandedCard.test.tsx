@@ -52,6 +52,8 @@ jest.mock(
   () => 'TokenListSecurityBadge',
 );
 
+jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+
 const CARD_WIDTH = 320;
 const CARD_HEIGHT = 600;
 

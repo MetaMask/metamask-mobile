@@ -38,7 +38,7 @@ interface AssetRowProps {
 
 /**
  * Shared layout for a single asset row (logo + name + optional badge + optional
- * price/change + action button). Used by TokenRow (Buy/Trade) and PerpsRow (Trade).
+ * price/change + action button). Used by PerpsRow (Trade).
  */
 const AssetRow: React.FC<AssetRowProps> = ({
   asset,
@@ -124,7 +124,7 @@ const AssetRow: React.FC<AssetRowProps> = ({
         </Box>
 
         <Button
-          variant={ButtonVariant.Primary}
+          variant={ButtonVariant.Secondary}
           size={ButtonSize.Md}
           onPress={onAction}
           accessibilityLabel={accessibilityLabel}
