@@ -17,6 +17,7 @@
 - [x] **Phase 7** — Extract UI-coupled error/limit surfacing; route errors through `onError` as typed `HeadlessBuyError`
 - [x] **Phase 8** — Cancellation + `onClose` semantics (including user-dismissed detection)
 - [ ] **Phase 9** — Expose `getOrder` / `refreshOrder` from hook and show in playground (now an MVP requirement — see Phase 9 Update)
+- [ ] **Phase 9.5** — HeadlessHost visual treatment (transparent or bottom-sheet) — driven by the May 6 design thread
 - [ ] **Phase 10** — Implement deferred Phase 5b + playground polish
 
 ---
@@ -553,7 +554,9 @@ Phase 9 is now an MVP requirement, not playground polish. MetaMask Pay's `Transa
 
 The original Phase 9 surface (`getOrder`, `refreshOrder` + a "Refresh order" playground button) doesn't fit a controller consumer. The Phase 9 API should add an **imperative `awaitOrderTerminalState(orderId)` Promise** so TPC can `await` settlement instead of polling itself. Polling and the playground button stay as additional surfaces; the Promise is the load-bearing API.
 
-The Apr 28 progress sync also called out a missing **auto-select-best-provider utility** ("Need utility function to auto-select best provider rather than requiring explicit provider ID"). Either fold into Phase 9 alongside `getOrder`, or split as Phase 9.5 — to be decided during Phase 9 implementation.
+The Apr 28 progress sync also called out a missing **auto-select-best-provider utility** ("Need utility function to auto-select best provider rather than requiring explicit provider ID"). Either fold into Phase 9 alongside `getOrder` or split as a follow-up phase — to be decided during Phase 9 implementation.
+
+**Open question** (Barbara, [May 6 design thread](https://consensys.slack.com/archives/C0AK3NXRM7W/p1778072992397499)): does ramps need an internal timeout — distinct from the registry's 1-hour GC — so the consumer isn't pinned to a "loading forever" state when a quote stalls? Two shapes worth considering during Phase 9 implementation: (i) `awaitOrderTerminalState(orderId, { timeoutMs })` rejects with a timed-out error so the consumer can decide what to surface; (ii) the registry grows a per-session timeout that fires `onError({ code: 'TIMED_OUT' })` + `onClose` if no terminal event arrives within N seconds. Pedro's reply 37 in the same thread noted Phase 3's `cancel()` is today's escape hatch; not blocking for v1 but worth resolving before MMPay launch.
 
 Goal: complete the hook surface.
 
@@ -561,6 +564,40 @@ Goal: complete the hook surface.
 - Add `refreshOrder(providerCode, providerOrderId)` passthrough for polling after a callback.
 - Document the hook in a JSDoc at top of `useHeadlessBuy.ts` with a full example.
 - Extend playground: after `onOrderCreated` fires, show the orderId and a "Refresh order" button using these helpers.
+
+---
+
+## Phase 9.5 — HeadlessHost visual treatment
+
+Goal: make production HeadlessHost stop rendering user-visible chrome (header, spinner, cancel button, error text). The Host stays mounted — it is still the routing landing pad and the `nativeFlowError` surface from Phase 4b — but becomes either fully transparent or a bottom-sheet, so the consumer (TPC / MMPay) renders the only user-visible loading UI during a headless buy.
+
+Driver: [May 6 2026 design thread](https://consensys.slack.com/archives/C0AK3NXRM7W/p1778072992397499). Pedro confirmed the Host can't be removed (it's the routing base and Phase 7's error surface) but it doesn't have to be visible. Two shapes were evaluated: (a) transparent overlay with consumer-rendered spinner, (b) bottom-sheet with the Host's own spinner and cancel action. Pedro favored (a). Final shape pending Lucas's design recommendation (deadline May 13).
+
+### Settled in the same thread
+
+- **Back navigation stays available during loading** (Lucas, May 8 16:54 reply 39). Phase 8's `useHeadlessSessionDismissal` already fires `onClose({ reason: 'user_dismissed' })` on unmount, so the consumer's back-press still produces a terminal callback regardless of Host visibility.
+- Latency expectation: 1–2 seconds typical (Lorenzo, reply 19).
+- Cancel-session (Phase 3 `cancel()`) is the escape hatch for stuck quotes (Pedro, reply 37).
+
+### Implementation sketch
+
+- Strip `HeaderCompactStandard`, `ActivityIndicator`, the loader/no-session/error `Text` blocks, and the bottom `Cancel` button from [HeadlessHost.tsx](../Views/HeadlessHost/HeadlessHost.tsx).
+- The wrapping `SafeAreaView` becomes either fully transparent (option a) or sized to the bottom-sheet spec (option b, per Lucas's design).
+- The local `errorMessage` state becomes redundant once the consumer renders all UI; remove it. `failSession` / `closeSession` calls stay — the consumer receives the error via `onError`.
+- Keep the orchestration `useEffect`, the `nativeFlowError` handler, and `useHeadlessSessionDismissal` untouched — they are behavior, not chrome.
+- Update `HeadlessHost.test.tsx`: drop the visual-presence assertions, keep all orchestration / dismissal / `nativeFlowError` tests.
+
+### Out of scope
+
+- The MMPay consumer-side loading UI (TPC PR [`MetaMask/core#8628`](https://github.com/MetaMask/core/pull/8628) and downstream MMPay UI work).
+- Internal Host timeout — see the Open question in the Phase 9 Update.
+
+### References
+
+- [Money Account Figma](https://www.figma.com/design/XKZ8hRqSn2iTiuzmlQLuYQ/Money-Account?node-id=3041-13117) (Lorenzo, reply 16).
+- [UB2 loading-states reference](https://www.figma.com/design/ItZzm9CzSAjOWQTUKsOdSk/BUY?node-id=4347-3909) (Lorenzo, reply 23) for design parity.
+
+Deliverable: HeadlessHost is invisible (or bottom-sheet) and MMPay's TPC renders the only user-visible loading UI during a headless buy. Phase 8's dismissal contract continues to work unchanged.
 
 ---
 
