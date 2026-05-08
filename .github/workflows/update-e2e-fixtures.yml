@@ -22,6 +22,14 @@ on:
         description: 'PR number to update fixtures for'
         required: true
         type: string
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: false
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
 
 jobs:
   # ── issue_comment dispatcher ──────────────────────────────────────────
@@ -34,7 +42,7 @@ jobs:
         github.event.issue.pull_request &&
         startsWith(github.event.comment.body, '@metamaskbot update-mobile-fixture')
       }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -72,7 +80,7 @@ jobs:
   is-fork-pull-request:
     name: Validate PR
     if: ${{ github.event_name == 'workflow_dispatch' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     timeout-minutes: 5
     outputs:
       IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
@@ -89,7 +97,7 @@ jobs:
 
   prepare:
     name: Prepare build artifacts
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     timeout-minutes: 10
     needs: is-fork-pull-request
     if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
@@ -180,7 +188,7 @@ jobs:
   update-fixtures:
     name: Export & update fixtures
     needs: [prepare]
-    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-e2e' || 'ghcr.io/cirruslabs/macos-runner:tahoe' }}
     timeout-minutes: 30
 
     env:
@@ -268,7 +276,7 @@ jobs:
 
   commit-updated-fixtures:
     name: Commit the updated fixtures
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     timeout-minutes: 10
     permissions:
       contents: write
@@ -343,7 +351,7 @@ jobs:
 
   check-status:
     name: Check whether the fixture update succeeded
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     timeout-minutes: 5
     if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     needs:
@@ -364,7 +372,7 @@ jobs:
   failure-comment:
     name: Comment about the fixture update failure
     if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     timeout-minutes: 5
     permissions:
       contents: read
