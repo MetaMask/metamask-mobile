@@ -33,8 +33,8 @@ export const PerpsGlobalErrorGate: React.FC<{ children: React.ReactNode }> = ({
   const [retryAttempts, setRetryAttempts] = useState(0);
   const { track } = usePerpsEventTracking();
 
-  const pollIntervalRef = useRef<NodeJS.Timeout>();
-  const analyticsDebounceRef = useRef<NodeJS.Timeout>();
+  const pollIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const analyticsDebounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const lastTrackedErrorRef = useRef<string | null>(null);
   const lastTrackedRetryRef = useRef<number>(0);
 
