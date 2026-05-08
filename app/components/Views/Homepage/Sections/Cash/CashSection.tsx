@@ -20,7 +20,6 @@ import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selec
 import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
-import MoneyAccountHomeRow from '../../../../UI/Money/components/MoneyAccountHomeRow';
 import MusdAggregatedRow from './MusdAggregatedRow';
 import { useCashNavigation } from './useCashNavigation';
 
@@ -98,11 +97,7 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
             onPress={navigateToCash}
             testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('cash')}
           />
-          {isMoneyHomeEnabled ? (
-            <SectionRow>
-              <MoneyAccountHomeRow key={`money-cash-${refreshVersion}`} />
-            </SectionRow>
-          ) : !hasMusdBalanceOnAnyChain ? (
+          {!hasMusdBalanceOnAnyChain ? (
             <SectionRow>
               <CashGetMusdEmptyState key={`cash-empty-${refreshVersion}`} />
             </SectionRow>
