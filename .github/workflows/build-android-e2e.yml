@@ -29,7 +29,7 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-android-build' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }} # Optimized for lg runner (48GB) with conservative memory settings
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-android-build' || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') || fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]')) }} # Optimized for lg runner (48GB) with conservative memory settings
     timeout-minutes: 40
     env:
       GRADLE_USER_HOME: ${{ inputs.runner_provider == 'namespace' && '/home/runner/_work/.gradle' || '/home/admin/_work/.gradle' }}
