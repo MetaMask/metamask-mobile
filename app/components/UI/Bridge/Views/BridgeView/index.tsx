@@ -78,6 +78,7 @@ import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import {
   Pressable,
   ScrollView,
+  View,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
 } from 'react-native';
@@ -110,6 +111,9 @@ import type { RootState } from '../../../../../reducers';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
 import { useSourceAmountCursor } from '../../hooks/useSourceAmountCursor.ts';
 import { BridgeViewFooter } from './BridgeViewFooter.tsx';
+// DEMO-ONLY: nav perf overlay (remove before merging)
+import { markNavStart, useMarkNavEnd } from '../../utils/navPerf';
+import { NavPerfOverlay } from '../../components/NavPerfOverlay/NavPerfOverlay';
 import { getQuoteStreamReasonString } from './BridgeView.utils';
 import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError/index.ts';
@@ -384,20 +388,28 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     [dispatch, resetSourceAmountCursorPosition],
   );
 
-  const handleSourceTokenPress = () =>
+  // DEMO-ONLY: record time-to-focused for BridgeView (remove before merging)
+  useMarkNavEnd('BridgeView');
+  useMarkNavEnd('BridgeView (back)');
+
+  const handleSourceTokenPress = () => {
+    markNavStart('TokenSelector');
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'source',
     });
+  };
 
   const handleFlipTokensPress = useCallback(() => {
     resetSourceAmountCursorPosition();
     void handleSwitchTokens(destTokenAmount)();
   }, [destTokenAmount, handleSwitchTokens, resetSourceAmountCursorPosition]);
 
-  const handleDestTokenPress = () =>
+  const handleDestTokenPress = () => {
+    markNavStart('TokenSelector');
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'dest',
     });
+  };
 
   const getContentMode = () => {
     if (isLoading && !activeQuote && !needsNewQuote) return 'loading';
@@ -426,26 +438,29 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   );
 
   return (
-    // Need this to be full height of screen
-    // @ts-expect-error The type is incorrect, this will work
-    <ScreenView contentContainerStyle={styles.screen}>
-      <Box
-        style={styles.content}
-        onStartShouldSetResponder={() => !shouldShowTrendingTokens}
-        onResponderRelease={dismissInputAndKeypad}
-      >
-        <ScrollView
-          ref={scrollViewRef}
-          testID={BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL}
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
-          showsVerticalScrollIndicator={false}
-          scrollEventThrottle={16}
-          onScrollBeginDrag={
-            shouldShowTrendingTokens ? dismissInputAndKeypad : undefined
-          }
-          onScroll={isSwapsTrendingTokensEnabled ? handleScroll : undefined}
+    <View style={{ flex: 1 }}>
+      {/* DEMO-ONLY: remove before merging */}
+      <NavPerfOverlay />
+      {/* Need this to be full height of screen */}
+      {/* @ts-expect-error The type is incorrect, this will work */}
+      <ScreenView contentContainerStyle={styles.screen}>
+        <Box
+          style={styles.content}
+          onStartShouldSetResponder={() => !shouldShowTrendingTokens}
+          onResponderRelease={dismissInputAndKeypad}
         >
+          <ScrollView
+            ref={scrollViewRef}
+            testID={BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL}
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollViewContent}
+            showsVerticalScrollIndicator={false}
+            scrollEventThrottle={16}
+            onScrollBeginDrag={
+              shouldShowTrendingTokens ? dismissInputAndKeypad : undefined
+            }
+            onScroll={isSwapsTrendingTokensEnabled ? handleScroll : undefined}
+          >
           <Box style={styles.inputsContainer}>
             <TokenInputArea
               ref={inputRef}
@@ -700,6 +715,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
         </SwapsKeypad>
       </Box>
     </ScreenView>
+    </View>
   );
 };
 

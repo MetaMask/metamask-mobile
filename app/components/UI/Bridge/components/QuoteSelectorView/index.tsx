@@ -9,6 +9,8 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
+// DEMO-ONLY: nav perf overlay (remove before merging)
+import { markNavStart, useMarkNavEnd } from '../../utils/navPerf';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectDestToken,
@@ -31,6 +33,8 @@ import { fromTokenMinimalUnit } from '../../../../../util/number';
 
 export const QuoteSelectorView = () => {
   const navigation = useNavigation();
+  // DEMO-ONLY: record time-to-focused for QuoteSelector (remove before merging)
+  useMarkNavEnd('QuoteSelector');
   const dispatch = useDispatch();
   const selectedQuoteRequestId = useSelector(selectSelectedQuoteRequestId);
   const currency = useSelector(selectCurrentCurrency);
@@ -116,7 +120,11 @@ export const QuoteSelectorView = () => {
     navigation.setOptions(
       getHeaderCompactStandardNavbarOptions({
         title: strings('bridge.select_quote'),
-        onBack: () => navigation.goBack(),
+        onBack: () => {
+          // DEMO-ONLY: time the back transition (remove before merging)
+          markNavStart('BridgeView (back)');
+          navigation.goBack();
+        },
         includesTopInset: true,
       }),
     );
