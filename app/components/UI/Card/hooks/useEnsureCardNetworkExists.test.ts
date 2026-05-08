@@ -3,10 +3,8 @@ import { RpcEndpointType } from '@metamask/network-controller';
 import { useSelector } from 'react-redux';
 import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
 import Engine from '../../../../core/Engine';
-import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 jest.mock('../../../../core/Engine');
-jest.mock('../../../hooks/useNetworkEnablement/useNetworkEnablement');
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -19,6 +17,9 @@ interface MockEngineContext {
   NetworkController: {
     addNetwork: jest.Mock;
   };
+  NetworkEnablementController: {
+    enableNetwork: jest.Mock;
+  };
 }
 
 const MONAD_CAIP_CHAIN_ID = 'eip155:143';
@@ -29,13 +30,12 @@ describe('useEnsureCardNetworkExists', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    (useNetworkEnablement as jest.Mock).mockReturnValue({
-      enableNetwork: mockEnableNetwork,
-    });
-
     (Engine.context as unknown as MockEngineContext) = {
       NetworkController: {
         addNetwork: mockAddNetwork,
+      },
+      NetworkEnablementController: {
+        enableNetwork: mockEnableNetwork,
       },
     };
 

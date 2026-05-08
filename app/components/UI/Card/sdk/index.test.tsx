@@ -33,7 +33,6 @@ jest.mock('../../../../core/Engine', () => ({
     context: {
       CardController: {
         setUserLocation: jest.fn(),
-        logout: jest.fn().mockResolvedValue(undefined),
       },
     },
   },
@@ -247,7 +246,6 @@ describe('CardSDK Context', () => {
         user: null,
         setUser: jest.fn(),
         fetchUserData: jest.fn(),
-        logoutFromProvider: jest.fn(),
         isReturningSession: false,
       };
 
@@ -288,7 +286,6 @@ describe('CardSDK Context', () => {
       expect(result.current).toEqual({
         sdk: expect.any(Object),
         isLoading: expect.any(Boolean),
-        logoutFromProvider: expect.any(Function),
         user: null,
         setUser: expect.any(Function),
         fetchUserData: expect.any(Function),
@@ -352,158 +349,6 @@ describe('CardSDK Context', () => {
       });
 
       expect(result.current.sdk).not.toBeNull();
-    });
-  });
-
-  describe('Logout Functionality', () => {
-    it('logs out user successfully', async () => {
-      // Given: SDK available
-      setupMockSDK();
-      setupMockUseSelector(mockCardFeatureFlag);
-      const mockControllerLogout = Engine.context.CardController
-        .logout as jest.Mock;
-      mockControllerLogout.mockResolvedValue(undefined);
-
-      const { result } = renderHook(() => useCardSDK(), {
-        wrapper: createWrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // When: user logs out
-      await act(async () => {
-        await result.current.logoutFromProvider();
-      });
-
-      // Then: CardController.logout should be called and Redux actions dispatched
-      expect(mockControllerLogout).toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalled();
-    });
-
-    it('dispatches resetOnboardingState action on logout', async () => {
-      // Given: SDK available
-      setupMockSDK();
-      setupMockUseSelector(mockCardFeatureFlag);
-
-      const { result } = renderHook(() => useCardSDK(), {
-        wrapper: createWrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // When: user logs out
-      await act(async () => {
-        await result.current.logoutFromProvider();
-      });
-
-      // Then: should dispatch resetOnboardingState
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'card/resetOnboardingState' }),
-      );
-    });
-
-    it('completes logout successfully even when SDK is unavailable', async () => {
-      // Given: no SDK (feature flag null → sdk = null)
-      setupMockUseSelector(null);
-      const mockControllerLogout = Engine.context.CardController
-        .logout as jest.Mock;
-      mockControllerLogout.mockResolvedValue(undefined);
-
-      const { result } = renderHook(() => useCardSDK(), {
-        wrapper: createWrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.sdk).toBeNull();
-      });
-
-      // When: attempting logout
-      // Then: should complete without throwing and dispatch cleanup actions
-      await act(async () => {
-        await result.current.logoutFromProvider();
-      });
-
-      expect(mockControllerLogout).toHaveBeenCalled();
-    });
-
-    it('clears Redux state even when CardController.logout() fails', async () => {
-      // Given: CardController.logout fails
-      const mockControllerLogout = Engine.context.CardController
-        .logout as jest.Mock;
-      mockControllerLogout.mockRejectedValue(new Error('Server logout failed'));
-      setupMockSDK();
-      setupMockUseSelector(mockCardFeatureFlag);
-
-      const { result } = renderHook(() => useCardSDK(), {
-        wrapper: createWrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // When: user logs out (even though controller fails)
-      await act(async () => {
-        await result.current.logoutFromProvider();
-      });
-
-      // Then: Redux state should still be cleared
-      expect(mockControllerLogout).toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'card/resetOnboardingState' }),
-      );
-    });
-
-    it('clears user state even when CardController.logout() fails', async () => {
-      // Given: controller logout fails and user is set
-      const mockControllerLogout = Engine.context.CardController
-        .logout as jest.Mock;
-      mockControllerLogout.mockRejectedValue(new Error('Network error'));
-      setupMockSDK();
-      setupMockUseSelector(mockCardFeatureFlag);
-
-      const mockUser: UserResponse = {
-        id: 'test-user-id',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@example.com',
-        phoneNumber: '+1234567890',
-        phoneCountryCode: '+1',
-        verificationState: 'VERIFIED',
-        dateOfBirth: '1990-01-01',
-        addressLine1: '123 Main St',
-        city: 'Anytown',
-        usState: 'CA',
-        zip: '12345',
-        countryOfResidence: 'US',
-      };
-
-      const { result } = renderHook(() => useCardSDK(), {
-        wrapper: createWrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Set user first
-      act(() => {
-        result.current.setUser(mockUser);
-      });
-
-      expect(result.current.user).toEqual(mockUser);
-
-      // When: logout fails
-      await act(async () => {
-        await result.current.logoutFromProvider();
-      });
-
-      // Then: user should still be cleared
-      expect(result.current.user).toBe(null);
     });
   });
 
@@ -606,47 +451,6 @@ describe('CardSDK Context', () => {
 
       // Then: user state should be updated
       expect(result.current.user).toEqual(mockUser);
-    });
-
-    it('clears user data when logoutFromProvider is called', async () => {
-      // Given: CardSDK provider is rendered with user data
-      setupMockUseSelector(mockCardFeatureFlag);
-      setupMockSDK();
-
-      const mockUser: UserResponse = {
-        id: 'test-user-id',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@example.com',
-        phoneNumber: '+1234567890',
-        phoneCountryCode: '+1',
-        verificationState: 'VERIFIED',
-        dateOfBirth: '1990-01-01',
-        addressLine1: '123 Main St',
-        city: 'Anytown',
-        usState: 'CA',
-        zip: '12345',
-        countryOfResidence: 'US',
-      };
-
-      const { result } = renderHook(() => useCardSDK(), {
-        wrapper: createWrapper,
-      });
-
-      // Set user first
-      act(() => {
-        result.current.setUser(mockUser);
-      });
-
-      expect(result.current.user).toEqual(mockUser);
-
-      // When: logoutFromProvider is called
-      await act(async () => {
-        await result.current.logoutFromProvider();
-      });
-
-      // Then: user should be cleared
-      expect(result.current.user).toBe(null);
     });
 
     it('can set user to null explicitly', () => {

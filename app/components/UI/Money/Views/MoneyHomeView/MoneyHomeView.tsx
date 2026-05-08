@@ -35,11 +35,16 @@ import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Secti
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
-import { selectIsCardholder } from '../../../../../selectors/cardController';
+import {
+  selectIsCardAuthenticated,
+  selectIsCardholder,
+} from '../../../../../selectors/cardController';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
+import { useMoneyAccountCardLinking } from '../../../Card/hooks/useMoneyAccountCardLinking';
+import { MONEY_ACCOUNT_CARD_COMPLETION_INTENT } from '../../../Card/util/moneyAccountCardRouteParams';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
@@ -74,8 +79,14 @@ const MoneyHomeView = () => {
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
+  const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
   const geolocation = useSelector(getDetectedGeolocation);
   const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
+  const {
+    hasMoneyAccountRequirements,
+    isLinking: isMoneyAccountCardLinking,
+    linkMoneyAccountCard,
+  } = useMoneyAccountCardLinking();
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
@@ -134,11 +145,47 @@ const MoneyHomeView = () => {
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation]);
 
-  const handleLinkCardPress = useCallback(() => {
-    navigation.navigate(Routes.CARD.ROOT, {
-      screen: Routes.CARD.HOME,
-    });
-  }, [navigation]);
+  const handleLinkCardPress = useCallback(async () => {
+    if (isCardholder && isCardAuthenticated && hasMoneyAccountRequirements) {
+      await linkMoneyAccountCard();
+      return;
+    }
+
+    if (isCardholder && hasMoneyAccountRequirements) {
+      navigation.navigate(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: {
+            showAuthPrompt: true,
+            completionIntent: MONEY_ACCOUNT_CARD_COMPLETION_INTENT,
+          },
+        },
+      });
+      return;
+    }
+
+    if (hasMoneyAccountRequirements) {
+      navigation.navigate(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.WELCOME,
+          params: {
+            completionIntent: MONEY_ACCOUNT_CARD_COMPLETION_INTENT,
+          },
+        },
+      });
+      return;
+    }
+
+    navigation.navigate(Routes.CARD.ROOT);
+  }, [
+    hasMoneyAccountRequirements,
+    isCardAuthenticated,
+    isCardholder,
+    linkMoneyAccountCard,
+    navigation,
+  ]);
 
   const handleGetNowPress = useCallback(() => {
     navigation.navigate(Routes.CARD.ROOT);
@@ -306,6 +353,7 @@ const MoneyHomeView = () => {
           onGetNowPress={handleGetNowPress}
           onHeaderPress={handleHeaderPress}
           onLinkPress={handleLinkCardPress}
+          isLinking={isMoneyAccountCardLinking}
           apy={apyPercent}
           showMetalCard={isUS}
         />

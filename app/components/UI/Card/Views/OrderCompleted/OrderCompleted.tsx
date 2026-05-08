@@ -56,13 +56,14 @@ const OrderCompleted: React.FC = () => {
 
     if (fromUpgrade) {
       navigation.navigate(Routes.CARD.HOME);
-    } else {
-      navigation.dispatch(
-        StackActions.replace(Routes.CARD.SPENDING_LIMIT, {
-          flow: 'onboarding',
-        }),
-      );
+      return;
     }
+
+    navigation.dispatch(
+      StackActions.replace(Routes.CARD.SPENDING_LIMIT, {
+        flow: 'onboarding',
+      }),
+    );
   }, [navigation, trackEvent, createEventBuilder, fromUpgrade]);
 
   const buttonLabel = fromUpgrade

@@ -6589,7 +6589,10 @@
       "link_subtitle": "Spend your Money balance and earn.",
       "link_bullet_cashback": "Up to 3% mUSD back",
       "link_bullet_apy": "Up to {{apy}}% APY",
-      "link_card": "Link card"
+      "link_card": "Link card",
+      "link_pending": "Linking MetaMask Card...",
+      "link_success": "MetaMask Card linked",
+      "link_error": "Unable to link MetaMask Card"
     },
     "what_you_get": {
       "title": "What you get",
@@ -7989,6 +7992,7 @@
       "limit_label": "Limit",
       "other_token": "Other",
       "full_access_title": "Full access",
+      "unlimited_limit_label": "Unlimited",
       "full_access_description": "Your card can use your funds automatically without asking for approval each time.",
       "restricted_limit_title": "Spending limit",
       "restricted_limit_description": "You can only spend up to this limit. You'll pay a network fee every time this limit is updated.",
@@ -8006,6 +8010,7 @@
       "retry": "Try again",
       "on_linea": "on Linea",
       "account_label": "Account",
+      "money_account_label": "Money account",
       "token_label": "Token"
     },
     "cashback_screen": {

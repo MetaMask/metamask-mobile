@@ -1,6 +1,6 @@
 // Mock SDK first - must be hoisted before imports
-const mockLogoutFromProvider = jest.fn();
 const mockSetIsAuthenticated = jest.fn();
+const mockLinkMoneyAccountCard = jest.fn();
 const mockSdk = {
   getSupportedTokensByChainId: jest.fn(() => []),
   isCardHolder: jest.fn(),
@@ -20,10 +20,21 @@ jest.mock('../../sdk', () => ({
   useCardSDK: jest.fn(() => ({
     sdk: mockSdk,
     isLoading: false,
-    logoutFromProvider: mockLogoutFromProvider,
     userCardLocation: 'international' as const,
   })),
   withCardSDK: (component: React.ComponentType) => component,
+}));
+
+jest.mock('../../hooks/useMoneyAccountCardLinking', () => ({
+  useMoneyAccountCardLinking: jest.fn(() => ({
+    canLink: false,
+    hasMoneyAccountRequirements: false,
+    isCardAuthenticated: false,
+    isLinking: false,
+    moneyAccount: undefined,
+    moneyAccountCardToken: null,
+    linkMoneyAccountCard: mockLinkMoneyAccountCard,
+  })),
 }));
 
 // Mock push provisioning hook
@@ -970,7 +981,6 @@ describe('CardHome Component', () => {
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined as never);
 
     // Clear SDK mocks
-    mockLogoutFromProvider.mockClear();
     mockSetIsAuthenticated.mockClear();
 
     // Clear authentication error handling mocks

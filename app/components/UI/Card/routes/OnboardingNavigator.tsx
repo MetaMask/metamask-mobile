@@ -15,8 +15,11 @@ import KYCPending from '../components/Onboarding/KYCPending';
 import PersonalDetails from '../components/Onboarding/PersonalDetails';
 import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
 import { cardDefaultNavigationOptions, headerStyle } from '.';
-import { selectOnboardingId } from '../../../../core/redux/slices/card';
-import { useSelector } from 'react-redux';
+import {
+  selectOnboardingId,
+  setOnboardingCompletionIntent,
+} from '../../../../core/redux/slices/card';
+import { useDispatch, useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -36,6 +39,7 @@ import { useParams } from '../../../../util/navigation/navUtils';
 import { CardUserPhase } from '../types';
 import Complete from '../components/Onboarding/Complete';
 import LockManagerService from '../../../../core/LockManagerService';
+import type { CardRouteIntentParams } from '../Card.types';
 
 const Stack = createStackNavigator();
 
@@ -107,9 +111,12 @@ export const HeaderlessNavigationOptions: StackNavigationOptions = {
 };
 
 const OnboardingNavigator: React.FC = () => {
-  const { cardUserPhase } = useParams<{
-    cardUserPhase?: CardUserPhase;
-  }>();
+  const { cardUserPhase, completionIntent } = useParams<
+    CardRouteIntentParams & {
+      cardUserPhase?: CardUserPhase;
+    }
+  >();
+  const dispatch = useDispatch();
   const onboardingId = useSelector(selectOnboardingId);
   const { user, isLoading, fetchUserData, isReturningSession } = useCardSDK();
   const [isMounted, setIsMounted] = useState(false);
@@ -128,6 +135,12 @@ const OnboardingNavigator: React.FC = () => {
       >
     >();
   const hasShownKeepGoingModal = useRef(false);
+
+  useEffect(() => {
+    if (completionIntent) {
+      dispatch(setOnboardingCompletionIntent(completionIntent));
+    }
+  }, [completionIntent, dispatch]);
 
   // Check if deeplink is navigating directly to Complete screen
   const isDeeplinkToComplete =

@@ -765,6 +765,7 @@ describe('useCardDelegation', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         token_symbol: params.currency,
         token_chain_id: params.network,
+        spending_source: 'selectedAccount',
         delegation_type: 'limited',
         delegation_amount: 100,
         faucet: false,
@@ -1068,6 +1069,62 @@ describe('useCardDelegation', () => {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           requireApproval: true,
         },
+      );
+    });
+
+    it('uses explicit Money Account source for EVM delegation', async () => {
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+      const moneyAccountAddress = '0xMoneyAccount123';
+
+      const { result } = renderHook(() =>
+        useCardDelegation(mockToken, {
+          source: { type: 'moneyAccount', address: moneyAccountAddress },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.submitDelegation(params);
+      });
+
+      expect(mockFetchDelegationChallenge).toHaveBeenCalledWith({
+        network: params.network,
+        address: moneyAccountAddress,
+        faucet: false,
+      });
+      expect(
+        Engine.context.KeyringController.signPersonalMessage,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ from: moneyAccountAddress }),
+      );
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ from: moneyAccountAddress }),
+        expect.any(Object),
+      );
+      expect(mockApproveFunding).toHaveBeenCalledWith(
+        expect.objectContaining({ address: moneyAccountAddress }),
+      );
+    });
+
+    it('submits background approval without the confirmation modal', async () => {
+      const mockToken = createMockToken();
+      const params = createMockDelegationParams();
+
+      const { result } = renderHook(() =>
+        useCardDelegation(mockToken, { approvalMode: 'background' }),
+      );
+
+      await act(async () => {
+        await result.current.submitDelegation(params);
+      });
+
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({ requireApproval: false }),
       );
     });
 

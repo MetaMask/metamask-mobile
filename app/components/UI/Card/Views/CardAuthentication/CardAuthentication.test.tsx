@@ -152,7 +152,19 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-function render(location: 'international' | 'us' = 'international') {
+const completionIntent = 'moneyAccountCardLinking';
+const moneyAccountSpendingLimitParams = {
+  flow: 'onboarding',
+  spendingSource: 'primaryMoneyAccount',
+  fixedSpendingSource: true,
+};
+
+function render(
+  location: 'international' | 'us' = 'international',
+  routeParams: Record<string, unknown> = {},
+) {
+  mockRouteParams = routeParams;
+
   return renderScreen(
     CardAuthentication,
     {
@@ -171,6 +183,7 @@ function render(location: 'international' | 'us' = 'international') {
         },
       },
     },
+    routeParams,
   );
 }
 
@@ -438,6 +451,32 @@ describe('CardAuthentication Component', () => {
         expect(mockReset).toHaveBeenCalledWith({
           index: 0,
           routes: [{ name: Routes.CARD.HOME }],
+        });
+      });
+    });
+
+    it('navigates to fixed Money Account SpendingLimit when login has completion intent', async () => {
+      mockSubmitMutateAsync.mockResolvedValue({ done: true });
+      render('international', { completionIntent });
+      const emailInput = screen.getByTestId('email-field');
+      const passwordInput = screen.getByTestId('password-field');
+      const loginButton = screen.getByTestId(
+        CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
+      );
+
+      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.changeText(passwordInput, 'password123');
+      fireEvent.press(loginButton);
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [
+            {
+              name: Routes.CARD.SPENDING_LIMIT,
+              params: moneyAccountSpendingLimitParams,
+            },
+          ],
         });
       });
     });
@@ -811,6 +850,37 @@ describe('CardAuthentication Component', () => {
             {
               name: Routes.CARD.ONBOARDING.ROOT,
               params: { cardUserPhase: 'kyc' },
+            },
+          ],
+        });
+      });
+    });
+
+    it('forwards completion intent when onboarding is required', async () => {
+      mockSubmitMutateAsync.mockResolvedValue({
+        done: false,
+        onboardingRequired: { sessionId: 'session-123', phase: 'kyc' },
+      });
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
+
+      render('international', { completionIntent });
+      const otpInput = screen.getByTestId('otp-code-field');
+
+      await act(async () => {
+        fireEvent.changeText(otpInput, '123456');
+      });
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [
+            {
+              name: Routes.CARD.ONBOARDING.ROOT,
+              params: { cardUserPhase: 'kyc', completionIntent },
             },
           ],
         });

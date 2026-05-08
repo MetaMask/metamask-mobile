@@ -17,5 +17,6 @@ export function isMoneyAccountEnabled(
   const remoteFlag =
     remoteFeatureFlags?.moneyEnableMoneyAccount as VersionGatedFeatureFlag;
 
-  return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  // return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  return true;
 }

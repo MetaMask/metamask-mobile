@@ -18,6 +18,7 @@ import { CardError } from '../../types';
 import {
   resetOnboardingState,
   selectContactVerificationId,
+  selectOnboardingCompletionIntent,
   setContactVerificationId,
   setOnboardingId,
 } from '../../../../../core/redux/slices/card';
@@ -43,6 +44,7 @@ const ConfirmEmail = () => {
     string | null
   >(null);
 
+  const completionIntent = useSelector(selectOnboardingCompletionIntent);
   const { email, password, countryKey } = useParams<{
     email: string;
     password: string;
@@ -151,7 +153,12 @@ const ConfirmEmail = () => {
         const navigateToAuthentication = () => {
           navigation.reset({
             index: 0,
-            routes: [{ name: Routes.CARD.AUTHENTICATION }],
+            routes: [
+              {
+                name: Routes.CARD.AUTHENTICATION,
+                params: completionIntent ? { completionIntent } : undefined,
+              },
+            ],
           });
         };
 
@@ -195,6 +202,7 @@ const ConfirmEmail = () => {
     email,
     navigation,
     password,
+    completionIntent,
     selectedCountry,
     verifyEmailVerification,
     trackEvent,

@@ -8,10 +8,12 @@ import cardReducer, {
   setOnboardingId,
   setContactVerificationId,
   setConsentSetId,
+  setOnboardingCompletionIntent,
   resetOnboardingState,
   selectOnboardingId,
   selectContactVerificationId,
   selectConsentSetId,
+  selectOnboardingCompletionIntent,
 } from '.';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -22,6 +24,7 @@ const CARD_STATE_MOCK: CardSliceState = {
     onboardingId: null,
     contactVerificationId: null,
     consentSetId: null,
+    completionIntent: null,
   },
 };
 
@@ -33,6 +36,7 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
     onboardingId: null,
     contactVerificationId: null,
     consentSetId: null,
+    completionIntent: null,
   },
 };
 
@@ -121,6 +125,29 @@ describe('Card Selectors', () => {
         expect(selectConsentSetId(mockRootState)).toBe(consentSetId);
       });
     });
+
+    describe('selectOnboardingCompletionIntent', () => {
+      it('should return null by default from initial state', () => {
+        const mockRootState = { card: initialState } as unknown as RootState;
+        expect(selectOnboardingCompletionIntent(mockRootState)).toBe(null);
+      });
+
+      it('should return the completion intent when set', () => {
+        const stateWithCompletionIntent: CardSliceState = {
+          ...initialState,
+          onboarding: {
+            ...initialState.onboarding,
+            completionIntent: 'moneyAccountCardLinking',
+          },
+        };
+        const mockRootState = {
+          card: stateWithCompletionIntent,
+        } as unknown as RootState;
+        expect(selectOnboardingCompletionIntent(mockRootState)).toBe(
+          'moneyAccountCardLinking',
+        );
+      });
+    });
   });
 });
 
@@ -134,6 +161,7 @@ describe('Card Reducer', () => {
           onboardingId: null,
           contactVerificationId: null,
           consentSetId: null,
+          completionIntent: null,
         },
       };
 
@@ -169,6 +197,7 @@ describe('Card Reducer', () => {
           expect(state.onboarding.onboardingId).toBe(onboardingId);
           expect(state.onboarding.contactVerificationId).toBe(null);
           expect(state.onboarding.consentSetId).toBe(null);
+          expect(state.onboarding.completionIntent).toBe(null);
         });
 
         it('should update onboardingId when previously set', () => {
@@ -250,6 +279,7 @@ describe('Card Reducer', () => {
           expect(state.onboarding.consentSetId).toBe(consentSetId);
           expect(state.onboarding.onboardingId).toBe(null);
           expect(state.onboarding.contactVerificationId).toBe(null);
+          expect(state.onboarding.completionIntent).toBe(null);
         });
 
         it('should update consentSetId when previously set', () => {
@@ -278,6 +308,33 @@ describe('Card Reducer', () => {
         });
       });
 
+      describe('setOnboardingCompletionIntent', () => {
+        it('should set completionIntent', () => {
+          const state = cardReducer(
+            initialState,
+            setOnboardingCompletionIntent('moneyAccountCardLinking'),
+          );
+          expect(state.onboarding.completionIntent).toBe(
+            'moneyAccountCardLinking',
+          );
+        });
+
+        it('should set completionIntent to null', () => {
+          const current: CardSliceState = {
+            ...initialState,
+            onboarding: {
+              ...initialState.onboarding,
+              completionIntent: 'moneyAccountCardLinking',
+            },
+          };
+          const state = cardReducer(
+            current,
+            setOnboardingCompletionIntent(null),
+          );
+          expect(state.onboarding.completionIntent).toBe(null);
+        });
+      });
+
       describe('resetOnboardingState', () => {
         it('should reset all onboarding state to initial values', () => {
           const current: CardSliceState = {
@@ -286,6 +343,7 @@ describe('Card Reducer', () => {
               onboardingId: 'test-id',
               contactVerificationId: 'verification-123',
               consentSetId: 'consent-456',
+              completionIntent: 'moneyAccountCardLinking',
             },
           };
           const state = cardReducer(current, resetOnboardingState());
@@ -293,6 +351,7 @@ describe('Card Reducer', () => {
             onboardingId: null,
             contactVerificationId: null,
             consentSetId: null,
+            completionIntent: null,
           });
         });
 
@@ -302,6 +361,7 @@ describe('Card Reducer', () => {
             onboardingId: null,
             contactVerificationId: null,
             consentSetId: null,
+            completionIntent: null,
           });
         });
       });

@@ -553,7 +553,6 @@ describe('PhysicalAddress Component', () => {
       },
       fetchUserData: jest.fn(),
       setUser: jest.fn(),
-      logoutFromProvider: jest.fn(),
     });
 
     // Mock useSelector and useDispatch
@@ -724,7 +723,6 @@ describe('PhysicalAddress Component', () => {
         },
         fetchUserData: jest.fn(),
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(
@@ -763,7 +761,6 @@ describe('PhysicalAddress Component', () => {
         },
         fetchUserData: jest.fn(),
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(
@@ -839,7 +836,6 @@ describe('PhysicalAddress Component', () => {
         },
         fetchUserData: jest.fn(),
         setUser: mockSetUser,
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(
@@ -963,7 +959,6 @@ describe('PhysicalAddress Component', () => {
         },
         fetchUserData: jest.fn(),
         setUser: mockSetUser,
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(
@@ -1013,6 +1008,119 @@ describe('PhysicalAddress Component', () => {
               {
                 name: Routes.CARD.SPENDING_LIMIT,
                 params: { flow: 'onboarding' },
+              },
+            ],
+          });
+        },
+        { timeout: 5000 },
+      );
+    });
+
+    it('navigates to fixed Money Account SpendingLimit when completion intent is present', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: any) =>
+        selector({
+          card: {
+            onboarding: {
+              onboardingId: 'test-id',
+              completionIntent: 'moneyAccountCardLinking',
+            },
+            consentSetId: null,
+          },
+        }),
+      );
+
+      const mockGetOnboardingConsentSetByOnboardingId = jest
+        .fn()
+        .mockResolvedValue(null);
+      const mockCreateOnboardingConsent = jest
+        .fn()
+        .mockResolvedValue('consent-set-123');
+      const mockLinkUserToConsent = jest.fn().mockResolvedValue(undefined);
+      const mockRegisterAddress = jest.fn().mockResolvedValue({
+        accessToken: 'test-token',
+        user: { id: 'user-id' },
+      });
+
+      mockUseRegisterPhysicalAddress.mockReturnValue({
+        registerAddress: mockRegisterAddress,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockUseRegisterUserConsent.mockReturnValue({
+        createOnboardingConsent: mockCreateOnboardingConsent,
+        linkUserToConsent: mockLinkUserToConsent,
+        getOnboardingConsentSetByOnboardingId:
+          mockGetOnboardingConsentSetByOnboardingId,
+        isLoading: false,
+        isSuccess: false,
+        isError: false,
+        error: null,
+        consentSetId: null,
+        clearError: jest.fn(),
+        reset: jest.fn(),
+      });
+
+      mockUseCardSDK.mockReturnValue({
+        isReturningSession: false,
+        sdk: {
+          getUserDetails: jest.fn().mockResolvedValue({
+            verificationState: 'VERIFIED',
+            userId: 'user-id',
+          }),
+        } as any,
+        isLoading: false,
+        user: {
+          id: 'user-id',
+          email: 'test@example.com',
+          usState: 'CA',
+        },
+        fetchUserData: jest.fn(),
+        setUser: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('address-line-1-input'), '123 Main St');
+      fireEvent.changeText(getByTestId('city-input'), 'San Francisco');
+      fireEvent.changeText(getByTestId('zip-code-input'), '12345');
+      fireEvent.press(
+        getByTestId('physical-address-electronic-consent-checkbox'),
+      );
+      fireEvent.press(getByTestId('physical-address-coinme-terms-checkbox'));
+      fireEvent.press(getByTestId('physical-address-crb-consent-checkbox'));
+
+      await waitFor(() => {
+        expect(
+          getByTestId('physical-address-continue-button'),
+        ).not.toBeDisabled();
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('physical-address-continue-button'));
+      });
+
+      await waitFor(
+        () => {
+          expect(mockReset).toHaveBeenCalledWith({
+            index: 0,
+            routes: [
+              {
+                name: Routes.CARD.SPENDING_LIMIT,
+                params: {
+                  flow: 'onboarding',
+                  spendingSource: 'primaryMoneyAccount',
+                  fixedSpendingSource: true,
+                },
               },
             ],
           });
@@ -1072,7 +1180,6 @@ describe('PhysicalAddress Component', () => {
         },
         fetchUserData: jest.fn(),
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(
@@ -1163,7 +1270,6 @@ describe('PhysicalAddress Component', () => {
         },
         fetchUserData: jest.fn(),
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(
@@ -1266,7 +1372,6 @@ describe('PhysicalAddress Component', () => {
         },
         fetchUserData: jest.fn(),
         setUser: mockSetUser,
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(
@@ -1588,7 +1693,6 @@ describe('PhysicalAddress Component', () => {
         },
         fetchUserData: jest.fn(),
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(
@@ -1619,7 +1723,6 @@ describe('PhysicalAddress Component', () => {
         },
         fetchUserData: jest.fn(),
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(

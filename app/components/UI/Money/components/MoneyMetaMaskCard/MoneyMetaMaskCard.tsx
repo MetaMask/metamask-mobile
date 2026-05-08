@@ -34,6 +34,7 @@ interface MoneyMetaMaskCardProps {
   onHeaderPress?: () => void;
   /** Called when the "Link card" button is pressed (link mode only). */
   onLinkPress?: () => void;
+  isLinking?: boolean;
   /** Current APY value displayed in the link mode bullet. */
   apy?: number;
   /**
@@ -116,9 +117,11 @@ const CheckBullet = ({ text, testID }: { text: string; testID: string }) => (
 
 const LinkContent = ({
   onLinkPress,
+  isLinking,
   apy,
 }: {
   onLinkPress: () => void;
+  isLinking?: boolean;
   apy?: number;
 }) => (
   <Box twClassName="gap-3">
@@ -158,6 +161,8 @@ const LinkContent = ({
       size={ButtonSize.Lg}
       isFullWidth
       onPress={onLinkPress}
+      isDisabled={isLinking}
+      isLoading={isLinking}
       testID={MoneyMetaMaskCardTestIds.LINK_BUTTON}
     >
       {strings('money.metamask_card.link_card')}
@@ -170,6 +175,7 @@ const MoneyMetaMaskCard = ({
   onGetNowPress,
   onHeaderPress,
   onLinkPress,
+  isLinking,
   apy,
   showMetalCard = false,
 }: MoneyMetaMaskCardProps) => {
@@ -189,7 +195,11 @@ const MoneyMetaMaskCard = ({
         onPress={onHeaderPress}
       />
       {mode === 'link' ? (
-        <LinkContent onLinkPress={handleLinkPress} apy={apy} />
+        <LinkContent
+          onLinkPress={handleLinkPress}
+          isLinking={isLinking}
+          apy={apy}
+        />
       ) : (
         <>
           <Text

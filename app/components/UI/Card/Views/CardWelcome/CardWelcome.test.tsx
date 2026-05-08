@@ -17,6 +17,7 @@ const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: mockAddProperties,
 }));
+let mockRouteParams: Record<string, unknown> = {};
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -26,6 +27,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
     }),
+    useRoute: () => ({ params: mockRouteParams }),
   };
 });
 
@@ -85,6 +87,7 @@ describe('CardWelcome', () => {
     mockGoBack.mockClear();
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
+    mockRouteParams = {};
   });
 
   describe('Render', () => {
@@ -189,6 +192,40 @@ describe('CardWelcome', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
+    });
+
+    it('forwards completion intent to onboarding root', () => {
+      mockRouteParams = { completionIntent: 'moneyAccountCardLinking' };
+      store = createTestStore({ cardholderAccounts: [] });
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
+        completionIntent: 'moneyAccountCardLinking',
+      });
+    });
+
+    it('forwards completion intent to authentication for existing cardholders', () => {
+      mockRouteParams = { completionIntent: 'moneyAccountCardLinking' };
+      store = createTestStore({
+        cardholderAccounts: ['0x1234567890abcdef'],
+      });
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
+        completionIntent: 'moneyAccountCardLinking',
+      });
     });
   });
 });

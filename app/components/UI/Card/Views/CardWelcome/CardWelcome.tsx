@@ -24,10 +24,13 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { selectHasCardholderAccounts } from '../../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import type { CardRouteIntentParams } from '../../Card.types';
 
 const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { goBack, navigate } = useNavigation();
+  const { completionIntent } = useParams<CardRouteIntentParams>();
   const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
   const theme = useTheme();
   const dimensions = useWindowDimensions();
@@ -57,11 +60,23 @@ const CardWelcome = () => {
     );
 
     if (hasCardholderAccounts) {
-      navigate(Routes.CARD.AUTHENTICATION);
+      navigate(
+        Routes.CARD.AUTHENTICATION,
+        completionIntent ? { completionIntent } : undefined,
+      );
     } else {
-      navigate(Routes.CARD.ONBOARDING.ROOT);
+      navigate(
+        Routes.CARD.ONBOARDING.ROOT,
+        completionIntent ? { completionIntent } : undefined,
+      );
     }
-  }, [hasCardholderAccounts, navigate, trackEvent, createEventBuilder]);
+  }, [
+    hasCardholderAccounts,
+    navigate,
+    completionIntent,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   return (
     <LinearGradient

@@ -1,7 +1,8 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   TransactionStatus,
+  type TransactionMeta,
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
@@ -15,7 +16,7 @@ import { encodeErc20ApproveCalldata } from '../../../../core/Engine/controllers/
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Logger from '../../../../util/Logger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { CardNetwork, CardFundingToken } from '../types';
+import { CardNetwork, CardFundingToken, CardApprovalMode } from '../types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -71,11 +72,29 @@ interface SignCardMessageResult {
   signature: string;
 }
 
+export type CardDelegationSource =
+  | { type: 'selectedAccount' }
+  | { type: 'moneyAccount'; address: string };
+
+interface UseCardDelegationOptions {
+  source?: CardDelegationSource;
+  approvalMode?: CardApprovalMode;
+}
+
+interface ResolvedDelegationSource {
+  type: CardDelegationSource['type'];
+  address: string;
+  accountId?: string;
+}
+
 /**
  * Hook to handle the complete delegation flow for spending limit increases
  * Flow: Token -> Signature -> Approval Transaction -> Completion
  */
-export const useCardDelegation = (token?: CardFundingToken | null) => {
+export const useCardDelegation = (
+  token?: CardFundingToken | null,
+  options: UseCardDelegationOptions = {},
+) => {
   const { KeyringController, TransactionController, CardController } =
     Engine.context;
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
@@ -93,6 +112,51 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
     isLoading: isFaucetCheckLoading,
     refetch: refetchFaucetCheck,
   } = useNeedsGasFaucet(token);
+
+  const source = useMemo(
+    () => options.source ?? { type: 'selectedAccount' as const },
+    [options.source],
+  );
+  const approvalMode = options.approvalMode ?? 'confirmation';
+
+  const resolveSource = useCallback(
+    (network: CardNetwork): ResolvedDelegationSource => {
+      if (source.type === 'moneyAccount') {
+        if (network === 'solana') {
+          throw new Error('Money Account card delegation supports EVM only');
+        }
+
+        const address = safeToChecksumAddress(source.address);
+        if (!address) {
+          throw new Error('No account found');
+        }
+
+        return {
+          type: source.type,
+          address,
+        };
+      }
+
+      const isSolana = network === 'solana';
+      const userAccount = selectAccountByScope(
+        isSolana ? SolScope.Mainnet : 'eip155:0',
+      );
+      const address = isSolana
+        ? userAccount?.address
+        : safeToChecksumAddress(userAccount?.address);
+
+      if (!address) {
+        throw new Error('No account found');
+      }
+
+      return {
+        type: source.type,
+        address,
+        accountId: userAccount?.id,
+      };
+    },
+    [selectAccountByScope, source],
+  );
 
   /**
    * Generate SIWE signature message
@@ -128,22 +192,23 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
   const executeEVMApprovalTransaction = useCallback(
     async (
       params: DelegationParams,
+      tokenToUse: CardFundingToken,
       address: string,
       signature: string,
       signatureMessage: string,
       delegationJWTToken: string,
     ) => {
-      if (!token?.delegationContract) {
+      if (!tokenToUse.delegationContract) {
         throw new Error('Missing token configuration');
       }
 
       // Check if we have a token address (either staging or regular)
-      if (!token?.stagingTokenAddress && !token?.address) {
+      if (!tokenToUse.stagingTokenAddress && !tokenToUse.address) {
         throw new Error('Missing token address');
       }
 
       const networkClientId = await ensureNetworkExists(
-        token.caipChainId ?? '',
+        tokenToUse.caipChainId ?? '',
       );
 
       // Convert amount to minimal units based on token decimals
@@ -151,17 +216,17 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
       // We need to convert it to minimal units (e.g., for 18 decimals: amount * 10^18)
       const amountInMinimalUnits = toTokenMinimalUnit(
         params.amount,
-        token.decimals ?? 18,
+        tokenToUse.decimals ?? 18,
       ).toString();
 
       const transactionData = encodeErc20ApproveCalldata(
-        token.delegationContract,
+        tokenToUse.delegationContract,
         amountInMinimalUnits,
       );
 
       // Use stagingTokenAddress if present (for staging environment),
       // otherwise use the regular address
-      const tokenAddress = token.stagingTokenAddress || token.address;
+      const tokenAddress = tokenToUse.stagingTokenAddress || tokenToUse.address;
 
       if (!tokenAddress) {
         throw new Error('Token address not found');
@@ -180,7 +245,7 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
               origin: TransactionTypes.MMM_CARD,
               type: TransactionType.tokenMethodApprove,
               deviceConfirmedOn: WalletDevice.MM_MOBILE,
-              requireApproval: true,
+              requireApproval: approvalMode === 'confirmation',
             },
           );
         const actualTxHash = await result;
@@ -188,7 +253,14 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
 
         // Wait for transaction confirmation and completion
         await new Promise<void>((resolve, reject) => {
-          Engine.controllerMessenger.subscribeOnceIf(
+          const controllerMessenger = Engine.controllerMessenger as unknown as {
+            subscribeOnceIf: (
+              eventType: 'TransactionController:transactionConfirmed',
+              handler: (transactionMeta: TransactionMeta) => Promise<void>,
+              criteria: (transactionMeta: TransactionMeta) => boolean,
+            ) => void;
+          };
+          controllerMessenger.subscribeOnceIf(
             'TransactionController:transactionConfirmed',
             async (transactionMeta) => {
               if (transactionMeta.status === TransactionStatus.confirmed) {
@@ -234,7 +306,7 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
         rethrowAsUserCancelledIfApplicable(error);
       }
     },
-    [token, TransactionController, ensureNetworkExists, CardController],
+    [TransactionController, ensureNetworkExists, CardController, approvalMode],
   );
 
   /**
@@ -250,19 +322,21 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
   const executeSolanaApprovalTransaction = useCallback(
     async (
       params: DelegationParams,
+      tokenToUse: CardFundingToken,
       address: string,
       accountId: string,
       signature: string,
       signatureMessage: string,
       delegationJWTToken: string,
     ) => {
-      if (!token?.delegationContract) {
+      if (!tokenToUse.delegationContract) {
         throw new Error('Missing token configuration');
       }
-      if (!token?.stagingTokenAddress && !token?.address) {
+      if (!tokenToUse.stagingTokenAddress && !tokenToUse.address) {
         throw new Error('Missing token address');
       }
-      const tokenMintAddress = token.stagingTokenAddress || token.address;
+      const tokenMintAddress =
+        tokenToUse.stagingTokenAddress || tokenToUse.address;
 
       if (!tokenMintAddress) {
         throw new Error('Token mint address not found');
@@ -283,7 +357,7 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
                 accountId,
                 amount: params.amount,
                 mint: tokenMintAddress,
-                delegate: token.delegationContract,
+                delegate: tokenToUse.delegationContract,
                 scope: SolScope.Mainnet,
               },
             },
@@ -391,7 +465,7 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
         rethrowAsUserCancelledIfApplicable(error);
       }
     },
-    [token, CardController],
+    [CardController],
   );
 
   const signSolanaMessage = useCallback(
@@ -437,12 +511,17 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
    * Submit complete delegation flow
    */
   const submitDelegation = useCallback(
-    async (params: DelegationParams) => {
+    async (
+      params: DelegationParams,
+      tokenOverride?: CardFundingToken | null,
+    ) => {
       setState({ isLoading: true, error: null });
+      const tokenToUse = tokenOverride ?? token;
 
       const metricsProps = {
         token_symbol: params.currency,
         token_chain_id: params.network,
+        spending_source: source.type,
         delegation_type:
           parseFloat(params.amount) >= ARBITRARY_ALLOWANCE ? 'full' : 'limited',
         delegation_amount: isNaN(Number(params.amount))
@@ -457,47 +536,45 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
             .addProperties(metricsProps)
             .build(),
         );
-        const isSolana = params.network === 'solana';
-        const userAccount = selectAccountByScope(
-          isSolana ? SolScope.Mainnet : 'eip155:0',
-        );
-        const address = isSolana
-          ? userAccount?.address
-          : safeToChecksumAddress(userAccount?.address);
 
-        if (!address) {
-          throw new Error('No account found');
+        if (!tokenToUse) {
+          throw new Error('No token selected');
         }
+
+        const isSolana = params.network === 'solana';
+        const resolvedSource = resolveSource(params.network);
 
         // Step 1: Delegation session (pass faucet flag if user needs gas)
         const { delegationToken: delegationJWTToken, nonce } =
           await CardController.fetchDelegationChallenge({
             network: params.network,
-            address,
-            faucet: needsFaucet,
+            address: resolvedSource.address,
+            faucet:
+              resolvedSource.type === 'selectedAccount' ? needsFaucet : false,
           });
 
         // Step 2: Generate and sign SIWE message
         const signatureMessage = generateSignatureMessage(
-          address,
+          resolvedSource.address,
           nonce,
           params.network,
-          token?.caipChainId,
+          tokenToUse.caipChainId,
         );
         const signature = isSolana
-          ? await signSolanaMessage(userAccount?.id, signatureMessage)
+          ? await signSolanaMessage(resolvedSource.accountId, signatureMessage)
           : await KeyringController.signPersonalMessage({
               data:
                 '0x' + Buffer.from(signatureMessage, 'utf8').toString('hex'),
-              from: address,
+              from: resolvedSource.address,
             });
 
         // Step 3: Execute approval transaction
         if (isSolana) {
           await executeSolanaApprovalTransaction(
             params,
-            address,
-            userAccount?.id ?? '',
+            tokenToUse,
+            resolvedSource.address,
+            resolvedSource.accountId ?? '',
             signature,
             signatureMessage,
             delegationJWTToken,
@@ -505,7 +582,8 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
         } else {
           await executeEVMApprovalTransaction(
             params,
-            address,
+            tokenToUse,
+            resolvedSource.address,
             signature,
             signatureMessage,
             delegationJWTToken,
@@ -544,13 +622,14 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
       }
     },
     [
-      selectAccountByScope,
+      source.type,
+      resolveSource,
       generateSignatureMessage,
       KeyringController,
       executeEVMApprovalTransaction,
       executeSolanaApprovalTransaction,
       signSolanaMessage,
-      token?.caipChainId,
+      token,
       trackEvent,
       createEventBuilder,
       needsFaucet,

@@ -3,6 +3,10 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn(() => ({})),
+}));
+
 jest.mock('./OnboardingStep', () => {
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -400,7 +404,6 @@ const defaultCardState = {
   user: null,
   setUser: mockSetUser,
   fetchUserData: mockFetchUserData,
-  logoutFromProvider: jest.fn(),
 });
 
 (useAnalytics as jest.Mock).mockReturnValue({
@@ -450,7 +453,6 @@ describe('PersonalDetails Component', () => {
       user: null,
       setUser: mockSetUser,
       fetchUserData: mockFetchUserData,
-      logoutFromProvider: jest.fn(),
     });
 
     (useAnalytics as jest.Mock).mockReturnValue({
@@ -674,7 +676,6 @@ describe('PersonalDetails Component', () => {
         user: mockUserData,
         setUser: mockSetUser,
         fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
       });
 
       render(<PersonalDetails />);
@@ -697,7 +698,6 @@ describe('PersonalDetails Component', () => {
         user: mockUserData,
         setUser: mockSetUser,
         fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(<PersonalDetails />);
@@ -721,7 +721,6 @@ describe('PersonalDetails Component', () => {
         user: mockUserData,
         setUser: mockSetUser,
         fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(<PersonalDetails />);
@@ -742,7 +741,6 @@ describe('PersonalDetails Component', () => {
         user: mockUserData,
         setUser: mockSetUser,
         fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(<PersonalDetails />);
@@ -763,7 +761,6 @@ describe('PersonalDetails Component', () => {
         user: mockUserData,
         setUser: mockSetUser,
         fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(<PersonalDetails />);
@@ -784,7 +781,6 @@ describe('PersonalDetails Component', () => {
         user: mockUserData,
         setUser: mockSetUser,
         fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(<PersonalDetails />);
@@ -805,7 +801,6 @@ describe('PersonalDetails Component', () => {
         user: mockUserData,
         setUser: mockSetUser,
         fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
       });
 
       render(<PersonalDetails />);
@@ -831,7 +826,6 @@ describe('PersonalDetails Component', () => {
         user: mockUserData,
         setUser: mockSetUser,
         fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(<PersonalDetails />);
@@ -863,7 +857,6 @@ describe('PersonalDetails Component', () => {
         user: mockUserData,
         setUser: mockSetUser,
         fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByText, queryByText } = render(<PersonalDetails />);
@@ -960,7 +953,6 @@ describe('PersonalDetails Component', () => {
         user: null,
         setUser: mockSetUser,
         fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
       });
 
       const { getByTestId } = render(<PersonalDetails />);
@@ -1204,7 +1196,6 @@ describe('PersonalDetails Component', () => {
         user: userData,
         setUser: mockSetUser,
         fetchUserData: mockFetchUserData,
-        logoutFromProvider: jest.fn(),
       });
     };
 

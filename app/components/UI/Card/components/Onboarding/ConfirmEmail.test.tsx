@@ -393,7 +393,6 @@ jest.mock('../../sdk', () => ({
     isLoading: false,
     user: { id: 'user-123', email: 'test@example.com' },
     setUser: mockSetUser,
-    logoutFromProvider: jest.fn(),
   })),
 }));
 
@@ -1178,6 +1177,61 @@ describe('ConfirmEmail Component', () => {
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
         routes: [{ name: Routes.CARD.AUTHENTICATION }],
+      });
+    });
+
+    it('preserves completion intent when confirm action routes to authentication', async () => {
+      const store = createTestStore({
+        onboarding: {
+          onboardingId: 'onboarding-123',
+          contactVerificationId: 'contact-123',
+          selectedCountry: 'US',
+          completionIntent: 'moneyAccountCardLinking',
+        },
+      });
+
+      let capturedOnPress: (() => void) | undefined;
+
+      const mockVerifyEmailVerification = jest.fn().mockResolvedValue({
+        onboardingId: null,
+        hasAccount: true,
+      });
+
+      mockUseEmailVerificationVerify.mockReturnValue({
+        verifyEmailVerification: mockVerifyEmailVerification,
+        isLoading: false,
+        isError: false,
+        error: null,
+        reset: jest.fn(),
+      });
+
+      mockNavigate.mockImplementation((_route, params) => {
+        if (params?.params?.confirmAction?.onPress) {
+          capturedOnPress = params.params.confirmAction.onPress;
+        }
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmEmail />
+        </Provider>,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(getByTestId('confirm-email-code-field'), '123456');
+      });
+
+      mockReset.mockClear();
+      capturedOnPress?.();
+
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: Routes.CARD.AUTHENTICATION,
+            params: { completionIntent: 'moneyAccountCardLinking' },
+          },
+        ],
       });
     });
 

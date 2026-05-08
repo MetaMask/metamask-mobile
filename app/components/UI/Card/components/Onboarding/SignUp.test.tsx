@@ -14,6 +14,10 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn(() => ({})),
+}));
+
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -749,6 +753,29 @@ describe('SignUp Component', () => {
       fireEvent.press(alreadyHaveAccountButton);
 
       expect(mockNavigate).toHaveBeenCalledWith('CardAuthentication');
+    });
+
+    it('preserves completion intent when navigating to authentication', () => {
+      const storeWithCompletionIntent = createTestStore({
+        onboarding: {
+          selectedCountry: null,
+          onboardingId: null,
+          contactVerificationId: null,
+          user: null,
+          completionIntent: 'moneyAccountCardLinking',
+        },
+      });
+      const { getByTestId } = render(
+        <Provider store={storeWithCompletionIntent}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId('signup-i-already-have-an-account-text'));
+
+      expect(mockNavigate).toHaveBeenCalledWith('CardAuthentication', {
+        completionIntent: 'moneyAccountCardLinking',
+      });
     });
   });
 });

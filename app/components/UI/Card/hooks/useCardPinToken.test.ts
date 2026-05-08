@@ -46,7 +46,6 @@ describe('useCardPinToken', () => {
       isLoading: false,
       user: null,
       setUser: jest.fn(),
-      logoutFromProvider: jest.fn(),
       fetchUserData: jest.fn(),
       isReturningSession: false,
     });

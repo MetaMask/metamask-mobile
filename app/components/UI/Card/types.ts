@@ -123,6 +123,10 @@ export interface CardNetworkInfo {
   rpcUrl?: string;
 }
 
+export type CardSpendingSource = 'selectedAccount' | 'primaryMoneyAccount';
+
+export type CardApprovalMode = 'confirmation' | 'background';
+
 export interface CardLoginResponse {
   phase: CardUserPhase | null;
   userId: string;

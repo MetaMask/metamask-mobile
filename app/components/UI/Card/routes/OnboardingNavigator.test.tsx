@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   NavigationContainer,
   NavigationProp,
@@ -15,9 +15,11 @@ import { useCardSDK } from '../sdk';
 import { CardSDK } from '../sdk/CardSDK';
 import { useParams } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
+import { setOnboardingCompletionIntent } from '../../../../core/redux/slices/card';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
+  useDispatch: jest.fn(),
   useSelector: jest.fn(),
 }));
 
@@ -38,9 +40,10 @@ jest.mock('../../../../util/navigation/navUtils', () => ({
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetOptions = jest.fn();
+const mockDispatch = jest.fn();
 
 // Mock route params - shared across tests
-let mockRouteParams: { screen?: string } = {};
+let mockRouteParams: { screen?: string; completionIntent?: string } = {};
 
 // Mock @react-navigation/native
 jest.mock('@react-navigation/native', () => {
@@ -198,6 +201,7 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
 
@@ -210,6 +214,8 @@ describe('OnboardingNavigator', () => {
 
     // Reset route params
     mockRouteParams = {};
+    mockDispatch.mockClear();
+    mockUseDispatch.mockReturnValue(mockDispatch);
 
     // Default mock implementations
     mockUseSelector.mockImplementation((selector) => {
@@ -228,13 +234,26 @@ describe('OnboardingNavigator', () => {
       isLoading: false,
       user: null,
       setUser: jest.fn(),
-      logoutFromProvider: jest.fn(),
       fetchUserData: jest.fn().mockResolvedValue(undefined),
       isReturningSession: false,
     });
 
     // Default mock for useParams - returns empty object (no route params)
     mockUseParams.mockReturnValue({});
+  });
+
+  describe('Completion Intent', () => {
+    it('persists Money Account completion intent from route params', () => {
+      mockUseParams.mockReturnValue({
+        completionIntent: 'moneyAccountCardLinking',
+      });
+
+      renderWithNavigation(<OnboardingNavigator />);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setOnboardingCompletionIntent('moneyAccountCardLinking'),
+      );
+    });
   });
 
   describe('Loading State', () => {
@@ -246,7 +265,6 @@ describe('OnboardingNavigator', () => {
           isLoading: true,
           sdk: null,
           setUser: jest.fn(),
-          logoutFromProvider: jest.fn(),
           fetchUserData: jest.fn(),
           isReturningSession: false,
         });
@@ -276,7 +294,7 @@ describe('OnboardingNavigator', () => {
             isLoading: false,
             sdk: null,
             setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
+
             fetchUserData: jest.fn(),
             isReturningSession: false,
           });
@@ -301,7 +319,7 @@ describe('OnboardingNavigator', () => {
             isLoading: false,
             sdk: null,
             setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
+
             fetchUserData: jest.fn(),
             isReturningSession: false,
           });
@@ -332,7 +350,7 @@ describe('OnboardingNavigator', () => {
             isLoading: false,
             sdk: null,
             setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
+
             fetchUserData: jest.fn(),
             isReturningSession: false,
           });
@@ -359,7 +377,7 @@ describe('OnboardingNavigator', () => {
             isLoading: false,
             sdk: null,
             setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
+
             fetchUserData: jest.fn(),
             isReturningSession: false,
           });
@@ -388,7 +406,7 @@ describe('OnboardingNavigator', () => {
             isLoading: false,
             sdk: null,
             setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
+
             fetchUserData: jest.fn(),
             isReturningSession: false,
           });
@@ -417,7 +435,7 @@ describe('OnboardingNavigator', () => {
             isLoading: false,
             sdk: null,
             setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
+
             fetchUserData: jest.fn(),
             isReturningSession: false,
           });
@@ -447,7 +465,7 @@ describe('OnboardingNavigator', () => {
             isLoading: false,
             sdk: null,
             setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
+
             fetchUserData: jest.fn(),
             isReturningSession: false,
           });
@@ -476,7 +494,7 @@ describe('OnboardingNavigator', () => {
             isLoading: false,
             sdk: null,
             setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
+
             fetchUserData: jest.fn(),
             isReturningSession: false,
           });
@@ -503,7 +521,7 @@ describe('OnboardingNavigator', () => {
             isLoading: false,
             sdk: null,
             setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
+
             fetchUserData: jest.fn(),
             isReturningSession: false,
           });
@@ -531,7 +549,7 @@ describe('OnboardingNavigator', () => {
             isLoading: false,
             sdk: null,
             setUser: jest.fn(),
-            logoutFromProvider: jest.fn(),
+
             fetchUserData: jest.fn(),
             isReturningSession: false,
           });
@@ -559,7 +577,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -581,7 +599,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -608,7 +626,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -634,7 +652,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -660,7 +678,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -686,7 +704,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -712,7 +730,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -738,7 +756,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -765,7 +783,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -792,7 +810,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -819,7 +837,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -846,7 +864,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -873,7 +891,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -900,7 +918,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -1090,7 +1108,6 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: {} as CardSDK,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
         fetchUserData: mockFetchUserData,
         isReturningSession: false,
       });
@@ -1108,7 +1125,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: mockFetchUserData,
         isReturningSession: false,
       });
@@ -1126,7 +1143,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: {} as CardSDK,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: mockFetchUserData,
         isReturningSession: false,
       });
@@ -1153,7 +1170,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false, // SDK incorrectly reset this during re-init
         sdk: {} as CardSDK,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: mockFetchUserData,
         isReturningSession: false,
       });
@@ -1173,7 +1190,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn().mockResolvedValue(undefined),
         isReturningSession: false,
       });
@@ -1201,7 +1218,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: {} as CardSDK,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: mockFetchUserData,
         isReturningSession: false,
       });
@@ -1224,7 +1241,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: {} as CardSDK,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: mockFetchUserData,
         isReturningSession: false,
       });
@@ -1262,7 +1279,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -1279,7 +1296,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -1310,7 +1327,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: true,
       });
@@ -1336,7 +1353,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -1356,7 +1373,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: true,
       });
@@ -1379,7 +1396,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: true,
       });
@@ -1407,7 +1424,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: true,
       });
@@ -1435,7 +1452,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: true,
       });
@@ -1459,7 +1476,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn().mockResolvedValue(undefined),
         isReturningSession: false,
       });
@@ -1486,7 +1503,7 @@ describe('OnboardingNavigator', () => {
         isLoading: false,
         sdk: null,
         setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
+
         fetchUserData: jest.fn(),
         isReturningSession: true,
       });

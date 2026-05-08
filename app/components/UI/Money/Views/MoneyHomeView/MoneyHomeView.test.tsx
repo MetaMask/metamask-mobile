@@ -23,14 +23,19 @@ import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransact
 import { strings } from '../../../../../../locales/i18n';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import { selectIsCardholder } from '../../../../../selectors/cardController';
+import {
+  selectIsCardAuthenticated,
+  selectIsCardholder,
+} from '../../../../../selectors/cardController';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
+import { useMoneyAccountCardLinking } from '../../../Card/hooks/useMoneyAccountCardLinking';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockInitiateCustomConversion = jest.fn();
+const mockLinkMoneyAccountCard = jest.fn();
 const mockMoneyFormatFiat = moneyFormatFiat as jest.MockedFunction<
   typeof moneyFormatFiat
 >;
@@ -78,6 +83,10 @@ jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
   useMusdConversion: jest.fn(),
 }));
 
+jest.mock('../../../Card/hooks/useMoneyAccountCardLinking', () => ({
+  useMoneyAccountCardLinking: jest.fn(),
+}));
+
 jest.mock('../../../../../core/NavigationService', () => ({
   __esModule: true,
   default: {
@@ -93,6 +102,7 @@ jest.mock('../../utils/moneyFormatFiat', () => ({
 
 jest.mock('../../../../../selectors/cardController', () => ({
   ...jest.requireActual('../../../../../selectors/cardController'),
+  selectIsCardAuthenticated: jest.fn(),
   selectIsCardholder: jest.fn(),
 }));
 
@@ -102,6 +112,7 @@ jest.mock('../../../../../reducers/fiatOrders', () => ({
 }));
 
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
+const mockSelectIsCardAuthenticated = jest.mocked(selectIsCardAuthenticated);
 const mockGetDetectedGeolocation = jest.mocked(getDetectedGeolocation);
 
 const mockUseMoneyAccountTransactions = jest.mocked(
@@ -111,6 +122,8 @@ const mockUseMoneyAccountTransactions = jest.mocked(
 const mockUseMusdConversion = jest.mocked(useMusdConversion);
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+
+const mockUseMoneyAccountCardLinking = jest.mocked(useMoneyAccountCardLinking);
 
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
@@ -171,7 +184,17 @@ describe('MoneyHomeView', () => {
     } as unknown as ReturnType<typeof useMusdConversion>);
 
     mockSelectIsCardholder.mockReturnValue(false);
+    mockSelectIsCardAuthenticated.mockReturnValue(false);
     mockGetDetectedGeolocation.mockReturnValue('US');
+    mockUseMoneyAccountCardLinking.mockReturnValue({
+      canLink: false,
+      hasMoneyAccountRequirements: false,
+      isCardAuthenticated: false,
+      isLinking: false,
+      moneyAccount: undefined,
+      moneyAccountCardToken: null,
+      linkMoneyAccountCard: mockLinkMoneyAccountCard,
+    });
 
     mockUseMoneyAccountBalance.mockReturnValue({
       totalFiatFormatted: '$3.00',
@@ -602,14 +625,50 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
-    it('navigates to Card home when onboarding CTA is tapped by cardholder', () => {
+    it('navigates to Card authentication when onboarding CTA is tapped by unauthenticated cardholder', () => {
+      mockUseMoneyAccountCardLinking.mockReturnValue({
+        canLink: false,
+        hasMoneyAccountRequirements: true,
+        isCardAuthenticated: false,
+        isLinking: false,
+        moneyAccount: undefined,
+        moneyAccountCardToken: null,
+        linkMoneyAccountCard: mockLinkMoneyAccountCard,
+      });
+
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: {
+            showAuthPrompt: true,
+            completionIntent: 'moneyAccountCardLinking',
+          },
+        },
       });
+    });
+
+    it('links card in the background when the cardholder is authenticated', () => {
+      mockSelectIsCardAuthenticated.mockReturnValue(true);
+      mockUseMoneyAccountCardLinking.mockReturnValue({
+        canLink: true,
+        hasMoneyAccountRequirements: true,
+        isCardAuthenticated: true,
+        isLinking: false,
+        moneyAccount: undefined,
+        moneyAccountCardToken: null,
+        linkMoneyAccountCard: mockLinkMoneyAccountCard,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
+
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalled();
     });
   });
 

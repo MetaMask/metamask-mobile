@@ -2,10 +2,13 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
 
+export type CardOnboardingCompletionIntent = 'moneyAccountCardLinking';
+
 export interface OnboardingState {
   onboardingId: string | null;
   contactVerificationId: string | null;
   consentSetId: string | null;
+  completionIntent: CardOnboardingCompletionIntent | null;
 }
 
 export interface CardSliceState {
@@ -20,6 +23,7 @@ export const initialState: CardSliceState = {
     onboardingId: null,
     contactVerificationId: null,
     consentSetId: null,
+    completionIntent: null,
   },
   isDaimoDemo: false,
 };
@@ -46,11 +50,18 @@ const slice = createSlice({
     setConsentSetId: (state, action: PayloadAction<string | null>) => {
       state.onboarding.consentSetId = action.payload;
     },
+    setOnboardingCompletionIntent: (
+      state,
+      action: PayloadAction<CardOnboardingCompletionIntent | null>,
+    ) => {
+      state.onboarding.completionIntent = action.payload;
+    },
     resetOnboardingState: (state) => {
       state.onboarding = {
         onboardingId: null,
         contactVerificationId: null,
         consentSetId: null,
+        completionIntent: null,
       };
     },
   },
@@ -88,6 +99,11 @@ export const selectConsentSetId = createSelector(
   (card) => card.onboarding.consentSetId,
 );
 
+export const selectOnboardingCompletionIntent = createSelector(
+  selectCardState,
+  (card) => card.onboarding.completionIntent ?? null,
+);
+
 // Actions
 export const {
   resetCardState,
@@ -95,6 +111,7 @@ export const {
   setOnboardingId,
   setContactVerificationId,
   setConsentSetId,
+  setOnboardingCompletionIntent,
   resetOnboardingState,
   setIsDaimoDemo,
 } = actions;

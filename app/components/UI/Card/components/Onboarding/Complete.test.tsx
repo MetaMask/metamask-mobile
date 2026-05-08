@@ -5,16 +5,23 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Complete from './Complete';
 import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock dependencies
 const mockNavigationDispatch = jest.fn();
-const mockStackReplace = jest.fn((routeName: string) => ({
+const mockStackReplace = jest.fn((routeName: string, params?: object) => ({
   type: 'REPLACE',
   routeName,
+  params,
 }));
+const completionIntent = 'moneyAccountCardLinking';
+const moneyAccountSpendingLimitParams = {
+  flow: 'onboarding',
+  spendingSource: 'primaryMoneyAccount',
+  fixedSpendingSource: true,
+};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -29,6 +36,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
+  useSelector: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -37,6 +45,7 @@ jest.mock('../../../../../util/Logger', () => ({
 
 jest.mock('../../../../../core/redux/slices/card', () => ({
   resetOnboardingState: jest.fn(() => ({ type: 'card/resetOnboardingState' })),
+  selectOnboardingCompletionIntent: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -248,6 +257,7 @@ describe('Complete Component', () => {
     });
 
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    (useSelector as jest.Mock).mockReturnValue(null);
 
     const { useAnalytics } = jest.requireMock(
       '../../../../hooks/useAnalytics/useAnalytics',
@@ -369,6 +379,26 @@ describe('Complete Component', () => {
         );
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ routeName: Routes.CARD.AUTHENTICATION }),
+        );
+      });
+    });
+
+    it('preserves completion intent when falling back to authentication flow', async () => {
+      const { getCardBaanxToken } = jest.requireMock(
+        '../../util/cardTokenVault',
+      );
+      getCardBaanxToken.mockResolvedValueOnce({
+        success: false,
+      });
+      (useSelector as jest.Mock).mockReturnValue(completionIntent);
+
+      const { getByTestId } = render(<Complete />);
+      fireEvent.press(getByTestId('complete-confirm-button'));
+
+      await waitFor(() => {
+        expect(mockStackReplace).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
+          { completionIntent },
         );
       });
     });
@@ -606,6 +636,23 @@ describe('Complete Component', () => {
       });
     });
 
+    it('navigates to fixed Money Account SpendingLimit when completion intent is present', async () => {
+      (useRoute as jest.Mock).mockReturnValue({
+        params: { nextDestination: 'card_home' },
+      });
+      (useSelector as jest.Mock).mockReturnValue(completionIntent);
+
+      const { getByTestId } = render(<Complete />);
+      fireEvent.press(getByTestId('complete-confirm-button'));
+
+      await waitFor(() => {
+        expect(mockStackReplace).toHaveBeenCalledWith(
+          Routes.CARD.SPENDING_LIMIT,
+          moneyAccountSpendingLimitParams,
+        );
+      });
+    });
+
     it('resets onboarding state when nextDestination is card_home', async () => {
       (useRoute as jest.Mock).mockReturnValue({
         params: { nextDestination: 'card_home' },
@@ -659,6 +706,28 @@ describe('Complete Component', () => {
       await waitFor(() => {
         expect(getCardBaanxToken).toHaveBeenCalled();
         expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+      });
+    });
+
+    it('uses fixed Money Account SpendingLimit in the default flow when completion intent is present', async () => {
+      (useSelector as jest.Mock).mockReturnValue(completionIntent);
+
+      const { getCardBaanxToken } = jest.requireMock(
+        '../../util/cardTokenVault',
+      );
+      getCardBaanxToken.mockResolvedValue({
+        success: true,
+        tokenData: { accessToken: 'mock-token' },
+      });
+
+      const { getByTestId } = render(<Complete />);
+      fireEvent.press(getByTestId('complete-confirm-button'));
+
+      await waitFor(() => {
+        expect(mockStackReplace).toHaveBeenCalledWith(
+          Routes.CARD.SPENDING_LIMIT,
+          moneyAccountSpendingLimitParams,
+        );
       });
     });
   });

@@ -9,8 +9,11 @@ import {
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { resetOnboardingState } from '../../../../../core/redux/slices/card';
-import { useDispatch } from 'react-redux';
+import {
+  resetOnboardingState,
+  selectOnboardingCompletionIntent,
+} from '../../../../../core/redux/slices/card';
+import { useDispatch, useSelector } from 'react-redux';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
@@ -28,6 +31,10 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  MONEY_ACCOUNT_CARD_COMPLETION_INTENT,
+  MONEY_ACCOUNT_CARD_SPENDING_LIMIT_PARAMS,
+} from '../../util/moneyAccountCardRouteParams';
 
 /**
  * Route params for Complete screen
@@ -53,6 +60,9 @@ const Complete = () => {
   const route =
     useRoute<RouteProp<{ params: CompleteRouteParams }, 'params'>>();
   const nextDestination = route.params?.nextDestination;
+  const completionIntent = useSelector(selectOnboardingCompletionIntent);
+  const shouldUseMoneyAccountSpendingLimit =
+    completionIntent === MONEY_ACCOUNT_CARD_COMPLETION_INTENT;
 
   useEffect(() => {
     trackEvent(
@@ -75,9 +85,7 @@ const Complete = () => {
     );
 
     try {
-      // Handle navigation based on nextDestination param (from deep link)
       if (nextDestination === 'personal_details') {
-        // Coming from onboarding flow KYC approval - continue to PersonalDetails
         navigation.dispatch(
           StackActions.replace(Routes.CARD.ONBOARDING.PERSONAL_DETAILS),
         );
@@ -85,8 +93,17 @@ const Complete = () => {
       }
 
       if (nextDestination === 'card_home') {
-        // Coming from authenticated flow KYC approval - go to CardHome
         dispatch(resetOnboardingState());
+        if (shouldUseMoneyAccountSpendingLimit) {
+          navigation.dispatch(
+            StackActions.replace(
+              Routes.CARD.SPENDING_LIMIT,
+              MONEY_ACCOUNT_CARD_SPENDING_LIMIT_PARAMS,
+            ),
+          );
+          return;
+        }
+
         navigation.dispatch(
           StackActions.replace(Routes.CARD.SPENDING_LIMIT, {
             flow: 'onboarding',
@@ -95,14 +112,28 @@ const Complete = () => {
         return;
       }
 
-      // Default behavior: Check token and navigate accordingly
       const token = await getCardBaanxToken();
       if (token.success && token.tokenData?.accessToken) {
         dispatch(resetOnboardingState());
+        if (shouldUseMoneyAccountSpendingLimit) {
+          navigation.dispatch(
+            StackActions.replace(
+              Routes.CARD.SPENDING_LIMIT,
+              MONEY_ACCOUNT_CARD_SPENDING_LIMIT_PARAMS,
+            ),
+          );
+          return;
+        }
+
         navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
       } else {
         dispatch(resetOnboardingState());
-        navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
+        navigation.dispatch(
+          StackActions.replace(
+            Routes.CARD.AUTHENTICATION,
+            completionIntent ? { completionIntent } : undefined,
+          ),
+        );
       }
     } catch (error) {
       Logger.log('Complete::handleContinue error', error);

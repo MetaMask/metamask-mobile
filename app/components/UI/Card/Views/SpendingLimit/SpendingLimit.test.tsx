@@ -162,8 +162,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_spending_limit.setup_description':
         "Select the token you'd like to use and set a limit.",
       'card.card_spending_limit.account_label': 'Account',
+      'card.card_spending_limit.money_account_label': 'Money account',
       'card.card_spending_limit.token_label': 'Token',
       'card.card_spending_limit.full_access_title': 'Full access',
+      'card.card_spending_limit.unlimited_limit_label': 'Unlimited',
       'card.card_spending_limit.full_access_description':
         'Card can spend any amount',
       'card.card_spending_limit.set_new_limit': 'Set a limit',
@@ -258,10 +260,44 @@ jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
 interface MockRoute {
   params?: {
     flow?: 'manage' | 'enable' | 'onboarding';
+    spendingSource?: 'selectedAccount' | 'primaryMoneyAccount';
+    fixedSpendingSource?: boolean;
     selectedToken?: CardFundingToken;
     returnedSelectedToken?: CardFundingToken;
   };
 }
+
+const mockMonadUsdcSettings = {
+  networks: [
+    {
+      network: 'monad',
+      environment: 'production',
+      chainId: '143',
+      delegationContract: '0xmonadDelegation',
+      tokens: {
+        usdc: {
+          symbol: 'USDC',
+          decimals: 6,
+          address: '0xmonadUsdc',
+        },
+      },
+    },
+  ],
+  count: 1,
+  _links: { self: '/v1/delegation/chain/config' },
+};
+
+const mockMonadUsdcToken: CardFundingToken = {
+  address: '0xmonadUsdc',
+  symbol: 'USDC',
+  name: 'USDC',
+  decimals: 6,
+  caipChainId: 'eip155:143' as `${string}:${string}`,
+  fundingStatus: FundingStatus.NotEnabled,
+  spendableBalance: '0',
+  walletAddress: undefined,
+  delegationContract: '0xmonadDelegation',
+};
 
 const mockUseSpendingLimitData = useSpendingLimitData as jest.MockedFunction<
   typeof useSpendingLimitData
@@ -300,6 +336,37 @@ describe('SpendingLimit Component', () => {
             backgroundState: {
               PreferencesController: {
                 isIpfsGatewayEnabled: true,
+              },
+              KeyringController: {
+                keyrings: [
+                  {
+                    type: 'HD Key Tree',
+                    accounts: [],
+                    metadata: { id: 'primary-hd-keyring' },
+                  },
+                ],
+              },
+              MoneyAccountController: {
+                moneyAccounts: {
+                  moneyAccount1: {
+                    address: '0x1234567890abcdef1234567890abcdef12345678',
+                    options: {
+                      entropy: { id: 'primary-hd-keyring' },
+                    },
+                  },
+                },
+              },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  moneyAccountVaultConfig: {
+                    chainId: '0x8f',
+                    boringVault: '0xvault',
+                    tellerAddress: '0xteller',
+                    accountantAddress: '0xaccountant',
+                    lensAddress: '0xlens',
+                  },
+                },
+                localOverrides: {},
               },
             },
           },
@@ -441,6 +508,66 @@ describe('SpendingLimit Component', () => {
       fireEvent.press(screen.getByTestId('account-row'));
 
       expect(mockHandleAccountSelect).toHaveBeenCalled();
+    });
+  });
+
+  describe('Fixed Money Account Source', () => {
+    const fixedMoneyAccountRoute: MockRoute = {
+      params: {
+        flow: 'manage',
+        spendingSource: 'primaryMoneyAccount',
+        fixedSpendingSource: true,
+      },
+    };
+
+    beforeEach(() => {
+      mockUseSpendingLimitData.mockReturnValue({
+        availableTokens: [],
+        delegationSettings: mockMonadUsdcSettings,
+        isLoading: false,
+        error: null,
+        fetchData: mockFetchSpendingLimitData,
+      });
+
+      mockUseSpendingLimit.mockImplementation((params) => ({
+        ...getDefaultUseSpendingLimitMock(),
+        selectedToken: params.initialToken,
+      }));
+    });
+
+    it('renders the primary Money Account and Monad USDC', () => {
+      render(fixedMoneyAccountRoute);
+
+      expect(screen.getByText('Account')).toBeOnTheScreen();
+      expect(screen.getByText('Money account')).toBeOnTheScreen();
+      expect(screen.getByText('Token')).toBeOnTheScreen();
+      expect(screen.getByText('USDC on Monad')).toBeOnTheScreen();
+      expect(screen.getByText('Spending limit')).toBeOnTheScreen();
+      expect(mockUseSpendingLimit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          spendingSource: 'primaryMoneyAccount',
+          spendingSourceAddress: '0x1234567890abcdef1234567890abcdef12345678',
+          fixedSpendingSource: true,
+          initialToken: expect.objectContaining(mockMonadUsdcToken),
+          allTokens: [expect.objectContaining(mockMonadUsdcToken)],
+        }),
+      );
+    });
+
+    it('does not open account or token pickers', () => {
+      render(fixedMoneyAccountRoute);
+
+      fireEvent.press(screen.getByTestId('account-row'));
+      fireEvent.press(screen.getByTestId('token-row'));
+
+      expect(mockHandleAccountSelect).not.toHaveBeenCalled();
+      expect(mockHandleOtherSelect).not.toHaveBeenCalled();
+    });
+
+    it('shows "Unlimited" for full access', () => {
+      render(fixedMoneyAccountRoute);
+
+      expect(screen.getByText('Unlimited')).toBeOnTheScreen();
     });
   });
 

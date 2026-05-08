@@ -7,9 +7,6 @@ import React, {
   useCallback,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useQueryClient } from '@tanstack/react-query';
-
-import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { CardSDK } from './CardSDK';
 import {
@@ -22,7 +19,6 @@ import {
   setContactVerificationId,
 } from '../../../../core/redux/slices/card';
 import { selectCardUserLocation } from '../../../../selectors/cardController';
-import { cardQueries } from '../queries';
 import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
 import { mapCountryToLocation } from '../util/mapCountryToLocation';
@@ -33,7 +29,6 @@ export interface ICardSDK {
   isLoading: boolean;
   user: UserResponse | null;
   setUser: (user: UserResponse | null) => void;
-  logoutFromProvider: () => Promise<void>;
   fetchUserData: () => Promise<void>;
   isReturningSession: boolean;
 }
@@ -60,7 +55,6 @@ export const CardSDKProvider = ({
   const effectiveLocation = userCardLocation ?? 'international';
   const onboardingId = useSelector(selectOnboardingId);
   const dispatch = useDispatch();
-  const queryClient = useQueryClient();
   const [sdk, setSdk] = useState<CardSDK | null>(null);
   // Start with true to indicate initialization in progress
   const [isLoading, setIsLoading] = useState(true);
@@ -132,22 +126,6 @@ export const CardSDKProvider = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sdk]);
 
-  const logoutFromProvider = useCallback(async () => {
-    try {
-      // CardController.logout() calls the provider API, removes stored tokens,
-      // and sets isAuthenticated = false in controller state.
-      await Engine.context.CardController.logout();
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: '[CardSDK] Logout failed, clearing local state anyway',
-      });
-    }
-
-    queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
-    dispatch(resetOnboardingState());
-    setUser(null);
-  }, [dispatch, queryClient]);
-
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo(
     (): ICardSDK => ({
@@ -155,19 +133,10 @@ export const CardSDKProvider = ({
       isLoading,
       user,
       setUser,
-      logoutFromProvider,
       fetchUserData,
       isReturningSession: hasInitialOnboardingId,
     }),
-    [
-      sdk,
-      isLoading,
-      user,
-      setUser,
-      logoutFromProvider,
-      fetchUserData,
-      hasInitialOnboardingId,
-    ],
+    [sdk, isLoading, user, setUser, fetchUserData, hasInitialOnboardingId],
   );
 
   return <CardSDKContext.Provider value={value || contextValue} {...props} />;

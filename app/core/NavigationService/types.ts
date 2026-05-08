@@ -139,7 +139,13 @@ import type {
 } from '../../components/Views/RevealPrivateCredential/RevealPrivateCredential.types';
 
 // Card params
-import type { CardConfirmModalParams } from '../../components/UI/Card/Card.types';
+import type {
+  CardAuthenticationParams,
+  CardConfirmModalParams,
+  CardRouteIntentParams,
+  CardSpendingLimitParams,
+} from '../../components/UI/Card/Card.types';
+import type { CardUserPhase } from '../../components/UI/Card/types';
 
 // Account actions params
 import type {
@@ -658,9 +664,9 @@ export interface RootStackParamList extends ParamListBase {
   // Card routes
   CardScreens: undefined;
   CardHome: undefined;
-  CardWelcome: undefined;
-  CardAuthentication: { showAuthPrompt?: boolean } | undefined;
-  CardSpendingLimit: undefined;
+  CardWelcome: CardRouteIntentParams | undefined;
+  CardAuthentication: CardAuthenticationParams | undefined;
+  CardSpendingLimit: CardSpendingLimitParams | undefined;
   ChooseYourCard: undefined;
   ReviewOrder: undefined;
   OrderCompleted:
@@ -670,7 +676,9 @@ export interface RootStackParamList extends ParamListBase {
         fromUpgrade?: boolean;
       }
     | undefined;
-  CardOnboarding: undefined;
+  CardOnboarding:
+    | (CardRouteIntentParams & { cardUserPhase?: CardUserPhase })
+    | undefined;
   CardOnboardingSignUp: undefined;
   CardOnboardingConfirmEmail: undefined;
   CardOnboardingSetPhoneNumber: undefined;

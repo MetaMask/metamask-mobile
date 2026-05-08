@@ -79,7 +79,6 @@ describe('useUserRegistrationStatus', () => {
       user: null,
       setUser: mockSetUser,
       isLoading: false,
-      logoutFromProvider: jest.fn(),
       fetchUserData: jest.fn(),
       isReturningSession: false,
     });
@@ -251,7 +250,6 @@ describe('useUserRegistrationStatus', () => {
         user: { ...mockUserResponse, verificationState: 'UNVERIFIED' },
         setUser: mockSetUser,
         isLoading: false,
-        logoutFromProvider: jest.fn(),
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -268,7 +266,6 @@ describe('useUserRegistrationStatus', () => {
         user: null,
         setUser: mockSetUser,
         isLoading: false,
-        logoutFromProvider: jest.fn(),
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });
@@ -428,7 +425,6 @@ describe('useUserRegistrationStatus', () => {
         user: null,
         setUser: mockSetUser,
         isLoading: false,
-        logoutFromProvider: jest.fn(),
         fetchUserData: jest.fn(),
         isReturningSession: false,
       });

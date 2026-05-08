@@ -25,13 +25,21 @@ import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
-import { setOnboardingId } from '../../../../../core/redux/slices/card';
+import {
+  selectOnboardingCompletionIntent,
+  setOnboardingId,
+} from '../../../../../core/redux/slices/card';
 import { selectCardUserLocation } from '../../../../../selectors/cardController';
 import { CardMessageBoxType, type CardLocation } from '../../types';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
+import type { CardAuthenticationParams } from '../../Card.types';
+import {
+  MONEY_ACCOUNT_CARD_COMPLETION_INTENT,
+  MONEY_ACCOUNT_CARD_SPENDING_LIMIT_PARAMS,
+} from '../../util/moneyAccountCardRouteParams';
 
 const CODE_LENGTH = 6;
 const autoComplete = Platform.select<TextInputProps['autoComplete']>({
@@ -40,8 +48,8 @@ const autoComplete = Platform.select<TextInputProps['autoComplete']>({
 });
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type CardAuthenticationParams = {
-  CardAuthentication: { showAuthPrompt?: boolean } | undefined;
+type CardAuthenticationRouteParams = {
+  CardAuthentication: CardAuthenticationParams | undefined;
 };
 
 const CardAuthentication = () => {
@@ -49,8 +57,11 @@ const CardAuthentication = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
   const route =
-    useRoute<RouteProp<CardAuthenticationParams, 'CardAuthentication'>>();
+    useRoute<RouteProp<CardAuthenticationRouteParams, 'CardAuthentication'>>();
   const showAuthPrompt = route.params?.showAuthPrompt ?? false;
+  const storedCompletionIntent = useSelector(selectOnboardingCompletionIntent);
+  const completionIntent =
+    route.params?.completionIntent ?? storedCompletionIntent;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -200,7 +211,23 @@ const CardAuthentication = () => {
             routes: [
               {
                 name: Routes.CARD.ONBOARDING.ROOT,
-                params: { cardUserPhase: result.onboardingRequired.phase },
+                params: {
+                  cardUserPhase: result.onboardingRequired.phase,
+                  ...(completionIntent ? { completionIntent } : {}),
+                },
+              },
+            ],
+          });
+          return;
+        }
+
+        if (completionIntent === MONEY_ACCOUNT_CARD_COMPLETION_INTENT) {
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: Routes.CARD.SPENDING_LIMIT,
+                params: MONEY_ACCOUNT_CARD_SPENDING_LIMIT_PARAMS,
               },
             ],
           });
@@ -226,6 +253,7 @@ const CardAuthentication = () => {
       password,
       navigation,
       dispatch,
+      completionIntent,
       trackEvent,
       createEventBuilder,
     ],
@@ -532,7 +560,16 @@ const CardAuthentication = () => {
               {strings('card.card_authentication.login_button')}
             </Button>
             <TouchableOpacity
-              onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.ROOT)}
+              onPress={() => {
+                if (completionIntent) {
+                  navigation.navigate(Routes.CARD.ONBOARDING.ROOT, {
+                    completionIntent,
+                  });
+                  return;
+                }
+
+                navigation.navigate(Routes.CARD.ONBOARDING.ROOT);
+              }}
             >
               <Text
                 testID={CardAuthenticationSelectors.SIGNUP_BUTTON}
@@ -555,6 +592,7 @@ const CardAuthentication = () => {
       loading,
       navigation,
       performLogin,
+      completionIntent,
       theme.colors.error.default,
     ],
   );

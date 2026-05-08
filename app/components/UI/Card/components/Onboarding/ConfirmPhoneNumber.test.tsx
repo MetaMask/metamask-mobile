@@ -280,7 +280,6 @@ jest.mock('../../sdk', () => ({
     isLoading: false,
     user: { id: 'user-123', email: 'test@example.com' },
     setUser: mockSetUser,
-    logoutFromProvider: jest.fn(),
   })),
 }));
 

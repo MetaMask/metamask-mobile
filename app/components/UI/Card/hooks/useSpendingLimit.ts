@@ -22,6 +22,7 @@ import {
   FundingStatus,
   CardFundingToken,
   DelegationSettingsResponse,
+  CardSpendingSource,
 } from '../types';
 import {
   BAANX_MAX_LIMIT,
@@ -57,6 +58,9 @@ export type LimitType = 'full' | 'restricted';
 
 export interface UseSpendingLimitParams {
   flow: 'manage' | 'enable' | 'onboarding';
+  spendingSource?: CardSpendingSource;
+  spendingSourceAddress?: string;
+  fixedSpendingSource?: boolean;
   initialToken?: CardFundingToken | null;
   priorityToken?: CardFundingToken | null;
   allTokens: CardFundingToken[];
@@ -121,6 +125,9 @@ const deriveLimitStateFromToken = (
  */
 const useSpendingLimit = ({
   flow,
+  spendingSource = 'selectedAccount',
+  spendingSourceAddress,
+  fixedSpendingSource = false,
   initialToken,
   priorityToken,
   allTokens,
@@ -151,6 +158,7 @@ const useSpendingLimit = ({
   const [hasInitialized, setHasInitialized] = useState(false);
 
   const isOnboardingFlow = flow === 'onboarding';
+  const isMoneyAccountSource = spendingSource === 'primaryMoneyAccount';
 
   // Track account changes to reset token selection when user switches account
   const selectedAccount = useSelector(selectSelectedInternalAccount);
@@ -161,20 +169,35 @@ const useSpendingLimit = ({
   const screenViewFiredRef = useRef(false);
 
   useEffect(() => {
-    if (selectedAccount?.id && selectedAccount.id !== accountIdRef.current) {
+    if (
+      !isMoneyAccountSource &&
+      selectedAccount?.id &&
+      selectedAccount.id !== accountIdRef.current
+    ) {
       accountIdRef.current = selectedAccount.id;
       setHasInitialized(false);
       setSelectedToken(null);
     }
-  }, [selectedAccount?.id]);
+  }, [isMoneyAccountSource, selectedAccount?.id]);
 
   // Delegation hook (includes faucet check)
+  const delegationSource = useMemo(
+    () =>
+      isMoneyAccountSource
+        ? ({
+            type: 'moneyAccount' as const,
+            address: spendingSourceAddress ?? '',
+          } as const)
+        : ({ type: 'selectedAccount' as const } as const),
+    [isMoneyAccountSource, spendingSourceAddress],
+  );
+
   const {
     submitDelegation,
     isLoading: isDelegationLoading,
     needsFaucet,
     isFaucetCheckLoading,
-  } = useCardDelegation(selectedToken);
+  } = useCardDelegation(selectedToken, { source: delegationSource });
 
   const isLoading = isDelegationLoading || isProcessing;
 
@@ -382,7 +405,7 @@ const useSpendingLimit = ({
           }
         | undefined;
 
-      if (params?.returnedSelectedToken) {
+      if (!fixedSpendingSource && params?.returnedSelectedToken) {
         applySelectedToken(params.returnedSelectedToken);
         setHasInitialized(true);
         navigation.setParams({
@@ -401,7 +424,7 @@ const useSpendingLimit = ({
           returnedCustomLimit: undefined,
         } as Record<string, unknown>);
       }
-    }, [routeParams, navigation, applySelectedToken]),
+    }, [routeParams, navigation, applySelectedToken, fixedSpendingSource]),
   );
 
   // Computed delegation amount
@@ -413,21 +436,37 @@ const useSpendingLimit = ({
   // Validation
   const isValid = useMemo(() => {
     if (isOnboardingFlow && !selectedToken) return false;
+    if (isMoneyAccountSource && !spendingSourceAddress) return false;
     if (limitType === 'restricted') {
       const num = parseFloat(customLimit);
       return customLimit !== '' && !isNaN(num) && num >= 0;
     }
     return true;
-  }, [isOnboardingFlow, selectedToken, limitType, customLimit]);
+  }, [
+    isOnboardingFlow,
+    isMoneyAccountSource,
+    spendingSourceAddress,
+    selectedToken,
+    limitType,
+    customLimit,
+  ]);
 
   // Handlers
   const handleAccountSelect = useCallback(() => {
+    if (fixedSpendingSource) {
+      return;
+    }
+
     navigation.navigate(
       ...createAccountSelectorNavDetails({ disableAddAccountButton: true }),
     );
-  }, [navigation]);
+  }, [navigation, fixedSpendingSource]);
 
   const handleOtherSelect = useCallback(() => {
+    if (fixedSpendingSource) {
+      return;
+    }
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({ action: CardActions.OTHER_TOKEN_BUTTON })
@@ -447,7 +486,14 @@ const useSpendingLimit = ({
         callerParams: restParams as Record<string, unknown>,
       }),
     );
-  }, [navigation, selectedToken, trackEvent, createEventBuilder, routeParams]);
+  }, [
+    navigation,
+    selectedToken,
+    trackEvent,
+    createEventBuilder,
+    routeParams,
+    fixedSpendingSource,
+  ]);
 
   const handleLimitSelect = useCallback(() => {
     navigation.navigate(

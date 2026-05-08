@@ -290,7 +290,6 @@ describe('SetPhoneNumber Component', () => {
       isLoading: false,
       user: null,
       setUser: jest.fn(),
-      logoutFromProvider: jest.fn(),
       fetchUserData: jest.fn(),
     });
 

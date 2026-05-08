@@ -26,6 +26,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   resetOnboardingState,
   selectConsentSetId,
+  selectOnboardingCompletionIntent,
   selectOnboardingId,
   setConsentSetId,
 } from '../../../../../core/redux/slices/card';
@@ -59,6 +60,10 @@ import {
   CRB_PRIVACY_POLICY_URL,
   CRB_TERMS_URL,
 } from '../../constants';
+import {
+  MONEY_ACCOUNT_CARD_COMPLETION_INTENT,
+  MONEY_ACCOUNT_CARD_SPENDING_LIMIT_PARAMS,
+} from '../../util/moneyAccountCardRouteParams';
 
 const VERIFICATION_POLLING_INTERVAL_MS = 3000;
 
@@ -232,6 +237,9 @@ const PhysicalAddress = () => {
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
   );
+  const completionIntent = useSelector(selectOnboardingCompletionIntent);
+  const shouldUseMoneyAccountSpendingLimit =
+    completionIntent === MONEY_ACCOUNT_CARD_COMPLETION_INTENT;
   const { userCountry: selectedCountry } = useRegions();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [addressLine1, setAddressLine1] = useState('');
@@ -569,6 +577,11 @@ const PhysicalAddress = () => {
                 stopPollingAndNavigate({
                   name: Routes.CARD.CHOOSE_YOUR_CARD,
                   params: { flow: 'onboarding', shippingAddress },
+                });
+              } else if (shouldUseMoneyAccountSpendingLimit) {
+                stopPollingAndNavigate({
+                  name: Routes.CARD.SPENDING_LIMIT,
+                  params: { ...MONEY_ACCOUNT_CARD_SPENDING_LIMIT_PARAMS },
                 });
               } else {
                 stopPollingAndNavigate({

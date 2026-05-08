@@ -27,7 +27,10 @@ import { validateEmail } from '../../../Ramp/Deposit/utils';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import useRegions from '../../hooks/useRegions';
-import { setContactVerificationId } from '../../../../../core/redux/slices/card';
+import {
+  selectOnboardingCompletionIntent,
+  setContactVerificationId,
+} from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import { validatePassword } from '../../util/validatePassword';
@@ -64,6 +67,7 @@ const SignUp = () => {
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
+  const completionIntent = useSelector(selectOnboardingCompletionIntent);
   const hasAutoSelectedCountry = useRef(false);
   const geoLocation = useSelector(selectGeolocationLocation);
   const {
@@ -397,7 +401,16 @@ const SignUp = () => {
           : strings('card.card_onboarding.continue_button')}
       </Button>
       <TouchableOpacity
-        onPress={() => navigation.navigate(Routes.CARD.AUTHENTICATION)}
+        onPress={() => {
+          if (completionIntent) {
+            navigation.navigate(Routes.CARD.AUTHENTICATION, {
+              completionIntent,
+            });
+            return;
+          }
+
+          navigation.navigate(Routes.CARD.AUTHENTICATION);
+        }}
       >
         <Text
           testID="signup-i-already-have-an-account-text"
