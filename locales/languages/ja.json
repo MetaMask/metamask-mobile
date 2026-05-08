@@ -8593,8 +8593,6 @@
       "label_pnl": "PnL",
       "label_volume": "Volume",
       "label_notional_volume": "Notional volume",
-      "label_margin": "Margin",
-      "label_margin_deployed": "Margin deployed",
       "pending": "Pending",
       "qualified": "Qualified",
       "open_position_cta": "Open Position",
