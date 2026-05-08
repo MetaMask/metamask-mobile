@@ -977,11 +977,11 @@ describe('Permission Utility Functions', () => {
       mockGetAccountByAddress.mockImplementation((address: string) => ({
         id: `account-${address}`,
       }));
-      mockGetAccountContext.mockImplementation((accountId: string) => {
-        return accountId === 'account-0x1'
+      mockGetAccountContext.mockImplementation((accountId: string) =>
+        accountId === 'account-0x1'
           ? undefined
-          : { groupId: `group-${accountId}` };
-      });
+          : { groupId: `group-${accountId}` },
+      );
       mockGetAccountGroupObject.mockReturnValue({
         metadata: { lastSelected: 500 },
       });
