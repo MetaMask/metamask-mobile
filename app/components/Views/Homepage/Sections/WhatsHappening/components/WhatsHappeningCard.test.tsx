@@ -33,13 +33,14 @@ const mockRelatedAsset = {
   symbol: 'BTC',
   name: 'Bitcoin',
   caip19: ['eip155:1/slip44:0'],
+  hlPerpsMarket: ['BTC'],
 };
 
 const baseItem: WhatsHappeningItem = {
   id: 'trend-0',
   title: 'Bitcoin ETF inflows hit record high',
   description: 'Spot Bitcoin ETFs recorded over $1.2B in net inflows.',
-  date: '2026-03-15T10:00:00.000Z',
+  date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
   category: 'macro',
   impact: 'positive',
   relatedAssets: [mockRelatedAsset],
@@ -58,14 +59,8 @@ describe('WhatsHappeningCard', () => {
     expect(screen.getByText(baseItem.description)).toBeOnTheScreen();
   });
 
-  it('renders category badge when category is provided', () => {
+  it('does not render category badge', () => {
     renderWithProvider(<WhatsHappeningCard item={baseItem} cardIndex={0} />);
-    expect(screen.getByText('Macro')).toBeOnTheScreen();
-  });
-
-  it('does not render category badge when category is absent', () => {
-    const item = { ...baseItem, category: undefined };
-    renderWithProvider(<WhatsHappeningCard item={item} cardIndex={0} />);
     expect(screen.queryByText('Macro')).toBeNull();
   });
 
@@ -95,39 +90,43 @@ describe('WhatsHappeningCard', () => {
     expect(screen.queryByText('Neutral')).toBeNull();
   });
 
-  it('renders impact badge alongside category badge', () => {
-    renderWithProvider(<WhatsHappeningCard item={baseItem} cardIndex={0} />);
-    expect(screen.getByText('Bullish')).toBeOnTheScreen();
-    expect(screen.getByText('Macro')).toBeOnTheScreen();
-  });
-
-  it('renders related asset symbol pills', () => {
+  it('renders the asset symbol label when there is a single related asset', () => {
     renderWithProvider(<WhatsHappeningCard item={baseItem} cardIndex={0} />);
     expect(screen.getByText('BTC')).toBeOnTheScreen();
   });
 
-  it('does not render asset pills when relatedAssets is empty', () => {
-    const item = { ...baseItem, relatedAssets: [] };
-    renderWithProvider(<WhatsHappeningCard item={item} cardIndex={0} />);
-    expect(screen.queryByText('BTC')).toBeNull();
-  });
-
-  it('renders multiple related asset symbols', () => {
+  it('renders "<symbol> +N" label when there are multiple related assets', () => {
     const ethAsset = {
       sourceAssetId: 'eth-mainnet',
       symbol: 'ETH',
       name: 'Ethereum',
       caip19: ['eip155:1/slip44:60'],
+      hlPerpsMarket: ['ETH'],
     };
-    const item = { ...baseItem, relatedAssets: [mockRelatedAsset, ethAsset] };
+    const solAsset = {
+      sourceAssetId: 'sol-mainnet',
+      symbol: 'SOL',
+      name: 'Solana',
+      caip19: ['solana:mainnet/slip44:501'],
+      hlPerpsMarket: ['SOL'],
+    };
+    const item = {
+      ...baseItem,
+      relatedAssets: [mockRelatedAsset, ethAsset, solAsset],
+    };
     renderWithProvider(<WhatsHappeningCard item={item} cardIndex={0} />);
-    expect(screen.getByText('BTC')).toBeOnTheScreen();
-    expect(screen.getByText('ETH')).toBeOnTheScreen();
+    expect(screen.getByText('BTC +2')).toBeOnTheScreen();
   });
 
-  it('renders formatted date when date is valid', () => {
+  it('does not render asset label when relatedAssets is empty', () => {
+    const item = { ...baseItem, relatedAssets: [] };
+    renderWithProvider(<WhatsHappeningCard item={item} cardIndex={0} />);
+    expect(screen.queryByText('BTC')).toBeNull();
+  });
+
+  it('renders compact relative time when date is valid', () => {
     renderWithProvider(<WhatsHappeningCard item={baseItem} cardIndex={0} />);
-    expect(screen.getByText('Mar 15, 2026')).toBeOnTheScreen();
+    expect(screen.getByText('4d')).toBeOnTheScreen();
   });
 
   it('does not render date when date string is invalid', () => {
