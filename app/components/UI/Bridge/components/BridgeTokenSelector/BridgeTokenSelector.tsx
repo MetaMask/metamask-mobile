@@ -19,7 +19,6 @@ import {
 } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -40,6 +39,7 @@ import {
   Box,
   ButtonIcon,
   ButtonIconSize,
+  HeaderStandard,
   IconColor,
   IconName,
   Text,
@@ -104,17 +104,6 @@ export const BridgeTokenSelector: React.FC = () => {
   );
 
   const enabledChainRanking = useSelector(selectAllowedChainRanking);
-
-  // Set navigation options for header
-  useEffect(() => {
-    navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
-        title: strings('bridge.select_token'),
-        onBack: () => navigation.goBack(),
-        includesTopInset: true,
-      }),
-    );
-  }, [navigation]);
 
   // Use custom hook for token selection
   const { handleTokenPress, selectedToken } = useTokenSelection(
@@ -525,6 +514,11 @@ export const BridgeTokenSelector: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+      <HeaderStandard
+        title={strings('bridge.select_token')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
       <Box twClassName="px-4 pb-3">
         <TextFieldSearch
           value={searchString}

@@ -345,6 +345,7 @@ export interface PredictControllerOptions {
 }
 
 const MESSENGER_EXPOSED_METHODS = [
+  'beforePublish',
   'beforeSign',
   'claimWithConfirmation',
   'clearActiveOrder',
@@ -370,6 +371,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'onPlaceOrderSuccess',
   'placeOrder',
   'prepareWithdraw',
+  'publish',
   'previewOrder',
   'refreshEligibility',
   'selectPaymentToken',
@@ -2142,6 +2144,38 @@ export class PredictController extends BaseController<
     });
   }
 
+  private async syncDepositWalletBalanceAllowanceIfNeeded({
+    transactionMeta,
+    address,
+  }: {
+    transactionMeta: TransactionMeta;
+    address: string;
+  }): Promise<void> {
+    try {
+      await this.provider.syncDepositWalletBalanceAllowanceForDepositTransaction(
+        {
+          transactionMeta,
+          signerAddress: address,
+        },
+      );
+    } catch (error) {
+      DevLogger.log(
+        'PredictController: Deposit wallet balance-allowance sync failed',
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          transactionId: transactionMeta.id,
+        },
+      );
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('syncDepositWalletBalanceAllowanceIfNeeded', {
+          operation: 'deposit_wallet_balance_allowance_sync',
+          transactionId: transactionMeta.id,
+        }),
+      );
+    }
+  }
+
   private handleTransactionSideEffects(
     type: PredictTransactionEventType,
     status: PredictTransactionEventStatus,
@@ -2153,6 +2187,20 @@ export class PredictController extends BaseController<
 
     if (type === 'deposit' && isTerminal) {
       this.clearPendingDepositForAddress({ address });
+    }
+
+    let depositWalletSyncPromise: Promise<void> | undefined;
+    if (
+      (type === 'deposit' || type === 'depositAndOrder') &&
+      status === 'confirmed'
+    ) {
+      this.provider.invalidateAccountState(address);
+      depositWalletSyncPromise = this.syncDepositWalletBalanceAllowanceIfNeeded(
+        {
+          transactionMeta,
+          address,
+        },
+      );
     }
 
     if (type === 'depositAndOrder' && status === 'confirmed') {
@@ -2184,20 +2232,24 @@ export class PredictController extends BaseController<
         activeAbTests: pendingActiveAbTests,
       } = pendingOrder;
 
-      this.placeOrder({
-        analyticsProperties: pendingAnalytics,
-        activeAbTests: pendingActiveAbTests,
-        preview,
-        address: signerAddress,
-        transactionId,
-      }).catch((error) => {
-        Logger.error(
-          ensureError(error),
-          this.getErrorContext('handleTransactionSideEffects', {
-            operation: 'placeOrder',
+      (depositWalletSyncPromise ?? Promise.resolve())
+        .then(() =>
+          this.placeOrder({
+            analyticsProperties: pendingAnalytics,
+            activeAbTests: pendingActiveAbTests,
+            preview,
+            address: signerAddress,
+            transactionId,
           }),
-        );
-      });
+        )
+        .catch((error) => {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('handleTransactionSideEffects', {
+              operation: 'placeOrder',
+            }),
+          );
+        });
     }
 
     if (type === 'depositAndOrder' && status === 'failed') {
@@ -2619,6 +2671,15 @@ export class PredictController extends BaseController<
     }
   }
 
+  public async beforePublish(request: {
+    transactionMeta: TransactionMeta;
+  }): Promise<boolean> {
+    return this.provider.beforePublishDepositWalletDeposit({
+      transactionMeta: request.transactionMeta,
+      getSigner: (address?: string) => this.getSigner(address),
+    });
+  }
+
   public async beforeSign(request: {
     transactionMeta: TransactionMeta;
   }): Promise<
@@ -2722,6 +2783,12 @@ export class PredictController extends BaseController<
     };
   }
 
+  public async publish(_request: {
+    transactionMeta: TransactionMeta;
+  }): Promise<{ transactionHash?: string }> {
+    return { transactionHash: undefined };
+  }
+
   public clearWithdrawTransaction(): void {
     this.update((state) => {
       state.withdrawTransaction = null;
@@ -2730,6 +2797,7 @@ export class PredictController extends BaseController<
 }
 
 export type {
+  PredictControllerBeforePublishAction,
   PredictControllerBeforeSignAction,
   PredictControllerClaimWithConfirmationAction,
   PredictControllerClearActiveOrderAction,
@@ -2754,6 +2822,7 @@ export type {
   PredictControllerPlaceOrderAction,
   PredictControllerPrepareWithdrawAction,
   PredictControllerPreviewOrderAction,
+  PredictControllerPublishAction,
   PredictControllerRefreshEligibilityAction,
   PredictControllerSelectPaymentTokenAction,
   PredictControllerSetSelectedPaymentTokenAction,
