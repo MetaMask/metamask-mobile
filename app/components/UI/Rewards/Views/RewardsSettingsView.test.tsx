@@ -223,7 +223,7 @@ describe('RewardsSettingsView', () => {
       expect(getByTestId(REWARDS_SETTINGS_SAFE_AREA_TEST_ID)).toBeOnTheScreen();
     });
 
-    it('renders HeaderCompactStandard with settings title', () => {
+    it('renders HeaderStandard with settings title', () => {
       const { getByText } = renderWithNavigation(<RewardsSettingsView />);
 
       expect(getByText('Settings')).toBeOnTheScreen();
