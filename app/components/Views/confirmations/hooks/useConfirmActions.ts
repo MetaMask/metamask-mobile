@@ -38,9 +38,10 @@ export const useConfirmActions = () => {
   const ensureDeviceReadyOptions = useMemo<EnsureDeviceReadyOptions>(
     () => ({
       requireBlindSigning:
+        Boolean(isTransactionReq) &&
         transactionMetadata?.type !== TransactionType.simpleSend,
     }),
-    [transactionMetadata?.type],
+    [isTransactionReq, transactionMetadata?.type],
   );
 
   const onReject = useCallback(

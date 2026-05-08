@@ -74,6 +74,11 @@ describe('useConfirmAction', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    Object.keys(capturedLedgerConfirmOptions).forEach((key) => {
+      delete capturedLedgerConfirmOptions[
+        key as keyof typeof capturedLedgerConfirmOptions
+      ];
+    });
 
     useNavigationMock.mockReturnValue({
       goBack: jest.fn(),
@@ -137,6 +142,23 @@ describe('useConfirmAction', () => {
 
     expect(capturedLedgerConfirmOptions.ensureDeviceReadyOptions).toEqual({
       requireBlindSigning: true,
+    });
+
+    useIsConfirmationFromLedgerAccount.mockReturnValue(false);
+  });
+
+  it('passes requireBlindSigning false for signature requests without transaction metadata', async () => {
+    const { useIsConfirmationFromLedgerAccount } = jest.requireMock(
+      './useIsConfirmationFromLedgerAccount',
+    );
+    useIsConfirmationFromLedgerAccount.mockReturnValue(true);
+
+    renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+
+    expect(capturedLedgerConfirmOptions.ensureDeviceReadyOptions).toEqual({
+      requireBlindSigning: false,
     });
 
     useIsConfirmationFromLedgerAccount.mockReturnValue(false);

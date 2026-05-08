@@ -68,6 +68,10 @@ export const useDeviceConnectionFlow = ({
   const lastDeviceIdRef = useRef<string | null>(deviceId);
   lastDeviceIdRef.current = deviceId;
 
+  const activeEnsureDeviceReadyOptionsRef = useRef<
+    EnsureDeviceReadyOptions | undefined
+  >(undefined);
+
   /**
    * Resolve an existing adapter or create a new one if the wallet type
    * doesn't match. Named replacement for the inline IIFE that was previously
@@ -145,6 +149,7 @@ export const useDeviceConnectionFlow = ({
           if (resolvePending) {
             pendingReadyResolveRef.current = null;
             connectionSuccessCallbackRef.current = null;
+            activeEnsureDeviceReadyOptionsRef.current = undefined;
             resolvePending(true);
           }
         } else {
@@ -195,7 +200,11 @@ export const useDeviceConnectionFlow = ({
         );
 
         try {
-          await tryEnsureReady(adapter, targetDeviceId);
+          await tryEnsureReady(
+            adapter,
+            targetDeviceId,
+            activeEnsureDeviceReadyOptionsRef.current,
+          );
         } catch (error) {
           DevLogger.log('[HardwareWallet] Readiness check failed:', error);
           handleError(error);
@@ -229,6 +238,7 @@ export const useDeviceConnectionFlow = ({
         if (resolvePending) {
           pendingReadyResolveRef.current = null;
           connectionSuccessCallbackRef.current = null;
+          activeEnsureDeviceReadyOptionsRef.current = undefined;
           resolvePending(false);
         }
       }
@@ -241,6 +251,8 @@ export const useDeviceConnectionFlow = ({
       if (!targetType) {
         throw new Error('ensureDeviceReady called without a wallet type');
       }
+
+      activeEnsureDeviceReadyOptionsRef.current = options;
 
       if (!targetDeviceId) {
         setters.setDeviceId(null);
@@ -346,7 +358,11 @@ export const useDeviceConnectionFlow = ({
     if (effectiveDeviceId && adapter) {
       updateConnectionState({ status: ConnectionStatus.Connecting });
       try {
-        await tryEnsureReady(adapter, effectiveDeviceId);
+        await tryEnsureReady(
+          adapter,
+          effectiveDeviceId,
+          activeEnsureDeviceReadyOptionsRef.current,
+        );
       } catch (error) {
         handleError(error);
       }
@@ -366,6 +382,7 @@ export const useDeviceConnectionFlow = ({
     if (resolvePending) {
       pendingReadyResolveRef.current = null;
       connectionSuccessCallbackRef.current = null;
+      activeEnsureDeviceReadyOptionsRef.current = undefined;
       resolvePending(false);
     }
     setters.setTargetWalletType(null);
@@ -376,6 +393,7 @@ export const useDeviceConnectionFlow = ({
     const callback = connectionSuccessCallbackRef.current;
     if (callback) {
       connectionSuccessCallbackRef.current = null;
+      activeEnsureDeviceReadyOptionsRef.current = undefined;
       callback();
     }
     updateConnectionState({ status: ConnectionStatus.Disconnected });
