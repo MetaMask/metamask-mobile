@@ -19,6 +19,7 @@ import { useIsTransactionPayLoading } from '../pay/useTransactionPayData';
 const IGNORE_TYPES = [
   TransactionType.perpsWithdraw,
   TransactionType.predictWithdraw,
+  TransactionType.moneyAccountWithdraw,
 ];
 
 export const useInsufficientBalanceAlert = ({
