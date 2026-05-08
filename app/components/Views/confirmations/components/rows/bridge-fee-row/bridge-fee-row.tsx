@@ -30,7 +30,7 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { Json } from '@metamask/utils';
 import { useConfirmationContext } from '../../../context/confirmation-context';
-import { IconColor } from '@metamask/design-system-react-native';
+import { IconColor } from '../../../../../../component-library/components/Icons/Icon/Icon.types';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
