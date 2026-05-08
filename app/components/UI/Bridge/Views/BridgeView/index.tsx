@@ -112,6 +112,9 @@ import type { RootState } from '../../../../../reducers';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
 import { useSourceAmountCursor } from '../../hooks/useSourceAmountCursor.ts';
 import { BridgeViewFooter } from './BridgeViewFooter.tsx';
+// DEMO-ONLY: nav perf overlay (remove before merging)
+import { markNavStart, useMarkNavEnd } from '../../utils/navPerf';
+import { NavPerfOverlay } from '../../components/NavPerfOverlay/NavPerfOverlay';
 import { getQuoteStreamReasonString } from './BridgeView.utils';
 import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError/index.ts';
@@ -394,20 +397,28 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     [dispatch, resetSourceAmountCursorPosition],
   );
 
-  const handleSourceTokenPress = () =>
+  // DEMO-ONLY: record time-to-focused for BridgeView (remove before merging)
+  useMarkNavEnd('BridgeView');
+  useMarkNavEnd('BridgeView (back)');
+
+  const handleSourceTokenPress = () => {
+    markNavStart('TokenSelector');
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'source',
     });
+  };
 
   const handleFlipTokensPress = useCallback(() => {
     resetSourceAmountCursorPosition();
     void handleSwitchTokens(destTokenAmount)();
   }, [destTokenAmount, handleSwitchTokens, resetSourceAmountCursorPosition]);
 
-  const handleDestTokenPress = () =>
+  const handleDestTokenPress = () => {
+    markNavStart('TokenSelector');
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'dest',
     });
+  };
 
   const getContentMode = () => {
     if (isLoading && !activeQuote && !needsNewQuote) return 'loading';
@@ -445,6 +456,8 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
         onBack={() => navigation.goBack()}
         includesTopInset
       />
+      {/* DEMO-ONLY: remove before merging */}
+      <NavPerfOverlay />
       <ScreenView safeAreaEdges={[]} contentContainerStyle={styles.screen}>
         <Box
           style={styles.content}
