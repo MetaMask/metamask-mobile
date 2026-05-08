@@ -13,7 +13,14 @@ import Animated, {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const HANDLE_SIZE = 24;
-const ACCESSIBILITY_STEP = 1;
+const MARKER_SIZE = 4;
+const PERCENTAGE_STEP = 25;
+export const SNAP_POINTS = [0, 25, 50, 75, 100];
+
+export function snapToPercentageStep(value: number): number {
+  const snappedValue = Math.round(value / PERCENTAGE_STEP) * PERCENTAGE_STEP;
+  return Math.max(0, Math.min(100, snappedValue));
+}
 
 interface BatchSellPercentageSliderProps {
   value: number;
@@ -33,8 +40,8 @@ export function BatchSellPercentageSlider({
 
   const updatePosition = useCallback(
     (nextValue: number, width = widthRef.current) => {
-      const clampedValue = Math.max(0, Math.min(100, nextValue));
-      translateX.value = (clampedValue / 100) * width;
+      const snappedValue = snapToPercentageStep(nextValue);
+      translateX.value = (snappedValue / 100) * width;
     },
     [translateX],
   );
@@ -46,7 +53,7 @@ export function BatchSellPercentageSlider({
       }
 
       const clampedPosition = Math.max(0, Math.min(position, width));
-      const nextValue = Math.round((clampedPosition / width) * 100);
+      const nextValue = snapToPercentageStep((clampedPosition / width) * 100);
 
       updatePosition(nextValue, width);
       onValueChange(nextValue);
@@ -99,8 +106,8 @@ export function BatchSellPercentageSlider({
     (event: AccessibilityActionEvent) => {
       const nextValue =
         event.nativeEvent.actionName === 'increment'
-          ? Math.min(value + ACCESSIBILITY_STEP, 100)
-          : Math.max(value - ACCESSIBILITY_STEP, 0);
+          ? snapToPercentageStep(value + PERCENTAGE_STEP)
+          : snapToPercentageStep(value - PERCENTAGE_STEP);
 
       onValueChange(nextValue);
     },
@@ -132,6 +139,20 @@ export function BatchSellPercentageSlider({
               progressStyle,
             ]}
           />
+          {SNAP_POINTS.map((snapPoint) => (
+            <Animated.View
+              key={snapPoint}
+              pointerEvents="none"
+              testID={testID ? `${testID}-snap-point-${snapPoint}` : undefined}
+              style={[
+                tw.style('absolute h-1 w-1 rounded-full bg-icon-muted'),
+                {
+                  left: `${snapPoint}%`,
+                  transform: [{ translateX: -MARKER_SIZE / 2 }],
+                },
+              ]}
+            />
+          ))}
           <Animated.View
             style={[
               tw.style('absolute h-6 w-6 rounded-full bg-icon-default'),
