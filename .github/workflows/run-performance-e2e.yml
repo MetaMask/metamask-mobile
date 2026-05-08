@@ -76,7 +76,7 @@ on:
         description: 'Build variant for Bitrise (rc = release, exp = experimental)'
         required: false
         type: string
-        default: 'rc'
+        default: 'exp'
 
 permissions:
   contents: write
@@ -87,7 +87,7 @@ concurrency:
   # Include build_variant so experimental (exp) and release/direct (rc) don't share the same
   # queue — avoids "Build Apps" (direct/release) and experimental runs canceling each other.
   # Note: GitHub allows at most 1 running + 1 pending per group; a 3rd run cancels the pending one.
-  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}-${{ inputs.build_variant || 'rc' }}
+  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}-${{ inputs.build_variant || 'exp' }}
   # Do not cancel in-progress runs; pending runs can still be replaced by a newer trigger.
   cancel-in-progress: false
 
@@ -209,7 +209,7 @@ jobs:
     if: (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'exp' }}
     secrets: inherit
 
   trigger-ios-dual-versions:
@@ -219,7 +219,7 @@ jobs:
     if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'exp' }}
     secrets: inherit
 
   # =============================================================================
@@ -241,7 +241,7 @@ jobs:
       platform: android
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'exp' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
@@ -264,7 +264,7 @@ jobs:
       platform: ios
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'exp' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios_onboarding }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
@@ -303,7 +303,7 @@ jobs:
       platform: android
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'exp' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
@@ -327,7 +327,7 @@ jobs:
       platform: ios
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'exp' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios_imported_wallet }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
@@ -339,7 +339,7 @@ jobs:
     name: Fetch RN Playground APK and Upload to BrowserStack
     runs-on: ubuntu-latest
     needs: [wait-for-onboarding-completion]
-    if: always() && !cancelled() && (inputs.build_variant || 'rc') == 'rc'
+    if: always() && !cancelled() && (inputs.build_variant || 'exp') == 'exp'
     outputs:
       browserstack-playground-url: ${{ steps.upload-playground.outputs.browserstack-url }}
     steps:
@@ -382,12 +382,12 @@ jobs:
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !cancelled() && (inputs.build_variant || 'rc') == 'rc' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
+    if: always() && !cancelled() && (inputs.build_variant || 'exp') == 'exp' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
     with:
       platform: android
       build_type: mm-connect
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'exp' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_mm_connect_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
@@ -424,7 +424,7 @@ jobs:
       - name: Run aggregation script
         env:
           BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
-          BUILD_VARIANT: ${{ inputs.build_variant || 'rc' }}
+          BUILD_VARIANT: ${{ inputs.build_variant || 'exp' }}
         run: |
           echo "Processing all test results..."
           echo "Running aggregation script..."

@@ -216,7 +216,7 @@ builds:
 
   # BrowserStack E2E builds — with pre-imported wallet (ADDITIONAL_SRP_1 baked in)
   main-e2e-bs-with-srp:
-    github_environment: build-rc
+    github_environment: build-exp
     signing: *signing_uat
     env:
       <<: *public_envs
@@ -271,8 +271,6 @@ builds:
       RAMP_DEV_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
-
-
 
   # Test builds (QA)
   main-test:

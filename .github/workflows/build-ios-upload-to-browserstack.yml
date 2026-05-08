@@ -23,7 +23,7 @@ on:
         required: false
         type: string
         description: 'Build variant (e2e = e2e environment, exp = experimental)'
-        default: 'e2e'
+        default: 'exp'
     outputs:
       with-srp-ipa-uploaded:
         description: 'Whether the with-SRP IPA was successfully uploaded'
