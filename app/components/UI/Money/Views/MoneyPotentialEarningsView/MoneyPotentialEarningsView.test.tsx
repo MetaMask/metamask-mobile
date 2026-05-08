@@ -206,12 +206,14 @@ describe('MoneyPotentialEarningsView', () => {
 
   describe('headline gradient', () => {
     it('shows the deposited Money balance when totalFiatRaw is positive', () => {
-      const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+      const { getByTestId } = renderWithProvider(
+        <MoneyPotentialEarningsView />,
+      );
 
       // Default mock has totalFiatRaw='10000' / totalFiatFormatted='$10,000.00'.
-      expect(
-        getByTestId(MoneyPotentialEarningsTestIds.TEXT),
-      ).toHaveTextContent('$10,000.00');
+      expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toHaveTextContent(
+        '$10,000.00',
+      );
     });
 
     it('falls back to the projected sum when totalFiatRaw is absent', () => {
@@ -230,12 +232,14 @@ describe('MoneyPotentialEarningsView', () => {
         musdSHFvdFiatFormatted: undefined,
       } as ReturnType<typeof useMoneyAccountBalance>);
 
-      const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+      const { getByTestId } = renderWithProvider(
+        <MoneyPotentialEarningsView />,
+      );
 
       // Tokens sum: 5000+3000+2000+1500+800+400 = 12,700 × 4% = $508.00.
-      expect(
-        getByTestId(MoneyPotentialEarningsTestIds.TEXT),
-      ).toHaveTextContent('+$508.00');
+      expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toHaveTextContent(
+        '+$508.00',
+      );
     });
   });
 });

@@ -385,9 +385,9 @@ describe('MoneyHomeView', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       // Default mock has totalFiatRaw='3' / totalFiatFormatted='$3.00'.
-      expect(
-        getByTestId(MoneyPotentialEarningsTestIds.TEXT),
-      ).toHaveTextContent('$3.00');
+      expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toHaveTextContent(
+        '$3.00',
+      );
     });
 
     it('falls back to the projected sum when the user has not deposited', () => {
@@ -409,9 +409,9 @@ describe('MoneyHomeView', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       // mockMoneyFormatFiat returns '$0.12'; the projected branch wraps it with '+'.
-      expect(
-        getByTestId(MoneyPotentialEarningsTestIds.TEXT),
-      ).toHaveTextContent('+$0.12');
+      expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toHaveTextContent(
+        '+$0.12',
+      );
     });
 
     it('falls back to the projected sum when totalFiatRaw is zero', () => {
@@ -439,9 +439,9 @@ describe('MoneyHomeView', () => {
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      expect(
-        getByTestId(MoneyPotentialEarningsTestIds.TEXT),
-      ).toHaveTextContent('+$0.12');
+      expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toHaveTextContent(
+        '+$0.12',
+      );
     });
   });
 
