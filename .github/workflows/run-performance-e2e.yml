@@ -103,7 +103,7 @@ env:
 
 jobs:
   determine-branch-name:
-    name: Determine Branch Name for Bitrise
+    name: Determine Branch Name
     runs-on: ubuntu-latest
     outputs:
       branch_name: ${{ steps.get-branch.outputs.branch_name }}
