@@ -524,12 +524,16 @@ generateAndroidBinary() {
 			fi
 			# Enable verbose logging for E2E builds to help diagnose build failures
 			gradleLoggingFlags="--stacktrace --info"
+			# Disable expo-updates delay-load-app to prevent Detox ANR.
+			# expo-updates defaults this to true, which causes a blocking launchAssetFile
+			# call when useDeveloperSupport=false (release-like E2E builds).
+			exUpdatesArgs="-PEX_UPDATES_ANDROID_DELAY_LOAD_APP=false"
 		fi
 	fi
 
 	# Generate Android APKs
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
-	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleLoggingFlags
+	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleLoggingFlags $exUpdatesArgs
 
 	# Skip AAB bundle for E2E environments - AAB cannot be installed on emulators
 	# and is only needed for Play Store distribution

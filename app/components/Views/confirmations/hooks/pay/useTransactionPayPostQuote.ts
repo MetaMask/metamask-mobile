@@ -23,7 +23,7 @@ const log = createProjectLogger('transaction-pay-post-quote');
  * withdrawals will use same-token-same-chain flow without bridging.
  */
 export function useTransactionPayPostQuote(): void {
-  const isSet = useRef<string | undefined>();
+  const isSet = useRef<string | undefined>(undefined);
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id;
