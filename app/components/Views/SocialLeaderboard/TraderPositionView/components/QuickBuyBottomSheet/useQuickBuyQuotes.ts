@@ -258,7 +258,7 @@ export function useQuickBuyQuotes({
       quotes: rawQuotes,
       quoteRequest: [
         {
-          ...metadataDeps.bridgeController.quoteRequest[0],
+          ...(metadataDeps.bridgeController.quoteRequest?.[0] ?? {}),
           ...quoteRequestPatch,
         },
       ],
