@@ -17,7 +17,7 @@ const { mockTheme } = jest.requireActual('../../../../../../util/theme');
 const mockColors = { text: { alternative: mockTheme.colors.text.alternative } };
 
 const createHiddenInputRef = () =>
-  React.createRef<TextInput>() as unknown as React.RefObject<TextInput>;
+  React.createRef<TextInput>() as unknown as React.RefObject<TextInput | null>;
 
 const defaultProps = {
   usdAmount: '',
@@ -25,7 +25,6 @@ const defaultProps = {
   estimatedReceiveAmount: undefined as string | undefined,
   isQuoteLoading: false,
   hasValidAmount: false,
-  hasError: false,
   hiddenInputRef: createHiddenInputRef(),
   onAmountAreaPress: jest.fn(),
   onAmountChange: jest.fn(),
@@ -102,19 +101,12 @@ describe('QuickBuyAmountInput', () => {
     expect(screen.getByText('1.23 BTC')).toBeOnTheScreen();
   });
 
-  it('renders the no-quotes error when hasError is true without a receive amount', () => {
+  it('falls back to "0 ${symbol}" when there is no receive amount and not loading', () => {
     renderWithProvider(
-      <QuickBuyAmountInput
-        {...defaultProps}
-        usdAmount="50"
-        hasValidAmount
-        hasError
-      />,
+      <QuickBuyAmountInput {...defaultProps} usdAmount="50" hasValidAmount />,
     );
 
-    expect(
-      screen.getByText('social_leaderboard.quick_buy.no_quotes'),
-    ).toBeOnTheScreen();
+    expect(screen.getByText('0 BTC')).toBeOnTheScreen();
   });
 
   it('fires onAmountAreaPress when the amount area is tapped', () => {

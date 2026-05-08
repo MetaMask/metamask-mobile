@@ -78,10 +78,13 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const { data: activePositions = [] } = usePredictPositions({
     marketId: market.id,
+    childMarketIds: market.childMarketIds,
     claimable: false,
+    livePriceUpdates: true,
   });
   const { data: claimablePositions = [] } = usePredictPositions({
     marketId: market.id,
+    childMarketIds: market.childMarketIds,
     claimable: true,
   });
 

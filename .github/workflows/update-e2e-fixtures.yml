@@ -36,6 +36,10 @@ jobs:
       }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
@@ -180,7 +184,7 @@ jobs:
   update-fixtures:
     name: Export & update fixtures
     needs: [prepare]
-    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe
+    runs-on: ${{ startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe", "low-priority"]') }}
     timeout-minutes: 30
 
     env:
@@ -199,11 +203,6 @@ jobs:
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
       SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
       SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
-      MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-      MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-      MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-      MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-      MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
       SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
       MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
       MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
@@ -216,6 +215,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.prepare.outputs.BRANCH }}
+
+      - name: Restore .metamask folder (Foundry download cache for install:foundryup)
+        uses: actions/cache@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Set up E2E environment
         timeout-minutes: 15
@@ -249,7 +254,7 @@ jobs:
         run: |
           IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' \
             yarn detox test -c ios.sim.main.ci --headless \
-            tests/regression/fixtures/fixture-validation.spec.ts
+            tests/smoke/fixtures/fixture-validation.spec.ts
         env:
           PREBUILT_IOS_APP_PATH: artifacts/main-qa-MetaMask.app
 

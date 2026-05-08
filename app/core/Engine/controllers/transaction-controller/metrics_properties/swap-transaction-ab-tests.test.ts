@@ -68,7 +68,16 @@ describe('getSwapTransactionActiveAbTestProperties', () => {
     const request = createMockRequest();
 
     expect(getSwapTransactionActiveAbTestProperties(request)).toEqual({
-      properties: { active_ab_tests: abTests },
+      properties: {
+        active_ab_tests: [
+          {
+            key: 'homeTMCU470AbtestTrendingSections',
+            value: 'trendingSections',
+            key_value_pair:
+              'homeTMCU470AbtestTrendingSections=trendingSections',
+          },
+        ],
+      },
       sensitiveProperties: {},
     });
   });
@@ -86,7 +95,46 @@ describe('getSwapTransactionActiveAbTestProperties', () => {
     });
 
     expect(getSwapTransactionActiveAbTestProperties(request)).toEqual({
-      properties: { active_ab_tests: abTests },
+      properties: {
+        active_ab_tests: [
+          {
+            key: 'homeTMCU470AbtestTrendingSections',
+            value: 'trendingSections',
+            key_value_pair:
+              'homeTMCU470AbtestTrendingSections=trendingSections',
+          },
+        ],
+      },
+      sensitiveProperties: {},
+    });
+  });
+
+  it.each([
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
+  ])('returns active_ab_tests for %s Transaction Added', (type) => {
+    const abTests = [
+      { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
+    ];
+    registerTransactionAbTestAttributionForIds([TX_ID], abTests);
+    const request = createMockRequest({
+      transactionMeta: {
+        id: TX_ID,
+        type,
+      } as never,
+    });
+
+    expect(getSwapTransactionActiveAbTestProperties(request)).toEqual({
+      properties: {
+        active_ab_tests: [
+          {
+            key: 'homeTMCU470AbtestTrendingSections',
+            value: 'trendingSections',
+            key_value_pair:
+              'homeTMCU470AbtestTrendingSections=trendingSections',
+          },
+        ],
+      },
       sensitiveProperties: {},
     });
   });

@@ -224,6 +224,8 @@ export const PerpsHomeViewSelectorsIDs = {
   BACK_HOME_BUTTON: 'perps-home-back-button',
   SEARCH_TOGGLE: 'perps-home-search-toggle',
   SEARCH_INPUT: 'perps-home-search',
+  /** Scroll title row (`PerpsHomeHeader` with `segment="title"`) */
+  HOME_HEADING: 'perps-home-heading',
   SCROLL_CONTENT: 'scroll-content',
   WITHDRAW_BUTTON: 'perps-home-withdraw-button',
   ADD_FUNDS_BUTTON: 'perps-home-add-funds-button',
@@ -329,6 +331,9 @@ export const PerpsWithdrawViewSelectorsIDs = {
   RECEIVE_VALUE: 'perps-withdraw-receive-value',
   FEE_VALUE: 'perps-withdraw-fee-value',
   TIME_VALUE: 'perps-withdraw-time-value',
+  // Renders withdrawableBalance (provider handles any spot→perps sweep
+  // internally, so the field already reflects the max that can exit).
+  AVAILABLE_BALANCE_TEXT: 'perps-withdraw-available-balance-text',
 };
 
 // ========================================

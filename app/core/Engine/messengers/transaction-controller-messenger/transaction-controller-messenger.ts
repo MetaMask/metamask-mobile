@@ -30,6 +30,7 @@ import {
   SmartTransactionsControllerSmartTransactionConfirmationDoneEvent,
 } from '@metamask/smart-transactions-controller';
 import {
+  KeyringControllerGetStateAction,
   KeyringControllerSignEip7702AuthorizationAction,
   KeyringControllerSignTypedMessageAction,
 } from '@metamask/keyring-controller';
@@ -54,6 +55,10 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
+import type {
+  PredictControllerBeforePublishAction,
+  PredictControllerPublishAction,
+} from '../../../../components/UI/Predict/controllers/PredictController-method-action-types';
 
 export function getTransactionControllerMessenger(
   rootMessenger: RootMessenger,
@@ -72,6 +77,7 @@ export function getTransactionControllerMessenger(
       'AccountsController:getSelectedAccount',
       'AccountsController:getState',
       `ApprovalController:addRequest`,
+      'KeyringController:getState',
       'KeyringController:signEip7702Authorization',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
@@ -99,6 +105,7 @@ type InitMessengerActions =
   | DelegationControllerSignDelegationAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | NetworkControllerGetNetworkClientByIdAction
+  | KeyringControllerGetStateAction
   | KeyringControllerSignEip7702AuthorizationAction
   | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetEIP1559CompatibilityAction
@@ -111,7 +118,9 @@ type InitMessengerActions =
   | TransactionPayControllerGetDelegationTransactionAction
   | TransactionPayControllerGetStateAction
   | TransactionPayControllerGetStrategyAction
-  | AnalyticsControllerActions;
+  | AnalyticsControllerActions
+  | PredictControllerBeforePublishAction
+  | PredictControllerPublishAction;
 
 type InitMessengerEvents =
   | BridgeStatusControllerEvents
@@ -158,6 +167,7 @@ export function getTransactionControllerInitMessenger(
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getEIP1559Compatibility',
       'NetworkController:getNetworkClientById',
+      'KeyringController:getState',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',
       'RemoteFeatureFlagController:getState',
@@ -169,6 +179,8 @@ export function getTransactionControllerInitMessenger(
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
       'AnalyticsController:trackEvent',
+      'PredictController:beforePublish',
+      'PredictController:publish',
     ],
     events: [
       'BridgeStatusController:stateChange',

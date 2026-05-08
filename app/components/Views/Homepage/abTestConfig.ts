@@ -1,5 +1,6 @@
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnalytics.types';
+import { createActiveABTestAssignment } from '../../../util/analytics/activeABTestAssignments';
 import type { TransactionActiveAbTestEntry } from '../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 // ─── Hub Page Discovery Tabs ────────────────────────────────────────────────
@@ -55,7 +56,12 @@ export function getHomepageTrendingSectionsTransactionActiveAbTests(
   if (!isAssignmentActive) {
     return undefined;
   }
-  return [{ key: HOMEPAGE_TRENDING_SECTIONS_AB_KEY, value: variantName }];
+  return [
+    createActiveABTestAssignment(
+      HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
+      variantName,
+    ),
+  ];
 }
 
 export enum HomepageTrendingSectionsVariant {
@@ -77,5 +83,36 @@ export const HOMEPAGE_TRENDING_SECTIONS_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyti
   {
     flagKey: HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
     validVariants: Object.values(HomepageTrendingSectionsVariant),
+    eventNames: [EVENT_NAME.HOME_VIEWED],
+  };
+
+// ─── Wallet home post-onboarding steps (empty-balance checklist) ────────────
+
+/**
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `home`, ticket TMCU-610).
+ */
+export const WALLET_HOME_POST_ONBOARDING_AB_KEY =
+  'homeTMCU610AbtestWalletHomePostOnboardingSteps';
+
+export enum WalletHomePostOnboardingVariant {
+  Control = 'control',
+  PostOnboardingSteps = 'postOnboardingSteps',
+}
+
+export const WALLET_HOME_POST_ONBOARDING_VARIANTS: Record<
+  WalletHomePostOnboardingVariant,
+  { stepsEnabled: boolean }
+> = {
+  [WalletHomePostOnboardingVariant.Control]: { stepsEnabled: false },
+  [WalletHomePostOnboardingVariant.PostOnboardingSteps]: {
+    stepsEnabled: true,
+  },
+};
+
+export const WALLET_HOME_POST_ONBOARDING_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: WALLET_HOME_POST_ONBOARDING_AB_KEY,
+    validVariants: Object.values(WalletHomePostOnboardingVariant),
     eventNames: [EVENT_NAME.HOME_VIEWED],
   };

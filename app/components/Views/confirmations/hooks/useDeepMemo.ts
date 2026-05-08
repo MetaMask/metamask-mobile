@@ -8,8 +8,8 @@ import { DependencyList, useRef } from 'react';
  * Ensure dependencies are small otherwise performance cost may be worse than re-rendering.
  */
 export function useDeepMemo<T>(factory: () => T, deps: DependencyList): T {
-  const depsRef = useRef<DependencyList>(undefined);
-  const resultRef = useRef<T>();
+  const depsRef = useRef<DependencyList | undefined>(undefined);
+  const resultRef = useRef<T | undefined>(undefined);
 
   if (!isEqual(depsRef.current, deps)) {
     depsRef.current = deps;

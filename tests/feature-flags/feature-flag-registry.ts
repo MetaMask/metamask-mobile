@@ -2748,6 +2748,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnChompApiConfig: {
+    name: 'earnChompApiConfig',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      baseUrl: 'https://chomp.dev-api.cx.metamask.io',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnFeatureFlagTemplate: {
     name: 'earnFeatureFlagTemplate',
     type: FeatureFlagType.Remote,
@@ -2884,25 +2894,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnMusdQuickConvertEnabled: {
-    name: 'earnMusdQuickConvertEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '0.0.0',
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  earnMusdQuickConvertPercentage: {
-    name: 'earnMusdQuickConvertPercentage',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: 0.9,
-    status: FeatureFlagStatus.Active,
-  },
-
   earnMusdTokenRegistrationChainIds: {
     name: 'earnMusdTokenRegistrationChainIds',
     type: FeatureFlagType.Remote,
@@ -2981,11 +2972,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  exploreSectionsOrder: {
-    name: 'exploreSectionsOrder',
+  explorePageV2Enabled: {
+    name: 'explorePageV2Enabled',
     type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {},
+    inProd: false,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -3039,6 +3030,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  hapticsKillSwitch: {
+    name: 'hapticsKillSwitch',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   homepageSectionsV1: {
     name: 'homepageSectionsV1',
     type: FeatureFlagType.Remote,
@@ -3047,6 +3049,29 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '7.70.0',
       enabled: true,
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeTMCU610AbtestWalletHomePostOnboardingSteps: {
+    name: 'homeTMCU610AbtestWalletHomePostOnboardingSteps',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0.5,
+        },
+      },
+      {
+        name: 'postOnboardingSteps',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
     status: FeatureFlagStatus.Active,
   },
 
@@ -3116,6 +3141,20 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       moneyAccountWithdrawEnabled: false,
       moneyAccountDepositEnabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyAccountVaultConfig: {
+    name: 'moneyAccountVaultConfig',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      chainId: '0xa4b1',
+      boringVault: '0xB5F07d769dD60fE54c97dd53101181073DDf21b2',
+      tellerAddress: '0x86821F179eaD9F0b3C79b2f8deF0227eEBFDc9f9',
+      accountantAddress: '0x800ebc3B74F67EaC27C9CCE4E4FF28b17CdCA173',
+      lensAddress: '0x846a7832022350434B5cC006d07cc9c782469660',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3852,6 +3891,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
+  tokenListSecurityBadges: {
+    name: 'tokenListSecurityBadges',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.76.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 

@@ -38,10 +38,6 @@ jest.mock('../../../../Views/confirmations/hooks/useNetworkName', () => ({
   useNetworkName: () => 'Ethereum Mainnet',
 }));
 
-jest.mock('../../../../UI/Earn/selectors/featureFlags', () => ({
-  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
-}));
-
 const mockInitiateCustomConversion = jest.fn();
 jest.mock('../../../../UI/Earn/hooks/useMusdConversion', () => ({
   useMusdConversion: () => ({
@@ -247,6 +243,42 @@ describe('CashGetMusdEmptyState', () => {
     expect(
       screen.queryByTestId(CashGetMusdEmptyStateSelectors.CLAIM_BONUS_BUTTON),
     ).toBeNull();
+  });
+
+  it('hides Claim bonus button when hideClaimButton is true even with claimable reward', () => {
+    mockUseMerklBonusClaim.mockReturnValue({
+      claimableReward: '12.34',
+      lifetimeBonusClaimed: null,
+      hasPendingClaim: false,
+      isClaiming: false,
+      error: null,
+      claimRewards: mockClaimRewards,
+      refetch: jest.fn(),
+    });
+
+    renderWithProvider(<CashGetMusdEmptyState hideClaimButton />);
+
+    expect(
+      screen.queryByTestId(CashGetMusdEmptyStateSelectors.CLAIM_BONUS_BUTTON),
+    ).toBeNull();
+  });
+
+  it('shows Claim bonus button when hideClaimButton is false and claimable reward exists', () => {
+    mockUseMerklBonusClaim.mockReturnValue({
+      claimableReward: '12.34',
+      lifetimeBonusClaimed: null,
+      hasPendingClaim: false,
+      isClaiming: false,
+      error: null,
+      claimRewards: mockClaimRewards,
+      refetch: jest.fn(),
+    });
+
+    renderWithProvider(<CashGetMusdEmptyState hideClaimButton={false} />);
+
+    expect(
+      screen.getByTestId(CashGetMusdEmptyStateSelectors.CLAIM_BONUS_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('calls claimRewards and tracks analytics when Claim bonus is pressed', () => {

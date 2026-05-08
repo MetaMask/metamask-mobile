@@ -8,7 +8,7 @@
 # Bitrise "Rolling builds" / "Abort running builds" for one branch + one workflow).
 #
 # Version bump runs once (update-latest-build-version.yml), then iOS and Android
-# builds are triggered in parallel via runway-ota-build-core.yml (skip_version_bump).
+# builds are triggered in parallel via auto-rc-ota-build-core.yml (skip_version_bump).
 #
 # The RC build comment includes an AI-generated test plan (inline with collapsible sections).
 #
@@ -54,13 +54,16 @@ jobs:
           echo "Checking branch: $BRANCH_NAME"
           echo "branch-name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
-          # Validate branch matches release/x.y.z format (semantic versioning)
-          if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          # Validate branch matches release/x.y.z or release/x.y.z-ota (OTA hotfix) format
+          if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+(-ota)?$ ]]; then
             VERSION="${BRANCH_NAME#release/}"
+            # Strip `-ota` suffix: it is a branch-name convention only. Downstream consumers
+            # (build-announce display "RC X.Y.Z", test-plan artifact name) expect strict X.Y.Z.
+            VERSION="${VERSION%-ota}"
             echo "Valid release branch detected: $BRANCH_NAME (version: $VERSION)"
             echo "semver=$VERSION" >> "$GITHUB_OUTPUT"
           else
-            echo "Branch '$BRANCH_NAME' does not match release/x.y.z pattern. Skipping."
+            echo "Branch '$BRANCH_NAME' does not match release/x.y.z or release/x.y.z-ota pattern. Skipping."
             echo "semver=" >> "$GITHUB_OUTPUT"
             exit 1
           fi
@@ -101,7 +104,7 @@ jobs:
 
   trigger-ios-rc-build:
     name: Trigger iOS RC Build
-    uses: ./.github/workflows/runway-ota-build-core.yml
+    uses: ./.github/workflows/auto-rc-ota-build-core.yml
     needs:
       - validate-and-find-pr
       - update_rc_build_version
@@ -114,7 +117,7 @@ jobs:
 
   trigger-android-rc-build:
     name: Trigger Android RC Build
-    uses: ./.github/workflows/runway-ota-build-core.yml
+    uses: ./.github/workflows/auto-rc-ota-build-core.yml
     needs:
       - validate-and-find-pr
       - update_rc_build_version
@@ -148,6 +151,15 @@ jobs:
           cache: yarn
       - name: Install dependencies
         run: yarn install --immutable
+
+      - name: Download build environment artifacts
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-env-main-rc-*
+          path: build-env-artifacts
+          merge-multiple: false
+
       - name: Post RC Build Comment with Test Plan
         run: node -r esbuild-register scripts/build-announce/index.ts
         timeout-minutes: 8
@@ -164,46 +176,15 @@ jobs:
           E2E_OPENAI_API_KEY: ${{ secrets.E2E_OPENAI_API_KEY }}
           E2E_GEMINI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}
 
-      - name: Upload test plan JSON to GitHub Pages
+      - name: Upload test plan JSON artifact
         if: always()
-        continue-on-error: true
-        run: |
-          VERSION="${{ needs.validate-and-find-pr.outputs.semver }}"
-          JSON_FILE="release-test-plan.json"
-
-          # Check if JSON file was generated
-          if [ ! -f "$JSON_FILE" ]; then
-            echo "No test plan JSON file found, skipping upload"
-            exit 0
-          fi
-
-          # Save JSON to temp
-          cp "$JSON_FILE" "/tmp/test-plan-${VERSION}.json"
-
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Fetch gh-pages branch or create it
-          git fetch origin gh-pages:gh-pages 2>/dev/null || echo "gh-pages doesn't exist yet"
-
-          # Switch to gh-pages
-          if git checkout gh-pages 2>/dev/null; then
-            echo "Switched to existing gh-pages branch"
-          else
-            git checkout --orphan gh-pages
-            git rm -rf . 2>/dev/null || true
-            git clean -fd 2>/dev/null || true
-          fi
-
-          # Create test-plans directory and copy JSON
-          mkdir -p test-plans
-          cp "/tmp/test-plan-${VERSION}.json" "test-plans/"
-
-          # Commit and push
-          git add test-plans/
-          git commit -m "Add test plan JSON for RC ${VERSION}" || echo "No changes to commit"
-          git push origin gh-pages
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-plan-${{ needs.validate-and-find-pr.outputs.semver }}
+          path: release-test-plan.json
+          compression-level: 0
+          if-no-files-found: ignore
+          retention-days: 90
 
   slack-notification:
     name: Slack RC Notification

@@ -1,10 +1,10 @@
 /* eslint-disable jsdoc/check-indentation */
 import React, { useRef, useCallback, useMemo } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -147,7 +147,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
         testID={testID}
       >
         {!hasCustomHeader && (
-          <HeaderCompactStandard
+          <HeaderStandard
             title={title}
             testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
             onClose={handleClose}

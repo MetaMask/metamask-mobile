@@ -142,6 +142,7 @@ jobs:
     needs: [determine-branch-name]
     outputs:
       android_matrix: ${{ steps.read-matrix.outputs.android_matrix }}
+      android_mm_connect_matrix: ${{ steps.read-matrix.outputs.android_mm_connect_matrix }}
       ios_matrix: ${{ steps.read-matrix.outputs.ios_matrix }}
     steps:
       - name: Checkout code
@@ -165,11 +166,15 @@ jobs:
           fi
 
           ANDROID_MATRIX=$(jq ".android_devices | $FILTER" "$FILE")
+          ANDROID_MM_CONNECT_MATRIX=$(jq '[.android_devices[] | select(.name | contains("Samsung"))]' "$FILE")
           IOS_MATRIX=$(jq ".ios_devices | $FILTER" "$FILE")
 
           {
             echo "android_matrix<<EOF"
             echo "$ANDROID_MATRIX"
+            echo "EOF"
+            echo "android_mm_connect_matrix<<EOF"
+            echo "$ANDROID_MM_CONNECT_MATRIX"
             echo "EOF"
             echo "ios_matrix<<EOF"
             echo "$IOS_MATRIX"
@@ -177,6 +182,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
           echo "Selected: $(echo "$ANDROID_MATRIX" | jq length) Android, $(echo "$IOS_MATRIX" | jq length) iOS"
+          echo "Selected for Android MM-Connect: $(echo "$ANDROID_MM_CONNECT_MATRIX" | jq length)"
 
   set-build-names:
     name: Set Unified BrowserStack Build Names
@@ -253,7 +259,7 @@ jobs:
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding != '' || needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != '')
+    if: false # temporarily disabled — Android only
     with:
       platform: ios
       build_type: onboarding
@@ -316,7 +322,7 @@ jobs:
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet != '' || needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url != '')
+    if: false # temporarily disabled — Android only
     with:
       platform: ios
       build_type: imported-wallet
@@ -333,7 +339,7 @@ jobs:
     name: Fetch RN Playground APK and Upload to BrowserStack
     runs-on: ubuntu-latest
     needs: [wait-for-onboarding-completion]
-    if: always() && !cancelled()
+    if: always() && !cancelled() && (inputs.build_variant || 'rc') == 'rc'
     outputs:
       browserstack-playground-url: ${{ steps.upload-playground.outputs.browserstack-url }}
     steps:
@@ -376,13 +382,13 @@ jobs:
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '') && needs.fetch-rn-playground-apk-upload-to-browserstack.result == 'success'
+    if: always() && !cancelled() && (inputs.build_variant || 'rc') == 'rc' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
     with:
       platform: android
       build_type: mm-connect
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'rc' }}
-      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_mm_connect_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}

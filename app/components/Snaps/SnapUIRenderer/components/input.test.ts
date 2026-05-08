@@ -125,7 +125,7 @@ describe('SnapUIInput', () => {
     );
 
     const input = getByTestId('testInput-snap-ui-input');
-    expect(input.props.editable).toBe(false);
+    expect(input).toHaveProp('editable', false);
     expect(toJSON()).toMatchSnapshot();
   });
 
