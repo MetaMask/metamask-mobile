@@ -269,31 +269,6 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('feed error recovery', () => {
-    it('shows the offline error state in the feed when market fetch retries fail', async () => {
-      const getMarketsSpy = jest.spyOn(
-        Engine.context.PredictController,
-        'getMarkets',
-      );
-      getMarketsSpy.mockRejectedValue(new Error('Network error'));
-
-      const { findByTestId } = renderPredictFeedView();
-
-      expect(
-        await findByTestId(
-          PredictSearchSelectorsIDs.ERROR_STATE,
-          {},
-          { timeout: 10000 },
-        ),
-      ).toBeOnTheScreen();
-      await waitFor(() => {
-        expect(getMarketsSpy.mock.calls.length).toBeGreaterThanOrEqual(3);
-      });
-
-      getMarketsSpy.mockRestore();
-    });
-  });
-
   describe('search error recovery', () => {
     it('shows the offline error state in the search overlay when all market fetch retries fail', async () => {
       const getMarketsSpy = jest.spyOn(

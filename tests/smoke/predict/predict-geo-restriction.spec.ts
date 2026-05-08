@@ -37,11 +37,25 @@ const predictionGeoBlockedFeature = async (mockServer: Mockttp) => {
 const geoBlockedCombinedExpectations: AnalyticsExpectations = {
   eventNames: ['Geo Blocked Triggered'],
   validate: async ({ events }) => {
+    if (events.length < 3) {
+      throw new Error(
+        `Expected at least 3 Geo Blocked Triggered events, got ${events.length}`,
+      );
+    }
+
     const attemptedActions = new Set(
       events
         .map((event) => event.properties?.attempted_action)
         .filter((value): value is string => typeof value === 'string'),
     );
+
+    for (const event of events) {
+      if (!event.properties?.country) {
+        throw new Error(
+          'Geo Blocked Triggered analytics is missing required "country" property',
+        );
+      }
+    }
 
     for (const expectedAction of ['predict_action', 'cashout', 'deposit']) {
       if (!attemptedActions.has(expectedAction)) {
@@ -57,7 +71,10 @@ describe(SmokePredictions('Predictions - Geo Restriction'), () => {
   it('displays unavailable modal for feed action, cashout, and add funds when geo blocked', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
+        fixture: new FixtureBuilder()
+          .withPolygon()
+          .withMetaMetricsOptIn()
+          .build(),
         restartDevice: true,
         testSpecificMock: predictionGeoBlockedFeature,
         analyticsExpectations: geoBlockedCombinedExpectations,
