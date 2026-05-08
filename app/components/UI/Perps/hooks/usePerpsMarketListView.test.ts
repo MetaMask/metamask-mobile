@@ -305,6 +305,45 @@ describe('usePerpsMarketListView', () => {
       });
     });
 
+    it('defaultSortOptionId overrides the saved sort preference', () => {
+      let selectorCallCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        selectorCallCount++;
+        if (selectorCallCount % 2 === 1) {
+          return ['BTC'];
+        }
+        // Saved preference is volume/desc
+        return { optionId: 'volume', direction: 'desc' };
+      });
+
+      renderHook(() =>
+        usePerpsMarketListView({ defaultSortOptionId: 'priceChange' }),
+      );
+
+      expect(mockUsePerpsSorting).toHaveBeenCalledWith({
+        initialOptionId: 'priceChange',
+        initialDirection: 'desc',
+      });
+    });
+
+    it('falls back to saved sort preference when defaultSortOptionId is not provided', () => {
+      let selectorCallCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        selectorCallCount++;
+        if (selectorCallCount % 2 === 1) {
+          return ['BTC'];
+        }
+        return { optionId: 'fundingRate', direction: 'asc' };
+      });
+
+      renderHook(() => usePerpsMarketListView());
+
+      expect(mockUsePerpsSorting).toHaveBeenCalledWith({
+        initialOptionId: 'fundingRate',
+        initialDirection: 'asc',
+      });
+    });
+
     it('exposes sort state correctly', () => {
       const { result } = renderHook(() => usePerpsMarketListView());
 

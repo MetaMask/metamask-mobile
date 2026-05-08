@@ -34,6 +34,11 @@ interface UsePerpsMarketListViewParams {
    */
   defaultMarketTypeFilter?: MarketTypeFilter;
   /**
+   * Initial sort option ID — overrides the persisted user preference when provided.
+   * @default undefined (falls back to saved user preference)
+   */
+  defaultSortOptionId?: SortOptionId;
+  /**
    * Show markets with $0.00 volume
    * @default false
    */
@@ -133,6 +138,7 @@ export const usePerpsMarketListView = ({
   enablePolling = false,
   showWatchlistOnly = false,
   defaultMarketTypeFilter = 'all',
+  defaultSortOptionId,
   showZeroVolume = false,
 }: UsePerpsMarketListViewParams = {}): UsePerpsMarketListViewReturn => {
   // Fetch markets data
@@ -196,9 +202,11 @@ export const usePerpsMarketListView = ({
     return searchedMarkets;
   }, [searchedMarkets, marketTypeFilter]);
 
-  // Use sorting hook for sort state and sorting logic
+  // Use sorting hook for sort state and sorting logic.
+  // defaultSortOptionId (from navigation params) takes precedence over the saved user preference.
   const sortingHook = usePerpsSorting({
-    initialOptionId: savedSortPreference.optionId as SortOptionId,
+    initialOptionId: (defaultSortOptionId ??
+      savedSortPreference.optionId) as SortOptionId,
     initialDirection: savedSortPreference.direction,
   });
 

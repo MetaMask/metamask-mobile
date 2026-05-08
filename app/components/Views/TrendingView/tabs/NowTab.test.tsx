@@ -20,7 +20,12 @@ jest.mock('../feeds/tokens/useTokensFeed', () => ({
 }));
 
 jest.mock('../feeds/perps/usePerpsFeed', () => ({
-  usePerpsFeed: jest.fn(() => ({ data: [], isLoading: false })),
+  usePerpsFeed: jest.fn(() => ({
+    data: [],
+    isLoading: false,
+    refetch: jest.fn(),
+    defaultSortOptionId: 'priceChange',
+  })),
 }));
 
 jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
