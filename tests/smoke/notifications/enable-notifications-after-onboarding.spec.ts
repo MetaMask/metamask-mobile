@@ -17,6 +17,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
     jest.setTimeout(170000);
   });
 
+  // TODO: Update the test so if does a full e2e (define what should do). Keep this test to have something tested on e2e.
   it('should enable notifications and view feature announcements and wallet notifications', async () => {
     // Notification mocks are now enabled by default inside the fixture helper
     // since they're turned on by default

@@ -1,9 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, Text } from 'react-native';
+import { Text } from 'react-native';
 import { formatAddress } from '../../../util/address';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { WALLET_ACCOUNT_ADDRESS_LABEL } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { EthereumAddressSelectorsIDs } from './EthereumAddress.testIds';
 
 /**
  * View that renders an ethereum address
@@ -56,7 +55,7 @@ class EthereumAddress extends PureComponent {
       <Text
         style={this.props.style}
         numberOfLines={1}
-        {...generateTestId(Platform, WALLET_ACCOUNT_ADDRESS_LABEL)}
+        testID={EthereumAddressSelectorsIDs.ADDRESS_LABEL}
       >
         {this.state.address}
       </Text>

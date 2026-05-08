@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
@@ -8,7 +8,6 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import RewardSettingsAccountGroupList from '../components/Settings/RewardSettingsAccountGroupList';
 import RewardsInfoBanner from '../components/RewardsInfoBanner';
 import LinkedOffDeviceAccountsSheet from '../components/Settings/LinkedOffDeviceAccountsSheet';
@@ -52,7 +51,7 @@ const RewardsSettingsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_SETTINGS_SAFE_AREA_TEST_ID}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('rewards.settings.title')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}

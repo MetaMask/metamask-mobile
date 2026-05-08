@@ -50,6 +50,7 @@ export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = [
   'itc',
   'dfb',
   'cde',
+  'fifwc',
 ];
 
 export const filterSupportedLeagues = (
@@ -98,6 +99,7 @@ const DRAW_CAPABLE_LEAGUES: ReadonlySet<PredictSportsLeague> = new Set([
   'itc',
   'dfb',
   'cde',
+  'fifwc',
 ]);
 
 export const isDrawCapableLeague = (league: PredictSportsLeague): boolean =>
