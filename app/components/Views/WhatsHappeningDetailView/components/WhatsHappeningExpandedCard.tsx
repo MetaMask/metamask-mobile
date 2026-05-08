@@ -154,15 +154,15 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
               </Text>
             )}
 
-            {/* Markets section */}
+            {/* Related assets section */}
             {item.relatedAssets.length > 0 && (
               <Box gap={1}>
                 <Text
-                  variant={TextVariant.BodySm}
+                  variant={TextVariant.HeadingSm}
                   fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
                 >
-                  {strings('homepage.sections.markets')}
+                  {strings('homepage.sections.related_assets')}
                 </Text>
 
                 {item.relatedAssets.map((asset) => (

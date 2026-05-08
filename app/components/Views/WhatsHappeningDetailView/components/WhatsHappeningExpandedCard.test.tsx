@@ -156,7 +156,7 @@ describe('WhatsHappeningExpandedCard', () => {
     expect(screen.queryByText('AI')).toBeNull();
   });
 
-  it('renders the single Markets section header when relatedAssets is non-empty', () => {
+  it('renders the single Related Assets section header when relatedAssets is non-empty', () => {
     const item = { ...baseItem, relatedAssets: [perpsOnlyAsset] };
     renderWithProvider(
       <WhatsHappeningExpandedCard
@@ -166,7 +166,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardHeight={CARD_HEIGHT}
       />,
     );
-    expect(screen.getByText('Markets')).toBeOnTheScreen();
+    expect(screen.getByText('Related Assets')).toBeOnTheScreen();
     // No "Tokens" or "Perps" section labels
     expect(screen.queryByText('Tokens')).toBeNull();
     expect(screen.queryByText('Perps')).toBeNull();
@@ -188,7 +188,7 @@ describe('WhatsHappeningExpandedCard', () => {
     expect(screen.queryByText('Buy')).toBeNull();
   });
 
-  it('renders all assets in the single Markets section (including dual caip19+perps)', () => {
+  it('renders all assets in the single Related Assets section (including dual caip19+perps)', () => {
     const item = { ...baseItem, relatedAssets: [perpsOnlyAsset, dualAsset] };
     renderWithProvider(
       <WhatsHappeningExpandedCard
@@ -198,14 +198,14 @@ describe('WhatsHappeningExpandedCard', () => {
         cardHeight={CARD_HEIGHT}
       />,
     );
-    expect(screen.getByText('Markets')).toBeOnTheScreen();
+    expect(screen.getByText('Related Assets')).toBeOnTheScreen();
     expect(screen.getByText('Tesla')).toBeOnTheScreen();
     expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
     expect(screen.getAllByText('Trade')).toHaveLength(2);
     expect(screen.queryByText('Buy')).toBeNull();
   });
 
-  it('does not render the Markets section when relatedAssets is empty', () => {
+  it('does not render the Related Assets section when relatedAssets is empty', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={baseItem}
@@ -214,7 +214,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardHeight={CARD_HEIGHT}
       />,
     );
-    expect(screen.queryByText('Markets')).toBeNull();
+    expect(screen.queryByText('Related Assets')).toBeNull();
     expect(screen.queryByText('Trade')).toBeNull();
   });
 
