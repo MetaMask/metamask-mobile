@@ -5657,7 +5657,6 @@ const mockPerpsPosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 2,
   pnl: 100,
   notionalVolume: 5000,
-  marginDeployed: 1000,
   qualified: true,
   neighbors: [],
   computedAt: '2025-08-15T12:00:00.000Z',
