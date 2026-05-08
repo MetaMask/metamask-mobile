@@ -677,27 +677,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
 
   // Memoize liquidation price params to prevent infinite recalculation
-  const liquidationPriceParams = useMemo(() => {
-    // Use limit price for limit orders, market price for market orders
-    const entryPrice =
-      orderForm.type === 'limit' && orderForm.limitPrice
-        ? parseFloat(orderForm.limitPrice)
-        : assetData.price;
-
-    return {
-      entryPrice,
+  const liquidationPriceParams = useMemo(
+    () => ({
+      entryPrice: effectivePrice,
       leverage: orderForm.leverage,
       direction: orderForm.direction,
       asset: orderForm.asset,
-    };
-  }, [
-    assetData.price,
-    orderForm.leverage,
-    orderForm.direction,
-    orderForm.asset,
-    orderForm.type,
-    orderForm.limitPrice,
-  ]);
+    }),
+    [effectivePrice, orderForm.leverage, orderForm.direction, orderForm.asset],
+  );
 
   const depositAmount = useMemo(() => {
     if (marginRequired !== undefined && marginRequired !== null) {
