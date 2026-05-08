@@ -272,6 +272,7 @@ const PerpsScreenStack = () => {
         <PerpsStreamProvider>
           <PerpsStreamBridge />
           <Stack.Navigator initialRouteName={Routes.PERPS.PERPS_TAB}>
+            {/* Redirect to wallet perps tab */}
             <Stack.Screen
               name={Routes.PERPS.PERPS_TAB}
               component={PerpsRedirect}
@@ -286,17 +287,6 @@ const PerpsScreenStack = () => {
               component={PerpsHomeView}
               options={{
                 title: strings('perps.markets.title'),
-                headerShown: false,
-              }}
-            />
-
-            {/* TP/SL View - Regular screen */}
-            <Stack.Screen
-              name={Routes.PERPS.TPSL}
-              component={PerpsTPSLView}
-              options={{
-                ...transparentModalScreenOptions,
-                title: strings('perps.tpsl.title'),
                 headerShown: false,
               }}
             />
@@ -316,6 +306,7 @@ const PerpsScreenStack = () => {
               }}
             />
 
+            {/* Withdrawal flow screens */}
             <Stack.Screen
               name={Routes.PERPS.WITHDRAW}
               component={PerpsWithdrawView}
@@ -351,6 +342,7 @@ const PerpsScreenStack = () => {
               }}
             />
 
+            {/* Debug tools - only available in development builds */}
             {__DEV__ && (
               <Stack.Screen
                 name={Routes.PERPS.HIP3_DEBUG}
@@ -362,11 +354,60 @@ const PerpsScreenStack = () => {
               />
             )}
 
+            {/* TP/SL View - Regular screen */}
+            <Stack.Screen
+              name={Routes.PERPS.TPSL}
+              component={PerpsTPSLView}
+              options={{
+                ...transparentModalScreenOptions,
+                title: strings('perps.tpsl.title'),
+                headerShown: false,
+              }}
+            />
+
+            {/* Adjust Margin View */}
             <Stack.Screen
               name={Routes.PERPS.ADJUST_MARGIN}
               component={PerpsAdjustMarginView}
               options={{
                 title: strings('perps.adjust_margin.title'),
+                headerShown: false,
+              }}
+            />
+
+            {/* Order Details View */}
+            <Stack.Screen
+              name={Routes.PERPS.ORDER_DETAILS}
+              component={PerpsOrderDetailsView}
+              options={{
+                title: strings('perps.order_details.title'),
+                headerShown: false,
+              }}
+            />
+
+            {/* Order Book View */}
+            <Stack.Screen
+              name={Routes.PERPS.ORDER_BOOK}
+              component={PerpsOrderBookView}
+              options={{
+                title: strings('perps.order_book.title'),
+                headerShown: false,
+              }}
+            />
+
+            <Stack.Screen
+              name={Routes.PERPS.PNL_HERO_CARD}
+              component={PerpsHeroCardView}
+              options={{
+                title: strings('perps.pnl_hero_card.title'),
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name={Routes.PERPS.ACTIVITY}
+              component={ActivityView}
+              options={{
+                title: strings('activity_view.title'),
                 headerShown: false,
               }}
             />
@@ -403,41 +444,7 @@ const PerpsScreenStack = () => {
               }}
             />
 
-            <Stack.Screen
-              name={Routes.PERPS.ORDER_DETAILS}
-              component={PerpsOrderDetailsView}
-              options={{
-                title: strings('perps.order_details.title'),
-                headerShown: false,
-              }}
-            />
-
-            <Stack.Screen
-              name={Routes.PERPS.ORDER_BOOK}
-              component={PerpsOrderBookView}
-              options={{
-                title: strings('perps.order_book.title'),
-                headerShown: false,
-              }}
-            />
-
-            <Stack.Screen
-              name={Routes.PERPS.PNL_HERO_CARD}
-              component={PerpsHeroCardView}
-              options={{
-                title: strings('perps.pnl_hero_card.title'),
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name={Routes.PERPS.ACTIVITY}
-              component={ActivityView}
-              options={{
-                title: strings('activity_view.title'),
-                headerShown: false,
-              }}
-            />
-
+            {/* Order redirect screen - handles one-click trade from token details */}
             <Stack.Screen
               name={Routes.PERPS.ORDER_REDIRECT}
               component={PerpsOrderRedirect}
