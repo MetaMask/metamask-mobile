@@ -50,7 +50,7 @@
   <text x="34" y="354" font-size="12" fill="#6b7280">React render + interactions</text>
   <rect x="260" y="314" width="90" height="50" rx="4" fill="#ffffff" stroke="#e5e7eb"/>
   <rect x="358" y="314" width="90" height="50" rx="4" fill="#dbeafe" stroke="#3b82f6"/>
-  <rect x="456" y="314" width="90" height="50" rx="4" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="456" y="314" width="90" height="50" rx="4" fill="#dbeafe" stroke="#3b82f6"/>
   <rect x="554" y="314" width="90" height="50" rx="4" fill="#dbeafe" stroke="#3b82f6"/>
 
   <rect x="20" y="370" width="220" height="50" rx="6" fill="#f3f4f6" stroke="#d1d5db"/>

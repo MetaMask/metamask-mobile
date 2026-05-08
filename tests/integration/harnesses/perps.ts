@@ -37,7 +37,6 @@
  *     });
  */
 
-// TODO:
 jest.mock('../../../app/controllers/perps/services/HyperLiquidClientService');
 jest.mock('../../../app/controllers/perps/services/HyperLiquidWalletService');
 jest.mock(
@@ -124,8 +123,24 @@ function createMockInfoClient() {
         ],
       },
       [
-        { funding: '0.0001', openInterest: '1000', prevDayPx: '49000', dayNtlVlm: '1000000', markPx: '50000', midPx: '50000', oraclePx: '50000' },
-        { funding: '0.0001', openInterest: '500', prevDayPx: '2900', dayNtlVlm: '500000', markPx: '3000', midPx: '3000', oraclePx: '3000' },
+        {
+          funding: '0.0001',
+          openInterest: '1000',
+          prevDayPx: '49000',
+          dayNtlVlm: '1000000',
+          markPx: '50000',
+          midPx: '50000',
+          oraclePx: '50000',
+        },
+        {
+          funding: '0.0001',
+          openInterest: '500',
+          prevDayPx: '2900',
+          dayNtlVlm: '500000',
+          markPx: '3000',
+          midPx: '3000',
+          oraclePx: '3000',
+        },
       ],
     ]),
     perpDexs: jest.fn().mockResolvedValue([null]),
@@ -136,7 +151,12 @@ function createMockInfoClient() {
     }),
     maxBuilderFee: jest.fn().mockResolvedValue(1),
     userFees: jest.fn().mockResolvedValue({
-      feeSchedule: { cross: '0.00030', add: '0.00010', spotCross: '0.00040', spotAdd: '0.00020' },
+      feeSchedule: {
+        cross: '0.00030',
+        add: '0.00010',
+        spotCross: '0.00040',
+        spotAdd: '0.00020',
+      },
       dailyUserVlm: [],
     }),
     spotMeta: jest.fn().mockResolvedValue({ tokens: [], universe: [] }),
@@ -145,7 +165,9 @@ function createMockInfoClient() {
     userFillsByTime: jest.fn().mockResolvedValue([]),
     userFunding: jest.fn().mockResolvedValue([]),
     userNonFundingLedgerUpdates: jest.fn().mockResolvedValue([]),
-    portfolio: jest.fn().mockResolvedValue([null, [null, { accountValueHistory: [] }]]),
+    portfolio: jest
+      .fn()
+      .mockResolvedValue([null, [null, { accountValueHistory: [] }]]),
   };
 }
 
@@ -259,7 +281,9 @@ export function buildPerpsIntegrationHarness(
       request: jest.fn().mockResolvedValue([DEFAULT_USER_ADDRESS]),
     }),
     getUserAddress: jest.fn().mockReturnValue(DEFAULT_USER_ADDRESS),
-    getUserAddressWithDefault: jest.fn().mockResolvedValue(DEFAULT_USER_ADDRESS),
+    getUserAddressWithDefault: jest
+      .fn()
+      .mockResolvedValue(DEFAULT_USER_ADDRESS),
     isKeyringUnlocked: jest.fn().mockReturnValue(true),
     isSelectedHardwareWallet: jest.fn().mockReturnValue(false),
   } as unknown as jest.Mocked<HyperLiquidWalletService>;
