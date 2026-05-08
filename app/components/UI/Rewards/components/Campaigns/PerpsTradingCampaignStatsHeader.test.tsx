@@ -53,7 +53,6 @@ const basePosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 7,
   pnl: 1500.25,
   notionalVolume: 30_000,
-  marginDeployed: 2000,
   qualified: true,
   neighbors: [],
   computedAt: '2025-01-01T00:00:00.000Z',
