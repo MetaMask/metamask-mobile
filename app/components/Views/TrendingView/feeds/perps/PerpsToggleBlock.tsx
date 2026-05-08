@@ -1,7 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import type { PerpsMarketData, SortOptionId } from '@metamask/perps-controller';
 import PerpsRowItem from './PerpsRowItem';
 import PerpsRowSkeleton from '../../../../UI/Perps/components/PerpsRowSkeleton';
 import PillToggleCardList, {
@@ -21,7 +21,8 @@ export interface PerpsToggleBlockProps {
   tabs: PillToggleCardListTab<PerpsMarketData>[];
   isLoading: boolean;
   defaultPillKey: string;
-  onViewAll: (filter: string) => void;
+  onViewAll: (filter: string, sortOptionId: SortOptionId) => void;
+  sortOptionId: SortOptionId;
   /** Analytics context */
   tabName: ExploreTabName;
   sectionName: ExploreSectionName;
@@ -42,6 +43,7 @@ const PerpsToggleBlock: React.FC<PerpsToggleBlockProps> = ({
   isLoading,
   defaultPillKey,
   onViewAll,
+  sortOptionId,
   tabName,
   sectionName,
   headerTestID,
@@ -74,7 +76,7 @@ const PerpsToggleBlock: React.FC<PerpsToggleBlockProps> = ({
     <Box>
       <SectionHeader
         title={title}
-        onViewAll={() => onViewAll(activePillKey.current)}
+        onViewAll={() => onViewAll(activePillKey.current, sortOptionId)}
         testID={headerTestID}
         tabName={tabName}
         sectionName={sectionName}

@@ -66,29 +66,12 @@ jest.mock('../utils/formatUtils', () => ({
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
-
-jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { Pressable, Text, View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({ title, onBack }: { title: string; onBack: () => void }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'header' },
-          ReactActual.createElement(Text, null, title),
-          ReactActual.createElement(Pressable, {
-            onPress: onBack,
-            testID: 'header-back-button',
-          }),
-        ),
-    };
+  useTailwind: () => {
+    const tw = (..._args: unknown[]) => ({});
+    tw.style = jest.fn(() => ({}));
+    return tw;
   },
-);
+}));
 
 jest.mock('../../../Views/ErrorBoundary', () => ({
   __esModule: true,
@@ -104,6 +87,7 @@ jest.mock('react-native-safe-area-context', () => {
       testID,
     }: React.PropsWithChildren<{ testID?: string }>) =>
       ReactActual.createElement(View, { testID }, children),
+    useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
   };
 });
 

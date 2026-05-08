@@ -832,5 +832,6 @@
   },
   "MoneyAccountController": {
     "moneyAccounts": {}
-  }
+  },
+  "MoneyAccountUpgradeController": {}
 }
