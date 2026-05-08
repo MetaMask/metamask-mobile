@@ -22,6 +22,10 @@ const mockSourceToken: BridgeToken = {
 };
 let mockSelectedDestinationToken: BridgeToken | undefined;
 let mockDestinationStablecoins: BridgeToken[];
+let mockBalancesByAssetId: Record<
+  string,
+  { balance: string; balanceFiat?: string }
+>;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -126,6 +130,13 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useBalancesByAssetId', () => ({
+  useBalancesByAssetId: () => ({
+    balancesByAssetId: mockBalancesByAssetId,
+    tokensWithBalance: [],
+  }),
+}));
+
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
@@ -139,6 +150,7 @@ describe('BatchSellDestinationTokenSelectorModal', () => {
       BridgeTokenMetadata[usdcAssetId],
       BridgeTokenMetadata[musdAssetId],
     ];
+    mockBalancesByAssetId = {};
   });
 
   it('renders the stablecoin selector content', () => {
@@ -152,6 +164,29 @@ describe('BatchSellDestinationTokenSelectorModal', () => {
     expect(getByText('Select a stablecoin')).toBeOnTheScreen();
     expect(getByText('USDC')).toBeOnTheScreen();
     expect(getByText('MUSD')).toBeOnTheScreen();
+  });
+
+  it('renders the stablecoin token balance without fiat value or symbol', () => {
+    mockBalancesByAssetId = {
+      [usdcAssetId]: {
+        balance: '123',
+        balanceFiat: '$123.00',
+      },
+    };
+
+    const { getByText, queryByText } = render(
+      <BatchSellDestinationTokenSelectorModal />,
+    );
+
+    expect(getByText('123')).toBeOnTheScreen();
+    expect(queryByText('$123.00')).not.toBeOnTheScreen();
+    expect(queryByText('123 USDC')).not.toBeOnTheScreen();
+  });
+
+  it('renders zero when the stablecoin token is missing from wallet balances', () => {
+    const { getAllByText } = render(<BatchSellDestinationTokenSelectorModal />);
+
+    expect(getAllByText('0')).toHaveLength(2);
   });
 
   it('highlights the selected stablecoin row', () => {

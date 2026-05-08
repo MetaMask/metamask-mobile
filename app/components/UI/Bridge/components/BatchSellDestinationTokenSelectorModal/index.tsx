@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { Pressable } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -20,6 +20,9 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../locales/i18n';
+import { useBalancesByAssetId } from '../../hooks/useBalancesByAssetId';
+import { formatTokenBalance } from '../../utils';
+import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
 import {
   selectBatchSellDestStablecoins,
   selectBatchSellDestToken,
@@ -29,6 +32,8 @@ import {
 import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
 import { BatchSellDestinationTokenSelectorModalSelectorsIDs } from './BatchSellDestinationTokenSelectorModal.testIds';
+
+const ZERO_TOKEN_BALANCE = '0';
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
 
@@ -51,6 +56,14 @@ export function BatchSellDestinationTokenSelectorModal() {
     selectBatchSellDestStablecoins(state, sourceChainId),
   );
   const selectedDestinationToken = useSelector(selectBatchSellDestToken);
+  const destinationChainIds = useMemo(() => {
+    const chainIds = destinationTokens.map((token) => token.chainId);
+    return chainIds.length > 0 ? Array.from(new Set(chainIds)) : undefined;
+  }, [destinationTokens]);
+  const { balancesByAssetId } = useBalancesByAssetId({
+    chainIds:
+      destinationChainIds ?? (sourceChainId ? [sourceChainId] : undefined),
+  });
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -84,6 +97,10 @@ export function BatchSellDestinationTokenSelectorModal() {
         {destinationTokens.map((token) => {
           const tokenKey = getTokenKey(token);
           const isSelected = isSameToken(token, selectedDestinationToken);
+          const assetId = getBridgeTokenAssetId(token);
+          const tokenBalance = assetId
+            ? (balancesByAssetId[assetId]?.balance ?? ZERO_TOKEN_BALANCE)
+            : undefined;
 
           return (
             <Pressable
@@ -117,14 +134,14 @@ export function BatchSellDestinationTokenSelectorModal() {
                   {token.symbol}
                 </Text>
               </Box>
-              {token.balanceFiat ? (
+              {tokenBalance ? (
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
                   numberOfLines={1}
                 >
-                  {token.balanceFiat}
+                  {formatTokenBalance(tokenBalance)}
                 </Text>
               ) : null}
             </Pressable>

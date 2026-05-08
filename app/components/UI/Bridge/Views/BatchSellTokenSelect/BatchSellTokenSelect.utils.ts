@@ -1,12 +1,11 @@
 import {
-  formatAddressToAssetId,
   formatChainIdToCaip,
   formatChainIdToHex,
 } from '@metamask/bridge-controller';
 import { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 import { BridgeToken } from '../../types';
-import { normalizeEvmAssetId } from '../../utils/tokenUtils';
+import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
 
 export const MAX_BATCH_SELL_SOURCE_TOKENS = 5;
 // TODO: The fetching of 7702 chains needs to be dynamic so there's no need for
@@ -29,11 +28,6 @@ interface BatchSellEligibleChain {
 }
 
 export type BatchSellTokenSortDirection = 'asc' | 'desc';
-
-function getTokenAssetId(token: BridgeToken): CaipAssetType | undefined {
-  const assetId = formatAddressToAssetId(token.address, token.chainId);
-  return assetId ? normalizeEvmAssetId(assetId) : undefined;
-}
 
 /**
  * Returns the first destination stablecoin for a chain that has local metadata.
@@ -58,12 +52,12 @@ export function removeStablecoinsFromSourceTokens({
 }): BridgeToken[] {
   const stablecoinAssetIds = new Set(
     stablecoins
-      .map((stablecoin) => getTokenAssetId(stablecoin))
+      .map((stablecoin) => getBridgeTokenAssetId(stablecoin))
       .filter((assetId): assetId is CaipAssetType => Boolean(assetId)),
   );
 
   return tokens.filter((token) => {
-    const assetId = getTokenAssetId(token);
+    const assetId = getBridgeTokenAssetId(token);
 
     if (!assetId) {
       return true;
