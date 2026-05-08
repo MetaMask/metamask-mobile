@@ -6,6 +6,7 @@ import {
 } from './RewardsController';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import { deriveStateFromMetadata } from '@metamask/base-controller';
+import type { Draft } from 'immer';
 import {
   RewardClaimStatus,
   CampaignType,
@@ -23,6 +24,8 @@ import {
   type CampaignLeaderboardPositionState,
   type SubscriptionBenefitsState,
   type SubscriptionBenefitDto,
+  type VipDashboardDto,
+  type VipDashboardState,
 } from './types';
 import type { CaipAccountId, Json } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
@@ -181,7 +184,11 @@ class TestableRewardsController extends RewardsController {
     return this.state.seasonStatuses[`${subscriptionId}:${seasonId}`] || null;
   }
 
-  public testUpdate(callback: (state: RewardsControllerState) => void) {
+  public testUpdate(
+    callback: (
+      state: Draft<RewardsControllerState>,
+    ) => void | RewardsControllerState,
+  ) {
     this.update(callback);
   }
 }
@@ -356,6 +363,7 @@ describe('RewardsController', () => {
       claimReward: jest.fn(),
       login: jest.fn(),
       getBenefits: jest.fn(),
+      getVIPDashboard: jest.fn(),
       postBenefitImpression: jest.fn(),
     }));
 
@@ -402,6 +410,7 @@ describe('RewardsController', () => {
           'getSeasonStatus',
           'getReferralDetails',
           'getBenefits',
+          'getVIPDashboard',
           'postBenefitImpression',
           'getSeasonOneLineaRewardTokens',
           'optIn',
@@ -4249,7 +4258,12 @@ describe('RewardsController', () => {
         .mockResolvedValueOnce('0xsignature') // KeyringController:signPersonalMessage
         .mockResolvedValueOnce({
           sessionId: 'session123',
-          subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
+          subscription: {
+            id: 'sub123',
+            referralCode: 'REF123',
+            accounts: [],
+            features: { vip: { enabled: false } },
+          },
         }); // RewardsDataService:login
 
       // Trigger authentication via account group change
@@ -4508,7 +4522,12 @@ describe('RewardsController', () => {
 
       const mockLoginResponse = {
         sessionId: 'session123',
-        subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
+        subscription: {
+          id: 'sub123',
+          referralCode: 'REF123',
+          accounts: [],
+          features: { vip: { enabled: false } },
+        },
       };
 
       // Clear previous calls
@@ -4684,6 +4703,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {
@@ -4774,6 +4794,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {
@@ -4853,6 +4874,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {
@@ -4919,6 +4941,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {}, // No season in state
@@ -4946,6 +4969,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {
@@ -5096,6 +5120,7 @@ describe('RewardsController', () => {
             id: mockSubscriptionId,
             referralCode: 'REF123',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         };
         state.seasons = {
@@ -5216,6 +5241,7 @@ describe('RewardsController', () => {
             id: mockSubscriptionId,
             referralCode: 'REF123',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         };
         state.seasons = {
@@ -5357,6 +5383,7 @@ describe('RewardsController', () => {
             id: mockSubscriptionId,
             referralCode: 'REF123',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         };
         state.seasons = {
@@ -5515,6 +5542,7 @@ describe('RewardsController', () => {
             id: mockSubscriptionId,
             referralCode: 'REF123',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         };
         state.seasons = {
@@ -6736,6 +6764,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -6785,6 +6814,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -6837,6 +6867,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -6892,6 +6923,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -6923,6 +6955,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -7099,6 +7132,181 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Failed to get benefits details:',
         'Benefits API failed',
+      );
+    });
+  });
+
+  describe('getVIPDashboard', () => {
+    const mockSubscriptionId = 'sub-vip';
+
+    const createMockVIPDashboard = (
+      overrides: Partial<VipDashboardDto> = {},
+    ): VipDashboardDto => ({
+      program: { id: 'vip', name: 'VIP Pilot' },
+      period: {
+        start: '2026-03-31T00:00:00.000Z',
+        end: '2026-04-30T23:59:59.999Z',
+      },
+      currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
+      nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
+      progress: {
+        percent: 72,
+        remainingSwapsUsd: 800000,
+        remainingPerpsUsd: 3600000,
+        estimatedDaysToNextTier: 4,
+        status: 'on_track',
+      },
+      fees: {
+        swapsBps: 15,
+        perpsBps: 4,
+        nextTierSwapsBps: 12,
+        nextTierPerpsBps: 3,
+      },
+      volume: {
+        swapsUsd: 4100000,
+        perpsUsd: 2300000,
+      },
+      pointsAllocation: {
+        earned: 24400000,
+        max: 100000000,
+        percent: 24.4,
+      },
+      tiers: [
+        {
+          id: 'gold-fox-vip-3',
+          name: 'Gold Fox 3',
+          tier: 3,
+          swapsRequirementUsd: 7000000,
+          perpsRequirementUsd: 35000000,
+          swapsBps: 15,
+          perpsBps: 4,
+          status: 'current',
+        },
+      ],
+      localizedText: {
+        title: 'VIP',
+      },
+      ...overrides,
+    });
+
+    it('returns cached VIP dashboard when cache is fresh', async () => {
+      const cachedState: VipDashboardState = {
+        ...createMockVIPDashboard({
+          currentTier: {
+            id: 'gold-fox-vip-2',
+            name: 'Gold Fox VIP 2',
+            tier: 2,
+          },
+        }),
+        lastFetched: 100,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          vipDashboard: {
+            [mockSubscriptionId]: cachedState,
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      const result = await controller.getVIPDashboard(mockSubscriptionId);
+
+      expect(result).toEqual(cachedState);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getVIPDashboard',
+        expect.anything(),
+      );
+    });
+
+    it('fetches fresh VIP dashboard when cache is empty', async () => {
+      const apiDashboard = createMockVIPDashboard();
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiDashboard);
+
+      const result = await controller.getVIPDashboard(mockSubscriptionId);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVIPDashboard',
+        mockSubscriptionId,
+      );
+      expect(result).toEqual({
+        ...apiDashboard,
+        lastFetched: 123,
+      });
+    });
+
+    it('persists fetched VIP dashboard to vipDashboard state', async () => {
+      const apiDashboard = createMockVIPDashboard();
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiDashboard);
+
+      await controller.getVIPDashboard(mockSubscriptionId);
+
+      expect(controller.state.vipDashboard[mockSubscriptionId]).toEqual({
+        ...apiDashboard,
+        lastFetched: 123,
+      });
+    });
+
+    it('clears stale VIP dashboard cache when the API returns not VIP', async () => {
+      const cachedState: VipDashboardState = {
+        ...createMockVIPDashboard(),
+        lastFetched: -900000,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          vipDashboard: {
+            [mockSubscriptionId]: cachedState,
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(null);
+
+      const result = await controller.getVIPDashboard(mockSubscriptionId);
+
+      expect(result).toBeNull();
+      expect(controller.state.vipDashboard[mockSubscriptionId]).toBeUndefined();
+    });
+
+    it('logs and rethrows when the VIP dashboard API call fails', async () => {
+      mockLogger.log.mockClear();
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      const apiError = new Error('VIP API failed');
+      mockMessenger.call.mockRejectedValue(apiError);
+
+      await expect(
+        controller.getVIPDashboard(mockSubscriptionId),
+      ).rejects.toThrow('VIP API failed');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get VIP dashboard:',
+        'VIP API failed',
       );
     });
   });
@@ -8123,6 +8331,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF456',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -8245,6 +8454,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF999',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -8285,6 +8495,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -8342,6 +8553,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REFERR',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -9391,6 +9603,7 @@ describe('RewardsController', () => {
               id: subscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -9458,6 +9671,7 @@ describe('RewardsController', () => {
               id: subscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -9526,6 +9740,7 @@ describe('RewardsController', () => {
               id: subscriptionId,
               referralCode: 'REF456',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -9595,11 +9810,13 @@ describe('RewardsController', () => {
               id: subscriptionId1,
               referralCode: 'REF1',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
             [subscriptionId2]: {
               id: subscriptionId2,
               referralCode: 'REF2',
               accounts: [{ address: CAIP_ACCOUNT_2, chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -9692,6 +9909,7 @@ describe('RewardsController', () => {
                 { address: CAIP_ACCOUNT_1, chainId: 1 },
                 { address: CAIP_ACCOUNT_2, chainId: 1 },
               ],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -9770,6 +9988,7 @@ describe('RewardsController', () => {
               id: subscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
           // Set other state properties that should remain unchanged
@@ -9886,6 +10105,7 @@ describe('RewardsController', () => {
               id: subscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -10740,6 +10960,7 @@ describe('RewardsController', () => {
         id: recoveredSubscriptionId,
         referralCode: 'REF789',
         accounts: [{ address: mockEvmInternalAccount.address, chainId: 1 }],
+        features: { vip: { enabled: false } },
       };
 
       const testController = new RewardsController({
@@ -10880,6 +11101,7 @@ describe('RewardsController', () => {
               id: testSubscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: '0x123', chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -10932,6 +11154,7 @@ describe('RewardsController', () => {
               id: 'existing-subscription',
               referralCode: 'REF123',
               accounts: [{ address: '0x123456789', chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
           accounts: {
@@ -10987,6 +11210,7 @@ describe('RewardsController', () => {
               id: testSubscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: '0x123', chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11026,6 +11250,7 @@ describe('RewardsController', () => {
               id: testSubscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: '0x123', chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11060,6 +11285,7 @@ describe('RewardsController', () => {
               id: testSubscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: '0x123', chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11121,6 +11347,7 @@ describe('RewardsController', () => {
               id: 'sub123',
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11163,6 +11390,7 @@ describe('RewardsController', () => {
               id: 'sub123',
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11212,6 +11440,7 @@ describe('RewardsController', () => {
               id: 'sub123',
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11305,11 +11534,13 @@ describe('RewardsController', () => {
               id: subscriptionId1,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
             [subscriptionId2]: {
               id: subscriptionId2,
               referralCode: 'REF456',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11343,6 +11574,7 @@ describe('RewardsController', () => {
               id: 'sub123',
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11604,6 +11836,7 @@ describe('RewardsController', () => {
                 id: longSubscriptionId,
                 referralCode: 'REF123',
                 accounts: [],
+                features: { vip: { enabled: false } },
               },
             },
           },
@@ -11635,6 +11868,7 @@ describe('RewardsController', () => {
                 id: specialSubscriptionId,
                 referralCode: 'REF123',
                 accounts: [],
+                features: { vip: { enabled: false } },
               },
             },
           },
@@ -11666,6 +11900,7 @@ describe('RewardsController', () => {
                 id: subscriptionIdWithWhitespace,
                 referralCode: 'REF123',
                 accounts: [],
+                features: { vip: { enabled: false } },
               },
             },
           },
@@ -11715,11 +11950,13 @@ describe('RewardsController', () => {
               id: 'fallback-sub-123',
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
             'other-sub-456': {
               id: 'other-sub-456',
               referralCode: 'REF456',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11869,11 +12106,13 @@ describe('RewardsController', () => {
               id: activeSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
             'other-sub-456': {
               id: 'other-sub-456',
               referralCode: 'REF456',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -12900,6 +13139,7 @@ describe('RewardsController', () => {
               id: 'existing-sub',
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -12950,6 +13190,7 @@ describe('RewardsController', () => {
         id: 'candidate-sub-123',
         referralCode: 'REF456',
         accounts: [{ address: '0x123', chainId: 1 }],
+        features: { vip: { enabled: false } },
       };
 
       const testController = new RewardsController({
@@ -12961,6 +13202,7 @@ describe('RewardsController', () => {
               id: 'candidate-sub-123',
               referralCode: 'REF456',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -13015,6 +13257,7 @@ describe('RewardsController', () => {
         id: 'candidate-sub-123',
         referralCode: 'REF456',
         accounts: [{ address: '0x123', chainId: 1 }],
+        features: { vip: { enabled: false } },
       };
 
       const testController = new RewardsController({
@@ -13026,6 +13269,7 @@ describe('RewardsController', () => {
               id: 'candidate-sub-123',
               referralCode: 'REF456',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -13084,6 +13328,7 @@ describe('RewardsController', () => {
         id: subscriptionId,
         referralCode: 'REF456',
         accounts: [{ address: '0x123', chainId: 1 }],
+        features: { vip: { enabled: false } },
       };
 
       const initialState = {
@@ -13093,6 +13338,7 @@ describe('RewardsController', () => {
             id: subscriptionId,
             referralCode: 'REF456',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         },
         seasonStatuses: {
@@ -13202,6 +13448,7 @@ describe('RewardsController', () => {
               id: 'candidate-sub-123',
               referralCode: 'REF456',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -13246,6 +13493,7 @@ describe('RewardsController', () => {
         id: subscriptionId,
         referralCode: 'REF456',
         accounts: [{ address: '0x123', chainId: 1 }],
+        features: { vip: { enabled: false } },
       };
 
       const initialState = {
@@ -13255,6 +13503,7 @@ describe('RewardsController', () => {
             id: subscriptionId,
             referralCode: 'REF456',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         },
         seasonStatuses: {
@@ -13367,6 +13616,7 @@ describe('RewardsController', () => {
             id: subscriptionId,
             referralCode: 'REF789',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         },
         seasonStatuses: {
@@ -13579,6 +13829,7 @@ describe('RewardsController', () => {
         id: subscriptionId,
         referralCode: 'REF789',
         accounts: [{ address: '0x123', chainId: 1 }],
+        features: { vip: { enabled: false } },
       };
       mockMessenger.call
         .mockResolvedValueOnce('0xsignature') // signPersonalMessage
@@ -13639,6 +13890,7 @@ describe('RewardsController', () => {
         id: mockSubscriptionId,
         referralCode: 'REF789',
         accounts: [{ address: mockInternalAccount.address, chainId: 1 }],
+        features: { vip: { enabled: false } },
       };
 
       const testController = new RewardsController({
@@ -15099,6 +15351,7 @@ describe('RewardsController', () => {
             id: subscriptionId,
             referralCode: 'REF123',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         };
       });
@@ -16135,6 +16388,7 @@ describe('RewardsController', () => {
       subscriptionReferralDetails: {},
       subscriptions: {},
       unlockedRewards: {},
+      vipDashboard: {},
     });
   });
 
@@ -16165,6 +16419,7 @@ describe('RewardsController', () => {
       subscriptionReferralDetails: {},
       subscriptions: {},
       unlockedRewards: {},
+      vipDashboard: {},
     });
   });
 
@@ -16198,6 +16453,7 @@ describe('RewardsController', () => {
       subscriptionReferralDetails: {},
       subscriptions: {},
       unlockedRewards: {},
+      vipDashboard: {},
     });
   });
 
@@ -17953,11 +18209,13 @@ describe('RewardsController', () => {
           id: 'sub-123',
           referralCode: 'REF123',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
         'sub-456': {
           id: 'sub-456',
           referralCode: 'REF456',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
       };
 

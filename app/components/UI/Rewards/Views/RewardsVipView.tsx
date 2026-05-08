@@ -12,6 +12,7 @@ import {
 } from '../../../../selectors/rewards';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { useVipDashboard } from '../hooks/useVipDashboard';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 
 const RewardsVipView: React.FC = () => {
@@ -20,6 +21,8 @@ const RewardsVipView: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
   const canViewVip = Boolean(subscriptionId && isVipEnabled);
+
+  useVipDashboard();
 
   useTrackRewardsPageView({
     page_type: 'vip',
