@@ -61,9 +61,10 @@ class LocalWebSocketServer implements Resource {
       return;
     }
 
-    this.server = new WebSocketServer({ port: this.port });
+    const wsServer = new WebSocketServer({ port: this.port });
+    this.server = wsServer;
 
-    this.server.on('connection', (socket: WebSocket) => {
+    wsServer.on('connection', (socket: WebSocket) => {
       logger.info(
         `[${this.name}] Client connected to ws://localhost:${this.port}`,
       );
@@ -78,6 +79,27 @@ class LocalWebSocketServer implements Resource {
           this.websocketConnections.splice(index, 1);
         }
       });
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      const handleError = (error: Error) => {
+        wsServer.removeAllListeners('listening');
+        this.server = null;
+        this.status = ServerStatus.STOPPED;
+        reject(error);
+      };
+
+      const handleListening = () => {
+        wsServer.off('error', handleError);
+        const address = wsServer.address();
+        if (address && typeof address === 'object') {
+          this.port = address.port;
+        }
+        resolve();
+      };
+
+      wsServer.once('listening', handleListening);
+      wsServer.once('error', handleError);
     });
 
     this.status = ServerStatus.STARTED;

@@ -1,10 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsProviders } from './useRampsProviders';
@@ -31,6 +27,9 @@ jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),
   useQuery: jest.fn(),
 }));
+
+const mockUseQuery = jest.requireMock('@tanstack/react-query')
+  .useQuery as jest.Mock;
 
 const mockSelectedAccountGroupAddresses: string[] = [];
 
@@ -138,8 +137,6 @@ describe('useRampsProviders', () => {
   });
 
   describe('providers query', () => {
-    const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
-
     it('triggers providers query when regionCode is available', () => {
       const store = createMockStore();
       renderHook(() => useRampsProviders(), {
@@ -216,6 +213,25 @@ describe('useRampsProviders', () => {
         error: 'Execution prevented because the circuit breaker is open',
         errorKey: 'CIRCUIT_BREAKER_OPEN',
       });
+      const { result } = renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.error).toBe('fiat_on_ramp.circuit_breaker_open');
+    });
+
+    it('returns localized fallback when the providers query carries a circuit breaker errorKey', () => {
+      const circuitBreakerError = Object.assign(
+        new Error('Execution prevented because the circuit breaker is open'),
+        { errorKey: 'CIRCUIT_BREAKER_OPEN' },
+      );
+      mockUseQuery.mockReturnValueOnce({
+        data: undefined,
+        error: circuitBreakerError,
+        isLoading: false,
+      } as never);
+
+      const store = createMockStore();
       const { result } = renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
       });

@@ -188,6 +188,7 @@ describe('useRampsQuotes', () => {
       expect(result.current.loading).toBe(false);
       expect(result.current.data).toEqual(mockQuotesResponse);
       expect(result.current.isSuccess).toBe(true);
+      expect(result.current.error).toBeNull();
       expect(Engine.context.RampsController.getQuotes).toHaveBeenCalledWith(
         expect.objectContaining({
           amount: 100,

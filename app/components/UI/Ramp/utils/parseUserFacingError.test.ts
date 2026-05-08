@@ -105,6 +105,12 @@ describe('parseUserFacingError', () => {
     );
   });
 
+  it('returns fallback for resource-like errors with non-string error values', () => {
+    expect(
+      parseUserFacingError({ error: { message: 'Nested object' } }, FALLBACK),
+    ).toBe(FALLBACK);
+  });
+
   it('handles JSON body where error.message is empty', () => {
     const httpError = new Error(
       `Fetching https://api.example.com/x failed with status '400': {"error":{"statusCode":400,"message":""}}`,
