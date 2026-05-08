@@ -1796,9 +1796,7 @@ describe('BackgroundBridge', () => {
 
       bridge.handleSessionChangedFromSelectedAccountGroupChanges();
 
-      jest.advanceTimersByTime(1000);
-
-      expect(PermissionController.getCaveat).toHaveBeenCalledOnce();
+      expect(PermissionController.getCaveat).toHaveBeenCalledTimes(1);
       expect(notifySpy).toHaveBeenCalledWith(mockRefetchedCaveatValue);
       expect(notifySpy).not.toHaveBeenCalledWith(mockInitialCaveatValue);
     });
