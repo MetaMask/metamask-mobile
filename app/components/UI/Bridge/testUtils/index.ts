@@ -1,7 +1,7 @@
 import {
   type BridgeControllerState,
   getDefaultBridgeControllerState,
-  type QuoteRequest,
+  type GenericQuoteRequest,
 } from '@metamask/bridge-controller';
 import { initialState } from '../_mocks_/initialState';
 import { mockBridgeReducerState } from '../_mocks_/bridgeReducerState';
@@ -15,7 +15,7 @@ export * from './fixtures';
 
 type BridgeControllerStateOverride = Partial<
   Omit<BridgeControllerState, 'quoteRequest'>
-> & { quoteRequest?: Partial<QuoteRequest> };
+> & { quoteRequest?: Partial<GenericQuoteRequest> };
 /**
  * Creates a complete bridge controller state by merging default state with overrides
  * @param overrides - Partial state to override default values
