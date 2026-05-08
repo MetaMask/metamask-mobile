@@ -226,17 +226,28 @@ jobs:
       - name: Download iOS app artifact from CI
         run: |
           RUN_ID="${{ needs.prepare.outputs.RUN_ID }}"
-          ATTEMPT_COUNT=$(gh run view "${RUN_ID}" --json attempts --jq '.attempts | length')
+          REPO="${{ github.repository }}"
+          ATTEMPT_COUNT=$(gh run view "${RUN_ID}" --json attempt --jq '.attempt')
           echo "Run ${RUN_ID} has ${ATTEMPT_COUNT} attempt(s). Searching for iOS artifact..."
 
-          # Search from newest to oldest attempt — the artifact may be in an earlier
-          # attempt if only failed jobs were re-run and the iOS build was not among them.
+          # Search from newest to oldest attempt via the REST API — the artifact may live
+          # in an earlier attempt when only failed jobs were re-run and the iOS build was not.
+          # Note: `gh run download` has no --attempt flag; per-attempt lookup requires the API.
           for ATTEMPT in $(seq "${ATTEMPT_COUNT}" -1 1); do
             echo "Trying attempt ${ATTEMPT}..."
-            if gh run download "${RUN_ID}" \
-                -n main-qa-MetaMask.app \
-                -D artifacts/main-qa-MetaMask.app \
-                --attempt "${ATTEMPT}" 2>/dev/null; then
+
+            ARTIFACT_ID=$(gh api \
+              "repos/${REPO}/actions/runs/${RUN_ID}/attempts/${ATTEMPT}/artifacts" \
+              --jq '.artifacts[] | select(.name == "main-qa-MetaMask.app") | .id' \
+              2>/dev/null | head -1)
+
+            if [ -n "$ARTIFACT_ID" ]; then
+              echo "Found artifact (ID=${ARTIFACT_ID}) in attempt ${ATTEMPT}. Downloading..."
+              mkdir -p artifacts/main-qa-MetaMask.app
+              gh api --output /tmp/ios-artifact.zip \
+                "repos/${REPO}/actions/artifacts/${ARTIFACT_ID}/zip"
+              unzip -q /tmp/ios-artifact.zip -d artifacts/main-qa-MetaMask.app
+              rm /tmp/ios-artifact.zip
               echo "✅ Downloaded iOS artifact from attempt ${ATTEMPT}."
               exit 0
             fi
