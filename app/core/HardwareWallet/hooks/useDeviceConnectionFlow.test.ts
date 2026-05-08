@@ -803,7 +803,7 @@ describe('useDeviceConnectionFlow', () => {
   });
 
   describe('closeFlow', () => {
-    it('clears targetWalletType and disconnects', () => {
+    it('disconnects without clearing targetWalletType', () => {
       const options = createDefaultOptions();
       const { result } = renderHook(() => useDeviceConnectionFlow(options));
 
@@ -811,7 +811,7 @@ describe('useDeviceConnectionFlow', () => {
         result.current.closeFlow();
       });
 
-      expect(options.setters.setTargetWalletType).toHaveBeenCalledWith(null);
+      expect(options.setters.setTargetWalletType).not.toHaveBeenCalled();
       expect(options.updateConnectionState).toHaveBeenCalledWith({
         status: ConnectionStatus.Disconnected,
       });

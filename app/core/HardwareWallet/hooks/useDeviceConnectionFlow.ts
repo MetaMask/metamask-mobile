@@ -351,6 +351,12 @@ export const useDeviceConnectionFlow = ({
     tryEnsureReady,
   ]);
 
+  // NOTE: closeFlow does NOT clear targetWalletType. The consumer that set
+  // targetWalletType owns its lifecycle and clears it on unmount. Clearing it
+  // here caused a bug where dismissing the bottom sheet during the Ready state
+  // wiped the wallet type before the consumer's subsequent ensureDeviceReady
+  // call (e.g., LedgerSelectAccount → onUnlock), producing
+  // "ensureDeviceReady called without a wallet type".
   const closeFlow = useCallback(() => {
     const resolvePending = pendingReadyResolveRef.current;
     if (resolvePending) {
@@ -358,9 +364,8 @@ export const useDeviceConnectionFlow = ({
       connectionSuccessCallbackRef.current = null;
       resolvePending(false);
     }
-    setters.setTargetWalletType(null);
     updateConnectionState({ status: ConnectionStatus.Disconnected });
-  }, [setters, updateConnectionState]);
+  }, [updateConnectionState]);
 
   const handleConnectionSuccess = useCallback(() => {
     const callback = connectionSuccessCallbackRef.current;

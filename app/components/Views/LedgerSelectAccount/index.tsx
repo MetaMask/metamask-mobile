@@ -178,6 +178,13 @@ const LedgerSelectAccount = () => {
       };
 
       init();
+
+      // Clear targetWalletType on unmount so the adapter is released when the
+      // user navigates away. This component owns the targetWalletType lifecycle;
+      // closeFlow no longer clears it (see useDeviceConnectionFlow).
+      return () => {
+        setTargetWalletType(null);
+      };
     },
 
     // This is ran once on mount, so we don't need to add any dependencies
