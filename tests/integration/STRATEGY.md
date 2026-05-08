@@ -19,31 +19,61 @@ The point of Integration is _not_ "find bugs CV missed." It's "every flow a user
 
 Read top-to-bottom on the left for the architecture stack, left-to-right on the top for the test type. A blue cell means "this test type runs real code here"; an empty cell means "out of scope or mocked." The four layers stack so that anything reachable in jest stays in jest, and E2E only owns the bottom row (native runtime).
 
+Integration now has three perps harness shapes. Shape A drives the provider directly, Shape B renders hooks through the Engine shim, and Shape C renders real perps components with app providers while reusing Shape B's real TradingService/provider chain. Shape C is intentionally reserved for flows where the rendered button press is part of the bug surface; CV still owns pure UI variants.
+
+### Perps integration harness shapes
+
+The harness shapes are additive. Each one exists for a different failure class, not as a replacement for the previous shape.
+
+| Layer of the stack                                                         | Shape A: provider      | Shape B: flow                     | Shape C: rendered component               | Future Shape D: real controller/app       |
+| -------------------------------------------------------------------------- | ---------------------- | --------------------------------- | ----------------------------------------- | ----------------------------------------- |
+| External controller package                                                | ✓                      | ✓                                 | ✓                                         | ✓                                         |
+| Messenger / app glue                                                       | ✗                      | shimmed                           | shimmed                                   | ✓                                         |
+| Engine state + reducers                                                    | ✗                      | partial                           | ✓ minimal Redux fixture                   | ✓ fuller app fixture                      |
+| `HyperLiquidProvider`                                                      | ✓                      | ✓                                 | ✓                                         | ✓                                         |
+| `TradingService` validation seams and multi-step flows like `flipPosition` | ✗                      | ✓                                 | ✓                                         | ✓                                         |
+| SDK / wallet / websocket I/O                                               | mocked                 | mocked                            | mocked                                    | mocked                                    |
+| Selectors                                                                  | ✗                      | whatever the hook reads           | ✓ real selectors against fixture state    | ✓ real selectors against fuller app state |
+| Hook: `usePerpsTrading`                                                    | ✗                      | ✓                                 | ✓                                         | ✓                                         |
+| Perps UI hooks                                                             | ✗                      | partial                           | ✓                                         | ✓                                         |
+| `Engine.context.PerpsController` orchestration                             | ✗                      | shimmed                           | shimmed                                   | ✓                                         |
+| Component UI                                                               | ✗                      | ✗ (`renderHook`, not `render`)    | ✓                                         | ✓                                         |
+| Navigation / theme / toast / providers                                     | ✗                      | ✗                                 | ✓ test providers                          | ✓ app-like providers                      |
+| Confirmation/pay subsystem                                                 | ✗                      | ✗                                 | mocked as out-of-scope app-shell plumbing | preferably real fixture-backed            |
+| Native runtime                                                             | ✗                      | ✗                                 | mocked                                    | mocked                                    |
+| Best for                                                                   | Provider contract bugs | Hook → service/provider flow bugs | User click reaches real trading flow      | Controller/app orchestration bugs         |
+| Cost                                                                       | low                    | medium                            | medium-high                               | high                                      |
+| Maintenance burden                                                         | low                    | medium                            | medium-high                               | high                                      |
+
+Shape C's boundary is deliberately narrow: real rendered perps UI, real perps hooks, real `TradingService`, real provider, mocked SDK/native runtime, and mocked confirmation/pay app-shell plumbing unless the test is explicitly about pay-with-token behaviour. Confirmation/pay should have its own integration harness where its providers, selectors, transaction confirmation paths, quote alerts, and token-selection behaviour are real with only their I/O boundary mocked.
+
+The maintenance risk in Shape C is not rendering itself; it is letting the harness become "whatever mocks are needed to mount a large screen." To keep it healthy, use Shape C only when the rendered interaction must prove it reaches real perps trading code. Keep pure visual states in CV tests, keep provider/service behaviour in Shape A/B, and add a future Shape D only when the target bug is in `PerpsController` orchestration, messenger integration, or app state glue that the current Engine shim intentionally bypasses.
+
 ## Layer responsibilities — what each one uniquely covers
 
-| Layer           | Owns (uniquely)                                                                                                                                | Excludes (cheaper elsewhere)                                                                             |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| **E2E**         | Native module init · real wallet signing · real keychain unlock · real network calls · chain switching across native re-init                   | Order validation logic · UI variants · pure calculations · controller behaviour reachable via mocked I/O |
-| **Integration** | Controller-app wiring · validation seams · state transitions across actions · multi-controller interactions · upstream package behaviour drift | Visual rendering · UI interactions per se · pure functions · device behaviour                            |
-| **CV**          | UI variant rendering · accessibility · theming · keyboard/focus · component-level interactions                                                 | Anything requiring real controller code · cross-controller behaviour · native modules                    |
-| **Unit**        | Pure function correctness · edge cases (zero, NaN, big numbers, precision) · selector composition over hand-rolled state                       | Anything stateful or async · anything requiring the controller machinery                                 |
+| Layer           | Owns (uniquely)                                                                                                                                                                                                         | Excludes (cheaper elsewhere)                                                                             |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **E2E**         | Native module init · real wallet signing · real keychain unlock · real network calls · chain switching across native re-init                                                                                            | Order validation logic · UI variants · pure calculations · controller behaviour reachable via mocked I/O |
+| **Integration** | Controller-app wiring · validation seams · state transitions across actions · multi-controller interactions · upstream package behaviour drift · targeted rendered component flows that must reach real controller code | Visual variants · broad UI layout assertions · pure functions · device behaviour                         |
+| **CV**          | UI variant rendering · accessibility · theming · keyboard/focus · component-level interactions                                                                                                                          | Anything requiring real controller code · cross-controller behaviour · native modules                    |
+| **Unit**        | Pure function correctness · edge cases (zero, NaN, big numbers, precision) · selector composition over hand-rolled state                                                                                                | Anything stateful or async · anything requiring the controller machinery                                 |
 
 ## Comparison — cost & efficiency by bug class
 
 Each row is a kind of bug. The cell shows the cheapest layer that can catch it, and what it costs.
 
-| Bug class                                                      | Cheapest layer           | Per-test cost | Speed  | Why                                                                     |
-| -------------------------------------------------------------- | ------------------------ | ------------- | ------ | ----------------------------------------------------------------------- |
-| Pure calculation wrong (price slippage, position size math)    | Unit                     | ~15 min       | ~5ms   | No state, no async — unit tests are precisely calibrated for this.      |
-| Public controller action breaks (open / close / cancel / etc.) | Integration              | ~30 min       | ~50ms  | Real action through real reducer; CV mocks it away.                     |
-| Validation bug at the seam between two controller methods      | Integration              | ~30 min       | ~50ms  | Each method correct alone, broken together. The class CV can't see.     |
-| Component renders wrong layout for a state                     | CV                       | ~30 min       | ~20ms  | Variant coverage; getting the state via real actions costs 5–10× more.  |
-| Component handles loading/error/empty states                   | CV                       | ~30 min       | ~20ms  | Same — variant coverage.                                                |
-| Button click triggers wrong action                             | CV (or thin integration) | ~30 min       | ~20ms  | UI wiring; CV is faster, integration is more thorough.                  |
-| Native module init fails on cold launch                        | E2E                      | ~1 day        | ~30s   | No other layer touches native code.                                     |
-| Real wallet signing flow                                       | E2E                      | ~1 day        | ~60s   | No other layer can run real keychain + native bridge.                   |
-| Multi-step user flow (open → close → flip)                     | Integration              | ~1 hour       | ~100ms | Real actions, real state transitions, no UI rendering needed.           |
-| Upstream package version-bump regression                       | Integration              | ~0 (existing) | ~50ms  | Real controller code runs on the bump PR; failures show up immediately. |
+| Bug class                                                      | Cheapest layer      | Per-test cost | Speed  | Why                                                                     |
+| -------------------------------------------------------------- | ------------------- | ------------- | ------ | ----------------------------------------------------------------------- |
+| Pure calculation wrong (price slippage, position size math)    | Unit                | ~15 min       | ~5ms   | No state, no async — unit tests are precisely calibrated for this.      |
+| Public controller action breaks (open / close / cancel / etc.) | Integration         | ~30 min       | ~50ms  | Real action through real reducer; CV mocks it away.                     |
+| Validation bug at the seam between two controller methods      | Integration         | ~30 min       | ~50ms  | Each method correct alone, broken together. The class CV can't see.     |
+| Component renders wrong layout for a state                     | CV                  | ~30 min       | ~20ms  | Variant coverage; getting the state via real actions costs 5–10× more.  |
+| Component handles loading/error/empty states                   | CV                  | ~30 min       | ~20ms  | Same — variant coverage.                                                |
+| Button click triggers wrong controller action                  | Integration Shape C | ~45 min       | ~100ms | Renders the button but keeps the real TradingService/provider chain.    |
+| Native module init fails on cold launch                        | E2E                 | ~1 day        | ~30s   | No other layer touches native code.                                     |
+| Real wallet signing flow                                       | E2E                 | ~1 day        | ~60s   | No other layer can run real keychain + native bridge.                   |
+| Multi-step user flow (open → close → flip)                     | Integration         | ~1 hour       | ~100ms | Real actions, real state transitions, no UI rendering needed.           |
+| Upstream package version-bump regression                       | Integration         | ~0 (existing) | ~50ms  | Real controller code runs on the bump PR; failures show up immediately. |
 
 ## Comparison — refactor sensitivity
 
@@ -180,7 +210,9 @@ tests/integration/                           ← framework, mirrors tests/compon
 ├── coverage-and-tracking.md                   coverage targets + bug-tracking mechanisms
 ├── perps-use-cases.md                         every perps use case → primary test layer
 └── harnesses/
-    └── perps.ts                               jest.mock + buildPerpsIntegrationHarness
+    ├── perps.ts                               Shape A: provider-level harness
+    ├── perps-flow.ts                          Shape B: hook-flow harness
+    └── perps-component.tsx                    Shape C: rendered-component harness
 
 .agents/skills/integration-test/             ← the skill, mirrors component-view-test
 ├── SKILL.md

@@ -1,4 +1,4 @@
-/**
+/*
  * Perps FLOW integration-test harness — Option 2 of the integration strategy.
  *
  * The existing provider-level harness (`./perps`) covers controller wiring
@@ -32,6 +32,8 @@
  *     forwards method calls into the real `TradingService` with a real
  *     provider. PerpsController-specific orchestration (analytics, tracing,
  *     rewards integration) is bypassed.
+ *     Component-rendering tests also use mocked RewardsController methods for
+ *     the fee/rewards hooks; those remain app I/O, not perps trading logic.
  *   - `usePerpsNetworkManagement` — Redux-bound; not part of the controller flow
  * ─────────────────────────────────────────────────────────────────────────
  *
@@ -80,6 +82,16 @@ jest.mock(
 // to the real provider from the inner harness. The factory captures the
 // delegate at runtime; the mock just returns whatever the factory sets.
 let mockDelegateController: Record<string, unknown> | null = null;
+const mockRewardsController = {
+  getPerpsDiscountForAccount: jest.fn().mockResolvedValue(undefined),
+  estimatePoints: jest.fn().mockResolvedValue({
+    pointsEstimate: 0,
+    bonusBips: 0,
+  }),
+};
+const mockAccountTreeController = {
+  getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([]),
+};
 jest.mock('../../../app/core/Engine', () => ({
   __esModule: true,
   default: {
@@ -87,6 +99,13 @@ jest.mock('../../../app/core/Engine', () => ({
       get PerpsController() {
         return mockDelegateController;
       },
+      RewardsController: mockRewardsController,
+      AccountTreeController: mockAccountTreeController,
+    },
+    controllerMessenger: {
+      call: jest.fn().mockResolvedValue(null),
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
     },
   },
 }));
@@ -110,7 +129,7 @@ export interface PerpsFlowHarness {
   tradingService: TradingService;
 }
 
-/**
+/*
  * Build a flow-level perps harness on top of the provider-level one.
  *
  * The shim that backs `Engine.context.PerpsController` forwards each method
@@ -151,9 +170,7 @@ export function buildPerpsFlowHarness(
   const reportOrderToDataLake = async () => ({ success: true });
 
   mockDelegateController = {
-    placeOrder: (
-      params: Parameters<typeof harness.provider.placeOrder>[0],
-    ) =>
+    placeOrder: (params: Parameters<typeof harness.provider.placeOrder>[0]) =>
       tradingService.placeOrder({
         provider: harness.provider,
         params,
@@ -166,9 +183,7 @@ export function buildPerpsFlowHarness(
         params,
         context: buildServiceContext('editOrder'),
       }),
-    cancelOrder: (
-      params: Parameters<typeof harness.provider.cancelOrder>[0],
-    ) =>
+    cancelOrder: (params: Parameters<typeof harness.provider.cancelOrder>[0]) =>
       tradingService.cancelOrder({
         provider: harness.provider,
         params,
@@ -197,6 +212,28 @@ export function buildPerpsFlowHarness(
     getAccountState: (
       params?: Parameters<typeof harness.provider.getAccountState>[0],
     ) => harness.provider.getAccountState(params),
+    getOrders: (params?: Parameters<typeof harness.provider.getOrders>[0]) =>
+      harness.provider.getOrders(params),
+    calculateFees: (
+      params: Parameters<typeof harness.provider.calculateFees>[0],
+    ) => harness.provider.calculateFees(params),
+    validateOrder: (
+      params: Parameters<typeof harness.provider.validateOrder>[0],
+    ) => harness.provider.validateOrder(params),
+    subscribeToPrices: (
+      params: Parameters<typeof harness.provider.subscribeToPrices>[0],
+    ) => harness.provider.subscribeToPrices(params),
+    updatePositionTPSL: (
+      params: Parameters<typeof harness.provider.updatePositionTPSL>[0],
+    ) =>
+      tradingService.updatePositionTPSL({
+        provider: harness.provider,
+        params,
+        context: buildServiceContext('updatePositionTPSL'),
+      }),
+    setSelectedPaymentToken: jest.fn(),
+    savePendingTradeConfiguration: jest.fn(),
+    clearPendingTradeConfiguration: jest.fn(),
   };
 
   return { harness, tradingService };

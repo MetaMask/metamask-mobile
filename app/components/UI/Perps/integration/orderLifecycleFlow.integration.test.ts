@@ -1,4 +1,4 @@
-/**
+/*
  * Integration tests — perps order lifecycle, FLOW SHAPE (Option 2).
  *
  * Side-by-side counterpart to `orderLifecycle.integration.test.ts`. That
@@ -65,7 +65,7 @@ describe('Perps order lifecycle — FLOW integration', () => {
     });
   });
 
-  /**
+  /*
    * The full reverse-position flow that started this whole investigation.
    *
    * Chain exercised:

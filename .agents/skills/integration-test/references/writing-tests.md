@@ -196,6 +196,54 @@ it('opens a long, partial-closes it, then closes the rest', async () => {
 
 Multi-step is fine when the steps are one user journey. Multi-step is wrong when you're using it to dodge writing separate tests for separate use cases.
 
+### Rendered component flows
+
+Use the rendered-component harness only when the rendered interaction is part of the integration surface. The component should still reach a real method through the harness chain; do not use Shape C for pure UI variants that belong in component-view tests.
+
+```tsx
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+
+import { buildPerpsComponentHarness } from '../../../../../tests/integration/harnesses/perps-component';
+import PerpsOrderView from '../Views/PerpsOrderView/PerpsOrderView';
+import { PerpsOrderViewSelectorsIDs } from '../Perps.testIds';
+
+it('places an order from the rendered order screen', async () => {
+  // Arrange
+  const perps = buildPerpsComponentHarness();
+  try {
+    perps.harness.setupTradingReady();
+    perps.renderScreenWithFlow(PerpsOrderView, {
+      routeName: 'PerpsOrder',
+      initialParams: {
+        asset: 'BTC',
+        direction: 'long',
+        amount: '100',
+        leverage: 3,
+        defaultSzDecimals: 3,
+        defaultMaxLeverage: 50,
+      },
+    });
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+
+    // Act
+    fireEvent.press(placeOrderButton);
+
+    // Assert
+    await waitFor(() => {
+      expect(perps.mocks.exchangeClient.order).toHaveBeenCalledTimes(1);
+    });
+    expect(perps.mocks.showToast).toHaveBeenCalled();
+  } finally {
+    perps.teardown();
+  }
+});
+```
+
+Shape C tests still follow the normal rules: no `jest.mock(...)` in test files, assert on observable UI/side effects, and use `waitFor(...)` for async settlement.
+
 ### Customise mocks per test
 
 ```ts

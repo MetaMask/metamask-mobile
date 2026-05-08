@@ -55,8 +55,9 @@ tests/integration/
 ├── coverage-and-tracking.md   ← coverage targets per layer + bug-tracking mechanisms
 ├── perps-use-cases.md         ← every perps use case → primary test layer
 └── harnesses/
-    └── perps.ts               ← jest.mock + buildPerpsIntegrationHarness
-                                  (one file per domain — add card.ts, rewards.ts, etc. as needed)
+    ├── perps.ts               ← Shape A: provider-level harness
+    ├── perps-flow.ts          ← Shape B: hook-flow harness
+    └── perps-component.tsx    ← Shape C: rendered-component harness
 ```
 
 The actual test files live next to the code they test, named `<feature>.integration.test.ts`.
@@ -89,6 +90,24 @@ No `jest.mock` calls beyond what the harness declares are allowed in `*.integrat
 - **Factory:** `buildPerpsIntegrationHarness({ isTestnet?, assetMapping?, cachedPrices? })`
 - **Returns:** `{ provider, setCachedPrice, mocks: { client, wallet, subscription } }`
 - **Use cases the harness covers:** see [`perps-use-cases.md`](perps-use-cases.md) for the full enumeration
+
+### Perps Flow — [`harnesses/perps-flow.ts`](harnesses/perps-flow.ts)
+
+- **Shape:** B — hook-flow harness built on Shape A
+- **Real:** `usePerpsTrading` consumers, `TradingService`, `HyperLiquidProvider`, validation and order/state transitions
+- **Mocked:** Shape A I/O mocks plus `app/core/Engine` as a thin `PerpsController` shim and `usePerpsNetworkManagement`
+- **Factory:** `buildPerpsFlowHarness({ isTestnet?, assetMapping?, cachedPrices? })`
+- **Returns:** `{ harness, tradingService }`, where `harness` is the Shape A provider harness
+- **Use when:** a hook call should prove the user-facing flow reaches the real `TradingService`/provider chain without rendering UI
+
+### Perps Component Flow — [`harnesses/perps-component.tsx`](harnesses/perps-component.tsx)
+
+- **Shape:** C — rendered-component harness built on Shape B
+- **Real:** perps React components, Redux selectors, stream/provider contexts, `usePerpsTrading` → Shape B Engine shim → real `TradingService`/provider
+- **Mocked:** Shape A/B I/O mocks, native rendering/runtime modules, toast ref, confirmation/payment app surface that is outside perps trading logic
+- **Factory:** `buildPerpsComponentHarness({ isTestnet?, assetMapping?, cachedPrices? })`
+- **Returns:** `{ renderWithFlow, renderScreenWithFlow, harness, tradingService, mocks, teardown }`
+- **Use when:** the rendered button press is the integration surface, e.g. `PerpsOrderView` place-order or `PerpsFlipPositionConfirmSheet` reverse-position. Prefer CV tests for pure UI variants that do not need real controller code.
 
 Add a new harness when the integration test surface for a domain is non-trivial enough to warrant reusable setup (3+ tests across the domain). For one-off tests, call the existing harness or inline the setup.
 
