@@ -25,6 +25,7 @@ import {
   TokenListControllerActions,
   TokenListControllerEvents,
   TokenListState,
+  TokenListService,
   TokensController,
   TokensControllerActions,
   TokensControllerEvents,
@@ -1071,6 +1072,14 @@ export type MessengerClientInitRequest<
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
 
   /**
+   * Shared token list service instance.
+   * Owns a TanStack Query cache (4-hour stale time) so that both
+   * TokenDetectionController and TokensController share the same in-memory
+   * cache without redundant network requests.
+   */
+  tokenListService: TokenListService;
+
+  /**
    * Controller messenger for the client.
    * Used to generate controller for each controller.
    */
@@ -1175,6 +1184,7 @@ export interface InitMessengerClientsFunctionRequest {
   initialKeyringState?: KeyringControllerState | null;
   qrKeyringScanner: QrKeyringDeferredPromiseBridge;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
+  tokenListService: TokenListService;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   removeAccount: (address: string) => Promise<void>;
   ///: END:ONLY_INCLUDE_IF
