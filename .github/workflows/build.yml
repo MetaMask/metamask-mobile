@@ -367,9 +367,15 @@ jobs:
       - name: Set Android environment variables
         if: matrix.platform == 'android'
         run: |
+          # React Native 0.81's ReactAndroid/build.gradle.kts uses
+          # `System.getenv("CMAKE_VERSION") ?: "3.30.5"`. CI images typically only
+          # ship CMake 3.22.1 under ANDROID_SDK/cmake/ and AGP does not auto-
+          # install missing CMake, which yields CXX1300. RN's CMakeLists require
+          # >= 3.13, so 3.22.1 is sufficient.
           {
             echo "ANDROID_HOME=/opt/android-sdk"
             echo "ANDROID_SDK_ROOT=/opt/android-sdk"
+            echo "CMAKE_VERSION=3.22.1"
           } >> "$GITHUB_ENV"
 
       - name: Setup Java

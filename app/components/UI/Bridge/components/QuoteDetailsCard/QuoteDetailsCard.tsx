@@ -20,6 +20,8 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
+// DEMO-ONLY: nav perf overlay (remove before merging)
+import { markNavStart } from '../../utils/navPerf';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useSelector } from 'react-redux';
 import {
@@ -122,6 +124,8 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   };
 
   const handleRatePress = () => {
+    // DEMO-ONLY: time push to QuoteSelector (remove before merging)
+    markNavStart('QuoteSelector');
     navigation.navigate(Routes.BRIDGE.QUOTE_SELECTOR_VIEW);
   };
 
