@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, type ViewStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 import {
   AvatarBase,
   AvatarBaseShape,
@@ -26,7 +26,6 @@ function mapToAvatarBaseSize(pixels: number): AvatarBaseSize {
 const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   symbol,
   size = 32,
-  style,
   testID,
   recyclingKey,
 }) => {
@@ -76,8 +75,6 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
       fallbackText={showFallback ? fallbackText : undefined}
       testID={testID}
       twClassName={`w-[${size}px] h-[${size}px]`}
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      style={style as any}
     >
       {!showFallback && imageUri ? (
         <Image
