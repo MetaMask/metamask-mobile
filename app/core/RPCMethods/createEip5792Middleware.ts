@@ -29,14 +29,16 @@ export function createEip5792Middleware({
     wallet_getCapabilities: createAsyncMiddleware(async (req, res) => {
       const request = req as unknown as JsonRpcRequestWithOrigin;
       return walletGetCapabilities(request, res, {
-        getAccounts: async () => getPermittedAccounts(request.origin),
+        getPermittedAccountsForOrigin: async () =>
+          getPermittedAccounts(request.origin),
         getCapabilities,
       });
     }),
     wallet_sendCalls: createAsyncMiddleware(async (req, res) => {
       const request = req as unknown as JsonRpcRequestWithOrigin;
       return walletSendCalls(request, res, {
-        getAccounts: async () => getPermittedAccounts(request.origin),
+        getPermittedAccountsForOrigin: async () =>
+          getPermittedAccounts(request.origin),
         processSendCalls,
       });
     }),
