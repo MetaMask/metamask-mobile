@@ -1,14 +1,10 @@
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { useBrazeIdentity } from './useBrazeIdentity';
-import {
-  setBrazeUser,
-  clearBrazeUser,
-  refreshBrazeBanners,
-} from '../../../../core/Braze';
-import { backgroundState } from '../../../test/initial-root-state';
+import { setBrazeUser, clearBrazeUser, refreshBrazeBanners } from '../..';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 
-jest.mock('../../../../core/Braze', () => ({
-  ...jest.requireActual('../../../../core/Braze'),
+jest.mock('../..', () => ({
+  ...jest.requireActual('../..'),
   setBrazeUser: jest.fn(),
   clearBrazeUser: jest.fn(),
   refreshBrazeBanners: jest.fn(),
