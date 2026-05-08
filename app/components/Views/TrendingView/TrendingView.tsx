@@ -46,6 +46,15 @@ import {
   type ExploreTabName,
 } from './search/analytics';
 
+const TAB_NAMES: ExploreTabName[] = [
+  'Now',
+  'Macro',
+  'RWAs',
+  'Crypto',
+  'Sports',
+  'Sites',
+];
+
 export const EXPLORE_TAB_INDEX = {
   NOW: 0,
   MACRO: 1,
@@ -54,15 +63,6 @@ export const EXPLORE_TAB_INDEX = {
   SPORTS: 4,
   SITES: 5,
 } as const;
-
-const TAB_NAMES_BY_INDEX: Record<number, ExploreTabName> = {
-  [EXPLORE_TAB_INDEX.NOW]: 'Now',
-  [EXPLORE_TAB_INDEX.MACRO]: 'Macro',
-  [EXPLORE_TAB_INDEX.RWAS]: 'RWAs',
-  [EXPLORE_TAB_INDEX.CRYPTO]: 'Crypto',
-  [EXPLORE_TAB_INDEX.SPORTS]: 'Sports',
-  [EXPLORE_TAB_INDEX.SITES]: 'Sites',
-};
 
 interface ExploreFeedRouteParams {
   initialTab?: number | null;
@@ -154,7 +154,7 @@ export const ExploreFeed: React.FC = () => {
   const previousTabRef = useRef<ExploreTabName>('Now');
 
   const handleTabChange = useCallback(({ i }: { i: number }) => {
-    const destinationTab = TAB_NAMES_BY_INDEX[i];
+    const destinationTab = TAB_NAMES[i];
     if (!destinationTab) return;
     trackExploreInteracted({
       interaction_type: 'tab_switched',
