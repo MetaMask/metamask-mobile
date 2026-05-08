@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactElement, ReactNode } from 'react';
 
 export type PayWithSectionId =
   | 'perps'
@@ -16,7 +16,7 @@ export interface PayWithRowConfig {
   subtitle?: string;
   isSelected?: boolean;
   isLastUsed?: boolean;
-  trailingElement?: PayWithRowTrailingVariant | ReactNode;
+  trailingElement?: PayWithRowTrailingVariant | ReactElement;
   onPress?: () => void;
   disabled?: boolean;
   testID?: string;

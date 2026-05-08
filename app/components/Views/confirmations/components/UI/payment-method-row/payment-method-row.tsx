@@ -1,4 +1,4 @@
-import React, { ReactNode, isValidElement } from 'react';
+import React, { ReactElement } from 'react';
 import { Pressable } from 'react-native';
 import {
   Box,
@@ -17,34 +17,19 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Tag from '../../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  PayWithRowConfig,
-  PayWithRowTrailingVariant,
-} from '../../modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
+import { PayWithRowConfig } from '../../modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 
 export type PaymentMethodRowProps = PayWithRowConfig;
 
-const TRAILING_VARIANTS: readonly PayWithRowTrailingVariant[] = [
-  'checkmark',
-  'chevron',
-  'none',
-];
-
-const isTrailingVariant = (
-  value: PayWithRowConfig['trailingElement'],
-): value is PayWithRowTrailingVariant =>
-  typeof value === 'string' &&
-  (TRAILING_VARIANTS as readonly string[]).includes(value);
-
 const renderTrailing = (
   trailingElement: PayWithRowConfig['trailingElement'],
-): ReactNode => {
+): ReactElement | null => {
   if (trailingElement == null) {
     return null;
   }
 
-  if (isTrailingVariant(trailingElement)) {
-    if (trailingElement === 'checkmark') {
+  switch (trailingElement) {
+    case 'checkmark':
       return (
         <Icon
           name={IconName.Check}
@@ -53,8 +38,7 @@ const renderTrailing = (
           testID="payment-method-row-checkmark"
         />
       );
-    }
-    if (trailingElement === 'chevron') {
+    case 'chevron':
       return (
         <Icon
           name={IconName.ArrowRight}
@@ -63,15 +47,11 @@ const renderTrailing = (
           testID="payment-method-row-chevron"
         />
       );
-    }
-    return null;
+    case 'none':
+      return null;
+    default:
+      return trailingElement;
   }
-
-  if (isValidElement(trailingElement)) {
-    return trailingElement;
-  }
-
-  return null;
 };
 
 const PaymentMethodRow = ({
