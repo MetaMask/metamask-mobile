@@ -60,4 +60,10 @@ export interface TabsIconBarProps extends BoxComponentProps {
    * Requires useNativeDriver: false on the driving animation.
    */
   collapseAnim?: Animated.Value;
+  /**
+   * When provided alongside `collapseAnim`, the tab row collapses BY this many pixels at the
+   * fully-hidden state (1.0) instead of collapsing all the way to 0. Use this to shrink the
+   * row by just the icon area (for example) while keeping labels visible.
+   */
+  collapseBy?: number;
 }
