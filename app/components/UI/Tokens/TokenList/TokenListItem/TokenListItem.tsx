@@ -14,14 +14,12 @@ import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { StakeButton } from '../../../Stake/components/StakeButton';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
 import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { FlashListAssetKey } from '../TokenList';
-import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import { useMusdBonusTokenListItem } from '../../../Earn/hooks/useMusdBonusTokenListItem';
+import { useMusdConversionTokenListItem } from '../../../Earn/hooks/useMusdConversionTokenListItem';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
@@ -35,25 +33,11 @@ import {
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
-
-import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
 import { Colors } from '../../../../../util/theme/models';
-import { strings } from '../../../../../../locales/i18n';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../../Bridge/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import StockBadge from '../../../shared/StockBadge';
-import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
-import { toHex } from '@metamask/controller-utils';
-import Logger from '../../../../../util/Logger';
-import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
-import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
-import { MUSD_CONVERSION_APY, isMusdToken } from '../../../Earn/constants/musd';
-import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
-import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
-import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
-import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain/multichain';
 import {
@@ -168,7 +152,6 @@ export const TokenListItem = React.memo(
     shouldShowTokenListItemCta,
     hideSecondaryPriceRow = false,
   }: TokenListItemProps) => {
-    const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
     const queryClient = useQueryClient();
     const { colors } = useTheme();
@@ -244,25 +227,20 @@ export const TokenListItem = React.memo(
 
     const currentCurrency = useSelector(selectCurrentCurrency);
 
-    const networkName = useNetworkName(chainId);
+    // Bonus campaign state: whether the user holds mUSD and should see the
+    // campaign APY row (@metamask/earn).
+    const { isMusdAsset, bonusSecondaryBalance } = useMusdBonusTokenListItem({
+      asset: asset as TokenI | undefined,
+    });
 
-    const isStablecoinLendingEnabled = useSelector(
-      selectStablecoinLendingEnabledFlag,
-    );
-
-    const { getEarnToken } = useEarnTokens();
-
-    const earnToken = getEarnToken(asset as TokenI);
-
-    const { initiateCustomConversion, hasSeenConversionEducationScreen } =
-      useMusdConversion();
-
-    const shouldShowConvertToMusdCta = useMemo(
-      () => shouldShowTokenListItemCta(asset),
-      [asset, shouldShowTokenListItemCta],
-    );
-
-    const isMusdAsset = !!asset && isMusdToken(asset.address);
+    // Conversion CTA state: stablecoin → mUSD conversion prompt and stake
+    // button (@metamask/earn).
+    const { conversionSecondaryBalance, renderEarnCta } =
+      useMusdConversionTokenListItem({
+        asset: asset as TokenI | undefined,
+        chainId,
+        shouldShowTokenListItemCta,
+      });
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
@@ -327,79 +305,55 @@ export const TokenListItem = React.memo(
       ///: END:ONLY_INCLUDE_IF
     ]);
 
-    const handleConvertToMUSD = useCallback(async () => {
-      const submitCtaPressedEvent = () => {
-        const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
-
-        const getRedirectLocation = () => {
-          if (!hasSeenConversionEducationScreen) {
-            return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
-          }
-
-          return EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
-        };
-
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
-            .addProperties({
-              location: EVENT_LOCATIONS.TOKEN_LIST_ITEM,
-              redirects_to: getRedirectLocation(),
-              cta_type: MUSD_CTA_TYPES.SECONDARY,
-              cta_text: strings(
-                'earn.musd_conversion.get_a_percentage_musd_bonus',
-                {
-                  percentage: MUSD_CONVERSION_APY,
-                },
-              ),
-              network_chain_id: chainId,
-              network_name: networkName,
-              asset_symbol: asset?.symbol,
-            })
-            .build(),
-        );
-      };
-
-      try {
-        submitCtaPressedEvent();
-
-        if (!asset?.address || !asset?.chainId) {
-          throw new Error('Asset address or chain ID is not set');
-        }
-
-        const assetChainId = toHex(asset.chainId);
-
-        await initiateCustomConversion({
-          preferredPaymentToken: {
-            address: toHex(asset.address),
-            chainId: assetChainId,
-          },
-          navigationStack: Routes.EARN.ROOT,
-        });
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          '[mUSD Conversion] Failed to initiate conversion',
-        );
-      }
-    }, [
-      asset?.address,
-      asset?.chainId,
-      asset?.symbol,
-      chainId,
-      createEventBuilder,
-      hasSeenConversionEducationScreen,
-      initiateCustomConversion,
-      networkName,
-      trackEvent,
-    ]);
-
-    // Secondary balance shows percentage change (if available and not on testnet)
+    // Secondary balance: Earn overrides take priority (mUSD CTA, stablecoin
+    // lending, etc.); falls back to 24h price change when no Earn state applies.
     const hasPercentageChange =
       !isTestNet(chainId) &&
       showPercentageChange &&
       pricePercentChange1d !== null &&
       pricePercentChange1d !== undefined &&
       Number.isFinite(pricePercentChange1d);
+
+    const secondaryBalanceDisplay = useMemo(() => {
+      // Bonus campaign takes highest priority (user holds mUSD, show APY)
+      if (bonusSecondaryBalance !== null) {
+        return bonusSecondaryBalance;
+      }
+
+      // Conversion CTA next (user holds convertible stablecoin)
+      if (conversionSecondaryBalance !== null) {
+        return conversionSecondaryBalance;
+      }
+
+      if (!hasPercentageChange) {
+        return {
+          text: undefined,
+          color: CLTextColor.Alternative,
+          onPress: undefined,
+        };
+      }
+
+      const text = `${pricePercentChange1d >= 0 ? '+' : ''}${pricePercentChange1d.toFixed(2)}%`;
+
+      let color = CLTextColor.Alternative;
+      if (pricePercentChange1d > 0) {
+        color = CLTextColor.Success;
+      } else if (pricePercentChange1d < 0) {
+        color = CLTextColor.Error;
+      }
+
+      return { text, color, onPress: undefined };
+    }, [
+      bonusSecondaryBalance,
+      conversionSecondaryBalance,
+      hasPercentageChange,
+      pricePercentChange1d,
+    ]);
+
+    const networkBadgeSource = useMemo(
+      () => (chainId ? NetworkBadgeSource(chainId) : null),
+      [chainId],
+    );
 
     const onItemPress = useCallback(
       (token: TokenI) => {
@@ -429,86 +383,6 @@ export const TokenListItem = React.memo(
         queryClient,
       ],
     );
-
-    const handleLendingRedirect = useStablecoinLendingRedirect({
-      asset: asset as TokenI,
-      location: EARN_EVENT_LOCATIONS.HOME_SCREEN,
-    });
-
-    const secondaryBalanceDisplay = useMemo(() => {
-      if (shouldShowConvertToMusdCta) {
-        return {
-          text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
-            percentage: MUSD_CONVERSION_APY,
-          }),
-          color: CLTextColor.Primary,
-          onPress: handleConvertToMUSD,
-        };
-      }
-
-      if (
-        isStablecoinLendingEnabled &&
-        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
-      ) {
-        return {
-          text: `${strings('stake.earn')}`,
-          color: CLTextColor.Primary,
-          onPress: handleLendingRedirect,
-        };
-      }
-
-      if (!hasPercentageChange) {
-        return {
-          text: undefined,
-          color: CLTextColor.Alternative,
-          onPress: undefined,
-        };
-      }
-
-      const text = `${pricePercentChange1d >= 0 ? '+' : ''}${pricePercentChange1d.toFixed(
-        2,
-      )}%`;
-
-      let color = CLTextColor.Alternative;
-      if (pricePercentChange1d > 0) {
-        color = CLTextColor.Success;
-      } else if (pricePercentChange1d < 0) {
-        color = CLTextColor.Error;
-      }
-
-      return { text, color, onPress: undefined };
-    }, [
-      shouldShowConvertToMusdCta,
-      isStablecoinLendingEnabled,
-      earnToken?.experience?.type,
-      hasPercentageChange,
-      pricePercentChange1d,
-      handleConvertToMUSD,
-      handleLendingRedirect,
-    ]);
-
-    const networkBadgeSource = useMemo(
-      () => (chainId ? NetworkBadgeSource(chainId) : null),
-      [chainId],
-    );
-
-    const isStakeable = useSelector((state: RootState) =>
-      selectIsStakeableToken(state, asset as TokenI),
-    );
-
-    const renderEarnCta = useCallback(() => {
-      // For convertible stablecoins, we display the CTA in the AssetElement's secondary balance
-      if (!asset || shouldShowConvertToMusdCta) {
-        return null;
-      }
-
-      const shouldShowStakeCta = isStakeable && !asset?.isStaked;
-
-      if (shouldShowStakeCta) {
-        // TODO: Rename to EarnCta
-        return <StakeButton asset={asset} />;
-      }
-    }, [asset, isStakeable, shouldShowConvertToMusdCta]);
 
     if (!asset || !chainId) {
       return null;
@@ -716,7 +590,7 @@ export const TokenListItem = React.memo(
                       currentCurrency,
                     )
                   : '-'}
-                {' \u2022 '}
+                {' • '}
               </Text>
 
               {hideFiatForScamWarning ? (

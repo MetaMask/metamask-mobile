@@ -164,6 +164,10 @@ app/selectors/earnController         @MetaMask/earn
 **/Money/**                          @MetaMask/earn
 **/money/**                          @MetaMask/earn
 app/components/Views/Homepage/Sections/Cash/ @MetaMask/earn
+# Earn logic extracted from @metamask/assets-owned token list components
+app/components/UI/Earn/hooks/useMusdBonusTokenListItem.ts @MetaMask/earn
+app/components/UI/Earn/hooks/useMusdConversionTokenListItem.tsx @MetaMask/earn
+app/components/UI/Earn/hooks/useTokenListScrollAfterClaim.ts @MetaMask/earn
 
 # Rewards Team
 app/core/Engine/controllers/rewards-controller @MetaMask/rewards
