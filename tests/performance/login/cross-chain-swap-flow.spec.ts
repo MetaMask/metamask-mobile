@@ -9,6 +9,7 @@ import {
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import QuoteView from '../../page-objects/swaps/QuoteView.js';
+import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui';
 
 /* Scenario 7: Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3 */
 test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`, () => {
@@ -39,6 +40,12 @@ test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`
       await timer2.measure(() => QuoteView.isQuoteDisplayed());
 
       performanceTracker.addTimers(timer1, timer2);
+
+      if (process.env.SUBMIT_SWAP === 'true') {
+        await QuoteView.dismissKeypad();
+        await QuoteView.tapConfirmSwap();
+        await checkSwapActivity('ETH', 'SOL');
+      }
     },
   );
 });

@@ -13,6 +13,11 @@ on:
         required: false
         type: string
         default: ''
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
 
 permissions:
   contents: read
@@ -35,6 +40,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   swap-ios-smoke:
@@ -53,6 +59,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   stake-ios-smoke:
@@ -71,6 +78,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   perps-ios-smoke:
@@ -89,6 +97,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   wallet-platform-ios-smoke:
@@ -107,6 +116,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   identity-ios-smoke:
@@ -125,6 +135,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   accounts-ios-smoke:
@@ -143,6 +154,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   network-abstraction-ios-smoke:
@@ -161,6 +173,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   network-expansion-ios-smoke:
@@ -179,6 +192,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   prediction-market-ios-smoke:
@@ -197,6 +211,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   money-ios-smoke:
@@ -215,6 +230,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   multichain-api-ios-smoke:
@@ -233,6 +249,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   seedless-onboarding-ios-smoke:
@@ -251,6 +268,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   browser-ios-smoke:
@@ -269,6 +287,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   snaps-ios-smoke:
@@ -287,11 +306,12 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   report-ios-smoke-tests:
     name: Report iOS Smoke Tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
     needs:
       - confirmations-ios-smoke
