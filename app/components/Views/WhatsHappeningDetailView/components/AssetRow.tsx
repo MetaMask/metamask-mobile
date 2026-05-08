@@ -27,9 +27,9 @@ export interface AssetRowSecondaryLine {
 
 interface AssetRowProps {
   asset: RelatedAsset;
-  actionLabel: string;
-  accessibilityLabel: string;
-  onAction: () => void;
+  actionLabel?: string;
+  accessibilityLabel?: string;
+  onAction?: () => void;
   /** When provided, renders the security badge inline next to the asset name. */
   caipAssetId?: CaipAssetType;
   /** When provided, renders price + 24h change below the asset name. */
@@ -38,7 +38,7 @@ interface AssetRowProps {
 
 /**
  * Shared layout for a single asset row (logo + name + optional badge + optional
- * price/change + action button). Used by PerpsRow (Trade).
+ * price/change + optional action button). Used by PerpsRow (Trade when tradable).
  */
 const AssetRow: React.FC<AssetRowProps> = ({
   asset,
@@ -123,14 +123,16 @@ const AssetRow: React.FC<AssetRowProps> = ({
           )}
         </Box>
 
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Md}
-          onPress={onAction}
-          accessibilityLabel={accessibilityLabel}
-        >
-          {actionLabel}
-        </Button>
+        {onAction && actionLabel && accessibilityLabel ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
+            onPress={onAction}
+            accessibilityLabel={accessibilityLabel}
+          >
+            {actionLabel}
+          </Button>
+        ) : null}
       </Box>
     </Box>
   );

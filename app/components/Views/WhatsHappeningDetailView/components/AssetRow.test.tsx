@@ -59,6 +59,12 @@ describe('AssetRow', () => {
     expect(screen.getByText('UNK')).toBeOnTheScreen();
   });
 
+  it('does not render an action button when onAction is omitted', () => {
+    renderWithProvider(<AssetRow asset={btcAsset} />);
+    expect(screen.queryByText('Buy')).toBeNull();
+    expect(screen.queryByText('Trade')).toBeNull();
+  });
+
   it('renders the action button with the provided label', () => {
     renderWithProvider(
       <AssetRow

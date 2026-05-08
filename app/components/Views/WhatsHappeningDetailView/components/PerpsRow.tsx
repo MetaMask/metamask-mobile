@@ -26,7 +26,8 @@ interface PerpsRowProps {
 /**
  * A single row for a perps asset in the expanded What's Happening card.
  * Shows logo, name, optional verified badge (for assets that also have caip19),
- * live price/change, and a Trade button.
+ * live price/change when `hlPerpsMarket` is set, and a Trade button only when a
+ * perps market symbol exists.
  */
 const PerpsRow: React.FC<PerpsRowProps> = ({
   asset,
@@ -70,14 +71,17 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
   }, [asset.hlPerpsMarket, perpsPriceBySymbol]);
 
   const handleTradeWithTracking = useCallback(() => {
-    if (!asset.hlPerpsMarket?.[0]) return;
+    const perpsMarket = asset.hlPerpsMarket?.[0];
+    if (!perpsMarket) {
+      return;
+    }
     trackEvent(
       createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTION)
         .addProperties({
           ...getWhatsHappeningEventProps(item, cardIndex),
           interaction_type: WhatsHappeningInteractionType.TradePressed,
           asset_symbol: asset.symbol,
-          perps_market: asset.hlPerpsMarket?.[0],
+          perps_market: perpsMarket,
         })
         .build(),
     );
@@ -92,12 +96,18 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
     createEventBuilder,
   ]);
 
+  const perpsMarketSymbol = asset.hlPerpsMarket?.[0];
+
   return (
     <AssetRow
       asset={asset}
-      actionLabel={strings('bottom_nav.trade')}
-      accessibilityLabel={`${strings('bottom_nav.trade')} ${asset.symbol}`}
-      onAction={handleTradeWithTracking}
+      actionLabel={perpsMarketSymbol ? strings('bottom_nav.trade') : undefined}
+      accessibilityLabel={
+        perpsMarketSymbol
+          ? `${strings('bottom_nav.trade')} ${asset.symbol}`
+          : undefined
+      }
+      onAction={perpsMarketSymbol ? handleTradeWithTracking : undefined}
       caipAssetId={caipAssetId}
       secondaryLine={secondaryLine}
     />

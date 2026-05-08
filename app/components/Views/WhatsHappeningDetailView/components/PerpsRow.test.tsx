@@ -143,7 +143,7 @@ describe('PerpsRow', () => {
     });
   });
 
-  it('does not navigate when hlPerpsMarket is empty', () => {
+  it('does not render Trade when hlPerpsMarket is empty', () => {
     const assetNoPerps: RelatedAsset = {
       ...perpsOnlyAsset,
       hlPerpsMarket: [],
@@ -156,8 +156,9 @@ describe('PerpsRow', () => {
         perpsPriceBySymbol={emptyPriceMap}
       />,
     );
-    fireEvent.press(screen.getByText('Trade'));
+    expect(screen.queryByText('Trade')).toBeNull();
     expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
   });
 
   it('tracks Whats Happening Interaction on Trade press', () => {
@@ -187,23 +188,6 @@ describe('PerpsRow', () => {
         }),
       }),
     );
-  });
-
-  it('does not track Interaction when hlPerpsMarket is empty', () => {
-    const assetNoPerps: RelatedAsset = {
-      ...perpsOnlyAsset,
-      hlPerpsMarket: [],
-    };
-    renderWithProvider(
-      <PerpsRow
-        asset={assetNoPerps}
-        item={mockItem}
-        cardIndex={0}
-        perpsPriceBySymbol={emptyPriceMap}
-      />,
-    );
-    fireEvent.press(screen.getByText('Trade'));
-    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
   });
 
   it('displays price and 24h change from perpsPriceBySymbol', () => {
