@@ -220,7 +220,7 @@ builds:
     signing: *signing_uat
     env:
       <<: *public_envs
-      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_ENVIRONMENT: 'exp'
       METAMASK_BUILD_TYPE: 'main'
       IS_BROWSERSTACK_BUILD: 'true'
       DISABLE_NOTIFICATION_PROMPT: 'true'
@@ -256,7 +256,7 @@ builds:
     signing: *signing_uat
     env:
       <<: *public_envs
-      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_ENVIRONMENT: 'exp'
       METAMASK_BUILD_TYPE: 'main'
       IS_BROWSERSTACK_BUILD: 'true'
       DISABLE_NOTIFICATION_PROMPT: 'true'
