@@ -1,5 +1,8 @@
 import { ethers } from 'ethers';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import type { Hex } from '@metamask/utils';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
@@ -8,7 +11,15 @@ import {
   getSharesForWithdrawal,
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdraw,
+  updateMoneyAccountDepositTokenAmount,
+  updateMoneyAccountWithdrawTokenAmount,
 } from './moneyAccountTransactions';
+import {
+  type MoneyAccountVaultConfig,
+  selectMoneyAccountVaultConfig,
+} from '../../../../selectors/featureFlagController/moneyAccount';
+import { getProviderByChainId } from '../../../../util/notifications/methods/common';
+import ReduxService from '../../../../core/redux';
 
 jest.mock('../../Earn/constants/musd', () => ({
   MUSD_TOKEN_ADDRESS_BY_CHAIN: {} as Record<string, Hex>,
@@ -20,6 +31,10 @@ jest.mock('../../../../core/AppConstants', () => ({
     ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
   },
 }));
+
+jest.mock('../../../../util/notifications/methods/common');
+jest.mock('../../../../core/redux');
+jest.mock('../../../../selectors/featureFlagController/moneyAccount');
 
 const mockPreviewDeposit = jest.fn();
 const mockGetRate = jest.fn();
@@ -45,6 +60,11 @@ jest.mock('ethers', () => {
   };
 });
 
+const mockGetProviderByChainId = jest.mocked(getProviderByChainId);
+const mockSelectMoneyAccountVaultConfig = jest.mocked(
+  selectMoneyAccountVaultConfig,
+);
+
 const MOCK_CHAIN_ID = '0x1' as Hex;
 const MOCK_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
 const MOCK_BORING_VAULT = '0xB5F07d769dD60fE54c97dd53101181073DDf21b2' as Hex;
@@ -53,6 +73,14 @@ const MOCK_ACCOUNTANT = '0x800ebc3B74F67EaC27C9CCE4E4FF28b17CdCA173' as Hex;
 const MOCK_LENS = '0x846a7832022350434B5cC006d07cc9c782469660' as Hex;
 const MOCK_TO_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678' as Hex;
 const MOCK_PROVIDER = {} as ethers.providers.Provider;
+
+const MOCK_VAULT_CONFIG: MoneyAccountVaultConfig = {
+  chainId: '0xa4b1',
+  boringVault: MOCK_BORING_VAULT,
+  tellerAddress: MOCK_TELLER,
+  accountantAddress: MOCK_ACCOUNTANT,
+  lensAddress: MOCK_LENS,
+};
 
 describe('moneyAccountTransactions', () => {
   beforeEach(() => {
@@ -169,6 +197,113 @@ describe('moneyAccountTransactions', () => {
         MOCK_BORING_VAULT,
         MOCK_ACCOUNTANT,
       );
+    });
+  });
+
+  describe('updateMoneyAccountDepositTokenAmount', () => {
+    const mockTransactionMeta = {
+      id: 'tx-1',
+      chainId: MOCK_VAULT_CONFIG.chainId as Hex,
+    } as unknown as TransactionMeta;
+
+    beforeEach(() => {
+      // Default: vault config present, provider present
+      mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER as never);
+      mockSelectMoneyAccountVaultConfig.mockReturnValue(MOCK_VAULT_CONFIG);
+      (
+        jest.mocked(ReduxService) as unknown as {
+          store: { getState: jest.Mock };
+        }
+      ).store = { getState: jest.fn().mockReturnValue({}) };
+    });
+
+    it('returns indexed approve and deposit calls for a valid amount', async () => {
+      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
+
+      const result = await updateMoneyAccountDepositTokenAmount(
+        mockTransactionMeta,
+        '1.0',
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[0].nestedTransactionIndex).toBe(0);
+      expect(result[0].transactionData).toMatch(/^0x/);
+      expect(result[1].nestedTransactionIndex).toBe(1);
+      expect(result[1].transactionData).toMatch(/^0x/);
+    });
+
+    it('calls previewDeposit with the converted amount', async () => {
+      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
+
+      await updateMoneyAccountDepositTokenAmount(mockTransactionMeta, '1.0');
+
+      // 1.0 USDC with 6 decimals = 1_000_000
+      expect(mockPreviewDeposit).toHaveBeenCalledWith(
+        expect.any(String),
+        '1000000',
+        MOCK_VAULT_CONFIG.boringVault,
+        MOCK_VAULT_CONFIG.accountantAddress,
+      );
+    });
+
+    it('returns [] when vault config is missing', async () => {
+      mockSelectMoneyAccountVaultConfig.mockReturnValue(undefined);
+
+      const result = await updateMoneyAccountDepositTokenAmount(
+        mockTransactionMeta,
+        '1.0',
+      );
+
+      expect(result).toEqual([]);
+      expect(mockGetProviderByChainId).not.toHaveBeenCalled();
+      expect(mockPreviewDeposit).not.toHaveBeenCalled();
+    });
+
+    it('returns [] when provider is missing', async () => {
+      mockGetProviderByChainId.mockReturnValue(undefined as never);
+
+      const result = await updateMoneyAccountDepositTokenAmount(
+        mockTransactionMeta,
+        '1.0',
+      );
+
+      expect(result).toEqual([]);
+      expect(mockPreviewDeposit).not.toHaveBeenCalled();
+    });
+
+    it('rejects when previewDeposit fails so the dispatcher can log the error', async () => {
+      const rpcError = new Error('RPC connection refused');
+      mockPreviewDeposit.mockRejectedValue(rpcError);
+
+      await expect(
+        updateMoneyAccountDepositTokenAmount(mockTransactionMeta, '1.0'),
+      ).rejects.toThrow('RPC connection refused');
+    });
+  });
+
+  describe('updateMoneyAccountWithdrawTokenAmount', () => {
+    it('resolves to an empty array (stub implementation)', async () => {
+      const transactionMeta = {
+        id: 'tx-1',
+        nestedTransactions: [],
+      } as unknown as TransactionMeta;
+
+      await expect(
+        updateMoneyAccountWithdrawTokenAmount(transactionMeta, '1.23'),
+      ).resolves.toEqual([]);
+    });
+
+    it('resolves to an array regardless of transactionMeta shape', async () => {
+      const transactionMeta = {
+        id: 'tx-2',
+      } as unknown as TransactionMeta;
+
+      const result = await updateMoneyAccountWithdrawTokenAmount(
+        transactionMeta,
+        '1.23',
+      );
+
+      expect(Array.isArray(result)).toBe(true);
     });
   });
 

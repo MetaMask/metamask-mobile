@@ -29,12 +29,19 @@ export const SAFE_FACTORY_ADDRESS =
   '0xaacfeea03eb1561c4e67d661e40682bd20e3541b';
 export const USDC_CONTRACT_ADDRESS =
   '0x2791bca1f2de4661ed88a30c99a7a9449aa84174';
+/** Polymarket USD (pUSD) on Polygon — predict collateral; must match app PolymarketProvider constants. */
+export const POLYGON_PUSD_TOKEN_ADDRESS =
+  '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb';
 export const MULTICALL_CONTRACT_ADDRESS =
   '0xca11bde05977b3631167028862be2a173976ca11';
 export const CONDITIONAL_TOKENS_CONTRACT_ADDRESS =
   '0x4d97dcd97ec945f40cf65f87097ace5ea0476045';
 export const POLYGON_EIP7702_CONTRACT_ADDRESS =
   '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B';
+
+// Predict position ID for Spurs vs. Pelicans
+export const SPURS_PELICANS_POSITION_ID =
+  '110743925263777693447488608878982152642205002490046349037358337248548507433643';
 
 // EIP-7702 format: 0xef01 (magic byte) + 00 (padding) + 20-byte contract address
 // This format indicates an EOA is upgraded with EIP-7702

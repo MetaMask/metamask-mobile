@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import { selectGasIncludedQuoteParams } from '../../../../../selectors/bridge';
 import { BridgeToken } from '../../types';
 import { useTokenAddress } from '../useTokenAddress';
-import { isNativeAddress } from '@metamask/bridge-controller';
+import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
 import { BigNumber } from 'bignumber.js';
 
 export const useShouldRenderMaxOption = (
@@ -25,6 +25,10 @@ export const useShouldRenderMaxOption = (
   // Always show for non-native tokens
   if (!isNativeAsset) {
     return true;
+  }
+
+  if (isSolanaChainId(token.chainId)) {
+    return false;
   }
 
   return gasIncluded || gasIncluded7702;

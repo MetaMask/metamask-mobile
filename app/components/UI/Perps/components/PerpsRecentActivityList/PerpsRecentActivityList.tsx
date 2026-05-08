@@ -95,18 +95,12 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   }, []);
 
   const renderItem = useCallback(
-    (props: { item: PerpsTransaction; index: number }) => {
-      const { item, index } = props;
-      const isFirstItem = index === 0;
-      const isLastItem = index === transactions.length - 1;
+    (props: { item: PerpsTransaction }) => {
+      const { item } = props;
 
       return (
         <TouchableOpacity
-          style={[
-            styles.activityItem,
-            isFirstItem && styles.activityItemFirst,
-            isLastItem && styles.activityItemLast,
-          ]}
+          style={styles.activityItem}
           onPress={() => handleTransactionPress(item)}
           activeOpacity={0.7}
         >
@@ -146,13 +140,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
         </TouchableOpacity>
       );
     },
-    [
-      styles,
-      handleTransactionPress,
-      iconSize,
-      renderRightContent,
-      transactions.length,
-    ],
+    [styles, handleTransactionPress, iconSize, renderRightContent],
   );
 
   if (isLoading) {
@@ -187,7 +175,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
         </View>
       </TouchableOpacity>
 
-      <View style={styles.listContainer}>
+      <View>
         <FlatList
           data={transactions}
           renderItem={renderItem}

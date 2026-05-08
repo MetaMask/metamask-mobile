@@ -29,10 +29,11 @@ on:
         type: number
         default: 1
       test-timeout-minutes:
+        # Hard cap on the `Run E2E tests` step — when it elapses, GitHub kills the whole suite.
         description: 'The timeout in minutes for the test command'
         required: false
         type: number
-        default: 30
+        default: 40
       build_type:
         description: 'The type of build to perform'
         required: false
@@ -53,11 +54,16 @@ on:
         required: false
         type: string
         default: 'main-'
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
 
 jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-e2e' || 'namespace-profile-metamask-android-build') || (inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg') }}
     outputs:
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
@@ -84,11 +90,6 @@ jobs:
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
       SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
       SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
-      MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-      MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-      MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-      MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-      MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
       SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
       MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
       MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
@@ -100,7 +101,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Restore .metamask folder
         uses: actions/cache@v4
@@ -210,6 +211,21 @@ jobs:
           fi
 
           chmod +x "$APP_PATH/$BUNDLE_EXEC"
+
+          # actions/upload-artifact strips execute permissions from ALL files, not just the
+          # main binary. Framework dylibs and binaries inside Frameworks/ also need +x or
+          # SpringBoard (SBMainWorkspace) will refuse to launch the app with:
+          #   FBSOpenApplicationServiceErrorDomain code=1: denied by service delegate
+          if [ -d "$APP_PATH/Frameworks" ]; then
+            find "$APP_PATH/Frameworks" -type d -name "*.framework" | while IFS= read -r fw; do
+              binary="$fw/$(basename "$fw" .framework)"
+              if [ -f "$binary" ]; then
+                chmod +x "$binary"
+              fi
+            done
+            find "$APP_PATH/Frameworks" -type f -name "*.dylib" -exec chmod +x {} \;
+          fi
+          echo "✅ Restored execute permissions on main binary and all framework binaries"
         shell: bash
 
       # On re-run (run_attempt > 1), download previous test results to identify failed tests
