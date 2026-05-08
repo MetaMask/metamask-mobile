@@ -209,12 +209,14 @@ release-signoffs.json
 .claude/commands/*
 .agents/skills/
 .cursor/rules/
-.cursor/skills/
+.cursor/skills/*
 .cursor/commands/
 # Carve-outs: IDE config and kept skills/commands that must stay tracked
 !.cursor/BUGBOT.md
 !.cursor/hooks.json
 !.cursor/worktrees.json
+!.cursor/skills/worktree-create/
+!.cursor/skills/worktree-create/**
 !.claude/skills/perps-core-sync/
 !.claude/skills/perps-core-sync/**
 !.claude/skills/repo-skill-authoring/
