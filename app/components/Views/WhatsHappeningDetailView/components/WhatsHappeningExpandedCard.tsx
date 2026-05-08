@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Pressable, ScrollView } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -7,6 +8,9 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
+  Icon,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -25,7 +29,7 @@ import {
 } from '../../../UI/MarketInsights/utils/marketInsightsFormatting';
 import SourceLogoGroup from '../../../UI/MarketInsights/components/SourceLogoGroup';
 import PerpsRow from './PerpsRow';
-import TokenRow from './TokenRow';
+import { useWhatsHappeningAssetPrices } from '../hooks/useWhatsHappeningAssetPrices';
 
 interface WhatsHappeningExpandedCardProps {
   item: WhatsHappeningItem;
@@ -70,98 +74,121 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
     return remaining > 0 ? `${first.name} +${remaining}` : first.name;
   }, [uniqueSources]);
 
+  const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(item);
+
+  /** Theme token resolved to a concrete color for `LinearGradient` */
+  const cardBgColor = tw.color('bg-background-muted');
+
   return (
     <Box style={{ width: cardWidth, height: cardHeight }}>
-      {/* Card surface — fills the fixed height so all cards are the same size */}
-      <Box twClassName="rounded-2xl bg-background-muted overflow-hidden flex-1">
-        {/* Scrollable main content */}
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('p-5 gap-4')}
+      {/* Card surface */}
+      <Box
+        flexDirection={BoxFlexDirection.Column}
+        twClassName="rounded-2xl bg-background-muted overflow-hidden flex-1 mt-4"
+      >
+        {/* Scroll region with a persistent bottom fade hinting at more content */}
+        <Box
+          flexDirection={BoxFlexDirection.Column}
+          twClassName="relative flex-1 min-h-0"
         >
-          {/* Impact badge */}
-          {item.impact && (
-            <Box twClassName={`${impactBgClass} rounded px-2 py-1 self-start`}>
-              <Text variant={TextVariant.BodySm} color={impactTextColor}>
-                {impactLabel}
-              </Text>
-            </Box>
-          )}
-
-          {/* Title */}
-          <Text
-            variant={TextVariant.HeadingLg}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('pt-7 px-5 pb-5 gap-4')}
           >
-            {item.title}
-          </Text>
+            {/* Tag row: AI pill + impact badge */}
+            {item.impact && (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={2}
+                twClassName="flex-wrap"
+              >
+                {/* AI pill — inverted (dark bg, white content) */}
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                  twClassName="bg-icon-default rounded px-1.5 py-1 self-start"
+                >
+                  <Icon
+                    name={IconName.Sparkle}
+                    size={IconSize.Md}
+                    twClassName="text-icon-inverse"
+                  />
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    twClassName="text-icon-inverse"
+                  >
+                    {strings('homepage.sections.whats_happening_ai')}
+                  </Text>
+                </Box>
 
-          {/* Description */}
-          {item.description && (
+                <Box
+                  twClassName={`${impactBgClass} rounded px-2 py-1 self-start`}
+                >
+                  <Text variant={TextVariant.BodySm} color={impactTextColor}>
+                    {impactLabel}
+                  </Text>
+                </Box>
+              </Box>
+            )}
+
+            {/* Title */}
             <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
+              variant={TextVariant.HeadingLg}
+              fontWeight={FontWeight.Bold}
+              color={TextColor.TextDefault}
             >
-              {item.description}
+              {item.title}
             </Text>
-          )}
 
-          {/* Tokens section */}
-          {item.relatedAssets.some((asset) => asset.caip19?.length) && (
-            <Box gap={1}>
+            {/* Description */}
+            {item.description && (
               <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
+                variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
               >
-                {strings('homepage.sections.tokens')}
+                {item.description}
               </Text>
+            )}
 
-              {item.relatedAssets
-                .filter((asset) => asset.caip19?.length)
-                .map((asset) => (
-                  <TokenRow
+            {/* Related assets section */}
+            {item.relatedAssets.length > 0 && (
+              <Box gap={1}>
+                <Text
+                  variant={TextVariant.HeadingSm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {strings('homepage.sections.related_assets')}
+                </Text>
+
+                {item.relatedAssets.map((asset) => (
+                  <PerpsRow
                     key={asset.sourceAssetId}
                     asset={asset}
                     item={item}
                     cardIndex={cardIndex}
+                    perpsPriceBySymbol={perpsPriceBySymbol}
                   />
                 ))}
-            </Box>
-          )}
+              </Box>
+            )}
+          </ScrollView>
 
-          {/* Perps section — only assets that are perps-only (hlPerpsMarket set, no caip19 token) */}
-          {item.relatedAssets.some(
-            (asset) => asset.hlPerpsMarket?.length && !asset.caip19?.length,
-          ) && (
-            <Box gap={1}>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {strings('homepage.sections.perps')}
-              </Text>
+          {/* Bottom fade — blends into the card bg; omitted if theme color cannot resolve */}
+          {cardBgColor ? (
+            <LinearGradient
+              pointerEvents="none"
+              colors={['transparent', cardBgColor]}
+              style={tw.style('absolute left-0 right-0 bottom-0 h-12')}
+            />
+          ) : null}
+        </Box>
 
-              {item.relatedAssets
-                .filter(
-                  (asset) =>
-                    asset.hlPerpsMarket?.length && !asset.caip19?.length,
-                )
-                .map((asset) => (
-                  <PerpsRow
-                    key={`perp-${asset.sourceAssetId}`}
-                    asset={asset}
-                    item={item}
-                    cardIndex={cardIndex}
-                  />
-                ))}
-            </Box>
-          )}
-        </ScrollView>
-
-        {/* Fixed sources footer — always pinned to the bottom of the card */}
+        {/* Fixed sources footer */}
         {uniqueSources.length > 0 && (
           <Box twClassName="px-5 pb-5" gap={4}>
             <Box twClassName="h-px bg-border-muted" />
