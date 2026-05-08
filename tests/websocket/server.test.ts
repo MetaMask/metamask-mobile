@@ -30,7 +30,8 @@ describe('LocalWebSocketServer', () => {
     // Guard against nock.disableNetConnect() leaking from other test suites
     // that share the same Jest worker process.
     nock.enableNetConnect('localhost');
-    testPort = 50000 + Math.floor(Math.random() * 10000);
+    // Range 50000–50999 — does not overlap with account-activity-mocks.test.ts (52000–52999).
+    testPort = 50000 + Math.floor(Math.random() * 1000);
     jest.clearAllMocks();
   });
 
