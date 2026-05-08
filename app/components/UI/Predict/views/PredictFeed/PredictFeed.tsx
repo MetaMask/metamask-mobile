@@ -604,11 +604,15 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
 interface PredictFeedProps {
   hideHeader?: boolean;
   onHeaderHiddenChange?: (hidden: boolean) => void;
+  walletHeaderTranslateY?: SharedValue<number>;
+  walletHeaderHeight?: number;
 }
 
 const PredictFeed: React.FC<PredictFeedProps> = ({
   hideHeader = false,
   onHeaderHiddenChange,
+  walletHeaderTranslateY,
+  walletHeaderHeight,
 }) => {
   const {
     tabs,
@@ -687,6 +691,8 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     tabBarRef,
     setActiveIndex,
     onHeaderHiddenChange,
+    walletHeaderTranslateY,
+    walletHeaderHeight,
   });
 
   const handleTabPress = useCallback(
@@ -741,7 +747,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
           </Box>
         )}
 
-        <Box twClassName="flex-1 relative">
+        <Box twClassName="flex-1 relative overflow-hidden">
           <AnimatedHeader
             headerTranslateY={headerTranslateY}
             headerHeight={headerHeight}
