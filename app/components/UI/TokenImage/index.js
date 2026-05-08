@@ -19,6 +19,12 @@ const styles = StyleSheet.create({
   },
 });
 
+/**
+ * @param {object} props
+ * @param {any} props.asset
+ * @param {object} [props.containerStyle]
+ * @param {object} [props.iconStyle]
+ */
 const TokenImage = ({ asset, containerStyle, iconStyle }) => {
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
 

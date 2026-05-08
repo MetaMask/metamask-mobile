@@ -234,6 +234,16 @@ export const gasFeeControllerMock = {
   },
 };
 
+export const moneyAccountControllerMock = {
+  engine: {
+    backgroundState: {
+      MoneyAccountController: {
+        moneyAccounts: {},
+      },
+    },
+  },
+};
+
 export const predictControllerMock = {
   engine: {
     backgroundState: {
@@ -400,5 +410,6 @@ export const otherControllersMock = merge(
   tokenRatesControllerMock,
   tokensControllerMock,
   gasFeeControllerMock,
+  moneyAccountControllerMock,
   predictControllerMock,
 );

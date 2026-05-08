@@ -1,5 +1,14 @@
 import axios, { isAxiosError } from 'axios';
 import { BaanxService } from '../services/BaanxService';
+import { CardStatus, CardType } from '../../../../../components/UI/Card/types';
+import {
+  CardAccountStatus,
+  CardAction,
+  CardDetails,
+  CardFundingAsset,
+  FundingAssetStatus,
+} from '../provider-types';
+import { BaanxProvider } from './BaanxProvider';
 
 jest.mock('axios');
 jest.mock('../../../../../util/Logger');
@@ -259,6 +268,66 @@ describe('BaanxService', () => {
           headers: expect.objectContaining({ 'x-us-env': 'true' }),
         }),
       );
+    });
+  });
+});
+
+describe('BaanxProvider', () => {
+  describe('buildActions', () => {
+    const provider = new BaanxProvider({ service: {} as BaanxService });
+    const buildActions = (
+      asset: CardFundingAsset | null,
+      card: CardDetails | null,
+      account: CardAccountStatus | null,
+    ) =>
+      (
+        provider as unknown as {
+          buildActions: (
+            asset: CardFundingAsset | null,
+            card: CardDetails | null,
+            account: CardAccountStatus | null,
+          ) => CardAction[];
+        }
+      ).buildActions(asset, card, account);
+
+    const asset: CardFundingAsset = {
+      symbol: 'USDC',
+      name: 'USD Coin',
+      address: '0xusdc',
+      walletAddress: '0xwallet',
+      decimals: 6,
+      chainId: 'eip155:59144',
+      spendableBalance: '100',
+      spendingCap: '100',
+      priority: 1,
+      status: FundingAssetStatus.Active,
+    };
+
+    const account: CardAccountStatus = {
+      verificationStatus: 'VERIFIED',
+      provisioningEligible: true,
+      holderName: 'Test User',
+      shippingAddress: null,
+    };
+
+    const card: CardDetails = {
+      id: 'card-1',
+      status: CardStatus.ACTIVE,
+      type: CardType.VIRTUAL,
+      lastFour: '1234',
+      isFreezable: true,
+    };
+
+    it('keeps add funds available when the card is frozen', () => {
+      expect(
+        buildActions(asset, { ...card, status: CardStatus.FROZEN }, account),
+      ).toStrictEqual([{ type: 'add_funds', enabled: true }]);
+    });
+
+    it('does not show add funds when the card is blocked', () => {
+      expect(
+        buildActions(asset, { ...card, status: CardStatus.BLOCKED }, account),
+      ).toStrictEqual([]);
     });
   });
 });

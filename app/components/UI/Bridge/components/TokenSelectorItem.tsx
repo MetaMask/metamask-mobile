@@ -4,14 +4,12 @@ import {
   ImageSourcePropType,
   View,
   TouchableOpacity,
-  Platform,
   StyleProp,
   TextStyle,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { getAssetTestId } from '../../../../../tests/selectors/Wallet/WalletView.selectors';
 import TagBase, {
   TagSeverity,
   TagShape,
@@ -61,7 +59,6 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import { SHOW_TOKEN_WARNINGS } from './TokenSelectorItem.config';
 import { getBridgeTokenSecurityConfig } from '../utils/tokenSecurityUtils';
 
 const createStyles = ({
@@ -321,9 +318,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     ? ACCOUNT_TYPE_LABELS[token.accountType]
     : undefined;
 
-  const securityTag = SHOW_TOKEN_WARNINGS
-    ? getSecurityTag(token.securityData?.type)
-    : null;
+  const securityTag = getSecurityTag(token.securityData?.type);
 
   return (
     <Box
@@ -337,10 +332,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
         key={token.address}
         onPress={() => onPress(token)}
         style={styles.itemWrapper}
-        {...generateTestId(
-          Platform,
-          getAssetTestId(`${token.chainId}-${token.symbol}`),
-        )}
+        testID={getAssetTestId(`${token.chainId}-${token.symbol}`)}
       >
         <Box
           flexDirection={FlexDirection.Row}

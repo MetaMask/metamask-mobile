@@ -65,11 +65,11 @@ jest.mock('../../util/extractTokenExpiration', () => ({
 }));
 
 // Mock useTailwind
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: jest.fn(() => ({
-    style: jest.fn((...args: string[]) => args),
-  })),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 // Mock Checkbox component
 jest.mock('../../../../../component-library/components/Checkbox', () => {
@@ -783,7 +783,7 @@ describe('PhysicalAddress Component', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to VERIFYING_REGISTRATION when registration is complete', async () => {
+    it('navigates to ChooseYourCard when registration is complete', async () => {
       const mockGetOnboardingConsentSetByOnboardingId = jest
         .fn()
         .mockResolvedValue(null);

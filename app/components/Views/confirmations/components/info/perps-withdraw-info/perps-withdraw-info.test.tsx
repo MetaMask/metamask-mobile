@@ -52,7 +52,7 @@ describe('PerpsWithdrawInfo', () => {
           currency: PERPS_CURRENCY,
           disablePay,
         }),
-        expect.anything(),
+        undefined,
       );
     },
   );
@@ -77,7 +77,16 @@ describe('PerpsWithdrawInfo', () => {
 
     expect(mockCustomAmountInfo).toHaveBeenCalledWith(
       expect.objectContaining({ hasMax: true }),
-      expect.anything(),
+      undefined,
+    );
+  });
+
+  it('passes hasExtraBottomPadding=true to CustomAmountInfo to clear the Android gesture bar', () => {
+    render(<PerpsWithdrawInfo />);
+
+    expect(mockCustomAmountInfo).toHaveBeenCalledWith(
+      expect.objectContaining({ hasExtraBottomPadding: true }),
+      undefined,
     );
   });
 });

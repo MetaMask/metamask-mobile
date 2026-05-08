@@ -238,7 +238,11 @@ export function usePredictPlaceOrder(
 
         const orderResult = await withPendingTransactionActiveAbTests(
           transactionActiveAbTests,
-          () => controllerPlaceOrder(orderParams),
+          () =>
+            controllerPlaceOrder({
+              ...orderParams,
+              activeAbTests: transactionActiveAbTests,
+            }),
         );
 
         onComplete?.(orderResult);
