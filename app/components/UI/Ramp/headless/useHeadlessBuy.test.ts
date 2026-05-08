@@ -42,7 +42,11 @@ jest.mock('../../../../core/redux', () => ({
   __esModule: true,
   default: {
     store: {
-      getState: () => ({}),
+      // Shape mirrors what selectors expect: state.engine.backgroundState
+      getState: () => ({
+        engine: { backgroundState: { RampsController: { orders: [] } } },
+      }),
+      subscribe: () => () => undefined,
     },
   },
 }));
@@ -153,6 +157,7 @@ describe('useHeadlessBuy', () => {
     expect(result.current.countries).toBe(mockCountries);
     expect(result.current.userRegion).toBe(mockUserRegion);
     expect(result.current.orders).toBe(mockOrders);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- back-compat anchor
     expect(result.current.getOrderById).toBe(mockGetOrderById);
   });
 
@@ -540,6 +545,53 @@ describe('useHeadlessBuy', () => {
         'setSelectedProvider',
         'setSelectedPaymentMethod',
       ]);
+    });
+  });
+
+  // Phase 9: order observation surface. The hook delegates to the module-
+  // level imperative twin in `orderTerminalState.ts` (covered by its own
+  // suite). Here we only assert the wiring — that the hook exposes the
+  // methods, that they are callable, and that they reach the same
+  // dependency we expect.
+  describe('Phase 9 order observation surface', () => {
+    it('exposes getOrder, refreshOrder, and awaitOrderTerminalState as functions', () => {
+      const { result } = renderHook(() => useHeadlessBuy());
+      expect(typeof result.current.getOrder).toBe('function');
+      expect(typeof result.current.refreshOrder).toBe('function');
+      expect(typeof result.current.awaitOrderTerminalState).toBe('function');
+    });
+
+    it('keeps getOrderById exposed for backwards compatibility', () => {
+      const { result } = renderHook(() => useHeadlessBuy());
+      // eslint-disable-next-line @typescript-eslint/no-deprecated -- back-compat anchor
+      expect(result.current.getOrderById).toBe(mockGetOrderById);
+    });
+
+    it('getOrder returns a synchronous read off the redux store', () => {
+      // The module-level helper reads via selectRampsOrders. Our redux mock
+      // returns an empty state, so the call should complete and return
+      // undefined without throwing — the unit-level behavior is covered in
+      // orderTerminalState.test.ts.
+      const { result } = renderHook(() => useHeadlessBuy());
+      expect(result.current.getOrder('order-not-in-state')).toBeUndefined();
+    });
+
+    it('OrderTerminalStateTimeoutError survives a cross-module instanceof check', async () => {
+      // Hermes/Metro lower class extension; Object.setPrototypeOf in the
+      // constructor is the canonical workaround. Importing the error
+      // class from the public barrel and testing instanceof here exercises
+      // the cross-module boundary that bites in production.
+      // We trigger a real rejection by calling awaitOrderTerminalState
+      // through the hook with a tiny timeout — the order is never in state
+      // (our redux mock has no orders), so the timeout fires.
+      const { OrderTerminalStateTimeoutError } = jest.requireActual('./');
+      const { result } = renderHook(() => useHeadlessBuy());
+      const promise = result.current.awaitOrderTerminalState('order-xyz', {
+        timeoutMs: 1,
+      });
+      await expect(promise).rejects.toBeInstanceOf(
+        OrderTerminalStateTimeoutError,
+      );
     });
   });
 });

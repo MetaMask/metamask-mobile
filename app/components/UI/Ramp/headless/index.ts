@@ -13,3 +13,11 @@ export {
   setStatus,
 } from './sessionRegistry';
 export { useHeadlessSessionDismissal } from './useHeadlessSessionDismissal';
+export {
+  awaitOrderTerminalState,
+  getOrder,
+  isTerminalOrderStatus,
+  OrderTerminalStateTimeoutError,
+  refreshOrder,
+  RefreshOrderUnresolvableError,
+} from './orderTerminalState';

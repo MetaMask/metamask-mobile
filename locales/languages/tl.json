@@ -3461,12 +3461,6 @@
         "event_log_error": "onError → {{code}}{{messageSuffix}}",
         "event_log_close": "onClose → {{reason}}",
         "event_log_cancelled": "sesyon na kinansela ng consumer {{sessionId}}"
-      },
-      "headless_host": {
-        "title": "Headless buy",
-        "loading": "Preparing the buy flow…",
-        "no_session": "Headless session is no longer active.",
-        "cancel": "Kanselahin"
       }
     },
     "request_feature": "Humiling ng feature",

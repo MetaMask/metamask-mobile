@@ -26,6 +26,10 @@ import HeadlessPlayground, {
   HEADLESS_PLAYGROUND_RESET_ASSET_TEST_ID,
   HEADLESS_PLAYGROUND_RESET_PAYMENT_METHOD_TEST_ID,
   HEADLESS_PLAYGROUND_RESET_PROVIDER_TEST_ID,
+  HEADLESS_PLAYGROUND_ORDER_TRACKING_AWAIT_TEST_ID,
+  HEADLESS_PLAYGROUND_ORDER_TRACKING_REFRESH_TEST_ID,
+  HEADLESS_PLAYGROUND_ORDER_TRACKING_SECTION_TEST_ID,
+  HEADLESS_PLAYGROUND_ORDER_TRACKING_STATUS_BADGE_TEST_ID,
   HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID,
   HEADLESS_PLAYGROUND_SUMMARY_DIVIDER_TEST_ID,
   HEADLESS_PLAYGROUND_SUMMARY_TEST_ID,
@@ -155,6 +159,10 @@ const mockUseRampsControllerInitialValues: ReturnType<
 
 let mockUseRampsControllerValues = mockUseRampsControllerInitialValues;
 
+const mockGetOrder = jest.fn();
+const mockRefreshOrder = jest.fn();
+const mockAwaitOrderTerminalState = jest.fn();
+
 const mockUseHeadlessBuyInitialValues: ReturnType<typeof useHeadlessBuy> = {
   userRegion: mockUserRegion,
   providers: mockProviders,
@@ -163,6 +171,9 @@ const mockUseHeadlessBuyInitialValues: ReturnType<typeof useHeadlessBuy> = {
   tokens: { topTokens: mockTokens, allTokens: mockTokens },
   orders: [],
   getOrderById: mockGetOrderById,
+  getOrder: mockGetOrder,
+  refreshOrder: mockRefreshOrder,
+  awaitOrderTerminalState: mockAwaitOrderTerminalState,
   getQuotes: mockGetQuotes,
   startHeadlessBuy: mockStartHeadlessBuy,
   isLoading: false,
@@ -1181,6 +1192,187 @@ describe('HeadlessPlayground', () => {
       expect(
         screen.queryByTestId(HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID),
       ).not.toBeOnTheScreen();
+    });
+
+    describe('Phase 9 order tracking panel', () => {
+      it('does not render the order tracking panel before onOrderCreated fires', async () => {
+        await renderWithQuotes();
+        expect(
+          screen.queryByTestId(
+            HEADLESS_PLAYGROUND_ORDER_TRACKING_SECTION_TEST_ID,
+          ),
+        ).not.toBeOnTheScreen();
+      });
+
+      it('renders order id, status, and refresh/await actions after onOrderCreated', async () => {
+        mockGetOrder.mockReturnValue({
+          providerOrderId: 'order-xyz',
+          status: 'PENDING',
+          provider: { id: '/providers/moonpay' },
+          walletAddress: '0xWALLET',
+        });
+        await renderWithQuotes();
+        fireEvent.press(
+          screen.getByTestId(`${HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}-0`),
+        );
+        const callbacks = mockStartHeadlessBuy.mock.calls[0][1] as {
+          onOrderCreated: (orderId: string) => void;
+        };
+        act(() => {
+          callbacks.onOrderCreated('order-xyz');
+        });
+        expect(
+          screen.getByTestId(
+            HEADLESS_PLAYGROUND_ORDER_TRACKING_SECTION_TEST_ID,
+          ),
+        ).toBeOnTheScreen();
+        expect(screen.getByText('order-xyz')).toBeOnTheScreen();
+        expect(screen.getByText('PENDING')).toBeOnTheScreen();
+      });
+
+      it('renders the (not yet in state) status placeholder when getOrder returns undefined', async () => {
+        mockGetOrder.mockReturnValue(undefined);
+        await renderWithQuotes();
+        fireEvent.press(
+          screen.getByTestId(`${HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}-0`),
+        );
+        const callbacks = mockStartHeadlessBuy.mock.calls[0][1] as {
+          onOrderCreated: (orderId: string) => void;
+        };
+        act(() => {
+          callbacks.onOrderCreated('order-xyz');
+        });
+        expect(screen.getByText(/not yet in state/i)).toBeOnTheScreen();
+      });
+
+      it('disables the refresh button when the order is not yet in state', async () => {
+        mockGetOrder.mockReturnValue(undefined);
+        await renderWithQuotes();
+        fireEvent.press(
+          screen.getByTestId(`${HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}-0`),
+        );
+        const callbacks = mockStartHeadlessBuy.mock.calls[0][1] as {
+          onOrderCreated: (orderId: string) => void;
+        };
+        act(() => {
+          callbacks.onOrderCreated('order-xyz');
+        });
+        const refreshButton = screen.getByTestId(
+          HEADLESS_PLAYGROUND_ORDER_TRACKING_REFRESH_TEST_ID,
+        );
+        expect(refreshButton.props.accessibilityState?.disabled).toBe(true);
+      });
+
+      it('calls refreshOrder when the user taps the refresh button', async () => {
+        mockGetOrder.mockReturnValue({
+          providerOrderId: 'order-xyz',
+          status: 'PENDING',
+          provider: { id: '/providers/moonpay' },
+          walletAddress: '0xWALLET',
+        });
+        mockRefreshOrder.mockResolvedValue({
+          providerOrderId: 'order-xyz',
+          status: 'COMPLETED',
+        });
+        await renderWithQuotes();
+        fireEvent.press(
+          screen.getByTestId(`${HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}-0`),
+        );
+        const callbacks = mockStartHeadlessBuy.mock.calls[0][1] as {
+          onOrderCreated: (orderId: string) => void;
+        };
+        act(() => {
+          callbacks.onOrderCreated('order-xyz');
+        });
+        await act(async () => {
+          fireEvent.press(
+            screen.getByTestId(
+              HEADLESS_PLAYGROUND_ORDER_TRACKING_REFRESH_TEST_ID,
+            ),
+          );
+        });
+        expect(mockRefreshOrder).toHaveBeenCalledWith('order-xyz');
+      });
+
+      it('renders an "Awaiting…" badge while awaitOrderTerminalState is in flight', async () => {
+        mockGetOrder.mockReturnValue({
+          providerOrderId: 'order-xyz',
+          status: 'PENDING',
+          provider: { id: '/providers/moonpay' },
+          walletAddress: '0xWALLET',
+        });
+        let resolveAwait: ((order: unknown) => void) | undefined;
+        mockAwaitOrderTerminalState.mockImplementation(
+          () =>
+            new Promise((resolve) => {
+              resolveAwait = resolve;
+            }),
+        );
+        await renderWithQuotes();
+        fireEvent.press(
+          screen.getByTestId(`${HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}-0`),
+        );
+        const callbacks = mockStartHeadlessBuy.mock.calls[0][1] as {
+          onOrderCreated: (orderId: string) => void;
+        };
+        act(() => {
+          callbacks.onOrderCreated('order-xyz');
+        });
+        await act(async () => {
+          fireEvent.press(
+            screen.getByTestId(
+              HEADLESS_PLAYGROUND_ORDER_TRACKING_AWAIT_TEST_ID,
+            ),
+          );
+        });
+        expect(
+          screen.getByTestId(
+            HEADLESS_PLAYGROUND_ORDER_TRACKING_STATUS_BADGE_TEST_ID,
+          ),
+        ).toBeOnTheScreen();
+        expect(screen.getByText(/Awaiting/i)).toBeOnTheScreen();
+
+        // Resolve the promise to keep the test isolation clean.
+        await act(async () => {
+          resolveAwait?.({
+            providerOrderId: 'order-xyz',
+            status: 'COMPLETED',
+          });
+        });
+        expect(screen.getByText(/Terminal state reached/i)).toBeOnTheScreen();
+      });
+
+      it('renders a timed-out badge when awaitOrderTerminalState rejects with OrderTerminalStateTimeoutError', async () => {
+        const { OrderTerminalStateTimeoutError } =
+          jest.requireActual('../../headless');
+        mockGetOrder.mockReturnValue({
+          providerOrderId: 'order-xyz',
+          status: 'PENDING',
+          provider: { id: '/providers/moonpay' },
+          walletAddress: '0xWALLET',
+        });
+        mockAwaitOrderTerminalState.mockRejectedValue(
+          new OrderTerminalStateTimeoutError('boom'),
+        );
+        await renderWithQuotes();
+        fireEvent.press(
+          screen.getByTestId(`${HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}-0`),
+        );
+        const callbacks = mockStartHeadlessBuy.mock.calls[0][1] as {
+          onOrderCreated: (orderId: string) => void;
+        };
+        act(() => {
+          callbacks.onOrderCreated('order-xyz');
+        });
+        await act(async () => {
+          fireEvent.press(
+            screen.getByTestId(
+              HEADLESS_PLAYGROUND_ORDER_TRACKING_AWAIT_TEST_ID,
+            ),
+          );
+        });
+        expect(screen.getByText(/Timed out/i)).toBeOnTheScreen();
+      });
     });
   });
 });

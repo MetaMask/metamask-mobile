@@ -3461,12 +3461,6 @@
         "event_log_error": "ऑनएरर → {{code}}{{messageSuffix}}",
         "event_log_close": "ऑनक्लोज़ → {{reason}}",
         "event_log_cancelled": "कंज्यूमर द्वारा कैंसिल किया गया सेशन {{sessionId}}"
-      },
-      "headless_host": {
-        "title": "Headless buy",
-        "loading": "Preparing the buy flow…",
-        "no_session": "Headless session is no longer active.",
-        "cancel": "कैंसिल करें"
       }
     },
     "request_feature": "एक सुविधा का रिक्वेस्ट करें",

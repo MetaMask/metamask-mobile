@@ -1,13 +1,18 @@
-import type {
-  Country,
-  PaymentMethod,
-  Provider,
-  QuotesResponse,
-  RampsOrder,
-  TokensResponse,
-  UserRegion,
+import {
+  RampsOrderStatus,
+  type Country,
+  type PaymentMethod,
+  type Provider,
+  type QuotesResponse,
+  type RampsOrder,
+  type TokensResponse,
+  type UserRegion,
 } from '@metamask/ramps-controller';
 import type { Quote } from '../types';
+import type {
+  AwaitOrderTerminalStateOptions,
+  RefreshOrderOptions,
+} from './orderTerminalState';
 
 /**
  * Public input for {@link useHeadlessBuy}'s `getQuotes`.
@@ -65,7 +70,36 @@ export interface HeadlessBuyResult {
 
   // Orders
   orders: RampsOrder[];
+  /**
+   * Synchronous read of an order by its provider order id. Accepts either a
+   * bare order id or a full `/providers/.../orders/<id>` path.
+   *
+   * @deprecated since Phase 9. Prefer {@link HeadlessBuyResult.getOrder};
+   * `getOrderById` is kept for backwards-compat only and forwards to the
+   * same implementation.
+   */
   getOrderById: (providerOrderId: string) => RampsOrder | undefined;
+  /** Synchronous read of an order. Phase 9 canonical name. */
+  getOrder: (providerOrderId: string) => RampsOrder | undefined;
+  /**
+   * Imperative network refresh — calls the provider via
+   * `RampsController.getOrder` and returns the fresh `RampsOrder`. Does not
+   * write the result back to redux state. See
+   * `headless/orderTerminalState.ts` for the module-level imperative twin.
+   */
+  refreshOrder: (
+    orderIdOrOrder: string | RampsOrder,
+    options?: RefreshOrderOptions,
+  ) => Promise<RampsOrder>;
+  /**
+   * Resolves with the order once `status` reaches a terminal state. Used by
+   * MMPay's `TransactionPayController` to await fiat order settlement before
+   * firing the second step of its two-step flow.
+   */
+  awaitOrderTerminalState: (
+    providerOrderId: string,
+    options?: AwaitOrderTerminalStateOptions,
+  ) => Promise<RampsOrder>;
 
   // Imperative
   getQuotes: (params: HeadlessGetQuotesParams) => Promise<QuotesResponse>;
@@ -218,3 +252,8 @@ export type {
   TokensResponse,
   UserRegion,
 };
+export { RampsOrderStatus };
+export type {
+  AwaitOrderTerminalStateOptions,
+  RefreshOrderOptions,
+} from './orderTerminalState';
