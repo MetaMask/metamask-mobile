@@ -1,5 +1,4 @@
-import { act, renderHook } from '@testing-library/react-hooks';
-import { waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 
 // eslint-disable-next-line import-x/no-namespace
 import * as Actions from '../../../actions/notification/helpers';
@@ -284,6 +283,10 @@ describe('useNotifications - useResetNotifications()', () => {
 describe('useNotifications - useContiguousLoading()', () => {
   beforeEach(() => {
     jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   const arrangeHook = (loading1: boolean, loading2: boolean) =>

@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { UserProfileProperty } from '../../metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { usePushPrePromptAnalytics } from './usePushPrePromptAnalytics';
