@@ -4,6 +4,7 @@ import OndoLeaderboard, {
   CAMPAIGN_LEADERBOARD_TEST_IDS,
 } from './OndoLeaderboard';
 import type { CampaignLeaderboardEntry } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import { ONDO_GM_TIER_MAX_WINNERS } from '../../utils/ondoCampaignConstants';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
   createMockUseAnalyticsHook,
@@ -31,6 +32,8 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   tw.style = jest.fn(() => ({}));
   return { useTailwind: () => tw };
 });
+
+jest.mock('../../../../../images/rewards/crown.svg', () => 'CrownIcon');
 
 jest.mock('../RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
@@ -88,6 +91,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
     return translations[key] || key;
   },
 }));
+
+const CrownIcon = 'CrownIcon' as unknown as React.ComponentType;
 
 const createMockEntry = (
   overrides: Partial<CampaignLeaderboardEntry> = {},
@@ -336,6 +341,40 @@ describe('OndoLeaderboard', () => {
       );
 
       expect(getByText('No entries in this tier')).toBeDefined();
+    });
+
+    it('shows crown in full view for Ondo winner ranks only', () => {
+      const entries = [
+        createMockEntry({
+          rank: ONDO_GM_TIER_MAX_WINNERS,
+          referralCode: 'WINNER',
+        }),
+        createMockEntry({
+          rank: ONDO_GM_TIER_MAX_WINNERS + 1,
+          referralCode: 'NEXT',
+        }),
+      ];
+      const { UNSAFE_queryAllByType } = render(
+        <OndoLeaderboard {...defaultProps} entries={entries} />,
+      );
+
+      expect(UNSAFE_queryAllByType(CrownIcon)).toHaveLength(1);
+    });
+
+    it('hides crown in preview mode for Ondo winner ranks', () => {
+      const entries = [
+        createMockEntry({ rank: 1, referralCode: 'AAA111' }),
+        createMockEntry({ rank: 2, referralCode: 'BBB222' }),
+      ];
+      const { UNSAFE_queryAllByType } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={entries}
+          maxEntries={entries.length}
+        />,
+      );
+
+      expect(UNSAFE_queryAllByType(CrownIcon)).toHaveLength(0);
     });
   });
 
