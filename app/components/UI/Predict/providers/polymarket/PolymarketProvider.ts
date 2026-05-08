@@ -1457,20 +1457,33 @@ export class PolymarketProvider implements PredictProvider {
       queryParams.set('eventId', marketId);
     }
 
-    const response = await fetch(
-      `${DATA_API_ENDPOINT}/positions?${queryParams.toString()}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    const positionsUrl = `${DATA_API_ENDPOINT}/positions?${queryParams.toString()}`;
+    const response = await fetch(positionsUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    );
+    });
 
     if (!response.ok) {
       throw new Error('Failed to get positions');
     }
-    const positionsData = (await response.json()) as PolymarketPosition[];
+    const positionsText = await response.text();
+    let positionsData: PolymarketPosition[];
+    try {
+      positionsData = JSON.parse(positionsText) as PolymarketPosition[];
+    } catch (parseError) {
+      const snippet = positionsText.slice(0, 200).replace(/\s+/gu, ' ');
+      DevLogger.log('PolymarketProvider: non-JSON positions response', {
+        url: positionsUrl,
+        status: response.status,
+        contentType: response.headers.get('content-type'),
+        bodySnippet: snippet,
+      });
+      throw new Error(
+        `Polymarket positions returned non-JSON (status ${response.status}): ${snippet}`,
+      );
+    }
 
     const teamLookup = this.#createTeamLookup(
       this.#getSupportedLeagues().length > 0,

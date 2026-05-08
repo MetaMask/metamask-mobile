@@ -128,9 +128,11 @@ jest.mock('../../UI/Tokens', () => {
   const MockTokens = ({
     isFullView,
     showOnlyMusd,
+    listHeaderComponent,
   }: {
     isFullView?: boolean;
     showOnlyMusd?: boolean;
+    listHeaderComponent?: React.ReactElement;
   }) =>
     createElement(
       View,
@@ -140,6 +142,7 @@ jest.mock('../../UI/Tokens', () => {
         { testID: 'tokens-props' },
         `isFullView=${isFullView} showOnlyMusd=${showOnlyMusd}`,
       ),
+      listHeaderComponent,
     );
   return { __esModule: true, default: MockTokens };
 });
