@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { ScrollView, Linking } from 'react-native';
+import { Linking, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -36,6 +36,7 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
+import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
@@ -73,6 +74,8 @@ const MoneyHomeView = () => {
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
+  const geolocation = useSelector(getDetectedGeolocation);
+  const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
@@ -83,18 +86,31 @@ const MoneyHomeView = () => {
     [currentCurrency],
   );
 
-  const projectedEarnings = useMemo(() => {
+  const monthlyEarnings = useMemo(() => {
     if (!totalFiatRaw || !apyPercent) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
-    const earnings = calculateProjectedEarnings(balance.toNumber(), apyPercent);
+    const earnings = calculateProjectedEarnings(
+      balance.toNumber(),
+      apyPercent,
+      1 / 12,
+    );
     if (!Number.isFinite(earnings)) return formattedZero;
     return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
-  const handleBackPress = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  const yearlyEarnings = useMemo(() => {
+    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    const balance = new BigNumber(totalFiatRaw);
+    if (balance.isZero() || balance.isNaN()) return formattedZero;
+    const earnings = calculateProjectedEarnings(
+      balance.toNumber(),
+      apyPercent,
+      1,
+    );
+    if (!Number.isFinite(earnings)) return formattedZero;
+    return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   const handleMenuPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -138,9 +154,8 @@ const MoneyHomeView = () => {
   const handleEarningsInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
-      params: { apy: apyPercent },
     });
-  }, [navigation, apyPercent]);
+  }, [navigation]);
 
   const handleMusdRowPress = useCallback(() => {
     NavigationService.navigation.navigate('Asset', {
@@ -218,10 +233,7 @@ const MoneyHomeView = () => {
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      <MoneyHeader
-        onBackPress={handleBackPress}
-        onMenuPress={handleMenuPress}
-      />
+      <MoneyHeader onMenuPress={handleMenuPress} />
       <ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
         contentContainerStyle={styles.scrollContent}
@@ -245,8 +257,8 @@ const MoneyHomeView = () => {
         />
         <Divider />
         <MoneyEarnings
-          lifetimeEarnings={formattedZero}
-          projectedEarnings={projectedEarnings}
+          monthlyEarnings={monthlyEarnings}
+          yearlyEarnings={yearlyEarnings}
           isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
           onInfoPress={handleEarningsInfoPress}
         />
@@ -282,7 +294,6 @@ const MoneyHomeView = () => {
             <MoneyPotentialEarnings
               tokens={conversionTokens}
               apy={apyPercent}
-              condensed={isMilestone}
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}
@@ -296,6 +307,7 @@ const MoneyHomeView = () => {
           onHeaderPress={handleHeaderPress}
           onLinkPress={handleLinkCardPress}
           apy={apyPercent}
+          showMetalCard={isUS}
         />
         <Divider />
         {isMilestone && (
@@ -309,13 +321,16 @@ const MoneyHomeView = () => {
           </>
         )}
         {!isMilestone && (
-          <MoneyWhatYouGet
-            apy={apyPercent}
-            onLearnMorePress={handleLearnMorePress}
-          />
+          <>
+            <MoneyWhatYouGet
+              apy={apyPercent}
+              onLearnMorePress={handleLearnMorePress}
+            />
+            <Divider />
+          </>
         )}
+        <MoneyFooter onAddMoneyPress={handleAddPress} />
       </ScrollView>
-      <MoneyFooter onAddMoneyPress={handleAddPress} />
     </Box>
   );
 };

@@ -1,4 +1,3 @@
-import { SECURITY_PRIVACY_DELETE_WALLET_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import {
   SecurityPrivacyViewSelectorsIDs,
   SecurityPrivacyViewSelectorsText,
@@ -32,8 +31,12 @@ class SecurityAndPrivacy {
 
   get deleteWalletButton(): DetoxElement {
     return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(SECURITY_PRIVACY_DELETE_WALLET_BUTTON)
-      : Matchers.getElementByLabel(SECURITY_PRIVACY_DELETE_WALLET_BUTTON);
+      ? Matchers.getElementByID(
+          SecurityPrivacyViewSelectorsIDs.DELETE_WALLET_BUTTON,
+        )
+      : Matchers.getElementByLabel(
+          SecurityPrivacyViewSelectorsIDs.DELETE_WALLET_BUTTON,
+        );
   }
 
   get metaMetricsToggle(): DetoxElement {

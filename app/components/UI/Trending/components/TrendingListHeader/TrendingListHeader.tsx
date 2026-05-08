@@ -3,10 +3,10 @@ import { useNavigation } from '@react-navigation/native';
 import {
   HeaderSearch,
   HeaderSearchVariant,
+  HeaderStandard,
   IconName as DSIconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import type { TrendingListHeaderProps } from './TrendingListHeader.types';
 
 /**
@@ -98,7 +98,7 @@ const TrendingListHeader: React.FC<TrendingListHeaderProps> = ({
   }
 
   return (
-    <HeaderCompactStandard
+    <HeaderStandard
       title={title || strings('trending.trending_tokens')}
       onBack={handleBack}
       backButtonProps={{
