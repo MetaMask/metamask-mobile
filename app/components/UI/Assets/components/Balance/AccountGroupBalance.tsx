@@ -122,7 +122,7 @@ const AccountGroupBalance = ({
   // Track if balance has been fetched to prevent flash of empty state
   const [hasBalanceFetched, setHasBalanceFetched] = useState(false);
   const initialBalanceRef = useRef<number | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const currentGroupIdRef = useRef<string | null>(null);
 
   useEffect(() => {

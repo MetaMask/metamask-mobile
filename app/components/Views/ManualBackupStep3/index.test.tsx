@@ -322,7 +322,11 @@ describe('ManualBackupStep3', () => {
 
   describe('componentWillUnmount', () => {
     it('removes BackHandler listener on unmount', async () => {
-      const removeSpy = jest.spyOn(BackHandler, 'removeEventListener');
+      const mockRemove = jest.fn();
+      const addSpy = jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockReturnValue({ remove: mockRemove });
+
       const { unmount } = renderComponent();
 
       await waitFor(() => {
@@ -331,12 +335,13 @@ describe('ManualBackupStep3', () => {
 
       unmount();
 
-      expect(removeSpy).toHaveBeenCalledWith(
+      expect(addSpy).toHaveBeenCalledWith(
         'hardwareBackPress',
         expect.any(Function),
       );
+      expect(mockRemove).toHaveBeenCalled();
 
-      removeSpy.mockRestore();
+      addSpy.mockRestore();
     });
   });
 

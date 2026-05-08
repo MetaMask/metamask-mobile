@@ -8512,7 +8512,6 @@
       "empty": "您暂无任何持仓",
       "empty_description": "通过开立代币化现实世界资产的仓位，开始赚取奖励。",
       "empty_cta": "开仓",
-      "position_units": "{{units}} 份额",
       "positions_title": "头寸",
       "activity_title": "活动",
       "view_activity": "查看活动",

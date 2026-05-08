@@ -58,6 +58,7 @@ import PickerAccount from '../../../component-library/components/Pickers/PickerA
 import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
 import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
+import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -462,10 +463,12 @@ const WalletTokensTabView = forwardRef<
   // Build ordered list of tab refs based on which tabs are enabled
   // Returns null for tabs without refresh (Perps uses WebSocket, DeFi uses selectors)
   const getTabRefByIndex = useCallback(
-    (index: number): React.RefObject<TabRefreshHandle> | null => {
+    (index: number): React.RefObject<TabRefreshHandle | null> | null => {
       // Build array matching tab order: [tokens, perps?, predict?, defi?, nfts?]
       // Use null for tabs without refresh functionality
-      const tabRefs: (React.RefObject<TabRefreshHandle> | null)[] = [tokensRef];
+      const tabRefs: (React.RefObject<TabRefreshHandle | null> | null)[] = [
+        tokensRef,
+      ];
 
       if (isPerpsEnabled) {
         tabRefs.push(null); // Perps uses WebSocket streaming, no refresh needed
@@ -1481,6 +1484,7 @@ const Wallet = ({
       <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       {walletHomeMainAssetDetailsActions}
       {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+      {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
     </>
   );
 
@@ -1492,6 +1496,7 @@ const Wallet = ({
       </View>
       {walletHomeMainAssetDetailsActions}
       {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+      {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
     </>
   );
 
