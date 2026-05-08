@@ -19,6 +19,11 @@ on:
         required: false
         type: string
         default: 'MetaMask BETA & Release Candidates'
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
   workflow_dispatch:
     inputs:
       source_branch:
@@ -44,6 +49,14 @@ on:
           - 'MetaMask BETA & Release Candidates'
           - 'MM Card Team'
           - 'Ramp Provider Testing'
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: false
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
 
 permissions:
   contents: write
@@ -65,6 +78,7 @@ jobs:
       platform: ios
       skip_version_bump: false
       source_branch: ${{ needs.prepare-build-branch.outputs.build_branch }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   upload-ios-testflight:
@@ -79,13 +93,14 @@ jobs:
       build_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
       build_version: ${{ needs.build.outputs.semantic_version }}
       build_number: ${{ needs.build.outputs.ios_version_code }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   cleanup-build-branch:
     name: Cleanup build branch
     needs: [prepare-build-branch, upload-ios-testflight]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
         with:
