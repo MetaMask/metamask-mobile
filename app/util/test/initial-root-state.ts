@@ -77,7 +77,6 @@ const initialRootState: RootState = {
   networkConnectionBanner: initialNetworkConnectionBannerState,
   attribution: {
     attribution: null,
-    _persist: { version: 0, rehydrated: true },
   },
 };
 
