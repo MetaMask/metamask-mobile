@@ -8503,7 +8503,6 @@
       "empty": "포지션이 없습니다",
       "empty_description": "토큰화된 실물 자산에서 포지션을 개설해 보상 적립을 시작하세요.",
       "empty_cta": "포지션 개설",
-      "position_units": "{{units}}주",
       "positions_title": "포지션",
       "activity_title": "활동",
       "view_activity": "활동 보기",

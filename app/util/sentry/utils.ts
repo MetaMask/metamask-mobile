@@ -627,7 +627,7 @@ export async function setupSentry(
       dsn,
       debug: isDev && process.env.SENTRY_DEBUG_DEV !== 'false',
       environment,
-      integrations,
+      integrations: integrations as Sentry.ReactNativeOptions['integrations'],
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
       tracesSampleRate: isDev || isQa ? 1.0 : 0.03,
       profilesSampleRate: 1.0,

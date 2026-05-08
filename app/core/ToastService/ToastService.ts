@@ -21,7 +21,7 @@ import Logger from '../../util/Logger';
  * });
  */
 class ToastService {
-  static #toastRef: React.RefObject<ToastRef> | null = null;
+  static #toastRef: React.RefObject<ToastRef | null> | null = null;
 
   /**
    * Checks that the toast ref and its current value exist.
@@ -39,14 +39,14 @@ class ToastService {
   /**
    * Set the toast ref. Should be called from the ToastContextWrapper
    */
-  static set toastRef(ref: React.RefObject<ToastRef> | null) {
+  static set toastRef(ref: React.RefObject<ToastRef | null> | null) {
     this.#toastRef = ref;
   }
 
   /**
    * Get the toast ref
    */
-  static get toastRef(): React.RefObject<ToastRef> | null {
+  static get toastRef(): React.RefObject<ToastRef | null> | null {
     return this.#toastRef;
   }
 

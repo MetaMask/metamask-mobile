@@ -25,6 +25,11 @@ on:
         required: false
         type: boolean
         default: false
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
     outputs:
       build_name:
         description: 'build_name input passed to this workflow'
@@ -68,8 +73,6 @@ on:
           - flask-test
           - flask-e2e
           - flask-dev
-          - qa-prod
-          - qa-dev
       platform:
         required: true
         type: choice
@@ -83,6 +86,14 @@ on:
         required: false
         type: boolean
         default: false
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: true
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
 
 permissions:
   contents: read
@@ -106,7 +117,7 @@ jobs:
   prepare:
     needs: [update-build-version]
     if: ${{ always() && !failure() && !cancelled() }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
       secrets_json: ${{ steps.config.outputs.secrets_json }}
@@ -119,12 +130,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
+          cache: 'yarn'
       - run: yarn install --immutable
       - run: node scripts/validate-build-config.js
 
@@ -158,7 +170,7 @@ jobs:
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
-      fetch-depth: 0
+      fetch-depth: 1
       checkout-submodules: true
       platform: ${{ matrix.platform }}
       build_name: ${{ inputs.build_name }}
@@ -166,6 +178,7 @@ jobs:
       upload-artifact: true
       artifact-name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
       artifact-retention-days: 1
+      runner_provider: ${{ inputs.runner_provider }}
 
   # Build
   build:
@@ -176,8 +189,11 @@ jobs:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
     # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: Cirrus macOS Tahoe (has Xcode 26.x)
-    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build' || 'namespace-profile-metamask-android-build') || (matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg') }}
     environment: ${{ needs.prepare.outputs.github_environment }}
+    env:
+      GRADLE_USER_HOME: /home/admin/_work/.gradle
+      CACHE_GENERATION: v1
     steps:
       - name: Validate version-bump commit
         if: ${{ !inputs.skip_version_bump }}
@@ -317,6 +333,16 @@ jobs:
           SECRETS_JSON: ${{ toJSON(secrets) }}
         run: node scripts/validate-secrets-from-config.js
 
+      - name: Restore CocoaPods specs cache (iOS)
+        if: matrix.platform == 'ios'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cocoapods/repos
+          key: ${{ runner.os }}-cocoapods-specs-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cocoapods-specs-
+        continue-on-error: true
+
       # iOS: Install Pods here so generated paths match this runner (setup-node-modules skips pod install with --no-install-pods).
       - name: Install CocoaPods dependencies (iOS)
         if: matrix.platform == 'ios'
@@ -352,6 +378,29 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: Apply release Gradle config (Android)
+        if: matrix.platform == 'android'
+        run: cp android/gradle.properties.release android/gradle.properties
+
+      - name: Restore Gradle dependencies from branch cache (Android)
+        if: matrix.platform == 'android'
+        id: gradle-cache-restore
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        with:
+          path: |
+            ~/_work/.gradle/caches
+            ~/_work/.gradle/wrapper
+          key: gradle-release-${{ github.ref_name }}-${{ env.CACHE_GENERATION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Restore Gradle dependencies from main cache (Android)
+        if: matrix.platform == 'android' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main'
+        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        with:
+          path: |
+            ~/_work/.gradle/caches
+            ~/_work/.gradle/wrapper
+          key: gradle-release-main-${{ env.CACHE_GENERATION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       # iOS: Clean up any existing keychains from previous runs
       - name: Clean up existing keychains
@@ -403,6 +452,12 @@ jobs:
         timeout-minutes: 115
         env:
           GIT_BRANCH: ${{ inputs.source_branch || github.ref_name }}
+          # React Native 0.81's ReactAndroid/build.gradle.kts requests CMake 3.30.5
+          # via `System.getenv("CMAKE_VERSION") ?: "3.30.5"`. The self-hosted runner
+          # only ships CMake 3.22.1 in /opt/android-sdk/cmake/ and AGP cannot auto-
+          # download missing components, causing CXX1300. RN's CMakeLists.txt files
+          # only require >= 3.13, so 3.22.1 is fully sufficient.
+          CMAKE_VERSION: '3.22.1'
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 55
@@ -509,7 +564,7 @@ jobs:
     name: Emit build metadata
     needs: [prepare, build]
     if: ${{ !failure() && !cancelled() && needs.prepare.result == 'success' && needs.build.result == 'success' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     outputs:
       checkout_ref: ${{ steps.meta.outputs.checkout_ref }}
       built_commit_sha: ${{ steps.meta.outputs.built_commit_sha }}
@@ -519,7 +574,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
 
       - name: Setup Node.js

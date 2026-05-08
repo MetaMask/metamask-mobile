@@ -29,26 +29,6 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
   default: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Pressable } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({ onBack }: { title: string; onBack: () => void }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'header' },
-          ReactActual.createElement(Pressable, {
-            onPress: onBack,
-            testID: 'header-back-button',
-          }),
-        ),
-    };
-  },
-);
-
 jest.mock('../components/Tabs/MusdCalculatorTab/MusdCalculatorTab', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');

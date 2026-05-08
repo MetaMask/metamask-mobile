@@ -8503,7 +8503,6 @@
       "empty": "आपके पास कोई पोज़िशन नहीं है",
       "empty_description": "टोकन वाले रियल-वर्ल्ड एसेट्स में पोज़िशन खोलकर रिवॉर्ड कमाना शुरू करें।",
       "empty_cta": "एक पोज़िशन खोलें",
-      "position_units": "{{units}} शेयर",
       "positions_title": "पोजीशन्स",
       "activity_title": "गतिविधि",
       "view_activity": "एक्टिविटी देखें",

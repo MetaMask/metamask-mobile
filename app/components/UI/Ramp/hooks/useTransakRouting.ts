@@ -28,7 +28,11 @@ import useRampAccountAddress from './useRampAccountAddress';
 import { isHttpUnauthorized } from '../utils/isHttpUnauthorized';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
 import { useRampsOrders } from './useRampsOrders';
-import { closeSession, getSession } from '../headless/sessionRegistry';
+import {
+  closeSession,
+  failSession,
+  getSession,
+} from '../headless/sessionRegistry';
 
 interface RampStackParamList {
   /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
@@ -69,9 +73,14 @@ interface RampStackParamList {
 }
 
 class LimitExceededError extends Error {
-  constructor(message: string) {
+  readonly headlessBuyErrorCode = 'LIMIT_EXCEEDED';
+
+  readonly details?: Record<string, unknown>;
+
+  constructor(message: string, details?: Record<string, unknown>) {
     super(message);
     this.name = 'LimitExceededError';
+    this.details = details;
   }
 }
 
@@ -194,6 +203,11 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               period: 'daily',
               remaining: `${dailyLimit} ${fiatCurrency}`,
             }),
+            {
+              period: 'daily',
+              remaining: dailyLimit,
+              currency: fiatCurrency,
+            },
           );
         }
 
@@ -203,6 +217,11 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               period: 'monthly',
               remaining: `${monthlyLimit} ${fiatCurrency}`,
             }),
+            {
+              period: 'monthly',
+              remaining: monthlyLimit,
+              currency: fiatCurrency,
+            },
           );
         }
 
@@ -212,6 +231,11 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               period: 'yearly',
               remaining: `${yearlyLimit} ${fiatCurrency}`,
             }),
+            {
+              period: 'yearly',
+              remaining: yearlyLimit,
+              currency: fiatCurrency,
+            },
           );
         }
       } catch (error) {
@@ -435,6 +459,12 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         Logger.error(error as Error, {
           message: 'useTransakRouting: Failed to process order after checkout',
         });
+        if (failSession(headlessSessionId, error)) {
+          // @ts-expect-error `pop` exists on the parent stack navigator at
+          // runtime but is not surfaced on the generic `NavigationProp`
+          // type returned by `getParent()`.
+          navigation.getParent()?.pop();
+        }
       }
     },
     [
@@ -446,6 +476,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       regionIsoCode,
       trackEvent,
       headlessSessionId,
+      navigation,
     ],
   );
 
@@ -564,6 +595,13 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   paymentDetails: depositOrder.paymentDetails,
                 });
 
+                if (getSession(headlessSessionId)) {
+                  navigateToOrderProcessingCallback({
+                    orderId: rampsOrder.providerOrderId,
+                  });
+                  return true;
+                }
+
                 showV2OrderToast({
                   orderId: rampsOrder.providerOrderId,
                   cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
@@ -600,6 +638,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               }
               return true;
             } catch (error) {
+              if (error instanceof LimitExceededError) {
+                throw error;
+              }
               throw new Error(
                 parseUserFacingError(
                   error,
@@ -723,6 +764,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       addOrder,
       refreshOrder,
       navigateToBankDetailsCallback,
+      navigateToOrderProcessingCallback,
+      headlessSessionId,
       navigateToWebviewModalCallback,
       navigateToKycProcessingCallback,
       submitPurposeOfUsageForm,

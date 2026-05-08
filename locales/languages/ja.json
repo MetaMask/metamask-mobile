@@ -8503,7 +8503,6 @@
       "empty": "ポジションがありません",
       "empty_description": "RWAトークンのポジションをオープンして、報酬の獲得を始めましょう。",
       "empty_cta": "ポジションをオープン",
-      "position_units": "{{units}}株",
       "positions_title": "ポジション",
       "activity_title": "アクティビティ",
       "view_activity": "アクティビティを表示",
