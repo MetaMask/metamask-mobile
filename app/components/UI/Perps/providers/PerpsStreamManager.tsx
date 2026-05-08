@@ -1828,8 +1828,6 @@ export const usePerpsStream = () => {
   return context;
 };
 
-// Well-known keys for named pause ownership. Each independent caller uses its
-// own key so releasing one hold never unblocks another caller's pause.
 export const PerpsStreamPauseKey = {
   TAB_LAYER: 'tab-layer',
   CONTROLLER: 'controller',

@@ -46,6 +46,7 @@ import {
   PerpsTraceNames,
   PerpsTraceOperations,
   isVersionGatedFeatureFlag,
+  PerpsStreamPauseKey,
   // Platform dependencies interface for core migration (bundles all platform-specific deps)
 } from './types';
 import type {
@@ -1503,7 +1504,7 @@ export class PerpsController extends BaseController<
     // Track which channels successfully paused to ensure proper cleanup
     for (const channel of channels) {
       try {
-        streamManager.pauseChannel(channel);
+        streamManager.pauseChannel(channel, PerpsStreamPauseKey.CONTROLLER);
         pausedChannels.push(channel);
       } catch (error) {
         // Log error to Sentry but continue pausing remaining channels
@@ -1525,7 +1526,7 @@ export class PerpsController extends BaseController<
       // Resume only channels that were successfully paused
       for (const channel of pausedChannels) {
         try {
-          streamManager.resumeChannel(channel);
+          streamManager.resumeChannel(channel, PerpsStreamPauseKey.CONTROLLER);
         } catch (error) {
           // Log error to Sentry but continue resuming remaining channels
           this.#logError(
