@@ -29,7 +29,7 @@ abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
   protected subscribers = new Map<string, StreamSubscription<T>>();
   protected wsSubscriptions = new Map<string, () => void>();
-  protected pauseHolders = new Set<string>();
+  protected pauseHolders = new Map<string, number>();
   readonly #onDataPersist?: () => void;
 
   constructor(onDataPersist?: () => void) {
@@ -81,11 +81,17 @@ abstract class StreamChannel<T> {
   }
 
   public pause(key: string): void {
-    this.pauseHolders.add(key);
+    this.pauseHolders.set(key, (this.pauseHolders.get(key) ?? 0) + 1);
   }
 
   public resume(key: string): void {
-    this.pauseHolders.delete(key);
+    const count = this.pauseHolders.get(key);
+    if (!count) return;
+    if (count <= 1) {
+      this.pauseHolders.delete(key);
+    } else {
+      this.pauseHolders.set(key, count - 1);
+    }
   }
 
   public clearCache(): void {

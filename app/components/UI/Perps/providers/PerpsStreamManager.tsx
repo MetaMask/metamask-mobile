@@ -83,10 +83,12 @@ abstract class StreamChannel<T> {
   protected accountAddress: string | null = null;
   // Track WebSocket connection timing for first data measurement
   protected wsConnectionStartTime: number | null = null;
-  // Named pause holders. Emission is blocked whenever the set is non-empty,
-  // allowing independent callers (e.g. 'tab-layer', 'controller') to
-  // pause/resume without clobbering each other's hold.
-  protected pauseHolders = new Set<string>();
+  // Named ref-counted pause holders. Maps each caller key to the number of
+  // outstanding pause() calls it holds. Emission is blocked whenever the map
+  // is non-empty. Using counts (not a plain Set) allows the same caller to
+  // issue nested pauses (e.g. concurrent #withStreamPause operations) without
+  // the first resume() unblocking a still-in-flight second operation.
+  protected pauseHolders = new Map<string, number>();
   // Retry counter for deferred connect() calls
   protected connectRetryCount = 0;
   // Timer handle for deferConnect so it can be cancelled on disconnect
@@ -311,21 +313,27 @@ abstract class StreamChannel<T> {
   }
 
   /**
-   * Pause emission of updates to subscribers under a named key.
-   * WebSocket connection stays alive and continues receiving data.
-   * Emission is blocked until every unique key that called pause() has
-   * called resume() — callers cannot release each other's hold.
+   * Pause emission under a named key. Each key is ref-counted so the same
+   * caller can nest pauses (e.g. two concurrent controller operations both
+   * using 'controller'). Emission stays blocked until every outstanding
+   * pause() call across all keys has been matched by a resume().
    */
   public pause(key: string): void {
-    this.pauseHolders.add(key);
+    this.pauseHolders.set(key, (this.pauseHolders.get(key) ?? 0) + 1);
   }
 
   /**
-   * Release a named pause hold. Emission resumes only once all holders
-   * have released. Calling resume() with a key that is not held is a no-op.
+   * Release one pause hold for the given key. Decrements the ref-count;
+   * removes the key when it reaches zero. No-op if the key is not held.
    */
   public resume(key: string): void {
-    this.pauseHolders.delete(key);
+    const count = this.pauseHolders.get(key);
+    if (!count) return;
+    if (count <= 1) {
+      this.pauseHolders.delete(key);
+    } else {
+      this.pauseHolders.set(key, count - 1);
+    }
   }
 
   protected getCachedData(): T | null {

@@ -46,7 +46,6 @@ import {
   PerpsTraceNames,
   PerpsTraceOperations,
   isVersionGatedFeatureFlag,
-  PerpsStreamPauseKey,
   // Platform dependencies interface for core migration (bundles all platform-specific deps)
 } from './types';
 import type {
@@ -130,6 +129,10 @@ import {
 } from './utils/perpsDiskPersistence';
 import type { SortDirection } from './utils/sortMarkets';
 import { wait } from './utils/wait';
+
+// Pause key used when PerpsController holds stream pauses during operations.
+// Must match PerpsStreamPauseKey.CONTROLLER in PerpsStreamManager.tsx.
+const STREAM_PAUSE_KEY_CONTROLLER = 'controller' as const;
 
 /** Derived type for logger options from PerpsLogger interface */
 type PerpsLoggerOptions = Parameters<PerpsLogger['error']>[1];
@@ -1504,7 +1507,7 @@ export class PerpsController extends BaseController<
     // Track which channels successfully paused to ensure proper cleanup
     for (const channel of channels) {
       try {
-        streamManager.pauseChannel(channel, PerpsStreamPauseKey.CONTROLLER);
+        streamManager.pauseChannel(channel, STREAM_PAUSE_KEY_CONTROLLER);
         pausedChannels.push(channel);
       } catch (error) {
         // Log error to Sentry but continue pausing remaining channels
@@ -1526,7 +1529,7 @@ export class PerpsController extends BaseController<
       // Resume only channels that were successfully paused
       for (const channel of pausedChannels) {
         try {
-          streamManager.resumeChannel(channel, PerpsStreamPauseKey.CONTROLLER);
+          streamManager.resumeChannel(channel, STREAM_PAUSE_KEY_CONTROLLER);
         } catch (error) {
           // Log error to Sentry but continue resuming remaining channels
           this.#logError(

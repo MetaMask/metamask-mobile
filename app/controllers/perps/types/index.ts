@@ -1436,11 +1436,6 @@ export type PerpsDebugLogger = {
  * - Mobile: Wrap existing singleton (streamManager[channel].pause())
  * - Extension: Implement with whatever streaming solution they use
  */
-export const PerpsStreamPauseKey = {
-  TAB_LAYER: 'tab-layer',
-  CONTROLLER: 'controller',
-} as const;
-
 export type PerpsStreamManager = {
   pauseChannel(channel: string, key: string): void;
   resumeChannel(channel: string, key: string): void;
