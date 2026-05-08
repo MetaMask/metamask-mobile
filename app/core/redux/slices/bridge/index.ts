@@ -532,12 +532,10 @@ export const selectBridgeQuotes = createSelector(
 export const selectBatchSellQuotes = createSelector(
   [
     selectControllerFields,
-    selectSelectedQuoteRequestId,
     (_, { requestCount }: { requestCount: number }) => requestCount,
   ],
   (
     requiredControllerFields,
-    selectedQuoteRequestId,
     requestCount,
   ): ReturnType<typeof selectBatchSellQuotesBase> => {
     const allQuotesResult = selectBatchSellQuotesBase(
