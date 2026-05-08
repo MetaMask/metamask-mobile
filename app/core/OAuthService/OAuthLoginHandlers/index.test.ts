@@ -30,7 +30,32 @@ jest.mock('./constants', () => ({
   TelegramAuthServerUrl: 'https://telegram.example.com',
   TelegramAuthServerVerifyPath: '/api/v2/telegram/login/verify',
   TelegramMintPath: '/api/v1/oauth/mint',
+  TelegramHydraTokenUrl: 'https://hydra.example.com/oauth2/token',
+  TelegramHydraClientId: 'test-hydra-client-id',
 }));
+
+/** JWT-shaped string (payload decodes to JSON) for Telegram verify `token` field */
+const MOCK_TELEGRAM_VERIFY_JWT = 'x.eyJpZHBfc3ViIjoidGVsZWdyYW0tdGVzdCJ9.y';
+
+/** Each mock must return a fresh `Response` — body streams are consumed by `response.json()` */
+function createMintAuthSuccessResponse(): Response {
+  return new Response(
+    JSON.stringify({
+      access_token: 'access-token',
+      metadata_access_token: 'metadata-access-token',
+      refresh_token: 'refresh-token',
+      revoke_token: 'revoke-token',
+      id_token: 'id-token',
+      indexes: [1, 2, 3],
+      endpoints: {
+        'https://example.com': 'https://endpoint.example.com',
+      },
+    }),
+    {
+      status: 200,
+    },
+  );
+}
 
 jest.mock('expo-auth-session', () => ({
   AuthRequest: () => ({
@@ -218,57 +243,41 @@ describe('OAuth login handlers', () => {
           }
         }
 
-        jest
-          .spyOn(global, 'fetch')
-          .mockResolvedValueOnce(
-            provider === AuthConnection.Telegram
-              ? new Response(
-                  JSON.stringify({
-                    token: 'metamask-oidc-token',
-                    expires_in: 3600,
-                    profile: {
-                      id: 'profile-id',
-                      identifier_id: 'identifier-id',
-                      identifier_type: 'TELEGRAM',
-                    },
-                  }),
-                  { status: 200 },
-                )
-              : new Response(
-                  JSON.stringify({
-                    access_token: 'access-token',
-                    metadata_access_token: 'metadata-access-token',
-                    refresh_token: 'refresh-token',
-                    revoke_token: 'revoke-token',
-                    id_token: 'id-token',
-                    indexes: [1, 2, 3],
-                    endpoints: {
-                      'https://example.com': 'https://endpoint.example.com',
-                    },
-                  }),
-                  {
-                    status: 200,
-                  },
-                ),
-          )
-          .mockResolvedValueOnce(
-            new Response(
-              JSON.stringify({
-                access_token: 'access-token',
-                metadata_access_token: 'metadata-access-token',
-                refresh_token: 'refresh-token',
-                revoke_token: 'revoke-token',
-                id_token: 'id-token',
-                indexes: [1, 2, 3],
-                endpoints: {
-                  'https://example.com': 'https://endpoint.example.com',
-                },
-              }),
-              {
-                status: 200,
-              },
-            ),
-          );
+        const telegramVerifyResponse = new Response(
+          JSON.stringify({
+            token: MOCK_TELEGRAM_VERIFY_JWT,
+            expires_in: 3600,
+            profile: {
+              id: 'profile-id',
+              identifier_id: 'identifier-id',
+              identifier_type: 'TELEGRAM',
+            },
+          }),
+          { status: 200 },
+        );
+
+        const hydraSuccessResponse = new Response(
+          JSON.stringify({
+            access_token: 'hydra-access-token',
+            expires_in: 3600,
+            scope: 'openid',
+            token_type: 'Bearer',
+          }),
+          { status: 200 },
+        );
+
+        const fetchSpy = jest.spyOn(global, 'fetch');
+
+        if (provider === AuthConnection.Telegram) {
+          fetchSpy
+            .mockResolvedValueOnce(telegramVerifyResponse)
+            .mockResolvedValueOnce(hydraSuccessResponse)
+            .mockResolvedValueOnce(createMintAuthSuccessResponse());
+        } else {
+          fetchSpy
+            .mockResolvedValueOnce(createMintAuthSuccessResponse())
+            .mockResolvedValueOnce(createMintAuthSuccessResponse());
+        }
 
         const mockAuthTokenParams: HandleFlowParams = {
           idToken: 'id-token',

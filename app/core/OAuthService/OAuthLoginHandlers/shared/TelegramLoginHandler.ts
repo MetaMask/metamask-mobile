@@ -1,5 +1,3 @@
-// TODO: Replace this temporary dependency once Telegram auth flow is finalized.
-// eslint-disable-next-line import-x/no-extraneous-dependencies
 import { openAuthSessionAsync } from 'expo-web-browser';
 import {
   AuthConnection,
