@@ -125,7 +125,6 @@ export const TransactionControllerInit: MessengerClientInitFunction<
               transactionController,
               smartTransactionsController,
               initMessenger,
-              request,
               signedTransactionInHex,
             }),
           publishBatch: async (_request: PublishBatchHookRequest) =>
@@ -138,7 +137,7 @@ export const TransactionControllerInit: MessengerClientInitFunction<
                 _request.transactions as PublishBatchHookTransaction[],
             }),
           beforePublish: (transactionMeta: TransactionMeta) =>
-            beforePublish(transactionMeta, request),
+            beforePublish(transactionMeta, initMessenger),
           beforeSign: (_request: { transactionMeta: TransactionMeta }) =>
             beforeSign(_request, request),
         },
@@ -219,7 +218,6 @@ async function publishHook({
   transactionController,
   smartTransactionsController,
   initMessenger,
-  request,
   signedTransactionInHex,
 }: {
   transactionMeta: TransactionMeta;
@@ -228,20 +226,15 @@ async function publishHook({
   transactionController: TransactionController;
   smartTransactionsController: SmartTransactionsController;
   initMessenger: TransactionControllerInitMessenger;
-  request: MessengerClientInitRequest<
-    TransactionControllerMessenger,
-    TransactionControllerInitMessenger
-  >;
   signedTransactionInHex: Hex;
 }): Promise<{ transactionHash?: string }> {
-  const predictResult = await publishPredict({
-    transactionMeta,
-    transactionController,
-    request,
-  });
+  const { transactionHash: predictTransactionHash } = await initMessenger.call(
+    'PredictController:publish',
+    { transactionMeta },
+  );
 
-  if (predictResult.transactionHash) {
-    return { transactionHash: predictResult.transactionHash };
+  if (predictTransactionHash) {
+    return { transactionHash: predictTransactionHash };
   }
 
   const state = getState();
@@ -342,41 +335,6 @@ async function publishHook({
 
   // Default: fall back to regular transaction submission
   return { transactionHash: undefined };
-}
-
-async function publishPredict({
-  transactionMeta,
-  transactionController,
-  request,
-}: {
-  transactionMeta: TransactionMeta;
-  transactionController: TransactionController;
-  request: MessengerClientInitRequest<
-    TransactionControllerMessenger,
-    TransactionControllerInitMessenger
-  >;
-}): Promise<{ transactionHash?: string; isIntentComplete?: boolean }> {
-  const predictController = request.getMessengerClient('PredictController');
-  const result = await predictController.publish({ transactionMeta });
-
-  if (result.transactionHash && result.isIntentComplete) {
-    const latestMeta = getTransactionById(
-      transactionMeta.id,
-      transactionController,
-    );
-
-    if (latestMeta) {
-      transactionController.updateTransaction(
-        {
-          ...latestMeta,
-          isIntentComplete: true,
-        },
-        'Predict claim relayer intent complete',
-      );
-    }
-  }
-
-  return result;
 }
 
 function getSmartTransactionCommonParams(state: RootState, chainId: Hex) {
@@ -496,13 +454,11 @@ function getControllers(
 
 function beforePublish(
   transactionMeta: TransactionMeta,
-  request: MessengerClientInitRequest<
-    TransactionControllerMessenger,
-    TransactionControllerInitMessenger
-  >,
+  initMessenger: TransactionControllerInitMessenger,
 ) {
-  const predictController = request.getMessengerClient('PredictController');
-  return predictController.beforePublish({ transactionMeta });
+  return initMessenger.call('PredictController:beforePublish', {
+    transactionMeta,
+  });
 }
 
 function beforeSign(

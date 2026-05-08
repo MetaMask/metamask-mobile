@@ -122,22 +122,43 @@ function buildInitRequestMock(
     TransactionControllerInitMessenger
   >
 > {
+  const {
+    predictControllerMock: providedPredictControllerMock,
+    ...requestOverrides
+  } = initRequestProperties;
+  const predictControllerMock =
+    (providedPredictControllerMock as ControllerMock | undefined) ??
+    buildControllerMock();
   const initMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
   const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
+  (initMessenger as unknown as { call: jest.Mock }).call = jest.fn(
+    (actionType: string, params: unknown) => {
+      if (actionType === 'PredictController:beforePublish') {
+        return predictControllerMock.beforePublish(params);
+      }
+
+      if (actionType === 'PredictController:publish') {
+        return predictControllerMock.publish(params);
+      }
+
+      throw new Error(`Unexpected init messenger action: ${actionType}`);
+    },
+  );
+
   const requestMock = {
     ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     initMessenger:
       initMessenger as unknown as TransactionControllerInitMessenger,
     controllerMessenger:
       baseControllerMessenger as unknown as TransactionControllerMessenger,
-    ...initRequestProperties,
+    ...requestOverrides,
   };
 
-  if (!initRequestProperties.getMessengerClient) {
+  if (!requestOverrides.getMessengerClient) {
     requestMock.getMessengerClient.mockReturnValue(buildControllerMock());
   }
 
@@ -339,11 +360,7 @@ describe('Transaction Controller Init', () => {
         'hooks',
         {},
         {
-          getMessengerClient: jest.fn((controllerName: string) =>
-            controllerName === 'PredictController'
-              ? predictControllerMock
-              : buildControllerMock(),
-          ),
+          predictControllerMock,
         },
       );
 
@@ -388,11 +405,7 @@ describe('Transaction Controller Init', () => {
         'hooks',
         {},
         {
-          getMessengerClient: jest.fn((controllerName: string) =>
-            controllerName === 'PredictController'
-              ? predictControllerMock
-              : buildControllerMock(),
-          ),
+          predictControllerMock,
         },
       );
 
@@ -422,11 +435,7 @@ describe('Transaction Controller Init', () => {
         'hooks',
         {},
         {
-          getMessengerClient: jest.fn((controllerName: string) =>
-            controllerName === 'PredictController'
-              ? predictControllerMock
-              : buildControllerMock(),
-          ),
+          predictControllerMock,
         },
       );
 
@@ -435,52 +444,6 @@ describe('Transaction Controller Init', () => {
       expect(result).toEqual({ transactionHash: '0xpredict' });
       expect(payHookMock).not.toHaveBeenCalled();
       expect(submitSmartTransactionHookMock).not.toHaveBeenCalled();
-    });
-
-    it('marks the latest transaction intent complete when Predict publish completes an intent', async () => {
-      const predictControllerMock = buildControllerMock({
-        publish: jest.fn().mockResolvedValue({
-          transactionHash: '0xpredict',
-          isIntentComplete: true,
-        }),
-      } as unknown as Partial<NetworkController>);
-      const getTransactionByIdMock = jest.requireMock(
-        '../../../../util/transactions',
-      ).getTransactionById;
-      getTransactionByIdMock.mockReturnValue({ ...MOCK_TRANSACTION_META });
-      const hooks = testConstructorOption(
-        'hooks',
-        {},
-        {
-          getMessengerClient: jest.fn((controllerName: string) =>
-            controllerName === 'PredictController'
-              ? predictControllerMock
-              : buildControllerMock(),
-          ),
-        },
-      );
-
-      const result = await hooks?.publish?.(MOCK_TRANSACTION_META);
-
-      const transactionControllerInstance = transactionControllerClassMock.mock
-        .instances[0] as unknown as {
-        updateTransaction: jest.Mock;
-      };
-
-      expect(result).toEqual({ transactionHash: '0xpredict' });
-      expect(getTransactionByIdMock).toHaveBeenCalledWith(
-        MOCK_TRANSACTION_META.id,
-        transactionControllerInstance,
-      );
-      expect(
-        transactionControllerInstance.updateTransaction,
-      ).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: MOCK_TRANSACTION_META.id,
-          isIntentComplete: true,
-        }),
-        'Predict claim relayer intent complete',
-      );
     });
 
     it('passes isSmartTransaction returning false to pay hook when stxDisabled is true', async () => {

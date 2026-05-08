@@ -2732,7 +2732,7 @@ export class PredictController extends BaseController<
 
   public async publish(_request: {
     transactionMeta: TransactionMeta;
-  }): Promise<{ transactionHash?: string; isIntentComplete?: boolean }> {
+  }): Promise<{ transactionHash?: string }> {
     return { transactionHash: undefined };
   }
 

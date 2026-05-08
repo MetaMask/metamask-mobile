@@ -55,6 +55,10 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
+import type {
+  PredictControllerBeforePublishAction,
+  PredictControllerPublishAction,
+} from '../../../../components/UI/Predict/controllers/PredictController-method-action-types';
 
 export function getTransactionControllerMessenger(
   rootMessenger: RootMessenger,
@@ -114,7 +118,9 @@ type InitMessengerActions =
   | TransactionPayControllerGetDelegationTransactionAction
   | TransactionPayControllerGetStateAction
   | TransactionPayControllerGetStrategyAction
-  | AnalyticsControllerActions;
+  | AnalyticsControllerActions
+  | PredictControllerBeforePublishAction
+  | PredictControllerPublishAction;
 
 type InitMessengerEvents =
   | BridgeStatusControllerEvents
@@ -173,6 +179,8 @@ export function getTransactionControllerInitMessenger(
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
       'AnalyticsController:trackEvent',
+      'PredictController:beforePublish',
+      'PredictController:publish',
     ],
     events: [
       'BridgeStatusController:stateChange',
