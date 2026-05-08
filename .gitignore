@@ -202,16 +202,32 @@ release-signoffs.json
 
 # Agent skills — fully local. Synced via `yarn skills` from Consensys/skills,
 # or hand-authored personal skills. Never tracked here. (See ADR #57.)
-.claude/skills/
-.claude/commands/
+# Note: `.claude/{skills,commands}/*` (with star) so `!` carve-outs below
+# can re-include kept subdirs/files. A bare `.claude/skills/` would block
+# re-adding any tracked file under it after an accidental `git rm`.
+.claude/skills/*
+.claude/commands/*
 .agents/skills/
 .cursor/rules/
 .cursor/skills/
 .cursor/commands/
-# Carve-outs: IDE config that must stay tracked
+# Carve-outs: IDE config and kept skills/commands that must stay tracked
 !.cursor/BUGBOT.md
 !.cursor/hooks.json
 !.cursor/worktrees.json
+!.claude/skills/perps-core-sync/
+!.claude/skills/perps-core-sync/**
+!.claude/skills/repo-skill-authoring/
+!.claude/skills/repo-skill-authoring/**
+!.claude/commands/commit.md
+!.claude/commands/create-bug.md
+!.claude/commands/generate-claude-rules.md
+!.claude/commands/lint-staged.md
+!.claude/commands/setup-ios-simulator-mcp.md
+!.claude/commands/setup-jira-mcp.md
+!.claude/commands/setup-project.md
+!.claude/commands/unit-test-coverage.md
+!.claude/commands/unit-test.md
 
 # Build environment validation
 build-env.json
