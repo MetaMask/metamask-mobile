@@ -715,7 +715,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
                 {({ navigation }) => {
                   const navigationSpy = jest.spyOn(navigation, 'goBack');
                   navigationSpy.mockImplementation(mockGoBack);
-                  return React.cloneElement(children, { navigation });
+                  return React.cloneElement(
+                    children as React.ReactElement<{ navigation?: unknown }>,
+                    { navigation },
+                  );
                 }}
               </Stack.Screen>
             </Stack.Navigator>
@@ -1044,7 +1047,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
                   {({ navigation }) => {
                     navigationSpy = jest.spyOn(navigation, 'navigate');
                     navigationSpy.mockImplementation(() => undefined);
-                    return React.cloneElement(children, { navigation });
+                    return React.cloneElement(
+                      children as React.ReactElement<{ navigation?: unknown }>,
+                      { navigation },
+                    );
                   }}
                 </Stack.Screen>
               </Stack.Navigator>

@@ -1,0 +1,18 @@
+diff --git a/ios/WebAuthSession.swift b/ios/WebAuthSession.swift
+index 5d32d0c3540bb628bad3e7006e65f9f4bb7088bb..d50a6fe8a10f40421854f16a015db34e3e246dd4 100644
+--- a/ios/WebAuthSession.swift
++++ b/ios/WebAuthSession.swift
+@@ -39,10 +39,11 @@ final internal class WebAuthSession {
+        let host = redirectUrl.host(percentEncoded: false),
+        !host.isEmpty {
+       // Use the new callback API for HTTPS universal links
+-      // Pass an empty string for the path to match any path under the host if no specific path is provided
++      let rawPath = redirectUrl.path
++      let path = (rawPath.isEmpty || rawPath == "/") ? "" : rawPath
+       self.authSession = ASWebAuthenticationSession(
+         url: authUrl,
+-        callback: .https(host: host, path: redirectUrl.path),
++        callback: .https(host: host, path: path),
+         completionHandler: completionHandler
+       )
+     } else {

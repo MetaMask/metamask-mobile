@@ -1,9 +1,12 @@
-import { MMKV } from 'react-native-mmkv';
 import migrate from './106';
 
 jest.mock('react-native-mmkv', () => ({
   MMKV: jest.fn(),
 }));
+
+// `MMKV` is a type-only export in react-native-mmkv v3, so we resolve the
+// jest mock at runtime instead of importing the value.
+const MMKV = jest.requireMock('react-native-mmkv').MMKV as jest.Mock;
 
 describe('Migration #106', () => {
   const mockMMKVInstance = {
@@ -11,7 +14,7 @@ describe('Migration #106', () => {
     clearAll: jest.fn(),
   };
 
-  (MMKV as jest.Mock).mockImplementation(() => mockMMKVInstance);
+  MMKV.mockImplementation(() => mockMMKVInstance);
 
   beforeEach(() => {
     jest.clearAllMocks();

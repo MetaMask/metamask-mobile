@@ -326,9 +326,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 jest.mock('../../../../../constants/bridge', () => ({
   NETWORK_TO_SHORT_NETWORK_NAME_MAP: {
     'eip155:1': 'Ethereum',

@@ -1,8 +1,8 @@
 diff --git a/ReactAndroid/build.gradle.kts b/ReactAndroid/build.gradle.kts
-index f22f383eb291a415102f7501328bcc22aa2622da..3a78e18c7a80b0216944435e71dd4422b3e2ae73 100644
+index e593c2dc32a1e003145bf3cef4eb1346cc0b1b15..7d2281a021a45d28d16d34a147527da0065a4371 100644
 --- a/ReactAndroid/build.gradle.kts
 +++ b/ReactAndroid/build.gradle.kts
-@@ -573,8 +573,6 @@ android {
+@@ -552,8 +552,6 @@ android {
            preparePrefab)
    tasks.getByName("generateCodegenSchemaFromJavaScript").dependsOn(buildCodegenCLI)
    prepareKotlinBuildScriptModel.dependsOn("preBuild")
@@ -11,12 +11,12 @@ index f22f383eb291a415102f7501328bcc22aa2622da..3a78e18c7a80b0216944435e71dd4422
  
    sourceSets.getByName("main") {
      res.setSrcDirs(
-@@ -656,7 +654,7 @@ dependencies {
+@@ -648,7 +646,7 @@ dependencies {
  
-   // It's up to the consumer to decide if hermes should be included or not.
-   // Therefore hermes-engine is a compileOnly dependency.
+   // It's up to the consumer to decide if hermes or other engines should be included or not.
+   // Therefore hermes-engine is a compileOnly dependencies.
 -  compileOnly(project(":packages:react-native:ReactAndroid:hermes-engine"))
-+  compileOnly("com.facebook.react:hermes-android:0.76.9")
++  compileOnly("com.facebook.react:hermes-android:0.81.5")
  
    testImplementation(libs.junit)
    testImplementation(libs.assertj)
