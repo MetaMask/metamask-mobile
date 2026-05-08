@@ -436,10 +436,12 @@ const WalletTokensTabView = forwardRef<
   // Build ordered list of tab refs based on which tabs are enabled
   // Returns null for tabs without refresh (Perps uses WebSocket, DeFi uses selectors)
   const getTabRefByIndex = useCallback(
-    (index: number): React.RefObject<TabRefreshHandle> | null => {
+    (index: number): React.RefObject<TabRefreshHandle | null> | null => {
       // Build array matching tab order: [tokens, perps?, predict?, defi?, nfts?]
       // Use null for tabs without refresh functionality
-      const tabRefs: (React.RefObject<TabRefreshHandle> | null)[] = [tokensRef];
+      const tabRefs: (React.RefObject<TabRefreshHandle | null> | null)[] = [
+        tokensRef,
+      ];
 
       if (isPerpsEnabled) {
         tabRefs.push(null); // Perps uses WebSocket streaming, no refresh needed

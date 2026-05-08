@@ -90,12 +90,22 @@ jobs:
           fetch-depth: ${{ inputs.fetch-depth }}
           submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+
       # iOS: Only Node + Ruby needed (setup runs gem/bundle install, no pods/Xcode). Full iOS env is in build job.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: ${{ inputs.platform == 'android' && 'yarn' || (inputs.platform == 'ios' && 'yarn') || '' }}
+          cache: ${{ inputs.runner_provider == 'namespace' && '' || (inputs.platform == 'android' && 'yarn' || (inputs.platform == 'ios' && 'yarn') || '') }}
 
       - name: Setup Ruby (iOS)
         if: inputs.platform == 'ios'
@@ -131,14 +141,14 @@ jobs:
 
       - name: Restore .metamask folder
         id: restore-metamask
-        if: inputs.platform != ''
+        if: ${{ inputs.runner_provider != 'namespace' && inputs.platform != '' }}
         uses: actions/cache@v4
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Install Foundry if cache missed
-        if: inputs.platform != '' && steps.restore-metamask.outputs.cache-hit != 'true'
+        if: ${{ inputs.platform != '' && (inputs.runner_provider == 'namespace' || steps.restore-metamask.outputs.cache-hit != 'true') }}
         run: yarn install:foundryup
 
       - name: Setup project
