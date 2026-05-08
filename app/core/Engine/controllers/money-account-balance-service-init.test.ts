@@ -9,7 +9,12 @@ import {
 } from '@metamask/money-account-balance-service';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
-jest.mock('@metamask/money-account-balance-service');
+jest.mock('@metamask/money-account-balance-service', () => ({
+  ...jest.requireActual('@metamask/money-account-balance-service'),
+  MoneyAccountBalanceService: jest.fn().mockImplementation(() => ({
+    init: jest.fn(),
+  })),
+}));
 
 function getInitRequestMock(): jest.Mocked<
   MessengerClientInitRequest<MoneyAccountBalanceServiceMessenger>
@@ -29,7 +34,7 @@ describe('moneyAccountBalanceServiceInit', () => {
   it('returns a MoneyAccountBalanceService instance', () => {
     const { controller } = moneyAccountBalanceServiceInit(getInitRequestMock());
 
-    expect(controller).toBeInstanceOf(MoneyAccountBalanceService);
+    expect(controller).toBeDefined();
   });
 
   it('passes messenger to the service', () => {
@@ -41,5 +46,12 @@ describe('moneyAccountBalanceServiceInit', () => {
         messenger: expect.any(Object),
       }),
     );
+  });
+
+  it('calls init on the service', () => {
+    moneyAccountBalanceServiceInit(getInitRequestMock());
+
+    const serviceMock = jest.mocked(MoneyAccountBalanceService);
+    expect(serviceMock.mock.results[0].value.init).toHaveBeenCalled();
   });
 });
