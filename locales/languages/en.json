@@ -6556,7 +6556,7 @@
       "step_progress": "Step {{current}} of {{total}}",
       "title": "Add money",
       "description": "Fund your account and start earning APY.",
-      "add": "Add",
+      "add": "Add funds",
       "step2_title": "Get your MetaMask Card",
       "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
       "step2_cta": "Get card",
