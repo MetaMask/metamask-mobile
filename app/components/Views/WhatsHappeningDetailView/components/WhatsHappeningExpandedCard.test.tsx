@@ -6,7 +6,6 @@ import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
-const mockGoToBuy = jest.fn();
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -32,10 +31,6 @@ jest.mock('../utils/getRelatedAssetImageSource', () => ({
   getRelatedAssetImageSource: jest.fn(() => undefined),
 }));
 
-jest.mock('../../../UI/Ramp/hooks/useRampNavigation', () => ({
-  useRampNavigation: () => ({ goToBuy: mockGoToBuy }),
-}));
-
 jest.mock('../../../UI/MarketInsights/utils/marketInsightsFormatting', () => ({
   formatRelativeTime: jest.fn(() => 'now'),
   getUniqueSourcesByFavicon: jest.fn(() => []),
@@ -48,7 +43,6 @@ jest.mock(
 
 jest.mock('../hooks/useWhatsHappeningAssetPrices', () => ({
   useWhatsHappeningAssetPrices: jest.fn(() => ({
-    tokenPriceByCaip: {},
     perpsPriceBySymbol: {},
   })),
 }));
@@ -61,14 +55,6 @@ jest.mock(
 const CARD_WIDTH = 320;
 const CARD_HEIGHT = 600;
 
-const tokenAsset = {
-  sourceAssetId: 'bitcoin',
-  symbol: 'BTC',
-  name: 'Bitcoin',
-  caip19: ['eip155:1/slip44:0'],
-  hlPerpsMarket: undefined,
-};
-
 const perpsOnlyAsset = {
   sourceAssetId: 'tsla',
   symbol: 'TSLA',
@@ -78,11 +64,11 @@ const perpsOnlyAsset = {
 };
 
 const dualAsset = {
-  sourceAssetId: 'eth',
-  symbol: 'ETH',
-  name: 'Ethereum',
-  caip19: ['eip155:1/slip44:60'],
-  hlPerpsMarket: ['ETH'],
+  sourceAssetId: 'btc',
+  symbol: 'BTC',
+  name: 'Bitcoin',
+  caip19: ['eip155:1/slip44:0'],
+  hlPerpsMarket: ['BTC'],
 };
 
 const baseItem: WhatsHappeningItem = {
@@ -165,26 +151,10 @@ describe('WhatsHappeningExpandedCard', () => {
     expect(screen.queryByText('Neutral')).toBeNull();
     expect(screen.queryByText('Bullish')).toBeNull();
     expect(screen.queryByText('Bearish')).toBeNull();
-    // No impact = no AI pill either
     expect(screen.queryByText('AI')).toBeNull();
   });
 
-  it('renders Tokens section when assets have caip19', () => {
-    const item = { ...baseItem, relatedAssets: [tokenAsset] };
-    renderWithProvider(
-      <WhatsHappeningExpandedCard
-        item={item}
-        cardIndex={0}
-        cardWidth={CARD_WIDTH}
-        cardHeight={CARD_HEIGHT}
-      />,
-    );
-    expect(screen.getByText('Tokens')).toBeOnTheScreen();
-    expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
-    expect(screen.getByText('Buy')).toBeOnTheScreen();
-  });
-
-  it('does not render Tokens section when no assets have caip19', () => {
+  it('renders the single Markets section header when relatedAssets is non-empty', () => {
     const item = { ...baseItem, relatedAssets: [perpsOnlyAsset] };
     renderWithProvider(
       <WhatsHappeningExpandedCard
@@ -194,11 +164,13 @@ describe('WhatsHappeningExpandedCard', () => {
         cardHeight={CARD_HEIGHT}
       />,
     );
+    expect(screen.getByText('Markets')).toBeOnTheScreen();
+    // No "Tokens" or "Perps" section labels
     expect(screen.queryByText('Tokens')).toBeNull();
-    expect(screen.queryByText('Buy')).toBeNull();
+    expect(screen.queryByText('Perps')).toBeNull();
   });
 
-  it('renders Perps section when assets have hlPerpsMarket', () => {
+  it('renders each asset as a PerpsRow with Trade button', () => {
     const item = { ...baseItem, relatedAssets: [perpsOnlyAsset] };
     renderWithProvider(
       <WhatsHappeningExpandedCard
@@ -208,58 +180,30 @@ describe('WhatsHappeningExpandedCard', () => {
         cardHeight={CARD_HEIGHT}
       />,
     );
-    expect(screen.getByText('Perps')).toBeOnTheScreen();
     expect(screen.getByText('Tesla')).toBeOnTheScreen();
     expect(screen.getByText('Trade')).toBeOnTheScreen();
-  });
-
-  it('does not render Perps section when no assets have hlPerpsMarket', () => {
-    const item = { ...baseItem, relatedAssets: [tokenAsset] };
-    renderWithProvider(
-      <WhatsHappeningExpandedCard
-        item={item}
-        cardIndex={0}
-        cardWidth={CARD_WIDTH}
-        cardHeight={CARD_HEIGHT}
-      />,
-    );
-    expect(screen.queryByText('Perps')).toBeNull();
-    expect(screen.queryByText('Trade')).toBeNull();
-  });
-
-  it('renders both Tokens and Perps sections when there are separate token and perps-only assets', () => {
-    const item = { ...baseItem, relatedAssets: [tokenAsset, perpsOnlyAsset] };
-    renderWithProvider(
-      <WhatsHappeningExpandedCard
-        item={item}
-        cardIndex={0}
-        cardWidth={CARD_WIDTH}
-        cardHeight={CARD_HEIGHT}
-      />,
-    );
-    expect(screen.getByText('Tokens')).toBeOnTheScreen();
-    expect(screen.getByText('Perps')).toBeOnTheScreen();
-    expect(screen.getByText('Buy')).toBeOnTheScreen();
-    expect(screen.getByText('Trade')).toBeOnTheScreen();
-  });
-
-  it('does not duplicate a dual asset (caip19 + hlPerpsMarket) into the Perps section, shows Trade for the token row', () => {
-    const item = { ...baseItem, relatedAssets: [dualAsset] };
-    renderWithProvider(
-      <WhatsHappeningExpandedCard
-        item={item}
-        cardIndex={0}
-        cardWidth={CARD_WIDTH}
-        cardHeight={CARD_HEIGHT}
-      />,
-    );
-    expect(screen.getByText('Tokens')).toBeOnTheScreen();
-    expect(screen.getByText('Trade')).toBeOnTheScreen();
+    // No Buy button
     expect(screen.queryByText('Buy')).toBeNull();
-    expect(screen.queryByText('Perps')).toBeNull();
   });
 
-  it('renders neither section when relatedAssets is empty', () => {
+  it('renders all assets in the single Markets section (including dual caip19+perps)', () => {
+    const item = { ...baseItem, relatedAssets: [perpsOnlyAsset, dualAsset] };
+    renderWithProvider(
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
+      />,
+    );
+    expect(screen.getByText('Markets')).toBeOnTheScreen();
+    expect(screen.getByText('Tesla')).toBeOnTheScreen();
+    expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
+    expect(screen.getAllByText('Trade')).toHaveLength(2);
+    expect(screen.queryByText('Buy')).toBeNull();
+  });
+
+  it('does not render the Markets section when relatedAssets is empty', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={baseItem}
@@ -268,8 +212,8 @@ describe('WhatsHappeningExpandedCard', () => {
         cardHeight={CARD_HEIGHT}
       />,
     );
-    expect(screen.queryByText('Tokens')).toBeNull();
-    expect(screen.queryByText('Perps')).toBeNull();
+    expect(screen.queryByText('Markets')).toBeNull();
+    expect(screen.queryByText('Trade')).toBeNull();
   });
 
   it('Trade button navigates to PerpsMarketDetails', () => {
@@ -301,7 +245,6 @@ describe('WhatsHappeningExpandedCard', () => {
     };
     const item = { ...baseItem, articles: [article] };
 
-    // Override mock so the sources footer is rendered
     const { getUniqueSourcesByFavicon } = jest.requireMock(
       '../../../UI/MarketInsights/utils/marketInsightsFormatting',
     );
@@ -323,21 +266,16 @@ describe('WhatsHappeningExpandedCard', () => {
     expect(mockOnSourcesPress).toHaveBeenCalledWith([article]);
   });
 
-  it('passes tokenPriceByCaip and perpsPriceBySymbol from hook to rows', () => {
+  it('passes perpsPriceBySymbol from hook to PerpsRow', () => {
     const mockHook = jest.requireMock('../hooks/useWhatsHappeningAssetPrices');
-    const mockTokenMap = {
-      'eip155:1/slip44:0': { price: 95000, pricePercentChange1d: 2 },
+    const mockPerpsMap = {
+      'xyz:TSLA': { price: 172.5, percentChange24h: -1 },
     };
-    const mockPerpsMap = { 'xyz:TSLA': { price: 172.5, percentChange24h: -1 } };
     mockHook.useWhatsHappeningAssetPrices.mockReturnValueOnce({
-      tokenPriceByCaip: mockTokenMap,
       perpsPriceBySymbol: mockPerpsMap,
     });
 
-    const item = {
-      ...baseItem,
-      relatedAssets: [tokenAsset, perpsOnlyAsset],
-    };
+    const item = { ...baseItem, relatedAssets: [perpsOnlyAsset] };
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={item}
@@ -346,10 +284,6 @@ describe('WhatsHappeningExpandedCard', () => {
         cardHeight={CARD_HEIGHT}
       />,
     );
-
-    // Token price should appear (formatted from mock map)
-    expect(screen.getByText('$95,000.00')).toBeOnTheScreen();
-    // Perps price should appear
     expect(screen.getByText('$172.50')).toBeOnTheScreen();
   });
 });

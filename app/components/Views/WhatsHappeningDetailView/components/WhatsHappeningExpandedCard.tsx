@@ -28,7 +28,6 @@ import {
 } from '../../../UI/MarketInsights/utils/marketInsightsFormatting';
 import SourceLogoGroup from '../../../UI/MarketInsights/components/SourceLogoGroup';
 import PerpsRow from './PerpsRow';
-import TokenRow from './TokenRow';
 import { useWhatsHappeningAssetPrices } from '../hooks/useWhatsHappeningAssetPrices';
 
 interface WhatsHappeningExpandedCardProps {
@@ -74,14 +73,12 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
     return remaining > 0 ? `${first.name} +${remaining}` : first.name;
   }, [uniqueSources]);
 
-  // Fetch price data for all assets on this card (one batch per card)
-  const { tokenPriceByCaip, perpsPriceBySymbol } =
-    useWhatsHappeningAssetPrices(item);
+  const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(item);
 
   return (
     <Box style={{ width: cardWidth, height: cardHeight }}>
       {/* Card surface — fills the fixed height so all cards are the same size */}
-      <Box twClassName="rounded-2xl bg-background-muted overflow-hidden flex-1">
+      <Box twClassName="rounded-2xl bg-background-muted overflow-hidden flex-1 mt-4">
         {/* Scrollable main content */}
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -100,11 +97,11 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 gap={1}
-                twClassName="bg-icon-default rounded px-1.5 py-0.5 self-start"
+                twClassName="bg-icon-default rounded px-1.5 py-1 self-start"
               >
                 <Icon
-                  name={IconName.Ai}
-                  size={IconSize.Sm}
+                  name={IconName.Sparkle}
+                  size={IconSize.Md}
                   twClassName="text-icon-inverse"
                 />
                 <Text
@@ -112,7 +109,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                   fontWeight={FontWeight.Medium}
                   twClassName="text-icon-inverse"
                 >
-                  {'AI'}
+                  {strings('homepage.sections.whats_happening_ai')}
                 </Text>
               </Box>
 
@@ -145,58 +142,26 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
             </Text>
           )}
 
-          {/* Tokens section */}
-          {item.relatedAssets.some((asset) => asset.caip19?.length) && (
+          {/* Markets section — all related assets are perps markets */}
+          {item.relatedAssets.length > 0 && (
             <Box gap={1}>
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
+                color={TextColor.TextDefault}
               >
-                {strings('homepage.sections.tokens')}
+                {strings('homepage.sections.markets')}
               </Text>
 
-              {item.relatedAssets
-                .filter((asset) => asset.caip19?.length)
-                .map((asset) => (
-                  <TokenRow
-                    key={asset.sourceAssetId}
-                    asset={asset}
-                    item={item}
-                    cardIndex={cardIndex}
-                    tokenPriceByCaip={tokenPriceByCaip}
-                  />
-                ))}
-            </Box>
-          )}
-
-          {/* Perps section — only assets that are perps-only (hlPerpsMarket set, no caip19 token) */}
-          {item.relatedAssets.some(
-            (asset) => asset.hlPerpsMarket?.length && !asset.caip19?.length,
-          ) && (
-            <Box gap={1}>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {strings('homepage.sections.perps')}
-              </Text>
-
-              {item.relatedAssets
-                .filter(
-                  (asset) =>
-                    asset.hlPerpsMarket?.length && !asset.caip19?.length,
-                )
-                .map((asset) => (
-                  <PerpsRow
-                    key={`perp-${asset.sourceAssetId}`}
-                    asset={asset}
-                    item={item}
-                    cardIndex={cardIndex}
-                    perpsPriceBySymbol={perpsPriceBySymbol}
-                  />
-                ))}
+              {item.relatedAssets.map((asset) => (
+                <PerpsRow
+                  key={asset.sourceAssetId}
+                  asset={asset}
+                  item={item}
+                  cardIndex={cardIndex}
+                  perpsPriceBySymbol={perpsPriceBySymbol}
+                />
+              ))}
             </Box>
           )}
         </ScrollView>

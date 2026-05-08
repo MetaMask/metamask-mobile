@@ -1,23 +1,9 @@
-import { renderHook, waitFor, act } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-native';
 import { useWhatsHappeningAssetPrices } from './useWhatsHappeningAssetPrices';
 import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
-
-const mockHandleFetch = jest.fn();
-jest.mock('@metamask/controller-utils', () => ({
-  handleFetch: (...args: unknown[]) => mockHandleFetch(...args),
-}));
-
-// Mock useSelector to return 'usd' for selectCurrentCurrency
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => 'usd'),
-}));
-
-jest.mock('../../../../selectors/currencyRateController', () => ({
-  selectCurrentCurrency: jest.fn(() => 'usd'),
-}));
 
 const mockUsePerpsLivePrices = jest.fn(
   (_options: { symbols: string[]; throttleMs?: number }) => ({}),
@@ -29,13 +15,6 @@ jest.mock('../../../UI/Perps/hooks/stream', () => ({
 
 // ── Test data ──────────────────────────────────────────────────────────────────
 
-const btcAsset: RelatedAsset = {
-  sourceAssetId: 'bitcoin',
-  symbol: 'BTC',
-  name: 'Bitcoin',
-  caip19: ['eip155:1/slip44:0'],
-};
-
 const tslaAsset: RelatedAsset = {
   sourceAssetId: 'tsla',
   symbol: 'TSLA',
@@ -44,12 +23,19 @@ const tslaAsset: RelatedAsset = {
   hlPerpsMarket: ['xyz:TSLA'],
 };
 
-const ethDualAsset: RelatedAsset = {
-  sourceAssetId: 'eth',
-  symbol: 'ETH',
-  name: 'Ethereum',
-  caip19: ['eip155:1/slip44:60'],
-  hlPerpsMarket: ['ETH'],
+const btcPerpsAsset: RelatedAsset = {
+  sourceAssetId: 'bitcoin',
+  symbol: 'BTC',
+  name: 'Bitcoin',
+  caip19: ['eip155:1/slip44:0'],
+  hlPerpsMarket: ['BTC'],
+};
+
+const assetNoPerps: RelatedAsset = {
+  sourceAssetId: 'no-perps',
+  symbol: 'FOO',
+  name: 'Foo',
+  caip19: ['eip155:1/erc20:0xfoo'],
 };
 
 const makeItem = (relatedAssets: RelatedAsset[]): WhatsHappeningItem => ({
@@ -67,70 +53,12 @@ const makeItem = (relatedAssets: RelatedAsset[]): WhatsHappeningItem => ({
 describe('useWhatsHappeningAssetPrices', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockHandleFetch.mockResolvedValue({});
     mockUsePerpsLivePrices.mockReturnValue({});
-  });
-
-  describe('token price fetching', () => {
-    it('skips fetch when there are no caip19 IDs', async () => {
-      const item = makeItem([tslaAsset]);
-      const { result } = renderHook(() => useWhatsHappeningAssetPrices(item));
-      await waitFor(() => {
-        expect(result.current.tokenPriceByCaip).toEqual({});
-      });
-      expect(mockHandleFetch).not.toHaveBeenCalled();
-    });
-
-    it('fetches token prices and populates tokenPriceByCaip map', async () => {
-      const caip = 'eip155:1/slip44:0';
-      mockHandleFetch.mockResolvedValueOnce({
-        [caip]: { price: 95000, pricePercentChange1d: 2.5 },
-      });
-      const item = makeItem([btcAsset]);
-      const { result } = renderHook(() => useWhatsHappeningAssetPrices(item));
-      await waitFor(() => {
-        expect(result.current.tokenPriceByCaip[caip]).toBeDefined();
-      });
-      expect(result.current.tokenPriceByCaip[caip]).toEqual({
-        price: 95000,
-        pricePercentChange1d: 2.5,
-      });
-    });
-
-    it('deduplicates caip19 IDs and fires a single fetch', async () => {
-      const caip = 'eip155:1/slip44:0';
-      const duplicateAsset: RelatedAsset = {
-        ...btcAsset,
-        sourceAssetId: 'btc2',
-      };
-      mockHandleFetch.mockResolvedValueOnce({
-        [caip]: { price: 95000, pricePercentChange1d: 2.5 },
-      });
-      const item = makeItem([btcAsset, duplicateAsset]);
-      renderHook(() => useWhatsHappeningAssetPrices(item));
-      await waitFor(() => {
-        expect(mockHandleFetch).toHaveBeenCalledTimes(1);
-      });
-      // URL should contain caip only once
-      const url: string = mockHandleFetch.mock.calls[0][0];
-      const encodedCaip = encodeURIComponent(caip);
-      expect(url.split(encodedCaip).length - 1).toBe(1);
-    });
-
-    it('yields empty token map on fetch error (no crash)', async () => {
-      mockHandleFetch.mockRejectedValueOnce(new Error('Network error'));
-      const item = makeItem([btcAsset]);
-      const { result } = renderHook(() => useWhatsHappeningAssetPrices(item));
-      await waitFor(() => {
-        // After error, map is reset to {}
-        expect(result.current.tokenPriceByCaip).toEqual({});
-      });
-    });
   });
 
   describe('perps live price subscription', () => {
     it('returns empty perpsPriceBySymbol when there are no hlPerpsMarket entries', () => {
-      const item = makeItem([btcAsset]);
+      const item = makeItem([assetNoPerps]);
       const { result } = renderHook(() => useWhatsHappeningAssetPrices(item));
       expect(result.current.perpsPriceBySymbol).toEqual({});
     });
@@ -170,44 +98,43 @@ describe('useWhatsHappeningAssetPrices', () => {
         percentChange24h: undefined,
       });
     });
-  });
 
-  describe('mixed assets', () => {
-    it('handles dual assets (both caip19 and hlPerpsMarket) correctly', async () => {
-      const caip = 'eip155:1/slip44:60';
-      mockHandleFetch.mockResolvedValueOnce({
-        [caip]: { price: 3500, pricePercentChange1d: 1.2 },
-      });
+    it('handles assets that have both caip19 and hlPerpsMarket', () => {
       mockUsePerpsLivePrices.mockReturnValue({
-        ETH: { price: '3500', percentChange24h: '1.2' },
+        BTC: { price: '95000', percentChange24h: '2.5' },
       });
-      const item = makeItem([ethDualAsset]);
+      const item = makeItem([btcPerpsAsset]);
       const { result } = renderHook(() => useWhatsHappeningAssetPrices(item));
-      await waitFor(() => {
-        expect(result.current.tokenPriceByCaip[caip]?.price).toBe(3500);
+      expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
+        symbols: ['BTC'],
+        throttleMs: 3000,
       });
-      expect(result.current.perpsPriceBySymbol.ETH?.price).toBe(3500);
+      expect(result.current.perpsPriceBySymbol.BTC?.price).toBe(95000);
+    });
+
+    it('includes symbols from multiple assets deduplicating repeated markets', () => {
+      const ethAsset: RelatedAsset = {
+        sourceAssetId: 'eth',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        hlPerpsMarket: ['ETH'],
+      };
+      const item = makeItem([tslaAsset, ethAsset]);
+      renderHook(() => useWhatsHappeningAssetPrices(item));
+      expect(mockUsePerpsLivePrices).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbols: expect.arrayContaining(['xyz:TSLA', 'ETH']),
+        }),
+      );
     });
   });
 
-  describe('cleanup', () => {
-    it('does not update state after unmount (stale fetch is discarded)', async () => {
-      let resolvePromise!: (value: unknown) => void;
-      mockHandleFetch.mockImplementationOnce(
-        () =>
-          new Promise((resolve) => {
-            resolvePromise = resolve;
-          }),
-      );
-      const item = makeItem([btcAsset]);
-      const { unmount } = renderHook(() => useWhatsHappeningAssetPrices(item));
-      unmount();
-      // Now resolve after unmount — should not cause state update warnings
-      await act(async () => {
-        resolvePromise({ 'eip155:1/slip44:0': { price: 95000 } });
-      });
-      // If we reach here without error, the cleanup is working correctly
-      expect(true).toBe(true);
+  it('does not include token-only assets (no hlPerpsMarket) in the symbols list', () => {
+    const item = makeItem([assetNoPerps]);
+    renderHook(() => useWhatsHappeningAssetPrices(item));
+    expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
+      symbols: [],
+      throttleMs: 3000,
     });
   });
 });

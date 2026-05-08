@@ -9029,9 +9029,11 @@
       },
       "tokens": "Tokens",
       "perps": "Perps",
+      "markets": "Markets",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
       "whats_happening": "What's happening",
+      "whats_happening_ai": "AI",
       "whats_happening_impact": {
         "bullish": "Bullish",
         "bearish": "Bearish",
