@@ -31,11 +31,6 @@ export const SEEDLESS_ONBOARDING_ENABLED =
  * @returns The mapped build type
  */
 const buildTypeMapping = (buildType: string, isDev: boolean) => {
-  // use development config for now
-  if (process.env.DEV_OAUTH_CONFIG === 'true' && isDev) {
-    return 'development';
-  }
-
   switch (buildType) {
     case 'qa':
       return 'main_uat';
@@ -50,7 +45,7 @@ const buildTypeMapping = (buildType: string, isDev: boolean) => {
 
 const BuildType = buildTypeMapping(
   AppConstants.METAMASK_BUILD_TYPE || 'main',
-  AppConstants.IS_DEV,
+  AppConstants.IS_DEV || process.env.METAMASK_ENVIRONMENT === 'dev',
 );
 const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
 
