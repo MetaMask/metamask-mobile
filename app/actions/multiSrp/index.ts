@@ -13,7 +13,7 @@ import { getTraceTags } from '../../util/sentry/tags';
 import ReduxService from '../../core/redux';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
-import { SecretType } from '@metamask/seedless-onboarding-controller';
+import { SEEDLESS_ADD_NEW_SECRET_DATA_KIND } from '../../util/seedless/addNewSecretDataKind';
 import Logger from '../../util/Logger';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import { captureException } from '@sentry/core';
@@ -71,7 +71,7 @@ export async function importNewSecretRecoveryPhrase(
       });
       await SeedlessOnboardingController.addNewSecretData(
         mnemonic,
-        SecretType.Mnemonic,
+        SEEDLESS_ADD_NEW_SECRET_DATA_KIND.ImportedSrp,
         {
           keyringId: entropySource,
         },

@@ -35175,6 +35175,7 @@ __metadata:
     "@metamask/test-dapp": "npm:9.5.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
+    "@metamask/toprf-secure-backup": "npm:^1.0.0"
     "@metamask/transaction-controller": "npm:^65.1.0"
     "@metamask/transaction-pay-controller": "npm:^21.0.0"
     "@metamask/tron-wallet-snap": "npm:^1.25.3"

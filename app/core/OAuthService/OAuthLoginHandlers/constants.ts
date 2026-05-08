@@ -129,14 +129,12 @@ export enum SupportedPlatforms {
 
 export const AuthConnectionConfig: Record<
   SupportedPlatforms,
-  Partial<
-    Record<
-      AuthConnection,
-      {
-        authConnectionId: string;
-        groupedAuthConnectionId?: string;
-      }
-    >
+  Record<
+    AuthConnection,
+    {
+      authConnectionId: string;
+      groupedAuthConnectionId?: string;
+    }
   >
 > = {
   [SupportedPlatforms.Android]: {

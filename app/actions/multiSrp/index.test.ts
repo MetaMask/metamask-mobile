@@ -10,7 +10,10 @@ import { createMockInternalAccount } from '../../util/test/accountsControllerTes
 import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
 import { RootState } from '../../reducers';
-import { SecretType } from '@metamask/seedless-onboarding-controller';
+import {
+  SEEDLESS_ADD_NEW_SECRET_DATA_KIND,
+  type SeedlessAddNewSecretDataKind,
+} from '../../util/seedless/addNewSecretDataKind';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { waitFor } from '@testing-library/react-native';
 import { toMultichainAccountWalletId } from '@metamask/account-api';
@@ -111,9 +114,9 @@ jest.mock('../../core/Engine', () => ({
     SeedlessOnboardingController: {
       addNewSecretData: (
         seed: Uint8Array,
-        type: SecretType,
-        keyringId: string,
-      ) => mockAddNewSecretData(seed, type, keyringId),
+        type: SeedlessAddNewSecretDataKind,
+        options?: { keyringId?: string },
+      ) => mockAddNewSecretData(seed, type, options),
     },
     AccountTreeController: {
       syncWithUserStorage: () => mockSyncAccountTreeWithUserStorage(),
@@ -279,7 +282,7 @@ describe('MultiSRP Actions', () => {
         });
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
-          SecretType.Mnemonic,
+          SEEDLESS_ADD_NEW_SECRET_DATA_KIND.ImportedSrp,
           {
             keyringId: mockEntropySource,
           },
@@ -311,7 +314,7 @@ describe('MultiSRP Actions', () => {
         });
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
-          SecretType.Mnemonic,
+          SEEDLESS_ADD_NEW_SECRET_DATA_KIND.ImportedSrp,
           {
             keyringId: mockEntropySource,
           },
@@ -340,7 +343,7 @@ describe('MultiSRP Actions', () => {
 
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
-          SecretType.Mnemonic,
+          SEEDLESS_ADD_NEW_SECRET_DATA_KIND.ImportedSrp,
           {
             keyringId: mockEntropySource,
           },
@@ -368,7 +371,7 @@ describe('MultiSRP Actions', () => {
 
       expect(mockAddNewSecretData).toHaveBeenCalledWith(
         expect.any(Uint8Array),
-        SecretType.Mnemonic,
+        SEEDLESS_ADD_NEW_SECRET_DATA_KIND.ImportedSrp,
         {
           keyringId: mockEntropySource,
         },

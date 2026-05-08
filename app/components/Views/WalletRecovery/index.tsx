@@ -23,6 +23,7 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import {
   Icon as DSIcon,
+  IconColor as DSIconColor,
   IconName as DSIconName,
   IconSize as DSIconSize,
 } from '@metamask/design-system-react-native';
@@ -150,7 +151,7 @@ const SocialLinked = ({
         <DSIcon
           name={DSIconName.Telegram}
           size={DSIconSize.Lg}
-          style={{ color: colors.text.default }}
+          color={DSIconColor.IconDefault}
         />
       );
     }
