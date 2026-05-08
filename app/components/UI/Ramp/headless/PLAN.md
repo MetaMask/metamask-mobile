@@ -45,6 +45,28 @@ Key idea: the hook orchestrates by (a) seeding the controller with the quote's t
 
 ---
 
+## Design principles
+
+Cross-cutting rules that shape what `useHeadlessBuy` does and doesn't expose. They keep the consumer surface small so new consumers (MMPay's `TransactionPayController`, future SDKs, future non-MMPay teams) can integrate without coupling to ramp internals or being forced into a specific UI.
+
+### 1. Callbacks-only, three terminal events
+
+The hook exposes exactly three lifecycle callbacks: `onOrderCreated`, `onError`, `onClose`. Each session ends in exactly one of them. **No intermediate progress callbacks** (`onAuthStarted`, `onKycRequired`, `onPaymentMethodChosen`, etc.) — consumers do not get a play-by-play of the ramp flow.
+
+**Why.** Intermediate callbacks couple consumers to ramp internals; changing the order of OTP / KYC / payment-method screens or adding a fraud step would force every consumer to update. The "wait for any of the three terminal callbacks" model lets ramp evolve internally without breaking consumers.
+
+**How to apply.** When a consumer asks for state-aware copy ("Verifying email…", "Awaiting KYC…"), point them at their own context — they know the quote, the user, and the time elapsed. Don't add a callback. If timing-based copy is the real ask, see the Phase 9 timeout open question for a single opaque "past expected latency" signal that doesn't expose flow internals.
+
+### 2. The consumer renders all visible UI
+
+`useHeadlessBuy` returns no render-shape props (no `loadingText`, no `spinnerComponent`, no required JSX). Consumers render whatever loading indicator, error treatment, or copy fits their design system. **Headless Ramps is a behavior provider, not a UI provider.**
+
+**Why.** Render-shape props would force consumers either to accept ramp's design choices or to opt out via overrides — both bad. The [May 6 design thread](https://consensys.slack.com/archives/C0AK3NXRM7W/p1778072992397499) settled on "consumer owns the visible UI" (Pedro reply 11; Lorenzo + Yanrong reply 9/17; Goktug reply 20). Phase 9.5 implements this on the Host side by stripping its visible chrome.
+
+**How to apply.** When a consumer asks "can the hook render the spinner for me?", the answer is no — give them the three callbacks and let them flip their own `isLoading` boolean. Shared UI primitives belong in a design-system library, not in `useHeadlessBuy`.
+
+---
+
 ## Phase 1 — Playground scaffolding (read-only)
 
 Goal: land an empty playground screen wired to the existing `useRampsController`. No behavior changes.
