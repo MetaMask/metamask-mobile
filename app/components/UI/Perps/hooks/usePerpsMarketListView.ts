@@ -4,6 +4,7 @@ import { usePerpsMarkets } from './usePerpsMarkets';
 import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
 import {
+  MARKET_SORTING_CONFIG,
   sortMarkets,
   type PerpsMarketData,
   type MarketTypeFilter,
@@ -203,11 +204,19 @@ export const usePerpsMarketListView = ({
   }, [searchedMarkets, marketTypeFilter]);
 
   // Use sorting hook for sort state and sorting logic.
-  // defaultSortOptionId (from navigation params) takes precedence over the saved user preference.
+  // defaultSortOptionId (from navigation params) takes precedence over the saved user
+  // preference. When it overrides a *different* option, reset direction to the default
+  // so the market list opens sorted the same way the explore feed displayed it (always desc).
+  // When there is no override, or the override matches the saved option, carry the saved direction.
+  const isOptionOverridden =
+    defaultSortOptionId !== undefined &&
+    defaultSortOptionId !== savedSortPreference.optionId;
   const sortingHook = usePerpsSorting({
     initialOptionId: (defaultSortOptionId ??
       savedSortPreference.optionId) as SortOptionId,
-    initialDirection: savedSortPreference.direction,
+    initialDirection: isOptionOverridden
+      ? MARKET_SORTING_CONFIG.DefaultDirection
+      : savedSortPreference.direction,
   });
 
   // Wrap handleOptionChange to save preference to PerpsController

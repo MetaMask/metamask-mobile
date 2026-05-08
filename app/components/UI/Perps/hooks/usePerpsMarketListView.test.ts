@@ -305,24 +305,47 @@ describe('usePerpsMarketListView', () => {
       });
     });
 
-    it('defaultSortOptionId overrides the saved sort preference', () => {
+    it('defaultSortOptionId overrides the saved sort option and resets direction to default', () => {
       let selectorCallCount = 0;
       mockUseSelector.mockImplementation(() => {
         selectorCallCount++;
         if (selectorCallCount % 2 === 1) {
           return ['BTC'];
         }
-        // Saved preference is volume/desc
-        return { optionId: 'volume', direction: 'desc' };
+        // Saved preference is volume/asc — user had it sorted ascending
+        return { optionId: 'volume', direction: 'asc' };
       });
 
       renderHook(() =>
         usePerpsMarketListView({ defaultSortOptionId: 'priceChange' }),
       );
 
+      // Option overridden → direction must reset to default (desc), not carry 'asc'
       expect(mockUsePerpsSorting).toHaveBeenCalledWith({
         initialOptionId: 'priceChange',
         initialDirection: 'desc',
+      });
+    });
+
+    it('preserves saved direction when defaultSortOptionId matches the saved option', () => {
+      let selectorCallCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        selectorCallCount++;
+        if (selectorCallCount % 2 === 1) {
+          return ['BTC'];
+        }
+        // Saved preference is priceChange/asc
+        return { optionId: 'priceChange', direction: 'asc' };
+      });
+
+      renderHook(() =>
+        usePerpsMarketListView({ defaultSortOptionId: 'priceChange' }),
+      );
+
+      // Same option — carry the saved direction, don't reset
+      expect(mockUsePerpsSorting).toHaveBeenCalledWith({
+        initialOptionId: 'priceChange',
+        initialDirection: 'asc',
       });
     });
 
