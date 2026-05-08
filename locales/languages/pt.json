@@ -8391,15 +8391,6 @@
     "season_1": "Temporada 1",
     "musd": {
       "page_title": "mUSD",
-      "title": "Calculadora de bônus mUSD",
-      "description": "Veja quanto você pode ganhar convertendo suas stablecoins para mUSD.",
-      "amount_label": "Valor convertido",
-      "estimated_bonus": "Bônus anual estimado: até 3%",
-      "initial_amount": "Valor inicial",
-      "daily_bonus": "Bônus diário resgatável",
-      "annualized_bonus": "Bônus anualizado",
-      "disclaimer": "Este valor é apenas uma estimativa. O bônus está sujeito a alterações.",
-      "disclaimer_brief": "O bônus é uma estimativa e pode sofrer alterações.",
       "buy_button": "Comprar mUSD",
       "swap_button": "Converter para mUSD"
     },

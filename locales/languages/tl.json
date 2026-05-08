@@ -8391,15 +8391,6 @@
     "season_1": "Season 1",
     "musd": {
       "page_title": "mUSD",
-      "title": "bonus calculator ng mUSD",
-      "description": "Tingnan kung magkano ang maaari mong kitain sa pamamagitan ng pag-convert sa mga stablecoin mo sa mUSD.",
-      "amount_label": "Halagang na-convert",
-      "estimated_bonus": "Tinatayang taunang bonus: hanggang 3%",
-      "initial_amount": "Paunang halaga",
-      "daily_bonus": "Maki-claim na bonus araw-araw",
-      "annualized_bonus": "Taunang bonus",
-      "disclaimer": "Pagtataya lamang ito. Maaaring magbago ang bonus.",
-      "disclaimer_brief": "Ang bonus ay tinantya lamang at maaaring magbago.",
       "buy_button": "Bumili ng mUSD",
       "swap_button": "I-swap sa mUSD"
     },
