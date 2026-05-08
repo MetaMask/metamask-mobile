@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { RefreshControl } from 'react-native';
+import type { RefreshControlProps } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokenRowItem from '../TrendingTokenRowItem/TrendingTokenRowItem';
@@ -31,7 +31,7 @@ export interface TrendingTokensListProps {
   /**
    * Refresh control for pull-to-refresh functionality
    */
-  refreshControl?: React.ReactElement<typeof RefreshControl>;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
   /**
    * Filter context for analytics tracking
    */
@@ -69,7 +69,7 @@ const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         keyboardShouldPersistTaps="handled"
-        refreshControl={refreshControl as React.ReactElement}
+        refreshControl={refreshControl}
         testID="trending-tokens-list"
       />
     );
