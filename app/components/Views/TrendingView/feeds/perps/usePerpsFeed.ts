@@ -134,7 +134,10 @@ export const usePerpsFeed = ({
     }
     const queryFiltered = filterMarketsByQuery(subset, query);
     const fused = fuseSearch(queryFiltered, query, PERPS_FUSE_OPTIONS);
-    return [...fused].sort(sortFn);
+    // Preserve Fuse.js relevance ordering for variants that sort by price change
+    // (the relevance signal is more useful than a metric sort during search).
+    // Macro sorts by volume even in search results, consistent with its feed order.
+    return variant === 'macro' ? [...fused].sort(sortFn) : fused;
   }, [connectionContext?.error, markets, variant, query]);
 
   // Only visible carousel tiles need candle sparklines; each symbol is a stream
