@@ -348,7 +348,6 @@ function toMockLeaderboardPosition(
     rank: position.rank,
     pnl: 0,
     notionalVolume: 0,
-    marginDeployed: 0,
     qualified: true,
     neighbors: position.neighbors as PerpsTradingCampaignLeaderboardEntry[],
     computedAt: '2025-08-15T12:00:00.000Z',

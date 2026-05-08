@@ -188,34 +188,6 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
             {
               "flex": 1,
             },
-            {
-              "initial": {
-                "updater": [Function],
-                "value": {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              },
-              "jestAnimatedValues": {
-                "current": {
-                  "value": {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                },
-              },
-              "viewDescriptors": {
-                "add": [Function],
-                "remove": [Function],
-                "shareableViewDescriptors": "SharedValue(<circular>)",
-              },
-            },
           ]
         }
         onBlur={[Function]}
@@ -1576,34 +1548,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             {
               "flex": 1,
             },
-            {
-              "initial": {
-                "updater": [Function],
-                "value": {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              },
-              "jestAnimatedValues": {
-                "current": {
-                  "value": {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                },
-              },
-              "viewDescriptors": {
-                "add": [Function],
-                "remove": [Function],
-                "shareableViewDescriptors": "SharedValue(<circular>)",
-              },
-            },
           ]
         }
         onBlur={[Function]}
@@ -1725,34 +1669,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             {
               "backgroundColor": "#131416",
               "flex": 1,
-            },
-            {
-              "initial": {
-                "updater": [Function],
-                "value": {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              },
-              "jestAnimatedValues": {
-                "current": {
-                  "value": {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                },
-              },
-              "viewDescriptors": {
-                "add": [Function],
-                "remove": [Function],
-                "shareableViewDescriptors": "SharedValue(<circular>)",
-              },
             },
           ]
         }
@@ -2067,34 +1983,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
             {
               "flex": 1,
             },
-            {
-              "initial": {
-                "updater": [Function],
-                "value": {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              },
-              "jestAnimatedValues": {
-                "current": {
-                  "value": {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                },
-              },
-              "viewDescriptors": {
-                "add": [Function],
-                "remove": [Function],
-                "shareableViewDescriptors": "SharedValue(<circular>)",
-              },
-            },
           ]
         }
         onBlur={[Function]}
@@ -2216,34 +2104,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
             {
               "backgroundColor": "#131416",
               "flex": 1,
-            },
-            {
-              "initial": {
-                "updater": [Function],
-                "value": {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              },
-              "jestAnimatedValues": {
-                "current": {
-                  "value": {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                },
-              },
-              "viewDescriptors": {
-                "add": [Function],
-                "remove": [Function],
-                "shareableViewDescriptors": "SharedValue(<circular>)",
-              },
             },
           ]
         }
@@ -2373,7 +2233,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
 
 exports[`SnapUIRenderer renders loading state 1`] = `
 <ActivityIndicator
-  color="#1292B4"
+  color="#4459ff"
   size="large"
 />
 `;
@@ -3105,34 +2965,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             {
               "flex": 1,
             },
-            {
-              "initial": {
-                "updater": [Function],
-                "value": {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              },
-              "jestAnimatedValues": {
-                "current": {
-                  "value": {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                },
-              },
-              "viewDescriptors": {
-                "add": [Function],
-                "remove": [Function],
-                "shareableViewDescriptors": "SharedValue(<circular>)",
-              },
-            },
           ]
         }
         onBlur={[Function]}
@@ -3254,34 +3086,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             {
               "backgroundColor": "#131416",
               "flex": 1,
-            },
-            {
-              "initial": {
-                "updater": [Function],
-                "value": {
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                },
-              },
-              "jestAnimatedValues": {
-                "current": {
-                  "value": {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                },
-              },
-              "viewDescriptors": {
-                "add": [Function],
-                "remove": [Function],
-                "shareableViewDescriptors": "SharedValue(<circular>)",
-              },
             },
           ]
         }
