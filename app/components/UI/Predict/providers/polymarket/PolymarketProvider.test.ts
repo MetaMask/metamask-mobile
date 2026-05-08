@@ -12,6 +12,7 @@ import type { OrderPreview } from '../types';
 import { Side } from '../../types';
 import type { PredictFeatureFlags } from '../../types/flags';
 import { PolymarketProvider } from './PolymarketProvider';
+import { OrderType, SignatureType } from './types';
 import {
   deriveDepositWalletAddress,
   executeDepositWalletBatch,
@@ -471,6 +472,9 @@ describe('PolymarketProvider', () => {
       expect.any(Object),
       SignTypedDataVersion.V4,
     );
+    expect(mockGetL2Headers).toHaveBeenCalledWith(
+      expect.objectContaining({ address: signer.address }),
+    );
     expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
       expect.objectContaining({
         protocol: expect.objectContaining({
@@ -480,10 +484,188 @@ describe('PolymarketProvider', () => {
             clobVersionHeader: '2',
           }),
         }),
+        clobOrder: expect.objectContaining({
+          order: expect.objectContaining({
+            maker: legacySafeAddress,
+            signer: signer.address,
+            signatureType: SignatureType.POLY_GNOSIS_SAFE,
+          }),
+        }),
         allowancesTx: {
           to: '0x9999999999999999999999999999999999999999',
           data: '0xallowances',
         },
+      }),
+    );
+  });
+
+  it('submits deposit-wallet orders with POLY_1271 payload and no Safe trade preflight fields', async () => {
+    const innerSignature = `0x${'11'.repeat(65)}`;
+    signer.signTypedMessage.mockResolvedValueOnce(innerSignature);
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+
+    const provider = createProvider({
+      fakOrdersEnabled: true,
+      feeCollection: {
+        ...DEFAULT_FEE_COLLECTION_FLAG,
+        permit2Enabled: true,
+        executors: ['0x4444444444444444444444444444444444444444'],
+      },
+    });
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: {
+        ...basePreview,
+        fees: {
+          metamaskFee: 0.05,
+          providerFee: 0.05,
+          totalFee: 0.1,
+          totalFeePercentage: 1,
+          collector: '0x3333333333333333333333333333333333333333',
+          executors: ['0x4444444444444444444444444444444444444444'],
+          permit2Enabled: true,
+        },
+      },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockCreateApiKey).toHaveBeenCalledWith({ address: signer.address });
+    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
+    expect(mockCreatePermit2FeeAuthorization).not.toHaveBeenCalled();
+    expect(mockGetL2Headers).toHaveBeenCalledWith(
+      expect.objectContaining({ address: signer.address }),
+    );
+    expect(signer.signTypedMessage).toHaveBeenCalledWith(
+      {
+        from: signer.address,
+        data: expect.objectContaining({
+          primaryType: 'TypedDataSign',
+          message: expect.objectContaining({
+            verifyingContract: depositWalletAddress,
+          }),
+        }),
+      },
+      SignTypedDataVersion.V4,
+    );
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clobOrder: expect.objectContaining({
+          orderType: OrderType.FAK,
+          order: expect.objectContaining({
+            maker: depositWalletAddress,
+            signer: depositWalletAddress,
+            signatureType: SignatureType.POLY_1271,
+            signature: expect.stringMatching(/^0x11+/u),
+          }),
+        }),
+        feeAuthorization: undefined,
+        executor: undefined,
+        allowancesTx: undefined,
+      }),
+    );
+  });
+
+  it('runs deposit-wallet setup before submitting deposit-wallet orders', async () => {
+    const repairTransaction = {
+      to: '0x4444444444444444444444444444444444444444',
+      data: '0xrepair',
+      operation: OperationType.Call,
+      value: '0',
+    };
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(false);
+    mockPlanDepositWalletPreflight.mockResolvedValue({
+      missingRequirements: [
+        {
+          type: 'erc20-allowance',
+          tokenAddress: repairTransaction.to,
+          spender: '0x5555555555555555555555555555555555555555',
+        },
+      ],
+      transactions: [repairTransaction],
+    });
+
+    const result = await createProvider().placeOrder({
+      signer,
+      preview: basePreview,
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockRequestDepositWalletCreate).toHaveBeenCalledWith({
+      ownerAddress: signer.address,
+    });
+    expect(mockExecuteDepositWalletBatch).toHaveBeenCalledWith({
+      signer,
+      walletAddress: depositWalletAddress,
+      calls: [
+        {
+          target: repairTransaction.to,
+          data: repairTransaction.data,
+          value: repairTransaction.value,
+        },
+      ],
+    });
+    expect(
+      mockSyncDepositWalletCollateralBalanceAllowance,
+    ).toHaveBeenCalledWith({
+      protocol: expect.objectContaining({ key: 'v2' }),
+      signerAddress: signer.address,
+      apiKey: expect.objectContaining({ apiKey: 'api-key' }),
+    });
+    expect(
+      mockExecuteDepositWalletBatch.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockSubmitProtocolClobOrder.mock.invocationCallOrder[0]);
+  });
+
+  it('passes legacy Safe migration sweep as allowancesTx for deposit-wallet orders', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue([]),
+    });
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true);
+    const sweepTransaction: SignedSafeExecution = {
+      params: {
+        to: legacySafeAddress as `0x${string}`,
+        data: '0xsweep' as `0x${string}`,
+      },
+      type: TransactionType.contractInteraction,
+    };
+    mockBuildLegacySafeMigrationSweepTransaction.mockResolvedValue(
+      sweepTransaction,
+    );
+
+    const result = await createProvider().placeOrder({
+      signer,
+      preview: basePreview,
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockBuildLegacySafeMigrationSweepTransaction).toHaveBeenCalledWith({
+      signer,
+      legacySafeAddress,
+      depositWalletAddress,
+      protocol: expect.objectContaining({ key: 'v2' }),
+    });
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clobOrder: expect.objectContaining({
+          order: expect.objectContaining({
+            maker: depositWalletAddress,
+            signer: depositWalletAddress,
+            signatureType: SignatureType.POLY_1271,
+          }),
+        }),
+        allowancesTx: sweepTransaction.params,
       }),
     );
   });
