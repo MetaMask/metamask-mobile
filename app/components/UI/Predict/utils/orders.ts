@@ -1,6 +1,9 @@
 import QuickCrypto from 'react-native-quick-crypto';
 import type { OrderPreview, PredictFees } from '../types';
 
+const CENTS_PER_UNIT = 100;
+const CENT_ROUNDING_TOLERANCE = 1e-8;
+
 /**
  * Generates a unique order ID using react-native-quick-crypto's randomUUID
  * @returns A unique order ID string
@@ -26,7 +29,9 @@ export function roundUpToCents(amount: number): number {
     return 0;
   }
 
-  return Math.ceil((amount - Number.EPSILON) * 100) / 100;
+  const amountInCents = amount * CENTS_PER_UNIT;
+
+  return Math.ceil(amountInCents - CENT_ROUNDING_TOLERANCE) / CENTS_PER_UNIT;
 }
 
 export function roundToFiveDecimals(amount: number): number {

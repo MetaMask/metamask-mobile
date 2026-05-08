@@ -103,6 +103,14 @@ describe('orders utils', () => {
       expect(roundUpToCents(10.01)).toBe(10.01);
     });
 
+    it('keeps cent values with floating-point representation noise unchanged', () => {
+      expect(roundUpToCents(10000.1 + 0.04)).toBe(10000.14);
+    });
+
+    it('rounds up real sub-cent values above the tolerance', () => {
+      expect(roundUpToCents(10.010000001)).toBe(10.02);
+    });
+
     it('returns zero for non-finite values', () => {
       expect(roundUpToCents(Number.NaN)).toBe(0);
     });
