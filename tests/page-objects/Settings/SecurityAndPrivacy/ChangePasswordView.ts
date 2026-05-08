@@ -1,4 +1,3 @@
-import { RESET_PASSWORD_CONFIRM_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/ChangePasswordScreensIDs.testIds';
 import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
 import { ChangePasswordViewSelectorsText } from '../../../selectors/Settings/SecurityAndPrivacy/ChangePasswordView.selectors';
 import Matchers from '../../../framework/Matchers';
@@ -18,7 +17,9 @@ class ChangePasswordView {
   }
 
   get confirmPasswordInput(): DetoxElement {
-    return Matchers.getElementByID(RESET_PASSWORD_CONFIRM_INPUT_BOX_ID);
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
   }
 
   get iUnderstandCheckBox(): DetoxElement {

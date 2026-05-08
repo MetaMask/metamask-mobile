@@ -116,9 +116,10 @@ runs:
       if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && runner.os == 'Linux' }}
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
       with:
-        timeout_minutes: 3
+        timeout_minutes: 5
         max_attempts: 3
         retry_wait_seconds: 30
+        retry_on: error
         on_retry_command: sudo apt-get clean
         command: |
           set -euo pipefail

@@ -35,7 +35,7 @@ export function useTransactionPayMetrics() {
   const transactionMeta = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
   const highestBalanceChainId = useHighestBalanceCaipChainId();
-  const automaticPayToken = useRef<BridgeToken>();
+  const automaticPayToken = useRef<BridgeToken | undefined>(undefined);
   const hasLoadedQuoteRef = useRef(false);
   const quotes = useTransactionPayQuotes();
   const { availableTokens: tokens } = useTransactionPayAvailableTokens();
