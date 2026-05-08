@@ -5,13 +5,13 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -317,7 +317,7 @@ const PerpsMarketListView = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={title || strings('perps.home.markets')}
         onBack={handleBackPressed}
         backButtonProps={{

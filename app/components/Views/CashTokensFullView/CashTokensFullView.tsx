@@ -216,6 +216,21 @@ const CashTokensFullView = () => {
     });
   }, [createEventBuilder, goToBuy, trackEvent]);
 
+  const balanceHeading = useMemo(
+    () => (
+      <Box twClassName="px-4 pt-2 pb-3">
+        <Text
+          variant={TextVariant.HeadingLg}
+          fontWeight={FontWeight.Bold}
+          testID={CashTokensFullViewTestIds.HEADING}
+        >
+          {strings('money.your_balance')}
+        </Text>
+      </Box>
+    ),
+    [],
+  );
+
   const bonusAndConvertSections = useMemo(
     () => (
       <>
@@ -246,17 +261,6 @@ const CashTokensFullView = () => {
       >
         {strings('money.title')}
       </HeaderBase>
-      {isMoneyHubEnabled && (
-        <Box twClassName="px-4 pt-2 pb-3">
-          <Text
-            variant={TextVariant.HeadingLg}
-            fontWeight={FontWeight.Bold}
-            testID={CashTokensFullViewTestIds.HEADING}
-          >
-            {strings('money.your_balance')}
-          </Text>
-        </Box>
-      )}
       {hasMusdBalanceOnAnyChain ? (
         isTokenListReady ? (
           <Tokens
@@ -268,6 +272,7 @@ const CashTokensFullView = () => {
             // mUSD entries inside Money Hub so the row reads as a balance
             // entry under the new "Your balance" heading.
             hideSecondaryPriceRow={isMoneyHubEnabled}
+            listHeaderComponent={isMoneyHubEnabled ? balanceHeading : undefined}
             listFooterComponent={
               isMoneyHubEnabled ? bonusAndConvertSections : undefined
             }
@@ -280,6 +285,7 @@ const CashTokensFullView = () => {
             numChainsWithMusdBalance={numChainsWithMusdBalance}
             isMoneyHubEnabled={isMoneyHubEnabled}
             conversionTokenCount={conversionTokens.length}
+            listHeaderComponent={isMoneyHubEnabled ? balanceHeading : undefined}
           />
         )
       ) : (
@@ -290,6 +296,7 @@ const CashTokensFullView = () => {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
+          {isMoneyHubEnabled && balanceHeading}
           {isMoneyHubEnabled ? (
             // MUSD-729 empty state: mirror the "Your balance" funded layout
             // (mUSD avatar + network badge + $0.00 / 0 mUSD). The standard

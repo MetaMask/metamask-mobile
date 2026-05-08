@@ -426,6 +426,12 @@ jobs:
         timeout-minutes: 115
         env:
           GIT_BRANCH: ${{ inputs.source_branch || github.ref_name }}
+          # React Native 0.81's ReactAndroid/build.gradle.kts requests CMake 3.30.5
+          # via `System.getenv("CMAKE_VERSION") ?: "3.30.5"`. The self-hosted runner
+          # only ships CMake 3.22.1 in /opt/android-sdk/cmake/ and AGP cannot auto-
+          # download missing components, causing CXX1300. RN's CMakeLists.txt files
+          # only require >= 3.13, so 3.22.1 is fully sufficient.
+          CMAKE_VERSION: '3.22.1'
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 55
