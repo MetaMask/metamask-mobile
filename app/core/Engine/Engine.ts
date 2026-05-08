@@ -275,6 +275,12 @@ export class Engine {
   >;
 
   /**
+   * Shared token list service. Stored so destroyEngineInstance can call
+   * destroy() to abort in-flight requests and clear the TanStack Query cache.
+   */
+  private tokenListService: TokenListService;
+
+  /**
    * Creates a CoreController instance
    */
   constructor(
@@ -289,6 +295,7 @@ export class Engine {
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
     const tokenListService = new TokenListService();
+    this.tokenListService = tokenListService;
 
     const initRequest = {
       getState: () => store.getState(),
@@ -1219,6 +1226,7 @@ export class Engine {
         controller.destroy();
       }
     });
+    this.tokenListService.destroy();
     this.removeAllListeners();
     await this.resetState();
 
