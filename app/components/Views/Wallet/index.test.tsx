@@ -2089,11 +2089,16 @@ describe('MoneyBalanceCard slot', () => {
     //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
     const { getByTestId } = render(Wallet);
 
-    const wrapper = getByTestId('money-balance-card-mock').parent;
-    expect(wrapper).toBeTruthy();
-    // Flatten the parent style — the wrapper should own the 16px horizontal
-    // padding so the card aligns with banner / account-group / actions / carousel.
-    const flattened = StyleSheet.flatten(wrapper?.props.style);
+    // Walk up the tree until we find the host View that owns the 16px
+    // horizontal padding so the card aligns with banner / account-group /
+    // actions / carousel. Composite mock wrappers are skipped along the way.
+    let cursor = getByTestId('money-balance-card-mock').parent;
+    let flattened: { paddingHorizontal?: number } | undefined;
+    while (cursor) {
+      flattened = StyleSheet.flatten(cursor.props?.style);
+      if (flattened?.paddingHorizontal === 16) break;
+      cursor = cursor.parent;
+    }
     expect(flattened).toEqual(
       expect.objectContaining({ paddingHorizontal: 16 }),
     );
