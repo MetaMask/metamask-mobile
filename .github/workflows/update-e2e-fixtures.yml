@@ -227,7 +227,7 @@ jobs:
         run: |
           gh run download "${{ needs.prepare.outputs.RUN_ID }}" \
             -n main-qa-MetaMask.app \
-            -D artifacts/
+            -D artifacts/main-qa-MetaMask.app
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
