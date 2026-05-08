@@ -21,7 +21,6 @@ import {
   RewardsDashboardModalType,
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
-import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
@@ -30,6 +29,8 @@ import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
 import { ScrollView } from 'react-native';
+import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
+import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -41,6 +42,8 @@ const RewardsDashboard: React.FC = () => {
 
   useTrackRewardsPageView({ page_type: 'home' });
   useOndoOutcomeToast();
+  usePerpsTradingCampaignEndedOutcomeToast();
+
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
   );

@@ -9,7 +9,7 @@ import { IconName } from '../../../components/Icons/Icon/Icon.types';
 describe('TabsIconTab', () => {
   const defaultProps = {
     label: 'Portfolio',
-    iconName: IconName.Portfolio,
+    iconName: IconName.PieChart,
     isActive: false,
     onPress: jest.fn(),
   };
@@ -108,7 +108,7 @@ describe('TabsIconTab', () => {
   describe('Icon', () => {
     it('renders all supported icon names without throwing', () => {
       const icons: IconName[] = [
-        IconName.Portfolio,
+        IconName.PieChart,
         IconName.Candlestick,
         IconName.Predictions,
       ];

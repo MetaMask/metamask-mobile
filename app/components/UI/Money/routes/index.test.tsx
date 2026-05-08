@@ -2,7 +2,18 @@ import React from 'react';
 import { Text as MockText, View as MockView } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../util/theme';
-import { MoneyModalStack, MoneyScreenStack } from './index';
+import { upgradeMoneyAccount } from '../../../../actions/money';
+import {
+  MoneyAccountStackGate,
+  MoneyModalStack,
+  MoneyScreenStack,
+} from './index';
+
+jest.mock('../../../../actions/money', () => ({
+  upgradeMoneyAccount: jest.fn(() => () => undefined),
+}));
+
+const mockUpgradeMoneyAccount = jest.mocked(upgradeMoneyAccount);
 
 const EXPECTED_CARD_BACKGROUND = '#money-test-bg';
 
@@ -88,6 +99,28 @@ describe('MoneyScreenStack', () => {
   });
 });
 
+describe('MoneyAccountStackGate', () => {
+  beforeEach(() => {
+    mockUpgradeMoneyAccount.mockClear();
+  });
+
+  it('dispatches upgradeMoneyAccount once when the stack mounts', () => {
+    renderWithProvider(<MoneyAccountStackGate />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(mockUpgradeMoneyAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the Money screen stack', () => {
+    const { getByTestId } = renderWithProvider(<MoneyAccountStackGate />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(getByTestId('money-screen-MoneyHome')).toBeOnTheScreen();
+  });
+});
+
 describe('MoneyModalStack', () => {
   it('registers the Add money sheet as a modal screen', () => {
     const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
@@ -95,5 +128,13 @@ describe('MoneyModalStack', () => {
     });
 
     expect(getByTestId('money-screen-MoneyAddMoneySheet')).toBeOnTheScreen();
+  });
+
+  it('registers the Money balance info sheet as a modal screen', () => {
+    const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(getByTestId('money-screen-MoneyBalanceInfoSheet')).toBeOnTheScreen();
   });
 });

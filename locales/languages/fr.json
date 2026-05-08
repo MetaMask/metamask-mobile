@@ -8512,7 +8512,6 @@
       "empty": "Vous n’avez aucune position",
       "empty_description": "Commencez à gagner des récompenses en ouvrant une position sur des actifs du monde réel tokenisés.",
       "empty_cta": "Ouvrir une position",
-      "position_units": "{{units}} actions",
       "positions_title": "Positions",
       "activity_title": "Activité",
       "view_activity": "Voir l’activité",
@@ -8658,29 +8657,18 @@
       "retry_button": "Réessayer",
       "refreshing": "Actualisation en cours…"
     },
-    "ondo_campaign_winning": {
-      "you_won": "Vous avez gagné",
-      "rank_label": "{{place}} place",
-      "email_instructions": "Envoyez votre code par e-mail à ondocampaign@consensys.net pour réclamer votre récompense.",
-      "open_mail": "Ouvrir l’e-mail",
-      "skip_for_now": "Ignorer pour l’instant",
-      "mail_subject": "Réclamation du prix que vous avez gagné en participant à la campagne Ondo",
-      "mail_body": "Mon code gagnant : {{code}}",
-      "winning_code": "Code gagnant",
-      "close_a11y": "Fermer"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "Vous avez gagné",
-        "description": "Réclamez votre prix dès aujourd’hui.",
-        "a11y": "Afficher les détails du gagnant"
+        "title": "Vous avez gagné !",
+        "description": "Vérifiez votre code gagnant et réclamez votre récompense aujourd’hui.",
+        "a11y": "Voir les détails"
       },
       "participant_pending": {
         "title": "La campagne est terminée.",
         "description": "Nous sommes en train d’évaluer les résultats. Revenez bientôt."
       },
       "participant_finalized": {
-        "title": "Les résultats de la campagne sont disponibles",
+        "title": "Les résultats de la campagne sont disponibles.",
         "description": "Vous n’avez pas gagné cette fois-ci. Découvrez quelle place vous occupez au classement final."
       },
       "winner_finalized": {
@@ -8688,17 +8676,28 @@
         "description": "Votre prix est en route. Nous vous contacterons bientôt."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "Vous avez gagné 💰",
-        "description": "Réclamez le prix que vous avez gagné en participant à la campagne {{campaignName}}",
+        "description": "Réclamez votre récompense de la {{campaignName}} aujourd’hui.",
         "cta": "Voir les détails"
       },
-      "participant_no_winner": {
-        "title": "Les résultats sont disponibles. 🏅",
-        "description": "Découvrez votre classement dans la campagne {{campaignName}}",
+      "non_winner": {
+        "title": "Les résultats sont disponibles 🏅",
+        "description": "Consultez votre classement dans la {{campaignName}}.",
         "cta": "Afficher"
       }
+    },
+    "campaign_winning": {
+      "you_won": "Vous avez gagné",
+      "rank_label": "{{place}} place",
+      "email_instructions": "Envoyez votre code par e-mail à {{email}} pour réclamer votre récompense.",
+      "open_mail": "Ouvrir l’e-mail",
+      "skip_for_now": "Ignorer pour l’instant",
+      "mail_subject": "{{campaignName}} – réclamation de prix",
+      "mail_body": "Mon code gagnant : {{code}}",
+      "winning_code": "Code gagnant",
+      "close_a11y": "Fermer"
     }
   },
   "time": {

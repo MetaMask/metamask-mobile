@@ -17,9 +17,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -102,6 +104,16 @@ describe('PerpsTradingCampaignStatsHeader', () => {
     );
     expect(getByTestId(TEST_IDS.PENDING_TAG)).toBeDefined();
     expect(queryByTestId(TEST_IDS.QUALIFIED_ICON)).toBeNull();
+  });
+
+  it('hides the pending tag when the campaign is complete', () => {
+    const { queryByTestId } = render(
+      <PerpsTradingCampaignStatsHeader
+        position={{ ...basePosition, qualified: false }}
+        isCampaignComplete
+      />,
+    );
+    expect(queryByTestId(TEST_IDS.PENDING_TAG)).toBeNull();
   });
 
   it('shows em dashes for rank and PnL when position is null', () => {

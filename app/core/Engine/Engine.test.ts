@@ -1357,7 +1357,8 @@ describe('Engine', () => {
             'state' in controller &&
             Boolean(controller.state) &&
             (!isEmpty(controller.state) ||
-              controllerName === 'ComplianceController'),
+              controllerName === 'ComplianceController' ||
+              controllerName === 'MoneyAccountUpgradeController'),
         )
         .map(([controllerName]) => controllerName);
 
@@ -1366,6 +1367,19 @@ describe('Engine', () => {
       const sortedControllersInState = Object.keys(state).sort();
       const sortedExpectedControllers = controllersWithState.sort();
       expect(sortedControllersInState).toEqual(sortedExpectedControllers);
+    });
+  });
+
+  describe('resetState', () => {
+    it('calls MoneyAccountController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.MoneyAccountController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
     });
   });
 });

@@ -10,6 +10,7 @@ import {
   selectAllDetectedTokensForSelectedAddress,
   selectAllDetectedTokensFlat,
   selectTokensByChainIdAndAddress,
+  selectTokensByChainIdAndWalletAddress,
   getChainIdsToPoll,
   selectSingleTokenByAddressAndChainId,
 } from './tokensController';
@@ -333,6 +334,34 @@ describe('TokensController Selectors', () => {
     it('returns empty object if no tokens exist for chain ID', () => {
       expect(
         selectTokensByChainIdAndAddress(mockRootState, '0x2'),
+      ).toStrictEqual({});
+    });
+  });
+
+  describe('selectTokensByChainIdAndWalletAddress', () => {
+    it('returns tokens for the given chain and explicit wallet address', () => {
+      expect(
+        selectTokensByChainIdAndWalletAddress(
+          mockRootState,
+          '0x1',
+          '0xAddress2',
+        ),
+      ).toStrictEqual({ '0xToken2': mockToken2 });
+    });
+
+    it('returns empty object when wallet address has no tokens on that chain', () => {
+      expect(
+        selectTokensByChainIdAndWalletAddress(
+          mockRootState,
+          '0x2',
+          '0xAddress1',
+        ),
+      ).toStrictEqual({});
+    });
+
+    it('returns empty object when wallet address is undefined', () => {
+      expect(
+        selectTokensByChainIdAndWalletAddress(mockRootState, '0x1', undefined),
       ).toStrictEqual({});
     });
   });
