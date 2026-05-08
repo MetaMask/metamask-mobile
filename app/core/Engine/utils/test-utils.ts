@@ -7,7 +7,10 @@ import {
   MessengerClientInitRequest,
 } from '../types';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
-import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
+import {
+  CodefiTokenPricesServiceV2,
+  TokenListService,
+} from '@metamask/assets-controllers';
 
 /**
  * Build a mock for the MessengerClientInitRequest.
@@ -20,6 +23,10 @@ export function buildMessengerClientInitRequestMock(
 ): jest.Mocked<MessengerClientInitRequest<ControllerMessenger>> {
   return {
     codefiTokenApiV2: jest.fn() as unknown as CodefiTokenPricesServiceV2,
+    tokenListService: {
+      fetchTokensByChainId: jest.fn(),
+      destroy: jest.fn(),
+    } as unknown as TokenListService,
     controllerMessenger: controllerMessenger as unknown as ControllerMessenger,
     getMessengerClient: jest.fn(),
     getGlobalChainId: jest.fn(),

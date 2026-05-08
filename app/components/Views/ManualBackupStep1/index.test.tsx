@@ -36,12 +36,8 @@ jest.mock('react-native', () => {
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => {
-    const tw = (...args: unknown[]) => ({
-      fontSize: 14,
-      lineHeight: 20,
-      ...(typeof args[0] === 'string' ? { testStyle: args[0] } : {}),
-    });
-    tw.style = (...args: unknown[]) => args;
+    const tw = (..._args: unknown[]) => ({});
+    tw.style = jest.fn(() => ({}));
     return tw;
   },
   useTheme: () => 'light',

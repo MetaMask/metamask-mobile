@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { FlashList } from '@shopify/flash-list';
+import type { RefreshControlProps } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import SiteRowItem, { SiteData } from '../SiteRowItem/SiteRowItem';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -7,7 +8,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 
 export interface SitesListProps {
   sites: SiteData[];
-  refreshControl?: React.ReactElement;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
   ListFooterComponent?: React.ReactElement | null;
   onRemoveFavorite?: (site: SiteData) => void;
 }

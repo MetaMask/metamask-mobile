@@ -1,0 +1,52 @@
+diff --git a/android/src/main/java/com/sensors/Accelerometer.java b/android/src/main/java/com/sensors/Accelerometer.java
+index bef12290ce5de94d578cc4b3723b96697fb91b7a..a8efebf9e60d6c03238b1d3a8e6dd4a9ec8cdb75 100644
+--- a/android/src/main/java/com/sensors/Accelerometer.java
++++ b/android/src/main/java/com/sensors/Accelerometer.java
+@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
+ import android.hardware.SensorEventListener;
+ import android.hardware.SensorManager;
+ import android.util.Log;
+-import android.support.annotation.Nullable;
++import androidx.annotation.Nullable;
+ 
+ import com.facebook.react.bridge.Arguments;
+ import com.facebook.react.bridge.ReactApplicationContext;
+diff --git a/android/src/main/java/com/sensors/Barometer.java b/android/src/main/java/com/sensors/Barometer.java
+index 5bc9ed123966280a266288b7ca1667e34166cdab..81eb05de44a460fc18275fd4c22ca1bc90a8f263 100644
+--- a/android/src/main/java/com/sensors/Barometer.java
++++ b/android/src/main/java/com/sensors/Barometer.java
+@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
+ import android.hardware.SensorEventListener;
+ import android.hardware.SensorManager;
+ import android.util.Log;
+-import android.support.annotation.Nullable;
++import androidx.annotation.Nullable;
+ 
+ import com.facebook.react.bridge.Arguments;
+ import com.facebook.react.bridge.ReactApplicationContext;
+diff --git a/android/src/main/java/com/sensors/Gyroscope.java b/android/src/main/java/com/sensors/Gyroscope.java
+index ef7783cd13170af7a7a0e5fa0849ed90d1022c8d..00d085984d161b7e611e7fd84c4d606f9801db00 100644
+--- a/android/src/main/java/com/sensors/Gyroscope.java
++++ b/android/src/main/java/com/sensors/Gyroscope.java
+@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
+ import android.hardware.SensorEventListener;
+ import android.hardware.SensorManager;
+ import android.util.Log;
+-import android.support.annotation.Nullable;
++import androidx.annotation.Nullable;
+ 
+ import com.facebook.react.bridge.Arguments;
+ import com.facebook.react.bridge.ReactApplicationContext;
+diff --git a/android/src/main/java/com/sensors/Magnetometer.java b/android/src/main/java/com/sensors/Magnetometer.java
+index ca53e5dd6c55c831d71ba9d09bb6d58e73a61249..bcc9f9ab75d4c1bdff816be3aaa9b1a7f6c72779 100644
+--- a/android/src/main/java/com/sensors/Magnetometer.java
++++ b/android/src/main/java/com/sensors/Magnetometer.java
+@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
+ import android.hardware.SensorEventListener;
+ import android.hardware.SensorManager;
+ import android.util.Log;
+-import android.support.annotation.Nullable;
++import androidx.annotation.Nullable;
+ 
+ import com.facebook.react.bridge.Arguments;
+ import com.facebook.react.bridge.ReactApplicationContext;
