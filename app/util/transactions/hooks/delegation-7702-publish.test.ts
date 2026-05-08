@@ -610,6 +610,10 @@ describe('Delegation 7702 Publish Hook', () => {
       },
     ]);
 
+    getNextNonceMock.mockResolvedValueOnce(
+      TRANSACTION_META_MOCK.txParams.nonce as Hex,
+    );
+
     await hookClass.getHook()(
       {
         ...TRANSACTION_META_MOCK,
@@ -659,6 +663,44 @@ describe('Delegation 7702 Publish Hook', () => {
         SIGNED_TX_MOCK,
       ),
     ).rejects.toThrow('Transaction relay error - TEST_STATUS');
+  });
+
+  it('correctly encodes batch transactions using nestedTransactions', async () => {
+    isAtomicBatchSupportedMock.mockResolvedValueOnce([
+      {
+        chainId: TRANSACTION_META_MOCK.chainId,
+        delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+        isSupported: true,
+        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+      },
+    ]);
+
+    const batchTxMeta = {
+      ...TRANSACTION_META_MOCK,
+      type: TransactionType.batch,
+      nestedTransactions: [
+        {
+          to: '0x1111111111111111111111111111111111111111',
+          data: '0xaabbccdd',
+          value: '0x0',
+          type: TransactionType.tokenMethodTransfer,
+        },
+        {
+          to: '0x2222222222222222222222222222222222222222',
+          data: '0x11223344',
+          value: '0x100',
+          type: TransactionType.tokenMethodApprove,
+        },
+      ],
+      isGasFeeSponsored: true,
+    } as unknown as TransactionMeta;
+
+    await hookClass.getHook()(batchTxMeta, SIGNED_TX_MOCK);
+
+    expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
+
+    const signArgs = signDelegationControllerMock.mock.calls[0][0];
+    expect(signArgs.delegation.caveats.length).toBe(2);
   });
 
   it('submits request to relay for gasless 7702 swap without gas fee tokens', async () => {
