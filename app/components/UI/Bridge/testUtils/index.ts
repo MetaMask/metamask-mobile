@@ -2,6 +2,7 @@ import {
   type BridgeControllerState,
   getDefaultBridgeControllerState,
   type GenericQuoteRequest,
+  DEFAULT_BRIDGE_CONTROLLER_STATE,
 } from '@metamask/bridge-controller';
 import { initialState } from '../_mocks_/initialState';
 import { mockBridgeReducerState } from '../_mocks_/bridgeReducerState';
@@ -26,7 +27,9 @@ export const createBridgeControllerState = ({
   ...overrides
 }: BridgeControllerStateOverride = {}): BridgeControllerState =>
   merge(getDefaultBridgeControllerState(), overrides, {
-    quoteRequest: Array.isArray(quoteRequest) ? quoteRequest : [quoteRequest],
+    quoteRequest: Array.isArray(quoteRequest)
+      ? quoteRequest
+      : [quoteRequest ?? DEFAULT_BRIDGE_CONTROLLER_STATE.quoteRequest[0]],
   });
 
 /**
