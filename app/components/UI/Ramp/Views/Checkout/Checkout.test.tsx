@@ -195,6 +195,18 @@ jest.mock('@metamask/react-native-webview', () => {
             }
           />
           <Button
+            testID="trigger-http-error-callback"
+            title="TriggerHttpErrorCallback"
+            onPress={() =>
+              onHttpError?.({
+                nativeEvent: {
+                  url: `${getCallbackBaseUrl()}?orderId=123`,
+                  statusCode: 503,
+                },
+              })
+            }
+          />
+          <Button
             testID="trigger-should-start-load"
             title="TriggerShouldStartLoad"
             onPress={() =>
@@ -1032,6 +1044,29 @@ describe('Checkout', () => {
         MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETED,
       );
       expect(loadComplete).toMatchObject({ load_success: false });
+    });
+
+    it('reports is_initial_url=false for callback URL HTTP errors (terminal but not the initial page)', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+        providerCode: 'moonpay',
+        walletAddress: '0xabc',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-http-error-callback'));
+      });
+
+      const httpError = findEventProps(
+        MetaMetricsEvents.RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED,
+      );
+      expect(httpError).toMatchObject({
+        status_code: 503,
+        is_initial_url: false,
+      });
     });
 
     it('fires RAMPS_CHECKOUT_CLOSED with close_source=user_close_button when X is pressed', () => {

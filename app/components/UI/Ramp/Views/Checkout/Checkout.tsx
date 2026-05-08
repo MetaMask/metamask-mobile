@@ -549,9 +549,9 @@ const Checkout = () => {
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
             const errorUrl = nativeEvent.url;
+            const isInitialUrl = errorUrl === initialUriRef.current;
             const isTerminal =
-              errorUrl === initialUriRef.current ||
-              errorUrl.startsWith(callbackBaseUrl);
+              isInitialUrl || errorUrl.startsWith(callbackBaseUrl);
 
             loadUrlErrorsRef.current.add(errorUrl);
             trackEvent(
@@ -566,7 +566,7 @@ const Checkout = () => {
                   }),
                   url_path: redactUrlForAnalytics(errorUrl),
                   status_code: nativeEvent.statusCode,
-                  is_initial_url: isTerminal,
+                  is_initial_url: isInitialUrl,
                 })
                 .build(),
             );
