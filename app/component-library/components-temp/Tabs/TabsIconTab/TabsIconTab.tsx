@@ -1,0 +1,136 @@
+// Third party dependencies.
+import React, { useContext, useRef, useCallback } from 'react';
+import { Animated, Pressable, StyleProp, View, ViewStyle } from 'react-native';
+
+// External dependencies.
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Text,
+  TextVariant,
+  FontWeight,
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+} from '@metamask/design-system-react-native';
+import Icon, { IconSize, IconColor } from '../../../components/Icons/Icon';
+
+// Internal dependencies.
+import { TabsIconTabProps } from './TabsIconTab.types';
+import { TabIconAnimationContext } from './TabsIconAnimationContext';
+
+const ICON_SIZE_LG = 24;
+const ICON_MARGIN_BOTTOM = 4;
+
+const TabsIconTab: React.FC<TabsIconTabProps> = ({
+  label,
+  iconName,
+  isActive,
+  isDisabled = false,
+  onPress,
+  testID,
+  onLayout,
+  shouldFillWidth = false,
+  iconProps,
+  style: externalStyle,
+  ...pressableProps
+}) => {
+  const tw = useTailwind();
+  const viewRef = useRef<View>(null);
+  const { iconCollapseAnim } = useContext(TabIconAnimationContext);
+
+  // translateY slides the icon upward out of the clipping boundary (overflow:hidden
+  // on the outer View) without changing layout — keeps tab bar height fixed so
+  // there is no layout cascade. Both transform and opacity run on the native thread.
+  const iconAnimatedStyle = iconCollapseAnim
+    ? {
+        opacity: iconCollapseAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, 0],
+        }),
+        transform: [
+          {
+            translateY: iconCollapseAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, -(ICON_SIZE_LG + ICON_MARGIN_BOTTOM)],
+            }),
+          },
+        ],
+      }
+    : undefined;
+
+  const handleOnLayout = useCallback(
+    (layoutEvent: Parameters<NonNullable<typeof onLayout>>[0]) => {
+      if (onLayout) {
+        onLayout(layoutEvent);
+      }
+    },
+    [onLayout],
+  );
+
+  return (
+    <View
+      ref={viewRef}
+      onLayout={handleOnLayout}
+      style={[shouldFillWidth ? tw.style('flex-1') : tw.style('flex-shrink-0')]}
+    >
+      <Pressable
+        style={[
+          tw.style(
+            'px-0 pt-1 pb-2 flex-col items-center justify-center relative',
+            isDisabled && 'opacity-50',
+          ),
+          externalStyle as StyleProp<ViewStyle>,
+        ]}
+        onPress={isDisabled ? undefined : onPress}
+        disabled={isDisabled}
+        testID={testID}
+        {...pressableProps}
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Column}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+        >
+          <Animated.View
+            style={[
+              { height: ICON_SIZE_LG, marginBottom: ICON_MARGIN_BOTTOM },
+              iconAnimatedStyle,
+            ]}
+          >
+            <Icon
+              name={iconName}
+              size={IconSize.Lg}
+              color={
+                isDisabled
+                  ? IconColor.Muted
+                  : isActive
+                    ? IconColor.Default
+                    : IconColor.Alternative
+              }
+              {...iconProps}
+            />
+          </Animated.View>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={
+              isActive && !isDisabled ? FontWeight.Bold : FontWeight.Regular
+            }
+            twClassName={
+              isDisabled
+                ? 'text-muted'
+                : isActive
+                  ? 'text-default'
+                  : 'text-alternative'
+            }
+            numberOfLines={1}
+          >
+            {label}
+          </Text>
+        </Box>
+      </Pressable>
+    </View>
+  );
+};
+
+export default TabsIconTab;

@@ -31,6 +31,12 @@ jest.mock('../store/storage-wrapper', () => ({
   getItem: jest.fn(),
 }));
 
+jest.mock('redux-persist-filesystem-storage', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+}));
+
 jest.mock('../store', () => ({
   store: {
     dispatch: jest.fn(),
@@ -89,7 +95,6 @@ describe('Trace', () => {
     );
 
     flushBufferedTraces();
-    // Reset consent state to false by default
     updateCachedConsent(false);
   });
 

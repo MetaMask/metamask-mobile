@@ -1,19 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { useDispatch, useSelector } from 'react-redux';
-import { View, Image, useColorScheme, Linking } from 'react-native';
+import { Image, StyleSheet, useColorScheme } from 'react-native';
 import { setMusdConversionEducationSeen } from '../../../../../actions/user';
 import Logger from '../../../../../util/Logger';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { useStyles } from '../../../../../component-library/hooks';
-import { styleSheet } from './EarnMusdConversionEducationView.styles';
 import musdEducationBackgroundV2Dark from '../../../../../images/musd-conversion-education-screen-v2-dark-3x.png';
 import musdEducationBackgroundV2Light from '../../../../../images/musd-conversion-education-screen-v2-light-3x.png';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,9 +12,28 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import {
-  Button as DesignSystemButton,
-  ButtonVariant as DesignSystemButtonVariant,
+  Box,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+// component-library TagBase: DSRN Tag has no startAccessory + Rectangle shape support
+import TagBase from '../../../../../component-library/base-components/TagBase';
+import {
+  TagShape,
+  TagSeverity,
+} from '../../../../../component-library/base-components/TagBase/TagBase.types';
+import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -39,16 +48,31 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../Ramp/types';
 import { EARN_TEST_IDS } from '../../constants/testIds';
-import AppConstants from '../../../../../core/AppConstants';
-import {
-  MUSD_CONVERSION_NAVIGATION_OVERRIDE,
-  MusdNavigationTarget,
-} from '../../types/musd.types';
-import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
+import { MusdNavigationTarget } from '../../types/musd.types';
 import { toChecksumAddress } from '../../../../../util/address';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
 import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
 import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingTop: 40,
+  },
+  heading: {
+    fontFamily: 'MMPoly-Regular',
+    fontSize: 40,
+    lineHeight: 40,
+    paddingVertical: 16,
+    textAlign: 'center',
+  },
+  backgroundImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
+});
+
 interface EarnMusdConversionEducationViewRouteParams {
   /**
    * Indicates if this navigation originated from a deeplink
@@ -66,12 +90,6 @@ interface EarnMusdConversionEducationViewRouteParams {
     chainId: Hex;
   };
   /**
-   * Caller's intended navigation override. When present, this is forwarded to
-   * `initiateCustomConversion` on continue so the education screen doesn't hijack
-   * the destination (e.g., pencil-in-Hub preserves CUSTOM; other callers keep their intent).
-   */
-  navigationOverride?: MUSD_CONVERSION_NAVIGATION_OVERRIDE;
-  /**
    * Pure-navigation exit target. When present, the primary button routes here and
    * skips conversion entirely. Use for entry points that only needed the education
    * screen as a gate (e.g., home -> Money Hub).
@@ -86,18 +104,13 @@ interface EarnMusdConversionEducationViewRouteParams {
 const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
 
-  const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
   const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
 
   const { initiateCustomConversion } = useMusdConversion();
   const { goToBuy } = useRampNavigation();
 
-  const {
-    preferredPaymentToken,
-    isDeeplink,
-    navigationOverride: callerNavigationOverride,
-    returnTo,
-  } = useParams<EarnMusdConversionEducationViewRouteParams>();
+  const { preferredPaymentToken, isDeeplink, returnTo } =
+    useParams<EarnMusdConversionEducationViewRouteParams>();
 
   // Hooks for deeplink case (when no params provided)
   const {
@@ -108,8 +121,6 @@ const EarnMusdConversionEducationView = () => {
     isMusdBuyable,
     conversionTokens,
   } = useMusdConversionFlowData();
-
-  const { styles } = useStyles(styleSheet, {});
 
   const navigation =
     useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
@@ -219,9 +230,7 @@ const EarnMusdConversionEducationView = () => {
   }, [submitScreenViewedEvent]);
 
   const submitContinuePressedEvent = useCallback(() => {
-    let redirectsTo = isQuickConvertEnabled
-      ? MUSD_EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
-      : MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+    let redirectsTo = MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
     if (returnTo) {
       redirectsTo = MONEY_EVENT_LOCATIONS.MONEY_HUB;
     } else if (deeplinkState?.action === 'navigate_money_hub') {
@@ -245,9 +254,7 @@ const EarnMusdConversionEducationView = () => {
         .build(),
     );
   }, [
-    isQuickConvertEnabled,
     returnTo,
-    MUSD_EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
     MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
     MUSD_EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
     MUSD_EVENT_LOCATIONS.HOME_SCREEN,
@@ -325,22 +332,15 @@ const EarnMusdConversionEducationView = () => {
           await initiateCustomConversion({
             preferredPaymentToken: deeplinkState.paymentToken,
             skipEducationCheck: true,
-            navigationOverride:
-              MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
           });
           return;
         }
       }
 
-      // Proceed to conversion flow if we have the required params (normal flow).
-      // Honor caller's navigationOverride; fall back to QUICK_CONVERT.
       if (!isDeeplink && preferredPaymentToken) {
         await initiateCustomConversion({
           preferredPaymentToken,
           skipEducationCheck: true,
-          navigationOverride:
-            callerNavigationOverride ??
-            MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
         return;
       }
@@ -365,7 +365,6 @@ const EarnMusdConversionEducationView = () => {
     goToBuy,
     isDeeplink,
     returnTo,
-    callerNavigationOverride,
   ]);
 
   const handleNotNow = () => {
@@ -390,19 +389,6 @@ const EarnMusdConversionEducationView = () => {
     }
   };
 
-  const handleTermsOfUsePressed = () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
-        .addProperties({
-          location: MUSD_EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
-          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
-        })
-        .build(),
-    );
-
-    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
-  };
-
   return (
     // Do not remove the top edge as this screen does not have a navbar set in the route options.
     <SafeAreaView
@@ -410,53 +396,86 @@ const EarnMusdConversionEducationView = () => {
       edges={['top', 'bottom']}
       testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.CONTAINER}
     >
-      <View style={styles.content}>
+      <Box twClassName="px-4 items-center">
         <Text style={styles.heading} numberOfLines={2} adjustsFontSizeToFit>
           {strings('earn.musd_conversion.education.heading', {
             percentage: MUSD_CONVERSION_APY,
           })}
         </Text>
-        <Text variant={TextVariant.BodyMD} style={styles.bodyText}>
-          {strings('earn.musd_conversion.education.description', {
-            percentage: MUSD_CONVERSION_APY,
-          })}{' '}
-          <Text
-            variant={TextVariant.BodyMD}
-            style={styles.termsText}
-            onPress={handleTermsOfUsePressed}
-          >
-            {strings('earn.musd_conversion.education.terms_apply')}
-          </Text>
-        </Text>
-      </View>
-      <View style={styles.imageContainer}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="flex-wrap gap-1 mt-4"
+        >
+          {[
+            'earn.musd_conversion.education.checklist.dollar_backed',
+            'earn.musd_conversion.education.checklist.no_lockups',
+            'earn.musd_conversion.education.checklist.daily_bonus',
+            'earn.musd_conversion.education.checklist.metamask_stablecoins',
+            'earn.musd_conversion.education.checklist.no_metamask_fee',
+          ].map((key) => (
+            <TagBase
+              key={key}
+              shape={TagShape.Rectangle}
+              severity={TagSeverity.Neutral}
+              gap={4}
+              startAccessory={
+                <Icon
+                  name={IconName.CheckBold}
+                  size={IconSize.Sm}
+                  color={IconColor.SuccessDefault}
+                />
+              }
+              textProps={{
+                variant: ComponentTextVariant.BodySMMedium,
+                numberOfLines: 1,
+              }}
+            >
+              {strings(key)}
+            </TagBase>
+          ))}
+        </Box>
+      </Box>
+      <Box twClassName="flex-1 min-h-[100px]">
         <Image
           source={backgroundImage}
           style={styles.backgroundImage}
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.BACKGROUND_IMAGE}
         />
-      </View>
+      </Box>
+      <Box twClassName="px-4 items-center">
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="text-center mt-4 mb-6"
+        >
+          {strings('earn.musd_conversion.education.description', {
+            percentage: MUSD_CONVERSION_APY,
+          })}
+        </Text>
+      </Box>
 
-      <View style={styles.buttonsContainer}>
+      <Box twClassName="mx-4 mb-4 gap-2">
         <Button
-          variant={ButtonVariants.Primary}
-          label={primaryButtonText}
+          variant={ButtonVariant.Primary}
           onPress={handleContinue}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON}
-        />
-        <DesignSystemButton
-          variant={DesignSystemButtonVariant.Tertiary}
+        >
+          {primaryButtonText}
+        </Button>
+        <Button
+          variant={ButtonVariant.Tertiary}
           isFullWidth
           onPress={handleNotNow}
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON}
         >
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('earn.musd_conversion.education.secondary_button')}
           </Text>
-        </DesignSystemButton>
-      </View>
+        </Button>
+      </Box>
     </SafeAreaView>
   );
 };

@@ -13,6 +13,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -28,12 +30,18 @@ import mmCardMetal from '../../../../../images/mm_card_metal.png';
 interface MoneyMetaMaskCardProps {
   /** 'upsell' (default): virtual/metal card rows. 'link': card-linking CTA layout. */
   mode?: 'upsell' | 'link';
-  onGetNowPress?: (cardType: string) => void;
+  onGetNowPress: () => void;
   onHeaderPress?: () => void;
   /** Called when the "Link card" button is pressed (link mode only). */
   onLinkPress?: () => void;
   /** Current APY value displayed in the link mode bullet. */
   apy?: number;
+  /**
+   * Whether to render the Metal card row in upsell mode. Defaults to `false`
+   * because the Metal card is currently only available to US users; the parent
+   * is expected to pass the geolocation-derived flag.
+   */
+  showMetalCard?: boolean;
 }
 
 const CardRow = ({
@@ -66,15 +74,11 @@ const CardRow = ({
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {cardName}
         </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Regular}
-          color={TextColor.SuccessDefault}
-        >
+        <Tag severity={TagSeverity.Success}>
           {strings('money.metamask_card.cashback', {
             percentage: cashbackPercentage,
           })}
-        </Text>
+        </Tag>
       </Box>
     </Box>
     <Button
@@ -127,12 +131,13 @@ const LinkContent = ({
     </Text>
     <Box
       flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
       twClassName="gap-4"
       testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
     >
       <Image
         source={mmCardMetal}
-        style={styles.cardImage}
+        style={styles.linkCardImage}
         testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
       />
       <Box twClassName="gap-2 flex-1 justify-center">
@@ -162,19 +167,12 @@ const LinkContent = ({
 
 const MoneyMetaMaskCard = ({
   mode = 'upsell',
-  onGetNowPress = () => undefined,
+  onGetNowPress,
   onHeaderPress,
   onLinkPress,
   apy,
+  showMetalCard = false,
 }: MoneyMetaMaskCardProps) => {
-  const handleVirtualPress = useCallback(
-    () => onGetNowPress('virtual'),
-    [onGetNowPress],
-  );
-  const handleMetalPress = useCallback(
-    () => onGetNowPress('metal'),
-    [onGetNowPress],
-  );
   const handleLinkPress = useCallback(() => onLinkPress?.(), [onLinkPress]);
 
   return (
@@ -205,16 +203,18 @@ const MoneyMetaMaskCard = ({
             imageSource={mmCardRegular}
             cardName={strings('money.metamask_card.virtual_card')}
             cashbackPercentage="1"
-            onPress={handleVirtualPress}
+            onPress={onGetNowPress}
             testID={MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW}
           />
-          <CardRow
-            imageSource={mmCardMetal}
-            cardName={strings('money.metamask_card.metal_card')}
-            cashbackPercentage="3"
-            onPress={handleMetalPress}
-            testID={MoneyMetaMaskCardTestIds.METAL_CARD_ROW}
-          />
+          {showMetalCard && (
+            <CardRow
+              imageSource={mmCardMetal}
+              cardName={strings('money.metamask_card.metal_card')}
+              cashbackPercentage="3"
+              onPress={onGetNowPress}
+              testID={MoneyMetaMaskCardTestIds.METAL_CARD_ROW}
+            />
+          )}
         </>
       )}
     </Box>

@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       selected_tags:
-        description: 'JSON array of selected tags from Smart E2E selection (e.g., ["SmokeAccounts", "SmokeTrade"])'
+        description: 'JSON array of selected tags from Smart E2E selection (e.g., ["SmokeAccounts", "SmokeSwap"])'
         required: false
         type: string
         default: '["ALL"]'
@@ -13,6 +13,11 @@ on:
         required: false
         type: string
         default: ''
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
 
 permissions:
   contents: read
@@ -35,24 +40,45 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  trade-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeTrade')
+  swap-ios-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeSwap')
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: swap-ios-smoke-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'SmokeSwap'
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      changed_files: ${{ inputs.changed_files }}
+      build_type: 'main'
+      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  stake-ios-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeStake')
     strategy:
       matrix:
         split: [1]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: trade-ios-smoke-${{ matrix.split }}
+      test-suite-name: stake-ios-smoke-${{ matrix.split }}
       platform: ios
-      test_suite_tag: 'SmokeTrade'
+      test_suite_tag: 'SmokeStake'
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   perps-ios-smoke:
@@ -71,6 +97,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   wallet-platform-ios-smoke:
@@ -89,6 +116,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   identity-ios-smoke:
@@ -107,6 +135,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   accounts-ios-smoke:
@@ -125,6 +154,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   network-abstraction-ios-smoke:
@@ -143,6 +173,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   network-expansion-ios-smoke:
@@ -161,6 +192,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   prediction-market-ios-smoke:
@@ -179,42 +211,26 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  card-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeCard')
+  money-ios-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeMoney')
     strategy:
       matrix:
         split: [1]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: card-ios-smoke-${{ matrix.split }}
+      test-suite-name: money-ios-smoke-${{ matrix.split }}
       platform: ios
-      test_suite_tag: 'SmokeCard'
+      test_suite_tag: 'SmokeMoney'
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
-    secrets: inherit
-
-  ramps-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeRamps')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: ramps-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeRamps'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   multichain-api-ios-smoke:
@@ -233,6 +249,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   seedless-onboarding-ios-smoke:
@@ -251,6 +268,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   browser-ios-smoke:
@@ -269,13 +287,14 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   snaps-ios-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeSnaps')
     strategy:
       matrix:
-        split: [1, 2, 3]
+        split: [1, 2, 3, 4]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -283,19 +302,21 @@ jobs:
       platform: ios
       test_suite_tag: 'SmokeSnaps'
       split_number: ${{ matrix.split }}
-      total_splits: 3
+      total_splits: 4
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   report-ios-smoke-tests:
     name: Report iOS Smoke Tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
     needs:
       - confirmations-ios-smoke
-      - trade-ios-smoke
+      - swap-ios-smoke
+      - stake-ios-smoke
       - perps-ios-smoke
       - wallet-platform-ios-smoke
       - identity-ios-smoke
@@ -303,8 +324,7 @@ jobs:
       - network-abstraction-ios-smoke
       - network-expansion-ios-smoke
       - prediction-market-ios-smoke
-      - card-ios-smoke
-      - ramps-ios-smoke
+      - money-ios-smoke
       - multichain-api-ios-smoke
       - seedless-onboarding-ios-smoke
       - browser-ios-smoke

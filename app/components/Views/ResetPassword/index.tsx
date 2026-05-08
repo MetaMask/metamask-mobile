@@ -6,6 +6,7 @@ import {
   Alert,
   InteractionManager,
   TouchableOpacity,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -142,9 +143,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     string | undefined
   >(undefined);
 
-  const confirmPasswordInput = useRef<React.ElementRef<
-    typeof TextField
-  > | null>(null);
+  const confirmPasswordInput = useRef<TextInput | null>(null);
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -573,12 +572,14 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
             <TextField
               placeholder={strings('password_reset.password_title')}
               onChangeText={onPasswordChange}
-              secureTextEntry
               value={password}
-              onSubmitEditing={reauthenticateWithPassword}
-              testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
-              keyboardAppearance={themeAppearance}
-              autoComplete="password"
+              inputProps={{
+                secureTextEntry: true,
+                onSubmitEditing: reauthenticateWithPassword,
+                testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                keyboardAppearance: themeAppearance,
+                autoComplete: 'password',
+              }}
             />
             {renderWarningText(warningIncorrectPassword)}
           </Box>
@@ -649,16 +650,9 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     onChangeText={onPasswordChange}
                     onFocus={() => setIsPasswordFieldFocused(true)}
                     onBlur={() => setIsPasswordFieldFocused(false)}
-                    secureTextEntry={showPasswordIndex.includes(0)}
                     placeholder={strings(
                       'reset_password.new_password_placeholder',
                     )}
-                    testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
-                    onSubmitEditing={jumpToConfirmPassword}
-                    returnKeyType="next"
-                    autoComplete="password-new"
-                    autoCapitalize="none"
-                    keyboardAppearance={themeAppearance}
                     isError={isPasswordTooShort()}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(0)}>
@@ -676,6 +670,15 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                         />
                       </TouchableOpacity>
                     }
+                    inputProps={{
+                      secureTextEntry: showPasswordIndex.includes(0),
+                      testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                      onSubmitEditing: jumpToConfirmPassword,
+                      returnKeyType: 'next',
+                      autoComplete: 'password-new',
+                      autoCapitalize: 'none',
+                      keyboardAppearance: themeAppearance,
+                    }}
                   />
                   {renderPasswordHelperText()}
                 </Box>
@@ -690,20 +693,12 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     {strings('reset_password.confirm_password')}
                   </Label>
                   <TextField
-                    ref={confirmPasswordInput}
+                    inputRef={confirmPasswordInput}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
-                    secureTextEntry={showPasswordIndex.includes(1)}
                     placeholder={strings(
                       'reset_password.confirm_password_placeholder',
                     )}
-                    testID={
-                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
-                    }
-                    returnKeyType={'done'}
-                    autoComplete="password-new"
-                    autoCapitalize="none"
-                    keyboardAppearance={themeAppearance}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(1)}>
                         <Icon
@@ -720,6 +715,15 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                         />
                       </TouchableOpacity>
                     }
+                    inputProps={{
+                      secureTextEntry: showPasswordIndex.includes(1),
+                      testID:
+                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                      returnKeyType: 'done',
+                      autoComplete: 'password-new',
+                      autoCapitalize: 'none',
+                      keyboardAppearance: themeAppearance,
+                    }}
                   />
                   {renderErrorText()}
                 </Box>

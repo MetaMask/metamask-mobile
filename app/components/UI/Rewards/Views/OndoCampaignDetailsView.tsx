@@ -20,7 +20,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  FontWeight,
+  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -28,12 +28,10 @@ import {
   Skeleton,
   Text,
   TextButton,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
@@ -42,8 +40,8 @@ import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
 import OndoAccountPickerSheet from '../components/Campaigns/OndoAccountPickerSheet';
 import OndoCampaignCTA from '../components/Campaigns/OndoCampaignCTA';
 import OndoNotEligibleSheet from '../components/Campaigns/OndoNotEligibleSheet';
-import CampaignStatsSummary from '../components/Campaigns/CampaignStatsSummary';
 import CampaignEndedStats from '../components/Campaigns/CampaignEndedStats';
+import OndoCampaignStatsSummary from '../components/Campaigns/OndoCampaignStatsSummary';
 import OndoPrizePool from '../components/Campaigns/OndoPrizePool';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -61,7 +59,11 @@ import {
   CampaignType,
   OndoCampaignHowItWorks,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
-import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.utils';
+import {
+  buildLeaderboardUserPosition,
+  getCampaignTierNames,
+  getTierMinNetDeposit,
+} from '../components/Campaigns/OndoLeaderboard.utils';
 import { isCampaignIneligible } from '../utils/ondoCampaignConstants';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
@@ -77,7 +79,6 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
 
 const sessionUpcomingRedirectCampaignIds = new Set<string>();
 const sessionWinningViewAutoNavCampaignIds = new Set<string>();
-
 export function resetOndoCampaignDetailsSessionAutoNavigationForTests(): void {
   sessionUpcomingRedirectCampaignIds.clear();
   sessionWinningViewAutoNavCampaignIds.clear();
@@ -223,20 +224,10 @@ const OndoCampaignDetailsView: React.FC = () => {
     defaultTier: leaderboardPosition?.projectedTier,
   });
 
-  const tierNames = useMemo(
-    () => campaign?.details?.tiers?.map((t) => t.name) ?? [],
-    [campaign],
-  );
+  const tierNames = useMemo(() => getCampaignTierNames(campaign), [campaign]);
 
   const leaderboardUserPosition = useMemo(
-    () =>
-      leaderboardPosition
-        ? {
-            projectedTier: leaderboardPosition.projectedTier,
-            rank: leaderboardPosition.rank,
-            neighbors: leaderboardPosition.neighbors ?? [],
-          }
-        : null,
+    () => buildLeaderboardUserPosition(leaderboardPosition),
     [leaderboardPosition],
   );
 
@@ -305,7 +296,7 @@ const OndoCampaignDetailsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={CAMPAIGN_DETAILS_TEST_IDS.CONTAINER}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={campaign?.name ?? ''}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'campaign-details-back-button' }}
@@ -414,7 +405,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                         />
                       </Box>
                     </Pressable>
-                    <CampaignStatsSummary
+                    <OndoCampaignStatsSummary
                       leaderboardPosition={leaderboardPosition}
                       portfolioSummary={portfolioData?.summary ?? null}
                       leaderboard={{
@@ -519,7 +510,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       <Box
                         flexDirection={BoxFlexDirection.Row}
                         alignItems={BoxAlignItems.Center}
-                        twClassName="gap-2 mb-4 px-4"
+                        twClassName="gap-2 px-4 mb-1"
                       >
                         <Text variant={TextVariant.HeadingMd}>
                           {strings('rewards.ondo_campaign_leaderboard.title')}
