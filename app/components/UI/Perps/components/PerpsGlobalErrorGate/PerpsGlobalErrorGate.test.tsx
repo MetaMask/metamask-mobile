@@ -328,9 +328,9 @@ describe('PerpsGlobalErrorGate', () => {
       // Event should not fire immediately
       expect(mockTrack).not.toHaveBeenCalled();
 
-      // Advance past debounce window
+      // Advance past debounce window (1000ms)
       act(() => {
-        jest.advanceTimersByTime(150);
+        jest.advanceTimersByTime(1000);
       });
 
       expect(mockTrack).toHaveBeenCalledTimes(1);
@@ -365,9 +365,9 @@ describe('PerpsGlobalErrorGate', () => {
       // Breadcrumb should not fire immediately
       expect(addBreadcrumb).not.toHaveBeenCalled();
 
-      // Advance past debounce window
+      // Advance past debounce window (1000ms)
       act(() => {
-        jest.advanceTimersByTime(150);
+        jest.advanceTimersByTime(1000);
       });
 
       expect(addBreadcrumb).toHaveBeenCalledWith(
@@ -399,9 +399,9 @@ describe('PerpsGlobalErrorGate', () => {
         </PerpsGlobalErrorGate>,
       );
 
-      // Advance past debounce
+      // Advance past debounce (1000ms)
       act(() => {
-        jest.advanceTimersByTime(150);
+        jest.advanceTimersByTime(1000);
       });
 
       expect(mockTrack).toHaveBeenCalledTimes(1);
@@ -430,9 +430,9 @@ describe('PerpsGlobalErrorGate', () => {
         </PerpsGlobalErrorGate>,
       );
 
-      // Error set — debounce timer starts (advance less than 150ms debounce)
+      // Error set — debounce timer starts (advance less than 1000ms debounce)
       act(() => {
-        jest.advanceTimersByTime(50);
+        jest.advanceTimersByTime(400);
       });
 
       // Error clears within debounce window
@@ -446,9 +446,9 @@ describe('PerpsGlobalErrorGate', () => {
       });
 
       // Polling picks up the cleared error (100ms interval)
-      // Total elapsed: 50 + 50 = 100ms, still under 150ms debounce
+      // Total elapsed: 400 + 100 = 500ms, still under 1000ms debounce
       act(() => {
-        jest.advanceTimersByTime(50);
+        jest.advanceTimersByTime(100);
       });
 
       // Rerender with cleared error (polling detects it)
@@ -487,9 +487,9 @@ describe('PerpsGlobalErrorGate', () => {
         </PerpsGlobalErrorGate>,
       );
 
-      // Initial error — advance past debounce
+      // Initial error — advance past debounce (1000ms)
       act(() => {
-        jest.advanceTimersByTime(150);
+        jest.advanceTimersByTime(1000);
       });
 
       expect(mockTrack).toHaveBeenCalledTimes(1);
@@ -499,9 +499,9 @@ describe('PerpsGlobalErrorGate', () => {
         fireEvent.press(getByTestId('retry-button'));
       });
 
-      // Advance past debounce for retry event
+      // Advance past debounce for retry event (1000ms)
       act(() => {
-        jest.advanceTimersByTime(150);
+        jest.advanceTimersByTime(1000);
       });
 
       expect(mockTrack).toHaveBeenCalledTimes(2);

@@ -11,7 +11,7 @@ import {
 import { ensureError } from '../../../../../util/errorUtils';
 import { isE2E } from '../../../../../util/test/utils';
 
-const ANALYTICS_DEBOUNCE_MS = 150;
+const ANALYTICS_DEBOUNCE_MS = 1000;
 
 /**
  * Centralized error gate that renders a single PerpsConnectionErrorView when
