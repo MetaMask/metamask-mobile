@@ -11,13 +11,13 @@ export const BridgeTokenMetadata: Record<CaipAssetType, BridgeToken> = {
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
     chainId: '0x1',
   },
-  'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da': {
-    symbol: 'MUSD',
-    name: 'MetaMask USD',
-    address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7': {
+    symbol: 'USDT',
+    name: 'Tether USD',
+    address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
     decimals: 6,
     image:
-      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdac17f958d2ee523a2206206994597c13d831ec7.png',
     chainId: '0x1',
   },
 };
