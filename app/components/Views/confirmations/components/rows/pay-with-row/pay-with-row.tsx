@@ -13,6 +13,8 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
+import { useMMPayFiatConfig } from '../../../hooks/pay/useMMPayFiatConfig';
+import { getFeatureFlagValue } from '../../../../../../selectors/featureFlagController/env';
 import { TouchableOpacity } from 'react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import {
@@ -60,6 +62,15 @@ export function PayWithRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
+  const { enabled: isFiatFlagEnabled } = useMMPayFiatConfig();
+  // Local dev override: set MM_DEV_PAY_WITH_BOTTOM_SHEET=true in `.js.env` to
+  // preview the redesigned picker without flipping the shared
+  // `confirmations_pay_fiat` remote flag. Remove once the new picker is the
+  // default.
+  const isPayWithBottomSheetEnabled = getFeatureFlagValue(
+    process.env.MM_DEV_PAY_WITH_BOTTOM_SHEET,
+    isFiatFlagEnabled,
+  );
 
   const {
     txParams: { from },
@@ -76,8 +87,17 @@ export function PayWithRow() {
         mm_pay_token_list_opened: true,
       },
     });
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [isDisabled, navigation, setConfirmationMetric]);
+    navigation.navigate(
+      isPayWithBottomSheetEnabled
+        ? Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET
+        : Routes.CONFIRMATION_PAY_WITH_MODAL,
+    );
+  }, [
+    isDisabled,
+    isPayWithBottomSheetEnabled,
+    navigation,
+    setConfirmationMetric,
+  ]);
 
   const label = isWithdraw
     ? strings('confirm.label.receive_as')
