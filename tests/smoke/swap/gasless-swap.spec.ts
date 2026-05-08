@@ -244,16 +244,10 @@ describe(SmokeSwap('Gasless Swap - '), (): void => {
         await QuoteView.tapDestinationToken();
         await QuoteView.tapToken(chainId, 'MUSD');
 
-        // The in-app number keypad keeps focus on the amount input after the
-        // destination token modal closes, occluding the Confirm swap button
-        // at the bottom of the screen. Tapping the Network fee row blurs the
-        // amount input which collapses the keypad. The Network fee row only
-        // renders after the SSE quote arrives, so we use a generous timeout
-        // here — CI runners can take noticeably longer than local for the
-        // first quote chunk.
+        // Sometimes the keyboard is not dismissed after selecting the
+        // destination token so we tap the network fee label to dismiss it
         await Gestures.waitAndTap(QuoteView.networkFeeLabel, {
-          elemDescription: 'Network fee label (dismiss keypad)',
-          timeout: 60000,
+          elemDescription: 'Network fee label',
         });
 
         await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {

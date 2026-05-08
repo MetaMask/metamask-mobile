@@ -54,7 +54,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     },
     ref,
   ) => {
-    const postCallback = useRef<BottomSheetPostCallback | undefined>(undefined);
+    const postCallback = useRef<BottomSheetPostCallback>();
     const bottomSheetDialogRef = useRef<BottomSheetDialogRef>(null);
     const didNavigateBackRef = useRef(false);
     const closeRequestedRef = useRef(false);
@@ -117,12 +117,9 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         isInteractable && bottomSheetDialogRef.current?.onCloseDialog();
         return true;
       };
-      const backHandlerSubscription = BackHandler.addEventListener(
-        'hardwareBackPress',
-        hardwareBackPress,
-      );
+      BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
       return () => {
-        backHandlerSubscription.remove();
+        BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
       };
     }, [onCloseCB, isInteractable, navigation]);
 

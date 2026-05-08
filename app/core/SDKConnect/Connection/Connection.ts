@@ -8,7 +8,7 @@ import {
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
-import EventEmitter2 from 'eventemitter2';
+import { EventEmitter2 } from 'eventemitter2';
 import AppConstants from '../../AppConstants';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import BatchRPCManager from '../BatchRPCManager';

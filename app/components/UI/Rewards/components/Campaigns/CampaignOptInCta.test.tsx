@@ -12,11 +12,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const tw = (..._args: unknown[]) => ({});
-    tw.style = jest.fn(() => ({}));
-    return tw;
-  },
+  useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
 jest.mock('./CampaignOptInSheet', () => {

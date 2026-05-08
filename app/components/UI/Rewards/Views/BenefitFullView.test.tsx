@@ -66,11 +66,7 @@ jest.mock('../utils/formatUtils', () => ({
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const tw = (..._args: unknown[]) => ({});
-    tw.style = jest.fn(() => ({}));
-    return tw;
-  },
+  useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
 jest.mock('../../../Views/ErrorBoundary', () => ({

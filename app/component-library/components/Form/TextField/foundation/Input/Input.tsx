@@ -2,7 +2,11 @@
 
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
-import { TextInput, type BlurEvent, type FocusEvent } from 'react-native';
+import {
+  TextInput,
+  NativeSyntheticEvent,
+  TextInputFocusEventData,
+} from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
@@ -51,7 +55,7 @@ const Input = React.forwardRef<TextInput, InputProps>(
     });
 
     const onBlurHandler = useCallback(
-      (e: BlurEvent) => {
+      (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
         if (!isDisabled) {
           setIsFocused(false);
           onBlur?.(e);
@@ -61,7 +65,7 @@ const Input = React.forwardRef<TextInput, InputProps>(
     );
 
     const onFocusHandler = useCallback(
-      (e: FocusEvent) => {
+      (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
         if (!isDisabled) {
           setIsFocused(true);
           onFocus?.(e);

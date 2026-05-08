@@ -1,17 +1,11 @@
 import { useCallback } from 'react';
-import { BigNumber } from 'bignumber.js';
-import { toHex } from '@metamask/controller-utils';
 import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
-import {
-  updateAtomicBatchData,
-  updateTransaction,
-} from '../../../../../util/transaction-controller';
+import { updateAtomicBatchData } from '../../../../../util/transaction-controller';
 import {
   updateMoneyAccountDepositTokenAmount,
   updateMoneyAccountWithdrawTokenAmount,
@@ -19,7 +13,6 @@ import {
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
 import { hasTransactionType } from '../../utils/transaction';
 import Logger from '../../../../../util/Logger';
-import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 
 type MoneyAccountAmountUpdater = (
   transactionMeta: TransactionMeta,
@@ -29,7 +22,6 @@ type MoneyAccountAmountUpdater = (
 export function useUpdateTransactionPayAmount() {
   const transactionMeta = useTransactionMetadataRequest();
   const { updateTokenAmount } = useUpdateTokenAmount();
-  const requiredTokens = useTransactionPayRequiredTokens();
 
   const applyMoneyAccountAmountUpdates = useCallback(
     async (
@@ -80,11 +72,6 @@ export function useUpdateTransactionPayAmount() {
           TransactionType.moneyAccountDeposit,
         ])
       ) {
-        syncMoneyAccountDepositRequiredAssets(
-          transactionMeta,
-          amountHuman,
-          requiredTokens?.[0]?.decimals,
-        );
         await applyMoneyAccountAmountUpdates(
           amountHuman,
           updateMoneyAccountDepositTokenAmount,
@@ -108,45 +95,8 @@ export function useUpdateTransactionPayAmount() {
 
       updateTokenAmount(amountHuman);
     },
-    [
-      transactionMeta,
-      applyMoneyAccountAmountUpdates,
-      updateTokenAmount,
-      requiredTokens,
-    ],
+    [transactionMeta, applyMoneyAccountAmountUpdates, updateTokenAmount],
   );
 
   return { updateTransactionPayAmount };
-}
-
-function syncMoneyAccountDepositRequiredAssets(
-  transactionMeta: TransactionMeta,
-  amountHuman: string,
-  decimals: number | undefined,
-): void {
-  const existing = transactionMeta.requiredAssets;
-  if (!existing?.length || decimals === undefined) return;
-
-  try {
-    const amount = toHex(
-      new BigNumber(amountHuman)
-        .shiftedBy(decimals)
-        .decimalPlaces(0, BigNumber.ROUND_UP)
-        .toFixed(0),
-    ) as Hex;
-    if (existing[0].amount === amount) return;
-
-    updateTransaction(
-      {
-        ...transactionMeta,
-        requiredAssets: [{ ...existing[0], amount }, ...existing.slice(1)],
-      },
-      'Money Account deposit: sync requiredAssets amount',
-    );
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'Failed to sync Money Account deposit requiredAssets amount',
-    );
-  }
 }

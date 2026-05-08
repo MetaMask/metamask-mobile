@@ -3,11 +3,12 @@ import {
   View,
   StyleSheet,
   Dimensions,
-  Image as RNImage,
   ImageSourcePropType,
   StyleProp,
 } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
+// @ts-expect-error - resolveAssetSource has no type definitions
+import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
 import Logger from '../../../util/Logger';
@@ -49,9 +50,7 @@ const styles = StyleSheet.create({
 
 const RemoteImage: React.FC<RemoteImageProps> = (props) => {
   const [error, setError] = useState<string | undefined>(undefined);
-  const source = RNImage.resolveAssetSource(
-    props.source as ImageSourcePropType,
-  );
+  const source = resolveAssetSource(props.source);
   const ipfsGateway = useIpfsGateway();
   const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState<string | false>();
   const { onLoad: onLoadProp } = props;

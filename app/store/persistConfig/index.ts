@@ -170,12 +170,8 @@ const persistUserTransform = createTransform(
 
 const persistOnboardingTransform = createTransform(
   (inboundState: RootState['onboarding']) => {
-    const {
-      events,
-      walletHomeOnboardingSkipInitialBalanceWait: _omitSessionSkipBalanceWait,
-      ...state
-    } = inboundState;
-    // Reconstruct data to persist (session-only fields stripped like `events`)
+    const { events, ...state } = inboundState;
+    // Reconstruct data to persist
     return state;
   },
   null,

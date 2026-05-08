@@ -14,8 +14,8 @@ import {
 // =============================================================================
 
 export interface UseFeedScrollManagerParams {
-  headerRef: React.RefObject<View | null>;
-  tabBarRef: React.RefObject<View | null>;
+  headerRef: React.RefObject<View>;
+  tabBarRef: React.RefObject<View>;
   setActiveIndex: (index: number) => void;
   onHeaderHiddenChange?: (hidden: boolean) => void;
 }

@@ -88,11 +88,20 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Mock Tailwind
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
-  return { useTailwind: () => tw };
-});
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const mockTw = jest.fn(() => ({}));
+    Object.assign(mockTw, {
+      style: jest.fn((styles) => {
+        if (Array.isArray(styles)) {
+          return styles.reduce((acc, style) => ({ ...acc, ...style }), {});
+        }
+        return styles || {};
+      }),
+    });
+    return mockTw;
+  },
+}));
 
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {

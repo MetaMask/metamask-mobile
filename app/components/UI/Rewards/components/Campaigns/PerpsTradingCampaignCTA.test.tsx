@@ -15,7 +15,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (..._args: unknown[]) => ({}) }),
+  useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
 const mockHandleDeeplink = jest.fn();

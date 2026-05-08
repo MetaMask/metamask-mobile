@@ -42,7 +42,7 @@ const AccountNetworkRow = ({
   const [addressSupportSmartAccount, setAddressSupportSmartAccount] =
     useState(isSupported);
   const [switchRequestSubmitted, setSwitchRequestSubmitted] = useState(false);
-  const prevHasPendingRequests = useRef<boolean | undefined>(undefined);
+  const prevHasPendingRequests = useRef<boolean>();
   const { hasPendingRequests } = useBatchAuthorizationRequests(
     address,
     chainId as Hex,

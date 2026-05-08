@@ -9,8 +9,8 @@ import { ListItemSelectProps } from './ListItemSelect.types';
 export const DEFAULT_SELECTITEM_GAP = 16;
 
 // Sample consts
-export const SAMPLE_SELECTITEM_PROPS = {
+export const SAMPLE_SELECTITEM_PROPS: ListItemSelectProps = {
   isSelected: true,
   isDisabled: false,
   ...SAMPLE_LISTITEM_PROPS,
-} as unknown as Partial<ListItemSelectProps>;
+};

@@ -35,7 +35,7 @@ import {
 } from '@metamask/perps-controller';
 
 interface PerpsCancelAllOrdersViewProps {
-  sheetRef?: React.RefObject<BottomSheetRef | null>;
+  sheetRef?: React.RefObject<BottomSheetRef>;
   onClose?: () => void;
 }
 

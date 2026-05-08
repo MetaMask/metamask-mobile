@@ -19,7 +19,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 interface PerpsSelectModifyActionViewProps {
-  sheetRef?: React.RefObject<BottomSheetRef | null>;
+  sheetRef?: React.RefObject<BottomSheetRef>;
   position?: Position;
   onClose?: () => void;
   onReversePosition?: (position: Position) => void;

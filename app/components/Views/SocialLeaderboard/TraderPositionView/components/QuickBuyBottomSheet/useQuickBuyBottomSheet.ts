@@ -68,7 +68,7 @@ const BUTTON_ERROR_LABELS: Record<QuickBuyButtonError, string> = {
 
 export interface UseQuickBuyBottomSheetResult {
   // refs
-  hiddenInputRef: React.RefObject<TextInput | null>;
+  hiddenInputRef: React.RefObject<TextInput>;
   // setup
   destToken: BridgeToken | undefined;
   isSetupLoading: boolean;

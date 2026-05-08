@@ -187,18 +187,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const loadingUrlRef = useRef('');
     const submittedUrlRef = useRef('');
     const titleRef = useRef<string>('');
-    const iconRef = useRef<ImageSourcePropType | undefined>(undefined);
+    const iconRef = useRef<ImageSourcePropType | undefined>();
     const sessionENSNamesRef = useRef<SessionENSNames>({});
     const ensIgnoreListRef = useRef<string[]>([]);
-    const backgroundBridgeRef = useRef<
-      | {
-          url: string;
-          sendNotificationEip1193: (payload: unknown) => void;
-          onDisconnect: () => void;
-          onMessage: (message: Record<string, unknown>) => void;
-        }
-      | undefined
-    >(undefined);
+    const backgroundBridgeRef = useRef<{
+      url: string;
+      sendNotificationEip1193: (payload: unknown) => void;
+      onDisconnect: () => void;
+      onMessage: (message: Record<string, unknown>) => void;
+    }>();
     const searchEngine = useSelector(selectSearchEngine);
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
@@ -554,27 +551,27 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         return true;
       };
 
-      let backHandlerSubscription = BackHandler.addEventListener(
-        'hardwareBackPress',
-        handleAndroidBackPress,
-      );
+      BackHandler.addEventListener('hardwareBackPress', handleAndroidBackPress);
 
       // Handle hardwareBackPress event only for browser, not components rendered on top
-      const unsubscribeFocus = navigation.addListener('focus', () => {
-        backHandlerSubscription?.remove();
-        backHandlerSubscription = BackHandler.addEventListener(
+      navigation.addListener('focus', () => {
+        BackHandler.addEventListener(
           'hardwareBackPress',
           handleAndroidBackPress,
         );
       });
-      const unsubscribeBlur = navigation.addListener('blur', () => {
-        backHandlerSubscription?.remove();
+      navigation.addListener('blur', () => {
+        BackHandler.removeEventListener(
+          'hardwareBackPress',
+          handleAndroidBackPress,
+        );
       });
 
       return function cleanup() {
-        backHandlerSubscription?.remove();
-        unsubscribeFocus();
-        unsubscribeBlur();
+        BackHandler.removeEventListener(
+          'hardwareBackPress',
+          handleAndroidBackPress,
+        );
       };
     }, [goBack, isTabActive, navigation]);
 

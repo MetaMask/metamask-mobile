@@ -2,13 +2,9 @@ import {
   selectCompletedOnboarding,
   selectOnboardingAccountType,
   selectPendingSocialLoginMarketingConsentBackfill,
-  selectWalletHomeOnboardingSteps,
-  selectWalletHomeOnboardingStepsEligible,
-  selectShouldShowWalletHomeOnboardingSteps,
 } from '.';
 import { RootState } from '../../reducers';
 import { AccountType } from '../../constants/onboarding';
-import { WALLET_HOME_ONBOARDING_STEPS_INITIAL } from '../../constants/walletHomeOnboardingSteps';
 
 describe('Onboarding selectors', () => {
   const mockState = {
@@ -60,33 +56,5 @@ describe('Onboarding selectors', () => {
     expect(selectPendingSocialLoginMarketingConsentBackfill(state)).toBe(
       'google',
     );
-  });
-
-  describe('wallet home onboarding steps (partial rehydration)', () => {
-    it('selectWalletHomeOnboardingSteps returns initial when onboarding slice is missing', () => {
-      const state = {} as RootState;
-      expect(selectWalletHomeOnboardingSteps(state)).toEqual(
-        WALLET_HOME_ONBOARDING_STEPS_INITIAL,
-      );
-    });
-
-    it('selectWalletHomeOnboardingStepsEligible is false when onboarding slice is missing', () => {
-      const state = {} as RootState;
-      expect(selectWalletHomeOnboardingStepsEligible(state)).toBe(false);
-    });
-
-    it('selectShouldShowWalletHomeOnboardingSteps is false when onboarding slice is missing', () => {
-      const state = {} as RootState;
-      expect(selectShouldShowWalletHomeOnboardingSteps(state)).toBe(false);
-    });
-
-    it('selectShouldShowWalletHomeOnboardingSteps is false when flow is suppressed', () => {
-      expect(
-        selectShouldShowWalletHomeOnboardingSteps.resultFunc(false, {
-          ...WALLET_HOME_ONBOARDING_STEPS_INITIAL,
-          suppressedReason: 'flow_completed',
-        }),
-      ).toBe(false);
-    });
   });
 });

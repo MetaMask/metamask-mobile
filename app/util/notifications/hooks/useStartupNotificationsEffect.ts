@@ -3,14 +3,9 @@ import { useSelector } from 'react-redux';
 import { selectIsSignedIn } from '../../../selectors/identity';
 import { selectIsUnlocked } from '../../../selectors/keyringController';
 import {
-  selectHomepageSectionsV1Enabled,
-  selectWalletHomeOnboardingStepsEnabled,
-} from '../../../selectors/featureFlagController/homepage';
-import {
   getIsNotificationEnabledByDefaultFeatureFlag,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
-import { selectShouldShowWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import Logger from '../../Logger';
 import { isNotificationsFeatureEnabled } from '../constants';
@@ -103,32 +98,12 @@ export function useEnableNotificationsByDefaultEffect() {
   const isNotificationsEnabledByDefaultFeatureFlag = useSelector(
     getIsNotificationEnabledByDefaultFeatureFlag,
   );
-  const homepageSectionsV1Enabled = useSelector(
-    selectHomepageSectionsV1Enabled,
-  );
-  const walletHomeOnboardingStepsRemoteEnabled = useSelector(
-    selectWalletHomeOnboardingStepsEnabled,
-  );
-  const shouldShowWalletHomeOnboardingSteps = useSelector(
-    selectShouldShowWalletHomeOnboardingSteps,
-  );
 
   const enableAndRefresh = useEnableAndRefresh();
 
   useEffect(() => {
     const run = async () => {
       try {
-        const isWalletHomePostOnboardingChecklistActive =
-          homepageSectionsV1Enabled &&
-          walletHomeOnboardingStepsRemoteEnabled &&
-          shouldShowWalletHomeOnboardingSteps;
-
-        // Wallet home post-onboarding (empty-balance checklist) ends with a dedicated
-        // notifications step — skip startup auto-enable + push nudge to avoid asking twice.
-        if (isWalletHomePostOnboardingChecklistActive) {
-          return;
-        }
-
         if (
           isBasicFunctionalityEnabled &&
           isUnlocked &&
@@ -147,14 +122,11 @@ export function useEnableNotificationsByDefaultEffect() {
     run();
   }, [
     enableAndRefresh,
-    homepageSectionsV1Enabled,
     isBasicFunctionalityEnabled,
     isNotificationsEnabledByDefaultFeatureFlag,
     isUnlocked,
     notificationsEnabled,
     notificationsFlagEnabled,
-    shouldShowWalletHomeOnboardingSteps,
-    walletHomeOnboardingStepsRemoteEnabled,
   ]);
 }
 

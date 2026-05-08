@@ -52,7 +52,7 @@ export const PerpsConnectionProvider: React.FC<
     PerpsConnectionManager.getConnectionState(),
   );
   const [retryAttempts, setRetryAttempts] = useState(0);
-  const pollIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const pollIntervalRef = useRef<NodeJS.Timeout>();
   const lastErrorBreadcrumbRef = useRef<string | null>(null);
 
   // Poll connection state to sync with singleton

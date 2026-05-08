@@ -15,8 +15,8 @@ import {
   Text,
   TextColor,
   TextVariant,
-  Spinner,
 } from '@metamask/design-system-react-native';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import PaymentMethodIcon from '../../../../../UI/Ramp/Aggregator/components/PaymentMethodIcon';

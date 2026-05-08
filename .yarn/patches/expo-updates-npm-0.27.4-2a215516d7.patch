@@ -1,0 +1,50 @@
+diff --git a/android/src/main/java/expo/modules/updates/UpdatesPackage.kt b/android/src/main/java/expo/modules/updates/UpdatesPackage.kt
+index f697c9822c32544ddfcd62e218c09555bcb2915d..2c29988517b294b26714bccd371f5e836dd3b834 100644
+--- a/android/src/main/java/expo/modules/updates/UpdatesPackage.kt
++++ b/android/src/main/java/expo/modules/updates/UpdatesPackage.kt
+@@ -1,6 +1,5 @@
+ package expo.modules.updates
+ 
+-import android.app.Application
+ import android.content.Context
+ import androidx.annotation.UiThread
+ import androidx.annotation.WorkerThread
+@@ -8,7 +7,6 @@ import com.facebook.react.ReactActivity
+ import com.facebook.react.ReactNativeHost
+ import com.facebook.react.bridge.ReactContext
+ import com.facebook.react.devsupport.interfaces.DevSupportManager
+-import expo.modules.core.interfaces.ApplicationLifecycleListener
+ import expo.modules.core.interfaces.Package
+ import expo.modules.core.interfaces.ReactActivityHandler
+ import expo.modules.core.interfaces.ReactNativeHostHandler
+@@ -94,30 +92,6 @@ class UpdatesPackage : Package {
+     return listOf(handler)
+   }
+ 
+-  override fun createApplicationLifecycleListeners(context: Context): List<ApplicationLifecycleListener> {
+-    val handler = object : ApplicationLifecycleListener {
+-      override fun onCreate(application: Application) {
+-        super.onCreate(application)
+-        if (isRunningAndroidTest()) {
+-          // Preload updates to prevent Detox ANR
+-          UpdatesController.initialize(context)
+-          UpdatesController.instance.launchAssetFile
+-        }
+-      }
+-    }
+-
+-    return listOf(handler)
+-  }
+-
+-  private fun isRunningAndroidTest(): Boolean {
+-    try {
+-      Class.forName("androidx.test.espresso.Espresso")
+-      return true
+-    } catch (_: ClassNotFoundException) {
+-    }
+-    return false
+-  }
+-
+   companion object {
+     private val TAG = UpdatesPackage::class.java.simpleName
+     val isUsingNativeDebug = BuildConfig.EX_UPDATES_NATIVE_DEBUG

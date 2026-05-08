@@ -835,7 +835,7 @@ describe('CustomSlippageModal', () => {
           postValue: '%',
           description: mockDescription,
         }),
-        undefined,
+        expect.anything(),
       );
     });
 
@@ -849,7 +849,7 @@ describe('CustomSlippageModal', () => {
           value: '3.5',
           currency: 'native',
         }),
-        undefined,
+        expect.anything(),
       );
     });
 

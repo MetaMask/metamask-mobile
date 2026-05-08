@@ -17,10 +17,7 @@ import {
   CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS,
 } from './CampaignLeaderboard';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  HYPERTRACKER_ATTRIBUTION_URL,
-  PERPS_TRADING_MAX_WINNERS,
-} from '../../utils/perpsCampaignConstants';
+import { HYPERTRACKER_ATTRIBUTION_URL } from '../../utils/perpsCampaignConstants';
 
 export const PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS = {
   CONTAINER: 'perps-campaign-leaderboard-container',
@@ -194,7 +191,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
             key={`${entry.rank}-${entry.referralCode}`}
             entry={entry}
             isCurrentUser={isCurrentUser(entry)}
-            showCrown={!isPreview && entry.rank <= PERPS_TRADING_MAX_WINNERS}
+            showCrown={!isPreview}
             isCampaignComplete={isCampaignComplete}
             formatPrimaryMetric={(e) => formatSignedUsd(e.pnl)}
             isPositivePrimaryMetric={(e) => e.pnl >= 0}
@@ -208,9 +205,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
                 key={`neighbor-${entry.rank}-${entry.referralCode}`}
                 entry={entry}
                 isCurrentUser={isCurrentUser(entry)}
-                showCrown={
-                  !isPreview && entry.rank <= PERPS_TRADING_MAX_WINNERS
-                }
+                showCrown={!isPreview}
                 isCampaignComplete={isCampaignComplete}
                 formatPrimaryMetric={(e) => formatSignedUsd(e.pnl)}
                 isPositivePrimaryMetric={(e) => e.pnl >= 0}

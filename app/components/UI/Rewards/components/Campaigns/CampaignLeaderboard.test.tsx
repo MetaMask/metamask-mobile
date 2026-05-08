@@ -23,11 +23,9 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
-  return { useTailwind: () => tw };
-});
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+}));
 
 jest.mock('../../../../../images/rewards/crown.svg', () => 'CrownIcon');
 
@@ -41,7 +39,6 @@ jest.mock('./OndoCampaignStatsSummary', () => {
 });
 
 const IDS = CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS;
-const CrownIcon = 'CrownIcon' as unknown as React.ComponentType;
 
 const baseEntry = {
   rank: 7,
@@ -67,31 +64,6 @@ describe('CampaignLeaderboardEntryRow', () => {
     expect(getByText('+12.5%')).toBeDefined();
     expect(formatPrimaryMetric).toHaveBeenCalledWith(baseEntry);
     expect(isPositivePrimaryMetric).toHaveBeenCalledWith(baseEntry);
-  });
-
-  it('shows crown based only on showCrown', () => {
-    const { UNSAFE_queryAllByType } = render(
-      <CampaignLeaderboardEntryRow
-        entry={baseEntry}
-        showCrown
-        formatPrimaryMetric={() => '+12.5%'}
-        isPositivePrimaryMetric={() => true}
-      />,
-    );
-
-    expect(UNSAFE_queryAllByType(CrownIcon)).toHaveLength(1);
-  });
-
-  it('hides crown when showCrown is false', () => {
-    const { UNSAFE_queryAllByType } = render(
-      <CampaignLeaderboardEntryRow
-        entry={{ ...baseEntry, rank: 1 }}
-        formatPrimaryMetric={() => '+12.5%'}
-        isPositivePrimaryMetric={() => true}
-      />,
-    );
-
-    expect(UNSAFE_queryAllByType(CrownIcon)).toHaveLength(0);
   });
 
   it('sets row testID from shared ENTRY_ROW and rank', () => {

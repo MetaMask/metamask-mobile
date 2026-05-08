@@ -19,7 +19,7 @@ interface PhishingModalProps {
   showPhishingModal: boolean;
   setShowPhishingModal: (show: boolean) => void;
   setBlockedUrl: (url: string | undefined) => void;
-  urlBarRef: React.RefObject<BrowserUrlBarRef | null>;
+  urlBarRef: React.RefObject<BrowserUrlBarRef>;
   addToWhitelist: (hostname: string) => void;
   activeUrl: string;
   goToUrl: (url: string) => void;

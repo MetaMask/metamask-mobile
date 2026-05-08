@@ -44,7 +44,7 @@ interface UseRewardsAnimationParams {
 }
 
 interface UseRewardsAnimationResult {
-  riveRef: React.RefObject<RiveRef | null>;
+  riveRef: React.RefObject<RiveRef>;
   animatedStyle: AnimatedStyle;
   rivePositionStyle: AnimatedStyle;
   displayValue: number;

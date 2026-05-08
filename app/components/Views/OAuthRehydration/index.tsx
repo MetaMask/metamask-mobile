@@ -679,13 +679,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       op: TraceOperation.Login,
     });
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
-    const backHandlerSubscription = BackHandler.addEventListener(
-      'hardwareBackPress',
-      handleBackPress,
-    );
+    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
     return () => {
-      backHandlerSubscription.remove();
+      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

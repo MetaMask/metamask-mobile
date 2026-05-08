@@ -80,7 +80,6 @@ interface EmptyIconProps {
   big?: boolean;
   biggest?: boolean;
   style?: ViewStyle;
-  testID?: string;
 }
 
 const EmptyIcon = ({

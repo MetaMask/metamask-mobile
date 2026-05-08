@@ -35,8 +35,8 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
+  const tw = (...args: unknown[]) => args;
+  tw.style = (...args: unknown[]) => args;
   return { useTailwind: () => tw };
 });
 
@@ -99,7 +99,7 @@ describe('OndoCampaignWinningView', () => {
           params: { campaignId: 'campaign-ondo-1' },
         },
       }),
-      undefined,
+      {},
     );
   });
 
@@ -119,7 +119,7 @@ describe('OndoCampaignWinningView', () => {
         winningCode: null,
         hasOutcomeLoaded: true,
       }),
-      undefined,
+      {},
     );
   });
 
@@ -135,7 +135,7 @@ describe('OndoCampaignWinningView', () => {
         winningCode: null,
         hasOutcomeLoaded: false,
       }),
-      undefined,
+      {},
     );
   });
 
@@ -166,7 +166,7 @@ describe('OndoCampaignWinningView', () => {
         isRankLoading: false,
         isResultLoading: false,
       }),
-      undefined,
+      {},
     );
   });
 });

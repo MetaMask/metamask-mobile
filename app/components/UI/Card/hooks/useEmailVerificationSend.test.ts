@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { useCardSDK } from '../sdk';
 import {
   EmailVerificationSendResponse,
@@ -133,16 +133,12 @@ describe('useEmailVerificationSend', () => {
 
       const { result } = renderHook(() => useEmailVerificationSend());
 
-      let thrownError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.sendEmailVerification('test@example.com');
-        } catch (e) {
-          thrownError = e;
-        }
-      });
+        }),
+      ).rejects.toThrow(cardError);
 
-      expect(thrownError).toBe(cardError);
       expect(mockGetErrorMessage).toHaveBeenCalledWith(cardError);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
@@ -156,16 +152,12 @@ describe('useEmailVerificationSend', () => {
 
       const { result } = renderHook(() => useEmailVerificationSend());
 
-      let thrownError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.sendEmailVerification('test@example.com');
-        } catch (e) {
-          thrownError = e;
-        }
-      });
+        }),
+      ).rejects.toThrow(networkError);
 
-      expect(thrownError).toBe(networkError);
       expect(mockGetErrorMessage).toHaveBeenCalledWith(networkError);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
@@ -179,16 +171,12 @@ describe('useEmailVerificationSend', () => {
 
       const { result } = renderHook(() => useEmailVerificationSend());
 
-      let thrownError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.sendEmailVerification('test@example.com');
-        } catch (e) {
-          thrownError = e;
-        }
-      });
+        }),
+      ).rejects.toThrow(unknownError);
 
-      expect(thrownError).toBe(unknownError);
       expect(mockGetErrorMessage).toHaveBeenCalledWith(unknownError);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
@@ -204,16 +192,12 @@ describe('useEmailVerificationSend', () => {
 
       const { result } = renderHook(() => useEmailVerificationSend());
 
-      let thrownError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.sendEmailVerification('test@example.com');
-        } catch (e) {
-          thrownError = e;
-        }
-      });
+        }),
+      ).rejects.toThrow('Card SDK not initialized');
 
-      expect(thrownError).toEqual(new Error('Card SDK not initialized'));
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
       expect(result.current.isError).toBe(false);
@@ -251,13 +235,11 @@ describe('useEmailVerificationSend', () => {
       const { result } = renderHook(() => useEmailVerificationSend());
 
       // First send with error
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.sendEmailVerification('test@example.com');
-        } catch (_e) {
-          // expected
-        }
-      });
+        }),
+      ).rejects.toThrow(cardError);
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Mocked error message');
@@ -283,13 +265,11 @@ describe('useEmailVerificationSend', () => {
       const { result } = renderHook(() => useEmailVerificationSend());
 
       // Trigger error
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.sendEmailVerification('test@example.com');
-        } catch (_e) {
-          // expected
-        }
-      });
+        }),
+      ).rejects.toThrow(cardError);
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Mocked error message');
@@ -390,7 +370,7 @@ describe('useEmailVerificationSend', () => {
         reset: result.current.reset,
       };
 
-      rerender(undefined);
+      rerender();
 
       expect(result.current.sendEmailVerification).toBe(
         firstRenderFunctions.sendEmailVerification,
@@ -409,16 +389,11 @@ describe('useEmailVerificationSend', () => {
 
       const { result } = renderHook(() => useEmailVerificationSend());
 
-      let thrownError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.sendEmailVerification('test@example.com');
-        } catch (e) {
-          thrownError = e;
-        }
-      });
-
-      expect(thrownError).toEqual(new Error('Card SDK not initialized'));
+        }),
+      ).rejects.toThrow('Card SDK not initialized');
     });
   });
 });

@@ -108,11 +108,20 @@ describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
         await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'Invalid');
         await TestSnaps.fillMessage('messageBip44Input', 'foo bar');
         await TestSnaps.tapButton('signMessageBip44Button');
-        await Assertions.expectTextDisplayed(
-          'Entropy source with ID "invalid" not found.',
-          { timeout: 30000 },
-        );
-        await TestSnaps.dismissAlert();
+        // iOS shows the error as a native alert; Android renders it in the
+        // web-view result span as JSON with escaped quotes.
+        if (device.getPlatform() === 'ios') {
+          await Assertions.expectTextDisplayed(
+            'Entropy source with ID "invalid" not found.',
+            { timeout: 30000 },
+          );
+        } else {
+          await TestSnaps.checkResultSpanIncludes(
+            'bip44SignResultSpan',
+            'Entropy source with ID',
+            { timeout: 30000 },
+          );
+        }
       },
     );
   });

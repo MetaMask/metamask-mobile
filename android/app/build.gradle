@@ -187,11 +187,10 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "7.78.0"
-        versionCode 4532
+        versionName "7.77.0"
+        versionCode 4857
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        missingDimensionStrategy 'detox', 'full'
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
         manifestPlaceholders.MM_BRANCH_KEY_LIVE = "$System.env.MM_BRANCH_KEY_LIVE"
 
@@ -424,7 +423,7 @@ dependencies {
     }
     // Detox's AAR still reflects Espresso UiControllerImpl.eventInjector, but its POM pulls
     // espresso-* 3.6.x where that field was removed. Exclude Espresso from Detox and pin 3.5.1.
-    androidTestImplementation(project(path: ":detox")) {
+    androidTestImplementation('com.wix:detox:+') {
         exclude module: 'protobuf-lite'
         exclude group: 'androidx.test.espresso', module: 'espresso-core'
         exclude group: 'androidx.test.espresso', module: 'espresso-web'

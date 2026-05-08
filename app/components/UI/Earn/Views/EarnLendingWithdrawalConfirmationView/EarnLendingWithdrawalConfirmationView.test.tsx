@@ -513,6 +513,12 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       getTokenSnapshot: jest.fn(),
     });
 
+    (
+      Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock
+    ).mockImplementationOnce(() => {
+      throw new Error('Invalid chain ID');
+    });
+
     const consoleErrorSpy = jest
       .spyOn(console, 'error')
       .mockImplementation(() => {
@@ -547,13 +553,6 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
 
     await act(async () => {
       fireEvent.press(footerConfirmationButton);
-    });
-
-    // Now make findNetworkClientIdByChainId throw for the callback invocation
-    (
-      Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock
-    ).mockImplementationOnce(() => {
-      throw new Error('Invalid chain ID');
     });
 
     // Simulate transaction submission

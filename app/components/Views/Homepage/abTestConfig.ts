@@ -85,34 +85,3 @@ export const HOMEPAGE_TRENDING_SECTIONS_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyti
     validVariants: Object.values(HomepageTrendingSectionsVariant),
     eventNames: [EVENT_NAME.HOME_VIEWED],
   };
-
-// ─── Wallet home post-onboarding steps (empty-balance checklist) ────────────
-
-/**
- * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
- * sync with the flag in LD (team `home`, ticket TMCU-610).
- */
-export const WALLET_HOME_POST_ONBOARDING_AB_KEY =
-  'homeTMCU610AbtestWalletHomePostOnboardingSteps';
-
-export enum WalletHomePostOnboardingVariant {
-  Control = 'control',
-  PostOnboardingSteps = 'postOnboardingSteps',
-}
-
-export const WALLET_HOME_POST_ONBOARDING_VARIANTS: Record<
-  WalletHomePostOnboardingVariant,
-  { stepsEnabled: boolean }
-> = {
-  [WalletHomePostOnboardingVariant.Control]: { stepsEnabled: false },
-  [WalletHomePostOnboardingVariant.PostOnboardingSteps]: {
-    stepsEnabled: true,
-  },
-};
-
-export const WALLET_HOME_POST_ONBOARDING_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
-  {
-    flagKey: WALLET_HOME_POST_ONBOARDING_AB_KEY,
-    validVariants: Object.values(WalletHomePostOnboardingVariant),
-    eventNames: [EVENT_NAME.HOME_VIEWED],
-  };

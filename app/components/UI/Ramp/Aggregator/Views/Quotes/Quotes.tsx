@@ -170,7 +170,7 @@ function Quotes() {
   ]);
 
   const handleClosePress = useCallback(
-    (bottomSheetDialogRef: React.RefObject<BottomSheetRef | null>) => {
+    (bottomSheetDialogRef: React.RefObject<BottomSheetRef>) => {
       handleCancelPress();
       if (bottomSheetDialogRef?.current) {
         bottomSheetDialogRef.current.onCloseBottomSheet();

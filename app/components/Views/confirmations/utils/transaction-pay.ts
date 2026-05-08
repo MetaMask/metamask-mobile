@@ -85,11 +85,6 @@ export function getTokenAddress(
     return nestedCall.to;
   }
 
-  const requiredAssetAddress = transactionMeta?.requiredAssets?.[0]?.address;
-  if (requiredAssetAddress) {
-    return requiredAssetAddress;
-  }
-
   return transactionMeta?.txParams?.to as Hex;
 }
 

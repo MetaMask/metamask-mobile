@@ -16,11 +16,26 @@ jest.mock('../../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
-  return { useTailwind: () => tw };
-});
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const mockFn = jest.fn((styles: unknown) => {
+      if (Array.isArray(styles)) {
+        return styles.reduce((acc, style) => ({ ...acc, ...style }), {});
+      }
+      if (typeof styles === 'string') {
+        return { testID: `tw-${styles}` };
+      }
+      return styles || {};
+    });
+
+    const tw = Object.assign(mockFn, {
+      style: mockFn,
+      color: jest.fn((color) => color),
+    });
+
+    return tw;
+  },
+}));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {

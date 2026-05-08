@@ -310,6 +310,7 @@ jest.mock('../../../core/redux', () => ({
 const mockBackHandlerAddEventListener = jest
   .fn()
   .mockReturnValue({ remove: jest.fn() });
+const mockBackHandlerRemoveEventListener = jest.fn();
 
 const createMockReduxStore = (stateOverrides?: RecursivePartial<RootState>) => {
   const defaultState = {
@@ -354,9 +355,11 @@ describe('Login', () => {
     mockTrace.mockClear();
     mockEndTrace.mockClear();
     mockBackHandlerAddEventListener.mockClear();
+    mockBackHandlerRemoveEventListener.mockClear();
     mockTrackOnboarding.mockClear();
 
     BackHandler.addEventListener = mockBackHandlerAddEventListener;
+    BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
 
     mockUnlockWallet.mockResolvedValue(true);
     (passwordRequirementsMet as jest.Mock).mockReturnValue(true);
@@ -375,6 +378,7 @@ describe('Login', () => {
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
     mockBackHandlerAddEventListener.mockClear();
     mockBackHandlerAddEventListener.mockReturnValue({ remove: jest.fn() });
+    mockBackHandlerRemoveEventListener.mockClear();
 
     const mockStore = createMockReduxStore();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
@@ -430,7 +434,7 @@ describe('Login', () => {
       expect(
         queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON),
       ).not.toBeOnTheScreen();
-      const images = UNSAFE_root.findAllByType(Image as never);
+      const images = UNSAFE_root.findAllByType(Image);
       const hasMetaMaskLogo = images.some(
         (img) => img.props.source === METAMASK_NAME,
       );
@@ -751,7 +755,7 @@ describe('Login', () => {
         ).toBeNull();
 
         // Assert - metaMask logo is rendered
-        const images = UNSAFE_root.findAllByType(Image as never);
+        const images = UNSAFE_root.findAllByType(Image);
         const hasMetaMaskLogo = images.some(
           (img) => img.props.source === METAMASK_NAME,
         );
@@ -1657,9 +1661,6 @@ describe('Login', () => {
       mockRoute.mockReturnValue({
         params: { locked: false, oauthLoginSuccess: false },
       });
-      const mockRemove = jest.fn();
-      mockBackHandlerAddEventListener.mockReturnValue({ remove: mockRemove });
-
       const { unmount } = renderWithProvider(<Login />);
       unmount();
 
@@ -1667,7 +1668,10 @@ describe('Login', () => {
         'hardwareBackPress',
         expect.any(Function),
       );
-      expect(mockRemove).toHaveBeenCalled();
+      expect(mockBackHandlerRemoveEventListener).toHaveBeenCalledWith(
+        'hardwareBackPress',
+        expect.any(Function),
+      );
     });
 
     it('locks app on back button press', () => {

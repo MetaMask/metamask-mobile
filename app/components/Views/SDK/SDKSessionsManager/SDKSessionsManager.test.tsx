@@ -176,7 +176,7 @@ describe('SDKSessionsManager', () => {
           trigger: 123,
           connection: { id: 'conn1', name: 'Connection 1' },
         }),
-        undefined,
+        {},
       );
     });
   });
@@ -205,7 +205,7 @@ describe('SDKSessionsManager', () => {
         expect.objectContaining({
           trigger: undefined,
         }),
-        undefined,
+        {},
       );
     });
 

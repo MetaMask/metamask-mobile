@@ -114,13 +114,10 @@ const OptinMetrics = () => {
 
   // Component lifecycle effects
   useEffect(() => {
-    const backHandlerSubscription = BackHandler.addEventListener(
-      'hardwareBackPress',
-      handleBackPress,
-    );
+    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
     return () => {
-      backHandlerSubscription.remove();
+      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
   }, [handleBackPress]);
 

@@ -16,7 +16,6 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { OnboardingSuccessComponent } from '../OnboardingSuccess';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 const hardwareBackPress = () => ({});
 const HARDWARE_BACK_PRESS = 'hardwareBackPress';
@@ -26,8 +25,6 @@ const HARDWARE_BACK_PRESS = 'hardwareBackPress';
  * the backup seed phrase flow
  */
 class ManualBackupStep3 extends PureComponent {
-  backHandlerSubscription = null;
-
   state = {
     showHint: false,
     hintText: '',
@@ -55,8 +52,7 @@ class ManualBackupStep3 extends PureComponent {
   };
 
   componentWillUnmount = () => {
-    this.backHandlerSubscription?.remove?.();
-    this.backHandlerSubscription = null;
+    BackHandler.removeEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
   };
 
   componentDidMount = async () => {
@@ -69,10 +65,7 @@ class ManualBackupStep3 extends PureComponent {
     this.setState({
       hintText: manualBackup,
     });
-    this.backHandlerSubscription = BackHandler.addEventListener(
-      HARDWARE_BACK_PRESS,
-      hardwareBackPress,
-    );
+    BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
   };
 
   componentDidUpdate = () => {
@@ -138,10 +131,7 @@ class ManualBackupStep3 extends PureComponent {
   render() {
     return (
       <Box twClassName="flex-1 bg-default mt-4">
-        <OnboardingSuccessComponent
-          onDone={this.done}
-          successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
-        />
+        <OnboardingSuccessComponent onDone={this.done} backedUpSRP />
         {Device.isAndroid() && (
           <AndroidBackHandler customBackPress={this.props.navigation.pop} />
         )}

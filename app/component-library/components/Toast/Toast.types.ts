@@ -125,5 +125,5 @@ export interface ToastRef {
  * Toast context parameters.
  */
 export interface ToastContextParams {
-  toastRef: React.RefObject<ToastRef | null> | undefined;
+  toastRef: React.RefObject<ToastRef> | undefined;
 }

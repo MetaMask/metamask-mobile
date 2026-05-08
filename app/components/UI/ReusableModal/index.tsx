@@ -66,9 +66,7 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
     },
     ref,
   ) => {
-    const postCallback = useRef<ReusableModalPostCallback | undefined>(
-      undefined,
-    );
+    const postCallback = useRef<ReusableModalPostCallback>();
     const { height: screenHeight } = useWindowDimensions();
     const { styles } = useStyles(styleSheet, {});
     const currentYOffset = useSharedValue(screenHeight);

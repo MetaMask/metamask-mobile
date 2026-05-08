@@ -52,7 +52,7 @@ describe('PerpsWithdrawInfo', () => {
           currency: PERPS_CURRENCY,
           disablePay,
         }),
-        undefined,
+        expect.anything(),
       );
     },
   );
@@ -77,7 +77,7 @@ describe('PerpsWithdrawInfo', () => {
 
     expect(mockCustomAmountInfo).toHaveBeenCalledWith(
       expect.objectContaining({ hasMax: true }),
-      undefined,
+      expect.anything(),
     );
   });
 
@@ -86,7 +86,7 @@ describe('PerpsWithdrawInfo', () => {
 
     expect(mockCustomAmountInfo).toHaveBeenCalledWith(
       expect.objectContaining({ hasExtraBottomPadding: true }),
-      undefined,
+      expect.anything(),
     );
   });
 });

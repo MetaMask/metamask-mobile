@@ -96,19 +96,11 @@ const createStyles = (colors, shadows) =>
     },
   });
 
-/**
- * @param {object} props
- * @param {string} props.incompleteText
- * @param {string} props.completeText
- * @param {() => void} [props.onComplete]
- * @param {boolean} [props.disabled]
- * @param {(isPressed: boolean) => void} [props.onSwipeChange]
- */
 function SliderButton({
   incompleteText,
   completeText,
   onComplete,
-  disabled = false,
+  disabled,
   onSwipeChange,
 }) {
   const [componentWidth, setComponentWidth] = useState(0);

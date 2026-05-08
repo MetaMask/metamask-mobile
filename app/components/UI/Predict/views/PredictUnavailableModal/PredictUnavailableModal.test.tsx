@@ -52,7 +52,7 @@ describe('PredictUnavailableModal', () => {
       expect.objectContaining({
         onDismiss: expect.any(Function),
       }),
-      undefined,
+      {},
     );
   });
 
@@ -85,10 +85,7 @@ describe('PredictUnavailableModal', () => {
       '../../components/PredictUnavailable/PredictUnavailable',
     );
 
-    expect(PredictUnavailable).toHaveBeenCalledWith(
-      expect.any(Object),
-      undefined,
-    );
+    expect(PredictUnavailable).toHaveBeenCalledWith(expect.any(Object), {});
   });
 
   it('calls navigation.goBack when handleDismiss is called and canGoBack returns true', () => {

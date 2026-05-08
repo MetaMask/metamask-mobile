@@ -8,9 +8,8 @@ import {
   PublishHook,
   PublishHookResult,
   TransactionMeta,
-  decodeAuthorizationSignature,
 } from '@metamask/transaction-controller';
-import { Hex, createProjectLogger } from '@metamask/utils';
+import { Hex, add0x, createProjectLogger } from '@metamask/utils';
 import {
   ANY_BENEFICIARY,
   BATCH_DEFAULT_MODE,
@@ -39,7 +38,8 @@ import {
   waitForRelayResult,
 } from '../transaction-relay';
 import { NetworkClientId } from '@metamask/network-controller';
-import { isE2ETest } from '../util';
+import { toHex } from '@metamask/controller-utils';
+import { isE2ETest, stripSingleLeadingZero } from '../util';
 import {
   getClientForTransactionMetadata,
   sanitizeOrigin,
@@ -433,7 +433,7 @@ export class Delegation7702PublishHook {
       },
     )) as Hex;
 
-    const { r, s, yParity } = decodeAuthorizationSignature(
+    const { r, s, yParity } = this.#decodeAuthorizationSignature(
       authorizationSignature,
     );
 
@@ -456,6 +456,19 @@ export class Delegation7702PublishHook {
       recipient,
       amount,
     ]) as Hex;
+  }
+
+  #decodeAuthorizationSignature(signature: Hex) {
+    const r = stripSingleLeadingZero(signature.slice(0, 66)) as Hex;
+    const s = stripSingleLeadingZero(add0x(signature.slice(66, 130))) as Hex;
+    const v = parseInt(signature.slice(130, 132), 16);
+    const yParity = toHex(v - 27 === 0 ? 0 : 1);
+
+    return {
+      r,
+      s,
+      yParity,
+    };
   }
 
   #normalizeCallData(data: unknown): Hex {

@@ -36,7 +36,7 @@ describe('HeroRow', () => {
     render(<HeroRow layout="horizontal" />);
     expect(HeroToken).toHaveBeenCalledWith(
       expect.objectContaining({ layout: 'horizontal' }),
-      undefined,
+      expect.anything(),
     );
   });
 
@@ -46,7 +46,7 @@ describe('HeroRow', () => {
     render(<HeroRow layout="horizontal" />);
     expect(HeroNft).toHaveBeenCalledWith(
       expect.objectContaining({ layout: 'horizontal' }),
-      undefined,
+      expect.anything(),
     );
   });
 });

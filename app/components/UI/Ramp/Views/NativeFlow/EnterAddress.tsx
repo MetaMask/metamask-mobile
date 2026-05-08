@@ -171,7 +171,7 @@ const V2EnterAddress = (): JSX.Element => {
   );
 
   const focusNextField = useCallback(
-    (nextRef: React.RefObject<TextInput | null>) => () => {
+    (nextRef: React.RefObject<TextInput>) => () => {
       nextRef.current?.focus();
     },
     [],

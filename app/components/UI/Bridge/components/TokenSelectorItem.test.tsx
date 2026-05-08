@@ -576,7 +576,7 @@ describe('TokenSelectorItem', () => {
           color: 'WarningDefault',
           size: 'Sm',
         }),
-        undefined,
+        expect.anything(),
       );
     });
 
@@ -593,7 +593,7 @@ describe('TokenSelectorItem', () => {
           color: 'ErrorDefault',
           size: 'Sm',
         }),
-        undefined,
+        expect.anything(),
       );
     });
   });

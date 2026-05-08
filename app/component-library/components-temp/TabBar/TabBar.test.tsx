@@ -31,10 +31,7 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
     const tabs = ReactLib.Children.toArray(children).map(
       (child: React.ReactNode, index: number) => {
         if (ReactLib.isValidElement(child)) {
-          return (
-            (child as React.ReactElement<{ tabLabel?: string }>).props
-              .tabLabel || `Tab ${index}`
-          );
+          return (child as React.ReactElement).props.tabLabel || `Tab ${index}`;
         }
         return `Tab ${index}`;
       },

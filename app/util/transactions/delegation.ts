@@ -1,7 +1,6 @@
 import {
   AuthorizationList,
   TransactionMeta,
-  decodeAuthorizationSignature,
 } from '@metamask/transaction-controller';
 import {
   BATCH_DEFAULT_MODE,
@@ -20,7 +19,7 @@ import {
   createDelegation,
   encodeRedeemDelegations,
 } from '../../core/Delegation/delegation';
-import { Hex, createProjectLogger } from '@metamask/utils';
+import { Hex, add0x, createProjectLogger } from '@metamask/utils';
 import { limitedCalls } from '../../core/Delegation/caveatBuilder/limitedCallsBuilder';
 import { Messenger } from '@metamask/messenger';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
@@ -271,4 +270,17 @@ function buildCaveats(
   caveatBuilder.addCaveat(limitedCalls, 1);
 
   return caveatBuilder.build();
+}
+
+function decodeAuthorizationSignature(signature: Hex) {
+  const r = signature.slice(0, 66) as Hex;
+  const s = add0x(signature.slice(66, 130));
+  const v = parseInt(signature.slice(130, 132), 16);
+  const yParity = toHex(v - 27 === 0 ? 0 : 1);
+
+  return {
+    r,
+    s,
+    yParity,
+  };
 }

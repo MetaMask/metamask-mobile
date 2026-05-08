@@ -3,7 +3,7 @@ import { type Position } from '@metamask/perps-controller';
 
 export interface PerpsFlipPositionConfirmSheetProps {
   position: Position;
-  sheetRef?: React.RefObject<BottomSheetRef | null>;
+  sheetRef?: React.RefObject<BottomSheetRef>;
   onClose?: () => void;
   onConfirm?: () => void;
 }

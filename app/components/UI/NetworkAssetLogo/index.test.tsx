@@ -43,7 +43,7 @@ describe('NetworkAssetLogo Component', () => {
         style: props.style,
         testID: props.testID,
       },
-      undefined,
+      {},
     );
   });
 
@@ -67,7 +67,7 @@ describe('NetworkAssetLogo Component', () => {
         style: props.style,
         testID: props.testID,
       },
-      undefined,
+      {},
     );
   });
 });

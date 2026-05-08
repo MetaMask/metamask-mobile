@@ -9,7 +9,7 @@ import {
 jest.mock('../../util/Logger');
 
 describe('ToastService', () => {
-  let mockToastRef: React.RefObject<ToastRef | null>;
+  let mockToastRef: React.RefObject<ToastRef>;
   let mockShowToast: jest.Mock;
   let mockCloseToast: jest.Mock;
   let mockLoggerError: jest.SpyInstance;

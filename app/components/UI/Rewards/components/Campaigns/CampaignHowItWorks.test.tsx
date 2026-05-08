@@ -6,11 +6,9 @@ import CampaignHowItWorks, {
 } from './CampaignHowItWorks';
 import type { OndoCampaignHowItWorks } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
-  return { useTailwind: () => tw };
-});
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {

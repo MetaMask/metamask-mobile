@@ -1,0 +1,20 @@
+diff --git a/node_modules/@metamask/react-native-payments/android/build.gradle b/node_modules/@metamask/react-native-payments/android/build.gradle
+index 0d066bd..02caf64 100644
+--- a/node_modules/@metamask/react-native-payments/android/build.gradle
++++ b/node_modules/@metamask/react-native-payments/android/build.gradle
+@@ -1,12 +1,12 @@
+ apply plugin: 'com.android.library'
+ 
+ android {
+-    compileSdkVersion 28
+-    buildToolsVersion "28.0.3"
++    compileSdkVersion 33
++    buildToolsVersion "33.0.0"
+ 
+     defaultConfig {
+         minSdkVersion 21
+-        targetSdkVersion 28
++        targetSdkVersion 33
+         versionCode 1
+         versionName "1.0"
+         ndk {

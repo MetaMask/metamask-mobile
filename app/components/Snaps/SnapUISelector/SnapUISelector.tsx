@@ -135,12 +135,9 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   // We clone the selected option component so that we can pass the render context to it.
   const inlineButtonLabel =
     selectedOptionComponent &&
-    React.cloneElement(
-      selectedOptionComponent as React.ReactElement<{ context?: string }>,
-      {
-        context: 'inline',
-      },
-    );
+    React.cloneElement(selectedOptionComponent as React.ReactElement, {
+      context: 'inline',
+    });
 
   return (
     <>

@@ -39,11 +39,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => mockStrings(key),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
-  return { useTailwind: () => tw };
-});
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+}));
 
 const createBenefit = (
   overrides: Partial<SubscriptionBenefitDto> = {},
@@ -110,12 +108,7 @@ describe('BenefitCard', () => {
         uri: 'https://cdn.example.com/benefit.png',
       });
       expect(image.props.resizeMode).toBe('cover');
-      const { useTailwind } = jest.requireMock(
-        '@metamask/design-system-twrnc-preset',
-      );
-      expect(useTailwind().style).toHaveBeenCalledWith(
-        'w-full h-full rounded-lg',
-      );
+      expect(image.props.style).toContain('w-full h-full rounded-lg');
     });
 
     it('uses a unique image testID per benefit id', () => {

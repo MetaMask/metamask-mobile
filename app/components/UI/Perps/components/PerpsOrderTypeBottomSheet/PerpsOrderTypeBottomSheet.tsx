@@ -27,7 +27,7 @@ interface PerpsOrderTypeBottomSheetProps {
   currentOrderType?: OrderType;
   asset?: string;
   direction?: 'long' | 'short';
-  sheetRef?: React.RefObject<BottomSheetRef | null>;
+  sheetRef?: React.RefObject<BottomSheetRef>;
 }
 
 const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({

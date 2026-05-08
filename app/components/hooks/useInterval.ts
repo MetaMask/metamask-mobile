@@ -8,7 +8,7 @@ interface IntervalOptions {
 function useInterval(callback: () => void, options: IntervalOptions) {
   const { delay = null, immediate = false } = options;
 
-  const savedCallback = useRef<(() => void) | undefined>(undefined);
+  const savedCallback = useRef<() => void>();
   // Remember the latest function.
   useEffect(() => {
     savedCallback.current = callback;
