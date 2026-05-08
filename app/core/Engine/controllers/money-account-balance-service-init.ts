@@ -31,8 +31,9 @@ export const moneyAccountBalanceServiceInit: MessengerClientInitFunction<
 > = ({ controllerMessenger }) => {
   const controller = new MoneyAccountBalanceService({
     messenger: controllerMessenger,
-    ...TEST_VAULT_CONFIG,
   });
+
+  controller.init();
 
   return { controller };
 };
