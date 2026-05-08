@@ -5,7 +5,14 @@ import React, {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { Animated, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import {
+  Animated,
+  RefreshControlProps,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 import Reanimated, {
   SharedValue,
   withTiming,
@@ -14,7 +21,6 @@ import Reanimated, {
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import TabsIconList from '../../../../../component-library/components-temp/Tabs/TabsIconList/TabsIconList';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { TabsIconListRef } from '../../../../../component-library/components-temp/Tabs/TabsIconList/TabsIconList.types';
 import Homepage from '../../Homepage';
 import PerpsHomeView from '../../../../UI/Perps/Views/PerpsHomeView/PerpsHomeView';
@@ -148,9 +154,8 @@ const HomepageDiscoveryTabs = forwardRef<
     const tabsRef = useRef<TabsIconListRef>(null);
     const homepageRef = useRef<SectionRefreshHandle>(null);
     const perpsTabEnterRef = useRef<(() => void) | null>(null);
-    const tw = useTailwind();
     const { styles } = useStyles(styleSheet, {});
-    const { themeAppearance, colors } = useTheme();
+    const { themeAppearance } = useTheme();
     const isDarkMode = themeAppearance === AppThemeKey.dark;
     // One Animated.Value per tab — pre-rendered at mount so no re-render is needed
     // during a tab switch. Portfolio starts fully visible; others start at 0.
