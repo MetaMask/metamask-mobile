@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { selectExplorePageV2EnabledFlag } from '../../../selectors/featureFlagController/explorePageV2';
+import { EXPLORE_TAB_INDEX } from '../../Views/TrendingView/TrendingView';
 import { DefiEmptyState } from './DefiEmptyState';
 
 // Mock the navigation hook
@@ -46,7 +47,7 @@ describe('DefiEmptyState', () => {
     expect(mockNavigate).toHaveBeenCalledWith('TrendingView', {
       screen: 'TrendingFeed',
       params: {
-        initialTab: 'sites',
+        initialTab: EXPLORE_TAB_INDEX.SITES,
       },
     });
   });

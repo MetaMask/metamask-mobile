@@ -24,10 +24,7 @@ import { selectExplorePageV2EnabledFlag } from '../../../selectors/featureFlagCo
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
-import {
-  useExploreTabNavigationEffect,
-  type ExploreFeedInitialTab,
-} from './hooks/useExploreTabNavigationEffect';
+import { useExploreTabNavigationEffect } from './hooks/useExploreTabNavigationEffect';
 import { useExploreRefresh } from './hooks/useExploreRefresh';
 import NowTab from './tabs/NowTab';
 import MacroTab from './tabs/MacroTab';
@@ -60,14 +57,6 @@ const TAB_NAMES_BY_INDEX: Record<number, ExploreTabName> = {
   [EXPLORE_TAB_INDEX.SITES]: 'Sites',
 };
 
-const INITIAL_TAB_TO_INDEX: Record<ExploreFeedInitialTab, number> = {
-  now: EXPLORE_TAB_INDEX.NOW,
-  macro: EXPLORE_TAB_INDEX.MACRO,
-  rwas: EXPLORE_TAB_INDEX.RWAS,
-  crypto: EXPLORE_TAB_INDEX.CRYPTO,
-  sports: EXPLORE_TAB_INDEX.SPORTS,
-  sites: EXPLORE_TAB_INDEX.SITES,
-};
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
@@ -76,7 +65,6 @@ export const ExploreFeed: React.FC = () => {
   const tabProps = useExploreRefresh();
   const { tabsListRef, initialActiveIndex } = useExploreTabNavigationEffect({
     defaultTabIndex: EXPLORE_TAB_INDEX.NOW,
-    initialTabToIndex: INITIAL_TAB_TO_INDEX,
   });
 
   const sessionManager = TrendingFeedSessionManager.getInstance();

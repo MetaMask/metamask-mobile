@@ -11,6 +11,7 @@ import {
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { selectExplorePageV2EnabledFlag } from '../../../selectors/featureFlagController/explorePageV2';
+import { EXPLORE_TAB_INDEX } from '../../Views/TrendingView/TrendingView';
 
 import emptyStateDefiLight from '../../../images/empty-state-defi-light.png';
 import emptyStateDefiDark from '../../../images/empty-state-defi-dark.png';
@@ -28,7 +29,7 @@ export const DefiEmptyState: React.FC<DefiEmptyStateProps> = (props) => {
       navigate(Routes.TRENDING_VIEW, {
         screen: Routes.TRENDING_FEED,
         params: {
-          initialTab: 'sites',
+          initialTab: EXPLORE_TAB_INDEX.SITES,
         },
       });
       return;
