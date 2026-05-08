@@ -61,7 +61,7 @@ export const MUSD_TOKEN_ASSET_ID_BY_CHAIN: Record<Hex, string> = {
 };
 
 export const MUSD_CURRENCY = 'MUSD';
-/** APY in whole percent (e.g. 3 → 3%). Drives Earn UI and Rewards mUSD calculator math and disclaimer copy. */
+
 export const MUSD_CONVERSION_APY = 3;
 
 // Delay before cleaning up toast tracking entries after final transaction status
