@@ -80,8 +80,8 @@ const createStoreAndPersistor = async () => {
     );
 
     // Clear attribution when marketing consent has not been explicitly granted.
-    // The opt-out saga handles future consent toggles, but MMKV attribution can
-    // rehydrate while security.dataCollectionForMarketing is false or null.
+    // The opt-out saga handles future consent toggles, but persisted attribution
+    // can rehydrate while security.dataCollectionForMarketing is false or null.
     if (currentState.security.dataCollectionForMarketing !== true) {
       store.dispatch(clearAttribution());
     } else {
