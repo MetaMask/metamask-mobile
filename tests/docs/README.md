@@ -95,6 +95,8 @@ await withFixtures(
 
 Playwright specs and `FixtureBuilder` run in Node, while the app runs in React Native/Metro. If a native-only module fails during Playwright import or fixture setup, keep the app on the native implementation and isolate the Node workaround in test infrastructure.
 
+We need this shim mechanism because some app dependencies patch CommonJS packages to call native modules such as `@metamask/native-utils`. Those calls are valid in the mobile app, but Playwright loads the same dependency graph in Node where React Native/Nitro native modules are unavailable.
+
 - Use `tests/framework/nodeNativeUtilsShim.cjs` for `@metamask/native-utils` in Playwright's Node process.
 - Register Node shims from Playwright framework entrypoints before importing code that may load native modules.
 - Do not add JS fallbacks to shared dependency patches unless the app runtime also needs them.
