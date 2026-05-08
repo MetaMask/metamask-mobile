@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
 import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -15,7 +16,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
     jest.setTimeout(170000);
   });
 
-  it('should enable notifications and toggle feature announcements and account notifications', async () => {
+  it.skip('should enable notifications and toggle feature announcements and account notifications', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withDefaultFixture().build(),

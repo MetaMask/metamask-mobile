@@ -5,7 +5,6 @@ import {
   selectOndoCampaignLeaderboard,
   selectOndoCampaignLeaderboardLoading,
   selectOndoCampaignLeaderboardError,
-  selectOndoCampaignLeaderboardTierNames,
   selectOndoCampaignLeaderboardSelectedTier,
 } from '../../../../reducers/rewards/selectors';
 import {
@@ -33,8 +32,6 @@ export interface UseGetOndoLeaderboardResult {
   hasError: boolean;
   /** Whether the leaderboard hasn't been computed yet by the backend (404) */
   isLeaderboardNotYetComputed: boolean;
-  /** List of available tier names (e.g., ['STARTER', 'MID', 'UPPER']) */
-  tierNames: string[];
   /** Currently selected tier name */
   selectedTier: string | null;
   /** Leaderboard data for the currently selected tier */
@@ -67,7 +64,6 @@ export const useGetOndoLeaderboard = (
   const hasError = useSelector(selectOndoCampaignLeaderboardError);
   const [isLeaderboardNotYetComputed, setIsLeaderboardNotYetComputed] =
     useState(false);
-  const tierNames = useSelector(selectOndoCampaignLeaderboardTierNames);
   const selectedTier = useSelector(selectOndoCampaignLeaderboardSelectedTier);
 
   // Track if we've already applied the defaultTier to avoid overriding user selection
@@ -111,23 +107,17 @@ export const useGetOndoLeaderboard = (
   // Update selected tier when defaultTier becomes available (e.g., after position loads)
   // Only apply once - don't override subsequent user selections
   useEffect(() => {
-    if (
-      !hasAppliedDefaultTier.current &&
-      defaultTier &&
-      tierNames.includes(defaultTier)
-    ) {
+    if (!hasAppliedDefaultTier.current && defaultTier) {
       hasAppliedDefaultTier.current = true;
       dispatch(setOndoCampaignLeaderboardSelectedTier(defaultTier));
     }
-  }, [defaultTier, tierNames, dispatch]);
+  }, [defaultTier, dispatch]);
 
   const setSelectedTier = useCallback(
     (tier: string) => {
-      if (tierNames.includes(tier)) {
-        dispatch(setOndoCampaignLeaderboardSelectedTier(tier));
-      }
+      dispatch(setOndoCampaignLeaderboardSelectedTier(tier));
     },
-    [tierNames, dispatch],
+    [dispatch],
   );
 
   const selectedTierData = useMemo(
@@ -140,7 +130,6 @@ export const useGetOndoLeaderboard = (
     isLoading,
     hasError,
     isLeaderboardNotYetComputed,
-    tierNames,
     selectedTier,
     selectedTierData,
     computedAt: leaderboard?.computedAt ?? null,

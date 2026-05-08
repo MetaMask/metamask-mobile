@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, Alert, TextInput, Switch, View } from 'react-native';
+import { ScrollView, Alert, TextInput, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -59,6 +59,13 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
   // Track whether a reset is in progress to prevent onEndEditing from
   // reinstating the override with stale closure values
   const isResettingRef = useRef(false);
+  const [jsonText, setJsonText] = useState(() =>
+    flag.type === FeatureFlagType.FeatureFlagObject ||
+    flag.type === FeatureFlagType.FeatureFlagArray
+      ? JSON.stringify(flag.value, null, 2)
+      : '',
+  );
+  const [jsonError, setJsonError] = useState<string | null>(null);
 
   useEffect(() => {
     // Sync localValue with flag.value when the flag is not overridden
@@ -67,8 +74,15 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
     // while preventing race conditions during user input.
     if (!flag.isOverridden && !isEditingRef.current) {
       setLocalValue(flag.value);
+      if (
+        flag.type === FeatureFlagType.FeatureFlagObject ||
+        flag.type === FeatureFlagType.FeatureFlagArray
+      ) {
+        setJsonText(JSON.stringify(flag.value, null, 2));
+        setJsonError(null);
+      }
     }
-  }, [flag.value, flag.isOverridden]);
+  }, [flag.value, flag.isOverridden, flag.type]);
   const minimumVersion = (localValue as MinimumVersionFlagValue)
     ?.minimumVersion;
   const isVersionSupported = useMemo(
@@ -81,6 +95,13 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
     // with stale closure values when the input loses focus due to button press
     isResettingRef.current = true;
     setLocalValue(flag.originalValue);
+    if (
+      flag.type === FeatureFlagType.FeatureFlagObject ||
+      flag.type === FeatureFlagType.FeatureFlagArray
+    ) {
+      setJsonText(JSON.stringify(flag.originalValue, null, 2));
+      setJsonError(null);
+    }
     onToggle(flag.key, null); // null indicates removal of override
   };
 
@@ -254,35 +275,61 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
         );
 
       case FeatureFlagType.FeatureFlagObject:
-        return (
-          <View>
-            {Object.keys((localValue as object) || {}).map(
-              (itemKey: string) => (
-                <Text key={itemKey}>
-                  {itemKey}:{' '}
-                  {JSON.stringify(
-                    (localValue as object)[itemKey as keyof object],
-                  )}
-                </Text>
-              ),
-            )}
-          </View>
-        );
       case FeatureFlagType.FeatureFlagArray:
         return (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Sm}
-            onPress={() => {
-              Alert.alert(
-                `${flag.key} (${flag.type})`,
-                JSON.stringify(localValue, null, 2),
-                [{ text: 'Cancel', style: 'cancel' }],
-              );
-            }}
-          >
-            View/Edit
-          </Button>
+          <Box twClassName="flex-1 mt-2">
+            <TextInput
+              value={jsonText}
+              multiline
+              onFocus={() => {
+                isEditingRef.current = true;
+                isResettingRef.current = false;
+              }}
+              onChangeText={(text) => {
+                setJsonText(text);
+                setJsonError(null);
+              }}
+              onEndEditing={() => {
+                isEditingRef.current = false;
+                if (isResettingRef.current) {
+                  isResettingRef.current = false;
+                  return;
+                }
+                try {
+                  const parsed = JSON.parse(jsonText);
+                  setLocalValue(parsed);
+                  setJsonError(null);
+                  onToggle(flag.key, parsed);
+                } catch {
+                  setJsonError('Invalid JSON');
+                }
+              }}
+              onBlur={() => {
+                isEditingRef.current = false;
+              }}
+              style={[
+                tw.style('border rounded p-2 text-sm font-mono min-h-[80px]'),
+                {
+                  borderColor: jsonError
+                    ? theme.colors.error.default
+                    : theme.colors.border.default,
+                  color: theme.colors.text.default,
+                  backgroundColor: theme.colors.background.default,
+                },
+              ]}
+              placeholder={`Enter JSON ${flag.type}`}
+              placeholderTextColor={theme.colors.text.muted}
+            />
+            {jsonError && (
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.ErrorDefault}
+                twClassName="mt-1"
+              >
+                {jsonError}
+              </Text>
+            )}
+          </Box>
         );
 
       default:
@@ -315,10 +362,13 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
               Original: {JSON.stringify(flag.originalValue)}
             </Text>
           )}
-          {flag.type === 'object' && renderValueEditor()}
+          {(flag.type === 'object' || flag.type === 'array') &&
+            renderValueEditor()}
         </Box>
         <Box twClassName="ml-4 items-end">
-          {flag.type !== 'object' && renderValueEditor()}
+          {flag.type !== 'object' &&
+            flag.type !== 'array' &&
+            renderValueEditor()}
           {flag.isOverridden && (
             <Box twClassName="ml-2 px-2 py-1 my-2 bg-warning-muted rounded">
               <Text

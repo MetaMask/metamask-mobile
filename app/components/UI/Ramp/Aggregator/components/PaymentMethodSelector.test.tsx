@@ -33,7 +33,7 @@ describe('PaymentMethodSelector', () => {
     renderWithProvider(<PaymentMethodSelector {...mockProps} />, {
       state: defaultState,
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Debit or Credit')).toBeOnTheScreen();
   });
 
   it('renders correctly if there are no icons', () => {
@@ -43,7 +43,7 @@ describe('PaymentMethodSelector', () => {
         state: defaultState,
       },
     );
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Debit or Credit')).toBeOnTheScreen();
   });
 
   it('calls onPress when pressed', () => {
@@ -62,7 +62,7 @@ describe('PaymentMethodSelector', () => {
     renderWithProvider(<PaymentMethodSelector {...mockProps} loading />, {
       state: defaultState,
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.queryByText('Debit or Credit')).not.toBeOnTheScreen();
   });
 
   it('does not call onPress when loading', () => {
@@ -74,7 +74,9 @@ describe('PaymentMethodSelector', () => {
       },
     );
 
-    const pressableElements = screen.root.findAllByType(TouchableOpacity);
+    const pressableElements = screen.root.findAllByType(
+      TouchableOpacity as never,
+    );
     if (pressableElements.length > 0) {
       fireEvent.press(pressableElements[0]);
     }

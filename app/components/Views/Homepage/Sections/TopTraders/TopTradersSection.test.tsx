@@ -5,7 +5,33 @@ import TopTradersSection from './TopTradersSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
 
+const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockNavigate = jest.fn();
+
+const mockTraders = [
+  {
+    id: 'trader-1',
+    rank: 1,
+    overallRank: 1,
+    username: 'alice',
+    percentageChange: 96.2,
+    pnlValue: 963000,
+    isFollowing: false,
+  },
+];
+
+const mockUseTopTraders = jest.fn((_options?: unknown) => ({
+  traders: mockTraders,
+  isLoading: false,
+  isFetching: false,
+  error: null as string | null,
+  refresh: mockRefetch,
+  toggleFollow: jest.fn(),
+}));
+
+jest.mock('./hooks', () => ({
+  useTopTraders: (args: unknown) => mockUseTopTraders(args),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -47,6 +73,42 @@ describe('TopTradersSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectSocialLeaderboardEnabled.mockImplementation(() => true);
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+  });
+
+  it('returns null when the API returns no traders', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+    expect(screen.queryByTestId('homepage-top-traders-carousel')).toBeNull();
+  });
+
+  it('renders skeletons while loading even when traders is empty', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: true,
+      isFetching: true,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+    expect(
+      screen.getByTestId('homepage-top-traders-carousel'),
+    ).toBeOnTheScreen();
   });
 
   it('returns null when the feature flag is disabled', () => {
@@ -64,8 +126,101 @@ describe('TopTradersSection', () => {
 
   it('navigates to the Top Traders view when the section header is pressed', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
+
     fireEvent.press(screen.getByText('Top Traders'));
+
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW);
+  });
+
+  it('navigates to the trader profile with correct params when a card is tapped', () => {
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.PROFILE,
+      { traderId: 'trader-1', traderName: 'alice', rank: 1 },
+    );
+  });
+
+  it('renders the error state instead of the carousel when the fetch fails', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: false,
+      error: 'Network error',
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(screen.queryByTestId('homepage-top-traders-carousel')).toBeNull();
+    expect(
+      screen.getByTestId('homepage-top-traders-section-root'),
+    ).toBeOnTheScreen();
+  });
+
+  it('calls refresh when the retry button in the error state is pressed', async () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: false,
+      error: 'Network error',
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByText('Retry'));
+
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders skeletons instead of error state while a retry is in flight', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: true,
+      error: 'Network error',
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(
+      screen.getByTestId('homepage-top-traders-carousel'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('Retry')).toBeNull();
+  });
+
+  it('keeps cached traders visible when a background refetch fails', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: 'Network error',
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(screen.getByTestId('top-trader-card-trader-1')).toBeOnTheScreen();
+    expect(screen.queryByText('Retry')).toBeNull();
+  });
+
+  it('keeps cached traders and ViewMoreCard visible during a background refetch', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: true,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(screen.getByTestId('top-trader-card-trader-1')).toBeOnTheScreen();
+    expect(screen.getByTestId('top-traders-view-more-card')).toBeOnTheScreen();
   });
 
   it('exposes refresh via ref and resolves when called', async () => {

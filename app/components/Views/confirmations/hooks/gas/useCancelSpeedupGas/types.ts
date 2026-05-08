@@ -17,6 +17,8 @@ export interface UseCancelSpeedupGasResult {
   networkFeeFiat: string | null;
   /** Native currency symbol for the chain (e.g. "ETH") */
   nativeTokenSymbol: string;
+  /** Whether the transaction can still be modified (status is unapproved or submitted). */
+  isTransactionModifiable: boolean;
   /** True once previousGas has been persisted and initial gas params applied. */
   isInitialGasReady: boolean;
 }

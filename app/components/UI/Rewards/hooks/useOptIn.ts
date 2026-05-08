@@ -2,7 +2,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { handleRewardsErrorMessage } from '../utils';
 import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   selectSelectedAccountGroup,
@@ -54,7 +55,7 @@ export const useOptin = (): UseOptinResult => {
   const [optinError, setOptinError] = useState<string | null>(null);
   const dispatch = useDispatch();
   const [optinLoading, setOptinLoading] = useState<boolean>(false);
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const { trackEvent, createEventBuilder, identify } = useAnalytics();
   const { linkAccountGroup } = useLinkAccountGroup(false);
   const { startBulkLink, cancelBulkLink } = useBulkLinkState();
   const activeAccount = useSelector(selectSelectedInternalAccount);
@@ -155,7 +156,7 @@ export const useOptin = (): UseOptinResult => {
               // Failed to link first account group in same wallet.
             }
           }
-          addTraitsToUser({
+          identify({
             [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.ON,
             ...(referralCode && {
               [UserProfileProperty.REWARDS_REFERRED]: true,
@@ -195,7 +196,7 @@ export const useOptin = (): UseOptinResult => {
       sideEffectAccountGroupIdToLink,
       sideEffectAccounts,
       activeGroupAccounts,
-      addTraitsToUser,
+      identify,
       linkAccountGroup,
       dispatch,
       startBulkLink,

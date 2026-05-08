@@ -20,6 +20,8 @@ import { BigNumber } from 'bignumber.js';
 const FOUR_BYTE_SAFE_PROXY_CREATE = '0xa1884d2c';
 
 const PAY_TYPES = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
   TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
@@ -31,6 +33,8 @@ const USE_CASE_MAP: [TransactionType[], string][] = [
   [[TransactionType.predictDeposit], 'predict_deposit'],
   [[TransactionType.perpsDeposit], 'perps_deposit'],
   [[TransactionType.perpsWithdraw], 'perps_withdraw'],
+  [[TransactionType.moneyAccountDeposit], 'money_account_deposit'],
+  [[TransactionType.moneyAccountWithdraw], 'money_account_withdraw'],
 ];
 
 export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
@@ -148,10 +152,9 @@ function addTimeToComplete(
     return;
   }
 
-  const submittedTime = getLatestChildSubmittedTime(
-    transactionMeta,
-    allTransactions,
-  );
+  const submittedTime =
+    getLatestChildSubmittedTime(transactionMeta, allTransactions) ??
+    transactionMeta.submittedTime;
 
   if (typeof submittedTime !== 'number') {
     return;

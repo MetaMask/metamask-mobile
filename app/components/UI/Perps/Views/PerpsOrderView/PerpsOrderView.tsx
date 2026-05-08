@@ -18,7 +18,11 @@ import {
 } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 
-import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
+import {
+  Button as DSButton,
+  ButtonVariant,
+  ButtonSize as ButtonSizeRNDesignSystem,
+} from '@metamask/design-system-react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
@@ -26,11 +30,6 @@ import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
   IconName,
@@ -149,6 +148,7 @@ import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/tran
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
+import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -170,8 +170,6 @@ interface OrderRouteParams {
   hideTPSL?: boolean;
   /** When true, the order was initiated from the token details screen */
   fromTokenDetails?: boolean;
-  /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
-  assetsASSETS2493AbtestTokenDetailsLayout?: string;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
   defaultSzDecimals?: number;
@@ -180,8 +178,6 @@ interface OrderRouteParams {
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
-  /** A/B test variant for token details layout */
-  routeAbTestTokenDetailsLayout?: string;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
 }
@@ -199,7 +195,6 @@ interface PerpsOrderViewContentProps {
  */
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
-  routeAbTestTokenDetailsLayout,
   defaultSzDecimals,
   defaultMaxLeverage,
 }) => {
@@ -296,7 +291,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     handlePercentageAmount,
     handleMaxAmount,
     maxPossibleAmount,
-    balanceForValidation: availableBalance,
+    balanceForValidation: spendableBalance,
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
 
@@ -399,11 +394,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     [PERPS_EVENT_PROPERTY.SOURCE]:
       source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     [PERPS_EVENT_PROPERTY.OPEN_POSITION]: currentMarketPosition ? 1 : 0,
-    ...(routeAbTestTokenDetailsLayout && {
-      ab_tests: {
-        assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
-      },
-    }),
     ...(isButtonColorTestEnabled && {
       [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
     }),
@@ -605,7 +595,40 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     [blockingPayAlerts],
   );
 
-  // Order execution hook. Perps balance: standard "Order submitted" toast. Custom token: persistent "Submitting your trade" toast during deposit.
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_ERROR,
+    conditions: [hasBlockingPayAlerts, blockingPayAlerts.length > 0],
+    resetConditions: [!hasBlockingPayAlerts],
+    properties: {
+      [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+        PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
+      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
+        typeof blockingPayAlerts[0]?.message === 'string'
+          ? blockingPayAlerts[0].message
+          : (blockingPayAlerts[0]?.title ??
+            blockingPayAlerts[0]?.key ??
+            'unknown_blocking_alert'),
+      [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+        PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+    },
+  });
+
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_ERROR,
+    conditions: [hasInsufficientPayTokenBalance],
+    resetConditions: [!hasInsufficientPayTokenBalance],
+    properties: {
+      [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
+      [PERPS_EVENT_PROPERTY.WARNING_MESSAGE]:
+        PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY.INSUFFICIENT_BALANCE,
+      [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+        PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+    },
+  });
+
+  // Order execution hook. Shows standard "Order submitted" toast for all order flows.
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
       onSuccess: (_position) => {
@@ -753,7 +776,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     orderForm,
     positionSize,
     assetPrice: assetData.price,
-    availableBalance,
+    spendableBalance,
     marginRequired: marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
     skipValidation: isInputFocused,
@@ -1075,28 +1098,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 mmPayTokenSelected: payToken.symbol ?? '',
                 mmPayNetworkSelected: String(payToken.chainId ?? ''),
               }),
-            ...(routeAbTestTokenDetailsLayout && {
-              abTests: {
-                assetsASSETS2493AbtestTokenDetailsLayout:
-                  routeAbTestTokenDetailsLayout,
-              },
-            }),
           },
         };
 
-        if (hasCustomTokenSelected) {
-          // Persistent "Submitting your trade" toast for deposit flow (user can dismiss via close button or swipe)
-          showToast(PerpsToastOptions.orderManagement.shared.submitting());
-        } else {
-          // Standard "Order submitted" toast for perps balance orders
-          showToast(
-            PerpsToastOptions.orderManagement[orderForm.type].submitted(
-              orderForm.direction,
-              positionSize,
-              orderForm.asset,
-            ),
-          );
-        }
+        showToast(
+          PerpsToastOptions.orderManagement[orderForm.type].submitted(
+            orderForm.direction,
+            positionSize,
+            orderForm.asset,
+          ),
+        );
 
         // Check if TP/SL should be handled separately (for new positions or position flips)
         const shouldHandleTPSLSeparately =
@@ -1181,7 +1192,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       payToken,
       onDepositConfirm,
       handleDepositConfirm,
-      routeAbTestTokenDetailsLayout,
       fromTokenDetails,
     ],
   );
@@ -1235,8 +1245,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     setSelectedTooltip(null);
   }, []);
 
+  useInitPerpsPaymentToken(orderForm.asset ?? '');
+
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
-  const amountTimesLeverage = Math.floor(availableBalance * orderForm.leverage);
+  const amountTimesLeverage = Math.floor(spendableBalance * orderForm.leverage);
 
   const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
 
@@ -1317,12 +1329,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={orderForm.amount}
-          showWarning={!isLoadingAccount && availableBalance === 0}
+          showWarning={!isLoadingAccount && spendableBalance === 0}
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={positionSize}
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
-          hasError={availableBalance > 0 && !!filteredErrors.length}
+          hasError={spendableBalance > 0 && !!filteredErrors.length}
           isLoading={isLoadingAccount}
         />
 
@@ -1336,6 +1348,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 const amount = Math.floor(value).toString();
                 setAmount(amount);
               }}
+              key={payToken?.symbol ?? ''}
               minimumValue={0}
               maximumValue={maxPossibleAmount}
               step={1}
@@ -1488,7 +1501,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View style={[styles.detailItem, styles.detailItemLast]}>
                 <PerpsPayRow
                   embeddedInStack
-                  initialAsset={orderForm.asset}
                   onPayWithInfoPress={() => handleTooltipPress('pay_with')}
                 />
               </View>
@@ -1571,7 +1583,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 />
               </TouchableOpacity>
             </View>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              testID={PerpsOrderViewSelectorsIDs.MARGIN_VALUE}
+            >
               {marginRequired !== undefined && marginRequired !== null
                 ? formatPerpsFiat(marginRequired, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
@@ -1599,7 +1615,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 />
               </TouchableOpacity>
             </View>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              testID={PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE}
+            >
               {hasValidAmount
                 ? formatPerpsFiat(liquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
@@ -1636,6 +1656,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         ranges: PRICE_RANGES_MINIMAL_VIEW,
                       })
                 }
+                testID={PerpsOrderViewSelectorsIDs.FEES_VALUE}
                 variant={TextVariant.BodyMD}
               />
             )}
@@ -1697,38 +1718,42 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           testID={PerpsOrderViewSelectorsIDs.KEYPAD}
         >
           <View style={styles.percentageButtonsContainer}>
-            <Button
+            <DSButton
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_25_PCT}
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label="25%"
+              variant={ButtonVariant.Secondary}
+              size={ButtonSizeRNDesignSystem.Md}
               onPress={() => handlePercentagePress(0.25)}
               style={styles.percentageButton}
-            />
-            <Button
+            >
+              25%
+            </DSButton>
+            <DSButton
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_50_PCT}
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label="50%"
+              variant={ButtonVariant.Secondary}
+              size={ButtonSizeRNDesignSystem.Md}
               onPress={() => handlePercentagePress(0.5)}
               style={styles.percentageButton}
-            />
-            <Button
+            >
+              50%
+            </DSButton>
+            <DSButton
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_MAX}
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label={strings('perps.deposit.max_button')}
+              variant={ButtonVariant.Secondary}
+              size={ButtonSizeRNDesignSystem.Md}
               onPress={handleMaxPress}
               style={styles.percentageButton}
-            />
-            <Button
+            >
+              {strings('perps.deposit.max_button')}
+            </DSButton>
+            <DSButton
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_DONE}
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label={strings('perps.deposit.done_button')}
+              variant={ButtonVariant.Secondary}
+              size={ButtonSizeRNDesignSystem.Md}
               onPress={handleDonePress}
               style={styles.percentageButton}
-            />
+            >
+              {strings('perps.deposit.done_button')}
+            </DSButton>
           </View>
 
           <Keypad
@@ -1773,11 +1798,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           )}
 
           {buttonColorVariant === 'monochrome' ? (
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={placeOrderLabel}
+            <DSButton
+              variant={ButtonVariant.Primary}
+              size={ButtonSizeRNDesignSystem.Lg}
+              isFullWidth
               onPress={() => handlePlaceOrder()}
               isDisabled={
                 !orderValidation.isValid ||
@@ -1788,9 +1812,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 shouldBlockBecauseOfFeesLoading ||
                 hasBlockingPayAlerts
               }
-              loading={isPlacingOrder}
+              isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-            />
+            >
+              {placeOrderLabel}
+            </DSButton>
           ) : (
             <ButtonSemantic
               severity={
@@ -1827,7 +1853,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           // Check if current amount exceeds new maximum value and adjust if needed
           const currentAmount = parseFloat(orderForm.amount || '0');
-          const newMaxAmount = availableBalance * leverage;
+          const newMaxAmount = spendableBalance * leverage;
           if (currentAmount > newMaxAmount) {
             setAmount(Math.floor(newMaxAmount).toString());
           }
@@ -1973,7 +1999,6 @@ const PerpsOrderView: React.FC = () => {
     leverage: paramLeverage,
     existingPosition,
     hideTPSL = false,
-    assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
     defaultSzDecimals,
     defaultMaxLeverage,
   } = route.params || {};
@@ -1995,7 +2020,6 @@ const PerpsOrderView: React.FC = () => {
     >
       <PerpsOrderViewContent
         hideTPSL={hideTPSL}
-        routeAbTestTokenDetailsLayout={routeAbTestTokenDetailsLayout}
         defaultSzDecimals={defaultSzDecimals}
         defaultMaxLeverage={defaultMaxLeverage}
       />

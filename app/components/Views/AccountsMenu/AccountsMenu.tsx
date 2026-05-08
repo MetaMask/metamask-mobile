@@ -25,7 +25,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
-import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import useRampsUnifiedV1Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV2Enabled';
 import AppConstants from '../../../core/AppConstants';
@@ -41,6 +40,7 @@ import {
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
+import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
@@ -175,11 +175,13 @@ const AccountsMenu = () => {
   }, [goToBrowserUrl, trackEvent, createEventBuilder]);
 
   const onPressSupport = useCallback(() => {
-    let supportUrl = 'https://support.metamask.io';
+    let supportUrl;
 
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
     supportUrl = 'https://intercom.help/internal-beta-testing/en/';
     ///: END:ONLY_INCLUDE_IF
+
+    supportUrl = supportUrl || METAMASK_SUPPORT_URL;
 
     goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
     trackEvent(createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build());
@@ -438,17 +440,15 @@ const AccountsMenu = () => {
         />
 
         {/* Permissions Row */}
-        {isPermissionsSettingsV1Enabled && (
-          <ActionListItem
-            startAccessory={
-              <Icon name={IconName.SecurityTick} size={IconSize.Lg} />
-            }
-            label={strings('accounts_menu.permissions')}
-            endAccessory={arrowRightIcon}
-            onPress={onPressPermissions}
-            testID={AccountsMenuSelectorsIDs.PERMISSIONS}
-          />
-        )}
+        <ActionListItem
+          startAccessory={
+            <Icon name={IconName.SecurityTick} size={IconSize.Lg} />
+          }
+          label={strings('accounts_menu.permissions')}
+          endAccessory={arrowRightIcon}
+          onPress={onPressPermissions}
+          testID={AccountsMenuSelectorsIDs.PERMISSIONS}
+        />
 
         {/* Networks Row */}
         <ActionListItem

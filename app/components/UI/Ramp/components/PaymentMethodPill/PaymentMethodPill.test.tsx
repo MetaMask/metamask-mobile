@@ -63,14 +63,6 @@ describe('PaymentMethodPill', () => {
     expect(getByTestId('payment-method-pill')).toBeOnTheScreen();
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(
-      <PaymentMethodPill label="Debit card" />,
-    );
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('renders PaymentMethodIcon for any non-empty paymentType like the payment list', () => {
     const { getByTestId, getByText } = renderWithTheme(
       <PaymentMethodPill
@@ -102,18 +94,14 @@ describe('PaymentMethodPill', () => {
 
   describe('when isLoading is true', () => {
     it('renders a non-interactive View instead of TouchableOpacity', () => {
-      const mockOnPress = jest.fn();
       const { getByTestId } = renderWithTheme(
-        <PaymentMethodPill
-          label="Select payment method"
-          onPress={mockOnPress}
-          isLoading
-        />,
+        <PaymentMethodPill label="Select payment method" isLoading />,
       );
 
-      fireEvent.press(getByTestId('payment-method-pill'));
-
-      expect(mockOnPress).not.toHaveBeenCalled();
+      const pill = getByTestId('payment-method-pill');
+      // When loading, the component renders a plain View (not TouchableOpacity),
+      // so it should not have an onPress handler.
+      expect(pill.props.onPress).toBeUndefined();
     });
 
     it('does not render label text', () => {
@@ -121,16 +109,15 @@ describe('PaymentMethodPill', () => {
         <PaymentMethodPill label="Select payment method" isLoading />,
       );
 
-      expect(queryByText('Select payment method')).toBeNull();
+      expect(queryByText('Select payment method')).not.toBeOnTheScreen();
     });
 
     it('does not render arrow icon', () => {
-      const { toJSON } = renderWithTheme(
+      const { queryByTestId } = renderWithTheme(
         <PaymentMethodPill label="Select payment method" isLoading />,
       );
-      const json = JSON.stringify(toJSON());
 
-      expect(json).not.toContain('ArrowDown');
+      expect(queryByTestId('ArrowDown')).toBeNull();
     });
 
     it('applies loadingContainer style with centered content', () => {
@@ -149,12 +136,12 @@ describe('PaymentMethodPill', () => {
       );
     });
 
-    it('matches snapshot when loading', () => {
-      const { toJSON } = renderWithTheme(
+    it('renders the pill container when loading', () => {
+      const { getByTestId } = renderWithTheme(
         <PaymentMethodPill label="Select payment method" isLoading />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('payment-method-pill')).toBeOnTheScreen();
     });
   });
 });

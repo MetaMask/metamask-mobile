@@ -31,11 +31,11 @@ import { RootState } from '../../../../../../reducers';
 import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthentication';
 import OAuthService from '../../../../../../core/OAuthService/OAuthService';
 import Logger from '../../../../../../util/Logger';
+import { updateCachedConsent } from '../../../../../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
 import { selectOnboardingAccountType } from '../../../../../../selectors/onboarding';
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
-import { selectIsPna25FlagEnabled } from '../../../../../../selectors/featureFlagController/legalNotices';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 
 interface MetaMetricsAndDataCollectionSectionProps {
@@ -68,7 +68,6 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
   const accountType = useSelector(selectOnboardingAccountType);
 
-  const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
   const isPna25Acknowledged = useSelector(selectIsPna25Acknowledged);
 
   useEffect(() => {
@@ -77,6 +76,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         // Error already logged in optOut
       });
       setAnalyticsEnabled(false);
+      updateCachedConsent(false);
       dispatch(setDataCollectionForMarketing(false));
       return;
     }
@@ -95,6 +95,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       fetchMarketingStatus();
     }
     setAnalyticsEnabled(analytics.isEnabled());
+    updateCachedConsent(analytics.isEnabled());
   }, [
     setAnalyticsEnabled,
     autoSignIn,
@@ -112,6 +113,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       await analytics.optIn();
 
       setAnalyticsEnabled(true);
+      updateCachedConsent(true);
 
       analytics.identify(consolidatedTraits);
       analytics.trackEvent(
@@ -141,7 +143,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       // If user has not acknowledged PNA25 and is enabling metrics
       // we count this as an acknowledgement of PNA25
       // and the PNA25 notice is not shown to them
-      if (isPna25FlagEnabled && !isPna25Acknowledged) {
+      if (!isPna25Acknowledged) {
         dispatch(storePna25Acknowledged());
       }
     } else {
@@ -160,6 +162,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
       await analytics.optOut();
       setAnalyticsEnabled(false);
+      updateCachedConsent(false);
 
       if (isDataCollectionForMarketingEnabled) {
         dispatch(setDataCollectionForMarketing(false));
@@ -173,9 +176,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
   const addMarketingConsentToTraits = (marketingOptIn: boolean) => {
     analytics.identify({
-      [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn
-        ? UserProfileProperty.ON
-        : UserProfileProperty.OFF,
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn,
     });
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(

@@ -20,7 +20,7 @@ import {
 import { createStyles } from './AddFundsBottomSheet.styles';
 import { useTheme } from '../../../../../util/theme';
 import { View } from 'react-native';
-import { CardTokenAllowance } from '../../types';
+import { CardFundingToken } from '../../types';
 import AppConstants from '../../../../../core/AppConstants';
 import { isBridgeAllowed } from '../../../Bridge/utils';
 import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
@@ -44,7 +44,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 
 interface AddFundsModalNavigationDetails {
-  priorityToken?: CardTokenAllowance;
+  priorityToken?: CardFundingToken;
 }
 
 export const createAddFundsModalNavigationDetails =

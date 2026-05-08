@@ -4,20 +4,20 @@ import PaymentSelectionAlert from './PaymentSelectionAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
 describe('PaymentSelectionAlert', () => {
-  it('matches snapshot with default severity', () => {
-    const { toJSON } = render(
+  it('renders error message with default severity', () => {
+    const { getByText } = render(
       <PaymentSelectionAlert message="Something went wrong." />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Something went wrong.')).toBeOnTheScreen();
   });
 
-  it('matches snapshot with warning severity', () => {
-    const { toJSON } = render(
+  it('renders message with warning severity', () => {
+    const { getByText } = render(
       <PaymentSelectionAlert
         message="No payment methods are available."
         severity={BannerAlertSeverity.Warning}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('No payment methods are available.')).toBeOnTheScreen();
   });
 });

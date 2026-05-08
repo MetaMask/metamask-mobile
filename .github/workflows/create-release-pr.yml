@@ -6,12 +6,21 @@ on:
       semver-version:
         description: 'A semantic version, eg: x.x.x'
         required: true
+      is-ota:
+        description: 'Set to true for OTA hotfix (branch release/X.Y.Z-ota). Leave false for native release/hotfix.'
+        required: false
+        type: boolean
+        default: false
 
   workflow_call:
     inputs:
       semver-version:
         required: true
         type: string
+      is-ota:
+        required: false
+        type: boolean
+        default: false
     secrets:
       github-token:
         required: false
@@ -24,27 +33,39 @@ on:
 
 jobs:
   resolve-bases:
-    # Determines if the release is hotfix or not based on semver. Then sets the appropriate base branches for the checkout and release PR.
+    # Determines if the release is a hotfix or not based on semver, and whether it's an OTA hotfix
+    # based on the is-ota input. Sets the appropriate base branches for the checkout and release PR.
     runs-on: ubuntu-latest
     outputs:
       checkout_base: ${{ steps.out.outputs.checkout_base }}
       release_base: ${{ steps.out.outputs.release_base }}
+      is_ota: ${{ steps.out.outputs.is_ota }}
     steps:
       - id: out
         shell: bash
         env:
           SEMVER: ${{ inputs.semver-version }}
+          IS_OTA: ${{ inputs.is-ota }}
         run: |
           set -euo pipefail
 
           echo "Provided semver input: ${SEMVER}"
-          # Validate semver
-          if ! [[ "${SEMVER:-}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: semver-version must be numeric X.Y.Z, got: ${SEMVER:-<empty>}" >&2
+          echo "Provided is-ota input: ${IS_OTA}"
+          # Validate strict SemVer core (no leading zeros; the -ota suffix lives on the branch name, not the semver input).
+          if ! [[ "${SEMVER:-}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Error: semver-version must be strict SemVer X.Y.Z (no leading zeros), got: ${SEMVER:-<empty>}" >&2
             exit 1
           fi
 
           patch="${SEMVER##*.}"
+          if [[ "${IS_OTA}" == "true" ]]; then
+            echo "is_ota=true" >> "$GITHUB_OUTPUT"
+            echo "OTA hotfix: branch release/${SEMVER}-ota; OTA_VERSION v${SEMVER}."
+          else
+            echo "is_ota=false" >> "$GITHUB_OUTPUT"
+            echo "Native release/hotfix (patch=${patch})."
+          fi
+
           if [ "$patch" -gt 0 ]; then
             echo "Detected hotfix (patch=$patch): using stable for checkout and stable for release PR base."
             echo "checkout_base=stable" >> "$GITHUB_OUTPUT"
@@ -72,19 +93,24 @@ jobs:
           .github/scripts/resolve-previous-ref.sh
 
   generate-build-version:
+    needs: resolve-bases
+    if: needs.resolve-bases.outputs.is_ota != 'true'
     uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.3.0
     permissions:
       id-token: write
 
   create-release-pr:
     needs: [resolve-bases, resolve-previous-ref, generate-build-version]
+    # When generate-build-version is skipped (OTA), this job must still run; see https://docs.github.com/en/actions/using-jobs/using-jobs-in-a-workflow#handling-skipped-dependent-jobs
+    if: always() && needs.resolve-bases.result == 'success' && needs.resolve-previous-ref.result == 'success' && (needs.generate-build-version.result == 'success' || needs.generate-build-version.result == 'skipped')
     name: Create Release Pull Request using Github Tools
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
-      - name: Create Release PR
+      - name: Create Release PR (semver / native version bump)
+        if: needs.resolve-bases.outputs.is_ota != 'true'
         uses: MetaMask/github-tools/.github/actions/create-release-pr@v1
         with:
           platform: mobile
@@ -93,8 +119,112 @@ jobs:
           semver-version: ${{ inputs.semver-version }}
           previous-version-ref: ${{ needs.resolve-previous-ref.outputs.previous_ref }}
           mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
-          # This token needs write permissions to metamask-mobile & read permissions to metamask-planning
-          # If called from auto-create-release-pr use the PR_TOKEN passed in as an input, if called manually use github secret token values
-          # (this is due to github limitations on fetching secrets from called workflows).
+          # Needs write to metamask-mobile and read to metamask-planning. Prefer PR_TOKEN (workflow scope / bot) over GITHUB_TOKEN.
+          # workflow_dispatch: use secrets.PR_TOKEN directly.
+          # workflow_call: reusable workflows only receive secrets explicitly passed in; auto-create-release-pr maps github-token → PR_TOKEN.
           github-token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
           google-application-creds-base64: ${{ github.event_name == 'workflow_dispatch' && secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 || secrets.google-application-creds-base64 }}
+
+      # Check PR before checkout/bump/push so retries do not overwrite OTA_VERSION again when a PR already exists.
+      - name: Check for existing OTA release PR
+        id: ota_release_pr
+        if: needs.resolve-bases.outputs.is_ota == 'true'
+        shell: bash
+        env:
+          SEMVER: ${{ inputs.semver-version }}
+          RELEASE_BASE: ${{ needs.resolve-bases.outputs.release_base }}
+          GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+        run: |
+          set -euo pipefail
+          BRANCH="release/${SEMVER}-ota"
+          COUNT=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base "$RELEASE_BASE" --json number --jq 'length')
+          if [[ "$COUNT" -gt 0 ]]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release PR already exists for $BRANCH → $RELEASE_BASE; skipping OTA_VERSION bump and push."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "No open release PR for $BRANCH → $RELEASE_BASE; will bump OTA_VERSION and create PR if needed."
+          fi
+
+      - name: Checkout release branch (OTA hotfix — OTA_VERSION only)
+        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: release/${{ inputs.semver-version }}-ota
+          token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+          fetch-depth: 0
+
+      - name: Bump OTA_VERSION and push (OTA hotfix)
+        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
+        shell: bash
+        env:
+          SEMVER: ${{ inputs.semver-version }}
+          GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+        run: |
+          set -euo pipefail
+          BRANCH="release/${SEMVER}-ota"
+          git config user.name metamaskbot
+          git config user.email metamaskbot@users.noreply.github.com
+          bash .github/scripts/bump-ota-version-constants.sh app/constants/ota.ts "${SEMVER}"
+          if git diff --quiet app/constants/ota.ts; then
+            echo "No OTA_VERSION file change; skipping commit and push."
+          else
+            git add app/constants/ota.ts
+            git commit -m "chore: set OTA_VERSION to v${SEMVER} for OTA hotfix (${BRANCH})"
+            git push origin "$BRANCH"
+          fi
+
+      # Changelog: run-update-release-changelog-mobile.sh passes the bare X.Y.Z (stripped from
+      # release/X.Y.Z-ota) to auto-changelog, so the changelog header and the production git
+      # tag match exactly (both v<X.Y.Z>). The `-ota` suffix is a branch-name convention only.
+      - name: Checkout github-tools (release changelog)
+        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: MetaMask/github-tools
+          path: github-tools
+          ref: v1
+
+      - name: Setup Node for changelog tooling
+        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
+        uses: ./github-tools/.github/actions/checkout-and-setup
+        with:
+          is-high-risk-environment: true
+
+      - name: Update release changelog (OTA hotfix)
+        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+          GIT_AUTHOR_NAME: metamaskbot
+          GIT_AUTHOR_EMAIL: metamaskbot@users.noreply.github.com
+        run: |
+          set -euo pipefail
+          git config user.name metamaskbot
+          git config user.email metamaskbot@users.noreply.github.com
+          corepack enable
+          yarn install --immutable
+          bash .github/scripts/run-update-release-changelog-mobile.sh \
+            "release/${{ inputs.semver-version }}-ota" \
+            mobile \
+            "${{ github.server_url }}/${{ github.repository }}" \
+            "null"
+
+      - name: Create OTA release PR to stable (if missing)
+        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
+        shell: bash
+        env:
+          SEMVER: ${{ inputs.semver-version }}
+          RELEASE_BASE: ${{ needs.resolve-bases.outputs.release_base }}
+          GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+        run: |
+          set -euo pipefail
+          BRANCH="release/${SEMVER}-ota"
+          BODY="OTA hotfix: branch \`${BRANCH}\`."
+          BODY="${BODY}"$'\n\n'"- Native semver and build version are **not** bumped."
+          BODY="${BODY}"$'\n'"- \`OTA_VERSION\` in \`app/constants/ota.ts\` is \`v${SEMVER}\`."
+          BODY="${BODY}"$'\n'"- CHANGELOG.md header and production git tag both use bare \`${SEMVER}\` / \`v${SEMVER}\`; the \`-ota\` suffix is branch-only."
+          gh pr create --repo "$GITHUB_REPOSITORY" --draft \
+            --base "$RELEASE_BASE" --head "$BRANCH" \
+            --title "release: ${SEMVER} (OTA)" \
+            --body "$BODY"

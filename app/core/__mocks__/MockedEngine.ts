@@ -9,6 +9,7 @@ export const mockedEngine = {
   controllerMessenger: {
     subscribeOnceIf: jest.fn(),
     subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
     call: jest.fn().mockImplementation((method) => {
       if (method === 'SelectedNetworkController:getNetworkClientIdForDomain') {
         return 'mainnet';
@@ -26,6 +27,12 @@ export const mockedEngine = {
   },
   context: {
     AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {},
+          selectedAccount: '',
+        },
+      },
       listAccounts: jest.fn(),
       listMultichainAccounts: jest.fn(),
       getSelectedAccount: jest.fn(),

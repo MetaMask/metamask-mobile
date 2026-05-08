@@ -1,8 +1,9 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import ErrorView from './ErrorView';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { strings } from '../../../../../../../locales/i18n';
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -27,13 +28,18 @@ describe('ErrorView Component', () => {
     jest.clearAllMocks();
   });
 
-  it('renders with default props and matches snapshot', () => {
-    const { toJSON } = renderWithProvider(() => <ErrorView />);
-    expect(toJSON()).toMatchSnapshot();
+  it('renders with default props', () => {
+    renderWithProvider(() => <ErrorView />);
+    expect(
+      screen.getByText(strings('deposit.error_view.title')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('deposit.error_view.description')),
+    ).toBeOnTheScreen();
   });
 
-  it('renders with all props and matches snapshot', () => {
-    const { toJSON } = renderWithProvider(() => (
+  it('renders with all props', () => {
+    renderWithProvider(() => (
       <ErrorView
         title="Custom Error Title"
         description="Custom error description"
@@ -41,7 +47,9 @@ describe('ErrorView Component', () => {
         ctaOnPress={mockCtaOnPress}
       />
     ));
-    expect(toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Custom Error Title')).toBeOnTheScreen();
+    expect(screen.getByText('Custom error description')).toBeOnTheScreen();
+    expect(screen.getByText('custom cta label')).toBeOnTheScreen();
   });
 
   it('calls ctaOnPress when button is pressed', () => {

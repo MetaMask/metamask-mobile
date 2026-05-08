@@ -1,0 +1,115 @@
+import {
+  POLYMARKET_V2_PROTOCOL,
+  type PolymarketProtocolDefinition,
+} from '../protocol/definitions';
+import { PERMIT2_ADDRESS } from '../safe/constants';
+
+export interface Erc20AllowanceRequirement {
+  type: 'erc20-allowance';
+  tokenAddress: string;
+  spender: string;
+}
+
+export interface Erc1155OperatorRequirement {
+  type: 'erc1155-operator';
+  tokenAddress: string;
+  operator: string;
+}
+
+export type V2AllowanceRequirement =
+  | Erc20AllowanceRequirement
+  | Erc1155OperatorRequirement;
+
+function buildErc20AllowanceRequirements({
+  tokenAddress,
+  spenders,
+}: {
+  tokenAddress: string;
+  spenders: string[];
+}): Erc20AllowanceRequirement[] {
+  return spenders.map((spender) => ({
+    type: 'erc20-allowance',
+    tokenAddress,
+    spender,
+  }));
+}
+
+function buildErc1155OperatorRequirements({
+  tokenAddress,
+  operators,
+}: {
+  tokenAddress: string;
+  operators: string[];
+}): Erc1155OperatorRequirement[] {
+  return operators.map((operator) => ({
+    type: 'erc1155-operator',
+    tokenAddress,
+    operator,
+  }));
+}
+
+export function getLegacySweepAllowanceRequirements(
+  protocol: PolymarketProtocolDefinition = POLYMARKET_V2_PROTOCOL,
+): V2AllowanceRequirement[] {
+  const { collateral } = protocol;
+
+  return [
+    // Temporary legacy Safe USDC.e -> pUSD sweep support. TODO: remove after one release.
+    {
+      type: 'erc20-allowance',
+      tokenAddress: collateral.legacyUsdceToken,
+      spender: collateral.onrampAddress,
+    },
+  ];
+}
+
+export function getActiveV2AllowanceRequirements(
+  protocol: PolymarketProtocolDefinition = POLYMARKET_V2_PROTOCOL,
+): V2AllowanceRequirement[] {
+  const { collateral, contracts } = protocol;
+
+  return [
+    ...buildErc20AllowanceRequirements({
+      tokenAddress: collateral.tradingToken,
+      spenders: [
+        contracts.conditionalTokens,
+        contracts.exchange,
+        contracts.negRiskExchange,
+        contracts.negRiskAdapter,
+        PERMIT2_ADDRESS,
+      ],
+    }),
+    ...buildErc1155OperatorRequirements({
+      tokenAddress: contracts.conditionalTokens,
+      operators: [
+        contracts.exchange,
+        contracts.negRiskExchange,
+        contracts.negRiskAdapter,
+      ],
+    }),
+  ];
+}
+
+export function filterDepositWalletUnsupportedRequirements(
+  requirements: V2AllowanceRequirement[],
+): V2AllowanceRequirement[] {
+  return requirements.filter((requirement) => {
+    if (requirement.type !== 'erc20-allowance') {
+      return true;
+    }
+
+    // Polymarket's deposit-wallet relayer allow-list blocks Permit2 approvals
+    // (`approve spender 0x000000000022D473030F116dDEE9F6B43aC78BA3 is not in the allowed list`).
+    // Skip this for deposit-wallet setup/claims; fees use a different flow.
+    return requirement.spender.toLowerCase() !== PERMIT2_ADDRESS.toLowerCase();
+  });
+}
+
+export function getCanonicalV2AllowanceRequirements(
+  protocol: PolymarketProtocolDefinition = POLYMARKET_V2_PROTOCOL,
+): V2AllowanceRequirement[] {
+  return [
+    ...getLegacySweepAllowanceRequirements(protocol),
+    ...getActiveV2AllowanceRequirements(protocol),
+  ];
+}

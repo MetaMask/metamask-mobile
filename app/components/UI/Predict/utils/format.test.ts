@@ -11,9 +11,18 @@ import {
   calculateNetAmount,
   formatPriceWithSubscriptNotation,
   formatGameStartTime,
+  formatMarketEndDate,
   formatPredictUnrealizedPnLStringParts,
+  getCashoutInfoText,
 } from './format';
 import { Recurrence, PredictSeries } from '../types';
+
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: jest.fn(
+    (key: string, params?: Record<string, string>) =>
+      `${key}:${JSON.stringify(params)}`,
+  ),
+}));
 
 // Mock Dimensions from react-native
 const mockDimensionsGet = jest.fn(() => ({
@@ -1032,7 +1041,12 @@ describe('format utils', () => {
 
     it('returns NONE when first series has no recurrence', () => {
       const series: PredictSeries[] = [
-        { recurrence: undefined as unknown as string },
+        {
+          id: '1',
+          slug: 'test',
+          title: 'Test',
+          recurrence: undefined as unknown as string,
+        },
       ];
 
       const result = getRecurrence(series);
@@ -1041,7 +1055,9 @@ describe('format utils', () => {
     });
 
     it('returns DAILY for daily recurrence', () => {
-      const series: PredictSeries[] = [{ recurrence: 'daily' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'daily' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1049,7 +1065,9 @@ describe('format utils', () => {
     });
 
     it('returns WEEKLY for weekly recurrence', () => {
-      const series: PredictSeries[] = [{ recurrence: 'weekly' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'weekly' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1057,7 +1075,9 @@ describe('format utils', () => {
     });
 
     it('returns MONTHLY for monthly recurrence', () => {
-      const series: PredictSeries[] = [{ recurrence: 'monthly' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'monthly' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1065,7 +1085,9 @@ describe('format utils', () => {
     });
 
     it('returns YEARLY for yearly recurrence', () => {
-      const series: PredictSeries[] = [{ recurrence: 'yearly' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'yearly' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1073,7 +1095,9 @@ describe('format utils', () => {
     });
 
     it('returns YEARLY for annually recurrence', () => {
-      const series: PredictSeries[] = [{ recurrence: 'annually' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'annually' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1081,7 +1105,9 @@ describe('format utils', () => {
     });
 
     it('returns QUARTERLY for quarterly recurrence', () => {
-      const series: PredictSeries[] = [{ recurrence: 'quarterly' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'quarterly' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1089,7 +1115,9 @@ describe('format utils', () => {
     });
 
     it('returns NONE for unknown recurrence', () => {
-      const series: PredictSeries[] = [{ recurrence: 'unknown' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'unknown' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1097,7 +1125,9 @@ describe('format utils', () => {
     });
 
     it('handles uppercase recurrence values', () => {
-      const series: PredictSeries[] = [{ recurrence: 'DAILY' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'DAILY' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1105,7 +1135,9 @@ describe('format utils', () => {
     });
 
     it('handles mixed case recurrence values', () => {
-      const series: PredictSeries[] = [{ recurrence: 'WeEkLy' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'WeEkLy' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1122,7 +1154,9 @@ describe('format utils', () => {
       ['', Recurrence.NONE],
       ['invalid', Recurrence.NONE],
     ])('maps recurrence %s to %s', (recurrence, expected) => {
-      const series: PredictSeries[] = [{ recurrence }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence },
+      ];
 
       expect(getRecurrence(series)).toBe(expected);
     });
@@ -1362,6 +1396,33 @@ describe('format utils', () => {
       });
 
       expect(result).toBe('5');
+    });
+  });
+
+  describe('formatMarketEndDate', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('formats valid ISO date string to readable format', () => {
+      jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+        () =>
+          ({
+            format: () => 'April 9, 1:45 PM',
+            formatToParts: () => [],
+            resolvedOptions: () => ({}),
+          }) as unknown as Intl.DateTimeFormat,
+      );
+
+      const result = formatMarketEndDate('2026-04-09T19:45:00Z');
+
+      expect(result).toBe('April 9, 1:45 PM');
+    });
+
+    it('returns empty string for an unparseable date string', () => {
+      const result = formatMarketEndDate('not-a-date');
+
+      expect(result).toBe('');
     });
   });
 
@@ -2046,6 +2107,13 @@ describe('format utils', () => {
         expect(result).toBe('€0.0₅614');
       });
 
+      it('caps digits after the subscript when maxDigitsAfterSubscript is set', () => {
+        const result = formatPriceWithSubscriptNotation(0.00003415, 'USD', {
+          maxDigitsAfterSubscript: 2,
+        });
+        expect(result).toBe('$0.0₄34');
+      });
+
       it('formats subscript value with GBP (not in symbol map, uses suffix)', () => {
         // Arrange & Act
         const result = formatPriceWithSubscriptNotation(0.00001, 'GBP');
@@ -2264,5 +2332,44 @@ describe('format utils', () => {
         expect(result).toEqual(expected);
       },
     );
+  });
+
+  describe('getCashoutInfoText', () => {
+    it('returns cashout_info string when outcomeGroupTitle is empty', () => {
+      const result = getCashoutInfoText({
+        initialValue: 5,
+        avgPrice: 0.5,
+        outcomeSideText: 'Yes',
+        outcomeGroupTitle: '',
+      });
+
+      expect(result).toContain('predict.cashout_info:');
+      expect(result).toContain('"outcome":"Yes"');
+    });
+
+    it('returns cashout_info_multiple string when outcomeGroupTitle is provided', () => {
+      const result = getCashoutInfoText({
+        initialValue: 10,
+        avgPrice: 0.75,
+        outcomeSideText: 'No',
+        outcomeGroupTitle: 'Arsenal',
+      });
+
+      expect(result).toContain('predict.cashout_info_multiple:');
+      expect(result).toContain('"outcomeGroupTitle":"Arsenal"');
+      expect(result).toContain('"outcome":"No"');
+    });
+
+    it('formats initialValue and avgPrice into the params', () => {
+      const result = getCashoutInfoText({
+        initialValue: 25.5,
+        avgPrice: 0.33,
+        outcomeSideText: 'Yes',
+        outcomeGroupTitle: '',
+      });
+
+      expect(result).toContain('"amount":"$25.50"');
+      expect(result).toContain('"initialPrice":"33¢"');
+    });
   });
 });

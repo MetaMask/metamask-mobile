@@ -14,10 +14,15 @@ import {
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
+  BannerBase,
   Box,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import ActionView from '../../UI/ActionView';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -31,10 +36,6 @@ import AppConstants from '../../../core/AppConstants';
 import { RevealSeedViewSelectorsIDs } from './RevealSeedView.testIds';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import Banner, {
-  BannerAlertSeverity,
-  BannerVariant,
-} from '../../../component-library/components/Banners/Banner';
 import { IconName as IconNameLibrary } from '../../../component-library/components/Icons/Icon';
 import {
   ButtonIconVariant,
@@ -55,7 +56,6 @@ import {
   RevealSrpStage,
 } from './types';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const RevealPrivateCredential = ({
   cancel,
@@ -77,7 +77,6 @@ const RevealPrivateCredential = ({
     selectSelectedInternalAccountFormattedAddress,
   );
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const tw = useTailwind();
 
   const selectedAddress =
     route?.params?.selectedAccount?.address || checkSummedAddress;
@@ -278,15 +277,20 @@ const RevealPrivateCredential = ({
 
   const renderWarning = () => (
     <Box testID={RevealSeedViewSelectorsIDs.SEED_PHRASE_WARNING_ID}>
-      <Banner
-        variant={BannerVariant.Alert}
-        severity={BannerAlertSeverity.Error}
+      <BannerBase
+        startAccessory={
+          <Icon
+            name={IconName.Danger}
+            color={IconColor.ErrorDefault}
+            size={IconSize.Lg}
+          />
+        }
         title={
           <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
             {strings('reveal_credential.seed_phrase_warning_explanation')}
           </Text>
         }
-        style={tw.style('text-body-sm mt-6')}
+        twClassName="mt-6 border border-error-default bg-error-muted"
       />
     </Box>
   );

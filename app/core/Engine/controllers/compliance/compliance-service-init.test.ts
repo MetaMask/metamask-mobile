@@ -1,4 +1,4 @@
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getComplianceServiceMessenger } from '../../messengers/compliance/compliance-service-messenger';
 import { complianceServiceInit } from './compliance-service-init';
@@ -6,18 +6,28 @@ import {
   ComplianceService,
   type ComplianceServiceMessenger,
 } from '@metamask/compliance-controller';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
+jest.mock('../../../../util/environment', () => ({
+  isProduction: jest.fn(),
+}));
+
+import { isProduction } from '../../../../util/environment';
+
+const mockIsProduction = isProduction as jest.MockedFunction<
+  typeof isProduction
+>;
+
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<ComplianceServiceMessenger>
+  MessengerClientInitRequest<ComplianceServiceMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   return {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getComplianceServiceMessenger(baseMessenger),
   };
 }
@@ -28,7 +38,20 @@ describe('complianceServiceInit', () => {
   });
 
   it('instantiates the ComplianceService', () => {
+    mockIsProduction.mockReturnValue(false);
     const { controller } = complianceServiceInit(getInitRequestMock());
     expect(controller).toBeInstanceOf(ComplianceService);
+  });
+
+  it('passes env=production when isProduction() returns true', () => {
+    mockIsProduction.mockReturnValue(true);
+    complianceServiceInit(getInitRequestMock());
+    expect(mockIsProduction).toHaveReturnedWith(true);
+  });
+
+  it('passes env=development when isProduction() returns false', () => {
+    mockIsProduction.mockReturnValue(false);
+    complianceServiceInit(getInitRequestMock());
+    expect(mockIsProduction).toHaveReturnedWith(false);
   });
 });

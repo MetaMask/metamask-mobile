@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import {
@@ -10,6 +10,7 @@ import {
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 import { rampsQueries } from '../queries';
+import { normalizeAssetIdForApi } from '../utils/normalizeAssetIdForApi';
 
 export type RampsQueryStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -77,7 +78,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     ...rampsQueries.paymentMethods.options({
       regionCode: userRegion?.regionCode ?? '',
       fiat: userRegion?.country?.currency ?? '',
-      assetId: selectedToken?.assetId?.toLowerCase() ?? '', // lowercase for API; not in the query key
+      assetId: normalizeAssetIdForApi(selectedToken?.assetId),
       providerId: selectedProvider?.id ?? '',
     }),
     enabled: queryEnabled,
@@ -93,6 +94,37 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
         }
       ).setSelectedPaymentMethod(paymentMethod),
     [],
+  );
+
+  useEffect(() => {
+    const methods = paymentMethodsQuery.data;
+    if (!methods || methods.length === 0) return;
+
+    let target: PaymentMethod | null = null;
+
+    if (selectedPaymentMethod) {
+      target = methods.find((m) => m.id === selectedPaymentMethod.id) ?? null;
+    }
+
+    if (!target) {
+      target = methods[0];
+    }
+
+    if (target.id !== selectedPaymentMethod?.id) {
+      setSelectedPaymentMethod(target);
+    }
+  }, [
+    paymentMethodsQuery.data,
+    selectedPaymentMethod,
+    setSelectedPaymentMethod,
+  ]);
+
+  const isAutoSelecting = Boolean(
+    paymentMethodsQuery.data?.length &&
+      (!selectedPaymentMethod ||
+        paymentMethodsQuery.data.every(
+          (m) => m.id !== selectedPaymentMethod.id,
+        )),
   );
 
   const status = useMemo<RampsQueryStatus>(() => {
@@ -116,7 +148,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     paymentMethods: paymentMethodsQuery.data ?? [],
     selectedPaymentMethod,
     setSelectedPaymentMethod,
-    isLoading: status === 'loading',
+    isLoading: status === 'loading' || isAutoSelecting,
     isFetching: paymentMethodsQuery.isFetching,
     status,
     isSuccess: status === 'success',

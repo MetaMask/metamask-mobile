@@ -73,31 +73,27 @@ const PredictMarketRowItem = ({
       onPress={handlePress}
       testID={testID || `predict-market-row-item-${market.id}`}
     >
-      <View style={tw.style('h-10 w-10')}>
-        <Box twClassName="rounded-full bg-muted overflow-hidden items-center justify-center">
-          {market.image ? (
-            <Image
-              source={{ uri: market.image }}
-              style={tw.style('w-full h-full')}
-              resizeMode="cover"
-            />
-          ) : (
-            <Box twClassName="w-full h-full bg-muted" />
-          )}
-        </Box>
-      </View>
+      <Box twClassName="h-10 w-10 rounded-full bg-muted overflow-hidden items-center justify-center">
+        {market.image ? (
+          <Image
+            source={{ uri: market.image }}
+            style={tw.style('w-full h-full')}
+            resizeMode="cover"
+          />
+        ) : (
+          <Box twClassName="w-full h-full bg-muted" />
+        )}
+      </Box>
       <View style={tw.style('flex-1 pl-4')}>
-        <View style={tw.style('flex-row items-center')}>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextDefault}
-            style={tw.style('font-medium')}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {market.title}
-          </Text>
-        </View>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          style={tw.style('font-medium')}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {market.title}
+        </Text>
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}

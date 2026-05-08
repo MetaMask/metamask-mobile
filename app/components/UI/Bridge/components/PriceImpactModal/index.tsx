@@ -1,7 +1,5 @@
-import React, { useCallback, useRef, useState } from 'react';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { PriceImpactModalRouterParams } from './types';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -11,8 +9,20 @@ import { PriceImpactFooter } from './PriceImpactFooter';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
 import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
+import {
+  exceedsPriceImpactErrorThreshold,
+  parsePriceImpact,
+} from '../../utils/getPriceImpactViewData';
+import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
+import { useSelector } from 'react-redux';
+import {
+  BottomSheet,
+  BottomSheetRef,
+} from '@metamask/design-system-react-native';
 
 export const PriceImpactModal = () => {
+  const { goBack } = useNavigation();
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const [loading, setLoading] = useState(false);
   const { type, token, location } = useParams<PriceImpactModalRouterParams>();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -22,14 +32,24 @@ export const PriceImpactModal = () => {
     chainId: token?.chainId,
   });
 
+  const { formattedQuoteData, activeQuote } = useBridgeQuoteData({
+    latestSourceAtomicBalance: tokenBalance?.atomicBalance,
+  });
   const confirmBridge = useBridgeConfirm({
-    latestSourceBalance: tokenBalance,
+    activeQuote,
     location,
   });
-
-  const { formattedQuoteData, activeQuote } = useBridgeQuoteData();
   const priceImpactViewData = usePriceImpactViewData(
     activeQuote?.quote.priceData?.priceImpact,
+  );
+
+  const isDangerousPriceImpact = useMemo(
+    () =>
+      exceedsPriceImpactErrorThreshold(
+        parsePriceImpact(activeQuote?.quote.priceData?.priceImpact),
+        bridgeFeatureFlags?.priceImpactThreshold?.error,
+      ),
+    [activeQuote, bridgeFeatureFlags],
   );
 
   const handleClose = useCallback(() => {
@@ -42,7 +62,7 @@ export const PriceImpactModal = () => {
   }, [confirmBridge]);
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet ref={sheetRef} goBack={goBack}>
       <PriceImpactHeader
         onClose={handleClose}
         iconName={priceImpactViewData.icon?.name}
@@ -52,6 +72,8 @@ export const PriceImpactModal = () => {
       <PriceImpactDescription
         formattedPriceImpact={formattedQuoteData?.priceImpact}
         content={priceImpactViewData.description}
+        isDanger={isDangerousPriceImpact}
+        formattedPriceImpactFiat={formattedQuoteData?.priceImpactFiat}
       />
       <PriceImpactFooter
         type={type}

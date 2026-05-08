@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   TokenListController,
   type TokenListControllerMessenger,
@@ -13,12 +13,17 @@ import { getGlobalChainId } from '../../../util/networks/global-network';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const tokenListControllerInit: ControllerInitFunction<
+export const tokenListControllerInit: MessengerClientInitFunction<
   TokenListController,
   TokenListControllerMessenger,
   TokenListControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, getController, persistedState }) => {
-  const networkController = getController('NetworkController');
+> = ({
+  controllerMessenger,
+  initMessenger,
+  getMessengerClient,
+  persistedState,
+}) => {
+  const networkController = getMessengerClient('NetworkController');
 
   const controller = new TokenListController({
     messenger: controllerMessenger,

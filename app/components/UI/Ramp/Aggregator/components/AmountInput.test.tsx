@@ -24,7 +24,7 @@ describe('AmountInput', () => {
     renderWithProvider(<AmountInput {...mockProps} />, {
       state: defaultState,
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('$100.50')).toBeOnTheScreen();
   });
 
   it('renders correctly with currency selector', () => {
@@ -35,7 +35,7 @@ describe('AmountInput', () => {
         state: defaultState,
       },
     );
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('USD')).toBeOnTheScreen();
   });
 
   it('calls onPress when pressed', () => {
@@ -63,7 +63,7 @@ describe('AmountInput', () => {
     renderWithProvider(<AmountInput {...mockProps} loading />, {
       state: defaultState,
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.queryByText('$100.50')).not.toBeOnTheScreen();
   });
 
   it('renders loading state correctly with currency selector', () => {
@@ -78,7 +78,7 @@ describe('AmountInput', () => {
         state: defaultState,
       },
     );
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.queryByText('USD')).not.toBeOnTheScreen();
   });
 
   it('shows live cursor when input is highlighted', () => {
@@ -110,7 +110,9 @@ describe('AmountInput', () => {
       },
     );
 
-    const pressableElements = screen.root.findAllByType(TouchableOpacity);
+    const pressableElements = screen.root.findAllByType(
+      TouchableOpacity as never,
+    );
     if (pressableElements.length > 0) {
       fireEvent.press(pressableElements[0]);
     }
@@ -131,7 +133,9 @@ describe('AmountInput', () => {
       },
     );
 
-    const pressableElements = screen.root.findAllByType(TouchableOpacity);
+    const pressableElements = screen.root.findAllByType(
+      TouchableOpacity as never,
+    );
     pressableElements.forEach((pressableElement) => {
       fireEvent.press(pressableElement);
     });

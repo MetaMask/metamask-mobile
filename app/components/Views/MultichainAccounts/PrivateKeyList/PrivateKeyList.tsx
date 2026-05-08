@@ -1,56 +1,38 @@
 import React, {
-  Fragment,
   useState,
   useEffect,
   useCallback,
-  useRef,
   useMemo,
   useContext,
-  forwardRef,
+  useLayoutEffect,
 } from 'react';
-import {
-  View,
-  TextInput,
-  Linking,
-  Platform,
-  ScrollViewProps,
-} from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { TextInput, Linking } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { FlashList } from '@shopify/flash-list';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-// Core
-import Engine from '../../../../core/Engine';
-import ClipboardManager from '../../../../core/ClipboardManager';
-// Hooks
-import { useStyles } from '../../../hooks/useStyles';
-// Selectors
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  selectInternalAccountListSpreadByScopesByGroupId,
-  selectInternalAccountsByGroupId,
-} from '../../../../selectors/multichainAccounts/accounts';
-// Components
-import MultichainAddressRow from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
-import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import { ToastContext } from '../../../../component-library/components/Toast';
-import Banner, {
-  BannerVariant,
+  Box,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  BannerAlert,
   BannerAlertSeverity,
-} from '../../../../component-library/components/Banners/Banner';
-import { strings } from '../../../../../locales/i18n';
-import Text, {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
-import {
   Button,
   ButtonVariant,
-  ButtonBaseSize,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
+import Engine from '../../../../core/Engine';
+import ClipboardManager from '../../../../core/ClipboardManager';
+import MultichainAddressRow from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
+import getHeaderCompactStandardNavbarOptions from '../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import { ToastContext } from '../../../../component-library/components/Toast';
+import { strings } from '../../../../../locales/i18n';
 import {
   useParams,
   createNavigationDetails,
@@ -58,68 +40,24 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { PRIVATE_KEY_GUIDE_URL } from '../../../../constants/urls';
 import { PrivateKeyListIds } from './PrivateKeyList.testIds';
-
-import styleSheet from './styles';
 import type { Params as PrivateKeyListParams, AddressItem } from './types';
+import {
+  selectInternalAccountListSpreadByScopesByGroupId,
+  selectInternalAccountsByGroupId,
+} from '../../../../selectors/multichainAccounts/accounts';
 import {
   endTrace,
   trace,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import { useTheme } from '../../../../util/theme';
 
 export const createPrivateKeyListNavigationDetails =
   createNavigationDetails<PrivateKeyListParams>(
     Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
   );
 
-/**
- * Shared context that lets the module-level GestureScrollComponent write back
- * the RNGH ScrollView ref to its PrivateKeyList ancestor, which then passes it
- * to BottomSheet via `panGestureHandlerProps.simultaneousHandlers` on Android.
- */
-const GestureScrollRefContext = React.createContext<
-  React.MutableRefObject<React.ComponentRef<typeof ScrollView> | null>
->({ current: null });
-
-/**
- * Stable RNGH-backed scroll component for FlashList.
- *
- * Defined at module level (not inside PrivateKeyList) to satisfy the
- * react/no-unstable-nested-components rule. Uses forwardRef so FlashList can
- * properly forward its internal scroll ref — plain function components have
- * their ref prop stripped by React 18's reconciler. Also reads
- * GestureScrollRefContext to populate the parent's flashListScrollGestureRef,
- * which BottomSheet uses via panGestureHandlerProps on Android so that scroll
- * gestures are not captured as dismiss-sheet pans.
- */
-const GestureScrollComponent = forwardRef<
-  React.ComponentRef<typeof ScrollView>,
-  ScrollViewProps
->((props, ref) => {
-  const scrollGestureRef = useContext(GestureScrollRefContext);
-  return (
-    <ScrollView
-      {...props}
-      ref={(node) => {
-        scrollGestureRef.current = node;
-        if (typeof ref === 'function') {
-          ref(node);
-        } else if (ref) {
-          (ref as React.MutableRefObject<typeof node | null>).current = node;
-        }
-      }}
-    />
-  );
-});
-
-/**
- * Check if the account has the private key available according to its keyring type.
- * TODO: Add support for KeyringTypes.snap
- *
- * @param account - The internal account to check.
- * @returns True if the private key is available, false otherwise.
- */
 const hasPrivateKeyAvailable = (account: InternalAccount) =>
   account.metadata.keyring.type === KeyringTypes.hd ||
   account.metadata.keyring.type === KeyringTypes.simple;
@@ -131,18 +69,13 @@ const hasPrivateKeyAvailable = (account: InternalAccount) =>
  * @returns {JSX.Element} The rendered component.
  */
 export const PrivateKeyList = () => {
+  const navigation = useNavigation();
   const { groupId, title } = useParams<PrivateKeyListParams>();
+  const tw = useTailwind();
+  const theme = useTheme();
+  const { bottom: bottomInset } = useSafeAreaInsets();
 
-  const { styles } = useStyles(styleSheet, {});
   const { toastRef } = useContext(ToastContext);
-  const sheetRef = useRef<BottomSheetRef>(null);
-  /**
-   * Ref to FlashList's RNGH ScrollView; passed via `panGestureHandlerProps.simultaneousHandlers`
-   * on Android so list scrolling is not captured by the sheet dismiss pan.
-   */
-  const flashListScrollGestureRef = useRef<React.ComponentRef<
-    typeof ScrollView
-  > | null>(null);
   const [password, setPassword] = useState<string>('');
   const [wrongPassword, setWrongPassword] = useState<boolean>(false);
   const [reveal, setReveal] = useState<boolean>(false);
@@ -161,7 +94,6 @@ export const PrivateKeyList = () => {
 
   useEffect(
     () => () => {
-      // Clean state variables on unmount
       setPassword('');
       setWrongPassword(false);
       setReveal(false);
@@ -170,8 +102,6 @@ export const PrivateKeyList = () => {
     [],
   );
 
-  // Start tracing the private key list display only after the password is
-  // entered and verified.
   useEffect(() => {
     if (reveal) {
       trace({
@@ -209,7 +139,7 @@ export const PrivateKeyList = () => {
     const { KeyringController } = Engine.context;
     try {
       await KeyringController.verifyPassword(password);
-    } catch (error) {
+    } catch {
       setWrongPassword(true);
       setReveal(false);
       setPrivateKeys({});
@@ -222,10 +152,22 @@ export const PrivateKeyList = () => {
   }, [password, unlockPrivateKeys]);
 
   const onCancel = useCallback(() => {
-    if (sheetRef.current) {
-      sheetRef.current.onCloseBottomSheet();
+    navigation.goBack();
+  }, [navigation]);
+
+  useLayoutEffect(() => {
+    if (title) {
+      navigation.setOptions({
+        ...getHeaderCompactStandardNavbarOptions({
+          title,
+          onBack: () => navigation.goBack(),
+          backButtonProps: { testID: PrivateKeyListIds.GO_BACK },
+          includesTopInset: true,
+        }),
+        headerShown: true,
+      });
     }
-  }, []);
+  }, [navigation, title]);
 
   const filteredAccounts = useCallback(
     () =>
@@ -255,98 +197,15 @@ export const PrivateKeyList = () => {
     [privateKeys, toastRef],
   );
 
-  const renderPassword = useCallback(
-    () => (
-      <>
-        <View style={styles.password}>
-          <Text
-            variant={TextVariant.BodyLGMedium}
-            testID={PrivateKeyListIds.PASSWORD_TITLE}
-          >
-            {strings('multichain_accounts.private_key_list.enter_password')}
-          </Text>
-
-          <TextInput
-            style={styles.input}
-            onChangeText={onPasswordChange}
-            placeholder={strings(
-              'multichain_accounts.private_key_list.password_placeholder',
-            )}
-            secureTextEntry
-            autoCapitalize="none"
-            testID={PrivateKeyListIds.PASSWORD_INPUT}
-          />
-
-          {wrongPassword && (
-            <Text
-              variant={TextVariant.BodyLGMedium}
-              color={TextColor.Error}
-              testID={PrivateKeyListIds.PASSWORD_ERROR}
-            >
-              {strings('multichain_accounts.private_key_list.wrong_password')}
-            </Text>
-          )}
-        </View>
-        <View style={styles.buttons}>
-          <Button
-            size={ButtonBaseSize.Lg}
-            variant={ButtonVariant.Secondary}
-            onPress={onCancel}
-            style={styles.button}
-            testID={PrivateKeyListIds.CANCEL_BUTTON}
-          >
-            {strings('multichain_accounts.private_key_list.cancel')}
-          </Button>
-          <Button
-            size={ButtonBaseSize.Lg}
-            variant={ButtonVariant.Primary}
-            onPress={() => verifyPasswordAndUnlockKeys()}
-            style={styles.button}
-            testID={PrivateKeyListIds.CONTINUE_BUTTON}
-          >
-            {strings('multichain_accounts.private_key_list.continue')}
-          </Button>
-        </View>
-      </>
-    ),
-    [
-      styles.password,
-      styles.input,
-      styles.buttons,
-      styles.button,
-      onPasswordChange,
-      wrongPassword,
-      onCancel,
-      verifyPasswordAndUnlockKeys,
-    ],
-  );
-
-  const renderPrivateKeyList = useCallback(
-    () => (
-      <View style={styles.container}>
-        <FlashList
-          data={filteredAccounts()}
-          keyExtractor={(item) => item.scope}
-          renderItem={renderAddressItem}
-          renderScrollComponent={GestureScrollComponent}
-          testID={PrivateKeyListIds.LIST}
-          onLoad={() => {
-            endTrace({ name: TraceName.ShowAccountPrivateKeyList });
-          }}
-        />
-      </View>
-    ),
-    [filteredAccounts, renderAddressItem, styles.container],
-  );
-
   const privateKeyBannerDescription = useMemo(
     () => (
-      <Text>
+      <Text variant={TextVariant.BodyMd}>
         {`${strings(
           'multichain_accounts.private_key_list.warning_description',
         )} `}
         <Text
-          color={TextColor.Primary}
+          variant={TextVariant.BodyMd}
+          color={TextColor.PrimaryDefault}
           onPress={() => Linking.openURL(PRIVATE_KEY_GUIDE_URL)}
         >
           {strings('reveal_credential.learn_more')}
@@ -356,33 +215,114 @@ export const PrivateKeyList = () => {
     [],
   );
 
-  return (
-    <GestureScrollRefContext.Provider value={flashListScrollGestureRef}>
-      <BottomSheet
-        style={styles.bottomSheetContent}
-        ref={sheetRef}
-        panGestureHandlerProps={
-          Platform.OS === 'android'
-            ? { simultaneousHandlers: flashListScrollGestureRef }
-            : undefined
-        }
-      >
-        <Fragment>
-          <SheetHeader title={title} />
-          <Banner
-            variant={BannerVariant.Alert}
-            severity={BannerAlertSeverity.Error}
-            title={strings(
-              'multichain_accounts.private_key_list.warning_title',
+  const passwordFooterPaddingBottom = Math.max(bottomInset, 16);
+
+  const renderPassword = useCallback(
+    () => (
+      <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
+        <Box twClassName="flex-1 px-4 pt-6">
+          <Text
+            variant={TextVariant.BodyLg}
+            testID={PrivateKeyListIds.PASSWORD_TITLE}
+          >
+            {strings('multichain_accounts.private_key_list.enter_password')}
+          </Text>
+
+          <TextInput
+            style={tw.style(
+              'mt-2 rounded-lg border border-border-default bg-background-default px-4 py-4 text-xl text-text-default',
             )}
-            description={privateKeyBannerDescription}
-            style={styles.banner}
-            testID={PrivateKeyListIds.BANNER}
+            onChangeText={onPasswordChange}
+            placeholder={strings(
+              'multichain_accounts.private_key_list.password_placeholder',
+            )}
+            placeholderTextColor={theme.colors.text.muted}
+            secureTextEntry
+            autoCapitalize="none"
+            testID={PrivateKeyListIds.PASSWORD_INPUT}
           />
 
-          {reveal ? renderPrivateKeyList() : renderPassword()}
-        </Fragment>
-      </BottomSheet>
-    </GestureScrollRefContext.Provider>
+          {wrongPassword && (
+            <Text
+              variant={TextVariant.BodyLg}
+              color={TextColor.ErrorDefault}
+              testID={PrivateKeyListIds.PASSWORD_ERROR}
+            >
+              {strings('multichain_accounts.private_key_list.wrong_password')}
+            </Text>
+          )}
+        </Box>
+
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Evenly}
+          style={{ paddingBottom: passwordFooterPaddingBottom }}
+          twClassName="w-full shrink-0 border-t border-border-muted px-4 pt-4"
+        >
+          <Box twClassName="mx-2 flex-1">
+            <Button
+              size={ButtonSize.Lg}
+              variant={ButtonVariant.Secondary}
+              onPress={onCancel}
+              twClassName="w-full"
+              testID={PrivateKeyListIds.CANCEL_BUTTON}
+            >
+              {strings('multichain_accounts.private_key_list.cancel')}
+            </Button>
+          </Box>
+          <Box twClassName="mx-2 flex-1">
+            <Button
+              size={ButtonSize.Lg}
+              variant={ButtonVariant.Primary}
+              onPress={() => verifyPasswordAndUnlockKeys()}
+              twClassName="w-full"
+              testID={PrivateKeyListIds.CONTINUE_BUTTON}
+            >
+              {strings('multichain_accounts.private_key_list.continue')}
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+    ),
+    [
+      tw,
+      theme.colors.text.muted,
+      onPasswordChange,
+      wrongPassword,
+      onCancel,
+      verifyPasswordAndUnlockKeys,
+      passwordFooterPaddingBottom,
+    ],
+  );
+
+  const renderPrivateKeyList = useCallback(
+    () => (
+      <Box twClassName="flex-1 p-4">
+        <FlashList
+          data={filteredAccounts()}
+          keyExtractor={(item) => item.scope}
+          renderItem={renderAddressItem}
+          testID={PrivateKeyListIds.LIST}
+          onLoad={() => {
+            endTrace({ name: TraceName.ShowAccountPrivateKeyList });
+          }}
+        />
+      </Box>
+    ),
+    [filteredAccounts, renderAddressItem],
+  );
+
+  return (
+    <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
+      <BannerAlert
+        severity={BannerAlertSeverity.Danger}
+        title={strings('multichain_accounts.private_key_list.warning_title')}
+        description={privateKeyBannerDescription}
+        twClassName="mx-[10px]"
+        testID={PrivateKeyListIds.BANNER}
+      />
+
+      {reveal ? renderPrivateKeyList() : renderPassword()}
+    </Box>
   );
 };

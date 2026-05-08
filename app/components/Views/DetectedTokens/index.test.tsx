@@ -13,6 +13,7 @@ import {
 import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import { ThemeContext } from '../../../util/theme';
+import { DetectedTokensSelectorIDs } from './DetectedTokensView.testIds';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -105,22 +106,19 @@ describe('DetectedTokens Component', () => {
   });
 
   it('renders correctly with detected tokens', () => {
-    const { getByText, toJSON } = render(
+    const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <DetectedTokens />
       </ThemeContext.Provider>,
     );
 
-    expect(getByText('2 new tokens found')).toBeTruthy();
-    expect(getByText('0 TKN1')).toBeTruthy();
-    expect(getByText('0 TKN2')).toBeTruthy();
-    expect(getByText('Import (2)')).toBeTruthy();
-
-    // Snapshot test
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('2 new tokens found')).toBeOnTheScreen();
+    expect(getByText('0 TKN1')).toBeOnTheScreen();
+    expect(getByText('0 TKN2')).toBeOnTheScreen();
+    expect(getByText('Import (2)')).toBeOnTheScreen();
   });
 
-  it('matches snapshot when no detected tokens', () => {
+  it('renders zero-token state with disabled import button', () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectDetectedTokens) return [];
       if (selector === selectAllDetectedTokensFlat) return [];
@@ -129,13 +127,17 @@ describe('DetectedTokens Component', () => {
       return {};
     });
 
-    const { toJSON } = render(
+    const { getByText, getByTestId } = render(
       <ThemeContext.Provider value={mockTheme}>
         <DetectedTokens />
       </ThemeContext.Provider>,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('0 new token found')).toBeOnTheScreen();
+    expect(getByText('Import (0)')).toBeOnTheScreen();
+    expect(
+      getByTestId(DetectedTokensSelectorIDs.IMPORT_BUTTON_ID),
+    ).toBeDisabled();
   });
 
   it('navigates to confirmation on "Hide All" button press', () => {

@@ -51,6 +51,7 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
+import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSectionResultsFullView from '../../Views/TrendingView/Views/ExploreSectionResultsFullView/ExploreSectionResultsFullView';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
@@ -61,6 +62,7 @@ import RampRoutes from '../../UI/Ramp/Aggregator/routes';
 import { RampType } from '../../UI/Ramp/Aggregator/types';
 import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
+import RampHeadlessPlayground from '../../UI/Ramp/Views/HeadlessPlayground';
 import TokenListRoutes from '../../UI/Ramp/routes';
 
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
@@ -73,9 +75,10 @@ import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
+import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import { clearStackNavigatorOptionsWithTransitionAnimation } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -99,7 +102,7 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
-import { MoneyScreenStack } from '../../UI/Money/routes';
+import { MoneyAccountStackGate, MoneyModalStack } from '../../UI/Money/routes';
 import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
@@ -119,7 +122,12 @@ import {
   selectMarketInsightsEnabled,
 } from '../../UI/MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
-import { TopTradersView } from '../../Views/SocialLeaderboard';
+import {
+  TopTradersView,
+  TraderProfileView,
+  TraderPositionView,
+  NotificationPreferencesView,
+} from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -138,9 +146,13 @@ import BonusCodeBottomSheet from '../../UI/Rewards/components/Tabs/OverviewTab/W
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
-import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
+
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
+import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
+import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
+import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -276,6 +288,7 @@ const TransactionsHome = () => {
       <Stack.Screen
         name={Routes.RAMP.RAMPS_ORDER_DETAILS}
         component={RampsOrderDetails}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.DEPOSIT.ORDER_DETAILS}
@@ -336,6 +349,14 @@ const RewardsHome = () => {
         component={EndOfSeasonClaimBottomSheet}
         options={{ presentation: 'transparentModal' }}
       />
+      <Stack.Screen
+        name={Routes.MODAL.REWARDS_SELECT_SHEET}
+        component={RewardsSelectSheet}
+        options={{
+          presentation: 'transparentModal',
+          cardStyle: { backgroundColor: 'transparent' },
+        }}
+      />
     </Stack.Navigator>
   );
 };
@@ -392,7 +413,7 @@ const ExploreHome = () => {
   );
 };
 
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -479,6 +500,11 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.RAMP.ACTIVATION_KEY_FORM}
         component={RampActivationKeyForm}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.RAMP.HEADLESS_PLAYGROUND}
+        component={RampHeadlessPlayground}
         options={{ headerShown: false }}
       />
       {
@@ -590,16 +616,18 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.SETTINGS.REGION_SELECTOR}
         component={RegionSelector}
-        options={RegionSelector.navigationOptions}
-      />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
-      }
-      <Stack.Screen
-        name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
-        component={SnapsSettingsStack}
         options={{ headerShown: false }}
       />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      }
+      {CAN_INSTALL_THIRD_PARTY_SNAPS && (
+        <Stack.Screen
+          name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
+          component={SnapsSettingsStack}
+          options={{ headerShown: false }}
+        />
+      )}
       {
         ///: END:ONLY_INCLUDE_IF
       }
@@ -615,8 +643,11 @@ const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
+  const isMoneyHomeScreenEnabled = useSelector(
+    selectMoneyHomeScreenEnabledFlag,
+  );
+
   const accountsLength = useSelector(selectAccountsLength);
-  const rewardsSubscription = useSelector(selectRewardsSubscriptionId);
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -674,6 +705,10 @@ const HomeTabs = () => {
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
       unmountOnBlur: true,
+    },
+    money: {
+      tabBarIconKey: TabBarIconKey.Money,
+      rootScreenName: Routes.MONEY.HOME,
     },
     rewards: {
       tabBarIconKey: TabBarIconKey.Rewards,
@@ -745,11 +780,6 @@ const HomeTabs = () => {
   const renderTabBar = ({ state, descriptors, navigation }) => {
     const currentRoute = state.routes[state.index];
 
-    // Hide tab bar for rewards onboarding splash screen
-    if (currentRoute.name?.startsWith('Rewards') && !rewardsSubscription) {
-      return null;
-    }
-
     // Hide tab bar when in browser
     const currentStackRouteName =
       currentRoute?.state?.routes?.[currentRoute?.state?.index]?.name;
@@ -758,6 +788,24 @@ const HomeTabs = () => {
       currentStackRouteName?.startsWith(Routes.BROWSER.HOME);
     if (isInBrowser) {
       return null;
+    }
+
+    // Hide tab bar when on rewards sub-pages (only show on home + onboarding)
+    if (currentRoute.name === Routes.REWARDS_VIEW) {
+      const rewardsHomeState = currentRoute?.state;
+      const rewardsViewRoute = rewardsHomeState?.routes?.find(
+        (r) => r.name === Routes.REWARDS_VIEW,
+      );
+      const rewardsNavState = rewardsViewRoute?.state;
+      const activeRewardsRouteName =
+        rewardsNavState?.routes?.[rewardsNavState?.index]?.name;
+      const isRewardsHomePage =
+        !activeRewardsRouteName ||
+        activeRewardsRouteName === Routes.REWARDS_DASHBOARD ||
+        activeRewardsRouteName === Routes.REWARDS_ONBOARDING_FLOW;
+      if (!isRewardsHomePage) {
+        return null;
+      }
     }
 
     if (isKeyboardHidden) {
@@ -816,13 +864,21 @@ const HomeTabs = () => {
         component={WalletTabModalFlow}
       />
 
-      {/* Activity Tab */}
-      <Tab.Screen
-        name={Routes.TRANSACTIONS_VIEW}
-        options={options.activity}
-        component={TransactionsHome}
-        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-      />
+      {/* Activity Tab (replaced by Money when feature flag is on) */}
+      {isMoneyHomeScreenEnabled ? (
+        <Tab.Screen
+          name={Routes.MONEY.ROOT}
+          options={options.money}
+          component={MoneyAccountStackGate}
+        />
+      ) : (
+        <Tab.Screen
+          name={Routes.TRANSACTIONS_VIEW}
+          options={options.activity}
+          component={TransactionsHome}
+          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+        />
+      )}
 
       {/* Rewards Tab */}
       <Tab.Screen
@@ -836,7 +892,7 @@ const HomeTabs = () => {
 };
 
 const Webview = () => (
-  <Stack.Navigator>
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="SimpleWebview" component={SimpleWebview} />
   </Stack.Navigator>
 );
@@ -1104,6 +1160,16 @@ const MainNavigator = () => {
         options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       <Stack.Screen
+        name={Routes.REWARD_BENEFIT_FULL_VIEW}
+        component={BenefitFullView}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
+      />
+      <Stack.Screen
+        name={Routes.REWARD_BENEFITS_FULL_VIEW}
+        component={BenefitsFullView}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
+      />
+      <Stack.Screen
         name={Routes.RAMP.TOKEN_SELECTION}
         component={TokenListRoutes}
       />
@@ -1132,7 +1198,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
         component={BridgeModalStack}
-        options={clearStackNavigatorOptionsWithTransitionAnimation}
+        options={{
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          presentation: 'transparentModal',
+        }}
       />
       <Stack.Screen
         name="StakeScreens"
@@ -1147,14 +1216,32 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.EARN.MODALS.ROOT}
         component={EarnModalStack}
-        options={clearStackNavigatorOptionsWithTransitionAnimation}
+        options={{
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          presentation: 'transparentModal',
+        }}
       />
       {isMoneyHomeScreenEnabled && (
-        <Stack.Screen
-          name={Routes.MONEY.ROOT}
-          component={MoneyScreenStack}
-          options={{ headerShown: false, ...slideFromRightAnimation }}
-        />
+        <>
+          <Stack.Screen
+            name={Routes.MONEY.ROOT}
+            component={MoneyAccountStackGate}
+            options={{ headerShown: false, ...slideFromRightAnimation }}
+          />
+          <Stack.Screen
+            name={Routes.MONEY.MODALS.ROOT}
+            component={MoneyModalStack}
+            options={{
+              ...clearStackNavigatorOptionsWithTransitionAnimation,
+              presentation: 'transparentModal',
+            }}
+          />
+          <Stack.Screen
+            name={Routes.TRANSACTIONS_VIEW}
+            component={TransactionsHome}
+            options={{ headerShown: false, ...slideFromRightAnimation }}
+          />
+        </>
       )}
       <Stack.Screen
         name="StakeModals"
@@ -1169,7 +1256,10 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PERPS.ROOT}
             component={PerpsScreenStack}
-            options={slideFromRightAnimation}
+            options={{
+              headerShown: false,
+              ...slideFromRightAnimation,
+            }}
           />
           <Stack.Screen
             name={Routes.PERPS.TUTORIAL}
@@ -1181,7 +1271,10 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}
-            options={clearStackNavigatorOptionsWithTransitionAnimation}
+            options={{
+              ...clearStackNavigatorOptionsWithTransitionAnimation,
+              presentation: 'transparentModal',
+            }}
           />
         </>
       )}
@@ -1224,8 +1317,8 @@ const MainNavigator = () => {
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
             options={{
-              presentation: 'transparentModal',
               ...clearStackNavigatorOptionsWithTransitionAnimation,
+              presentation: 'transparentModal',
             }}
           />
         </>
@@ -1244,6 +1337,27 @@ const MainNavigator = () => {
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
       )}
+      {isSocialLeaderboardEnabled && (
+        <Stack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.PROFILE}
+          component={TraderProfileView}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <Stack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.POSITION}
+          component={TraderPositionView}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <Stack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.NOTIFICATION_PREFERENCES}
+          component={NotificationPreferencesView}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+      )}
       <>
         <Stack.Screen
           name={Routes.EXPLORE_SEARCH}
@@ -1253,6 +1367,11 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SITES_FULL_VIEW}
           component={SitesFullView}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+        <Stack.Screen
+          name={Routes.WHATS_HAPPENING_DETAIL}
+          component={WhatsHappeningDetailView}
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
         <Stack.Screen
@@ -1300,7 +1419,15 @@ const MainNavigator = () => {
       <Stack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
-        options={{ headerShown: true, ...slideFromRightAnimation }}
+        options={({ navigation }) => ({
+          ...slideFromRightAnimation,
+          ...getDeFiProtocolPositionDetailsNavbarOptions(navigation),
+          headerStyle: {
+            backgroundColor: colors.background.default,
+            shadowColor: importedColors.transparent,
+            elevation: 0,
+          },
+        })}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -1316,7 +1443,10 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
         component={ProcessingInfoModal}
-        options={clearStackNavigatorOptionsWithTransitionAnimation}
+        options={{
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          presentation: 'transparentModal',
+        }}
       />
     </Stack.Navigator>
   );

@@ -1,6 +1,9 @@
 import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import { useRoute } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  type StackNavigationOptions,
+} from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import OAuthRehydration from '../../Views/OAuthRehydration';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
@@ -41,6 +44,7 @@ import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictT
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
+import AddWallet from '../../../components/Views/AddWallet';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import ProfilerManager from '../../../components/UI/ProfilerManager';
 import NetworkManager from '../../../components/UI/NetworkManager';
@@ -165,6 +169,31 @@ import { AccessRestrictedProvider } from '../../UI/Compliance';
 
 const Stack = createStackNavigator();
 
+const accountSelectorTransitionOptions: StackNavigationOptions = {
+  animationEnabled: true,
+  cardStyle: { backgroundColor: importedColors.transparent },
+  cardStyleInterpolator: ({ current, layouts }) => ({
+    cardStyle: {
+      transform: [
+        {
+          translateX: current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [layouts.screen.width, 0],
+          }),
+        },
+      ],
+    },
+  }),
+  detachPreviousScreen: false,
+};
+
+const isAccountSelectorRootModalRoute = (params: object | undefined) =>
+  Boolean(
+    params &&
+      'screen' in params &&
+      params.screen === Routes.SHEET.ACCOUNT_SELECTOR,
+  );
+
 // Type helper for screen components that use v5 pattern of requiring route props
 // In React Navigation v6, screen components should ideally use useRoute() hook,
 // but for migration compatibility, we cast these components to satisfy the type checker.
@@ -181,7 +210,14 @@ const OnboardingSuccessFlow = () => {
   const { colors } = useTheme();
 
   return (
-    <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
+    <Stack.Navigator
+      initialRouteName={Routes.ONBOARDING.SUCCESS}
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
+        headerStyle: { backgroundColor: colors.background.default },
+        headerShadowVisible: false,
+      }}
+    >
       <Stack.Screen
         name={Routes.ONBOARDING.SUCCESS}
         component={OnboardingSuccess}
@@ -192,10 +228,6 @@ const OnboardingSuccessFlow = () => {
       <Stack.Screen
         name={Routes.ONBOARDING.DEFAULT_SETTINGS}
         component={DefaultSettings}
-        options={{
-          headerStyle: { backgroundColor: colors.background.default },
-          cardStyle: { backgroundColor: colors.background.default },
-        }}
       />
       <Stack.Screen
         name={Routes.ONBOARDING.GENERAL_SETTINGS}
@@ -221,7 +253,12 @@ const OnboardingNav = () => {
   const { colors } = useTheme();
 
   return (
-    <Stack.Navigator initialRouteName={'Onboarding'}>
+    <Stack.Navigator
+      initialRouteName={'Onboarding'}
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
       <Stack.Screen name="Onboarding" component={Onboarding} />
       <Stack.Screen
         name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
@@ -253,7 +290,6 @@ const OnboardingNav = () => {
         component={DefaultSettings}
         options={{
           headerStyle: { backgroundColor: colors.background.default },
-          cardStyle: { backgroundColor: colors.background.default },
         }}
       />
       <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
@@ -290,8 +326,9 @@ const OnboardingNav = () => {
         initialParams={{ type: 'not_exist' }}
         options={{ headerShown: false }}
       />
+      {/* OAuth rehydration inside onboarding stack (distinct route name from AppFlow). */}
       <Stack.Screen
-        name="Rehydrate"
+        name={Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE}
         component={OAuthRehydration}
         options={{ headerShown: false }}
       />
@@ -309,7 +346,7 @@ const OnboardingNav = () => {
  * child OnboardingNav navigator to push modals on top of it
  */
 const SimpleWebviewScreen = () => (
-  <Stack.Navigator>
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name={Routes.WEBVIEW.SIMPLE} component={SimpleWebview} />
   </Stack.Navigator>
 );
@@ -395,9 +432,7 @@ interface RootModalFlowProps {
   };
 }
 const RootModalFlow = (props: RootModalFlowProps) => (
-  <Stack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
-  >
+  <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions }}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
       component={WalletActions}
@@ -457,6 +492,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
+      options={accountSelectorTransitionOptions}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ADD_WALLET}
+      component={AddWallet}
       options={{
         cardStyle: { backgroundColor: importedColors.transparent },
         cardStyleInterpolator: () => ({
@@ -670,6 +710,7 @@ const ImportSRPView = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
+      presentation: 'transparentModal',
     }}
   >
     <Stack.Screen
@@ -685,7 +726,6 @@ const ImportSRPView = () => (
       name={Routes.SHEET.SEEDPHRASE_MODAL}
       component={SeedphraseModal}
       options={{
-        presentation: 'modal',
         cardStyle: { backgroundColor: 'transparent' },
         cardStyleInterpolator: () => ({
           overlayStyle: {
@@ -697,7 +737,11 @@ const ImportSRPView = () => (
   </Stack.Navigator>
 );
 
-const ConnectQRHardwareFlow = () => {
+const ConnectQRHardwareFlow = ({
+  route,
+}: {
+  route: { params?: { hideMarketingContent?: boolean } };
+}) => {
   const { colors } = useTheme();
   return (
     <Stack.Navigator
@@ -706,7 +750,11 @@ const ConnectQRHardwareFlow = () => {
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+      <Stack.Screen
+        name="ConnectQRHardware"
+        component={ConnectQRHardware}
+        initialParams={route?.params}
+      />
     </Stack.Navigator>
   );
 };
@@ -910,7 +958,12 @@ const MultichainPrivateKeyList = () => {
   const route = useRoute();
 
   return (
-    <Stack.Navigator screenOptions={clearStackNavigatorOptions}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: true,
+      }}
+    >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
         component={MultichainAccountPrivateKeyList}
@@ -943,6 +996,7 @@ const AppFlow = () => {
       screenOptions={{
         headerShown: false,
         animationEnabled: false,
+        presentation: 'transparentModal',
       }}
     >
       <Stack.Screen name={Routes.ONBOARDING.HOME_NAV} component={Main} />
@@ -954,11 +1008,14 @@ const AppFlow = () => {
           cardStyle: { backgroundColor: colors.background.default },
         }}
       />
-      <Stack.Screen name="Rehydrate" component={OAuthRehydration} />
+      {/* Same screen as ONBOARDING_OAUTH_REHYDRATE but registered on root AppFlow for post-login unlock. */}
+      <Stack.Screen
+        name={Routes.ONBOARDING.REHYDRATE}
+        component={OAuthRehydration}
+      />
       <Stack.Screen
         name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
         component={MaxBrowserTabsModal}
-        options={{ presentation: 'modal' }}
       />
       <Stack.Screen name="OnboardingRootNav" component={OnboardingRootNav} />
       <Stack.Screen
@@ -972,13 +1029,14 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.MODAL.ROOT_MODAL_FLOW}
         component={RootModalFlow as ScreenComponent}
-        options={{
-          presentation: 'modal',
-          detachPreviousScreen: false,
-        }}
+        options={({ route }) =>
+          isAccountSelectorRootModalRoute(route.params)
+            ? accountSelectorTransitionOptions
+            : {}
+        }
       />
       <Stack.Screen
-        name="ImportPrivateKeyView"
+        name={Routes.IMPORT_PRIVATE_KEY_VIEW}
         component={ImportPrivateKeyView}
         options={{
           animationEnabled: true,
@@ -1080,56 +1138,35 @@ const AppFlow = () => {
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
         component={MultichainPrivateKeyList}
         options={{
-          presentation: 'transparentModal',
-        }}
-      />
-      <Stack.Screen
-        options={{
-          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-          presentation: 'modal',
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
+          animationEnabled: true,
+          cardStyle: { backgroundColor: colors.background.default },
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
             },
           }),
         }}
+      />
+      <Stack.Screen
         name={Routes.LEDGER_TRANSACTION_MODAL}
         component={LedgerTransactionModal}
       />
       <Stack.Screen
-        options={{
-          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-          presentation: 'modal',
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
-        }}
         name={Routes.QR_SIGNING_TRANSACTION_MODAL}
         component={QRSigningTransactionModal}
       />
       <Stack.Screen
-        options={{
-          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-          presentation: 'modal',
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
-        }}
         name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
         component={LedgerMessageSignModal}
       />
-      <Stack.Screen
-        name={Routes.OPTIONS_SHEET}
-        component={OptionsSheet}
-        options={{ presentation: 'modal' }}
-      />
+      <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
       <Stack.Screen
         name={Routes.EDIT_ACCOUNT_NAME}
         component={EditAccountName}
@@ -1173,12 +1210,10 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
         component={ModalSwitchAccountType}
-        options={{ presentation: 'modal' }}
       />
       <Stack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_MODAL}
         component={PayWithModal}
-        options={{ presentation: 'modal' }}
       />
     </Stack.Navigator>
   );

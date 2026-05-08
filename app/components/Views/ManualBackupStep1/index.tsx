@@ -322,15 +322,16 @@ const ManualBackupStep1 = () => {
                 placeholder={strings('manual_backup_step_1.password')}
                 value={password}
                 onChangeText={onPasswordChange}
-                secureTextEntry
-                onSubmitEditing={tryUnlock}
-                testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
-                accessibilityLabel={
-                  ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT
-                }
-                keyboardAppearance={themeAppearance}
-                autoCapitalize="none"
                 autoFocus
+                inputProps={{
+                  secureTextEntry: true,
+                  onSubmitEditing: tryUnlock,
+                  testID: ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+                  accessibilityLabel:
+                    ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+                  keyboardAppearance: themeAppearance,
+                  autoCapitalize: 'none',
+                }}
               />
               {warningIncorrectPassword && (
                 <Text
@@ -419,8 +420,9 @@ const ManualBackupStep1 = () => {
                       variant={TextVariant.BodyMd}
                       color={TextColor.TextDefault}
                       key={index}
-                      ellipsizeMode="tail"
                       numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
                       style={tw.style('flex-1')}
                       testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
                       maxFontSizeMultiplier={1}

@@ -195,7 +195,6 @@ describe('PerpsOrderRedirect', () => {
           direction: 'long',
           asset: 'ETH',
           fromTokenDetails: undefined,
-          assetsASSETS2493AbtestTokenDetailsLayout: undefined,
           source: 'asset_detail_screen',
           showPerpsHeader:
             CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,

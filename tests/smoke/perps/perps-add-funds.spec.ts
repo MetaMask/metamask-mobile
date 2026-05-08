@@ -13,6 +13,7 @@ import Assertions from '../../framework/Assertions';
 import PerpsTabView from '../../page-objects/Perps/PerpsTabView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import PerpsDepositView from '../../page-objects/Perps/PerpsDepositView';
+import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
 import ToastModal from '../../page-objects/wallet/ToastModal';
 import Utilities from '../../framework/Utilities';
@@ -104,13 +105,46 @@ describe.skip(
 
           // Go to Perps tab
           await WalletView.scrollAndTapPerpsSection();
+          await PerpsHomeView.tapExploreCryptoIfVisible();
+
+          // Wait until Perps balance actions are fully rendered (skeleton can persist briefly).
+          await Utilities.executeWithRetry(
+            async () => {
+              const isMarketAddFundsVisible = await Utilities.isElementVisible(
+                PerpsTabView.marketAddFundsButton,
+                2000,
+              );
+              const isLegacyAddFundsVisible = await Utilities.isElementVisible(
+                PerpsTabView.addFundsButton,
+                1000,
+              );
+
+              if (!isMarketAddFundsVisible && !isLegacyAddFundsVisible) {
+                throw new Error('Perps Add funds CTA is not visible yet');
+              }
+            },
+            { interval: 1000, timeout: 20000 },
+          );
 
           // Read initial balance text for later comparison
           const initialBalance = await PerpsTabView.getBalance();
 
-          // Open Add Funds from balance menu
-          //await PerpsTabView.tapBalanceButton();
-          await PerpsTabView.tapAddFundsButton();
+          // Open Add Funds from balance menu and verify deposit screen is reached.
+          // In this flow the first tap can happen while Perps is still settling.
+          await Utilities.executeWithRetry(
+            async () => {
+              await PerpsTabView.tapAddFundsButton();
+              await Assertions.expectElementToBeVisible(
+                PerpsDepositView.amountInput as DetoxElement,
+                {
+                  description:
+                    'Deposit amount input visible after tapping Add funds',
+                  timeout: 5000,
+                },
+              );
+            },
+            { interval: 1000, timeout: 30000 },
+          );
 
           // If a network-added toast appears, wait for it to disappear before interacting
           await Assertions.expectElementToNotBeVisible(

@@ -31,6 +31,7 @@ export const PredictMarketListSelectorsIDs = {
   CRYPTO_TAB: 'predict-market-list-crypto-tab',
   POLITICS_TAB: 'predict-market-list-politics-tab',
   BACK_BUTTON: 'back-button',
+  TRENDING_MARKET_CARD: 'predict-market-list-trending-card-',
   // Empty state
   EMPTY_STATE: 'predict-market-list-empty-state',
 } as const;
@@ -49,7 +50,6 @@ export const getPredictMarketListSelector = {
 export const PredictFeedSelectorsIDs = {
   TABS: 'predict-feed-tabs',
   PAGER: 'predict-feed-pager',
-  SEARCH_ICON: 'search-icon',
 } as const;
 
 export const getPredictFeedSelector = {
@@ -126,6 +126,23 @@ export const PredictMarketDetailsSelectorsIDs = {
   DETAILS_CONTENT_SKELETON_LINE_1: 'predict-details-content-skeleton-line-1',
   DETAILS_BUTTONS_SKELETON_BUTTON_1:
     'predict-details-buttons-skeleton-button-1',
+
+  // BottomSheet wrappers
+  BUY_PREVIEW_SHEET: 'predict-buy-preview-sheet',
+  SELL_PREVIEW_SHEET: 'predict-sell-preview-sheet',
+} as const;
+
+// ========================================
+// PREDICT CRYPTO UP/DOWN DETAILS SELECTORS
+// ========================================
+
+export const PredictCryptoUpDownDetailsSelectorsIDs = {
+  SCREEN: 'predict-crypto-up-down-details-screen',
+  HEADER: 'predict-crypto-up-down-details-header',
+  BACK_BUTTON: 'predict-crypto-up-down-details-back-button',
+  SHARE_BUTTON: 'predict-crypto-up-down-details-share-button',
+  SCROLL_VIEW: 'predict-crypto-up-down-details-scroll-view',
+  TITLE_SECTION: 'predict-crypto-up-down-details-title-section',
 } as const;
 
 export const PredictMarketDetailsSelectorsText = {
@@ -170,6 +187,10 @@ export const PredictPositionSelectorsIDs = {
 export const PredictBuyPreviewSelectorsIDs = {
   // Buy/Place bet button
   PLACE_BET_BUTTON: 'predict-buy-preview-place-bet-button',
+
+  // Inline error banners (sheet mode)
+  PRICE_CHANGED_BANNER: 'predict-buy-preview-price-changed-banner',
+  ORDER_FAILED_BANNER: 'predict-buy-preview-order-failed-banner',
 } as const;
 
 // ========================================

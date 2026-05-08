@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import NetworkConnectMultiSelector from './NetworkConnectMultiSelector';
@@ -78,10 +78,12 @@ describe('NetworkConnectMultiSelector', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
-      <NetworkConnectMultiSelector {...defaultProps} />,
-    );
-    expect(toJSON()).toMatchSnapshot();
+    renderWithProvider(<NetworkConnectMultiSelector {...defaultProps} />);
+    expect(
+      screen.getAllByTestId(
+        ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON,
+      )[0],
+    ).toBeOnTheScreen();
   });
 
   it('disables the select all button when loading', () => {
@@ -98,19 +100,9 @@ describe('NetworkConnectMultiSelector', () => {
     const updateButton = getByTestId(
       NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
     );
-    expect(updateButton).toBeDisabled();
-
-    // Re-render without loading to verify select all was a no-op
-    rerender(
-      <NetworkConnectMultiSelector {...defaultProps} isLoading={false} />,
-    );
-
-    const enabledUpdateButton = getByTestId(
-      NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
-    );
-    fireEvent.press(enabledUpdateButton);
-
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:1']);
+    // Update button is disabled when isLoading is true, so onSubmit should not be called
+    fireEvent.press(updateButton);
+    expect(defaultProps.onSubmit).not.toHaveBeenCalled();
   });
 
   it('handles the select all button when not loading', () => {

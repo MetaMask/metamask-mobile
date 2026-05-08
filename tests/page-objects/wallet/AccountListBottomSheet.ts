@@ -3,11 +3,13 @@ import {
   AccountListBottomSheetSelectorsIDs,
   AccountListBottomSheetSelectorsText,
 } from '../../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds';
+import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountConnect/ConnectAccountBottomSheet.testIds';
 import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Assertions from '../../framework/Assertions';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
   asPlaywrightElement,
@@ -56,6 +58,11 @@ class AccountListBottomSheet {
     return Matchers.getElementByText(
       AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
     );
+  }
+
+  /** Header back control (same testID as CommonView.backButton / AccountSelector HeaderCompactStandard). */
+  get backButton(): DetoxElement {
+    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
   /** Add wallet/account button - wdio tapOnAddWalletButton uses 'account-list-add-account-button' */
@@ -180,6 +187,12 @@ class AccountListBottomSheet {
     });
   }
 
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Account list header back button',
+    });
+  }
+
   async tapAddAccountButtonV2(options?: {
     srpIndex?: number;
     shouldWait?: boolean;
@@ -188,6 +201,11 @@ class AccountListBottomSheet {
       AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
       options?.srpIndex ?? 0,
     );
+
+    await Assertions.expectElementToHaveText(button, 'Add account', {
+      description: 'Add Account button should be ready (not syncing)',
+      timeout: 30000,
+    });
 
     await Gestures.waitAndTap(button, {
       elemDescription: 'Add Account button in V2 multichain accounts',

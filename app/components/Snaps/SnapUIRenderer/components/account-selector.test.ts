@@ -24,12 +24,9 @@ jest.mock('../../../hooks/useAccounts', () => {
   const useAccountsMock = jest.fn(() => ({
     accounts: [
       {
+        id: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
         name: 'Account 1',
         address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-        assets: {
-          fiatBalance: '$3200.00\n1 ETH',
-          tokens: [],
-        },
         type: 'HD Key Tree',
         yOffset: 0,
         scopes: ['eip155:0'],
@@ -38,12 +35,9 @@ jest.mock('../../../hooks/useAccounts', () => {
         caipAccountId: 'eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
       },
       {
+        id: 'a1b2c3d4-5678-9012-3456-789012345678',
         name: 'Solana Account 1',
         address: 'F9SpmMkV2rdbZoJxwpFQ192pCyZwcVDc8F9V6B1AWTbR',
-        assets: {
-          fiatBalance: '$6400.00\n1 SOL',
-          tokens: [],
-        },
         type: 'Snap Keyring',
         snapId: 'local:snap-id',
         yOffset: 0,
@@ -55,7 +49,6 @@ jest.mock('../../../hooks/useAccounts', () => {
       },
     ],
     evmAccounts: [],
-    ensByAccountAddress: {},
   }));
   return {
     useAccounts: useAccountsMock,
@@ -77,6 +70,21 @@ describe('SnapUIAccountSelector', () => {
           activeChains: [],
         },
       },
+    },
+    AccountTreeController: {
+      accountTree: [],
+    },
+    CurrencyRateController: {
+      currentCurrency: 'usd',
+    },
+    MultichainAssetsRatesController: {
+      conversionRates: {},
+    },
+    MultichainBalancesController: {
+      balances: {},
+    },
+    MultichainAssetsController: {
+      accountsAssets: {},
     },
   };
 

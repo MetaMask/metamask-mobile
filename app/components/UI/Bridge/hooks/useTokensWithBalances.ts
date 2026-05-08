@@ -14,9 +14,9 @@ import { BalancesByAssetId } from './useBalancesByAssetId';
  * based on whether the chain is EVM or non-EVM
  */
 const convertAPITokensToBridgeTokens = (
-  apiTokens: PopularToken[],
+  apiTokens?: PopularToken[] | null,
 ): (BridgeToken & { assetId: CaipAssetType })[] =>
-  apiTokens.map((token) => {
+  (Array.isArray(apiTokens) ? apiTokens : []).map((token) => {
     const { assetReference, chainId, assetNamespace } = parseCaipAssetType(
       token.assetId,
     );
@@ -57,7 +57,7 @@ const convertAPITokensToBridgeTokens = (
  * @returns Tokens with merged balance information
  */
 export const useTokensWithBalances = (
-  apiTokens: PopularToken[],
+  apiTokens: PopularToken[] | null | undefined,
   balancesByAssetId: BalancesByAssetId,
 ): BridgeToken[] =>
   useMemo(() => {

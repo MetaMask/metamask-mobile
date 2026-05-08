@@ -17,7 +17,11 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
 } from '../../hooks/pay/useTransactionPayData';
-import { isTransactionPayWithdraw } from '../../utils/transaction';
+import {
+  hasTransactionType,
+  isTransactionPayWithdraw,
+} from '../../utils/transaction';
+import { TransactionType } from '@metamask/transaction-controller';
 
 export interface PayTokenAmountProps {
   amountHuman: string;
@@ -73,6 +77,20 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
 
   // Don't render for withdrawal transactions - they use PayWithRow for token selection
   if (isWithdraw) {
+    return null;
+  }
+
+  // Don't render token amount for perps, predict, and money-account deposit
+  // transactions — they have custom amount entry UIs.
+  const isCustomAmountDeposit = hasTransactionType(transaction, [
+    TransactionType.moneyAccountDeposit,
+    TransactionType.perpsDeposit,
+    TransactionType.perpsDepositAndOrder,
+    TransactionType.predictDeposit,
+    TransactionType.predictDepositAndOrder,
+  ]);
+
+  if (isCustomAmountDeposit) {
     return null;
   }
 

@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -29,7 +29,7 @@ async function withIosDetoxSyncDisabledForAccountActivityWs<T>(
   }
 }
 
-describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
+describe(SmokeSnaps('Get Entropy Snap Tests'), () => {
   it('connects to the Get Entropy Snap', async () => {
     await withFixtures(
       {
@@ -123,20 +123,11 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
           await TestSnaps.fillMessage('entropyMessageInput', 'foo bar');
           await TestSnaps.tapButton('signEntropyMessageButton');
           await TestSnaps.approveSignRequest();
-          // iOS shows the error as a native alert; Android renders it in the
-          // web-view result span as JSON with escaped quotes.
-          if (device.getPlatform() === 'ios') {
-            await Assertions.expectTextDisplayed(
-              'Entropy source with ID "invalid" not found.',
-              { timeout: 30000 },
-            );
-          } else {
-            await TestSnaps.checkResultSpanIncludes(
-              'entropySignResultSpan',
-              'Entropy source with ID',
-              { timeout: 30000 },
-            );
-          }
+          await Assertions.expectTextDisplayed(
+            'Entropy source with ID "invalid" not found.',
+            { timeout: 30000 },
+          );
+          await TestSnaps.dismissAlert();
         });
       },
     );

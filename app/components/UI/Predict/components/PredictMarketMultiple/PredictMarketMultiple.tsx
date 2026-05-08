@@ -26,7 +26,6 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PREDICT_CONSTANTS } from '../../constants/errors';
 import { ensureError } from '../../utils/predictErrorHandler';
@@ -44,13 +43,17 @@ import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint } from '../../contexts';
+import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
 
 interface PredictMarketMultipleProps {
   market: PredictMarket;
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
+  /** Called synchronously before the card's navigation press fires. */
+  onCardPress?: () => void;
+  /** Called when the user taps a buy button (before betslip opens). */
+  onBuyButtonPress?: (marketId: string) => void;
 }
 
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
@@ -58,6 +61,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   testID,
   entryPoint: propEntryPoint,
   isCarousel = false,
+  onCardPress,
+  onBuyButtonPress,
 }) => {
   const contextEntryPoint = usePredictEntryPoint();
   const baseEntryPoint =
@@ -72,7 +77,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { navigateToBuyPreview } = usePredictNavigation();
+  const { openBuySheet } = usePredictPreviewSheet();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 
@@ -138,17 +143,15 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     outcome: PredictOutcome,
     outcomeToken: PredictOutcomeToken,
   ) => {
+    onBuyButtonPress?.(market.id);
     executeGuardedAction(
       () => {
-        navigateToBuyPreview(
-          {
-            market,
-            outcome,
-            outcomeToken,
-            entryPoint: resolvedEntryPoint,
-          },
-          { throughRoot: true },
-        );
+        openBuySheet({
+          market,
+          outcome,
+          outcomeToken,
+          entryPoint: resolvedEntryPoint,
+        });
       },
       {
         attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
@@ -165,6 +168,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     <TouchableOpacity
       testID={testID}
       onPress={() => {
+        onCardPress?.();
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {

@@ -5,20 +5,18 @@
 ## Steps
 
 1. **Get changed files**
-
    - Run `git diff --name-only --diff-filter=ACMR` for all changes (staged + unstaged)
    - Filter for `.js`, `.jsx`, `.ts`, `.tsx` files
    - Display list
 
 2. **Find test files**
-
    - Check if file is already a test file (contains `.test.`)
    - For source files, find related tests: `{basename}.test.{ext}`
    - Exclude snapshots (`.snap`)
    - Collect unique test files
+   - **Flag any `toMatchSnapshot()` calls found** — these are banned; note them for migration to explicit assertions or `toMatchInlineSnapshot()`
 
 3. **Run tests**
-
    - Execute `yarn jest` with all found test files
    - Run without coverage
    - Capture results

@@ -11,6 +11,7 @@ import { useSendContext } from '../../context/send-context';
 import { useBalance } from './useBalance';
 import { useGasFeeEstimatesForSend } from './useGasFeeEstimatesForSend';
 import { useSendType } from './useSendType';
+import { useIsNetworkGasSponsored } from '../../../../UI/Bridge/hooks/useIsNetworkGasSponsored';
 
 export interface GasFeeEstimatesType {
   medium: {
@@ -42,6 +43,7 @@ export const getPercentageValueFn = ({
   layer1GasFee,
   percentage,
   rawBalanceBN,
+  isGasSponsored,
 }: {
   asset?: AssetType;
   gasFeeEstimates: GasFeeEstimatesType;
@@ -49,13 +51,14 @@ export const getPercentageValueFn = ({
   layer1GasFee: Hex;
   percentage: number;
   rawBalanceBN: BN;
+  isGasSponsored: boolean;
 }) => {
   if (!asset) {
     return '0';
   }
   let estimatedTotalGas = new BN('0');
 
-  if (isEvmNativeSendType) {
+  if (isEvmNativeSendType && !isGasSponsored) {
     estimatedTotalGas = getEstimatedTotalGas(gasFeeEstimates, layer1GasFee);
   }
 
@@ -78,6 +81,7 @@ export const usePercentageAmount = () => {
   const { isEvmNativeSendType, isNonEvmNativeSendType } = useSendType();
   const { rawBalanceBN } = useBalance();
   const { gasFeeEstimates } = useGasFeeEstimatesForSend();
+  const isGasSponsored = useIsNetworkGasSponsored(chainId);
 
   const { value: layer1GasFee } = useAsyncResult(async () => {
     if (!isEvmNativeSendType || asset?.chainId === CHAIN_IDS.MAINNET || !from) {
@@ -101,6 +105,7 @@ export const usePercentageAmount = () => {
         layer1GasFee: layer1GasFee ?? '0x0',
         percentage,
         rawBalanceBN,
+        isGasSponsored,
       });
     },
     [
@@ -110,6 +115,7 @@ export const usePercentageAmount = () => {
       isNonEvmNativeSendType,
       layer1GasFee,
       rawBalanceBN,
+      isGasSponsored,
     ],
   );
 

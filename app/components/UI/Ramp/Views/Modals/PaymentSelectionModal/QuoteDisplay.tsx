@@ -11,7 +11,7 @@ import {
   IconSize,
   IconColor,
 } from '@metamask/design-system-react-native';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../../../locales/i18n';
 
 const SKELETON_TOKEN_WIDTH = 80;

@@ -69,12 +69,12 @@ jobs:
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [testflight-upload-summary]
-    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
+    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe-xl
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Setup Ruby (iOS)
         uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1

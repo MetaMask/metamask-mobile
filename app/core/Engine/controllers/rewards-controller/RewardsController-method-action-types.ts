@@ -502,9 +502,38 @@ export type RewardsControllerGetOndoCampaignLeaderboardAction = {
 };
 
 /**
+ * Get campaign-wide total deposits.
+ * This is a public endpoint - no authentication required.
+ * Results are cached for 5 minutes.
+ *
+ * @param campaignId - The campaign ID to get deposits for.
+ * @returns The total USD deposited across all participants.
+ */
+export type RewardsControllerGetOndoCampaignDepositsAction = {
+  type: `RewardsController:getOndoCampaignDeposits`;
+  handler: RewardsController['getOndoCampaignDeposits'];
+};
+
+/**
+ * Fetch the participant outcome for the current user in a completed Perps Trading campaign.
+ * Results are cached for 10 minutes using a private in-memory Map.
+ *
+ * @param campaignId - The campaign ID.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns The participant outcome DTO, or null if unavailable.
+ */
+export type RewardsControllerGetPerpsTradingCampaignParticipantOutcomeAction = {
+  type: `RewardsController:getPerpsTradingCampaignParticipantOutcome`;
+  handler: RewardsController['getPerpsTradingCampaignParticipantOutcome'];
+};
+
+/**
  * Get the current user's position on the campaign leaderboard.
  * This is an authenticated endpoint.
- * Results are cached for 5 minutes.
+ * Always fetches fresh from the API so the user's rank stays in sync with
+ * their latest trades; the result is mirrored to
+ * `state.ondoCampaignLeaderboardPositions` so selectors can read the latest
+ * snapshot.
  *
  * @param campaignId - The campaign ID to get position for.
  * @param subscriptionId - The subscription ID for authentication.
@@ -515,12 +544,18 @@ export type RewardsControllerGetOndoCampaignLeaderboardPositionAction = {
   handler: RewardsController['getOndoCampaignLeaderboardPosition'];
 };
 
+export type RewardsControllerGetOndoCampaignParticipantOutcomeAction = {
+  type: `RewardsController:getOndoCampaignParticipantOutcome`;
+  handler: RewardsController['getOndoCampaignParticipantOutcome'];
+};
+
 /**
  * Get the current user's Ondo GM portfolio for a campaign.
  * This is an authenticated endpoint.
- * Results are cached for 5 minutes under
+ * Always fetches fresh from the API; the result is mirrored to
  * `state.ondoCampaignPortfolio[subscriptionId:campaignId]` as
- * {@link OndoGmPortfolioState}. Null API responses are not written to the cache.
+ * {@link OndoGmPortfolioState} so selectors can read the latest snapshot.
+ * Null API responses are not written to the cache.
  *
  * @param campaignId - The campaign ID to get portfolio for.
  * @param subscriptionId - The subscription ID for authentication.
@@ -529,6 +564,55 @@ export type RewardsControllerGetOndoCampaignLeaderboardPositionAction = {
 export type RewardsControllerGetOndoCampaignPortfolioPositionAction = {
   type: `RewardsController:getOndoCampaignPortfolioPosition`;
   handler: RewardsController['getOndoCampaignPortfolioPosition'];
+};
+
+/**
+ * Get paginated activity for an Ondo GM campaign.
+ * Always fetches fresh from the API; the first-page result is mirrored to
+ * `state.ondoCampaignActivity` so selectors can read the latest snapshot.
+ * Subsequent pages (cursor provided) are fetched directly without going
+ * through the cache. When `forceFresh` is true a last-updated check avoids
+ * redundant fetches if the server data hasn't changed.
+ *
+ * @param params - Campaign ID, subscription ID, pagination cursor, and optional forceFresh flag.
+ * @returns Paginated activity entries.
+ */
+export type RewardsControllerGetOndoCampaignActivityAction = {
+  type: `RewardsController:getOndoCampaignActivity`;
+  handler: RewardsController['getOndoCampaignActivity'];
+};
+
+/**
+ * Fetch the first page of activity only if the server data has changed
+ * since the last cached entry. Falls back to cached data when unchanged.
+ */
+export type RewardsControllerGetActivityIfChangedAction = {
+  type: `RewardsController:getActivityIfChanged`;
+  handler: RewardsController['getActivityIfChanged'];
+};
+
+/**
+ * Get the last-updated timestamp for Ondo GM campaign activity.
+ *
+ * @param campaignId - The campaign ID.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns The last-updated date, or null if no activity exists.
+ */
+export type RewardsControllerGetActivityLastUpdatedAction = {
+  type: `RewardsController:getActivityLastUpdated`;
+  handler: RewardsController['getActivityLastUpdated'];
+};
+
+/**
+ * Check if campaign activity has changed since the last fetch.
+ * Compares the server's last-updated timestamp against the most recent
+ * cached entry's timestamp.
+ *
+ * @returns true if fresh data should be fetched.
+ */
+export type RewardsControllerHasActivityChangedAction = {
+  type: `RewardsController:hasActivityChanged`;
+  handler: RewardsController['hasActivityChanged'];
 };
 
 /**
@@ -552,6 +636,31 @@ export type RewardsControllerClaimRewardAction = {
 export type RewardsControllerGetSeasonOneLineaRewardTokensAction = {
   type: `RewardsController:getSeasonOneLineaRewardTokens`;
   handler: RewardsController['getSeasonOneLineaRewardTokens'];
+};
+
+/**
+ * Get benefits details with caching
+ *
+ * @param subscriptionId - The subscription ID for authentication
+ * @param limit - The maximum number of items requested
+ * @returns Promise<SubscriptionBenefitsState> - The benefits data
+ */
+export type RewardsControllerGetBenefitsAction = {
+  type: `RewardsController:getBenefits`;
+  handler: RewardsController['getBenefits'];
+};
+
+/**
+ * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
+ *
+ * @param subscriptionId - The subscription ID for authentication
+ * @param benefitId - The specific benefit ID that was impressed
+ * @param benefitType - The type of the benefit that was impressed
+ * @returns Promise<SubscriptionBenefitsState> - The benefits data
+ */
+export type RewardsControllerPostBenefitImpressionAction = {
+  type: `RewardsController:postBenefitImpression`;
+  handler: RewardsController['postBenefitImpression'];
 };
 
 /**
@@ -613,6 +722,50 @@ export type RewardsControllerInvalidateSubscriptionCacheAction = {
 };
 
 /**
+ * Get the perps trading campaign leaderboard.
+ * This is a public endpoint - no authentication required.
+ * Results are cached for 5 minutes.
+ *
+ * @param campaignId - The campaign ID to get leaderboard for.
+ * @returns The leaderboard entries and metadata.
+ */
+export type RewardsControllerGetPerpsTradingCampaignLeaderboardAction = {
+  type: `RewardsController:getPerpsTradingCampaignLeaderboard`;
+  handler: RewardsController['getPerpsTradingCampaignLeaderboard'];
+};
+
+/**
+ * Get the current user's position on the perps trading campaign leaderboard.
+ * This is an authenticated endpoint.
+ * Always fetches fresh from the API so the user's rank stays in sync with
+ * their latest trades; the result is mirrored to
+ * `state.perpsTradingCampaignLeaderboardPositions` so selectors can read the
+ * latest snapshot.
+ *
+ * @param campaignId - The campaign ID to get position for.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns The user's leaderboard position, or null if not found.
+ */
+export type RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction =
+  {
+    type: `RewardsController:getPerpsTradingCampaignLeaderboardPosition`;
+    handler: RewardsController['getPerpsTradingCampaignLeaderboardPosition'];
+  };
+
+/**
+ * Get the perps trading campaign aggregate volume (public stats).
+ * This is a public endpoint - no authentication required.
+ * Results are cached for 1 minute.
+ *
+ * @param campaignId - The campaign ID to get volume for.
+ * @returns Current aggregate notional volume for the campaign.
+ */
+export type RewardsControllerGetPerpsTradingCampaignVolumeAction = {
+  type: `RewardsController:getPerpsTradingCampaignVolume`;
+  handler: RewardsController['getPerpsTradingCampaignVolume'];
+};
+
+/**
  * Union of all RewardsController action types.
  */
 export type RewardsControllerMethodActions =
@@ -665,12 +818,24 @@ export type RewardsControllerMethodActions =
   | RewardsControllerOptInToCampaignAction
   | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetOndoCampaignLeaderboardAction
+  | RewardsControllerGetOndoCampaignDepositsAction
+  | RewardsControllerGetPerpsTradingCampaignParticipantOutcomeAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
+  | RewardsControllerGetOndoCampaignParticipantOutcomeAction
   | RewardsControllerGetOndoCampaignPortfolioPositionAction
+  | RewardsControllerGetOndoCampaignActivityAction
+  | RewardsControllerGetActivityIfChangedAction
+  | RewardsControllerGetActivityLastUpdatedAction
+  | RewardsControllerHasActivityChangedAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
+  | RewardsControllerGetBenefitsAction
+  | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
   | RewardsControllerInvalidateReferralDetailsCacheAction
-  | RewardsControllerInvalidateSubscriptionCacheAction;
+  | RewardsControllerInvalidateSubscriptionCacheAction
+  | RewardsControllerGetPerpsTradingCampaignLeaderboardAction
+  | RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction
+  | RewardsControllerGetPerpsTradingCampaignVolumeAction;

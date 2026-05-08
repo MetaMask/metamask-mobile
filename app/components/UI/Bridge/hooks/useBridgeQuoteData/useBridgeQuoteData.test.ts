@@ -16,10 +16,11 @@ import {
 import AppConstants from '../../../../../core/AppConstants';
 import { useBridgeQuoteData } from '.';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import { BigNumber } from 'ethers';
 import { SolScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 
 jest.mock('../../utils/quoteUtils', () => ({
   isQuoteExpired: jest.fn(),
@@ -135,6 +136,7 @@ describe('useBridgeQuoteData', () => {
         estimatedTime: '5 seconds',
         rate: '1 ETH = 0.0000000000000000571 USDC',
         priceImpact: '-0.20%',
+        priceImpactFiat: undefined,
         slippage: '0.5%',
       },
       isLoading: false,
@@ -147,6 +149,7 @@ describe('useBridgeQuoteData', () => {
       blockaidError: null,
       quotesLoadingStatus: null,
       validQuotes: [],
+      isActiveQuoteForCurrentTokenPair: true,
     });
   });
 
@@ -304,6 +307,7 @@ describe('useBridgeQuoteData', () => {
       shouldShowPriceImpactWarning: false,
       quotesLoadingStatus: RequestStatus.FETCHED,
       validQuotes: [],
+      isActiveQuoteForCurrentTokenPair: false,
     });
   });
 
@@ -392,6 +396,70 @@ describe('useBridgeQuoteData', () => {
     expect(result.current.destTokenAmount).toBeUndefined();
   });
 
+  it('isActiveQuoteForCurrentTokenPair is false when stale quote dest does not match selected destToken', () => {
+    // Regression guard: after changing the destination token, the bridge controller
+    // keeps the old quote in state until the first new quote arrives. The confirm
+    // button must stay disabled during this window.
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuoteWithMetadata, // quote is for Solana USDC
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotesLoadingStatus: RequestStatus.LOADING,
+        quoteFetchError: null,
+      },
+      bridgeReducerOverrides: {
+        destToken: {
+          symbol: 'ETH',
+          chainId: CHAIN_IDS.MAINNET,
+          address: '0x0000000000000000000000000000000000000000',
+          decimals: 18,
+        },
+      },
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+    expect(result.current.isActiveQuoteForCurrentTokenPair).toBe(false);
+  });
+
+  it('isActiveQuoteForCurrentTokenPair is true when active quote matches both selected tokens', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuoteWithMetadata,
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+      },
+      bridgeReducerOverrides: {
+        destToken: {
+          symbol: 'USDC',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          decimals: 6,
+        },
+      },
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+    expect(result.current.isActiveQuoteForCurrentTokenPair).toBe(true);
+  });
+
   it('handles expired quotes correctly', () => {
     // Set up mock for this specific test
     (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
@@ -426,6 +494,7 @@ describe('useBridgeQuoteData', () => {
         estimatedTime: '5 seconds',
         networkFee: '-',
         priceImpact: '-0.20%',
+        priceImpactFiat: undefined,
         rate: '--',
         slippage: '0.5%',
       },
@@ -439,6 +508,7 @@ describe('useBridgeQuoteData', () => {
       blockaidError: null,
       quotesLoadingStatus: null,
       validQuotes: [],
+      isActiveQuoteForCurrentTokenPair: false,
     });
   });
 
@@ -476,6 +546,7 @@ describe('useBridgeQuoteData', () => {
       blockaidError: null,
       quotesLoadingStatus: RequestStatus.LOADING,
       validQuotes: [],
+      isActiveQuoteForCurrentTokenPair: false,
     });
   });
 
@@ -514,6 +585,7 @@ describe('useBridgeQuoteData', () => {
       blockaidError: null,
       quotesLoadingStatus: null,
       validQuotes: [],
+      isActiveQuoteForCurrentTokenPair: false,
     });
   });
 
@@ -950,6 +1022,82 @@ describe('useBridgeQuoteData', () => {
     await waitFor(() => {
       expect(result.current.blockaidError).toBe(null);
     });
+  });
+
+  it('retries validation for the same requestId after validation throws', async () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(jest.fn());
+    const requestId = 'same-request-id';
+    const firstMockQuote = {
+      ...mockQuoteWithMetadata,
+      quote: {
+        ...mockQuoteWithMetadata.quote,
+        requestId,
+      },
+    };
+    const secondMockQuote = {
+      ...mockQuoteWithMetadata,
+      quote: {
+        ...mockQuoteWithMetadata.quote,
+        requestId,
+      },
+    };
+    let recommendedQuote = firstMockQuote;
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote,
+      alternativeQuotes: [],
+    }));
+
+    mockValidateBridgeTx
+      .mockRejectedValueOnce(new Error('Network timeout'))
+      .mockResolvedValueOnce({ status: 'SUCCESS' });
+
+    const bridgeReducerOverrides = {
+      sourceToken: {
+        symbol: 'SOL',
+        chainId: SolScope.Mainnet,
+        address: '11111111111111111111111111111112',
+        decimals: 9,
+      },
+      destToken: {
+        symbol: 'USDC',
+        chainId: SolScope.Mainnet,
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        decimals: 6,
+      },
+    };
+
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides,
+    });
+
+    const { store } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    await waitFor(() => {
+      expect(mockValidateBridgeTx).toHaveBeenCalledTimes(1);
+    });
+    await waitFor(() => {
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Swaps Quote Data Validation error:',
+        expect.any(Error),
+      );
+    });
+
+    recommendedQuote = secondMockQuote;
+    act(() => {
+      store.dispatch(setSourceAmount('2'));
+    });
+
+    await waitFor(() => {
+      expect(mockValidateBridgeTx).toHaveBeenCalledTimes(2);
+    });
+
+    consoleErrorSpy.mockRestore();
   });
 
   // Test validQuotes filtering

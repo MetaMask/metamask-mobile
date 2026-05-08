@@ -18,6 +18,11 @@ import {
   predictPriceHistoryKeys,
   predictPriceHistoryOptions,
 } from './priceHistory';
+import { predictSeriesKeys, predictSeriesOptions } from './series';
+import {
+  predictCryptoTargetPriceKeys,
+  predictCryptoTargetPriceOptions,
+} from './cryptoTargetPrice';
 import {
   predictUnrealizedPnLKeys,
   predictUnrealizedPnLOptions,
@@ -35,6 +40,10 @@ export const predictQueries = {
   balance: {
     keys: predictBalanceKeys,
     options: predictBalanceOptions,
+  },
+  cryptoTargetPrice: {
+    keys: predictCryptoTargetPriceKeys,
+    options: predictCryptoTargetPriceOptions,
   },
   featuredCarousel: {
     keys: predictFeaturedCarouselKeys,
@@ -55,6 +64,10 @@ export const predictQueries = {
   priceHistory: {
     keys: predictPriceHistoryKeys,
     options: predictPriceHistoryOptions,
+  },
+  series: {
+    keys: predictSeriesKeys,
+    options: predictSeriesOptions,
   },
   unrealizedPnL: {
     keys: predictUnrealizedPnLKeys,

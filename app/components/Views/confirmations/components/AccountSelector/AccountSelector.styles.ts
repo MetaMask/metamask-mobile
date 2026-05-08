@@ -6,38 +6,31 @@ const stylesheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     container: {
-      alignItems: 'center',
-      marginTop: 8,
-    },
-    modalContainer: {
-      flex: 1,
-      backgroundColor: theme.colors.background.default,
-    },
-    modalHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 16,
       paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border.muted,
+      paddingHorizontal: 8,
     },
-    selector: {
+    row: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      gap: 10,
       alignItems: 'center',
-      backgroundColor: theme.colors.background.muted,
-      borderRadius: 12,
-      padding: 8,
-      alignSelf: 'center',
+      justifyContent: 'space-between',
+    },
+    valueContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
       flexShrink: 1,
+    },
+    /** Full-screen wrapper for transparent Modal so BottomSheet can fill the window. */
+    modalRoot: {
+      flex: 1,
+    },
+    /** Lets the account list consume remaining height under HeaderCompactStandard inside BottomSheet. */
+    modalSheetBody: {
+      flex: 1,
+      minHeight: 0,
     },
     accountText: {
       flexShrink: 1,
-    },
-    placeholderText: {
-      color: theme.colors.text.alternative,
     },
   });
 };

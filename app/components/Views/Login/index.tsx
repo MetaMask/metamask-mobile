@@ -7,13 +7,13 @@ import React, {
 } from 'react';
 import {
   Alert,
-  SafeAreaView,
   BackHandler,
   TouchableOpacity,
   Platform,
   Image,
-  StatusBar,
+  TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -64,7 +64,6 @@ import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
 import {
-  DENY_PIN_ERROR_ANDROID,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
   VAULT_ERROR,
   PASSCODE_NOT_SET_ERROR,
@@ -72,7 +71,6 @@ import {
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
 } from './constants';
-import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import {
   RouteProp,
   StackActions,
@@ -88,6 +86,7 @@ import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import useAuthCapabilities from '../../../core/Authentication/hooks/useAuthCapabilities';
+import { isBiometricUnlockCancelledByUser } from '../../../core/Authentication/utils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 interface LoginRouteParams {
@@ -102,7 +101,7 @@ interface LoginProps {
  * View where returning users can authenticate
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
-  const fieldRef = useRef<React.ElementRef<typeof TextField> | null>(null);
+  const fieldRef = useRef<TextInput | null>(null);
 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -135,12 +134,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       op: TraceOperation.Login,
     });
     trackOnboarding(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, saveOnboardingEvent);
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
 
     setStartFoxAnimation('Start');
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+      backHandlerSubscription.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -226,11 +228,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       }
 
       const isBiometricCancellation =
-        containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
-        containsErrorMessage(
-          loginError,
-          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
-        );
+        isBiometricUnlockCancelledByUser(loginError);
 
       if (isBiometricCancellation) {
         setLoading(false);
@@ -392,14 +390,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   return (
     <ErrorBoundary navigation={navigation} view="Login">
-      <SafeAreaView
-        style={[
-          tw.style('flex-1'),
-          Platform.OS === 'android' && {
-            paddingTop: StatusBar.currentHeight ?? 0,
-          },
-        ]}
-      >
+      <SafeAreaView style={tw.style('flex-1')}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           style={tw.style('flex-1')}
@@ -434,15 +425,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             >
               <TextField
                 placeholder={strings('login.password_placeholder')}
-                testID={LoginViewSelectors.PASSWORD_INPUT}
-                accessibilityLabel={LoginViewSelectors.PASSWORD_INPUT}
-                returnKeyType={'done'}
-                autoCapitalize="none"
-                secureTextEntry
-                ref={fieldRef}
+                inputRef={fieldRef}
                 onChangeText={handlePasswordChange}
                 value={password}
-                onSubmitEditing={unlockWithPassword}
                 endAccessory={
                   capabilities ? (
                     <DeviceAuthenticationButton
@@ -453,9 +438,17 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                     />
                   ) : null
                 }
-                keyboardAppearance={themeAppearance}
                 isError={!!error}
                 isDisabled={loading}
+                inputProps={{
+                  testID: LoginViewSelectors.PASSWORD_INPUT,
+                  accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
+                  returnKeyType: 'done',
+                  autoCapitalize: 'none',
+                  secureTextEntry: true,
+                  onSubmitEditing: unlockWithPassword,
+                  keyboardAppearance: themeAppearance,
+                }}
               />
             </Box>
 

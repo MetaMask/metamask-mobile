@@ -1,5 +1,11 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { Modal, SafeAreaView, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  Modal,
+  StyleProp,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
@@ -9,14 +15,21 @@ import Avatar, {
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
+import {
+  BottomSheet,
+  BottomSheetRef,
+  Skeleton,
+  Text,
+  TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList';
 import { AccountSection } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
@@ -30,20 +43,31 @@ import stylesheet from './AccountSelector.styles';
 export const ACCOUNT_SELECTOR_TEST_IDS = {
   PILL: 'account-selector-pill',
   MODAL: 'account-selector-modal',
+  /** Used when `BottomSheet` is mocked in unit tests (production sheet has no wrapper testID). */
+  BOTTOM_SHEET: 'account-selector-bottom-sheet',
 };
 
 export interface AccountSelectorProps {
   selectedAddress?: string;
   onAccountSelected: (address: string) => void;
+  /** Label shown on the left side of the row. Defaults to the "To" i18n string. */
+  label?: string;
+  /** Title in the account selection bottom sheet (header). */
+  selectorTitle?: string;
+  style?: StyleProp<ViewStyle>;
 }
 
 const AccountSelector: React.FC<AccountSelectorProps> = ({
   selectedAddress,
   onAccountSelected,
+  label = strings('confirm.label.to'),
+  selectorTitle = strings('bridge.select_recipient'),
+  style,
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  const { styles, theme } = useStyles(stylesheet, {});
+  const { styles } = useStyles(stylesheet, {});
 
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
@@ -56,6 +80,20 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
     [internalAccountsById],
   );
 
+  const openModal = useCallback(() => setIsModalVisible(true), []);
+
+  const closeAccountSheet = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleSheetClosed = useCallback(() => {
+    setIsModalVisible(false);
+  }, []);
+
+  const handleModalRequestClose = useCallback(() => {
+    closeAccountSheet();
+  }, [closeAccountSheet]);
+
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
       const internalAccountId = accountGroup.accounts.find((accountId) =>
@@ -64,10 +102,15 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       if (internalAccountId) {
         const internalAccount = internalAccountsById[internalAccountId];
         onAccountSelected(internalAccount.address);
-        setIsModalVisible(false);
+        closeAccountSheet();
       }
     },
-    [getIsAccountSupported, internalAccountsById, onAccountSelected],
+    [
+      closeAccountSheet,
+      getIsAccountSupported,
+      internalAccountsById,
+      onAccountSelected,
+    ],
   );
 
   const filteredAccountSections = useMemo(() => {
@@ -108,84 +151,101 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 
   const accountName = selectedAccountGroup?.metadata?.name;
 
-  const openModal = useCallback(() => setIsModalVisible(true), []);
-  const closeModal = useCallback(() => setIsModalVisible(false), []);
-
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <TouchableOpacity
         onPress={openModal}
-        style={styles.selector}
+        style={styles.row}
         testID={ACCOUNT_SELECTOR_TEST_IDS.PILL}
       >
-        {selectedAddress && accountName ? (
-          <>
-            <Avatar
-              variant={AvatarVariant.Account}
-              type={accountAvatarType}
-              accountAddress={selectedAddress}
-              size={AvatarSize.Sm}
-            />
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {label}
+        </Text>
+        <View style={styles.valueContainer}>
+          {selectedAddress && accountName ? (
+            <>
+              <Avatar
+                variant={AvatarVariant.Account}
+                type={accountAvatarType}
+                accountAddress={selectedAddress}
+                size={AvatarSize.Sm}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                numberOfLines={1}
+                ellipsizeMode="middle"
+                twClassName="shrink"
+              >
+                {accountName}
+              </Text>
+            </>
+          ) : (
             <Text
-              variant={TextVariant.BodyMD}
-              numberOfLines={1}
-              ellipsizeMode="middle"
-              style={styles.accountText}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
             >
-              {accountName}
-            </Text>
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={theme.colors.icon.alternative}
-            />
-          </>
-        ) : (
-          <>
-            <Text variant={TextVariant.BodyMD} style={styles.placeholderText}>
               {strings('transaction.recipient_address')}
             </Text>
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={theme.colors.icon.alternative}
-            />
-          </>
-        )}
+          )}
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Sm}
+            color={IconColor.Alternative}
+          />
+        </View>
       </TouchableOpacity>
       <Modal
         visible={isModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={closeModal}
+        animationType="none"
+        transparent
+        presentationStyle="overFullScreen"
+        onRequestClose={handleModalRequestClose}
         testID={ACCOUNT_SELECTOR_TEST_IDS.MODAL}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text variant={TextVariant.HeadingMD}>
-              {strings('bridge.select_recipient')}
-            </Text>
-            <TouchableOpacity onPress={closeModal}>
-              <Icon
-                name={IconName.Close}
-                size={IconSize.Md}
-                color={theme.colors.icon.default}
+        <View style={styles.modalRoot}>
+          <BottomSheet
+            testID={ACCOUNT_SELECTOR_TEST_IDS.BOTTOM_SHEET}
+            ref={bottomSheetRef}
+            isFullscreen
+            keyboardAvoidingViewEnabled={false}
+            onClose={handleSheetClosed}
+          >
+            <HeaderCompactStandard
+              title={selectorTitle}
+              onClose={() => closeAccountSheet()}
+            />
+            <View style={styles.modalSheetBody}>
+              <MultichainAccountSelectorList
+                selectedAccountGroups={
+                  selectedAccountGroup ? [selectedAccountGroup] : []
+                }
+                showFooter={false}
+                onSelectAccount={handleSelectAccount}
+                accountSections={filteredAccountSections}
+                hideAccountCellMenu
               />
-            </TouchableOpacity>
-          </View>
-          <MultichainAccountSelectorList
-            selectedAccountGroups={
-              selectedAccountGroup ? [selectedAccountGroup] : []
-            }
-            showFooter={false}
-            onSelectAccount={handleSelectAccount}
-            accountSections={filteredAccountSections}
-            hideAccountCellMenu
-          />
-        </SafeAreaView>
+            </View>
+          </BottomSheet>
+        </View>
       </Modal>
     </View>
   );
 };
+
+export function AccountSelectorSkeleton() {
+  const { styles } = useStyles(stylesheet, {});
+
+  return (
+    <View style={styles.container} testID="account-selector-skeleton">
+      <View style={styles.row}>
+        <Skeleton height={18} width={60} />
+        <View style={styles.valueContainer}>
+          <Skeleton height={32} width={32} twClassName="rounded-full" />
+          <Skeleton height={18} width={120} />
+        </View>
+      </View>
+    </View>
+  );
+}
 
 export default AccountSelector;

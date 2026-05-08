@@ -29,6 +29,7 @@ const useStableReference = <T>(value: T) => {
  * @param sortBy - Sort option for trending tokens
  * @param chainIds - Chain IDs to filter by
  * @param enableDebounce - Whether to debounce (default: true)
+ * @param includeStocks - When true, items with rwaData are included in results (default: false)
  * @returns Trending/search results, loading state, and refetch function
  */
 export const useTrendingSearch = (opts?: {
@@ -37,6 +38,7 @@ export const useTrendingSearch = (opts?: {
   chainIds?: CaipChainId[] | null;
   enableDebounce?: boolean;
   includeMarketData?: boolean;
+  includeStocks?: boolean;
   sortTrendingTokensOptions?: {
     option: PriceChangeOption;
     direction: SortDirection;
@@ -48,6 +50,7 @@ export const useTrendingSearch = (opts?: {
     chainIds,
     enableDebounce = true,
     includeMarketData = true,
+    includeStocks = false,
     sortTrendingTokensOptions = {
       option: PriceChangeOption.PriceChange,
       direction: SortDirection.Descending,
@@ -105,7 +108,7 @@ export const useTrendingSearch = (opts?: {
     );
 
     searchResults
-      .filter((item) => !item.rwaData)
+      .filter((item) => includeStocks || !item.rwaData)
       .forEach((asset) => {
         if (!resultMap.has(asset.assetId)) {
           resultMap.set(asset.assetId, {
@@ -133,6 +136,7 @@ export const useTrendingSearch = (opts?: {
     trendingResults,
     searchResults,
     sortTrendingTokensOptions,
+    includeStocks,
   ]);
 
   // Loading state: show loading while waiting for results

@@ -4,7 +4,8 @@ import {
   type CampaignDto,
   type CampaignStatus,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
+import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 
 /**
  * Set of campaign types that have full UI support (details view, opt-in, etc.)
@@ -12,6 +13,7 @@ import { strings } from '../../../../../../locales/i18n';
 const SUPPORTED_CAMPAIGN_TYPES = new Set<CampaignType>([
   CampaignType.ONDO_HOLDING,
   CampaignType.SEASON_1,
+  CampaignType.PERPS_TRADING,
 ]);
 
 /**
@@ -53,59 +55,17 @@ export function getCampaignStatus(campaign: CampaignDto): CampaignStatus {
 }
 
 /**
- * Whether the user may still opt in to the campaign.
- * Opt-in is only possible while {@link getCampaignStatus} returns `'active'` (between
- * `startDate` and `endDate`). For {@link CampaignType.ONDO_HOLDING}, opt-in also closes after
- * `details.depositCutoffDate` (ISO 8601) when that date is present and valid.
- *
- * @param campaign - Campaign data from the API
- * @returns `true` if opt-in is allowed; `false` if the campaign is not active or the deposit cutoff has passed
- */
-export function isOptinAllowed(campaign: CampaignDto): boolean {
-  if (getCampaignStatus(campaign) !== 'active') {
-    return false;
-  }
-
-  if (campaign.type !== CampaignType.ONDO_HOLDING) {
-    return true;
-  }
-
-  const cutoff = campaign.details?.depositCutoffDate;
-  if (!cutoff) {
-    return true;
-  }
-
-  const cutoffMs = new Date(cutoff).getTime();
-
-  return Date.now() <= cutoffMs;
-}
-
-const MONTHS = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
-
-/**
- * Formats a date for display in campaign tiles.
+ * Formats a date for display in campaign tiles (localized month and day).
  *
  * @param date - The date to format
- * @returns Formatted date string (e.g., "March 15")
+ * @param locale - BCP 47 locale; defaults to the app locale
+ * @returns Formatted date string (e.g., "March 15" in en-US)
  */
-function formatCampaignDate(date: Date): string {
-  const month = MONTHS[date.getMonth()];
-  const day = date.getDate();
-
-  return `${month} ${day}`;
+function formatCampaignDate(date: Date, locale: string = I18n.locale): string {
+  return getIntlDateTimeFormatter(locale, {
+    month: 'long',
+    day: 'numeric',
+  }).format(date);
 }
 
 /**

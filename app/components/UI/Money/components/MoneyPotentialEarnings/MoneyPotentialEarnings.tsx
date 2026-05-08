@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
+import { BigNumber } from 'bignumber.js';
+import { useSelector } from 'react-redux';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -14,164 +14,142 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
-import { Hex } from '@metamask/utils';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
+import {
+  STABLECOIN_SYMBOLS,
+  tokenFiatValue,
+} from '../../../Earn/hooks/useMusdConversionTokens';
 import { AssetType } from '../../../../Views/confirmations/types/token';
+import { isPositiveNumber } from '../../utils/number';
+import MoneyGradientText from './MoneyGradientText';
+import PotentialEarningsTokenRow from './PotentialEarningsTokenRow';
+import {
+  calculateProjectedEarnings,
+  PROJECTION_YEARS,
+} from '../../utils/projections';
+
+/** Number of years the projected earnings are simulated over. */
+const MAX_TOKENS = 5;
+
+/**
+ * True when the token list contains at least one token with a positive fiat
+ * balance — the same criterion MoneyPotentialEarnings uses before rendering.
+ * Exported so parents can gate surrounding chrome (e.g. Dividers) without
+ * drifting from the component's internal filter.
+ */
+export const hasConvertibleTokensWithBalance = (tokens: AssetType[]) =>
+  tokens.some((token) => tokenFiatValue(token) > 0);
 
 interface MoneyPotentialEarningsProps {
   tokens: AssetType[];
-  onTokenAddPress?: (tokenName: string) => void;
-  onSeeEarningsPress?: () => void;
+  /**
+   * APY expressed as a percentage (e.g. 3 for 3%) used together with
+   * {@link PROJECTION_YEARS} to compute the projected earnings displayed
+   * alongside each token and in the gradient headline.
+   */
+  apy: number | undefined;
+  onTokenPress?: (token: AssetType) => void;
+  onViewAllPress?: () => void;
   onHeaderPress?: () => void;
 }
 
-const TokenRow = ({
-  token,
-  hasSubsidizedFee,
-  onAddPress,
-}: {
-  token: AssetType;
-  // Temp prop: We will track if tokens have subsidized fees in useMusdConversionTokens hook. This is here purely for display purposes.
-  hasSubsidizedFee: boolean;
-  onAddPress: () => void;
-}) => {
-  const networkBadgeSource = useMemo(
-    () => (token.chainId ? NetworkBadgeSource(token.chainId as Hex) : null),
-    [token.chainId],
-  );
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="px-4 py-3 gap-4"
-    >
-      <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          networkBadgeSource && (
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={networkBadgeSource}
-            />
-          )
-        }
-      >
-        <AssetLogo asset={token} />
-      </BadgeWrapper>
-
-      <Box twClassName="flex-1">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
-        >
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {token.name}
-          </Text>
-          {hasSubsidizedFee && (
-            <Box twClassName="rounded bg-muted px-1.5">
-              <Text
-                variant={TextVariant.BodyXs}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {strings('money.potential_earnings.no_fee')}
-              </Text>
-            </Box>
-          )}
-        </Box>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-        >
-          {token.balanceInSelectedCurrency}
-        </Text>
-      </Box>
-
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Md}
-        onPress={onAddPress}
-      >
-        {strings('money.potential_earnings.convert')}
-      </Button>
-    </Box>
-  );
-};
-
-// Should only render if the user has at least one eligible conversion token.
 const MoneyPotentialEarnings = ({
   tokens,
-  onTokenAddPress = () => undefined,
-  onSeeEarningsPress = () => undefined,
+  apy,
+  onTokenPress,
+  onViewAllPress,
   onHeaderPress,
 }: MoneyPotentialEarningsProps) => {
-  const handleTokenAdd = useCallback(
-    (tokenName: string) => () => onTokenAddPress(tokenName),
-    [onTokenAddPress],
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const apyPercent = apy ?? 0;
+
+  // Tokens arrive pre-sorted (stablecoins first, then fiat desc) from
+  // useMusdConversionTokens; strip zero-balance entries defensively — the
+  // feature flag threshold may be set to 0 in some environments.
+  const eligibleTokens = useMemo(
+    () => tokens.filter((token) => tokenFiatValue(token) > 0),
+    [tokens],
+  );
+  const visibleTokens = useMemo(
+    () => eligibleTokens.slice(0, MAX_TOKENS),
+    [eligibleTokens],
   );
 
-  if (!tokens || tokens.length === 0) {
+  // Sum across every eligible token (not just the five we render). The "View
+  // all" affordance tells users there are more rows than shown, so the
+  // gradient headline is intentionally the full projection — clipping the
+  // headline to the visible five would contradict that affordance.
+  const projectedAmount = useMemo(
+    () =>
+      eligibleTokens.reduce(
+        (sum, token) =>
+          sum +
+          calculateProjectedEarnings(
+            tokenFiatValue(token),
+            apyPercent,
+            PROJECTION_YEARS,
+          ),
+        0,
+      ),
+    [eligibleTokens, apyPercent],
+  );
+
+  const handleTokenPress = useCallback(
+    (token: AssetType) => () => onTokenPress?.(token),
+    [onTokenPress],
+  );
+
+  if (!visibleTokens.length) {
     return null;
   }
 
   return (
     <Box testID={MoneyPotentialEarningsTestIds.CONTAINER}>
-      <Box twClassName="px-4 py-3">
+      <Box twClassName="px-4 py-3 gap-3">
         <MoneySectionHeader
           title={strings('money.potential_earnings.title')}
           onPress={onHeaderPress}
         />
 
-        <Text
-          variant={TextVariant.SectionHeading}
-          color={TextColor.SuccessDefault}
-          twClassName="mt-3"
-          testID={MoneyPotentialEarningsTestIds.AMOUNT}
-        >
-          {strings('money.potential_earnings.amount')}
-        </Text>
+        {isPositiveNumber(projectedAmount) && (
+          <MoneyGradientText
+            value={`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
+          />
+        )}
 
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
           color={TextColor.TextAlternative}
-          twClassName="mt-2"
         >
           {strings('money.potential_earnings.description')}
         </Text>
       </Box>
 
-      {/* Show max of 5 tokens */}
-      {tokens.slice(0, 5).map((token) => (
-        <TokenRow
-          key={`${token.address}-${token.chainId}`}
-          token={token}
-          onAddPress={handleTokenAdd(token.name)}
-          // Temp: hardcoding true to show the "No fee" tag.
-          hasSubsidizedFee
-        />
-      ))}
+      <>
+        {visibleTokens.map((token) => (
+          <PotentialEarningsTokenRow
+            key={`${token.address}-${token.chainId}`}
+            token={token}
+            hasSubsidizedFee={STABLECOIN_SYMBOLS.has(token.symbol)}
+            apyPercent={apyPercent}
+            onPress={handleTokenPress(token)}
+          />
+        ))}
 
-      <Box twClassName="px-4 py-3">
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={onSeeEarningsPress}
-          testID={MoneyPotentialEarningsTestIds.SEE_EARNINGS_BUTTON}
-        >
-          {strings('money.potential_earnings.see_earnings')}
-        </Button>
-      </Box>
+        <Box twClassName="px-4 py-3">
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={onViewAllPress}
+            testID={MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON}
+          >
+            {strings('money.potential_earnings.view_all')}
+          </Button>
+        </Box>
+      </>
     </Box>
   );
 };

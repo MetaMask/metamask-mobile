@@ -1,3 +1,4 @@
+import { encapsulatedAction } from '../../framework';
 import {
   encapsulated,
   EncapsulatedElementType,
@@ -16,7 +17,11 @@ class AndroidScreenHelpers {
   }
 
   async tapOpenDeeplinkWithMetaMask(): Promise<void> {
-    await UnifiedGestures.tap(this.openDeeplinkWithMetaMask);
+    await encapsulatedAction({
+      appium: async () => {
+        await UnifiedGestures.waitAndTap(this.openDeeplinkWithMetaMask);
+      },
+    });
   }
 }
 

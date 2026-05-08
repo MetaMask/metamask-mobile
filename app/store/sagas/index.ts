@@ -35,6 +35,8 @@ import Authentication from '../../core/Authentication';
 import { AppState, AppStateStatus } from 'react-native';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { providerErrors } from '@metamask/rpc-errors';
+import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
+import { promptIosGoogleWarningSheetSaga } from './onboarding/legacyIosGoogleReminder';
 
 /**
  * Creates a channel to listen to app state changes.
@@ -270,7 +272,7 @@ export function* handleDeeplinkSaga() {
   }
 }
 
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 /**
  * Handles updating the Snaps registry when the user has booted the app and is onboarded
  */
@@ -342,7 +344,13 @@ export function* rootSaga() {
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);
   yield fork(rewardsBulkLinkSaga);
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+
+  // Send one-time analytics backfill for migrated social login users after
+  // persisted state has been rehydrated and app services are available.
+  yield fork(backfillSocialLoginMarketingConsentSaga);
+
+  yield fork(promptIosGoogleWarningSheetSaga);
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   yield fork(handleSnapsRegistry);
   ///: END:ONLY_INCLUDE_IF
 }
