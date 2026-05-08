@@ -83,10 +83,10 @@ abstract class StreamChannel<T> {
   protected accountAddress: string | null = null;
   // Track WebSocket connection timing for first data measurement
   protected wsConnectionStartTime: number | null = null;
-  // Reference count for pause requests. Emission is blocked whenever > 0,
-  // allowing independent callers (tab visibility, controller operations) to
-  // pause/resume without clobbering each other.
-  protected pauseCount = 0;
+  // Named pause holders. Emission is blocked whenever the set is non-empty,
+  // allowing independent callers (e.g. 'tab-layer', 'controller') to
+  // pause/resume without clobbering each other's hold.
+  protected pauseHolders = new Set<string>();
   // Retry counter for deferred connect() calls
   protected connectRetryCount = 0;
   // Timer handle for deferConnect so it can be cancelled on disconnect
@@ -95,7 +95,7 @@ abstract class StreamChannel<T> {
 
   protected notifySubscribers(updates: T) {
     // Block emission while any pause is held (WebSocket continues receiving updates)
-    if (this.pauseCount > 0) {
+    if (this.pauseHolders.size > 0) {
       return;
     }
 
@@ -311,21 +311,21 @@ abstract class StreamChannel<T> {
   }
 
   /**
-   * Pause emission of updates to subscribers
-   * WebSocket connection stays alive and continues receiving data
-   * Used during batch operations to prevent UI re-renders from stale data
+   * Pause emission of updates to subscribers under a named key.
+   * WebSocket connection stays alive and continues receiving data.
+   * Emission is blocked until every unique key that called pause() has
+   * called resume() — callers cannot release each other's hold.
    */
-  public pause(): void {
-    this.pauseCount += 1;
+  public pause(key: string): void {
+    this.pauseHolders.add(key);
   }
 
   /**
-   * Resume emission of updates to subscribers.
-   * Each pause() call must be matched by exactly one resume(). Emission
-   * resumes only when all callers have released their pause.
+   * Release a named pause hold. Emission resumes only once all holders
+   * have released. Calling resume() with a key that is not held is a no-op.
    */
-  public resume(): void {
-    this.pauseCount = Math.max(0, this.pauseCount - 1);
+  public resume(key: string): void {
+    this.pauseHolders.delete(key);
   }
 
   protected getCachedData(): T | null {
@@ -1742,30 +1742,30 @@ export class PerpsStreamManager {
    * keeping WebSocket subscriptions alive and cache warm. Call when the Perps
    * UI is not visible to avoid unnecessary processing.
    */
-  public pauseAllChannels(): void {
-    this.prices.pause();
-    this.orders.pause();
-    this.positions.pause();
-    this.fills.pause();
-    this.account.pause();
-    this.oiCaps.pause();
-    this.topOfBook.pause();
-    this.candles.pause();
+  public pauseAllChannels(key: string): void {
+    this.prices.pause(key);
+    this.orders.pause(key);
+    this.positions.pause(key);
+    this.fills.pause(key);
+    this.account.pause(key);
+    this.oiCaps.pause(key);
+    this.topOfBook.pause(key);
+    this.candles.pause(key);
   }
 
   /**
    * Resume all stream channels after a pause. Subscribers will receive the
    * next update pushed by the WebSocket.
    */
-  public resumeAllChannels(): void {
-    this.prices.resume();
-    this.orders.resume();
-    this.positions.resume();
-    this.fills.resume();
-    this.account.resume();
-    this.oiCaps.resume();
-    this.topOfBook.resume();
-    this.candles.resume();
+  public resumeAllChannels(key: string): void {
+    this.prices.resume(key);
+    this.orders.resume(key);
+    this.positions.resume(key);
+    this.fills.resume(key);
+    this.account.resume(key);
+    this.oiCaps.resume(key);
+    this.topOfBook.resume(key);
+    this.candles.resume(key);
   }
 
   /**
@@ -1828,10 +1828,17 @@ export const usePerpsStream = () => {
   return context;
 };
 
+// Well-known keys for named pause ownership. Each independent caller uses its
+// own key so releasing one hold never unblocks another caller's pause.
+export const PerpsStreamPauseKey = {
+  TAB_LAYER: 'tab-layer',
+  CONTROLLER: 'controller',
+} as const;
+
 // Type that only includes channel properties (excludes methods like clearAllChannels)
 export type PerpsStreamChannelKey = {
   [K in keyof PerpsStreamManager]: PerpsStreamManager[K] extends {
-    pause(): void;
+    pause(key: string): void;
   }
     ? K
     : never;

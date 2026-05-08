@@ -29,7 +29,7 @@ abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
   protected subscribers = new Map<string, StreamSubscription<T>>();
   protected wsSubscriptions = new Map<string, () => void>();
-  protected isPaused = false;
+  protected pauseHolders = new Set<string>();
   readonly #onDataPersist?: () => void;
 
   constructor(onDataPersist?: () => void) {
@@ -41,7 +41,7 @@ abstract class StreamChannel<T> {
   }
 
   protected notifySubscribers(cacheKey: string, updates: T) {
-    if (this.isPaused) {
+    if (this.pauseHolders.size > 0) {
       return;
     }
 
@@ -80,12 +80,12 @@ abstract class StreamChannel<T> {
     });
   }
 
-  public pause(): void {
-    this.isPaused = true;
+  public pause(key: string): void {
+    this.pauseHolders.add(key);
   }
 
-  public resume(): void {
-    this.isPaused = false;
+  public resume(key: string): void {
+    this.pauseHolders.delete(key);
   }
 
   public clearCache(): void {

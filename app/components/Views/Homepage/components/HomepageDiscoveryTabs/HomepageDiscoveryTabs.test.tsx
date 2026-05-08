@@ -92,6 +92,7 @@ const mockResumeAllChannels = jest.fn();
 jest.mock('../../../../UI/Perps/providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
+  PerpsStreamPauseKey: { TAB_LAYER: 'tab-layer', CONTROLLER: 'controller' },
   getStreamManagerInstance: () => ({
     pauseAllChannels: mockPauseAllChannels,
     resumeAllChannels: mockResumeAllChannels,

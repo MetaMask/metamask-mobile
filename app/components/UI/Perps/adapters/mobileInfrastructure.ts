@@ -100,10 +100,9 @@ function createMobileMetrics(): PerpsMetrics {
  */
 function createStreamManagerAdapter() {
   return {
-    pauseChannel(channel: string): void {
+    pauseChannel(channel: string, key: string): void {
       const streamManager = getStreamManagerInstance();
       if (streamManager) {
-        // Access the channel by name and call pause on it
         const channelInstance =
           streamManager[channel as keyof typeof streamManager];
         if (
@@ -111,14 +110,13 @@ function createStreamManagerAdapter() {
           typeof channelInstance === 'object' &&
           'pause' in channelInstance
         ) {
-          (channelInstance as { pause: () => void }).pause();
+          (channelInstance as { pause: (k: string) => void }).pause(key);
         }
       }
     },
-    resumeChannel(channel: string): void {
+    resumeChannel(channel: string, key: string): void {
       const streamManager = getStreamManagerInstance();
       if (streamManager) {
-        // Access the channel by name and call resume on it
         const channelInstance =
           streamManager[channel as keyof typeof streamManager];
         if (
@@ -126,7 +124,7 @@ function createStreamManagerAdapter() {
           typeof channelInstance === 'object' &&
           'resume' in channelInstance
         ) {
-          (channelInstance as { resume: () => void }).resume();
+          (channelInstance as { resume: (k: string) => void }).resume(key);
         }
       }
     },

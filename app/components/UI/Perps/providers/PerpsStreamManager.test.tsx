@@ -3,6 +3,7 @@ import { render, waitFor, act } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import {
   PerpsStreamProvider,
+  PerpsStreamPauseKey,
   usePerpsStream,
   PerpsStreamManager,
 } from './PerpsStreamManager';
@@ -2708,7 +2709,7 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  describe('StreamChannel pause reference counting', () => {
+  describe('StreamChannel named-key pause ownership', () => {
     let mockOrdersSubscribe: jest.Mock;
     let mockOrdersUnsubscribe: jest.Mock;
     let orderCallback: ((orders: Order[]) => void) | null;
@@ -2748,7 +2749,7 @@ describe('PerpsStreamManager', () => {
         .mockReturnValue(false);
     });
 
-    it('requires all pause holders to resume before emission unblocks', async () => {
+    it('requires all named holders to resume before emission unblocks', async () => {
       const callback = jest.fn();
       const unsubscribe = testStreamManager.orders.subscribe({
         callback,
@@ -2764,10 +2765,10 @@ describe('PerpsStreamManager', () => {
       await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
       callback.mockClear();
 
-      // Two independent callers pause — simulating tab visibility + controller op
+      // Two independent callers pause under distinct keys
       act(() => {
-        testStreamManager.orders.pause(); // caller A: tab
-        testStreamManager.orders.pause(); // caller B: controller
+        testStreamManager.orders.pause(PerpsStreamPauseKey.TAB_LAYER);
+        testStreamManager.orders.pause(PerpsStreamPauseKey.CONTROLLER);
       });
 
       act(() => {
@@ -2778,10 +2779,10 @@ describe('PerpsStreamManager', () => {
       });
       expect(callback).not.toHaveBeenCalled();
 
-      // Caller A releases — count drops to 1, still blocked
+      // tab-layer releases — controller still holds, emission stays blocked
       act(() => {
-        testStreamManager.orders.resume();
-      }); // caller A: tab
+        testStreamManager.orders.resume(PerpsStreamPauseKey.TAB_LAYER);
+      });
       act(() => {
         orderCallback?.([{ ...SAMPLE_ORDER, orderId: '3' }]);
       });
@@ -2790,10 +2791,10 @@ describe('PerpsStreamManager', () => {
       });
       expect(callback).not.toHaveBeenCalled();
 
-      // Caller B releases — count drops to 0, emission resumes
+      // controller releases — set is empty, emission resumes
       act(() => {
-        testStreamManager.orders.resume();
-      }); // caller B: controller
+        testStreamManager.orders.resume(PerpsStreamPauseKey.CONTROLLER);
+      });
       act(() => {
         orderCallback?.([{ ...SAMPLE_ORDER, orderId: '4' }]);
       });
@@ -2807,9 +2808,9 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('tab resume does not release a concurrent controller pause', async () => {
-      // Regression: the old boolean would allow tab resume to unblock the channel
-      // while a controller operation (e.g. closePosition) was still in-flight.
+    it('tab-layer resume does not release a concurrent controller pause', async () => {
+      // Regression: the old boolean flip would allow the tab resume to unblock
+      // the channel while a controller operation was still in-flight.
       const callback = jest.fn();
       const unsubscribe = testStreamManager.orders.subscribe({
         callback,
@@ -2825,16 +2826,14 @@ describe('PerpsStreamManager', () => {
       callback.mockClear();
 
       act(() => {
-        // Predictions tab becomes active
-        testStreamManager.orders.pause(); // tab: count → 1
-        // Controller starts a trade operation on the same channel
-        testStreamManager.orders.pause(); // controller: count → 2
+        testStreamManager.orders.pause(PerpsStreamPauseKey.TAB_LAYER);
+        testStreamManager.orders.pause(PerpsStreamPauseKey.CONTROLLER);
       });
 
-      // User switches back to Portfolio — tab releases its pause
+      // User switches back to Portfolio — tab-layer releases, controller still holds
       act(() => {
-        testStreamManager.orders.resume();
-      }); // tab: count → 1
+        testStreamManager.orders.resume(PerpsStreamPauseKey.TAB_LAYER);
+      });
 
       // Update arrives while controller op is still running — must be blocked
       act(() => {
@@ -2845,10 +2844,10 @@ describe('PerpsStreamManager', () => {
       });
       expect(callback).not.toHaveBeenCalled();
 
-      // Controller finally block releases — count → 0, emission resumes
+      // Controller finally block releases — set empty, emission resumes
       act(() => {
-        testStreamManager.orders.resume();
-      }); // controller: count → 0
+        testStreamManager.orders.resume(PerpsStreamPauseKey.CONTROLLER);
+      });
       act(() => {
         orderCallback?.([{ ...SAMPLE_ORDER, orderId: 'after-op' }]);
       });
@@ -2863,7 +2862,7 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('resume() never drives pauseCount below zero (unmatched resume guard)', async () => {
+    it('resume() with an unknown key is a no-op and does not unblock emission', async () => {
       const callback = jest.fn();
       const unsubscribe = testStreamManager.orders.subscribe({
         callback,
@@ -2878,19 +2877,30 @@ describe('PerpsStreamManager', () => {
       await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
       callback.mockClear();
 
-      // Extra resume calls with no matching pause should be no-ops
+      // Pause under one key then call resume with unrelated keys
       act(() => {
-        testStreamManager.orders.resume();
-        testStreamManager.orders.resume();
-        testStreamManager.orders.resume();
+        testStreamManager.orders.pause(PerpsStreamPauseKey.TAB_LAYER);
+        testStreamManager.orders.resume('unknown-a');
+        testStreamManager.orders.resume('unknown-b');
       });
 
-      // Emission must still work — count is 0, not negative
+      // tab-layer still holds — emission must stay blocked
+      act(() => {
+        orderCallback?.([{ ...SAMPLE_ORDER, orderId: 'blocked' }]);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(callback).not.toHaveBeenCalled();
+
+      // Correct key releases — emission resumes
+      act(() => {
+        testStreamManager.orders.resume(PerpsStreamPauseKey.TAB_LAYER);
+      });
       act(() => {
         orderCallback?.([{ ...SAMPLE_ORDER, orderId: 'after-unmatched' }]);
       });
       await waitFor(() => {
-        expect(callback).toHaveBeenCalledTimes(1);
         expect(callback).toHaveBeenCalledWith(
           expect.arrayContaining([
             expect.objectContaining({ orderId: 'after-unmatched' }),
@@ -2901,12 +2911,11 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('each channel tracks its own pause count independently', () => {
-      // Pausing orders should not affect prices
+    it('each channel tracks its own pause holders independently', () => {
       const orderPauseSpy = jest.spyOn(testStreamManager.orders, 'pause');
       const pricesPauseSpy = jest.spyOn(testStreamManager.prices, 'pause');
 
-      testStreamManager.orders.pause();
+      testStreamManager.orders.pause(PerpsStreamPauseKey.TAB_LAYER);
 
       expect(orderPauseSpy).toHaveBeenCalledTimes(1);
       expect(pricesPauseSpy).not.toHaveBeenCalled();
@@ -2925,27 +2934,31 @@ describe('PerpsStreamManager', () => {
       'candles',
     ] as const;
 
-    it('pauseAllChannels calls pause() on every channel', () => {
+    it('pauseAllChannels forwards the key to pause() on every channel', () => {
       for (const channel of CHANNEL_NAMES) {
         jest.spyOn(testStreamManager[channel], 'pause');
       }
 
-      testStreamManager.pauseAllChannels();
+      testStreamManager.pauseAllChannels(PerpsStreamPauseKey.TAB_LAYER);
 
       for (const channel of CHANNEL_NAMES) {
-        expect(testStreamManager[channel].pause).toHaveBeenCalledTimes(1);
+        expect(testStreamManager[channel].pause).toHaveBeenCalledWith(
+          PerpsStreamPauseKey.TAB_LAYER,
+        );
       }
     });
 
-    it('resumeAllChannels calls resume() on every channel', () => {
+    it('resumeAllChannels forwards the key to resume() on every channel', () => {
       for (const channel of CHANNEL_NAMES) {
         jest.spyOn(testStreamManager[channel], 'resume');
       }
 
-      testStreamManager.resumeAllChannels();
+      testStreamManager.resumeAllChannels(PerpsStreamPauseKey.TAB_LAYER);
 
       for (const channel of CHANNEL_NAMES) {
-        expect(testStreamManager[channel].resume).toHaveBeenCalledTimes(1);
+        expect(testStreamManager[channel].resume).toHaveBeenCalledWith(
+          PerpsStreamPauseKey.TAB_LAYER,
+        );
       }
     });
 
@@ -2953,8 +2966,8 @@ describe('PerpsStreamManager', () => {
       const pauseSpy = jest.spyOn(testStreamManager.marketData, 'pause');
       const resumeSpy = jest.spyOn(testStreamManager.marketData, 'resume');
 
-      testStreamManager.pauseAllChannels();
-      testStreamManager.resumeAllChannels();
+      testStreamManager.pauseAllChannels(PerpsStreamPauseKey.TAB_LAYER);
+      testStreamManager.resumeAllChannels(PerpsStreamPauseKey.TAB_LAYER);
 
       expect(pauseSpy).not.toHaveBeenCalled();
       expect(resumeSpy).not.toHaveBeenCalled();

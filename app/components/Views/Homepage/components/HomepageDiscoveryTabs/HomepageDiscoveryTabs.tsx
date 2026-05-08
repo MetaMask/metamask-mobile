@@ -28,6 +28,7 @@ import PredictFeed from '../../../../UI/Predict/views/PredictFeed';
 import { PerpsConnectionProvider } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
 import {
   PerpsStreamProvider,
+  PerpsStreamPauseKey,
   getStreamManagerInstance,
 } from '../../../../UI/Perps/providers/PerpsStreamManager';
 import { PredictPreviewSheetProvider } from '../../../../UI/Predict/contexts';
@@ -232,7 +233,9 @@ const HomepageDiscoveryTabs = forwardRef<
     useEffect(
       () => () => {
         if (tabLayerHoldsPauseRef.current) {
-          getStreamManagerInstance().resumeAllChannels();
+          getStreamManagerInstance().resumeAllChannels(
+            PerpsStreamPauseKey.TAB_LAYER,
+          );
         }
       },
       [],
@@ -301,10 +304,14 @@ const HomepageDiscoveryTabs = forwardRef<
           const isActive = PERPS_WS_TABS.has(i);
 
           if (wasActive && !isActive) {
-            getStreamManagerInstance().pauseAllChannels();
+            getStreamManagerInstance().pauseAllChannels(
+              PerpsStreamPauseKey.TAB_LAYER,
+            );
             tabLayerHoldsPauseRef.current = true;
           } else if (!wasActive && isActive) {
-            getStreamManagerInstance().resumeAllChannels();
+            getStreamManagerInstance().resumeAllChannels(
+              PerpsStreamPauseKey.TAB_LAYER,
+            );
             tabLayerHoldsPauseRef.current = false;
           }
 
