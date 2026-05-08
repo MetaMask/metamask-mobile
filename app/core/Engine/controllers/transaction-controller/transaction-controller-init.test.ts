@@ -92,10 +92,20 @@ const MOCK_TRANSACTION_META = {
  * with the default mock.
  * @returns A mock NetworkController.
  */
+type ControllerMock = NetworkController & {
+  beforePublish: jest.Mock;
+  beforeSign: jest.Mock;
+  publish: jest.Mock;
+};
+
 function buildControllerMock(
-  partialMock?: Partial<NetworkController>,
-): NetworkController {
-  const defaultControllerMocks = {};
+  partialMock?: Partial<ControllerMock>,
+): ControllerMock {
+  const defaultControllerMocks = {
+    beforePublish: jest.fn().mockResolvedValue(true),
+    beforeSign: jest.fn(),
+    publish: jest.fn().mockResolvedValue({ transactionHash: undefined }),
+  };
 
   // @ts-expect-error Incomplete mock, just includes properties used by code-under-test.
   return {
@@ -180,9 +190,11 @@ describe('Transaction Controller Init', () => {
   ): TransactionControllerOptions[T] {
     const requestMock = buildInitRequestMock(initRequestProperties);
 
-    requestMock.getMessengerClient.mockReturnValue(
-      buildControllerMock(dependencyProperties),
-    );
+    if (!initRequestProperties.getMessengerClient) {
+      requestMock.getMessengerClient.mockReturnValue(
+        buildControllerMock(dependencyProperties),
+      );
+    }
 
     TransactionControllerInit(requestMock);
 
@@ -320,6 +332,29 @@ describe('Transaction Controller Init', () => {
     expect(optionFn?.()).toBe(false);
   });
 
+  describe('beforePublish hook', () => {
+    it('delegates to PredictController beforePublish', async () => {
+      const predictControllerMock = buildControllerMock();
+      const hooks = testConstructorOption(
+        'hooks',
+        {},
+        {
+          getMessengerClient: jest.fn((controllerName: string) =>
+            controllerName === 'PredictController'
+              ? predictControllerMock
+              : buildControllerMock(),
+          ),
+        },
+      );
+
+      await hooks?.beforePublish?.(MOCK_TRANSACTION_META);
+
+      expect(predictControllerMock.beforePublish).toHaveBeenCalledWith({
+        transactionMeta: MOCK_TRANSACTION_META,
+      });
+    });
+  });
+
   describe('publish hook', () => {
     it('calls submitSmartTransactionHook', async () => {
       const hooks = testConstructorOption('hooks');
@@ -345,6 +380,107 @@ describe('Transaction Controller Init', () => {
       await hooks?.publish?.(MOCK_TRANSACTION_META);
 
       expect(payHookMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls Predict publish before pay and smart transaction hooks', async () => {
+      const predictControllerMock = buildControllerMock();
+      const hooks = testConstructorOption(
+        'hooks',
+        {},
+        {
+          getMessengerClient: jest.fn((controllerName: string) =>
+            controllerName === 'PredictController'
+              ? predictControllerMock
+              : buildControllerMock(),
+          ),
+        },
+      );
+
+      await hooks?.publish?.(MOCK_TRANSACTION_META);
+
+      expect(predictControllerMock.publish).toHaveBeenCalledWith({
+        transactionMeta: MOCK_TRANSACTION_META,
+      });
+      expect(payHookMock).toHaveBeenCalledTimes(1);
+      expect(
+        (predictControllerMock.publish as jest.Mock).mock
+          .invocationCallOrder[0],
+      ).toBeLessThan(payHookMock.mock.invocationCallOrder[0]);
+      expect(
+        (predictControllerMock.publish as jest.Mock).mock
+          .invocationCallOrder[0],
+      ).toBeLessThan(
+        submitSmartTransactionHookMock.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('short-circuits publish when Predict returns a transaction hash', async () => {
+      const predictControllerMock = buildControllerMock({
+        publish: jest.fn().mockResolvedValue({ transactionHash: '0xpredict' }),
+      } as unknown as Partial<NetworkController>);
+      const hooks = testConstructorOption(
+        'hooks',
+        {},
+        {
+          getMessengerClient: jest.fn((controllerName: string) =>
+            controllerName === 'PredictController'
+              ? predictControllerMock
+              : buildControllerMock(),
+          ),
+        },
+      );
+
+      const result = await hooks?.publish?.(MOCK_TRANSACTION_META);
+
+      expect(result).toEqual({ transactionHash: '0xpredict' });
+      expect(payHookMock).not.toHaveBeenCalled();
+      expect(submitSmartTransactionHookMock).not.toHaveBeenCalled();
+    });
+
+    it('marks the latest transaction intent complete when Predict publish completes an intent', async () => {
+      const predictControllerMock = buildControllerMock({
+        publish: jest.fn().mockResolvedValue({
+          transactionHash: '0xpredict',
+          isIntentComplete: true,
+        }),
+      } as unknown as Partial<NetworkController>);
+      const getTransactionByIdMock = jest.requireMock(
+        '../../../../util/transactions',
+      ).getTransactionById;
+      getTransactionByIdMock.mockReturnValue({ ...MOCK_TRANSACTION_META });
+      const hooks = testConstructorOption(
+        'hooks',
+        {},
+        {
+          getMessengerClient: jest.fn((controllerName: string) =>
+            controllerName === 'PredictController'
+              ? predictControllerMock
+              : buildControllerMock(),
+          ),
+        },
+      );
+
+      const result = await hooks?.publish?.(MOCK_TRANSACTION_META);
+
+      const transactionControllerInstance = transactionControllerClassMock.mock
+        .instances[0] as unknown as {
+        updateTransaction: jest.Mock;
+      };
+
+      expect(result).toEqual({ transactionHash: '0xpredict' });
+      expect(getTransactionByIdMock).toHaveBeenCalledWith(
+        MOCK_TRANSACTION_META.id,
+        transactionControllerInstance,
+      );
+      expect(
+        transactionControllerInstance.updateTransaction,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: MOCK_TRANSACTION_META.id,
+          isIntentComplete: true,
+        }),
+        'Predict claim relayer intent complete',
+      );
     });
 
     it('passes isSmartTransaction returning false to pay hook when stxDisabled is true', async () => {
