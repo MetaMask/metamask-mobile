@@ -57,7 +57,13 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     <Box>
       <SectionHeader
         title={strings('trending.perps_movers')}
-        onViewAll={() => navigateToPerpsMarketList(navigation)}
+        onViewAll={() =>
+          navigateToPerpsMarketList(
+            navigation,
+            'all',
+            perps.defaultSortOptionId,
+          )
+        }
         testID="section-header-view-all-perps"
         tabName="Now"
         sectionName="perps_movers"
