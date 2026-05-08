@@ -19,9 +19,15 @@ jest.mock('./useIsConfirmationFromLedgerAccount', () => ({
   useIsConfirmationFromLedgerAccount: jest.fn().mockReturnValue(false),
 }));
 
+const capturedLedgerConfirmOptions: {
+  ensureDeviceReadyOptions?: { requireBlindSigning?: boolean };
+} = {};
 const mockOnLedgerConfirm = jest.fn().mockResolvedValue(undefined);
 jest.mock('./useLedgerConfirm', () => ({
-  useLedgerConfirm: () => ({ onConfirm: mockOnLedgerConfirm }),
+  useLedgerConfirm: (opts: typeof capturedLedgerConfirmOptions) => {
+    Object.assign(capturedLedgerConfirmOptions, opts);
+    return { onConfirm: mockOnLedgerConfirm };
+  },
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -115,6 +121,23 @@ describe('useConfirmAction', () => {
 
     expect(mockOnLedgerConfirm).toHaveBeenCalledTimes(1);
     expect(Engine.acceptPendingApproval).not.toHaveBeenCalled();
+
+    useIsConfirmationFromLedgerAccount.mockReturnValue(false);
+  });
+
+  it('passes requireBlindSigning true for non-simpleSend transactions', async () => {
+    const { useIsConfirmationFromLedgerAccount } = jest.requireMock(
+      './useIsConfirmationFromLedgerAccount',
+    );
+    useIsConfirmationFromLedgerAccount.mockReturnValue(true);
+
+    renderHookWithProvider(() => useConfirmActions(), {
+      state: stakingDepositConfirmationState,
+    });
+
+    expect(capturedLedgerConfirmOptions.ensureDeviceReadyOptions).toEqual({
+      requireBlindSigning: true,
+    });
 
     useIsConfirmationFromLedgerAccount.mockReturnValue(false);
   });

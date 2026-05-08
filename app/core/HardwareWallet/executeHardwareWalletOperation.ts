@@ -1,5 +1,6 @@
 import { getDeviceIdForAddress } from './helpers';
 import { isUserCancellation } from './errors';
+import { EnsureDeviceReadyOptions } from './types';
 
 /**
  * Options for {@link executeHardwareWalletOperation}: resolve the device, gate on readiness,
@@ -14,7 +15,10 @@ interface ExecuteHardwareWalletOperationOptions {
    * Returns whether the hardware device is ready to sign. Receives the id from
    * {@link getDeviceIdForAddress} when available.
    */
-  ensureDeviceReady: (deviceId?: string | null) => Promise<boolean>;
+  ensureDeviceReady: (
+    deviceId?: string | null,
+    options?: EnsureDeviceReadyOptions,
+  ) => Promise<boolean>;
   /**
    * Optional hook to set or clear the in-flight operation address (e.g. for provider context)
    * for the duration of the call; cleared in `finally`.
@@ -39,6 +43,7 @@ interface ExecuteHardwareWalletOperationOptions {
   onError?: (error: unknown) => boolean | Promise<boolean>;
   /** Performs the hardware-backed sign or related async work after the device is ready. */
   execute: () => Promise<void>;
+  ensureDeviceReadyOptions?: EnsureDeviceReadyOptions;
   /**
    * Called when the user rejects the confirmation flow, the device is not ready, or an error
    * occurs after the operation is attempted.
@@ -57,6 +62,7 @@ export async function executeHardwareWalletOperation({
   address,
   operationType,
   ensureDeviceReady,
+  ensureDeviceReadyOptions,
   setPendingOperationAddress,
   showAwaitingConfirmation,
   hideAwaitingConfirmation,
@@ -81,7 +87,7 @@ export async function executeHardwareWalletOperation({
 
   try {
     const deviceId = await getDeviceIdForAddress(address);
-    const isReady = await ensureDeviceReady(deviceId);
+    const isReady = await ensureDeviceReady(deviceId, ensureDeviceReadyOptions);
 
     if (!isReady) {
       await rejectOnce();

@@ -5,6 +5,22 @@ import {
 } from '@metamask/hw-wallet-sdk';
 
 /**
+ * Options for {@link HardwareWalletAdapter.ensureDeviceReady}.
+ */
+export interface EnsureDeviceReadyOptions {
+  /**
+   * Whether the operation requires blind signing to be enabled on the device.
+   *
+   * Set to `true` for contract interactions, token transfers, and dapp
+   * transactions. Simple sends (plain native asset transfers) and
+   * non-signing flows (e.g. account selection) do not require blind signing.
+   *
+   * @default false
+   */
+  requireBlindSigning?: boolean;
+}
+
+/**
  * Options for creating a hardware wallet adapter
  */
 export interface HardwareWalletAdapterOptions {
@@ -52,7 +68,10 @@ export interface HardwareWalletAdapter {
    * @param deviceId - The device identifier
    * @returns true if device is ready, false otherwise
    */
-  ensureDeviceReady(deviceId: string): Promise<boolean>;
+  ensureDeviceReady(
+    deviceId: string,
+    options?: EnsureDeviceReadyOptions,
+  ): Promise<boolean>;
 
   /**
    * Check if a device is currently connected

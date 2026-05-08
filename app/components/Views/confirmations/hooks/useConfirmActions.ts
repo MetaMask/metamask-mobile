@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { ApprovalType } from '@metamask/controller-utils';
+import { TransactionType } from '@metamask/transaction-controller';
 
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import Routes from '../../../../constants/navigation/Routes';
@@ -12,6 +13,8 @@ import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
 import { useIsConfirmationFromLedgerAccount } from './useIsConfirmationFromLedgerAccount';
 import { useLedgerConfirm } from './useLedgerConfirm';
+import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
+import type { EnsureDeviceReadyOptions } from '../../../../core/HardwareWallet/types';
 
 export const useConfirmActions = () => {
   const {
@@ -30,6 +33,15 @@ export const useConfirmActions = () => {
     approvalType && approvalType === ApprovalType.Transaction;
 
   const isLedgerAccount = useIsConfirmationFromLedgerAccount();
+  const transactionMetadata = useTransactionMetadataRequest();
+
+  const ensureDeviceReadyOptions = useMemo<EnsureDeviceReadyOptions>(
+    () => ({
+      requireBlindSigning:
+        transactionMetadata?.type !== TransactionType.simpleSend,
+    }),
+    [transactionMetadata?.type],
+  );
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false, navigateToHome = false) => {
@@ -89,8 +101,15 @@ export const useConfirmActions = () => {
       onTransactionConfirm,
       executeApproval,
       isTransactionReq: Boolean(isTransactionReq),
+      ensureDeviceReadyOptions,
     }),
-    [onReject, onTransactionConfirm, executeApproval, isTransactionReq],
+    [
+      onReject,
+      onTransactionConfirm,
+      executeApproval,
+      isTransactionReq,
+      ensureDeviceReadyOptions,
+    ],
   );
 
   const { onConfirm: onLedgerConfirm } = useLedgerConfirm(ledgerConfirmOptions);

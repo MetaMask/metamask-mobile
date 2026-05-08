@@ -8,6 +8,7 @@ import {
   DeviceEvent,
   DeviceEventPayload,
   ErrorCode,
+  HardwareWalletError,
 } from '@metamask/hw-wallet-sdk';
 import {
   PERMISSIONS,
@@ -16,8 +17,10 @@ import {
   request,
 } from 'react-native-permissions';
 import { getSystemVersion } from 'react-native-device-info';
+import { createHardwareWalletError } from '../errors';
 import {
   DiscoveredDevice,
+  EnsureDeviceReadyOptions,
   HardwareWalletAdapter,
   HardwareWalletAdapterOptions,
 } from '../types';
@@ -363,7 +366,10 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
    * @param deviceId - The device ID to connect to
    * @returns true if device is ready, false otherwise
    */
-  async ensureDeviceReady(deviceId: string): Promise<boolean> {
+  async ensureDeviceReady(
+    deviceId: string,
+    options?: EnsureDeviceReadyOptions,
+  ): Promise<boolean> {
     if (this.#isDestroyed) {
       throw new Error('Adapter has been destroyed');
     }
@@ -376,7 +382,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     // Retry on transient BLE errors (e.g., device switching apps)
     for (let attempt = 1; attempt <= MAX_DISCONNECT_RETRIES; attempt++) {
       try {
-        return await this.#doEnsureDeviceReady(deviceId);
+        return await this.#doEnsureDeviceReady(deviceId, options);
       } catch (error) {
         if (
           this.#isTransientBleError(error) &&
@@ -399,7 +405,10 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   }
 
   /** Internal readiness check, called by ensureDeviceReady's retry loop. */
-  async #doEnsureDeviceReady(deviceId: string): Promise<boolean> {
+  async #doEnsureDeviceReady(
+    deviceId: string,
+    options?: EnsureDeviceReadyOptions,
+  ): Promise<boolean> {
     if (!this.isConnected() || this.#deviceId !== deviceId) {
       DevLogger.log('[LedgerBluetoothAdapter] Connecting first...');
       await this.connect(deviceId);
@@ -429,7 +438,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       DevLogger.log('[LedgerBluetoothAdapter] Got app name:', currentAppName);
 
       if (currentAppName === 'Ethereum') {
-        return await this.#verifyEthereumAppUnlocked();
+        return await this.#verifyEthereumAppUnlocked(options);
       }
 
       await this.#handleWrongApp(currentAppName);
@@ -455,7 +464,9 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
    * Verify the Ethereum app is unlocked by requesting an address.
    * Rethrows transient BLE errors to allow retry in ensureDeviceReady.
    */
-  async #verifyEthereumAppUnlocked(): Promise<boolean> {
+  async #verifyEthereumAppUnlocked(
+    options?: EnsureDeviceReadyOptions,
+  ): Promise<boolean> {
     DevLogger.log(
       '[LedgerBluetoothAdapter] Ethereum app detected, verifying unlocked...',
     );
@@ -473,6 +484,23 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       );
       DevLogger.log('[LedgerBluetoothAdapter] Device verified unlocked!');
 
+      const requireBlindSigning = options?.requireBlindSigning ?? false;
+      if (requireBlindSigning) {
+        const { arbitraryDataEnabled } = await this.#withTimeout(
+          eth.getAppConfiguration(),
+          LEDGER_OPERATION_TIMEOUT_MS,
+          'Device unresponsive during blind signing check',
+          () => this.#closeTransport(),
+        );
+        if (arbitraryDataEnabled !== 1) {
+          throw createHardwareWalletError(
+            ErrorCode.DeviceStateBlindSignNotSupported,
+            HardwareWalletType.Ledger,
+            'Blind signing is not enabled',
+          );
+        }
+      }
+
       this.#emitEvent({
         event: DeviceEvent.AppOpened,
         currentAppName: 'Ethereum',
@@ -485,6 +513,10 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       );
 
       if (this.#isTransientBleError(verifyError)) {
+        throw verifyError;
+      }
+
+      if (verifyError instanceof HardwareWalletError) {
         throw verifyError;
       }
 

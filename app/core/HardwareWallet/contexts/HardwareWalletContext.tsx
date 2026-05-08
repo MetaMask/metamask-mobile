@@ -4,7 +4,7 @@ import {
   HardwareWalletType,
   HardwareWalletConnectionState,
 } from '@metamask/hw-wallet-sdk';
-import { DeviceSelectionState } from '../types';
+import { DeviceSelectionState, EnsureDeviceReadyOptions } from '../types';
 
 export interface HardwareWalletQRState {
   /** The pending QR scan request from the keyring, if any. */
@@ -34,7 +34,10 @@ export interface HardwareWalletContextValue {
    * @param deviceId - Optional. If not provided, shows device selection for hardware wallets.
    * @returns true if device is ready, false if user cancelled
    */
-  ensureDeviceReady: (deviceId?: string | null) => Promise<boolean>;
+  ensureDeviceReady: (
+    deviceId?: string | null,
+    options?: EnsureDeviceReadyOptions,
+  ) => Promise<boolean>;
   /** Set the target wallet type for "Add Hardware Wallet" flows (no account yet). */
   setTargetWalletType: (walletType: HardwareWalletType) => void;
   /** Set the pending operation address so the provider can auto-derive the wallet type during signing. */

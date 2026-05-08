@@ -46,7 +46,7 @@ describe('useLedgerConfirm', () => {
       await result.current.onConfirm();
     });
 
-    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('device-123');
+    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('device-123', undefined);
     expect(mockShowAwaitingConfirmation).toHaveBeenCalledWith(
       'message',
       expect.any(Function),
@@ -135,5 +135,32 @@ describe('useLedgerConfirm', () => {
     });
 
     expect(onReject).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes ensureDeviceReadyOptions to ensureDeviceReady', async () => {
+    const options = { requireBlindSigning: false };
+
+    const { result } = renderHook(() =>
+      useLedgerConfirm({
+        ...defaultOptions,
+        ensureDeviceReadyOptions: options,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.onConfirm();
+    });
+
+    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('device-123', options);
+  });
+
+  it('passes undefined options when ensureDeviceReadyOptions not provided', async () => {
+    const { result } = renderHook(() => useLedgerConfirm(defaultOptions));
+
+    await act(async () => {
+      await result.current.onConfirm();
+    });
+
+    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('device-123', undefined);
   });
 });

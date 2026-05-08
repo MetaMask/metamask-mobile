@@ -5,6 +5,7 @@ import {
   isUserCancellation,
 } from '../../../../core/HardwareWallet';
 import { getDeviceId } from '../../../../core/Ledger/Ledger';
+import type { EnsureDeviceReadyOptions } from '../../../../core/HardwareWallet/types';
 
 interface UseLedgerConfirmOptions {
   onReject: () => void;
@@ -13,6 +14,7 @@ interface UseLedgerConfirmOptions {
   }) => Promise<void>;
   executeApproval: () => Promise<void>;
   isTransactionReq: boolean;
+  ensureDeviceReadyOptions?: EnsureDeviceReadyOptions;
 }
 
 /**
@@ -25,6 +27,7 @@ export function useLedgerConfirm({
   onTransactionConfirm,
   executeApproval,
   isTransactionReq,
+  ensureDeviceReadyOptions,
 }: UseLedgerConfirmOptions) {
   const {
     ensureDeviceReady,
@@ -46,7 +49,10 @@ export function useLedgerConfirm({
 
     try {
       const deviceId = await getDeviceId();
-      const isReady = await ensureDeviceReady(deviceId);
+      const isReady = await ensureDeviceReady(
+        deviceId,
+        ensureDeviceReadyOptions,
+      );
 
       if (!isReady) {
         rejectOnce();
@@ -83,6 +89,7 @@ export function useLedgerConfirm({
     isTransactionReq,
     onTransactionConfirm,
     executeApproval,
+    ensureDeviceReadyOptions,
     ensureDeviceReady,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,

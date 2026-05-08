@@ -159,7 +159,10 @@ describe('useDeviceConnectionFlow', () => {
       expect(createAdapterWithCallbacks).toHaveBeenCalledWith(
         HardwareWalletType.Qr,
       );
-      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledWith('default');
+      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledWith(
+        'default',
+        undefined,
+      );
     });
 
     it('calls onFlowStart callback', async () => {
@@ -762,7 +765,10 @@ describe('useDeviceConnectionFlow', () => {
       expect(options.updateConnectionState).toHaveBeenCalledWith({
         status: ConnectionStatus.Connecting,
       });
-      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledWith('device-123');
+      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledWith(
+        'device-123',
+        undefined,
+      );
     });
 
     it('enters scanning when no deviceId or no adapter', async () => {
