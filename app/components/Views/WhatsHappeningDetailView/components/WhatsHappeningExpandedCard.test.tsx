@@ -46,6 +46,18 @@ jest.mock(
   () => 'SourceLogoGroup',
 );
 
+jest.mock('../hooks/useWhatsHappeningAssetPrices', () => ({
+  useWhatsHappeningAssetPrices: jest.fn(() => ({
+    tokenPriceByCaip: {},
+    perpsPriceBySymbol: {},
+  })),
+}));
+
+jest.mock(
+  '../../../UI/Tokens/components/TokenListSecurityBadge/TokenListSecurityBadge',
+  () => 'TokenListSecurityBadge',
+);
+
 const CARD_WIDTH = 320;
 const CARD_HEIGHT = 600;
 
@@ -114,6 +126,19 @@ describe('WhatsHappeningExpandedCard', () => {
     expect(screen.getByText('Bullish')).toBeOnTheScreen();
   });
 
+  it('renders the AI pill next to the impact badge', () => {
+    renderWithProvider(
+      <WhatsHappeningExpandedCard
+        item={baseItem}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
+      />,
+    );
+    expect(screen.getByText('AI')).toBeOnTheScreen();
+    expect(screen.getByText('Bullish')).toBeOnTheScreen();
+  });
+
   it('renders Neutral badge when impact is explicitly neutral', () => {
     const item = { ...baseItem, impact: 'neutral' as const };
     renderWithProvider(
@@ -140,6 +165,8 @@ describe('WhatsHappeningExpandedCard', () => {
     expect(screen.queryByText('Neutral')).toBeNull();
     expect(screen.queryByText('Bullish')).toBeNull();
     expect(screen.queryByText('Bearish')).toBeNull();
+    // No impact = no AI pill either
+    expect(screen.queryByText('AI')).toBeNull();
   });
 
   it('renders Tokens section when assets have caip19', () => {
@@ -153,7 +180,7 @@ describe('WhatsHappeningExpandedCard', () => {
       />,
     );
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
-    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
     expect(screen.getByText('Buy')).toBeOnTheScreen();
   });
 
@@ -182,7 +209,7 @@ describe('WhatsHappeningExpandedCard', () => {
       />,
     );
     expect(screen.getByText('Perps')).toBeOnTheScreen();
-    expect(screen.getByText('TSLA')).toBeOnTheScreen();
+    expect(screen.getByText('Tesla')).toBeOnTheScreen();
     expect(screen.getByText('Trade')).toBeOnTheScreen();
   });
 
@@ -294,5 +321,35 @@ describe('WhatsHappeningExpandedCard', () => {
 
     fireEvent.press(screen.getByText('coindesk.com'));
     expect(mockOnSourcesPress).toHaveBeenCalledWith([article]);
+  });
+
+  it('passes tokenPriceByCaip and perpsPriceBySymbol from hook to rows', () => {
+    const mockHook = jest.requireMock('../hooks/useWhatsHappeningAssetPrices');
+    const mockTokenMap = {
+      'eip155:1/slip44:0': { price: 95000, pricePercentChange1d: 2 },
+    };
+    const mockPerpsMap = { 'xyz:TSLA': { price: 172.5, percentChange24h: -1 } };
+    mockHook.useWhatsHappeningAssetPrices.mockReturnValueOnce({
+      tokenPriceByCaip: mockTokenMap,
+      perpsPriceBySymbol: mockPerpsMap,
+    });
+
+    const item = {
+      ...baseItem,
+      relatedAssets: [tokenAsset, perpsOnlyAsset],
+    };
+    renderWithProvider(
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
+      />,
+    );
+
+    // Token price should appear (formatted from mock map)
+    expect(screen.getByText('$95,000.00')).toBeOnTheScreen();
+    // Perps price should appear
+    expect(screen.getByText('$172.50')).toBeOnTheScreen();
   });
 });

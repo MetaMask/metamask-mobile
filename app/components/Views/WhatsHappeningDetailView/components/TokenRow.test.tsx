@@ -6,6 +6,7 @@ import type { RelatedAsset } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import Routes from '../../../../constants/navigation/Routes';
+import type { TokenPriceEntry } from '../hooks/useWhatsHappeningAssetPrices';
 
 const mockGoToBuy = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -41,6 +42,11 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock(
+  '../../../UI/Tokens/components/TokenListSecurityBadge/TokenListSecurityBadge',
+  () => 'TokenListSecurityBadge',
+);
+
 const btcAsset: RelatedAsset = {
   sourceAssetId: 'bitcoin',
   symbol: 'BTC',
@@ -74,29 +80,46 @@ const mockItem: WhatsHappeningItem = {
   articles: [],
 };
 
+const emptyPriceMap: Record<string, TokenPriceEntry> = {};
+
 describe('TokenRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('when asset has only caip19 (no hlPerpsMarket)', () => {
-    it('renders the asset symbol', () => {
+    it('renders the asset name', () => {
       renderWithProvider(
-        <TokenRow asset={btcAsset} item={mockItem} cardIndex={0} />,
+        <TokenRow
+          asset={btcAsset}
+          item={mockItem}
+          cardIndex={0}
+          tokenPriceByCaip={emptyPriceMap}
+        />,
       );
-      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
     });
 
     it('renders the Buy button', () => {
       renderWithProvider(
-        <TokenRow asset={btcAsset} item={mockItem} cardIndex={0} />,
+        <TokenRow
+          asset={btcAsset}
+          item={mockItem}
+          cardIndex={0}
+          tokenPriceByCaip={emptyPriceMap}
+        />,
       );
       expect(screen.getByText('Buy')).toBeOnTheScreen();
     });
 
     it('calls goToBuy with the first caip19 identifier on Buy press', () => {
       renderWithProvider(
-        <TokenRow asset={btcAsset} item={mockItem} cardIndex={0} />,
+        <TokenRow
+          asset={btcAsset}
+          item={mockItem}
+          cardIndex={0}
+          tokenPriceByCaip={emptyPriceMap}
+        />,
       );
       fireEvent.press(screen.getByText('Buy'));
       expect(mockGoToBuy).toHaveBeenCalledWith({
@@ -107,7 +130,12 @@ describe('TokenRow', () => {
 
   it('calls goToBuy with assetId undefined when caip19 is empty', () => {
     renderWithProvider(
-      <TokenRow asset={perpsOnlyAsset} item={mockItem} cardIndex={0} />,
+      <TokenRow
+        asset={perpsOnlyAsset}
+        item={mockItem}
+        cardIndex={0}
+        tokenPriceByCaip={emptyPriceMap}
+      />,
     );
     fireEvent.press(screen.getByText('Buy'));
     expect(mockGoToBuy).toHaveBeenCalledWith({ assetId: undefined });
@@ -116,7 +144,12 @@ describe('TokenRow', () => {
   describe('when asset has hlPerpsMarket (dual asset)', () => {
     it('renders the Trade button instead of Buy', () => {
       renderWithProvider(
-        <TokenRow asset={dualAsset} item={mockItem} cardIndex={0} />,
+        <TokenRow
+          asset={dualAsset}
+          item={mockItem}
+          cardIndex={0}
+          tokenPriceByCaip={emptyPriceMap}
+        />,
       );
       expect(screen.getByText('Trade')).toBeOnTheScreen();
       expect(screen.queryByText('Buy')).toBeNull();
@@ -124,7 +157,12 @@ describe('TokenRow', () => {
 
     it('navigates to Perps market details on Trade press', () => {
       renderWithProvider(
-        <TokenRow asset={dualAsset} item={mockItem} cardIndex={0} />,
+        <TokenRow
+          asset={dualAsset}
+          item={mockItem}
+          cardIndex={0}
+          tokenPriceByCaip={emptyPriceMap}
+        />,
       );
       fireEvent.press(screen.getByText('Trade'));
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
@@ -137,7 +175,12 @@ describe('TokenRow', () => {
 
     it('does not call goToBuy when Trade is pressed', () => {
       renderWithProvider(
-        <TokenRow asset={dualAsset} item={mockItem} cardIndex={0} />,
+        <TokenRow
+          asset={dualAsset}
+          item={mockItem}
+          cardIndex={0}
+          tokenPriceByCaip={emptyPriceMap}
+        />,
       );
       fireEvent.press(screen.getByText('Trade'));
       expect(mockGoToBuy).not.toHaveBeenCalled();
@@ -146,7 +189,12 @@ describe('TokenRow', () => {
 
   it('tracks Whats Happening Interaction with interaction_type=buy_pressed and asset details on Buy press', () => {
     renderWithProvider(
-      <TokenRow asset={btcAsset} item={mockItem} cardIndex={2} />,
+      <TokenRow
+        asset={btcAsset}
+        item={mockItem}
+        cardIndex={2}
+        tokenPriceByCaip={emptyPriceMap}
+      />,
     );
     fireEvent.press(screen.getByText('Buy'));
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -170,7 +218,12 @@ describe('TokenRow', () => {
 
   it('tracks Interaction without asset_caip19 when caip19 is empty', () => {
     renderWithProvider(
-      <TokenRow asset={perpsOnlyAsset} item={mockItem} cardIndex={0} />,
+      <TokenRow
+        asset={perpsOnlyAsset}
+        item={mockItem}
+        cardIndex={0}
+        tokenPriceByCaip={emptyPriceMap}
+      />,
     );
     fireEvent.press(screen.getByText('Buy'));
     const addPropertiesCall = mockCreateEventBuilder.mock.results[0]?.value
@@ -181,5 +234,21 @@ describe('TokenRow', () => {
     expect(builtProperties?.interaction_type).toBe('buy_pressed');
     expect(builtProperties?.asset_symbol).toBe('TSLA');
     expect(builtProperties).not.toHaveProperty('asset_caip19');
+  });
+
+  it('displays price and 24h change when tokenPriceByCaip has entry', () => {
+    const priceMap: Record<string, TokenPriceEntry> = {
+      'eip155:1/slip44:0': { price: 95000, pricePercentChange1d: -1.23 },
+    };
+    renderWithProvider(
+      <TokenRow
+        asset={btcAsset}
+        item={mockItem}
+        cardIndex={0}
+        tokenPriceByCaip={priceMap}
+      />,
+    );
+    expect(screen.getByText('$95,000.00')).toBeOnTheScreen();
+    expect(screen.getByText('-1.23%')).toBeOnTheScreen();
   });
 });

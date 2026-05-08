@@ -15,25 +15,38 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { RelatedAsset } from '@metamask/ai-controllers';
+import type { CaipAssetType } from '@metamask/utils';
 import { getRelatedAssetImageSource } from '../utils/getRelatedAssetImageSource';
+import TokenListSecurityBadge from '../../../UI/Tokens/components/TokenListSecurityBadge/TokenListSecurityBadge';
+
+export interface AssetRowSecondaryLine {
+  priceText: string;
+  changeText: string | undefined;
+  changeColor: TextColor;
+}
 
 interface AssetRowProps {
   asset: RelatedAsset;
   actionLabel: string;
   accessibilityLabel: string;
   onAction: () => void;
+  /** When provided, renders the security badge inline next to the asset name. */
+  caipAssetId?: CaipAssetType;
+  /** When provided, renders price + 24h change below the asset name. */
+  secondaryLine?: AssetRowSecondaryLine;
 }
 
 /**
- * Shared layout for a single asset row (logo + symbol + action button).
- * Used by TokenRow (Buy/Trade) and PerpsRow (Trade); each wrapper supplies its
- * own hook logic and passes the resolved label and handler here.
+ * Shared layout for a single asset row (logo + name + optional badge + optional
+ * price/change + action button). Used by TokenRow (Buy/Trade) and PerpsRow (Trade).
  */
 const AssetRow: React.FC<AssetRowProps> = ({
   asset,
   actionLabel,
   accessibilityLabel,
   onAction,
+  caipAssetId,
+  secondaryLine,
 }) => {
   const rawImageSource = getRelatedAssetImageSource(asset);
   const imageSource = Array.isArray(rawImageSource)
@@ -59,13 +72,56 @@ const AssetRow: React.FC<AssetRowProps> = ({
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-        >
-          {asset.symbol}
-        </Text>
+        {/* Left: name + optional badge + optional price/change */}
+        <Box twClassName="flex-1 mr-2">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              numberOfLines={1}
+            >
+              {asset.name || asset.symbol}
+            </Text>
+            {caipAssetId && (
+              <TokenListSecurityBadge caipAssetId={caipAssetId} />
+            )}
+          </Box>
+
+          {secondaryLine && (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {secondaryLine.priceText}
+              </Text>
+              {secondaryLine.changeText ? (
+                <>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {' \u2022 '}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={secondaryLine.changeColor}
+                  >
+                    {secondaryLine.changeText}
+                  </Text>
+                </>
+              ) : null}
+            </Box>
+          )}
+        </Box>
 
         <Button
           variant={ButtonVariant.Primary}

@@ -7,6 +7,9 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
+  Icon,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -26,6 +29,7 @@ import {
 import SourceLogoGroup from '../../../UI/MarketInsights/components/SourceLogoGroup';
 import PerpsRow from './PerpsRow';
 import TokenRow from './TokenRow';
+import { useWhatsHappeningAssetPrices } from '../hooks/useWhatsHappeningAssetPrices';
 
 interface WhatsHappeningExpandedCardProps {
   item: WhatsHappeningItem;
@@ -70,6 +74,10 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
     return remaining > 0 ? `${first.name} +${remaining}` : first.name;
   }, [uniqueSources]);
 
+  // Fetch price data for all assets on this card (one batch per card)
+  const { tokenPriceByCaip, perpsPriceBySymbol } =
+    useWhatsHappeningAssetPrices(item);
+
   return (
     <Box style={{ width: cardWidth, height: cardHeight }}>
       {/* Card surface — fills the fixed height so all cards are the same size */}
@@ -77,14 +85,44 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
         {/* Scrollable main content */}
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('p-5 gap-4')}
+          contentContainerStyle={tw.style('pt-7 px-5 pb-5 gap-4')}
         >
-          {/* Impact badge */}
+          {/* Tag row: AI pill + impact badge */}
           {item.impact && (
-            <Box twClassName={`${impactBgClass} rounded px-2 py-1 self-start`}>
-              <Text variant={TextVariant.BodySm} color={impactTextColor}>
-                {impactLabel}
-              </Text>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+              twClassName="flex-wrap"
+            >
+              {/* AI pill — inverted (white bg, dark content) */}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+                twClassName="bg-icon-default rounded px-1.5 py-0.5 self-start"
+              >
+                <Icon
+                  name={IconName.Ai}
+                  size={IconSize.Sm}
+                  twClassName="text-icon-inverse"
+                />
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  twClassName="text-icon-inverse"
+                >
+                  {'AI'}
+                </Text>
+              </Box>
+
+              <Box
+                twClassName={`${impactBgClass} rounded px-2 py-1 self-start`}
+              >
+                <Text variant={TextVariant.BodySm} color={impactTextColor}>
+                  {impactLabel}
+                </Text>
+              </Box>
             </Box>
           )}
 
@@ -126,6 +164,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                     asset={asset}
                     item={item}
                     cardIndex={cardIndex}
+                    tokenPriceByCaip={tokenPriceByCaip}
                   />
                 ))}
             </Box>
@@ -155,6 +194,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                     asset={asset}
                     item={item}
                     cardIndex={cardIndex}
+                    perpsPriceBySymbol={perpsPriceBySymbol}
                   />
                 ))}
             </Box>
