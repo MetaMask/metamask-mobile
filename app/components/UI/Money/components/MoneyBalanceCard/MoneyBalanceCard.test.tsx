@@ -356,7 +356,9 @@ describe('MoneyBalanceCard', () => {
       // get the resolved style array, then flatten it.
       const rawStyle = container.props.style;
       const resolved =
-        typeof rawStyle === 'function' ? rawStyle({ pressed: false }) : rawStyle;
+        typeof rawStyle === 'function'
+          ? rawStyle({ pressed: false })
+          : rawStyle;
       const flattened = StyleSheet.flatten(resolved);
 
       // The card should not carry its own horizontal margin — the Wallet view
