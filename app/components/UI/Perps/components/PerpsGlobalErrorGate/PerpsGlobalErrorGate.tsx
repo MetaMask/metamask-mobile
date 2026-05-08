@@ -83,6 +83,15 @@ export const PerpsGlobalErrorGate: React.FC<{ children: React.ReactNode }> = ({
     }
 
     analyticsDebounceRef.current = setTimeout(() => {
+      addBreadcrumb({
+        category: 'perps.connection',
+        message: 'PerpsGlobalErrorGate error view shown',
+        level: 'error',
+        data: {
+          errorCode: error,
+          retryAttempts,
+        },
+      });
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
         [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.ERROR,
         [PERPS_EVENT_PROPERTY.SCREEN_NAME]:

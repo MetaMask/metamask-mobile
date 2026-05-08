@@ -346,6 +346,43 @@ describe('PerpsGlobalErrorGate', () => {
       );
     });
 
+    it('adds Sentry breadcrumb when error view first appears after debounce', () => {
+      mockGetConnectionState.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        isDisconnecting: false,
+        isInGracePeriod: false,
+        error: 'Connection failed',
+      });
+
+      render(
+        <PerpsGlobalErrorGate>
+          <Text>Child</Text>
+        </PerpsGlobalErrorGate>,
+      );
+
+      // Breadcrumb should not fire immediately
+      expect(addBreadcrumb).not.toHaveBeenCalled();
+
+      // Advance past debounce window
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'perps.connection',
+          message: 'PerpsGlobalErrorGate error view shown',
+          level: 'error',
+          data: expect.objectContaining({
+            errorCode: 'Connection failed',
+            retryAttempts: 0,
+          }),
+        }),
+      );
+    });
+
     it('does not fire duplicate events for the same error', async () => {
       mockGetConnectionState.mockReturnValue({
         isConnected: false,
