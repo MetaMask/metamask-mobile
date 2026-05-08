@@ -3528,6 +3528,9 @@ app:
       NDK_VERSION: 26.1.10909125
     - opts:
         is_expand: false
+      CMAKE_VERSION: '3.22.1'
+    - opts:
+        is_expand: false
       QA_APK_NAME: app-qa-release
     - opts:
         is_expand: false

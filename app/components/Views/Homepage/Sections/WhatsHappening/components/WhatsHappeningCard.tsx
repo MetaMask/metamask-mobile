@@ -9,18 +9,19 @@ import {
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
+  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../../locales/i18n';
 import type { WhatsHappeningItem } from '../types';
-import { formatShortDate } from '../util/formatDate';
 import {
   getImpactLabel,
   getImpactBackgroundClass,
   getImpactTextColor,
 } from '../util/impact';
+import PerpsTokenLogo from '../../../../../UI/Perps/components/PerpsTokenLogo';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useViewportTracking } from '../../../../../UI/MarketInsights/hooks/useViewportTracking';
+import { formatRelativeTime } from '../../../../../UI/MarketInsights/utils/marketInsightsFormatting';
 import { getWhatsHappeningEventProps } from '../eventProperties';
 
 interface WhatsHappeningCardProps {
@@ -29,13 +30,19 @@ interface WhatsHappeningCardProps {
   onPress?: (item: WhatsHappeningItem) => void;
 }
 
+const MAX_VISIBLE_ASSET_ICONS = 3;
+
 const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   item,
   cardIndex,
   onPress,
 }) => {
   const tw = useTailwind();
-  const formattedDate = useMemo(() => formatShortDate(item.date), [item.date]);
+  const formattedDate = useMemo(
+    () =>
+      item.date ? formatRelativeTime(item.date, { nowLabel: 'now' }) : null,
+    [item.date],
+  );
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handlePress = () => onPress?.(item);
@@ -53,6 +60,15 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   const { ref: cardRef, onLayout: onVisibilityLayout } =
     useViewportTracking(handleVisible);
 
+  const visibleAssets = item.relatedAssets.slice(0, MAX_VISIBLE_ASSET_ICONS);
+  const firstAsset = item.relatedAssets[0];
+  const remainingAssetCount = Math.max(0, item.relatedAssets.length - 1);
+  const assetLabel = firstAsset
+    ? remainingAssetCount > 0
+      ? `${firstAsset.symbol} +${remainingAssetCount}`
+      : firstAsset.symbol
+    : null;
+
   return (
     <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
       <TouchableOpacity
@@ -63,43 +79,20 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
         )}
       >
         <Box gap={3}>
-          {/* Impact + Category badges */}
-          {(item.impact || item.category) && (
+          {item.impact && (
             <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="flex-wrap gap-2"
+              twClassName={`self-start rounded ${getImpactBackgroundClass(item.impact)} px-2 py-0.5`}
             >
-              {item.impact && (
-                <Box
-                  twClassName={`self-start rounded-full ${getImpactBackgroundClass(item.impact)} px-2 py-0.5`}
-                >
-                  <Text
-                    variant={TextVariant.BodyXs}
-                    color={getImpactTextColor(item.impact)}
-                    fontWeight={FontWeight.Medium}
-                  >
-                    {getImpactLabel(item.impact)}
-                  </Text>
-                </Box>
-              )}
-              {item.category && (
-                <Box twClassName="self-start rounded-full bg-background-default px-2 py-0.5">
-                  <Text
-                    variant={TextVariant.BodyXs}
-                    color={TextColor.TextAlternative}
-                    fontWeight={FontWeight.Medium}
-                  >
-                    {strings(
-                      `homepage.sections.whats_happening_categories.${item.category}`,
-                    )}
-                  </Text>
-                </Box>
-              )}
+              <Text
+                variant={TextVariant.BodyXs}
+                color={getImpactTextColor(item.impact)}
+                fontWeight={FontWeight.Medium}
+              >
+                {getImpactLabel(item.impact)}
+              </Text>
             </Box>
           )}
 
-          {/* Title */}
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
@@ -109,7 +102,6 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
             {item.title}
           </Text>
 
-          {/* Description */}
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
@@ -119,28 +111,42 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
           </Text>
         </Box>
 
-        {/* Footer: asset pills + date */}
-        <Box gap={2}>
-          {item.relatedAssets.length > 0 && (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          gap={2}
+        >
+          {assetLabel && (
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="flex-wrap gap-1"
+              gap={1}
+              twClassName="flex-shrink"
             >
-              {item.relatedAssets.map((asset) => (
-                <Box
-                  key={asset.sourceAssetId}
-                  twClassName="rounded-full bg-background-default px-2 py-0.5"
-                >
-                  <Text
-                    variant={TextVariant.BodyXs}
-                    color={TextColor.TextDefault}
-                    fontWeight={FontWeight.Medium}
-                  >
-                    {asset.symbol}
-                  </Text>
+              {visibleAssets.length > 0 && (
+                <Box flexDirection={BoxFlexDirection.Row}>
+                  {visibleAssets.map((asset, index) => (
+                    <Box
+                      key={asset.sourceAssetId}
+                      twClassName={index > 0 ? '-ml-1' : ''}
+                    >
+                      <PerpsTokenLogo
+                        symbol={asset.hlPerpsMarket?.[0] ?? asset.symbol}
+                        size={16}
+                      />
+                    </Box>
+                  ))}
                 </Box>
-              ))}
+              )}
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
+                numberOfLines={1}
+              >
+                {assetLabel}
+              </Text>
             </Box>
           )}
 
