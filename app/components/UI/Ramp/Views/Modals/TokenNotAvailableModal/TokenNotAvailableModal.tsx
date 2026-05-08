@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, type ParamListBase } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import {
   BottomSheet,
   type BottomSheetRef,
@@ -44,7 +45,7 @@ export const createTokenNotAvailableModalNavigationDetails =
 function TokenNotAvailableModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { assetId, buyFlowOrigin } = useParams<TokenNotAvailableModalParams>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
 
@@ -82,6 +83,10 @@ function TokenNotAvailableModal() {
       } else if (buyFlowOrigin === 'homeTokenList') {
         // Home token list buy flow: return to home screen
         navigation.navigate(Routes.WALLET.HOME as never);
+      } else if (buyFlowOrigin === 'cardHome') {
+        navigation.navigate(Routes.CARD.ROOT, {
+          screen: Routes.CARD.HOME,
+        });
       } else {
         navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
           screen: Routes.RAMP.TOKEN_SELECTION,
@@ -145,6 +150,10 @@ function TokenNotAvailableModal() {
         } else if (buyFlowOrigin === 'homeTokenList') {
           // Home token list buy flow: return to home screen
           navigation.navigate(Routes.WALLET.HOME as never);
+        } else if (buyFlowOrigin === 'cardHome') {
+          navigation.navigate(Routes.CARD.ROOT, {
+            screen: Routes.CARD.HOME,
+          });
         } else {
           navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
             screen: Routes.RAMP.TOKEN_SELECTION,

@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import AddFundsBottomSheet from './AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
-import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
+import useRampNetwork from '../../../Ramp/Aggregator/hooks/useRampNetwork';
 import { isBridgeAllowed } from '../../../Bridge/utils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -12,6 +12,7 @@ import { CardFundingToken, FundingStatus } from '../../types';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import useRampsUnifiedV2Enabled from '../../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { RampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
 
@@ -19,7 +20,7 @@ import { RampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickDat
 const mockUseParams = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockGoToDeposit = jest.fn();
+const mockGoToBuy = jest.fn();
 
 // Mock dependencies
 jest.mock('../../../Ramp/hooks/useRampNavigation');
@@ -27,7 +28,7 @@ jest.mock('../../hooks/useOpenSwaps', () => ({
   useOpenSwaps: jest.fn(),
 }));
 
-jest.mock('../../../Ramp/Deposit/hooks/useDepositEnabled', () => ({
+jest.mock('../../../Ramp/Aggregator/hooks/useRampNetwork', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -47,7 +48,7 @@ jest.mock('../../../../../util/networks', () => ({
 jest.mock('../../../../../util/trace', () => ({
   trace: jest.fn(),
   TraceName: {
-    LoadDepositExperience: 'LoadDepositExperience',
+    LoadRampExperience: 'LoadRampExperience',
   },
 }));
 
@@ -148,12 +149,12 @@ describe('AddFundsBottomSheet', () => {
     });
 
     (useRampNavigation as jest.Mock).mockReturnValue({
-      goToDeposit: mockGoToDeposit,
+      goToBuy: mockGoToBuy,
     });
 
-    (useDepositEnabled as jest.Mock).mockReturnValue({
-      isDepositEnabled: true,
-    });
+    (useRampNetwork as jest.Mock).mockReturnValue([true, true]);
+
+    (useRampsUnifiedV2Enabled as jest.Mock).mockReturnValue(true);
 
     (isBridgeAllowed as jest.Mock).mockReturnValue(true);
 
@@ -175,10 +176,8 @@ describe('AddFundsBottomSheet', () => {
     expect(getByText('Fund with crypto')).toBeOnTheScreen();
   });
 
-  it('renders with only swap option when deposit is disabled', () => {
-    (useDepositEnabled as jest.Mock).mockReturnValue({
-      isDepositEnabled: false,
-    });
+  it('renders with only swap option when unified buy v2 is disabled', () => {
+    (useRampsUnifiedV2Enabled as jest.Mock).mockReturnValue(false);
 
     const { getByText, queryByText } = setupComponent();
 
@@ -186,7 +185,7 @@ describe('AddFundsBottomSheet', () => {
     expect(queryByText('Fund with cash')).not.toBeOnTheScreen();
   });
 
-  it('renders with only deposit option when swaps are not allowed', () => {
+  it('renders with only cash option when swaps are not allowed', () => {
     (isBridgeAllowed as jest.Mock).mockReturnValue(false);
 
     const { getByText, queryByText } = setupComponent();
@@ -196,9 +195,8 @@ describe('AddFundsBottomSheet', () => {
   });
 
   it('renders with no options when both are disabled', () => {
-    (useDepositEnabled as jest.Mock).mockReturnValue({
-      isDepositEnabled: false,
-    });
+    (useRampsUnifiedV2Enabled as jest.Mock).mockReturnValue(false);
+    (useRampNetwork as jest.Mock).mockReturnValue([false, false]);
     (isBridgeAllowed as jest.Mock).mockReturnValue(false);
 
     const { getByText, queryByText } = setupComponent();
@@ -223,7 +221,7 @@ describe('AddFundsBottomSheet', () => {
     expect(getByText('Swap tokens into USDC on Linea')).toBeTruthy();
   });
 
-  it('handles deposit option press correctly', () => {
+  it('handles fund with cash option press correctly', () => {
     const { getByText } = setupComponent();
 
     fireEvent.press(getByText('Fund with cash'));
@@ -239,7 +237,7 @@ describe('AddFundsBottomSheet', () => {
         button_text: 'Fund with cash',
         location: 'CardHome',
         chain_id_destination: '59144',
-        ramp_type: 'DEPOSIT',
+        ramp_type: 'UNIFIED_BUY_2',
         ramp_routing: undefined,
         is_authenticated: false,
         preferred_provider: undefined,
@@ -248,7 +246,7 @@ describe('AddFundsBottomSheet', () => {
     );
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(trace).toHaveBeenCalledWith({
-      name: TraceName.LoadDepositExperience,
+      name: TraceName.LoadRampExperience,
     });
   });
 
@@ -321,12 +319,15 @@ describe('AddFundsBottomSheet', () => {
     expect(getByText('Swap tokens into ETH on Linea')).toBeTruthy();
   });
 
-  it('navigates to deposit route when deposit callback is executed', () => {
+  it('navigates to unified buy when fund with cash callback is executed', () => {
     const { getByText } = setupComponent();
 
     fireEvent.press(getByText('Fund with cash'));
 
-    expect(mockGoToDeposit).toHaveBeenCalled();
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      { assetId: 'eip155:59144/erc20:0x456' },
+      { buyFlowOrigin: 'cardHome' },
+    );
   });
 
   it('renders component correctly', () => {
