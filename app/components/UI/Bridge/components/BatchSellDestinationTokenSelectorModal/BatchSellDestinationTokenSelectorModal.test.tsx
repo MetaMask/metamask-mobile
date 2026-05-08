@@ -166,7 +166,7 @@ describe('BatchSellDestinationTokenSelectorModal', () => {
     expect(getByText('MUSD')).toBeOnTheScreen();
   });
 
-  it('renders the stablecoin token balance without fiat value or symbol', () => {
+  it('renders the stablecoin fiat value from wallet balances', () => {
     mockBalancesByAssetId = {
       [usdcAssetId]: {
         balance: '123',
@@ -178,15 +178,15 @@ describe('BatchSellDestinationTokenSelectorModal', () => {
       <BatchSellDestinationTokenSelectorModal />,
     );
 
-    expect(getByText('123')).toBeOnTheScreen();
-    expect(queryByText('$123.00')).not.toBeOnTheScreen();
+    expect(getByText('$123.00')).toBeOnTheScreen();
+    expect(queryByText('123')).not.toBeOnTheScreen();
     expect(queryByText('123 USDC')).not.toBeOnTheScreen();
   });
 
-  it('renders zero when the stablecoin token is missing from wallet balances', () => {
-    const { getAllByText } = render(<BatchSellDestinationTokenSelectorModal />);
+  it('does not render a balance fallback when fiat value is missing', () => {
+    const { queryByText } = render(<BatchSellDestinationTokenSelectorModal />);
 
-    expect(getAllByText('0')).toHaveLength(2);
+    expect(queryByText('0')).not.toBeOnTheScreen();
   });
 
   it('highlights the selected stablecoin row', () => {

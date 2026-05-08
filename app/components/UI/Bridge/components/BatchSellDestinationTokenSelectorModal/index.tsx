@@ -21,7 +21,6 @@ import {
 
 import { strings } from '../../../../../../locales/i18n';
 import { useBalancesByAssetId } from '../../hooks/useBalancesByAssetId';
-import { formatTokenBalance } from '../../utils';
 import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
 import {
   selectBatchSellDestStablecoins,
@@ -32,8 +31,6 @@ import {
 import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
 import { BatchSellDestinationTokenSelectorModalSelectorsIDs } from './BatchSellDestinationTokenSelectorModal.testIds';
-
-const ZERO_TOKEN_BALANCE = '0';
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
 
@@ -98,8 +95,8 @@ export function BatchSellDestinationTokenSelectorModal() {
           const tokenKey = getTokenKey(token);
           const isSelected = isSameToken(token, selectedDestinationToken);
           const assetId = getBridgeTokenAssetId(token);
-          const tokenBalance = assetId
-            ? (balancesByAssetId[assetId]?.balance ?? ZERO_TOKEN_BALANCE)
+          const tokenFiatValue = assetId
+            ? balancesByAssetId[assetId]?.balanceFiat
             : undefined;
 
           return (
@@ -134,14 +131,14 @@ export function BatchSellDestinationTokenSelectorModal() {
                   {token.symbol}
                 </Text>
               </Box>
-              {tokenBalance ? (
+              {tokenFiatValue ? (
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
                   numberOfLines={1}
                 >
-                  {formatTokenBalance(tokenBalance)}
+                  {tokenFiatValue}
                 </Text>
               ) : null}
             </Pressable>
