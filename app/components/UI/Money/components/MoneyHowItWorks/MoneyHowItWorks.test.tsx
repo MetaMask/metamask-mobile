@@ -16,10 +16,10 @@ describe('MoneyHowItWorks', () => {
 
     const description = getByTestId(MoneyHowItWorksTestIds.DESCRIPTION);
     expect(description).toHaveTextContent(
-      /Hold mUSD in your Money Account and auto-earn/,
+      /Your Money account auto-earns up to/,
     );
     expect(description).toHaveTextContent(
-      /dollar-backed, always liquid, and ready to spend, trade, or send anytime\./,
+      /Your balance is dollar-backed, always liquid, and ready to spend, trade, or send anytime\./,
     );
   });
 

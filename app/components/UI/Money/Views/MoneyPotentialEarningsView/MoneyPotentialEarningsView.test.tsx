@@ -4,6 +4,7 @@ import MoneyPotentialEarningsView from './MoneyPotentialEarningsView';
 import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings.testIds';
 
 const mockGoBack = jest.fn();
 
@@ -201,5 +202,40 @@ describe('MoneyPotentialEarningsView', () => {
     expect(
       getByTestId(MoneyPotentialEarningsViewTestIds.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  describe('headline gradient', () => {
+    it('shows the deposited Money balance when totalFiatRaw is positive', () => {
+      const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+      // Default mock has totalFiatRaw='10000' / totalFiatFormatted='$10,000.00'.
+      expect(
+        getByTestId(MoneyPotentialEarningsTestIds.TEXT),
+      ).toHaveTextContent('$10,000.00');
+    });
+
+    it('falls back to the projected sum when totalFiatRaw is absent', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        apyPercent: 4,
+        apyDecimal: 0.04,
+        apyPercentFormatted: '4%',
+        totalFiatFormatted: undefined,
+        totalFiatRaw: undefined,
+        tokenTotal: undefined,
+        isAggregatedBalanceLoading: false,
+        vaultApyQuery: { data: { apy: 0.04 }, isLoading: false },
+        musdBalanceQuery: { data: undefined, isLoading: false },
+        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+        musdFiatFormatted: undefined,
+        musdSHFvdFiatFormatted: undefined,
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+      // Tokens sum: 5000+3000+2000+1500+800+400 = 12,700 × 4% = $508.00.
+      expect(
+        getByTestId(MoneyPotentialEarningsTestIds.TEXT),
+      ).toHaveTextContent('+$508.00');
+    });
   });
 });

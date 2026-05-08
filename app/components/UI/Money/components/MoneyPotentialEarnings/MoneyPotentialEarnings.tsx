@@ -49,6 +49,13 @@ interface MoneyPotentialEarningsProps {
    * alongside each token and in the gradient headline.
    */
   apy: number | undefined;
+  /**
+   * Pre-formatted fiat string to render in the gradient headline (e.g. the
+   * user's current Money balance). When provided, the headline shows this
+   * value instead of the aggregated projected earnings — used to surface
+   * the deposited balance once a user has any mUSD held.
+   */
+  headlineFiat?: string;
   onTokenPress?: (token: AssetType) => void;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
@@ -57,6 +64,7 @@ interface MoneyPotentialEarningsProps {
 const MoneyPotentialEarnings = ({
   tokens,
   apy,
+  headlineFiat,
   onTokenPress,
   onViewAllPress,
   onHeaderPress,
@@ -112,7 +120,8 @@ const MoneyPotentialEarnings = ({
           onPress={onHeaderPress}
         />
 
-        {isPositiveNumber(projectedAmount) && (
+        {headlineFiat && <MoneyGradientText value={headlineFiat} />}
+        {!headlineFiat && isPositiveNumber(projectedAmount) && (
           <MoneyGradientText
             value={`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
           />

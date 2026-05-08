@@ -47,7 +47,8 @@ const MoneyPotentialEarningsView = () => {
 
   const { tokens } = useMusdConversionTokens();
   const { initiateCustomConversion } = useMusdConversion();
-  const { apyPercent } = useMoneyAccountBalance();
+  const { apyPercent, totalFiatRaw, totalFiatFormatted } =
+    useMoneyAccountBalance();
   const apyPercentForProjection = apyPercent ?? 0;
 
   const eligibleTokens = useMemo(
@@ -69,6 +70,15 @@ const MoneyPotentialEarningsView = () => {
       ),
     [eligibleTokens, apyPercentForProjection],
   );
+
+  // When the user has already deposited, the headline mirrors MoneyHomeView
+  // and shows the current Money balance instead of the projected sum.
+  const headlineFiat = useMemo(() => {
+    if (!totalFiatRaw || !totalFiatFormatted) return undefined;
+    const balance = new BigNumber(totalFiatRaw);
+    if (balance.isNaN() || balance.isLessThanOrEqualTo(0)) return undefined;
+    return totalFiatFormatted;
+  }, [totalFiatRaw, totalFiatFormatted]);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -114,7 +124,8 @@ const MoneyPotentialEarningsView = () => {
             {strings('money.potential_earnings.title')}
           </Text>
 
-          {isPositiveNumber(projectedAmount) && (
+          {headlineFiat && <MoneyGradientText value={headlineFiat} />}
+          {!headlineFiat && isPositiveNumber(projectedAmount) && (
             <MoneyGradientText
               value={`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
             />

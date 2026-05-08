@@ -220,6 +220,49 @@ describe('MoneyPotentialEarnings', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('renders the headlineFiat value in the gradient when provided', () => {
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC]}
+        headlineFiat="$1,234.56"
+      />,
+    );
+
+    expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toHaveTextContent(
+      '$1,234.56',
+    );
+  });
+
+  it('uses headlineFiat instead of the projected sum when both are available', () => {
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC, MOCK_USDT]}
+        headlineFiat="$10,000.00"
+      />,
+    );
+
+    const headline = getByTestId(MoneyPotentialEarningsTestIds.TEXT);
+    expect(headline).toHaveTextContent('$10,000.00');
+    // Projected sum would have been +$360.00 with USDC+USDT @ 4% — must not appear.
+    expect(headline).not.toHaveTextContent('+$360.00');
+  });
+
+  it('falls back to the projected sum when headlineFiat is undefined', () => {
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC]}
+        headlineFiat={undefined}
+      />,
+    );
+
+    expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toHaveTextContent(
+      '+$200.00',
+    );
+  });
+
   it('hides the per-token projected earning text when apy is zero', () => {
     const { queryByText } = render(
       <MoneyPotentialEarnings apy={0} tokens={[MOCK_USDC]} />,

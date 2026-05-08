@@ -380,6 +380,71 @@ describe('MoneyHomeView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.POTENTIAL_EARNINGS);
   });
 
+  describe('potential earnings headline', () => {
+    it('shows the deposited balance when the user has a positive Money balance', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      // Default mock has totalFiatRaw='3' / totalFiatFormatted='$3.00'.
+      expect(
+        getByTestId(MoneyPotentialEarningsTestIds.TEXT),
+      ).toHaveTextContent('$3.00');
+    });
+
+    it('falls back to the projected sum when the user has not deposited', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        totalFiatFormatted: undefined,
+        musdFiatFormatted: undefined,
+        musdSHFvdFiatFormatted: undefined,
+        totalFiatRaw: undefined,
+        tokenTotal: undefined,
+        isAggregatedBalanceLoading: false,
+        apyDecimal: 0.04,
+        apyPercent: 4,
+        apyPercentFormatted: '4%',
+        vaultApyQuery: { data: { apy: 0.04 }, isLoading: false },
+        musdBalanceQuery: { data: undefined, isLoading: false },
+        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      // mockMoneyFormatFiat returns '$0.12'; the projected branch wraps it with '+'.
+      expect(
+        getByTestId(MoneyPotentialEarningsTestIds.TEXT),
+      ).toHaveTextContent('+$0.12');
+    });
+
+    it('falls back to the projected sum when totalFiatRaw is zero', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        totalFiatFormatted: '$0.00',
+        musdFiatFormatted: '$0.00',
+        musdSHFvdFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+        tokenTotal: undefined,
+        isAggregatedBalanceLoading: false,
+        apyDecimal: 0.04,
+        apyPercent: 4,
+        apyPercentFormatted: '4%',
+        vaultApyQuery: { data: { apy: 0.04 }, isLoading: false },
+        musdBalanceQuery: { data: { balance: '0' }, isLoading: false },
+        musdEquivalentBalanceQuery: {
+          data: {
+            musdEquivalentValue: '0',
+            musdSHFvdBalance: '0',
+            exchangeRate: '1000000',
+          },
+          isLoading: false,
+        },
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyPotentialEarningsTestIds.TEXT),
+      ).toHaveTextContent('+$0.12');
+    });
+  });
+
   it('opens the MUSD learn more URL when learn more is pressed in empty state', () => {
     const mockOpenURL = jest
       .spyOn(Linking, 'openURL')
