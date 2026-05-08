@@ -214,6 +214,7 @@ export class OAuthService {
           revokeToken,
           accessToken: data.access_token,
           metadataAccessToken: data.metadata_access_token,
+          profilePairingToken: data.profile_pairing_token,
         });
       Logger.log(
         'handleCodeFlow: success seedless authenticate. isNewUser',

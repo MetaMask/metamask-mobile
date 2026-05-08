@@ -76,6 +76,9 @@ export const TelegramHydraTokenUrl =
   'https://oidc.dev-api.cx.metamask.io/oauth2/token';
 export const TelegramHydraClientId = 'f1a963d7-50dc-4cb5-8d81-f1f3654f0df3';
 export const TelegramMintPath = 'api/v1/oauth/mint';
+// TODO: plumb per-env via OAUTH_CONFIG once non-dev profile-pairing endpoints are confirmed
+export const ProfilePairingEndpoint =
+  'https://authentication.dev-api.cx.metamask.io/api/v2/profile/pair';
 
 // Use universal link for OAuth redirect
 export const GoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;

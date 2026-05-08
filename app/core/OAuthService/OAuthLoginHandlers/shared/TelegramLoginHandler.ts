@@ -237,6 +237,11 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       authServerUrl,
     );
 
+    // Hydra access token doubles as the profile pairing token — used later by
+    // SeedlessOnboardingController.pairProfileServiceWithSocialLogin() to POST
+    // to profilePairingEndpoint as the bearer credential.
+    mintResponse.profile_pairing_token = hydraData.access_token;
+
     mintResponse.account_name = verifyTokenPayload.idp_sub
       ? `Telegram ${verifyTokenPayload.idp_sub}`
       : 'Telegram account';

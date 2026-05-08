@@ -86,6 +86,7 @@ export interface AuthResponse {
   refresh_token?: string;
   revoke_token?: string;
   account_name?: string;
+  profile_pairing_token?: string;
 }
 
 // return type for auth request with

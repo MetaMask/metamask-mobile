@@ -35,3 +35,18 @@ export const selectIsSeedlessPasswordOutdated = createSelector(
     seedlessOnboardingControllerState?.passwordOutdatedCache?.isExpiredPwd ===
     true,
 );
+
+export const selectProfilePairingToken = createSelector(
+  selectSeedlessOnboardingControllerState,
+  (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
+    seedlessOnboardingControllerState?.profilePairingToken,
+);
+
+// Pairing status now lives on the primary SRP's social-backup record.
+// See controller commit `2262b7cbe` (PR #8652).
+export const selectProfilePairingStatus = createSelector(
+  selectSeedlessOnboardingControllerState,
+  (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
+    seedlessOnboardingControllerState?.socialBackupsMetadata?.[0]
+      ?.profilePairingStatus,
+);
