@@ -478,6 +478,7 @@
 				FFED9AB1AACD0DA25EAA971D /* [CP] Copy Pods Resources */,
 				9F2FDF243A79F1A3A790828C /* [CP-User] [RNFB] Core Configuration */,
 				B04B18D52D8B340C00C5C2CE /* Strip Bitcode */,
+				CFA75A7C2F1A5E0000000001 /* Configure ATS for environment */,
 			);
 			buildRules = (
 			);
@@ -875,6 +876,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# Script for stripping bitcode when building using Xcode 16+ and uploading to the App Store\n# Reference - https://discuss.bitrise.io/t/xcode-16-known-issues/24484\n# This script should be last to ensure that all bitcode is stripped after dependencies are installed\n\n\nif [ \"${CONFIGURATION}\" = \"Release\" ]; then\n  find \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}\" -name 'OpenSSL' -exec xcrun bitcode_strip {} -r -o {} \\;\nfi\n";
+		};
+		CFA75A7C2F1A5E0000000001 /* Configure ATS for environment */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Configure ATS for environment";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "../scripts/ios/configure-ats.sh\n";
 		};
 		B04B18D72D8B34BE00C5C2CE /* Strip Bitcode */ = {
 			isa = PBXShellScriptBuildPhase;

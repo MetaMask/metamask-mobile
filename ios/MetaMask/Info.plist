@@ -52,6 +52,12 @@
 	<string>12.0.0</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- NSAppTransportSecurity below is the strict default that ships in App Store
+	     production builds (METAMASK_ENVIRONMENT=production). For all other
+	     environments (rc, beta, exp, e2e, test, dev) the dict is rewritten at
+	     build time to allow arbitrary loads + a localhost exception, by the
+	     "Configure ATS for environment" run-script phase on the MetaMask target.
+	     See scripts/ios/configure-ats.sh. -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
