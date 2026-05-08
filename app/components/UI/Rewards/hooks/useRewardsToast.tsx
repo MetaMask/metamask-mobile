@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useMemo } from 'react';
 import { ActivityIndicator } from 'react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
   ButtonIconVariant,
@@ -18,11 +19,19 @@ import {
 } from '../../../../util/haptics';
 import { strings } from '../../../../../locales/i18n';
 import RewardsNotificationIcon from '../../../../images/rewards/notification.svg';
-import { Box } from '@metamask/design-system-react-native';
+import RewardsTrophyIcon from '../../../../images/rewards/trophy.svg';
 
 export type RewardsToastOptions = ToastOptions & {
   hapticsType: HapticNotificationMoment;
 };
+
+export interface OutcomeCtaToastParams {
+  title: string;
+  description: string;
+  ctaLabel: string;
+  onCtaPress: () => void;
+  onClosePress: () => void;
+}
 
 export interface RewardsToastConfig {
   success: (title: string, subtitle?: string) => RewardsToastOptions;
@@ -32,6 +41,8 @@ export interface RewardsToastConfig {
   enableNotificationsNudge: (
     linkButtonOptions: ToastLinkButtonOptions,
   ) => RewardsToastOptions;
+  outcomeWinner: (params: OutcomeCtaToastParams) => RewardsToastOptions;
+  outcomeNonWinner: (params: OutcomeCtaToastParams) => RewardsToastOptions;
 }
 
 const getRewardsToastLabels = (title: string): ToastLabelOptions => {
@@ -181,6 +192,64 @@ const useRewardsToast = (): {
           onPress: () => {
             toastRef?.current?.closeToast();
           },
+        },
+      }),
+      outcomeWinner: ({
+        title,
+        description,
+        ctaLabel,
+        onCtaPress,
+        onClosePress,
+      }: OutcomeCtaToastParams) => ({
+        ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
+        variant: ToastVariants.Plain,
+        hasNoTimeout: true,
+        hapticsType: NotificationMoment.Success,
+        startAccessory: (
+          <Box twClassName="p-1 mr-2">
+            <RewardsTrophyIcon
+              name="trophy"
+              width={24}
+              height={24}
+              color={theme.colors.success.default}
+            />
+          </Box>
+        ),
+        labelOptions: getRewardsToastLabels(title),
+        descriptionOptions: { description },
+        linkButtonOptions: {
+          label: ctaLabel,
+          onPress: onCtaPress,
+        },
+        closeButtonOptions: {
+          variant: ButtonIconVariant.Icon,
+          iconName: IconName.Close,
+          onPress: onClosePress,
+        },
+      }),
+      outcomeNonWinner: ({
+        title,
+        description,
+        ctaLabel,
+        onCtaPress,
+        onClosePress,
+      }: OutcomeCtaToastParams) => ({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Confirmation,
+        iconColor: theme.colors.success.default,
+        backgroundColor: 'transparent',
+        hasNoTimeout: true,
+        hapticsType: NotificationMoment.Warning,
+        labelOptions: getRewardsToastLabels(title),
+        descriptionOptions: { description },
+        linkButtonOptions: {
+          label: ctaLabel,
+          onPress: onCtaPress,
+        },
+        closeButtonOptions: {
+          variant: ButtonIconVariant.Icon,
+          iconName: IconName.Close,
+          onPress: onClosePress,
         },
       }),
     }),

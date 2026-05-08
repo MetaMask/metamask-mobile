@@ -1,14 +1,18 @@
 import React, { useCallback } from 'react';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import type { RelatedAsset } from '@metamask/ai-controllers';
-import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { WhatsHappeningInteractionType } from '../../Homepage/Sections/WhatsHappening/constants';
+import { getWhatsHappeningEventProps } from '../../Homepage/Sections/WhatsHappening/eventProperties';
+import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
 import AssetRow from './AssetRow';
+import useTradeNavigation from '../hooks/useTradeNavigation';
 
 interface PerpsRowProps {
   asset: RelatedAsset;
+  item: WhatsHappeningItem;
+  cardIndex: number;
 }
 
 /**
@@ -17,27 +21,39 @@ interface PerpsRowProps {
  * the Perps market details view. Extracted as its own component so hooks can
  * be called per-asset (hooks cannot be called inside a loop).
  */
-const PerpsRow: React.FC<PerpsRowProps> = ({ asset }) => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const hlPerpsMarket = asset.hlPerpsMarket?.[0];
+const PerpsRow: React.FC<PerpsRowProps> = ({ asset, item, cardIndex }) => {
+  const { handleTrade } = useTradeNavigation(asset);
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const handleTrade = useCallback(() => {
-    if (!hlPerpsMarket) return;
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_DETAILS,
-      params: {
-        market: { symbol: hlPerpsMarket, name: asset.name },
-        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-      },
-    });
-  }, [navigation, hlPerpsMarket, asset.name]);
+  const handleTradeWithTracking = useCallback(() => {
+    if (!asset.hlPerpsMarket?.[0]) return;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTION)
+        .addProperties({
+          ...getWhatsHappeningEventProps(item, cardIndex),
+          interaction_type: WhatsHappeningInteractionType.TradePressed,
+          asset_symbol: asset.symbol,
+          perps_market: asset.hlPerpsMarket?.[0],
+        })
+        .build(),
+    );
+    handleTrade();
+  }, [
+    handleTrade,
+    asset.symbol,
+    asset.hlPerpsMarket,
+    item,
+    cardIndex,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   return (
     <AssetRow
       asset={asset}
       actionLabel={strings('bottom_nav.trade')}
       accessibilityLabel={`${strings('bottom_nav.trade')} ${asset.symbol}`}
-      onAction={handleTrade}
+      onAction={handleTradeWithTracking}
     />
   );
 };

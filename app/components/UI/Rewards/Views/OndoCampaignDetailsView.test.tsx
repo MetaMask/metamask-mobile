@@ -47,11 +47,12 @@ jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
-  // Skeleton is absent from the installed design-system version; stub it so
-  // the loading-state render doesn't throw "Element type is invalid".
   const Skeleton = (props: Record<string, unknown>) =>
     ReactActual.createElement(View, { testID: 'skeleton', ...props });
-  return { ...actual, Skeleton };
+  return {
+    ...actual,
+    Skeleton,
+  };
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -63,42 +64,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
     return tw;
   },
 }));
-
-jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text, Pressable } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        title,
-        onBack,
-        endButtonIconProps,
-      }: {
-        title: string;
-        onBack: () => void;
-        endButtonIconProps?: { testID?: string; onPress?: () => void }[];
-      }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'header' },
-          ReactActual.createElement(Text, null, title),
-          ReactActual.createElement(Pressable, {
-            onPress: onBack,
-            testID: 'header-back-button',
-          }),
-          ...(endButtonIconProps ?? []).map((btn, i) =>
-            ReactActual.createElement(Pressable, {
-              key: i,
-              onPress: btn.onPress,
-              testID: btn.testID ?? `end-button-${i}`,
-            }),
-          ),
-        ),
-    };
-  },
-);
 
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
@@ -1055,7 +1020,7 @@ describe('OndoCampaignDetailsView', () => {
         campaigns: [createTestCampaign()],
       });
       const { getByTestId } = render(<OndoCampaignDetailsView />);
-      fireEvent.press(getByTestId('header-back-button'));
+      fireEvent.press(getByTestId('campaign-details-back-button'));
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 

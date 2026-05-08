@@ -1,125 +1,168 @@
-import { createMMKV } from 'react-native-mmkv';
-
-import migrate from './134';
+import { captureException } from '@sentry/react-native';
+import migrate, { migrationVersion } from './134';
 import { ensureValidState } from './util';
 
-jest.mock('react-native-mmkv', () => ({
-  createMMKV: jest.fn(),
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
 }));
 
 jest.mock('./util', () => ({
   ensureValidState: jest.fn(),
 }));
 
-describe('migration 134', () => {
-  const mockRemove = jest.fn();
-  const mockGetString = jest.fn();
+const mockedEnsureValidState = jest.mocked(ensureValidState);
+const mockedCaptureException = jest.mocked(captureException);
 
-  const mockMMKVInstance = {
-    getString: mockGetString,
-    remove: mockRemove,
+const SEI_MAINNET_CHAIN_ID = '0x531';
+
+interface SeiNetworkConfiguration {
+  blockExplorerUrls: string[];
+  chainId: string;
+  defaultBlockExplorerUrlIndex?: number;
+  defaultRpcEndpointIndex: number;
+  name: string;
+  nativeCurrency: string;
+  rpcEndpoints: {
+    networkClientId: string;
+    url: string;
+    type: string;
+    failoverUrls?: string[];
+  }[];
+}
+
+interface TestState {
+  engine: {
+    backgroundState: {
+      NetworkController?: {
+        networkConfigurationsByChainId?: Record<
+          string,
+          SeiNetworkConfiguration
+        >;
+        selectedNetworkClientId?: string;
+        [key: string]: unknown;
+      };
+      [key: string]: unknown;
+    };
   };
+  [key: string]: unknown;
+}
 
-  (createMMKV as jest.Mock).mockImplementation(() => mockMMKVInstance);
-
-  const baseState = {
-    engine: { backgroundState: {} },
-    attribution: { attribution: null },
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.mocked(ensureValidState).mockReturnValue(true);
-  });
-
-  it('returns state unchanged when ensureValidState is false', () => {
-    jest.mocked(ensureValidState).mockReturnValueOnce(false);
-    const state = { ...baseState };
-
-    expect(migrate(state)).toBe(state);
-    expect(createMMKV).not.toHaveBeenCalled();
-  });
-
-  it('does nothing when legacy storage has no key', () => {
-    mockGetString.mockReturnValue(undefined);
-
-    const state = { ...baseState };
-    const result = migrate(state);
-
-    expect(createMMKV).toHaveBeenCalledWith({
-      id: 'redux-persist-attribution',
-    });
-    expect(mockGetString).toHaveBeenCalledWith('persist:attribution');
-    expect(mockRemove).not.toHaveBeenCalled();
-    expect(result).toEqual(baseState);
-  });
-
-  it('migrates legacy non-null attribution when current is null', () => {
-    const legacyPayload = {
-      _persist: { version: -1, rehydrated: false },
-      attribution: {
-        utm_source: 'x',
-        capturedAt: 1,
+function buildSeiConfig(blockExplorerUrls: string[]): SeiNetworkConfiguration {
+  return {
+    blockExplorerUrls,
+    chainId: SEI_MAINNET_CHAIN_ID,
+    defaultBlockExplorerUrlIndex: 0,
+    defaultRpcEndpointIndex: 0,
+    name: 'Sei',
+    nativeCurrency: 'SEI',
+    rpcEndpoints: [
+      {
+        networkClientId: 'sei-mainnet',
+        url: 'https://sei-mainnet.infura.io/v3/fake',
+        type: 'custom',
       },
-    };
-    mockGetString.mockReturnValue(JSON.stringify(legacyPayload));
+    ],
+  };
+}
 
-    const state = {
-      engine: { backgroundState: {} },
-      attribution: { attribution: null },
-    };
-
-    const result = migrate(state);
-
-    expect(result).toEqual({
-      engine: { backgroundState: {} },
-      attribution: {
-        attribution: {
-          utm_source: 'x',
-          capturedAt: 1,
+function buildState(seiConfig?: SeiNetworkConfiguration): TestState {
+  return {
+    engine: {
+      backgroundState: {
+        NetworkController: {
+          networkConfigurationsByChainId: seiConfig
+            ? { [SEI_MAINNET_CHAIN_ID]: seiConfig }
+            : {},
+          selectedNetworkClientId: 'mainnet',
         },
       },
-    });
-    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
+    },
+  };
+}
+
+describe(`Migration ${migrationVersion}: Replace Seitrace with Seiscan for Sei Mainnet`, () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedEnsureValidState.mockReturnValue(true);
   });
 
-  it('does not overwrite when current attribution is already set', () => {
-    const legacyPayload = {
-      attribution: { utm_source: 'legacy', capturedAt: 1 },
-    };
-    mockGetString.mockReturnValue(JSON.stringify(legacyPayload));
+  it('reports the expected migration version', () => {
+    expect(migrationVersion).toBe(134);
+  });
 
-    const existing = {
-      utm_source: 'current',
-      capturedAt: 2,
+  it('rewrites Seitrace block explorer URL to Seiscan for Sei Mainnet', () => {
+    const state = buildState(buildSeiConfig(['https://seitrace.com']));
+
+    const result = migrate(state) as TestState;
+
+    const seiConfig =
+      result.engine.backgroundState.NetworkController
+        ?.networkConfigurationsByChainId?.[SEI_MAINNET_CHAIN_ID];
+    expect(seiConfig?.blockExplorerUrls).toStrictEqual(['https://seiscan.io/']);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('leaves state unchanged when Sei Mainnet is not configured', () => {
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': buildSeiConfig(['https://etherscan.io']),
+            },
+            selectedNetworkClientId: 'mainnet',
+          },
+        },
+      },
     };
-    const state = {
-      engine: { backgroundState: {} },
-      attribution: { attribution: existing },
-    };
+    const snapshotBefore = JSON.stringify(state);
 
     const result = migrate(state);
 
-    expect(result).toEqual(state);
-    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
+    expect(JSON.stringify(result)).toBe(snapshotBefore);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('removes invalid legacy payload without merging', () => {
-    mockGetString.mockReturnValue('not-json');
+  it('silently skips when NetworkController is missing (upgrade-from-old-version)', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          SomeOtherController: { foo: 'bar' },
+        },
+      },
+    };
+    const snapshotBefore = JSON.stringify(state);
 
-    const state = { ...baseState };
-    migrate(state);
+    const result = migrate(state);
 
-    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
+    expect(JSON.stringify(result)).toBe(snapshotBefore);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('handles MMKV errors without throwing', () => {
-    mockGetString.mockImplementation(() => {
-      throw new Error('boom');
-    });
+  it('does not touch user-customized block explorer URLs', () => {
+    const state = buildState(buildSeiConfig(['https://seistream.app']));
 
-    const state = { ...baseState };
-    expect(() => migrate(state)).not.toThrow();
-    expect(state).toEqual(baseState);
+    const result = migrate(state) as TestState;
+
+    const seiConfig =
+      result.engine.backgroundState.NetworkController
+        ?.networkConfigurationsByChainId?.[SEI_MAINNET_CHAIN_ID];
+    expect(seiConfig?.blockExplorerUrls).toStrictEqual([
+      'https://seistream.app',
+    ]);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('does not rewrite a URL whose host only starts with seitrace.com', () => {
+    const lookalike = 'https://seitrace.com.attacker.example/path';
+    const state = buildState(buildSeiConfig([lookalike]));
+
+    const result = migrate(state) as TestState;
+
+    const seiConfig =
+      result.engine.backgroundState.NetworkController
+        ?.networkConfigurationsByChainId?.[SEI_MAINNET_CHAIN_ID];
+    expect(seiConfig?.blockExplorerUrls).toStrictEqual([lookalike]);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 });

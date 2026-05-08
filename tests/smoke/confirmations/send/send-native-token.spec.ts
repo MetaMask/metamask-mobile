@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../../framework/fixtures/FixtureBuilder';
@@ -19,7 +20,8 @@ import { validateTransactionHashInTransactionFinalizedEvent } from './metricsVal
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
 describe(SmokeConfirmations('Send native asset'), () => {
-  it('should send ETH to an address', async () => {
+  // Moved partially to cv tests (send.view.test.tsx, EVM coverage)
+  it('should send MAX balance ETH to an address', async () => {
     await withFixtures(
       {
         dapps: [
@@ -83,10 +85,10 @@ describe(SmokeConfirmations('Send native asset'), () => {
       }) => {
         await loginToApp();
         await device.disableSynchronization();
-        // send 5 ETH
+        // send Max ETH
         await WalletView.tapWalletSendButton();
         await SendView.selectEthereumToken();
-        await SendView.pressAmountFiveButton();
+        await SendView.pressAmountMaxButton();
         await SendView.pressContinueButton();
         await SendView.inputRecipientAddress(RECIPIENT);
         await SendView.pressReviewButton();
@@ -100,30 +102,6 @@ describe(SmokeConfirmations('Send native asset'), () => {
           localNodes,
           mockServer,
         );
-
-        // send 50% ETH
-        await TabBarComponent.tapWallet();
-        await WalletView.tapWalletSendButton();
-        await SendView.selectEthereumToken();
-        await SendView.pressFiftyPercentButton();
-        await SendView.pressContinueButton();
-        await SendView.inputRecipientAddress(RECIPIENT);
-        await SendView.pressReviewButton();
-        await FooterActions.tapConfirmButton();
-        await TabBarComponent.tapActivity();
-        await Assertions.expectTextDisplayed('Confirmed');
-
-        // send Max ETH
-        await TabBarComponent.tapWallet();
-        await WalletView.tapWalletSendButton();
-        await SendView.selectEthereumToken();
-        await SendView.pressAmountMaxButton();
-        await SendView.pressContinueButton();
-        await SendView.inputRecipientAddress(RECIPIENT);
-        await SendView.pressReviewButton();
-        await FooterActions.tapConfirmButton();
-        await TabBarComponent.tapActivity();
-        await Assertions.expectTextDisplayed('Confirmed');
       },
     );
   });
