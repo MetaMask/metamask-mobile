@@ -45,7 +45,7 @@ const baseItem: WhatsHappeningItem = {
   id: 'trend-0',
   title: 'Bitcoin ETF inflows hit record high',
   description: 'Spot Bitcoin ETFs recorded over $1.2B in net inflows.',
-  date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+  date: new Date(new Date().getTime() - 4 * 24 * 60 * 60 * 1000).toISOString(),
   category: 'macro',
   impact: 'positive',
   relatedAssets: [mockRelatedAsset],
@@ -129,9 +129,9 @@ describe('WhatsHappeningCard', () => {
     expect(screen.queryByText('BTC')).toBeNull();
   });
 
-  it('renders compact relative time when date is valid', () => {
+  it('renders relative time when date is valid', () => {
     renderWithProvider(<WhatsHappeningCard item={baseItem} cardIndex={0} />);
-    expect(screen.getByText('4d')).toBeOnTheScreen();
+    expect(screen.getByText('4d ago')).toBeOnTheScreen();
   });
 
   it('does not render date when date string is invalid', () => {

@@ -12,7 +12,6 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import type { WhatsHappeningItem } from '../types';
-import { formatShortRelative } from '../util/formatDate';
 import {
   getImpactLabel,
   getImpactBackgroundClass,
@@ -22,6 +21,7 @@ import PerpsTokenLogo from '../../../../../UI/Perps/components/PerpsTokenLogo';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useViewportTracking } from '../../../../../UI/MarketInsights/hooks/useViewportTracking';
+import { formatRelativeTime } from '../../../../../UI/MarketInsights/utils/marketInsightsFormatting';
 import { getWhatsHappeningEventProps } from '../eventProperties';
 
 interface WhatsHappeningCardProps {
@@ -39,7 +39,8 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
 }) => {
   const tw = useTailwind();
   const formattedDate = useMemo(
-    () => formatShortRelative(item.date),
+    () =>
+      item.date ? formatRelativeTime(item.date, { nowLabel: 'now' }) : null,
     [item.date],
   );
   const { trackEvent, createEventBuilder } = useAnalytics();
