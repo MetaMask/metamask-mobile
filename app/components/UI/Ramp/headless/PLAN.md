@@ -12,12 +12,12 @@
 - [x] **Phase 4b** — Introduce Headless Host screen as stack base for the headless flow + parameterize `useTransakRouting` reset helpers with `baseRoute`
 - [x] **Phase 4c** — Make `useContinueWithQuote` headless-ready — extend `ContinueWithQuoteContext` with optional overrides so callers without controller state (the Host) can drive it from a `Quote`
 - [x] **Phase 5 (revised)** — Quote-first headless start path — `startHeadlessBuy({ quote, redirectUrl? })` creates a session carrying the quote, navigates to Headless Host, Host calls `continueWithQuote(quote, ctx)` and re-orchestrates after auth loops
-- [ ] **Phase 5b (deferred)** — `startHeadlessBuy({ assetId, amount, paymentMethodId, providerId? })` "open BuildQuote / Host fetches quotes" mode — picked up after the quote-first path is stable
+- [ ] **Phase 5b** — superseded; scheduled as part of **Phase 10** (see below). Spec preserved in the Phase 5b section for historical reference.
 - [x] **Phase 6** — Bypass order-processing redirect in Transak/aggregator routing when headless; fire `onOrderCreated` and end session
 - [x] **Phase 7** — Extract UI-coupled error/limit surfacing; route errors through `onError` as typed `HeadlessBuyError`
-- [ ] **Phase 8** — Cancellation + `onClose` semantics (including user-dismissed detection)
-- [ ] **Phase 9** — Expose `getOrder` / `refreshOrder` from hook and show in playground
-- [ ] **Phase 10** — Playground polish — event log, input persistence, aggregator/native presets
+- [x] **Phase 8** — Cancellation + `onClose` semantics (including user-dismissed detection)
+- [ ] **Phase 9** — Expose `getOrder` / `refreshOrder` from hook and show in playground (now an MVP requirement — see Phase 9 Update)
+- [ ] **Phase 10** — Implement deferred Phase 5b + playground polish
 
 ---
 
@@ -440,6 +440,8 @@ Deliverable: an external dev can build a quote-comparison UI on top of `getQuote
 
 ## Phase 5b (deferred) — Raw-params start (Host fetches quotes & auto-picks)
 
+> Scheduled as part of Phase 10 (May 2026). Content here is the canonical spec.
+>
 > Was the original Phase 5; sequenced after the quote-first path is stable.
 
 Goal: support the second developer story — "I have user intent (amount + filters) but I don't want to do the quote dance myself; just take me to checkout".
@@ -523,11 +525,9 @@ Today (post-Phase 3) only the consumer-initiated `cancel()` returned by `startHe
 ### Implementation plan
 
 - Add a small `useHeadlessSessionDismissal(headlessSessionId)` hook in `app/components/UI/Ramp/headless/`:
-  - On mount: marks session as alive (`setStatus('pending')` if not already past).
-  - On unmount or blur-with-no-headless-route-on-stack: if `getSession(id)?.status` is not in `{'completed', 'cancelled'}`, call `endSession(id)` and `callbacks.onClose({ reason: 'user_dismissed' })`.
-- Wire it from:
-  - `BuildQuote` (Phase 8) — handles the "user opens headless, backs out of BuildQuote" case directly.
-  - Headless Host (Phase 4b) — handles every subsequent screen, since the Host is the stack base for the headless flow and unmounts only when the user truly leaves.
+  - On unmount (or when `headlessSessionId` changes): if `getSession(id)` is still present, call `closeSession(id, { reason: 'user_dismissed' })`. Terminal sessions are removed from the registry by their respective close paths (Phase 6 `completed`, Phase 7 `unknown`, consumer / restart `consumer_cancelled`), so the live-session check is the same predicate as "still cancellable".
+  - No on-mount work needed — `createSession` already initializes status to `'pending'`.
+- Wire it from `HeadlessHost` only — the Host is the single headless entry under quote-first (Phase 5 revised), and React Navigation keeps it mounted while child screens are pushed on top, so a single dismissal point catches every "user left the headless flow" path. **BuildQuote dismissal is deferred to Phase 10** (which absorbs the deferred Phase 5b raw-params start mode); BuildQuote is not a headless entry today, so there is no production target for that wiring.
 - Centralize the terminal-state lifecycle in the registry to avoid double-close: add a small helper `closeSession(id, reason)` that does `setStatus(id, 'completed' | 'cancelled')` + `endSession(id)` + `callbacks.onClose({ reason })`, no-op if the session is already gone. All call-sites (Phase 6 success, Phase 7 errors, Phase 8 dismissal, the existing Phase 3 `cancel()`) should funnel through it.
 - Idempotency contract: `onClose` fires **at most once per session**, regardless of how many code paths try to close it.
 
@@ -541,9 +541,19 @@ Today (post-Phase 3) only the consumer-initiated `cancel()` returned by `startHe
 
 Deliverable: closing the buy flow from anywhere on the headless stack notifies the consumer; the playground no longer needs the manual "Cancel headless session" tap (the button stays for explicit consumer-side cancellation but is no longer required for cleanup).
 
+> **Drove the elevated priority:** MetaMask Pay's `TransactionPayController` ([MetaMask/core#8628](https://github.com/MetaMask/core/pull/8628)) depends on terminal `onClose` events to sequence step II of its two-step Fiat-purchase → Intent-transaction flow. Flagged in the Apr 28 2026 progress sync as the open blocker ("Callbacks for canceling/going back not yet wired to events"); production money account ships end of May.
+
 ---
 
 ## Phase 9 — Expose `getOrder` + polling helpers
+
+### Update (May 2026 — driven by MetaMask Pay)
+
+Phase 9 is now an MVP requirement, not playground polish. MetaMask Pay's `TransactionPayController` ([MetaMask/core#8628](https://github.com/MetaMask/core/pull/8628)) needs to know when the fiat order reaches a terminal state to fire step II (intent transaction) of its two-step flow.
+
+The original Phase 9 surface (`getOrder`, `refreshOrder` + a "Refresh order" playground button) doesn't fit a controller consumer. The Phase 9 API should add an **imperative `awaitOrderTerminalState(orderId)` Promise** so TPC can `await` settlement instead of polling itself. Polling and the playground button stay as additional surfaces; the Promise is the load-bearing API.
+
+The Apr 28 progress sync also called out a missing **auto-select-best-provider utility** ("Need utility function to auto-select best provider rather than requiring explicit provider ID"). Either fold into Phase 9 alongside `getOrder`, or split as Phase 9.5 — to be decided during Phase 9 implementation.
 
 Goal: complete the hook surface.
 
@@ -554,9 +564,18 @@ Goal: complete the hook surface.
 
 ---
 
-## Phase 10 — Playground polish & discoverability
+## Phase 10 — Implement deferred Phase 5b + playground polish
 
-Goal: make the playground actually useful for exploring the API.
+> Goal 1 (primary): implement the deferred Phase 5b — `startHeadlessBuy({ assetId, amount, paymentMethodId, providerId? })` raw-params start mode, where the Host fetches quotes itself and auto-picks one. See the existing "Phase 5b (deferred)" section above for the full spec.
+>
+> Goal 2 (secondary): playground polish — the bullets below.
+
+### Goal 1 — implement Phase 5b (raw-params start mode)
+
+- Pick up the deferred spec from the [Phase 5b (deferred)](#phase-5b-deferred--raw-params-start-host-fetches-quotes--auto-picks) section above. The discriminated-union `HeadlessBuyParams`, the in-Host `getQuotes` + auto-pick step, and the `NO_QUOTES` / `LIMIT_EXCEEDED` error mapping all carry over unchanged.
+- Wire `useHeadlessSessionDismissal` into `BuildQuote` as part of this work, since BuildQuote becomes a headless entry under raw-params and needs the same dismissal contract as the Host. This closes out the deferral noted in Phase 8.
+
+### Goal 2 — playground polish & discoverability
 
 - Per-quote "Start headless buy" buttons + standalone-button removal landed early in Phase 5 (revised) — see that section for details. Phase 10 picks up the polish work on top of that surface.
 - Pretty-print session events (`onOrderCreated`, `onError`, `onClose`) in a scrolling log panel.
