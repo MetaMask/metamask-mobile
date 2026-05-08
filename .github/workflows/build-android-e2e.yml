@@ -20,6 +20,15 @@ on:
         required: false
         default: 'e2e'
         type: string
+      source-fingerprint:
+        description: >-
+          Canonical @expo/fingerprint hash for this commit, computed once in
+          the `post-build-source-hash` job. Used for cache keys and cross-run
+          artifact lookups. When empty (e.g. forked PR where the hash job is
+          skipped), the build compiles fresh with no cache reuse.
+        required: false
+        default: ''
+        type: string
       runner_provider:
         description: Runner provider forwarded from the caller
         required: false
@@ -45,6 +54,12 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
 
+      - name: Check force-builds override
+        id: force-builds
+        uses: ./.github/actions/check-force-builds
+        with:
+          github-token: ${{ github.token }}
+
       - name: Configure Namespace cache
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
@@ -57,39 +72,15 @@ jobs:
             ${{ env.GRADLE_USER_HOME }}/caches
             ${{ env.GRADLE_USER_HOME }}/wrapper
 
-      - name: Restore .metamask folder (Foundry download cache for install:foundryup)
-        if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/cache@v4
-        with:
-          path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
-
-      - name: Setup Android Build Environment
-        timeout-minutes: 15
-        uses: ./.github/actions/setup-e2e-env
-        with:
-          platform: android
-          setup-simulator: false
-          configure-keystores: true
-          android-api-level: 36
-
-      - name: Setup project dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: |
-            echo "🚀 Setting up project..."
-            yarn setup:github-ci --no-build-ios
-
-      # Generate fingerprint AFTER setup but BEFORE any build modifications (the fingerprint now is fake we do not want the cached apk)
-      - name: Generate current fingerprint
-        id: generate-fingerprint
+      - name: Report source fingerprint
         run: |
-          FINGERPRINT=$(yarn fingerprint:generate)
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Current fingerprint: ${FINGERPRINT}"
+          if [[ -z "$SOURCE_FINGERPRINT" ]]; then
+            echo "::warning::No source-fingerprint provided (likely a forked PR); artifact reuse disabled."
+          else
+            echo "Source fingerprint: $SOURCE_FINGERPRINT"
+          fi
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
 
       - name: Determine target paths and Artifact Names
         id: determine-target-paths
@@ -111,15 +102,17 @@ jobs:
             exit 1
           fi
 
-      # TEMPORARY: `${{ github.run_id }}` makes every key unique per workflow
-      # run so we always get a fresh build during the RN 0.81 upgrade — the
-      # `yarn fingerprint:generate` heuristic doesn't track every native input
-      # being changed (yarn patches, MainApplication, Podfile shims, etc.) so
-      # the branch cache can serve a stale .apk and only the JS gets repacked.
-      # Remove the trailing `-${{ github.run_id }}` from each `key:` below
-      # once the upgrade is settled and fingerprint covers the touched paths.
+      - name: Find reusable build from prior run
+        id: find-reusable-build
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
+        uses: ./.github/actions/find-reusable-build
+        with:
+          fingerprint: ${{ inputs.source-fingerprint }}
+          artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk","${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk"]'
+          github-token: ${{ github.token }}
+
       - name: Restore APKs matching fingerprint from branch cache
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' }}
         id: apk-cache-restore
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -127,16 +120,10 @@ jobs:
           path: |
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
             ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
-          # Include Gradle properties in key to force rebuild when properties change
-          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
-          # - "Restore APKs matching fingerprint from branch cache"
-          # - "Restore APKs matching fingerprint from main cache"
-          # - "Restore Gradle dependencies from branch cache"
-          # - "Restore Gradle dependencies from main cache"
-          key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.run_id }}
+          key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Restore APKs matching fingerprint from main cache
-        if: ${{ inputs.runner_provider != 'namespace' && steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: apk-cache-restore-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -144,53 +131,142 @@ jobs:
           path: |
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
             ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
-          # Include Gradle properties in key to force rebuild when properties change
-          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
-          # - "Restore APKs matching fingerprint from branch cache"
-          # - "Restore APKs matching fingerprint from main cache"
-          # - "Restore Gradle dependencies from branch cache"
-          # - "Restore Gradle dependencies from main cache"
-          key: android-apk-main-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.run_id }}
+          key: android-apk-main-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+      - name: Download reusable APK from prior run
+        id: download-reusable-apk
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build.outputs.run-id }}
 
+      - name: Download reusable androidTest APK from prior run
+        id: download-reusable-test-apk
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
+          path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build.outputs.run-id }}
+
+      - name: Log reused Android build source
+        if: ${{ steps.download-reusable-apk.outcome == 'success' && steps.download-reusable-test-apk.outcome == 'success' }}
+        run: |
+          echo "Reusing Android build from run ${{ steps.find-reusable-build.outputs.run-id }}"
+          echo "Source SHA: ${{ steps.find-reusable-build.outputs.source-sha }}"
+          echo "Source branch: ${{ steps.find-reusable-build.outputs.source-branch }}"
+        shell: bash
+
+      - name: Compute native-build gate
+        id: gate
+        run: |
+          if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
+             && "${{ steps.download-reusable-apk.outcome }}" == "success" \
+             && "${{ steps.download-reusable-test-apk.outcome }}" == "success" ]]; then
+            echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+            echo "Reuse path active (cross-run artifact download succeeded); heavy Android setup + Gradle restore will be skipped."
+          elif [[ "${{ steps.apk-cache-restore.outputs.cache-hit }}" == "true" \
+               || "${{ steps.apk-cache-restore-main.outputs.cache-hit }}" == "true" ]]; then
+            echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+            echo "APK cache hit; heavy Android setup + Gradle restore will be skipped."
+          else
+            if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" ]]; then
+              echo "::warning::Reusable run was found but artifact download failed (apk=${{ steps.download-reusable-apk.outcome }}, test-apk=${{ steps.download-reusable-test-apk.outcome }}); falling back to fresh native build."
+            fi
+            echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
+            echo "No reuse path; full native build + setup will run."
+          fi
+        shell: bash
+
+      - name: Setup Android Build Environment
+        timeout-minutes: 15
+        uses: ./.github/actions/setup-e2e-env
+        with:
+          platform: android
+          setup-simulator: false
+          configure-keystores: true
+          install-foundry: false
+
+      # The Namespace cache action above already includes `.metamask`, so the
+      # dedicated actions/cache restore is only needed on non-Namespace runners.
+      - name: Restore .metamask folder
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        id: restore-metamask
+        uses: actions/cache@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+      - name: Setup project dependencies with retry (native-build path)
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "🚀 Setting up project..."
+            yarn setup:github-ci --no-build-ios
+
+      - name: Setup project dependencies with retry (reuse-hit path)
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "📦 Setting up project (lightweight, skips jetify)..."
+            yarn setup:github-ci --no-build-ios --no-build-android
+
+      # -------------------------------------------------------------------------
+      # Gradle caches + native build — only on the full native-build path.
+      # -------------------------------------------------------------------------
+
+      # Skipped on Namespace runners because the Namespace cache action above
+      # already handles `${GRADLE_USER_HOME}/caches` and `wrapper` — running
+      # cirruslabs/cache on top of it would be redundant work and a redundant
+      # save at end of run.
       - name: Restore Gradle dependencies from branch cache
         id: gradle-cache-restore
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        if: ${{ inputs.runner_provider != 'namespace' && steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
           path: |
             ~/_work/.gradle/caches
             ~/_work/.gradle/wrapper
-          # Include Gradle properties in key to force rebuild when properties change
-          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
-          # - "Restore APKs matching fingerprint from branch cache"
-          # - "Restore APKs matching fingerprint from main cache"
-          # - "Restore Gradle dependencies from branch cache"
-          # - "Restore Gradle dependencies from main cache"
-          key: gradle-${{ github.ref_name }}-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.run_id }}
+          # Include Gradle properties in key to force rebuild when properties change.
+          # Keep the `hashFiles` call for Gradle config in-sync with the
+          # sibling "Restore Gradle dependencies from main cache" step below.
+          key: gradle-${{ github.ref_name }}-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Restore Gradle dependencies from main cache
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        if: ${{ inputs.runner_provider != 'namespace' && steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
           path: |
             ~/_work/.gradle/caches
             ~/_work/.gradle/wrapper
-          # Include Gradle properties in key to force rebuild when properties change
-          # Keep the `hashFiles` call for Gradle config in-sync with these steps:
-          # - "Restore APKs matching fingerprint from branch cache"
-          # - "Restore APKs matching fingerprint from main cache"
-          # - "Restore Gradle dependencies from branch cache"
-          # - "Restore Gradle dependencies from main cache"
-          key: gradle-main-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.run_id }}
+          # Include Gradle properties in key to force rebuild when properties change.
+          # Keep the `hashFiles` call for Gradle config in-sync with the
+          # sibling "Restore Gradle dependencies from branch cache" step above.
+          key: gradle-main-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Build Android E2E APKs
-        if: ${{ inputs.runner_provider == 'namespace' || (steps.apk-cache-restore.outputs.cache-hit != 'true' && steps.apk-cache-restore-main.outputs.cache-hit != 'true') }}
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=4096"
@@ -239,7 +315,7 @@ jobs:
           MM_PREDICT_GTM_MODAL_ENABLED: 'false'
 
       - name: Repack APK with JS updates using @expo/repack-app
-        if: ${{ inputs.runner_provider != 'namespace' && (steps.apk-cache-restore.outputs.cache-hit == 'true' || steps.apk-cache-restore-main.outputs.cache-hit == 'true') }}
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
         run: |
           echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
@@ -255,7 +331,7 @@ jobs:
           GITHUB_CI: 'true'
           CI: 'true'
           NODE_OPTIONS: '--max-old-space-size=8192'
-          METRO_MAX_WORKERS: '2'
+          METRO_MAX_WORKERS: '6'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
