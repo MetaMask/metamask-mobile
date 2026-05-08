@@ -95,6 +95,31 @@ jest.mock('../../../selectors/featureFlagController/homepage', () => ({
   ),
 }));
 
+// Control Money home screen feature flag per test (default false so existing tests are unaffected)
+let mockMoneyHomeScreenEnabled = false;
+jest.mock('../../UI/Money/selectors/featureFlags', () => ({
+  selectMoneyHomeScreenEnabledFlag: jest.fn(() => mockMoneyHomeScreenEnabled),
+}));
+
+// Mock MoneyBalanceCard so the integration test does not depend on its hooks/contexts.
+jest.mock('../../UI/Money/components/MoneyBalanceCard', () => {
+  const ReactMock = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactMock.createElement(View, {
+        testID: 'money-balance-card-mock',
+      }),
+  };
+});
+
+// Mock NetworkConnectionBanner so the Wallet view's render does not depend on
+// Engine.lookupEnabledNetworks / NetworkController / controllerMessenger APIs.
+// Without this, the banner hook throws during render and the ErrorBoundary
+// swallows the failure, making negative-assert tests pass for the wrong reason.
+jest.mock('../../UI/NetworkConnectionBanner', () => () => null);
+
 // Control discovery tabs AB test variant per test (default control so existing tests are unaffected)
 let mockDiscoveryTabsVariantName = 'control';
 jest.mock('../../../hooks', () => ({
@@ -2028,5 +2053,61 @@ describe('useHomeDeepLinkEffects', () => {
 
     jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
     assertCase(mocks);
+  });
+});
+
+describe('MoneyBalanceCard slot', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(mockInitialState),
+      );
+  });
+
+  afterEach(() => {
+    mockMoneyHomeScreenEnabled = false;
+    mockHomepageSectionsEnabled = false;
+  });
+
+  it('renders the MoneyBalanceCard when both feature flags are enabled', () => {
+    mockMoneyHomeScreenEnabled = true;
+    mockHomepageSectionsEnabled = true;
+
+    //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
+    const { getByTestId } = render(Wallet);
+
+    expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
+  });
+
+  it('does not render the MoneyBalanceCard when only the Money flag is enabled', () => {
+    mockMoneyHomeScreenEnabled = true;
+    mockHomepageSectionsEnabled = false;
+
+    //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
+    const { queryByTestId } = render(Wallet);
+
+    expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
+  });
+
+  it('does not render the MoneyBalanceCard when only the Homepage sections flag is enabled', () => {
+    mockMoneyHomeScreenEnabled = false;
+    mockHomepageSectionsEnabled = true;
+
+    //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
+    const { queryByTestId } = render(Wallet);
+
+    expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
+  });
+
+  it('does not render the MoneyBalanceCard when both feature flags are disabled', () => {
+    mockMoneyHomeScreenEnabled = false;
+    mockHomepageSectionsEnabled = false;
+
+    //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
+    const { queryByTestId } = render(Wallet);
+
+    expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
   });
 });

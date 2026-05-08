@@ -26,6 +26,8 @@ const HARDWARE_BACK_PRESS = 'hardwareBackPress';
  * the backup seed phrase flow
  */
 class ManualBackupStep3 extends PureComponent {
+  backHandlerSubscription = null;
+
   state = {
     showHint: false,
     hintText: '',
@@ -53,7 +55,8 @@ class ManualBackupStep3 extends PureComponent {
   };
 
   componentWillUnmount = () => {
-    BackHandler.removeEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
+    this.backHandlerSubscription?.remove?.();
+    this.backHandlerSubscription = null;
   };
 
   componentDidMount = async () => {
@@ -66,7 +69,10 @@ class ManualBackupStep3 extends PureComponent {
     this.setState({
       hintText: manualBackup,
     });
-    BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
+    this.backHandlerSubscription = BackHandler.addEventListener(
+      HARDWARE_BACK_PRESS,
+      hardwareBackPress,
+    );
   };
 
   componentDidUpdate = () => {

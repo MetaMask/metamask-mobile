@@ -5,7 +5,6 @@ import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
@@ -29,39 +28,33 @@ const TimeframeSelector: React.FC<TimeframeSelectorProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
+      twClassName="gap-1"
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
-      >
-        {timeframes.map((timeframe) => (
-          <Pressable
-            key={timeframe}
-            onPress={() => onTimeframeChange(timeframe)}
-            style={({ pressed }) =>
-              tw.style(
-                'flex-1 py-2 rounded-lg',
-                selectedTimeframe === timeframe ? 'bg-muted' : 'bg-default',
-                pressed && 'bg-pressed',
-              )
+      {timeframes.map((timeframe) => (
+        <Pressable
+          key={timeframe}
+          onPress={() => onTimeframeChange(timeframe)}
+          style={({ pressed }) =>
+            tw.style(
+              'flex-1 py-2 rounded-lg',
+              selectedTimeframe === timeframe ? 'bg-muted' : 'bg-default',
+              pressed && 'bg-pressed',
+            )
+          }
+        >
+          <Text
+            variant={TextVariant.BodySM}
+            color={
+              selectedTimeframe === timeframe
+                ? TextColor.Default
+                : TextColor.Alternative
             }
+            style={tw.style('text-center')}
           >
-            <Text
-              variant={TextVariant.BodySM}
-              color={
-                selectedTimeframe === timeframe
-                  ? TextColor.Default
-                  : TextColor.Alternative
-              }
-              style={tw.style('text-center')}
-            >
-              {timeframe.toUpperCase()}
-            </Text>
-          </Pressable>
-        ))}
-      </Box>
+            {timeframe.toUpperCase()}
+          </Text>
+        </Pressable>
+      ))}
     </Box>
   );
 };
