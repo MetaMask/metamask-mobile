@@ -18,6 +18,7 @@ import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
   PredictBalanceSelectorsIDs,
+  PredictBalanceSelectorsText,
   getPredictSearchSelector,
 } from '../../Predict.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -219,13 +220,38 @@ describe('PredictFeed', () => {
       getBalanceSpy.mockRestore();
     });
 
+    it('uses PredictController balance response to display available balance amount', async () => {
+      const getBalanceSpy = jest.spyOn(
+        Engine.context.PredictController,
+        'getBalance',
+      );
+      getBalanceSpy.mockResolvedValue(28.16);
+
+      const { findByTestId, findByText } = renderPredictFeedView();
+
+      expect(
+        await findByTestId(PredictBalanceSelectorsIDs.BALANCE_CARD),
+      ).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(getBalanceSpy).toHaveBeenCalledTimes(1);
+      });
+      expect(
+        await findByText(PredictBalanceSelectorsText.AVAILABLE_BALANCE),
+      ).toBeOnTheScreen();
+      expect(await findByText('$28.16')).toBeOnTheScreen();
+
+      getBalanceSpy.mockRestore();
+    });
+
     it('calls trackGeoBlockTriggered when the user presses Add Funds while ineligible', async () => {
       const trackGeoBlockSpy = jest.spyOn(
         Engine.context.PredictController,
         'trackGeoBlockTriggered',
       );
 
-      const { findByTestId, findByText } = renderPredictFeedView();
+      const { findByTestId, findByText } = renderPredictFeedViewWithRoutes({
+        extraRoutes: [{ name: Routes.PREDICT.MODALS.ROOT }],
+      });
 
       await findByTestId(PredictBalanceSelectorsIDs.BALANCE_CARD);
       fireEvent.press(await findByText('Add funds'));
@@ -235,8 +261,36 @@ describe('PredictFeed', () => {
           expect.objectContaining({ attemptedAction: 'deposit' }),
         );
       });
+      expect(
+        await findByTestId(`route-${Routes.PREDICT.MODALS.ROOT}`),
+      ).toBeOnTheScreen();
 
       trackGeoBlockSpy.mockRestore();
+    });
+  });
+
+  describe('feed error recovery', () => {
+    it('shows the offline error state in the feed when market fetch retries fail', async () => {
+      const getMarketsSpy = jest.spyOn(
+        Engine.context.PredictController,
+        'getMarkets',
+      );
+      getMarketsSpy.mockRejectedValue(new Error('Network error'));
+
+      const { findByTestId } = renderPredictFeedView();
+
+      expect(
+        await findByTestId(
+          PredictSearchSelectorsIDs.ERROR_STATE,
+          {},
+          { timeout: 10000 },
+        ),
+      ).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(getMarketsSpy.mock.calls.length).toBeGreaterThanOrEqual(3);
+      });
+
+      getMarketsSpy.mockRestore();
     });
   });
 
