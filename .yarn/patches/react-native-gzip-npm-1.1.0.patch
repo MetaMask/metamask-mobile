@@ -1,0 +1,60 @@
+diff --git a/package.json b/package.json
+index 0000000000000000000000000000000000000000..0000000000000000000000000000000000000001 100644
+--- a/package.json
++++ b/package.json
+@@ -7,6 +7,11 @@
+   "types": "lib/typescript/index.d.ts",
+   "react-native": "src/index",
+   "source": "src/index",
++  "codegenConfig": {
++    "name": "RNGzipSpec",
++    "type": "modules",
++    "jsSrcsDir": "src"
++  },
+   "files": [
+     "src",
+     "lib",
+diff --git a/src/NativeGzip.ts b/src/NativeGzip.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..0000000000000000000000000000000000000001
+--- /dev/null
++++ b/src/NativeGzip.ts
+@@ -0,0 +1,9 @@
++import type { TurboModule } from 'react-native';
++import { TurboModuleRegistry } from 'react-native';
++
++export interface Spec extends TurboModule {
++  inflate(base64: string): Promise<string>;
++  deflate(data: string): Promise<string>;
++}
++
++export default TurboModuleRegistry.getEnforcing<Spec>('Gzip');
+diff --git a/react-native-gzip.podspec b/react-native-gzip.podspec
+index 0000000000000000000000000000000000000000..0000000000000000000000000000000000000001 100644
+--- a/react-native-gzip.podspec
++++ b/react-native-gzip.podspec
+@@ -19,19 +19,9 @@
+   s.dependency "React-Core"
+   s.dependency "GZIP"
+   s.dependency 'Base64'
+-
+-  # Don't install the dependencies when we run `pod install` in the old architecture.
+-  if ENV['RCT_NEW_ARCH_ENABLED'] == '1' then
+-    s.compiler_flags = folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED=1"
+-    s.pod_target_xcconfig    = {
+-        "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
+-        "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1",
+-        "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
+-    }
+-    s.dependency "React-Codegen"
+-    s.dependency "RCT-Folly"
+-    s.dependency "RCTRequired"
+-    s.dependency "RCTTypeSafety"
+-    s.dependency "ReactCommon/turbomodule/core"
+-  end
++
++  # Use install_modules_dependencies to properly handle New Architecture dependencies.
++  if defined? install_modules_dependencies
++    install_modules_dependencies(s)
++  end
+ end

@@ -5,6 +5,7 @@ export default defineConfig({
   testDir: './',
   fullyParallel: false,
   timeout: 7 * 60 * 1000, //7 minutes until we introduce fixtures
+  grep: /@Performance/,
   reporter: [
     [
       'html',

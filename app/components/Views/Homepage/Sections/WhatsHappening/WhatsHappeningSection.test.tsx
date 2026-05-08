@@ -3,8 +3,16 @@ import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import WhatsHappeningSection from './WhatsHappeningSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn((eventName: string) => ({
+  addProperties: jest.fn((properties: Record<string, unknown>) => ({
+    build: jest.fn(() => ({ category: eventName, properties })),
+  })),
+  build: jest.fn(() => ({ category: eventName })),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -28,6 +36,13 @@ jest.mock('./hooks', () => ({
     error: null,
     refresh: jest.fn(),
   })),
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 const mockUseWhatsHappening = jest.requireMock('./hooks').useWhatsHappening;
@@ -138,10 +153,9 @@ describe('WhatsHappeningSection', () => {
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(mockItem.title));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.WHATS_HAPPENING_DETAIL,
-      expect.objectContaining({ items: [mockItem], initialIndex: 0 }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
+      initialIndex: 0,
+    });
   });
 
   it('navigates to detail view at index 0 when ViewMore card is pressed', () => {
@@ -153,10 +167,9 @@ describe('WhatsHappeningSection', () => {
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(/view more/i));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.WHATS_HAPPENING_DETAIL,
-      expect.objectContaining({ items: [mockItem], initialIndex: 0 }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
+      initialIndex: 0,
+    });
   });
 
   it('navigates with correct index when second card is pressed', () => {
@@ -173,11 +186,53 @@ describe('WhatsHappeningSection', () => {
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(secondItem.title));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.WHATS_HAPPENING_DETAIL,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
+      initialIndex: 1,
+    });
+  });
+
+  it('tracks Whats Happening Opened with entry_point=card when a card is pressed', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+    fireEvent.press(screen.getByText(mockItem.title));
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_OPENED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        items: [mockItem, secondItem],
-        initialIndex: 1,
+        category: MetaMetricsEvents.WHATS_HAPPENING_OPENED,
+        properties: expect.objectContaining({
+          entry_point: 'card',
+          event_id: mockItem.id,
+          card_index: 0,
+          category: 'macro',
+          impact: 'positive',
+          asset_symbols: [],
+        }),
+      }),
+    );
+  });
+
+  it('tracks Whats Happening Opened with entry_point=view_all when View More is pressed', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+    fireEvent.press(screen.getByText(/view more/i));
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.WHATS_HAPPENING_OPENED,
+        properties: expect.objectContaining({
+          entry_point: 'view_all',
+        }),
       }),
     );
   });

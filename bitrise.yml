@@ -3495,9 +3495,6 @@ app:
       MM_NETWORK_UI_REDESIGN_ENABLED: false
     - opts:
         is_expand: false
-      MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
-    - opts:
-        is_expand: false
       MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
@@ -3531,6 +3528,9 @@ app:
       NDK_VERSION: 26.1.10909125
     - opts:
         is_expand: false
+      CMAKE_VERSION: '3.22.1'
+    - opts:
+        is_expand: false
       QA_APK_NAME: app-qa-release
     - opts:
         is_expand: false
@@ -3555,16 +3555,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.76.0
+      VERSION_NAME: 7.78.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 4532
+      VERSION_NUMBER: 4823
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.76.0
+      FLASK_VERSION_NAME: 7.78.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 4532
+      FLASK_VERSION_NUMBER: 4823
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -3600,9 +3600,9 @@ trigger_map:
   # Disable auto RC generation
   # - push_branch: release/*
   #   pipeline: pr_rc_rwy_pipeline
-  - push_branch: main
-    pipeline: expo_dev_pipeline
-  - tag: 'qa-*'
-    pipeline: create_qa_builds_pipeline
-  - tag: 'v*.*.*'
-    pipeline: create_qa_builds_pipeline
+  # - push_branch: main
+  #   pipeline: expo_dev_pipeline
+  # - tag: 'qa-*'
+  #   pipeline: create_qa_builds_pipeline
+  # - tag: 'v*.*.*'
+  #   pipeline: create_qa_builds_pipeline
