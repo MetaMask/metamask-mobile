@@ -225,9 +225,25 @@ jobs:
 
       - name: Download iOS app artifact from CI
         run: |
-          gh run download "${{ needs.prepare.outputs.RUN_ID }}" \
-            -n main-qa-MetaMask.app \
-            -D artifacts/main-qa-MetaMask.app
+          RUN_ID="${{ needs.prepare.outputs.RUN_ID }}"
+          ATTEMPT_COUNT=$(gh run view "${RUN_ID}" --json attempts --jq '.attempts | length')
+          echo "Run ${RUN_ID} has ${ATTEMPT_COUNT} attempt(s). Searching for iOS artifact..."
+
+          # Search from newest to oldest attempt — the artifact may be in an earlier
+          # attempt if only failed jobs were re-run and the iOS build was not among them.
+          for ATTEMPT in $(seq "${ATTEMPT_COUNT}" -1 1); do
+            echo "Trying attempt ${ATTEMPT}..."
+            if gh run download "${RUN_ID}" \
+                -n main-qa-MetaMask.app \
+                -D artifacts/main-qa-MetaMask.app \
+                --attempt "${ATTEMPT}" 2>/dev/null; then
+              echo "✅ Downloaded iOS artifact from attempt ${ATTEMPT}."
+              exit 0
+            fi
+          done
+
+          echo "::error title=iOS artifact not found::Could not find 'main-qa-MetaMask.app' in any of the ${ATTEMPT_COUNT} attempt(s) for run ${RUN_ID}. Possible causes:%0A- The 'Build iOS Apps' job has not completed%0A- The iOS build was skipped (no iOS-impacting changes)%0A- The iOS build failed%0A%0ACheck the CI workflow: https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
+          exit 1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
