@@ -1,7 +1,12 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import {
+  RouteProp,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -14,7 +19,10 @@ import {
 } from '@metamask/design-system-react-native';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import TabsList from '../../../component-library/components-temp/Tabs/TabsList/TabsList';
-import { TabViewProps } from '../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
+import {
+  TabViewProps,
+  type TabsListRef,
+} from '../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
@@ -47,11 +55,20 @@ const TAB_NAMES: ExploreTabName[] = [
   'Sites',
 ];
 
+const EXPLORE_SITES_TAB_INDEX = 5;
+
+interface ExploreFeedRouteParams {
+  initialTab?: 'sites' | null;
+}
+
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const tabProps = useExploreRefresh();
+  const route =
+    useRoute<RouteProp<{ params: ExploreFeedRouteParams }, 'params'>>();
+  const tabsListRef = useRef<TabsListRef>(null);
 
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
@@ -75,6 +92,18 @@ export const ExploreFeed: React.FC = () => {
     selectBasicFunctionalityEnabled,
   );
   const isExplorePageV2Enabled = useSelector(selectExplorePageV2EnabledFlag);
+  const shouldOpenSitesTab = route.params?.initialTab === 'sites';
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!isExplorePageV2Enabled || !shouldOpenSitesTab) {
+        return;
+      }
+
+      tabsListRef.current?.goToTabIndex(EXPLORE_SITES_TAB_INDEX);
+      navigation.setParams?.({ initialTab: null });
+    }, [isExplorePageV2Enabled, navigation, shouldOpenSitesTab]),
+  );
 
   const handleBrowserPress = useCallback(() => {
     if (browserTabsCount > 0) {
@@ -150,6 +179,10 @@ export const ExploreFeed: React.FC = () => {
           <BasicFunctionalityEmptyState />
         ) : isExplorePageV2Enabled ? (
           <TabsList
+            ref={tabsListRef}
+            initialActiveIndex={
+              shouldOpenSitesTab ? EXPLORE_SITES_TAB_INDEX : 0
+            }
             tabsListContentTwClassName="px-0 pb-3"
             onChangeTab={handleTabChange}
           >

@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { selectExplorePageV2EnabledFlag } from '../../../selectors/featureFlagController/explorePageV2';
 import { DefiEmptyState } from './DefiEmptyState';
 
 // Mock the navigation hook
@@ -10,7 +11,19 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
 }));
 
+jest.mock('../../../selectors/featureFlagController/explorePageV2', () => ({
+  selectExplorePageV2EnabledFlag: jest.fn(),
+}));
+
+const mockSelectExplorePageV2EnabledFlag = jest.mocked(
+  selectExplorePageV2EnabledFlag,
+);
+
 describe('DefiEmptyState', () => {
+  beforeEach(() => {
+    mockSelectExplorePageV2EnabledFlag.mockReturnValue(true);
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -23,7 +36,24 @@ describe('DefiEmptyState', () => {
     expect(getByText('Explore DeFi')).toBeDefined();
   });
 
-  it('opens Explore on the main feed then Sites full view', () => {
+  it('opens Explore v2 on the Sites tab', () => {
+    const { getByText } = renderWithProvider(<DefiEmptyState />);
+
+    const button = getByText('Explore DeFi');
+    fireEvent.press(button);
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith('TrendingView', {
+      screen: 'TrendingFeed',
+      params: {
+        initialTab: 'sites',
+      },
+    });
+  });
+
+  it('opens Explore v1 main feed then Sites full view', () => {
+    mockSelectExplorePageV2EnabledFlag.mockReturnValue(false);
+
     const { getByText } = renderWithProvider(<DefiEmptyState />);
 
     const button = getByText('Explore DeFi');

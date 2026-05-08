@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useAssetFromTheme } from '../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -9,6 +10,7 @@ import {
 } from '../../../component-library/components-temp/TabEmptyState';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import { selectExplorePageV2EnabledFlag } from '../../../selectors/featureFlagController/explorePageV2';
 
 import emptyStateDefiLight from '../../../images/empty-state-defi-light.png';
 import emptyStateDefiDark from '../../../images/empty-state-defi-dark.png';
@@ -19,8 +21,19 @@ export const DefiEmptyState: React.FC<DefiEmptyStateProps> = (props) => {
   const defiImage = useAssetFromTheme(emptyStateDefiLight, emptyStateDefiDark);
   const { navigate } = useNavigation();
   const tw = useTailwind();
+  const isExplorePageV2Enabled = useSelector(selectExplorePageV2EnabledFlag);
 
   const handleExploreDefi = () => {
+    if (isExplorePageV2Enabled) {
+      navigate(Routes.TRENDING_VIEW, {
+        screen: Routes.TRENDING_FEED,
+        params: {
+          initialTab: 'sites',
+        },
+      });
+      return;
+    }
+
     // Open the Explore tab on the main feed, then push Sites (root stack).
     navigate(Routes.TRENDING_VIEW, {
       screen: Routes.TRENDING_FEED,
