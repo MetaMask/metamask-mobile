@@ -110,10 +110,8 @@ runs:
 
     ## JDK Setup
     - name: Setup Java
-      # Skip on namespace runners only when the image already exposes JAVA_HOME
-      # (the metamask-android-build base image bakes Temurin 17 and sets JAVA_HOME).
-      # Defensive fallback: still run setup-java if JAVA_HOME is empty on namespace.
-      if: ${{ inputs.platform == 'android' && (inputs.runner_provider != 'namespace' || env.JAVA_HOME == '') }}
+      # Skip on namespace runners — the metamask-android-build image bakes Temurin 17.
+      if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' }}
       uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
       with:
         java-version: ${{ inputs.jdk-version }}
