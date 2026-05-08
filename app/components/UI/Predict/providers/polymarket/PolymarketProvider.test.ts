@@ -12,6 +12,7 @@ import type { OrderPreview } from '../types';
 import { Side } from '../../types';
 import type { PredictFeatureFlags } from '../../types/flags';
 import { PolymarketProvider } from './PolymarketProvider';
+import { OrderType, SignatureType } from './types';
 import {
   deriveDepositWalletAddress,
   executeDepositWalletBatch,
@@ -471,6 +472,9 @@ describe('PolymarketProvider', () => {
       expect.any(Object),
       SignTypedDataVersion.V4,
     );
+    expect(mockGetL2Headers).toHaveBeenCalledWith(
+      expect.objectContaining({ address: signer.address }),
+    );
     expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
       expect.objectContaining({
         protocol: expect.objectContaining({
@@ -480,10 +484,86 @@ describe('PolymarketProvider', () => {
             clobVersionHeader: '2',
           }),
         }),
+        clobOrder: expect.objectContaining({
+          order: expect.objectContaining({
+            maker: legacySafeAddress,
+            signer: signer.address,
+            signatureType: SignatureType.POLY_GNOSIS_SAFE,
+          }),
+        }),
         allowancesTx: {
           to: '0x9999999999999999999999999999999999999999',
           data: '0xallowances',
         },
+      }),
+    );
+  });
+
+  it('submits deposit-wallet orders with POLY_1271 payload and no Safe preflight fields', async () => {
+    const innerSignature = `0x${'11'.repeat(65)}`;
+    signer.signTypedMessage.mockResolvedValueOnce(innerSignature);
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+
+    const provider = createProvider({
+      fakOrdersEnabled: true,
+      feeCollection: {
+        ...DEFAULT_FEE_COLLECTION_FLAG,
+        permit2Enabled: true,
+        executors: ['0x4444444444444444444444444444444444444444'],
+      },
+    });
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: {
+        ...basePreview,
+        fees: {
+          metamaskFee: 0.05,
+          providerFee: 0.05,
+          totalFee: 0.1,
+          totalFeePercentage: 1,
+          collector: '0x3333333333333333333333333333333333333333',
+          executors: ['0x4444444444444444444444444444444444444444'],
+          permit2Enabled: true,
+        },
+      },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockCreateApiKey).toHaveBeenCalledWith({ address: signer.address });
+    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
+    expect(mockCreatePermit2FeeAuthorization).not.toHaveBeenCalled();
+    expect(mockGetL2Headers).toHaveBeenCalledWith(
+      expect.objectContaining({ address: signer.address }),
+    );
+    expect(signer.signTypedMessage).toHaveBeenCalledWith(
+      {
+        from: signer.address,
+        data: expect.objectContaining({
+          primaryType: 'TypedDataSign',
+          message: expect.objectContaining({
+            verifyingContract: depositWalletAddress,
+          }),
+        }),
+      },
+      SignTypedDataVersion.V4,
+    );
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clobOrder: expect.objectContaining({
+          orderType: OrderType.FAK,
+          order: expect.objectContaining({
+            maker: depositWalletAddress,
+            signer: depositWalletAddress,
+            signatureType: SignatureType.POLY_1271,
+            signature: expect.stringMatching(/^0x11+/u),
+          }),
+        }),
+        feeAuthorization: undefined,
+        executor: undefined,
+        allowancesTx: undefined,
       }),
     );
   });
