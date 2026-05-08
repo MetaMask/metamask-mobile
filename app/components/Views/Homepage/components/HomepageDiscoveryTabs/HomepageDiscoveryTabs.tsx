@@ -99,7 +99,7 @@ export interface HomepageDiscoveryTabsProps {
   /**
    * RefreshControl element for pull-to-refresh on the Portfolio tab.
    */
-  refreshControl?: React.ReactElement;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
   /**
    * Combined height of the wallet header + safe area top inset, used to
    * position the gradient overlay so it bleeds up into the header area.
