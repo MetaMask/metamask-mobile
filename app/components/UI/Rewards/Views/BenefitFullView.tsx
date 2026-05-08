@@ -18,12 +18,12 @@ import {
   Text,
   TextColor,
   TextVariant,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BenefitFullViewRouteProp } from './BenefitFullView.types.ts';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants.ts';
 import { formatDateRemaining } from '../utils/formatUtils.ts';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import Routes from '../../../../constants/navigation/Routes.ts';
@@ -80,7 +80,7 @@ const BenefitFullView = () => {
         style={tw.style('flex-1')}
         testID={REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_VIEW}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('rewards.benefits.title_claim')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}
