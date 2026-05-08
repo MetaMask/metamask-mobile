@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import {
   filterMarketsByQuery,
   type PerpsMarketData,
+  type SortOptionId,
 } from '@metamask/perps-controller';
 import { usePerpsMarkets } from '../../../../UI/Perps/hooks';
 import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
@@ -41,7 +42,21 @@ export interface UsePerpsFeedResult {
   data: PerpsFeedItem[];
   isLoading: boolean;
   refetch: () => Promise<void>;
+  /** The sort option ID that matches this feed's sort order — pass to `navigateToPerpsMarketList` so the market list opens consistently sorted. */
+  defaultSortOptionId: SortOptionId;
 }
+
+/**
+ * Maps each feed variant to the sort option ID it uses when displaying items.
+ * This is the single source of truth — both the feed's internal sort and the
+ * "View All" navigation use this mapping so they stay in sync.
+ */
+export const PERPS_VARIANT_SORT_OPTION: Record<PerpsVariant, SortOptionId> = {
+  all: 'priceChange',
+  crypto: 'priceChange',
+  rwa: 'priceChange',
+  macro: 'volume',
+};
 
 const sortByVolumeDesc = (a: PerpsMarketData, b: PerpsMarketData) => {
   const av = (a as PerpsMarketDataWithVolumeNumber).volumeNumber ?? 0;
@@ -51,6 +66,17 @@ const sortByVolumeDesc = (a: PerpsMarketData, b: PerpsMarketData) => {
 
 const sortByChange24hDesc = (a: PerpsMarketData, b: PerpsMarketData) =>
   (parseFloat(b.change24hPercent) || 0) - (parseFloat(a.change24hPercent) || 0);
+
+/** Maps each SortOptionId to the comparator used inside the feed. */
+const SORT_FNS: Record<
+  SortOptionId,
+  (a: PerpsMarketData, b: PerpsMarketData) => number
+> = {
+  volume: sortByVolumeDesc,
+  priceChange: sortByChange24hDesc,
+  openInterest: sortByVolumeDesc,
+  fundingRate: sortByVolumeDesc,
+};
 
 const filterByVariant = (
   markets: PerpsMarketData[],
@@ -102,14 +128,16 @@ export const usePerpsFeed = ({
   const filtered = useMemo<PerpsMarketData[]>(() => {
     if (connectionContext?.error) return [];
     const subset = filterByVariant(markets, variant);
+    const sortFn = SORT_FNS[PERPS_VARIANT_SORT_OPTION[variant]];
     if (!query) {
-      return [...subset].sort(
-        variant === 'macro' ? sortByVolumeDesc : sortByChange24hDesc,
-      );
+      return [...subset].sort(sortFn);
     }
     const queryFiltered = filterMarketsByQuery(subset, query);
     const fused = fuseSearch(queryFiltered, query, PERPS_FUSE_OPTIONS);
-    return variant === 'macro' ? [...fused].sort(sortByVolumeDesc) : fused;
+    // Preserve Fuse.js relevance ordering for variants that sort by price change
+    // (the relevance signal is more useful than a metric sort during search).
+    // Macro sorts by volume even in search results, consistent with its feed order.
+    return variant === 'macro' ? [...fused].sort(sortFn) : fused;
   }, [connectionContext?.error, markets, variant, query]);
 
   // Only visible carousel tiles need candle sparklines; each symbol is a stream
@@ -141,5 +169,6 @@ export const usePerpsFeed = ({
     data,
     isLoading: connectionContext?.error ? false : isLoading || isRefreshing,
     refetch,
+    defaultSortOptionId: PERPS_VARIANT_SORT_OPTION[variant],
   };
 };
