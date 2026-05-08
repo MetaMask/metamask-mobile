@@ -2,8 +2,6 @@ import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  AvatarToken,
-  AvatarTokenSize,
   Box,
   Text,
   TextVariant,
@@ -20,7 +18,7 @@ import {
   getImpactBackgroundClass,
   getImpactTextColor,
 } from '../util/impact';
-import { getPerpsIconSource } from '../util/perpsIcon';
+import PerpsTokenLogo from '../../../../../UI/Perps/components/PerpsTokenLogo';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useViewportTracking } from '../../../../../UI/MarketInsights/hooks/useViewportTracking';
@@ -132,10 +130,9 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
                       key={asset.sourceAssetId}
                       twClassName={index > 0 ? '-ml-1' : ''}
                     >
-                      <AvatarToken
-                        name={asset.name}
-                        size={AvatarTokenSize.Xs}
-                        src={getPerpsIconSource(asset)}
+                      <PerpsTokenLogo
+                        symbol={asset.hlPerpsMarket?.[0] ?? asset.symbol}
+                        size={16}
                       />
                     </Box>
                   ))}

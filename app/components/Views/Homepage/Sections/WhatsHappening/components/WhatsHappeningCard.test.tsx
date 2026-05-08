@@ -28,6 +28,11 @@ jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock(
+  '../../../../../UI/Perps/components/PerpsTokenLogo',
+  () => 'PerpsTokenLogo',
+);
+
 const mockRelatedAsset = {
   sourceAssetId: 'btc-mainnet',
   symbol: 'BTC',
