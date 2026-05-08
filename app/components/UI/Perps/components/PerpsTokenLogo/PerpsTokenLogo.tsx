@@ -7,8 +7,13 @@ import {
   AvatarBaseSize,
 } from '@metamask/design-system-react-native';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import { useTheme } from '../../../../../util/theme';
 import { getAssetIconUrls } from '../../utils/marketUtils';
-import { K_PREFIX_ASSETS } from './PerpsAssetBgConfig';
+import {
+  ASSETS_REQUIRING_DARK_BG,
+  ASSETS_REQUIRING_LIGHT_BG,
+  K_PREFIX_ASSETS,
+} from './PerpsAssetBgConfig';
 import { PerpsTokenLogoProps } from './PerpsTokenLogo.types';
 
 const imageStyle = StyleSheet.create({
@@ -29,8 +34,29 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   testID,
   recyclingKey,
 }) => {
+  const { colors, themeAppearance } = useTheme();
   const [useFallbackUrl, setUseFallbackUrl] = useState(false);
   const [hasError, setHasError] = useState(false);
+
+  // Re-apply theme-aware background for tokens that need contrast in certain themes:
+  // - Tokens with dark logos (e.g. ETH, XRP) need a white bg in dark mode
+  // - Tokens with light logos (e.g. S, IO) need a dark bg in light mode
+  const backgroundColor = useMemo(() => {
+    const upperSymbol = symbol?.toUpperCase() ?? '';
+    if (
+      themeAppearance === 'dark' &&
+      ASSETS_REQUIRING_LIGHT_BG.has(upperSymbol)
+    ) {
+      return 'white';
+    }
+    if (
+      themeAppearance === 'light' &&
+      ASSETS_REQUIRING_DARK_BG.has(upperSymbol)
+    ) {
+      return colors.icon.default;
+    }
+    return undefined;
+  }, [symbol, themeAppearance, colors.icon.default]);
 
   const iconUrls = useMemo(() => {
     if (!symbol) return null;
@@ -75,6 +101,8 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
       fallbackText={showFallback ? fallbackText : undefined}
       testID={testID}
       twClassName={`w-[${size}px] h-[${size}px]`}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      style={backgroundColor ? ({ backgroundColor } as any) : undefined}
     >
       {!showFallback && imageUri ? (
         <Image

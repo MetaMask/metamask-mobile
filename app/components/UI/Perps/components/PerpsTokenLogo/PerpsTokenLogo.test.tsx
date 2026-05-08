@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act, fireEvent } from '@testing-library/react-native';
+import { render, act, fireEvent, screen } from '@testing-library/react-native';
 import { Image } from 'expo-image';
 import PerpsTokenLogo from './PerpsTokenLogo';
 
@@ -11,44 +11,29 @@ describe('PerpsTokenLogo', () => {
   });
 
   it('renders loading state initially', () => {
-    const { getByTestId } = render(
-      <PerpsTokenLogo symbol="BTC" testID="token-logo" />,
-    );
-    expect(getByTestId('token-logo')).toBeTruthy();
+    render(<PerpsTokenLogo symbol="BTC" testID="token-logo" />);
+    expect(screen.getByTestId('token-logo')).toBeOnTheScreen();
   });
 
-  it('applies custom size and style props', () => {
-    const customStyle = { opacity: 0.5 };
-    const { getByTestId } = render(
-      <PerpsTokenLogo
-        symbol="BTC"
-        size={40}
-        style={customStyle}
-        testID="custom-logo"
-      />,
-    );
+  it('applies custom size prop', () => {
+    render(<PerpsTokenLogo symbol="BTC" size={40} testID="custom-logo" />);
 
     // Component renders with the correct testID (sizing is handled internally by AvatarBase)
-    expect(getByTestId('custom-logo')).toBeTruthy();
+    expect(screen.getByTestId('custom-logo')).toBeOnTheScreen();
   });
 
   it('renders with default size when not specified', () => {
-    const { getByTestId } = render(
-      <PerpsTokenLogo symbol="ETH" testID="default-size" />,
-    );
+    render(<PerpsTokenLogo symbol="ETH" testID="default-size" />);
 
     // Component renders with the correct testID
-    expect(getByTestId('default-size')).toBeTruthy();
+    expect(screen.getByTestId('default-size')).toBeOnTheScreen();
   });
 
   it('shows text fallback when no symbol is provided', () => {
-    const { getByTestId } = render(
-      <PerpsTokenLogo symbol="" testID="no-symbol" />,
-    );
+    render(<PerpsTokenLogo symbol="" testID="no-symbol" />);
 
     // Should render text fallback immediately since empty symbol triggers fallback
-    const container = getByTestId('no-symbol');
-    expect(container).toBeTruthy();
+    expect(screen.getByTestId('no-symbol')).toBeOnTheScreen();
     // Empty symbol results in empty fallback text
   });
 
@@ -115,8 +100,7 @@ describe('PerpsTokenLogo', () => {
     });
 
     // Verify text fallback is shown
-    const container = getByTestId('image-error');
-    expect(container).toBeTruthy();
+    expect(getByTestId('image-error')).toBeOnTheScreen();
     // Image component no longer rendered, text fallback shown instead
     expect(UNSAFE_queryByType(Image)).toBeNull();
   });
@@ -126,13 +110,13 @@ describe('PerpsTokenLogo', () => {
       <PerpsTokenLogo symbol="" size={32} testID="size-32" />,
     );
 
-    expect(getByTestId('size-32')).toBeTruthy();
+    expect(getByTestId('size-32')).toBeOnTheScreen();
 
     rerender(<PerpsTokenLogo symbol="" size={40} testID="size-40" />);
-    expect(getByTestId('size-40')).toBeTruthy();
+    expect(getByTestId('size-40')).toBeOnTheScreen();
 
     rerender(<PerpsTokenLogo symbol="" size={24} testID="size-24" />);
-    expect(getByTestId('size-24')).toBeTruthy();
+    expect(getByTestId('size-24')).toBeOnTheScreen();
   });
 
   it('uses SVG format for image URLs', () => {
