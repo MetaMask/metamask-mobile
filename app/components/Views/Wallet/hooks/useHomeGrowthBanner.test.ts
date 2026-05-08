@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react-native';
 import { useHomeGrowthBanner } from './useHomeGrowthBanner';
 
 jest.mock('react-redux', () => ({

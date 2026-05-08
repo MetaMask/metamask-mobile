@@ -1,4 +1,9 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import {
+  renderHook,
+  act,
+  waitFor,
+  cleanup,
+} from '@testing-library/react-native';
 import { AppState, type AppStateStatus } from 'react-native';
 import Braze from '@braze/react-native-sdk';
 import { useBrazeBanner } from './useBrazeBanner';
@@ -163,6 +168,9 @@ describe('useBrazeBanner', () => {
   });
 
   afterEach(() => {
+    cleanup();
+    jest.clearAllTimers();
+    jest.restoreAllMocks();
     jest.useRealTimers();
   });
 
@@ -379,13 +387,9 @@ describe('useBrazeBanner', () => {
   it('transitions to visible from warm-cache probe on mount', async () => {
     mockGetBannerForPlacement.mockResolvedValue(makeBanner());
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useBrazeBanner(TEST_PLACEMENT_ID),
-    );
+    const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
-    await waitForNextUpdate();
-
-    expect(result.current.status).toBe('visible');
+    await waitFor(() => expect(result.current.status).toBe('visible'));
   });
 
   it('removes the listener subscription on unmount', () => {
