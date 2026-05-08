@@ -62,9 +62,7 @@
       }
     }
   },
-  "DelegationController": {
-    "delegations": {}
-  },
+  "DelegationController": {},
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
     "networksMetadata": {
