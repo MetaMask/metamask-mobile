@@ -69,6 +69,15 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
 
 jest.mock('../hooks/useTrackRewardsPageView', () => jest.fn());
 
+jest.mock('../hooks/useVipDashboard', () => ({
+  useVipDashboard: jest.fn(() => ({
+    dashboard: null,
+    isLoading: false,
+    hasError: false,
+    fetchVipDashboard: jest.fn(),
+  })),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseTrackRewardsPageView =
   useTrackRewardsPageView as jest.MockedFunction<
