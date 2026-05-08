@@ -44,7 +44,7 @@ export function useAutomaticTransactionPayToken({
   disable?: boolean;
   preferredToken?: SetPayTokenRequest;
 } = {}) {
-  const isUpdated = useRef<string | undefined>();
+  const isUpdated = useRef<string | undefined>(undefined);
   const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
   const { availableTokens } = useTransactionPayAvailableTokens();

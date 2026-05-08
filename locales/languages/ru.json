@@ -8512,7 +8512,6 @@
       "empty": "У вас нет никаких позиций",
       "empty_description": "Начните зарабатывать вознаграждения, открыв позицию в токенизированных активах реального мира.",
       "empty_cta": "Открыть позицию",
-      "position_units": "{{units}} акции(-ий)",
       "positions_title": "Позиции",
       "activity_title": "Деятельность",
       "view_activity": "Смотреть активность",
@@ -8658,29 +8657,18 @@
       "retry_button": "Повтор",
       "refreshing": "Обновление..."
     },
-    "ondo_campaign_winning": {
-      "you_won": "Вы выиграли",
-      "rank_label": "{{place}} место",
-      "email_instructions": "Отправьте письмо со своим кодом на адрес ondocampaign@consensys.net, чтобы получить приз.",
-      "open_mail": "Открыть почту",
-      "skip_for_now": "Пока пропустить",
-      "mail_subject": "Получение приза кампании Ondo",
-      "mail_body": "Мой выигрышный код: {{code}}",
-      "winning_code": "Выигрышный код",
-      "close_a11y": "Закрыть"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "Вы выиграли",
-        "description": "Получите свой приз сегодня.",
-        "a11y": "Открыть детали победителя"
+        "title": "Вы выиграли!",
+        "description": "Подтвердите выигрышный код и получите приз сегодня.",
+        "a11y": "Подробнее"
       },
       "participant_pending": {
         "title": "Кампания завершена.",
         "description": "Мы определяем результаты. Загляните сюда позже."
       },
       "participant_finalized": {
-        "title": "Результаты кампании подведены",
+        "title": "Результаты кампании готовы.",
         "description": "В этот раз вы не выиграли. Проверьте таблицу лидеров, чтобы узнать свое место."
       },
       "winner_finalized": {
@@ -8688,17 +8676,28 @@
         "description": "Ваша награда уже в пути — мы скоро свяжемся с вами."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "Вы выиграли 💰",
-        "description": "Получите свой приз в кампании {{campaignName}}",
+        "description": "Получите приз из {{campaignName}} сегодня.",
         "cta": "Просмотр подробностей"
       },
-      "participant_no_winner": {
-        "title": "Результаты готовы. 🏅",
-        "description": "Посмотрите свой рейтинг в кампании {{campaignName}}",
+      "non_winner": {
+        "title": "Результаты готовы 🏅",
+        "description": "Посмотрите своё место в {{campaignName}}.",
         "cta": "Просмотр"
       }
+    },
+    "campaign_winning": {
+      "you_won": "Вы выиграли",
+      "rank_label": "{{place}} место",
+      "email_instructions": "Отправьте письмо со своим кодом на адрес {{email}}, чтобы получить приз.",
+      "open_mail": "Открыть почту",
+      "skip_for_now": "Пока пропустить",
+      "mail_subject": "{{campaignName}} – получение приза",
+      "mail_body": "Мой выигрышный код: {{code}}",
+      "winning_code": "Выигрышный код",
+      "close_a11y": "Закрыть"
     }
   },
   "time": {

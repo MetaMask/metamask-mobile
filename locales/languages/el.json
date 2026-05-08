@@ -8512,7 +8512,6 @@
       "empty": "Δεν έχετε ανοιχτές θέσεις",
       "empty_description": "Κερδίστε ανταμοιβές ανοίγοντας μια θέση σε πραγματικά ψηφιακά περιουσιακά στοιχεία ως token.",
       "empty_cta": "Ανοίξτε μια θέση",
-      "position_units": "{{units}} μετοχές",
       "positions_title": "Θέσεις",
       "activity_title": "Δραστηριότητα",
       "view_activity": "Προβολή δραστηριότητας",
@@ -8658,29 +8657,18 @@
       "retry_button": "Επανάληψη",
       "refreshing": "Ανανεώνεται..."
     },
-    "ondo_campaign_winning": {
-      "you_won": "Κερδίσατε",
-      "rank_label": "θέση {{place}}",
-      "email_instructions": "Στείλτε email στο ondocampaign@consensys.net με τον κωδικό σας για να διεκδικήσετε το βραβείο σας.",
-      "open_mail": "Άνοιγμα αλληλογραφίας",
-      "skip_for_now": "Παράλειψη για τώρα",
-      "mail_subject": "Διεκδίκηση βραβείου στην καμπάνια του Ondo",
-      "mail_body": "Κωδικός νίκης: {{code}}",
-      "winning_code": "Κωδικός νίκης",
-      "close_a11y": "Κλείσιμο"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "Κερδίσατε",
-        "description": "Διεκδικήστε το βραβείο σας σήμερα.",
-        "a11y": "Άνοιγμα λεπτομερειών νικητή"
+        "title": "Κερδίσατε!",
+        "description": "Επαληθεύστε τον κωδικό νίκης σας και διεκδικήστε το βραβείο σας σήμερα.",
+        "a11y": "Προβολή λεπτομερειών"
       },
       "participant_pending": {
         "title": "Η καμπάνια έχει λήξει.",
         "description": "Επεξεργαζόμαστε τα αποτελέσματα. Ελέγξτε ξανά σύντομα."
       },
       "participant_finalized": {
-        "title": "Τα αποτελέσματα της καμπάνιας είναι έτοιμα",
+        "title": "Τα αποτελέσματα της καμπάνιας είναι έτοιμα.",
         "description": "Δεν κερδίσατε αυτή τη φορά. Δείτε τον πίνακα κατάταξης για να δείτε σε ποια θέση τερματίσατε."
       },
       "winner_finalized": {
@@ -8688,17 +8676,28 @@
         "description": "Το βραβείο σας είναι καθ’ οδόν — θα επικοινωνήσουμε μαζί σας σύντομα."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "Κερδίσατε 💰",
-        "description": "Διεκδικήστε το βραβείο σας από την {{campaignName}}",
+        "description": "Διεκδικήστε το βραβείο σας από την {{campaignName}} σήμερα.",
         "cta": "Δείτε λεπτομέρειες"
       },
-      "participant_no_winner": {
-        "title": "Τα αποτελέσματα είναι έτοιμα. 🏅",
-        "description": "Δείτε την κατάταξή σας στην {{campaignName}}",
+      "non_winner": {
+        "title": "Τα αποτελέσματα είναι έτοιμα 🏅",
+        "description": "Δείτε την κατάταξή σας στην {{campaignName}}.",
         "cta": "Προβολή"
       }
+    },
+    "campaign_winning": {
+      "you_won": "Κερδίσατε",
+      "rank_label": "θέση {{place}}",
+      "email_instructions": "Στείλτε email στο {{email}} με τον κωδικό σας για να διεκδικήσετε το βραβείο σας.",
+      "open_mail": "Άνοιγμα αλληλογραφίας",
+      "skip_for_now": "Παράλειψη για τώρα",
+      "mail_subject": "{{campaignName}} — διεκδίκηση βραβείου",
+      "mail_body": "Κωδικός νίκης: {{code}}",
+      "winning_code": "Κωδικός νίκης",
+      "close_a11y": "Κλείσιμο"
     }
   },
   "time": {

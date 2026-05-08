@@ -40,6 +40,26 @@ Keyboard.addListener = patchedAddListener;
 // Mock the redux-devtools-expo-dev-plugin module
 jest.mock('redux-devtools-expo-dev-plugin', () => {});
 
+// Mock expo-modules-core: globalThis.expo.EventEmitter is not available in Jest
+// because the native module installer doesn't run. Provide a minimal stub so
+// that expo-file-system and other Expo packages can be imported.
+jest.mock('expo-modules-core', () => ({
+  EventEmitter: jest.fn().mockImplementation(() => ({
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    removeListener: jest.fn(),
+    removeAllListeners: jest.fn(),
+    emit: jest.fn(),
+  })),
+  NativeModule: jest.fn(),
+  NativeModulesProxy: {},
+  requireNativeModule: jest.fn(() => ({})),
+  requireOptionalNativeModule: jest.fn(() => null),
+  Platform: { OS: 'ios' },
+  CodedError: class CodedError extends Error {},
+  UnavailabilityError: class UnavailabilityError extends Error {},
+  LegacyEventEmitter: jest.fn(),
+}));
+
 // Mock Expo's fetch implementation
 jest.mock('expo/fetch', () => {
   return {
@@ -128,6 +148,13 @@ jest.mock('react-native', () => {
 const ReactNative = require('react-native');
 if (ReactNative.unstable_batchedUpdates) {
   ReactNative.unstable_batchedUpdates = mockBatchedUpdates;
+}
+
+// Shim: BackHandler.removeEventListener was removed in RN 0.75+.
+// Libraries like @metamask/design-system-react-native still call it.
+// Must be patched post-require (the jest.mock factory mutation doesn't persist).
+if (!ReactNative.BackHandler.removeEventListener) {
+  ReactNative.BackHandler.removeEventListener = jest.fn();
 }
 
 // Also mock it globally as a fallback
@@ -745,6 +772,7 @@ if (!Reanimated.ReanimatedLogLevel) {
 // which throws "Converting circular structure to JSON" or causes RangeError).
 try {
   const mutables = require('react-native-reanimated/lib/module/mutables');
+
   const origMakeMutable = mutables.makeMutable;
   if (origMakeMutable) {
     mutables.makeMutable = function patchedMakeMutable(value) {
@@ -850,6 +878,75 @@ jest.mock('../../component-library/components/BottomSheets/BottomSheet', () => {
   };
 });
 
+// Mock @metamask/design-system-react-native BottomSheet to render children immediately
+// and run open/close callbacks synchronously (bypasses reanimated animations).
+// Matches the component-library BottomSheet mock above; components that migrated
+// to the design-system sheet otherwise trigger act() warnings from Animated updates.
+jest.mock('@metamask/design-system-react-native', () => {
+  const React = require('react');
+  const PropTypes = require('prop-types');
+  const { View } = require('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  const BottomSheet = React.forwardRef(
+    (
+      {
+        children,
+        onClose,
+        onOpen,
+        goBack,
+        style,
+        twClassName: _twClassName,
+        testID,
+        accessibilityLabel,
+      },
+      ref,
+    ) => {
+      React.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: (callback) => {
+          onOpen?.();
+          callback?.();
+        },
+        onCloseBottomSheet: (callback) => {
+          const hasCallback = Boolean(callback);
+          onClose?.(hasCallback);
+          goBack?.();
+          callback?.();
+        },
+      }));
+      return React.createElement(
+        View,
+        {
+          testID: testID || 'design-system-bottom-sheet-mock',
+          style,
+          accessibilityLabel,
+        },
+        children,
+      );
+    },
+  );
+  BottomSheet.displayName = 'BottomSheet';
+  BottomSheet.propTypes = {
+    children: PropTypes.node,
+    onClose: PropTypes.func,
+    onOpen: PropTypes.func,
+    goBack: PropTypes.func,
+    style: PropTypes.oneOfType([
+      PropTypes.object,
+      PropTypes.array,
+      PropTypes.number,
+    ]),
+    twClassName: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    testID: PropTypes.string,
+    accessibilityLabel: PropTypes.string,
+  };
+
+  return {
+    ...actual,
+    BottomSheet,
+  };
+});
+
 // Mock react-native-modal to render children immediately (bypasses animation)
 jest.mock('react-native-modal', () => {
   const React = require('react');
@@ -894,11 +991,24 @@ jest.mock('../../core/Engine', () =>
   require('../../core/__mocks__/MockedEngine'),
 );
 
-jest.mock('react-native-safe-area-context', () => ({
-  ...jest.requireActual('react-native-safe-area-context'),
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-  useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
-}));
+jest.mock('react-native-safe-area-context', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+  const frame = { x: 0, y: 0, width: 390, height: 844 };
+  return {
+    ...jest.requireActual('react-native-safe-area-context'),
+    SafeAreaInsetsContext: React.createContext(inset),
+    SafeAreaFrameContext: React.createContext(frame),
+    SafeAreaView: ({ children, ...props }) =>
+      React.createElement(View, props, children),
+    SafeAreaProvider: ({ children, ...props }) =>
+      React.createElement(View, props, children),
+    SafeAreaConsumer: ({ children }) => children(inset),
+    useSafeAreaInsets: () => inset,
+    useSafeAreaFrame: () => frame,
+  };
+});
 
 jest.mock(
   'react-native-keyboard-controller',

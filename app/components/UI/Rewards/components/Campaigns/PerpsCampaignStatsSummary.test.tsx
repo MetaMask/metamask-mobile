@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import PerpsCampaignStatsSummary, {
   PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS,
@@ -17,13 +17,39 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
+
+jest.mock('./CampaignOutcomeBanners', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Pressable, Text } = jest.requireActual('react-native');
+  return {
+    CampaignOutcomeBanner: ({
+      outcomeStatus,
+      winnerVerificationCode,
+      onWinnerPress,
+    }: {
+      outcomeStatus: string;
+      winnerVerificationCode?: string | null;
+      onWinnerPress: () => void;
+    }) =>
+      ReactActual.createElement(
+        Pressable,
+        {
+          testID: `campaign-outcome-banner-${outcomeStatus}-${winnerVerificationCode ?? 'null'}`,
+          onPress: onWinnerPress,
+        },
+        ReactActual.createElement(Text, null, 'Campaign outcome'),
+      ),
+  };
+});
 
 const TEST_IDS = PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS;
 
@@ -160,6 +186,20 @@ describe('PerpsCampaignStatsSummary', () => {
     expect(queryByTestId(TEST_IDS.QUALIFY_FOR_RANK_CARD)).toBeNull();
   });
 
+  it('hides volume and margin StatCells when campaign is complete (only rank and PnL remain)', () => {
+    const { queryByTestId, getByTestId } = render(
+      <PerpsCampaignStatsSummary
+        leaderboardPosition={basePosition}
+        leaderboard={mockLeaderboard}
+        isCampaignComplete
+      />,
+    );
+    expect(getByTestId(TEST_IDS.RANK)).toBeDefined();
+    expect(getByTestId(TEST_IDS.PNL)).toBeDefined();
+    expect(queryByTestId(TEST_IDS.NOTIONAL_VOLUME)).toBeNull();
+    expect(queryByTestId(TEST_IDS.MARGIN_DEPLOYED)).toBeNull();
+  });
+
   it("hides You're qualified card when campaign is complete", () => {
     const { queryByTestId } = render(
       <PerpsCampaignStatsSummary
@@ -202,5 +242,41 @@ describe('PerpsCampaignStatsSummary', () => {
       />,
     );
     expect(queryByTestId(TEST_IDS.QUALIFY_FOR_RANK_CARD)).toBeNull();
+  });
+
+  it('shows outcome banner for complete campaigns and handles winner press', () => {
+    const onWinnerPress = jest.fn();
+    const { getByTestId } = render(
+      <PerpsCampaignStatsSummary
+        isCampaignComplete
+        leaderboardPosition={basePosition}
+        leaderboard={mockLeaderboard}
+        outcomeStatus="pending"
+        winnerVerificationCode="PERPS-WINNER-123"
+        onWinnerPress={onWinnerPress}
+      />,
+    );
+
+    fireEvent.press(
+      getByTestId('campaign-outcome-banner-pending-PERPS-WINNER-123'),
+    );
+    expect(onWinnerPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not show outcome banner before campaign completion', () => {
+    const { queryByTestId } = render(
+      <PerpsCampaignStatsSummary
+        isCampaignComplete={false}
+        leaderboardPosition={basePosition}
+        leaderboard={mockLeaderboard}
+        outcomeStatus="pending"
+        winnerVerificationCode="PERPS-WINNER-123"
+        onWinnerPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      queryByTestId('campaign-outcome-banner-pending-PERPS-WINNER-123'),
+    ).toBeNull();
   });
 });

@@ -50,11 +50,6 @@ jest.mock('../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('../../../../../wdio/utils/generateTestId', () => ({
-  __esModule: true,
-  default: () => ({}),
-}));
-
 jest.mock(
   '../../../../component-library/components/Badges/BadgeWrapper',
   () => ({
@@ -581,7 +576,7 @@ describe('TokenSelectorItem', () => {
           color: 'WarningDefault',
           size: 'Sm',
         }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -598,7 +593,7 @@ describe('TokenSelectorItem', () => {
           color: 'ErrorDefault',
           size: 'Sm',
         }),
-        expect.anything(),
+        undefined,
       );
     });
   });
