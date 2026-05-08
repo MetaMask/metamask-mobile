@@ -5185,7 +5185,6 @@ describe('RewardsDataService', () => {
       rank: 4,
       pnl: 12.5,
       notionalVolume: 8000,
-      marginDeployed: 1200,
       qualified: true,
       neighbors: [],
       computedAt: '2025-08-15T12:00:00.000Z',
