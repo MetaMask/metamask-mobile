@@ -489,6 +489,17 @@ export class PolymarketProvider implements PredictProvider {
       negRisk: preview.negRisk,
     });
 
+    let depositWalletSetupUpdatedState = false;
+    if (isDepositWallet) {
+      depositWalletSetupUpdatedState = await this.ensureDepositWalletReady({
+        ownerAddress: signer.address,
+        depositWalletAddress: tradingWalletAddress,
+        protocol,
+        getSigner: () => signer,
+        operation: 'deposit_wallet_order_preflight',
+      });
+    }
+
     const order = buildProtocolUnsignedOrder({
       protocol,
       preview: {
@@ -518,6 +529,15 @@ export class PolymarketProvider implements PredictProvider {
     const signerApiKey = await this.getApiKey({
       address: signer.address,
     });
+
+    if (isDepositWallet && depositWalletSetupUpdatedState) {
+      await this.syncDepositWalletBalanceAllowanceForOrderIfNeeded({
+        protocol,
+        signerAddress: signer.address,
+        apiKey: signerApiKey,
+      });
+    }
+
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
     const shouldUsePermit2 =
       !isDepositWallet &&
@@ -552,7 +572,26 @@ export class PolymarketProvider implements PredictProvider {
     let allowancesTx: { to: string; data: string } | undefined;
     let permit2AllowanceReady = false;
 
-    if (!isDepositWallet) {
+    if (isDepositWallet) {
+      const legacySafeAddress = computeProxyAddress(signer.address);
+      const legacySafeDeployed = await isSmartContractAddress(
+        legacySafeAddress,
+        numberToHex(POLYGON_MAINNET_CHAIN_ID),
+      );
+
+      if (legacySafeDeployed) {
+        const sweepTransaction = await buildLegacySafeMigrationSweepTransaction(
+          {
+            signer,
+            legacySafeAddress,
+            depositWalletAddress: tradingWalletAddress,
+            protocol,
+          },
+        );
+
+        allowancesTx = sweepTransaction?.params;
+      }
+    } else {
       try {
         const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
           safeAddress: tradingWalletAddress,
@@ -2305,6 +2344,145 @@ export class PolymarketProvider implements PredictProvider {
     return Boolean(this.getDepositWalletDepositTransaction(transactionMeta));
   }
 
+  private async ensureDepositWalletReady({
+    ownerAddress,
+    depositWalletAddress,
+    protocol,
+    getSigner,
+    operation = 'deposit_wallet_preflight',
+  }: {
+    ownerAddress: string;
+    depositWalletAddress: Hex;
+    protocol: PolymarketProtocolDefinition;
+    getSigner: (address?: string) => Signer;
+    operation?: string;
+  }): Promise<boolean> {
+    let updatedState = false;
+    let depositWalletDeploymentConfirmed = false;
+
+    DevLogger.log('PolymarketProvider: Deposit wallet preflight started', {
+      operation,
+      walletType: 'deposit-wallet',
+      from: ownerAddress,
+      depositWalletAddress,
+    });
+
+    const depositWalletIsDeployed = await isSmartContractAddress(
+      depositWalletAddress,
+      numberToHex(POLYGON_MAINNET_CHAIN_ID),
+    );
+
+    if (!depositWalletIsDeployed) {
+      const createResponse = await requestDepositWalletCreate({
+        ownerAddress,
+      });
+      const transactionID =
+        getDepositWalletRelayerTransactionId(createResponse);
+
+      if (!transactionID) {
+        throw new Error(
+          'Polymarket deposit wallet creation response missing transactionID',
+        );
+      }
+
+      DevLogger.log('PolymarketProvider: Waiting for deposit wallet create', {
+        operation: 'deposit_wallet_create',
+        walletType: 'deposit-wallet',
+        transactionID,
+        from: ownerAddress,
+        depositWalletAddress,
+      });
+
+      await waitForDepositWalletTransaction({
+        transactionID,
+        requireCompletion: true,
+      });
+
+      DevLogger.log(
+        'PolymarketProvider: Waiting for deposit wallet relayer registry',
+        {
+          operation: 'deposit_wallet_relayer_registry',
+          walletType: 'deposit-wallet',
+          from: ownerAddress,
+          depositWalletAddress,
+        },
+      );
+
+      await waitForDepositWalletDeployed({
+        walletAddress: depositWalletAddress,
+      });
+      depositWalletDeploymentConfirmed = true;
+
+      this.#setCachedAccountState(ownerAddress, {
+        address: depositWalletAddress,
+        isDeployed: true,
+        walletType: 'deposit-wallet',
+      });
+      this.setPolymarketAccountCreatedTrait();
+      updatedState = true;
+    }
+
+    const preflightPlan = await planDepositWalletPreflight({
+      walletAddress: depositWalletAddress,
+      protocol,
+    });
+
+    DevLogger.log('PolymarketProvider: Deposit wallet preflight planned', {
+      operation: 'deposit_wallet_allowance_preflight',
+      walletType: 'deposit-wallet',
+      from: ownerAddress,
+      depositWalletAddress,
+      missingRequirementsCount: preflightPlan.missingRequirements.length,
+    });
+
+    if (preflightPlan.transactions.length > 0) {
+      if (!depositWalletDeploymentConfirmed) {
+        await waitForDepositWalletDeployed({
+          walletAddress: depositWalletAddress,
+        });
+      }
+
+      const signer = getSigner(ownerAddress);
+      const executeResponse = await executeDepositWalletBatch({
+        signer,
+        walletAddress: depositWalletAddress,
+        calls: toDepositWalletCalls(preflightPlan.transactions),
+      });
+      const transactionID =
+        getDepositWalletRelayerTransactionId(executeResponse);
+
+      if (!transactionID) {
+        throw new Error(
+          'Polymarket deposit wallet batch response missing transactionID',
+        );
+      }
+
+      DevLogger.log('PolymarketProvider: Waiting for deposit wallet batch', {
+        operation: 'deposit_wallet_batch',
+        walletType: 'deposit-wallet',
+        transactionID,
+        from: ownerAddress,
+        depositWalletAddress,
+        missingRequirementsCount: preflightPlan.missingRequirements.length,
+      });
+
+      await waitForDepositWalletTransaction({
+        transactionID,
+        requireCompletion: true,
+      });
+      updatedState = true;
+    }
+
+    DevLogger.log('PolymarketProvider: Deposit wallet preflight completed', {
+      operation,
+      walletType: 'deposit-wallet',
+      from: ownerAddress,
+      depositWalletAddress,
+    });
+
+    return updatedState;
+  }
+
   public async beforePublishDepositWalletDeposit({
     transactionMeta,
     getSigner,
@@ -2323,123 +2501,11 @@ export class PolymarketProvider implements PredictProvider {
     const protocol = this.#getProtocol();
 
     try {
-      DevLogger.log('PolymarketProvider: Deposit wallet preflight started', {
-        operation: 'deposit_wallet_preflight',
-        walletType: 'deposit-wallet',
-        from: ownerAddress,
+      await this.ensureDepositWalletReady({
+        ownerAddress,
         depositWalletAddress,
-      });
-
-      const depositWalletIsDeployed = await isSmartContractAddress(
-        depositWalletAddress,
-        numberToHex(POLYGON_MAINNET_CHAIN_ID),
-      );
-      let depositWalletDeploymentConfirmed = false;
-
-      if (!depositWalletIsDeployed) {
-        const createResponse = await requestDepositWalletCreate({
-          ownerAddress,
-        });
-        const transactionID =
-          getDepositWalletRelayerTransactionId(createResponse);
-
-        if (!transactionID) {
-          throw new Error(
-            'Polymarket deposit wallet creation response missing transactionID',
-          );
-        }
-
-        DevLogger.log('PolymarketProvider: Waiting for deposit wallet create', {
-          operation: 'deposit_wallet_create',
-          walletType: 'deposit-wallet',
-          transactionID,
-          from: ownerAddress,
-          depositWalletAddress,
-        });
-
-        await waitForDepositWalletTransaction({
-          transactionID,
-          requireCompletion: true,
-        });
-
-        DevLogger.log(
-          'PolymarketProvider: Waiting for deposit wallet relayer registry',
-          {
-            operation: 'deposit_wallet_relayer_registry',
-            walletType: 'deposit-wallet',
-            from: ownerAddress,
-            depositWalletAddress,
-          },
-        );
-
-        await waitForDepositWalletDeployed({
-          walletAddress: depositWalletAddress,
-        });
-        depositWalletDeploymentConfirmed = true;
-
-        this.#setCachedAccountState(ownerAddress, {
-          address: depositWalletAddress,
-          isDeployed: true,
-          walletType: 'deposit-wallet',
-        });
-        this.setPolymarketAccountCreatedTrait();
-      }
-
-      const preflightPlan = await planDepositWalletPreflight({
-        walletAddress: depositWalletAddress,
         protocol,
-      });
-
-      DevLogger.log('PolymarketProvider: Deposit wallet preflight planned', {
-        operation: 'deposit_wallet_allowance_preflight',
-        walletType: 'deposit-wallet',
-        from: ownerAddress,
-        depositWalletAddress,
-        missingRequirementsCount: preflightPlan.missingRequirements.length,
-      });
-
-      if (preflightPlan.transactions.length > 0) {
-        if (!depositWalletDeploymentConfirmed) {
-          await waitForDepositWalletDeployed({
-            walletAddress: depositWalletAddress,
-          });
-        }
-
-        const signer = getSigner(ownerAddress);
-        const executeResponse = await executeDepositWalletBatch({
-          signer,
-          walletAddress: depositWalletAddress,
-          calls: toDepositWalletCalls(preflightPlan.transactions),
-        });
-        const transactionID =
-          getDepositWalletRelayerTransactionId(executeResponse);
-
-        if (!transactionID) {
-          throw new Error(
-            'Polymarket deposit wallet batch response missing transactionID',
-          );
-        }
-
-        DevLogger.log('PolymarketProvider: Waiting for deposit wallet batch', {
-          operation: 'deposit_wallet_batch',
-          walletType: 'deposit-wallet',
-          transactionID,
-          from: ownerAddress,
-          depositWalletAddress,
-          missingRequirementsCount: preflightPlan.missingRequirements.length,
-        });
-
-        await waitForDepositWalletTransaction({
-          transactionID,
-          requireCompletion: true,
-        });
-      }
-
-      DevLogger.log('PolymarketProvider: Deposit wallet preflight completed', {
-        operation: 'deposit_wallet_preflight',
-        walletType: 'deposit-wallet',
-        from: ownerAddress,
-        depositWalletAddress,
+        getSigner,
       });
 
       return true;
@@ -2459,6 +2525,39 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
       throw error;
+    }
+  }
+
+  private async syncDepositWalletBalanceAllowanceForOrderIfNeeded({
+    protocol,
+    signerAddress,
+    apiKey,
+  }: {
+    protocol: PolymarketProtocolDefinition;
+    signerAddress: string;
+    apiKey: ApiKeyCreds;
+  }): Promise<void> {
+    try {
+      await syncDepositWalletCollateralBalanceAllowance({
+        protocol,
+        signerAddress,
+        apiKey,
+      });
+    } catch (error) {
+      DevLogger.log(
+        'PolymarketProvider: Deposit wallet order balance-allowance sync failed',
+        {
+          operation: 'deposit_wallet_order_balance_allowance_sync',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      );
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('placeOrder:depositWalletBalanceAllowanceSync', {
+          operation: 'deposit_wallet_order_balance_allowance_sync',
+          walletType: 'deposit-wallet',
+        }),
+      );
     }
   }
 
