@@ -248,9 +248,19 @@ export type PredictControllerPrepareWithdrawAction = {
   handler: PredictController['prepareWithdraw'];
 };
 
+export type PredictControllerBeforePublishAction = {
+  type: `PredictController:beforePublish`;
+  handler: PredictController['beforePublish'];
+};
+
 export type PredictControllerBeforeSignAction = {
   type: `PredictController:beforeSign`;
   handler: PredictController['beforeSign'];
+};
+
+export type PredictControllerPublishAction = {
+  type: `PredictController:publish`;
+  handler: PredictController['publish'];
 };
 
 export type PredictControllerClearWithdrawTransactionAction = {
@@ -300,5 +310,7 @@ export type PredictControllerMethodActions =
   | PredictControllerGetAccountStateAction
   | PredictControllerGetBalanceAction
   | PredictControllerPrepareWithdrawAction
+  | PredictControllerBeforePublishAction
   | PredictControllerBeforeSignAction
+  | PredictControllerPublishAction
   | PredictControllerClearWithdrawTransactionAction;

@@ -345,6 +345,7 @@ export interface PredictControllerOptions {
 }
 
 const MESSENGER_EXPOSED_METHODS = [
+  'beforePublish',
   'beforeSign',
   'claimWithConfirmation',
   'clearActiveOrder',
@@ -370,6 +371,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'onPlaceOrderSuccess',
   'placeOrder',
   'prepareWithdraw',
+  'publish',
   'previewOrder',
   'refreshEligibility',
   'selectPaymentToken',
@@ -2619,6 +2621,12 @@ export class PredictController extends BaseController<
     }
   }
 
+  public async beforePublish(_request: {
+    transactionMeta: TransactionMeta;
+  }): Promise<boolean> {
+    return true;
+  }
+
   public async beforeSign(request: {
     transactionMeta: TransactionMeta;
   }): Promise<
@@ -2722,6 +2730,12 @@ export class PredictController extends BaseController<
     };
   }
 
+  public async publish(_request: {
+    transactionMeta: TransactionMeta;
+  }): Promise<{ transactionHash?: string }> {
+    return { transactionHash: undefined };
+  }
+
   public clearWithdrawTransaction(): void {
     this.update((state) => {
       state.withdrawTransaction = null;
@@ -2730,6 +2744,7 @@ export class PredictController extends BaseController<
 }
 
 export type {
+  PredictControllerBeforePublishAction,
   PredictControllerBeforeSignAction,
   PredictControllerClaimWithConfirmationAction,
   PredictControllerClearActiveOrderAction,
@@ -2754,6 +2769,7 @@ export type {
   PredictControllerPlaceOrderAction,
   PredictControllerPrepareWithdrawAction,
   PredictControllerPreviewOrderAction,
+  PredictControllerPublishAction,
   PredictControllerRefreshEligibilityAction,
   PredictControllerSelectPaymentTokenAction,
   PredictControllerSetSelectedPaymentTokenAction,
