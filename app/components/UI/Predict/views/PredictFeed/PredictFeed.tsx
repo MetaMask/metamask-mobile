@@ -20,10 +20,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Icon,
-  IconColor,
+  HeaderStandard,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -84,7 +82,6 @@ import {
   TabItem,
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import HeaderSearch, {
   HeaderSearchVariant,
 } from '../../../../../component-library/components-temp/HeaderSearch';
@@ -138,8 +135,8 @@ const PredictFeedTabBar: React.FC<PredictFeedTabBarProps> = ({
 interface AnimatedHeaderProps {
   headerTranslateY: SharedValue<number>;
   headerHeight: number;
-  headerRef: React.RefObject<View>;
-  tabBarRef: React.RefObject<View>;
+  headerRef: React.RefObject<View | null>;
+  tabBarRef: React.RefObject<View | null>;
   tabs: FeedTab[];
   activeIndex: number;
   onTabPress: (index: number) => void;
@@ -643,10 +640,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
       navigation.goBack();
     } else {
       navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
+        screen: Routes.WALLET_VIEW,
       });
     }
   }, [navigation]);
@@ -729,7 +723,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
               backgroundColor: colors.background.default,
             })}
           >
-            <HeaderCompactStandard
+            <HeaderStandard
               includesTopInset
               title={strings('wallet.predict')}
               onBack={handleBackPress}

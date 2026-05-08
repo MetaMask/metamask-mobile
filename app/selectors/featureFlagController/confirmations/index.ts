@@ -2,12 +2,14 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { Hex, Json } from '@metamask/utils';
 import { RootState } from '../../../reducers';
+import { TransactionType } from '@metamask/transaction-controller';
 
 export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
 export const BUFFER_STEP_DEFAULT = 0.025;
 export const BUFFER_SUBSEQUENT_DEFAULT = 0.05;
-export const PAY_FIAT_ENABLED_DEFAULT = false;
+export const PAY_FIAT_ENABLED_TRANSACTION_TYPES = [];
+export const PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS = 10;
 export const PAY_HARDWARE_ENABLED_DEFAULT = false;
 export const SLIPPAGE_DEFAULT = 0.005;
 export const STX_DISABLED_DEFAULT = false;
@@ -76,7 +78,8 @@ export interface GasFeeTokenFlags {
 }
 
 export interface MetaMaskPayFiatFlags {
-  enabled: boolean;
+  enabledTransactionTypes: TransactionType[];
+  maxDelayMinutesForPaymentMethods: number;
 }
 
 export interface MetaMaskPayHardwareFlags {
@@ -251,7 +254,12 @@ export const selectMetaMaskPayFiatFlags = createSelector(
       | undefined;
 
     return {
-      enabled: (raw?.enabled as boolean) ?? PAY_FIAT_ENABLED_DEFAULT,
+      enabledTransactionTypes:
+        (raw?.enabledTransactionTypes as TransactionType[]) ??
+        PAY_FIAT_ENABLED_TRANSACTION_TYPES,
+      maxDelayMinutesForPaymentMethods:
+        (raw?.maxDelayMinutesForPaymentMethods as number) ??
+        PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
     };
   },
 );

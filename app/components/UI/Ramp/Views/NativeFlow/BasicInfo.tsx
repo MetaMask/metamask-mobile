@@ -294,7 +294,7 @@ const V2BasicInfo = (): JSX.Element => {
   }, [navigation]);
 
   const focusNextField = useCallback(
-    (nextRef: React.RefObject<TextInput>) => () => {
+    (nextRef: React.RefObject<TextInput | null>) => () => {
       nextRef.current?.focus();
     },
     [],
