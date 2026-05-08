@@ -101,7 +101,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                gap={1}
+                gap={2}
                 twClassName="flex-wrap"
               >
                 {/* AI pill — inverted (dark bg, white content) */}
