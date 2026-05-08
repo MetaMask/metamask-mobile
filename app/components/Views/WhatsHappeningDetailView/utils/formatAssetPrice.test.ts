@@ -1,32 +1,5 @@
 import { TextColor } from '@metamask/design-system-react-native';
-import {
-  formatPrice,
-  formatPercentageChange,
-  formatAssetPrice,
-} from './formatAssetPrice';
-
-describe('formatPrice', () => {
-  it('formats a USD price with 2 decimal places', () => {
-    expect(formatPrice(1.0, 'USD')).toBe('$1.00');
-  });
-
-  it('formats a large USD price with comma separators', () => {
-    const result = formatPrice(95000, 'USD');
-    expect(result).toBe('$95,000.00');
-  });
-
-  it('handles fractional cents', () => {
-    const result = formatPrice(0.9998, 'USD');
-    expect(result).toBe('$1.00');
-  });
-
-  it('falls back to plain format for invalid currency codes', () => {
-    const result = formatPrice(100, 'INVALID_CURRENCY_XYZ');
-    // Should not throw; returns a fallback string
-    expect(result).toBeTruthy();
-    expect(result).toContain('100');
-  });
-});
+import { formatPercentageChange, formatAssetPrice } from './formatAssetPrice';
 
 describe('formatPercentageChange', () => {
   it('returns dash text and alternative color when change is undefined', () => {

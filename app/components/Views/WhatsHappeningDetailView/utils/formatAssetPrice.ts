@@ -1,30 +1,10 @@
 import { TextColor } from '@metamask/design-system-react-native';
+import { formatPerpsFiat } from '@metamask/perps-controller';
 
 export interface FormattedAssetPrice {
   priceText: string;
   changeText: string | undefined;
   changeColor: TextColor;
-}
-
-/**
- * Formats a fiat price for display. Mirrors the logic used in `PopularTokenRow`
- * and `TokenListItem` — fixed 2 decimal places with currency symbol.
- */
-export function formatPrice(
-  price: number,
-  currency: string | undefined,
-): string {
-  const safeCurrency = currency?.toUpperCase() || 'USD';
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency: safeCurrency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(price);
-  } catch {
-    return `${safeCurrency} ${price.toFixed(2)}`;
-  }
 }
 
 /**
@@ -64,7 +44,10 @@ export function formatAssetPrice(
 ): FormattedAssetPrice {
   const priceText =
     price !== undefined && price !== null && Number.isFinite(price)
-      ? formatPrice(price, currency)
+      ? formatPerpsFiat(price, {
+          currency: currency ?? 'USD',
+          stripTrailingZeros: false,
+        })
       : '—';
 
   const { text: changeText, color: changeColor } =

@@ -36,33 +36,12 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../UI/Tokens/components/TokenListSecurityBadge/TokenListSecurityBadge',
-  () => 'TokenListSecurityBadge',
-);
-
-jest.mock(
-  '../../../../selectors/featureFlagController/tokenListSecurityBadges',
-  () => ({
-    selectTokenListSecurityBadgesEnabled: jest.fn(() => true),
-  }),
-);
-
 const perpsOnlyAsset: RelatedAsset = {
   sourceAssetId: 'tsla',
   symbol: 'TSLA',
   name: 'Tesla',
   caip19: [],
   hlPerpsMarket: ['xyz:TSLA'],
-};
-
-/** Asset that has both a perps market AND a caip19 id — eligible for badge */
-const dualAsset: RelatedAsset = {
-  sourceAssetId: 'bitcoin',
-  symbol: 'BTC',
-  name: 'Bitcoin',
-  caip19: ['eip155:1/slip44:0'],
-  hlPerpsMarket: ['BTC'],
 };
 
 const mockItem: WhatsHappeningItem = {
@@ -125,10 +104,14 @@ describe('PerpsRow', () => {
     });
   });
 
-  it('uses first hlPerpsMarket entry as the market symbol', () => {
+  it('uses first hlPerpsMarket entry as the market symbol when multiple are present', () => {
+    const multiMarketAsset: RelatedAsset = {
+      ...perpsOnlyAsset,
+      hlPerpsMarket: ['FIRST-MARKET', 'SECOND-MARKET'],
+    };
     renderWithProvider(
       <PerpsRow
-        asset={dualAsset}
+        asset={multiMarketAsset}
         item={mockItem}
         cardIndex={0}
         perpsPriceBySymbol={emptyPriceMap}
@@ -138,7 +121,7 @@ describe('PerpsRow', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: expect.objectContaining({
-        market: { symbol: 'BTC', name: 'Bitcoin' },
+        market: { symbol: 'FIRST-MARKET', name: 'Tesla' },
       }),
     });
   });
@@ -216,70 +199,5 @@ describe('PerpsRow', () => {
       />,
     );
     expect(screen.queryByText('$')).toBeNull();
-  });
-
-  describe('verified badge gating', () => {
-    it('renders TokenListSecurityBadge when asset has caip19 and feature flags are enabled', () => {
-      renderWithProvider(
-        <PerpsRow
-          asset={dualAsset}
-          item={mockItem}
-          cardIndex={0}
-          perpsPriceBySymbol={emptyPriceMap}
-        />,
-        {
-          state: {
-            settings: { basicFunctionalityEnabled: true },
-          },
-        },
-      );
-      const badge = screen.UNSAFE_getByType(
-        'TokenListSecurityBadge' as unknown as React.ComponentType,
-      );
-      expect(badge).toBeTruthy();
-      expect(badge.props.caipAssetId).toBe('eip155:1/slip44:0');
-    });
-
-    it('does not render TokenListSecurityBadge when basicFunctionalityEnabled is false', () => {
-      renderWithProvider(
-        <PerpsRow
-          asset={dualAsset}
-          item={mockItem}
-          cardIndex={0}
-          perpsPriceBySymbol={emptyPriceMap}
-        />,
-        {
-          state: {
-            settings: { basicFunctionalityEnabled: false },
-          },
-        },
-      );
-      expect(
-        screen.UNSAFE_queryByType(
-          'TokenListSecurityBadge' as unknown as React.ComponentType,
-        ),
-      ).toBeNull();
-    });
-
-    it('does not render TokenListSecurityBadge for a perps-only asset (no caip19)', () => {
-      renderWithProvider(
-        <PerpsRow
-          asset={perpsOnlyAsset}
-          item={mockItem}
-          cardIndex={0}
-          perpsPriceBySymbol={emptyPriceMap}
-        />,
-        {
-          state: {
-            settings: { basicFunctionalityEnabled: true },
-          },
-        },
-      );
-      expect(
-        screen.UNSAFE_queryByType(
-          'TokenListSecurityBadge' as unknown as React.ComponentType,
-        ),
-      ).toBeNull();
-    });
   });
 });

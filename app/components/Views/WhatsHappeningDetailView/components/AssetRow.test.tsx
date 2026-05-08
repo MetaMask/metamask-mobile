@@ -9,11 +9,6 @@ jest.mock('../utils/getRelatedAssetImageSource', () => ({
   getRelatedAssetImageSource: jest.fn(() => undefined),
 }));
 
-jest.mock(
-  '../../../UI/Tokens/components/TokenListSecurityBadge/TokenListSecurityBadge',
-  () => 'TokenListSecurityBadge',
-);
-
 const btcAsset: RelatedAsset = {
   sourceAssetId: 'bitcoin',
   symbol: 'BTC',
@@ -88,41 +83,6 @@ describe('AssetRow', () => {
     );
     fireEvent.press(screen.getByText('Buy'));
     expect(onAction).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders the TokenListSecurityBadge when caipAssetId is provided', () => {
-    renderWithProvider(
-      <AssetRow
-        asset={btcAsset}
-        actionLabel="Buy"
-        accessibilityLabel="Buy BTC"
-        onAction={onAction}
-        caipAssetId="eip155:1/slip44:0"
-      />,
-    );
-    expect(screen.getByTestId !== undefined).toBeTruthy();
-    // The mocked component renders as 'TokenListSecurityBadge' native element
-    const badge = screen.UNSAFE_getByType(
-      'TokenListSecurityBadge' as unknown as React.ComponentType,
-    );
-    expect(badge).toBeTruthy();
-    expect(badge.props.caipAssetId).toBe('eip155:1/slip44:0');
-  });
-
-  it('does not render the security badge when caipAssetId is not provided', () => {
-    renderWithProvider(
-      <AssetRow
-        asset={btcAsset}
-        actionLabel="Buy"
-        accessibilityLabel="Buy BTC"
-        onAction={onAction}
-      />,
-    );
-    expect(
-      screen.UNSAFE_queryByType(
-        'TokenListSecurityBadge' as unknown as React.ComponentType,
-      ),
-    ).toBeNull();
   });
 
   it('renders the price secondary line when secondaryLine is provided', () => {

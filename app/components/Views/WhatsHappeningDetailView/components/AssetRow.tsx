@@ -15,9 +15,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { RelatedAsset } from '@metamask/ai-controllers';
-import type { CaipAssetType } from '@metamask/utils';
 import { getRelatedAssetImageSource } from '../utils/getRelatedAssetImageSource';
-import TokenListSecurityBadge from '../../../UI/Tokens/components/TokenListSecurityBadge/TokenListSecurityBadge';
 
 export interface AssetRowSecondaryLine {
   priceText: string;
@@ -30,8 +28,6 @@ interface AssetRowProps {
   actionLabel?: string;
   accessibilityLabel?: string;
   onAction?: () => void;
-  /** When provided, renders the security badge inline next to the asset name. */
-  caipAssetId?: CaipAssetType;
   /** When provided, renders price + 24h change below the asset name. */
   secondaryLine?: AssetRowSecondaryLine;
 }
@@ -45,7 +41,6 @@ const AssetRow: React.FC<AssetRowProps> = ({
   actionLabel,
   accessibilityLabel,
   onAction,
-  caipAssetId,
   secondaryLine,
 }) => {
   const rawImageSource = getRelatedAssetImageSource(asset);
@@ -74,23 +69,14 @@ const AssetRow: React.FC<AssetRowProps> = ({
       >
         {/* Left: name + optional badge + optional price/change */}
         <Box twClassName="flex-1 mr-2">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
-            >
-              {asset.name || asset.symbol}
-            </Text>
-            {caipAssetId && (
-              <TokenListSecurityBadge caipAssetId={caipAssetId} />
-            )}
-          </Box>
+            {asset.name || asset.symbol}
+          </Text>
 
           {secondaryLine && (
             <Box

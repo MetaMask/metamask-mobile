@@ -1,6 +1,4 @@
 import React, { useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import type { CaipAssetType } from '@metamask/utils';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -9,11 +7,9 @@ import { WhatsHappeningInteractionType } from '../../Homepage/Sections/WhatsHapp
 import { getWhatsHappeningEventProps } from '../../Homepage/Sections/WhatsHappening/eventProperties';
 import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
 import { formatAssetPrice } from '../utils/formatAssetPrice';
-import { selectTokenListSecurityBadgesEnabled } from '../../../../selectors/featureFlagController/tokenListSecurityBadges';
 import type { PerpsPriceEntry } from '../hooks/useWhatsHappeningAssetPrices';
 import AssetRow from './AssetRow';
 import useTradeNavigation from '../hooks/useTradeNavigation';
-import type { RootState } from '../../../../reducers';
 
 interface PerpsRowProps {
   asset: RelatedAsset;
@@ -37,29 +33,6 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
 }) => {
   const { handleTrade } = useTradeNavigation(asset);
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const isTokenListSecurityBadgesEnabled = useSelector(
-    selectTokenListSecurityBadgesEnabled,
-  );
-  const basicFunctionalityEnabled = useSelector(
-    (state: RootState) => state.settings.basicFunctionalityEnabled,
-  );
-
-  // Show verified badge for assets that also have a caip19 identifier
-  const caipAssetId = useMemo(() => {
-    const firstCaip = asset.caip19?.[0];
-    if (
-      !firstCaip ||
-      !basicFunctionalityEnabled ||
-      !isTokenListSecurityBadgesEnabled
-    ) {
-      return undefined;
-    }
-    return firstCaip as CaipAssetType;
-  }, [
-    asset.caip19,
-    basicFunctionalityEnabled,
-    isTokenListSecurityBadgesEnabled,
-  ]);
 
   // Perps prices are always quoted in USD
   const secondaryLine = useMemo(() => {
@@ -108,7 +81,6 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
           : undefined
       }
       onAction={perpsMarketSymbol ? handleTradeWithTracking : undefined}
-      caipAssetId={caipAssetId}
       secondaryLine={secondaryLine}
     />
   );
