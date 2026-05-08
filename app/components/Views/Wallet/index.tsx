@@ -759,7 +759,6 @@ const Wallet = ({
       ActionLocation.ONBOARDING_CHECKLIST,
     );
   }, [goToSwaps]);
-
   const handleWalletHomeOnboardingNotificationsPrimary = useCallback(() => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.NOTIFICATIONS,
