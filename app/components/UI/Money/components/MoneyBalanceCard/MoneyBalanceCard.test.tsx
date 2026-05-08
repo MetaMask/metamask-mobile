@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyBalanceCard from './MoneyBalanceCard';
@@ -342,6 +343,28 @@ describe('MoneyBalanceCard', () => {
 
       expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
         strings('money.apy_label', { percentage: 0 }),
+      );
+    });
+  });
+
+  describe('container layout', () => {
+    it('does not own its horizontal page inset (the parent wrapper does)', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      const container = getByTestId(MoneyBalanceCardTestIds.FUNDED_CONTAINER);
+      // Pressable's style is a function that takes { pressed } — call it to
+      // get the resolved style array, then flatten it.
+      const rawStyle = container.props.style;
+      const resolved =
+        typeof rawStyle === 'function' ? rawStyle({ pressed: false }) : rawStyle;
+      const flattened = StyleSheet.flatten(resolved);
+
+      // The card should not carry its own horizontal margin — the Wallet view
+      // wraps it in a padded container so it aligns with sibling sections.
+      expect(flattened).not.toHaveProperty('marginHorizontal');
+      // Inner content padding (16px) is still owned by the card.
+      expect(flattened).toEqual(
+        expect.objectContaining({ paddingHorizontal: 16 }),
       );
     });
   });

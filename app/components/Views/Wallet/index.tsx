@@ -1470,7 +1470,11 @@ const Wallet = ({
         />
       ) : null}
       {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
-      {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
+      {isMoneyHomeScreenEnabled && (
+        <View style={styles.base}>
+          <MoneyBalanceCard />
+        </View>
+      )}
     </>
   );
 
@@ -1501,7 +1505,11 @@ const Wallet = ({
         />
       ) : null}
       {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
-      {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
+      {isMoneyHomeScreenEnabled && (
+        <View style={styles.base}>
+          <MoneyBalanceCard />
+        </View>
+      )}
     </>
   );
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import type { Json } from '@metamask/utils';
 
 // Import StorageWrapper mock from global testSetup - this provides StorageWrapper.getItem
@@ -2079,6 +2080,23 @@ describe('MoneyBalanceCard slot', () => {
     const { getByTestId } = render(Wallet);
 
     expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
+  });
+
+  it('wraps the MoneyBalanceCard in a horizontally padded container so it aligns with sibling sections', () => {
+    mockMoneyHomeScreenEnabled = true;
+    mockHomepageSectionsEnabled = true;
+
+    //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
+    const { getByTestId } = render(Wallet);
+
+    const wrapper = getByTestId('money-balance-card-mock').parent;
+    expect(wrapper).toBeTruthy();
+    // Flatten the parent style — the wrapper should own the 16px horizontal
+    // padding so the card aligns with banner / account-group / actions / carousel.
+    const flattened = StyleSheet.flatten(wrapper?.props.style);
+    expect(flattened).toEqual(
+      expect.objectContaining({ paddingHorizontal: 16 }),
+    );
   });
 
   it('does not render the MoneyBalanceCard when only the Money flag is enabled', () => {
