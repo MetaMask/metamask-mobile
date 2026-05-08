@@ -60,6 +60,7 @@ export interface PrepareDepositParams {
 
 export interface GetAccountStateParams {
   ownerAddress: string;
+  forceRefresh?: boolean;
 }
 
 export interface PrepareWithdrawParams {
