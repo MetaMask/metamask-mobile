@@ -61,9 +61,10 @@ export interface TabsIconBarProps extends BoxComponentProps {
    */
   collapseAnim?: Animated.Value;
   /**
-   * When provided alongside `collapseAnim`, the tab row collapses BY this many pixels at the
-   * fully-hidden state (1.0) instead of collapsing all the way to 0. Use this to shrink the
-   * row by just the icon area (for example) while keeping labels visible.
+   * Optional height offset (in px) used when `collapseAnim` reaches its fully-collapsed
+   * state (value 1). Instead of shrinking the row to 0, the row shrinks BY this many px —
+   * use this to reclaim the icon area while keeping labels visible. Defaults to the full
+   * row height (full collapse).
    */
-  collapseBy?: number;
+  collapseHeightOffset?: number;
 }
