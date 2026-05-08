@@ -106,6 +106,10 @@ jest.mock('../../../../../selectors/networkController', () => ({
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBatchSellDestStablecoins: jest.fn(() => mockDestinationStablecoins),
+  setBatchSellDestToken: jest.fn((token: BridgeToken | undefined) => ({
+    type: 'bridge/setBatchSellDestToken',
+    payload: token,
+  })),
   setBatchSellSourceTokens: jest.fn((tokens: BridgeToken[]) => ({
     type: 'bridge/setBatchSellSourceTokens',
     payload: tokens,
@@ -385,6 +389,19 @@ describe('BatchSellTokenSelect', () => {
     ).toBeOnTheScreen();
     expect(getByText('SELL')).toBeOnTheScreen();
     expect(queryByText('USDC')).not.toBeOnTheScreen();
+  });
+
+  it('resets Batch Sell source and destination tokens on entry', () => {
+    render(<BatchSellTokenSelect />);
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'bridge/setBatchSellSourceTokens',
+      payload: [],
+    });
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'bridge/setBatchSellDestToken',
+      payload: undefined,
+    });
   });
 
   it('renders network pills only for networks with token balances', () => {
@@ -712,6 +729,7 @@ describe('BatchSellTokenSelect', () => {
     expect(getByText('Max 5 tokens allowed')).toBeOnTheScreen();
     expect(nextButton.props.accessibilityState.disabled).toBe(true);
 
+    mockDispatch.mockClear();
     fireEvent.press(nextButton);
 
     expect(mockDispatch).not.toHaveBeenCalled();

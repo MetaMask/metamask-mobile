@@ -32,6 +32,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectBatchSellDestStablecoins,
+  setBatchSellDestToken,
   setBatchSellSourceTokens,
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
@@ -83,6 +84,12 @@ export function BatchSellTokenSelect() {
       }),
     );
   }, [navigation]);
+
+  // Start each Batch Sell flow from a clean Redux handoff state.
+  useEffect(() => {
+    dispatch(setBatchSellSourceTokens([]));
+    dispatch(setBatchSellDestToken(undefined));
+  }, [dispatch]);
 
   useEffect(() => {
     // Default to the highest-value chain once balances load, but preserve a
