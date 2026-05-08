@@ -415,7 +415,7 @@ interface RampsCheckoutOpened extends RampsCheckoutFunnelBase {
   order_id?: string;
 }
 
-interface RampsCheckoutUrlChange extends RampsCheckoutFunnelBase {
+interface RampsCheckoutUrlChanged extends RampsCheckoutFunnelBase {
   url_path: string;
   previous_url_path?: string;
   step_index: number;
@@ -423,13 +423,13 @@ interface RampsCheckoutUrlChange extends RampsCheckoutFunnelBase {
   order_id?: string;
 }
 
-interface RampsCheckoutLoadComplete extends RampsCheckoutFunnelBase {
+interface RampsCheckoutLoadCompleted extends RampsCheckoutFunnelBase {
   url_path: string;
   load_duration_ms: number;
   load_success: boolean;
 }
 
-interface RampsCheckoutHttpError extends RampsCheckoutFunnelBase {
+interface RampsCheckoutHttpErrorReceived extends RampsCheckoutFunnelBase {
   url_path: string;
   status_code: number;
   is_initial_url: boolean;
@@ -504,9 +504,9 @@ export interface AnalyticsEvents {
   RAMPS_INFO_TOOLTIP_CLICKED: RampsInfoTooltipClicked;
   RAMPS_TOAST_BUTTON_CLICKED: RampsToastButtonClicked;
   RAMPS_CHECKOUT_OPENED: RampsCheckoutOpened;
-  RAMPS_CHECKOUT_URL_CHANGE: RampsCheckoutUrlChange;
-  RAMPS_CHECKOUT_LOAD_COMPLETE: RampsCheckoutLoadComplete;
-  RAMPS_CHECKOUT_HTTP_ERROR: RampsCheckoutHttpError;
+  RAMPS_CHECKOUT_URL_CHANGED: RampsCheckoutUrlChanged;
+  RAMPS_CHECKOUT_LOAD_COMPLETED: RampsCheckoutLoadCompleted;
+  RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED: RampsCheckoutHttpErrorReceived;
   RAMPS_CHECKOUT_CALLBACK_DETECTED: RampsCheckoutCallbackDetected;
   RAMPS_CHECKOUT_CLOSED: RampsCheckoutClosed;
 }

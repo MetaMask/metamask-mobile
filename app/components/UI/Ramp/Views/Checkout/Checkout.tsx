@@ -228,7 +228,7 @@ const Checkout = () => {
       stepIndexRef.current += 1;
 
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_URL_CHANGE)
+        createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_URL_CHANGED)
           .addProperties({
             ...buildBaseProps({
               flowId,
@@ -435,7 +435,7 @@ const Checkout = () => {
       const loadSuccess = !loadUrlErrorsRef.current.has(loadedUrl);
 
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETE)
+        createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETED)
           .addProperties({
             ...buildBaseProps({
               flowId,
@@ -555,7 +555,9 @@ const Checkout = () => {
 
             loadUrlErrorsRef.current.add(errorUrl);
             trackEvent(
-              createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_HTTP_ERROR)
+              createEventBuilder(
+                MetaMetricsEvents.RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED,
+              )
                 .addProperties({
                   ...buildBaseProps({
                     flowId,
