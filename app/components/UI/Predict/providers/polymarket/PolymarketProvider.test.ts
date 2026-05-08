@@ -5,6 +5,8 @@ import {
 } from '@metamask/transaction-controller';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { Interface } from 'ethers/lib/utils';
+import { analytics } from '../../../../../util/analytics/analytics';
+import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
 import type { OrderPreview } from '../types';
 import { Side } from '../../types';
@@ -143,6 +145,7 @@ jest.mock('./preflight/withdraw', () => ({
   buildWithdrawTransaction: jest.fn(),
 }));
 
+const mockAnalyticsIdentify = jest.mocked(analytics.identify);
 const mockComputeProxyAddress = jest.mocked(computeProxyAddress);
 const mockCreateApiKey = jest.mocked(createApiKey);
 const mockDeriveDepositWalletAddress = jest.mocked(deriveDepositWalletAddress);
@@ -671,8 +674,12 @@ describe('PolymarketProvider', () => {
       transactionID: 'create-1',
       requireCompletion: true,
     });
+    expect(mockWaitForDepositWalletDeployed).toHaveBeenCalledTimes(1);
     expect(mockWaitForDepositWalletDeployed).toHaveBeenCalledWith({
       walletAddress: depositWalletAddress,
+    });
+    expect(mockAnalyticsIdentify).toHaveBeenCalledWith({
+      [UserProfileProperty.CREATED_POLYMARKET_ACCOUNT_VIA_MM]: true,
     });
     expect(
       mockSyncDepositWalletCollateralBalanceAllowance,

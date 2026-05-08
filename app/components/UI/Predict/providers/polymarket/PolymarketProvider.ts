@@ -73,7 +73,6 @@ import {
 import {
   computeProxyAddress,
   createPermit2FeeAuthorization,
-  getDeployProxyWalletTransaction,
   getSafeTransferAmount,
   getSafeTransferAmountRaw,
 } from './safe/utils';
@@ -2019,22 +2018,9 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     if (!accountState.isDeployed) {
-      const deployTransaction = await getDeployProxyWalletTransaction({
-        signer,
-      });
-
-      if (!deployTransaction) {
-        throw new Error('Failed to get deploy proxy wallet transaction params');
-      }
-
-      if (!deployTransaction.params?.to || !deployTransaction.params?.data) {
-        throw new Error('Invalid deploy transaction: missing params');
-      }
-
-      transactions.push(deployTransaction);
-
-      // Set user trait for Polymarket account creation via MetaMask
-      this.setPolymarketAccountCreatedTrait();
+      throw new Error(
+        'Legacy Safe account state must be deployed for deposits',
+      );
     }
 
     transactions.push(buildDepositTransferTransaction(accountState.address));
@@ -2332,6 +2318,7 @@ export class PolymarketProvider implements PredictProvider {
         depositWalletAddress,
         numberToHex(POLYGON_MAINNET_CHAIN_ID),
       );
+      let depositWalletDeploymentConfirmed = false;
 
       if (!depositWalletIsDeployed) {
         const createResponse = await requestDepositWalletCreate({
@@ -2372,12 +2359,14 @@ export class PolymarketProvider implements PredictProvider {
         await waitForDepositWalletDeployed({
           walletAddress: depositWalletAddress,
         });
+        depositWalletDeploymentConfirmed = true;
 
         this.#setCachedAccountState(ownerAddress, {
           address: depositWalletAddress,
           isDeployed: true,
           walletType: 'deposit-wallet',
         });
+        this.setPolymarketAccountCreatedTrait();
       }
 
       const preflightPlan = await planDepositWalletPreflight({
@@ -2394,9 +2383,11 @@ export class PolymarketProvider implements PredictProvider {
       });
 
       if (preflightPlan.transactions.length > 0) {
-        await waitForDepositWalletDeployed({
-          walletAddress: depositWalletAddress,
-        });
+        if (!depositWalletDeploymentConfirmed) {
+          await waitForDepositWalletDeployed({
+            walletAddress: depositWalletAddress,
+          });
+        }
 
         const signer = getSigner(ownerAddress);
         const executeResponse = await executeDepositWalletBatch({
