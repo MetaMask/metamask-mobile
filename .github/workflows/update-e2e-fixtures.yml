@@ -226,47 +226,17 @@ jobs:
       - name: Download iOS app artifact from CI
         run: |
           RUN_ID="${{ needs.prepare.outputs.RUN_ID }}"
-          REPO="${{ github.repository }}"
-          ATTEMPT_COUNT=$(gh run view "${RUN_ID}" --json attempt --jq '.attempt') || {
-            echo "::error ::Failed to determine attempt count for run ${RUN_ID}. Ensure the RUN_ID is valid and the token has 'actions: read' permission."
+          echo "Downloading iOS artifact from CI run ${RUN_ID}..."
+
+          # gh run download uses the ListArtifacts API, which includes artifacts from all
+          # attempts of a run — including earlier attempts when only failed jobs were re-run.
+          if ! gh run download "${RUN_ID}" \
+              -n main-qa-MetaMask.app \
+              -D artifacts/main-qa-MetaMask.app; then
+            echo "::error title=iOS artifact not found::Failed to download 'main-qa-MetaMask.app' artifact from run ${RUN_ID}. Possible causes:%0A- The 'Build iOS Apps' job has not completed%0A- The iOS build was skipped (no iOS-impacting changes)%0A- The iOS build failed%0A%0ACheck the CI workflow: https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
             exit 1
-          }
-          echo "Run ${RUN_ID} has ${ATTEMPT_COUNT} attempt(s). Searching for iOS artifact..."
-
-          # Search from newest to oldest attempt via the REST API — the artifact may live
-          # in an earlier attempt when only failed jobs were re-run and the iOS build was not.
-          # `|| true` prevents `-eo pipefail` from exiting when gh api exits non-zero (e.g. 404
-          # for an attempt that predates the artifact upload) before the loop tries the next one.
-          for ATTEMPT in $(seq "${ATTEMPT_COUNT}" -1 1); do
-            echo "Trying attempt ${ATTEMPT}..."
-
-            ARTIFACT_ID=$(gh api \
-              "repos/${REPO}/actions/runs/${RUN_ID}/attempts/${ATTEMPT}/artifacts" \
-              2>/dev/null \
-              | jq -r '.artifacts[]? | select(.name == "main-qa-MetaMask.app") | .id' \
-              2>/dev/null \
-              | head -1) || true
-
-            if [[ "$ARTIFACT_ID" =~ ^[0-9]+$ ]]; then
-              echo "Found artifact (ID=${ARTIFACT_ID}) in attempt ${ATTEMPT}. Downloading..."
-              mkdir -p artifacts/main-qa-MetaMask.app
-              if ! curl -L -s -f \
-                  -H "Authorization: Bearer $GITHUB_TOKEN" \
-                  -H "Accept: application/vnd.github+json" \
-                  "https://api.github.com/repos/${REPO}/actions/artifacts/${ARTIFACT_ID}/zip" \
-                  -o /tmp/ios-artifact.zip; then
-                echo "::error title=iOS artifact download failed::curl exited non-zero for artifact ID ${ARTIFACT_ID}. The artifact may have expired or the token may lack permissions."
-                exit 1
-              fi
-              unzip -q /tmp/ios-artifact.zip -d artifacts/main-qa-MetaMask.app
-              rm /tmp/ios-artifact.zip
-              echo "✅ Downloaded iOS artifact from attempt ${ATTEMPT}."
-              exit 0
-            fi
-          done
-
-          echo "::error title=iOS artifact not found::Could not find 'main-qa-MetaMask.app' in any of the ${ATTEMPT_COUNT} attempt(s) for run ${RUN_ID}. Possible causes:%0A- The 'Build iOS Apps' job has not completed%0A- The iOS build was skipped (no iOS-impacting changes)%0A- The iOS build failed%0A%0ACheck the CI workflow: https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
-          exit 1
+          fi
+          echo "✅ Downloaded iOS artifact."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
