@@ -52,15 +52,14 @@ const EarnDepositTokenListItem = ({
         >
           <EarnNetworkAvatar token={token} />
         </BadgeWrapper>
-        <View style={styles.assetName}>
-          <Text
-            numberOfLines={1}
-            variant={TextVariant.BodyMDMedium}
-            ellipsizeMode="tail"
-          >
-            {token.name}
-          </Text>
-        </View>
+        <Text
+          numberOfLines={1}
+          variant={TextVariant.BodyMDMedium}
+          ellipsizeMode="tail"
+          style={styles.assetName}
+        >
+          {token.name}
+        </Text>
       </View>
       <View style={styles.right}>
         <Text

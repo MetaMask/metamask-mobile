@@ -40,6 +40,7 @@ interface TokenListProps {
   setShowScamWarningModal: (chainId: string | null) => void;
   maxItems?: number;
   isFullView?: boolean;
+  listHeaderComponent?: React.ReactElement;
   listFooterComponent?: React.ReactElement;
   /**
    * Optional external RefreshControl. When provided, overrides the internal
@@ -47,7 +48,17 @@ interface TokenListProps {
    * refresh orchestrator (e.g. Money Hub).
    */
   refreshControl?: React.ReactElement;
+  /**
+   * When true, mUSD rows render only the native balance on the secondary row
+   * (no token price / 24h change). Used by the Money Hub.
+   */
+  hideSecondaryPriceRow?: boolean;
 }
+
+const wrapEdgeNode = (
+  node: React.ReactElement | undefined,
+  isFullView: boolean,
+) => (isFullView && node ? <Box twClassName="-mx-4">{node}</Box> : node);
 
 const TokenListComponent = ({
   tokenKeys,
@@ -58,8 +69,10 @@ const TokenListComponent = ({
   setShowScamWarningModal,
   maxItems,
   isFullView = false,
+  listHeaderComponent,
   listFooterComponent,
   refreshControl,
+  hideSecondaryPriceRow = false,
 }: TokenListProps) => {
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -155,6 +168,7 @@ const TokenListComponent = ({
         showPercentageChange={showPercentageChange}
         isFullView={isFullView}
         shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+        hideSecondaryPriceRow={hideSecondaryPriceRow}
       />
     ),
     [
@@ -164,6 +178,7 @@ const TokenListComponent = ({
       showPercentageChange,
       isFullView,
       shouldShowTokenListItemCta,
+      hideSecondaryPriceRow,
     ],
   );
 
@@ -172,6 +187,7 @@ const TokenListComponent = ({
       twClassName={'bg-default'}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
     >
+      {listHeaderComponent}
       {displayTokenKeys.map((item, index) => (
         <TokenListItem
           key={`${getTokenKey(item)}-${index}`}
@@ -182,6 +198,7 @@ const TokenListComponent = ({
           showPercentageChange={showPercentageChange}
           isFullView={isFullView}
           shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+          hideSecondaryPriceRow={hideSecondaryPriceRow}
         />
       ))}
       {shouldShowViewAllButton && (
@@ -218,13 +235,8 @@ const TokenListComponent = ({
         }
         extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
         contentContainerStyle={!isFullView ? undefined : tw`px-4`}
-        ListFooterComponent={
-          isFullView && listFooterComponent ? (
-            <Box twClassName="-mx-4">{listFooterComponent}</Box>
-          ) : (
-            listFooterComponent
-          )
-        }
+        ListHeaderComponent={wrapEdgeNode(listHeaderComponent, isFullView)}
+        ListFooterComponent={wrapEdgeNode(listFooterComponent, isFullView)}
       />
     </Box>
   );

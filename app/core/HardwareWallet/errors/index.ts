@@ -11,3 +11,16 @@ export {
 } from './helpers';
 
 export { parseErrorByType } from './parser';
+
+export {
+  createQRHardwareScanError,
+  getQRHardwareScanErrorTitle,
+  isQRHardwareScanError,
+  QRHardwareScanError,
+  QRHardwareScanErrorType,
+} from './qrScan';
+
+export type {
+  QRHardwareScanErrorMetadata,
+  QRHardwareScanErrorOptions,
+} from './qrScan';

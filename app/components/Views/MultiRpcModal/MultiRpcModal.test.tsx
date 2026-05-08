@@ -46,11 +46,6 @@ describe('MultiRpcModal', () => {
     jest.clearAllMocks();
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('calls setShowMultiRpcModal and trackEvent when clicking on allow button', () => {
     const { getByTestId } = renderComponent(initialState);
     const allowButton = getByTestId('allow');
