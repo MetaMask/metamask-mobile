@@ -1,7 +1,12 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import {
+  RouteProp,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -14,7 +19,10 @@ import {
 } from '@metamask/design-system-react-native';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import TabsList from '../../../component-library/components-temp/Tabs/TabsList/TabsList';
-import { TabViewProps } from '../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
+import {
+  TabViewProps,
+  type TabsListRef,
+} from '../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
@@ -24,7 +32,6 @@ import { selectExplorePageV2EnabledFlag } from '../../../selectors/featureFlagCo
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
-import { useExploreTabNavigationEffect } from './hooks/useExploreTabNavigationEffect';
 import { useExploreRefresh } from './hooks/useExploreRefresh';
 import NowTab from './tabs/NowTab';
 import MacroTab from './tabs/MacroTab';
@@ -57,15 +64,43 @@ const TAB_NAMES_BY_INDEX: Record<number, ExploreTabName> = {
   [EXPLORE_TAB_INDEX.SITES]: 'Sites',
 };
 
+interface ExploreFeedRouteParams {
+  initialTab?: number | null;
+}
+
+const useExploreTabNavigationEffect = () => {
+  const route =
+    useRoute<RouteProp<{ params: ExploreFeedRouteParams }, 'params'>>();
+  const navigation = useNavigation();
+  const tabsListRef = useRef<TabsListRef>(null);
+
+  const initialTabIndex = Object.values(EXPLORE_TAB_INDEX).find(
+    (tab) => tab === route.params?.initialTab,
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (initialTabIndex === undefined) {
+        return;
+      }
+
+      tabsListRef.current?.goToTabIndex(initialTabIndex);
+      navigation.setParams?.({ initialTab: null });
+    }, [initialTabIndex, navigation]),
+  );
+
+  return {
+    tabsListRef,
+    initialActiveIndex: initialTabIndex ?? EXPLORE_TAB_INDEX.NOW,
+  };
+};
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const tabProps = useExploreRefresh();
-  const { tabsListRef, initialActiveIndex } = useExploreTabNavigationEffect({
-    defaultTabIndex: EXPLORE_TAB_INDEX.NOW,
-  });
+  const { tabsListRef, initialActiveIndex } = useExploreTabNavigationEffect();
 
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
