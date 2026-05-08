@@ -10,8 +10,6 @@ export const ALLOWLISTED_HOSTS = [
   'auth-service.uat-api.cx.metamask.io',
   '*.node.web3auth.io',
   '*.uat-node.web3auth.io',
-  'gamma-api.polymarket.com',
-  '*.polymarket.com',
   'metamask.github.io', // Test-snaps and test-dapp pages loaded in browser
 ];
 
