@@ -1,15 +1,14 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
-import { CaipChainId, Hex } from '@metamask/utils';
+import { fireEvent, render } from '@testing-library/react-native';
+import { Hex } from '@metamask/utils';
 
-import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { BridgeToken } from '../../types';
 import { BatchSellReview } from './BatchSellReview';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
 
-const mockGoBack = jest.fn();
-const mockSetOptions = jest.fn();
-const mockHeaderOptions = { title: 'mock-header-options' };
+const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 const mockSelectedTokens: BridgeToken[] = [
   {
     address: '0x1111111111111111111111111111111111111111',
@@ -26,120 +25,44 @@ const mockSelectedTokens: BridgeToken[] = [
     balance: '154.297',
   },
 ];
-let mockDestinationToken: BridgeToken | undefined = {
+const usdcToken: BridgeToken = {
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
   chainId: '0x1' as Hex,
   decimals: 6,
   symbol: 'USDC',
   image: 'usdc-image-url',
 };
-const mockStablecoinsByChain: Record<CaipChainId, never[]> = {};
+const musdToken: BridgeToken = {
+  address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  chainId: '0x1' as Hex,
+  decimals: 6,
+  symbol: 'MUSD',
+  image: 'musd-image-url',
+};
+let mockSelectedDestinationToken: BridgeToken | undefined = usdcToken;
+let mockDestinationTokens: BridgeToken[] = [usdcToken];
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
-    goBack: mockGoBack,
-    setOptions: mockSetOptions,
+    goBack: jest.fn(),
+    navigate: mockNavigate,
+    setOptions: jest.fn(),
   }),
 }));
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: () => ({}),
-  }),
-}));
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Pressable, View, Text } = jest.requireActual('react-native');
-
-  return {
-    AvatarToken: ({ testID }: { testID?: string }) =>
-      ReactActual.createElement(View, { testID }),
-    AvatarTokenSize: { Lg: 'lg', Sm: 'sm' },
-    Box: ({ children, ...props }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(View, props, children),
-    BoxFlexDirection: { Row: 'row' },
-    BoxAlignItems: { Center: 'center' },
-    BoxJustifyContent: { Between: 'space-between', Center: 'center' },
-    Button: ({
-      children,
-      isDisabled,
-      onPress,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      isDisabled?: boolean;
-      onPress?: () => void;
-      testID?: string;
-    }) =>
-      ReactActual.createElement(
-        Pressable,
-        { accessibilityState: { disabled: isDisabled }, onPress, testID },
-        ReactActual.createElement(Text, null, children),
-      ),
-    ButtonSize: { Lg: 'lg' },
-    ButtonVariant: { Primary: 'primary' },
-    FontWeight: { Medium: 'medium' },
-    Icon: ({ testID }: { testID?: string }) =>
-      ReactActual.createElement(View, { testID }),
-    IconColor: { IconDefault: 'icon-default' },
-    IconName: { Info: 'info' },
-    IconSize: { Sm: 'sm' },
-    Text: ({ children, ...props }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(Text, props, children),
-    TextColor: { TextDefault: 'text-default' },
-    TextVariant: { BodyMd: 'body-md', HeadingLg: 'heading-lg' },
-  };
-});
-
-jest.mock('react-native-gesture-handler', () => {
-  const ReactActual = jest.requireActual('react');
-  const { ScrollView } = jest.requireActual('react-native');
-
-  return {
-    ScrollView: ({ children, ...props }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(ScrollView, props, children),
-  };
-});
-
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-
-  return {
-    SafeAreaView: ({ children, ...props }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(View, props, children),
-  };
-});
-
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => ({
-    getHeaderCompactStandardNavbarOptions: jest.fn(() => mockHeaderOptions),
-  }),
-);
-
-jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-
-  return {
-    Skeleton: ({ testID }: { testID?: string }) =>
-      ReactActual.createElement(View, { testID }),
-  };
-});
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBatchSellSourceTokens: jest.fn(() => mockSelectedTokens),
-  selectBatchSellDestStablecoinsByChain: jest.fn(() => mockStablecoinsByChain),
+  selectBatchSellDestStablecoins: jest.fn(() => mockDestinationTokens),
+  selectBatchSellDestToken: jest.fn(() => mockSelectedDestinationToken),
+  setBatchSellDestToken: jest.fn((token: BridgeToken) => ({
+    type: 'bridge/setBatchSellDestToken',
+    payload: token,
+  })),
 }));
 
 jest.mock('react-redux', () => ({
+  useDispatch: () => mockDispatch,
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
-}));
-
-jest.mock('../BatchSellTokenSelect/BatchSellTokenSelect.utils', () => ({
-  getBatchSellDestinationToken: jest.fn(() => mockDestinationToken),
 }));
 
 jest.mock('./BatchSellReviewTokenRow', () => {
@@ -168,13 +91,8 @@ jest.mock('./BatchSellReviewTokenRow', () => {
 describe('BatchSellReview', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDestinationToken = {
-      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      chainId: '0x1' as Hex,
-      decimals: 6,
-      symbol: 'USDC',
-      image: 'usdc-image-url',
-    };
+    mockSelectedDestinationToken = usdcToken;
+    mockDestinationTokens = [usdcToken];
   });
 
   it('renders the quote loading screen', () => {
@@ -210,7 +128,8 @@ describe('BatchSellReview', () => {
   });
 
   it('shows UNKNOWN when there is no destination token match', () => {
-    mockDestinationToken = undefined;
+    mockSelectedDestinationToken = undefined;
+    mockDestinationTokens = [];
 
     const { getByTestId, getByText, queryByText } = render(<BatchSellReview />);
     const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
@@ -220,20 +139,37 @@ describe('BatchSellReview', () => {
     expect(reviewButton.props.accessibilityState.disabled).toBe(true);
   });
 
-  it('uses the compact standard header', () => {
+  it('opens the destination stablecoin selector modal from the pill', () => {
+    const { getByTestId } = render(<BatchSellReview />);
+
+    fireEvent.press(
+      getByTestId(BatchSellReviewSelectorsIDs.DESTINATION_TOKEN_PILL),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL,
+    });
+  });
+
+  it('renders the selected destination token from Redux', () => {
+    mockSelectedDestinationToken = musdToken;
+    mockDestinationTokens = [usdcToken, musdToken];
+
+    const { getByText, queryByText } = render(<BatchSellReview />);
+
+    expect(getByText('MUSD')).toBeOnTheScreen();
+    expect(queryByText('USDC')).toBeNull();
+  });
+
+  it('initializes the destination token to the first displayable stablecoin', () => {
+    mockSelectedDestinationToken = undefined;
+    mockDestinationTokens = [usdcToken, musdToken];
+
     render(<BatchSellReview />);
 
-    expect(getHeaderCompactStandardNavbarOptions).toHaveBeenCalledWith({
-      title: '',
-      onBack: expect.any(Function),
-      includesTopInset: true,
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'bridge/setBatchSellDestToken',
+      payload: usdcToken,
     });
-    expect(mockSetOptions).toHaveBeenCalledWith(mockHeaderOptions);
-
-    const [{ onBack }] = (getHeaderCompactStandardNavbarOptions as jest.Mock)
-      .mock.calls[0];
-    onBack();
-
-    expect(mockGoBack).toHaveBeenCalled();
   });
 });

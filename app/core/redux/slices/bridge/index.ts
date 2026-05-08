@@ -42,9 +42,13 @@ import { selectCanSignTransactions } from '../../../../selectors/accountsControl
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
-import { normalizeTokenAddress } from '../../../../components/UI/Bridge/utils/tokenUtils';
+import {
+  normalizeEvmAssetId,
+  normalizeTokenAddress,
+} from '../../../../components/UI/Bridge/utils/tokenUtils';
 import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/isStockRwaBridgeToken';
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
+import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -91,6 +95,7 @@ export interface BridgeState {
    */
   selectedQuoteRequestId: string | undefined;
   batchSellSourceTokens: BridgeToken[];
+  batchSellDestToken: BridgeToken | undefined;
 }
 
 export const initialState: BridgeState = {
@@ -115,6 +120,7 @@ export const initialState: BridgeState = {
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
   batchSellSourceTokens: [],
+  batchSellDestToken: undefined,
 };
 
 const name = 'bridge';
@@ -250,6 +256,12 @@ const slice = createSlice({
     setBatchSellSourceTokens: (state, action: PayloadAction<BridgeToken[]>) => {
       state.batchSellSourceTokens = action.payload.map(normalizeBridgeToken);
     },
+    setBatchSellDestToken: (
+      state,
+      action: PayloadAction<BridgeToken | undefined>,
+    ) => {
+      state.batchSellDestToken = normalizeBridgeToken(action.payload);
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(setSourceTokenExchangeRate.pending, (state) => {
@@ -336,21 +348,50 @@ export const selectBridgeFeatureFlags = createSelector(
   },
 );
 
-export const selectBatchSellDestStablecoinsByChain = createSelector(
-  selectBridgeFeatureFlags,
-  (bridgeFeatureFlags): Record<CaipChainId, CaipAssetType[]> =>
-    Object.entries(bridgeFeatureFlags.chains ?? {}).reduce(
-      (stablecoinsByChain, [chainId, chainConfig]) => {
-        const batchSellDestStablecoins = chainConfig.batchSellDestStablecoins;
+function getBridgeTokenMetadata(
+  assetId: CaipAssetType,
+): BridgeToken | undefined {
+  const exactMatch = BridgeTokenMetadata[assetId];
 
-        if (batchSellDestStablecoins) {
-          stablecoinsByChain[chainId as CaipChainId] = batchSellDestStablecoins;
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const normalizedAssetId = normalizeEvmAssetId(assetId);
+  const metadataAssetIds = Object.keys(BridgeTokenMetadata) as CaipAssetType[];
+  const metadataAssetId = metadataAssetIds.find(
+    (bridgeTokenMetadataAssetId) =>
+      normalizeEvmAssetId(bridgeTokenMetadataAssetId) === normalizedAssetId,
+  );
+
+  return metadataAssetId ? BridgeTokenMetadata[metadataAssetId] : undefined;
+}
+
+export const selectBatchSellDestStablecoins = createSelector(
+  selectBridgeFeatureFlags,
+  (_state: RootState, chainId?: BridgeToken['chainId']) =>
+    chainId ? formatChainIdToCaip(chainId) : undefined,
+  (bridgeFeatureFlags, chainId): BridgeToken[] => {
+    if (!chainId) {
+      return [];
+    }
+
+    const batchSellDestStablecoins =
+      bridgeFeatureFlags.chains?.[chainId]?.batchSellDestStablecoins ?? [];
+
+    return batchSellDestStablecoins.reduce<BridgeToken[]>(
+      (stablecoins, stablecoinAssetId) => {
+        const tokenMetadata = getBridgeTokenMetadata(stablecoinAssetId);
+
+        if (tokenMetadata) {
+          stablecoins.push(tokenMetadata);
         }
 
-        return stablecoinsByChain;
+        return stablecoins;
       },
-      {} as Record<CaipChainId, CaipAssetType[]>,
-    ),
+      [],
+    );
+  },
 );
 
 /**
@@ -487,6 +528,11 @@ export const selectSelectedQuoteRequestId = createSelector(
 export const selectBatchSellSourceTokens = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.batchSellSourceTokens,
+);
+
+export const selectBatchSellDestToken = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.batchSellDestToken,
 );
 
 // Selectors for gas included STX/SendBundle support
@@ -778,4 +824,5 @@ export const {
   setVisiblePillChainIds,
   setSelectedQuoteRequestId,
   setBatchSellSourceTokens,
+  setBatchSellDestToken,
 } = actions;

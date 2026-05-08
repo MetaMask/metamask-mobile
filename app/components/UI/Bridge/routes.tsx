@@ -21,6 +21,7 @@ import {
 import { TokenWarningModal } from './components/TokenWarningModal';
 import { MissingPriceModal } from './components/MissingPriceModal';
 import { HighRateAlertModal } from './components/HighRateAlertModal';
+import { BatchSellDestinationTokenSelectorModal } from './components/BatchSellDestinationTokenSelectorModal';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
@@ -101,6 +102,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.HIGH_RATE_ALERT_MODAL}
       component={HighRateAlertModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL}
+      component={BatchSellDestinationTokenSelectorModal}
     />
   </ModalStack.Navigator>
 );

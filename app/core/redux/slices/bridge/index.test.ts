@@ -24,7 +24,9 @@ import reducer, {
   selectIsRwaSwap,
   setBatchSellSourceTokens,
   selectBatchSellSourceTokens,
-  selectBatchSellDestStablecoinsByChain,
+  setBatchSellDestToken,
+  selectBatchSellDestToken,
+  selectBatchSellDestStablecoins,
 } from '.';
 import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
 import {
@@ -34,6 +36,7 @@ import {
 import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
+import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
 
 describe('bridge slice', () => {
   const mockToken: BridgeToken = {
@@ -91,6 +94,7 @@ describe('bridge slice', () => {
         selectedQuoteRequestId: undefined,
         abTestContext: undefined,
         batchSellSourceTokens: [],
+        batchSellDestToken: undefined,
       });
     });
   });
@@ -270,6 +274,34 @@ describe('bridge slice', () => {
       } as RootState;
 
       expect(selectBatchSellSourceTokens(mockState)).toEqual([mockToken]);
+    });
+
+    it('sets Batch Sell destination token metadata', () => {
+      const state = reducer(initialState, setBatchSellDestToken(mockToken));
+
+      expect(state.batchSellDestToken).toEqual(mockToken);
+    });
+
+    it('normalizes Batch Sell destination token addresses', () => {
+      const state = reducer(
+        initialState,
+        setBatchSellDestToken(polygonNativeToken),
+      );
+
+      expect(state.batchSellDestToken?.address).toBe(
+        '0x0000000000000000000000000000000000000000',
+      );
+    });
+
+    it('selects Batch Sell destination token metadata', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          batchSellDestToken: mockToken,
+        },
+      } as RootState;
+
+      expect(selectBatchSellDestToken(mockState)).toEqual(mockToken);
     });
   });
 
@@ -644,27 +676,47 @@ describe('bridge slice', () => {
     });
   });
 
-  describe('selectBatchSellDestStablecoinsByChain', () => {
-    it('returns valid batch sell destination stablecoin config by chain', () => {
+  describe('selectBatchSellDestStablecoins', () => {
+    it('returns configured stablecoins with local metadata', () => {
       const mockState = cloneDeep(mockRootState);
       const ethUsdc =
-        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+        'eip155:1/erc20:0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48' as CaipAssetType;
+      const unknownStablecoin =
+        'eip155:1/erc20:0x0000000000000000000000000000000000000001' as CaipAssetType;
 
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
         'eip155:1'
       ] = {
         ...mockState.engine.backgroundState.RemoteFeatureFlagController
           .remoteFeatureFlags.bridgeConfigV2.chains['eip155:1'],
-        batchSellDestStablecoins: [ethUsdc],
+        batchSellDestStablecoins: [unknownStablecoin, ethUsdc],
       } as unknown as any;
 
       expect(
-        selectBatchSellDestStablecoinsByChain(
+        selectBatchSellDestStablecoins(
           mockState as unknown as RootState,
+          '0x1',
         ),
-      ).toEqual({
-        'eip155:1': [ethUsdc],
-      });
+      ).toEqual([
+        {
+          symbol: 'USDC',
+          name: 'USD Coin',
+          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          decimals: 6,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+          chainId: '0x1',
+        },
+      ]);
+    });
+
+    it('returns an empty array when no chain is selected', () => {
+      const result = selectBatchSellDestStablecoins(
+        mockRootState as unknown as RootState,
+        undefined,
+      );
+
+      expect(result).toEqual([]);
     });
   });
 

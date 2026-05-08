@@ -31,9 +31,10 @@ import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
-  selectBatchSellDestStablecoinsByChain,
+  selectBatchSellDestStablecoins,
   setBatchSellSourceTokens,
 } from '../../../../../core/redux/slices/bridge';
+import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
 import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
 import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
@@ -59,23 +60,14 @@ export function BatchSellTokenSelect() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const stablecoinsByChain = useSelector(selectBatchSellDestStablecoinsByChain);
   const allWalletTokens = useTokensWithBalance({
     chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
   });
   const [tokenSortDirection, setTokenSortDirection] =
     useState<BatchSellTokenSortDirection>('desc');
-  const eligibleSourceTokens = useMemo(() => {
-    const sourceTokens = removeStablecoinsFromSourceTokens({
-      tokens: allWalletTokens,
-      stablecoinsByChain,
-    });
-
-    return sortBatchSellTokens(sourceTokens, tokenSortDirection);
-  }, [stablecoinsByChain, allWalletTokens, tokenSortDirection]);
   const sortedEligibleChains = useMemo(
-    () => buildBatchSellEligibleChains(eligibleSourceTokens),
-    [eligibleSourceTokens],
+    () => buildBatchSellEligibleChains(allWalletTokens),
+    [allWalletTokens],
   );
   const [selectedChainId, setSelectedChainId] = useState<
     CaipChainId | undefined
@@ -114,15 +106,27 @@ export function BatchSellTokenSelect() {
   }, [selectedChainId, sortedEligibleChains]);
 
   const activeChainId = selectedChainId ?? sortedEligibleChains[0]?.chainId;
-  const selectedChainTokens = useMemo(
-    () =>
-      activeChainId
-        ? eligibleSourceTokens.filter(
-            (token) => formatChainIdToCaip(token.chainId) === activeChainId,
-          )
-        : eligibleSourceTokens,
-    [activeChainId, eligibleSourceTokens],
+  const destinationStablecoins = useSelector((state: RootState) =>
+    selectBatchSellDestStablecoins(state, activeChainId),
   );
+  const selectedChainTokens = useMemo(() => {
+    const activeChainTokens = activeChainId
+      ? allWalletTokens.filter(
+          (token) => formatChainIdToCaip(token.chainId) === activeChainId,
+        )
+      : allWalletTokens;
+    const sourceTokens = removeStablecoinsFromSourceTokens({
+      tokens: activeChainTokens,
+      stablecoins: destinationStablecoins,
+    });
+
+    return sortBatchSellTokens(sourceTokens, tokenSortDirection);
+  }, [
+    activeChainId,
+    allWalletTokens,
+    destinationStablecoins,
+    tokenSortDirection,
+  ]);
   const selectedTokenKeys = useMemo(
     () => new Set(selectedTokens.map(getTokenKey)),
     [selectedTokens],
@@ -206,7 +210,7 @@ export function BatchSellTokenSelect() {
           sourceToken,
           destToken: getBatchSellDestinationToken(
             sourceToken.chainId,
-            stablecoinsByChain,
+            destinationStablecoins,
           ),
         },
       });
@@ -215,7 +219,7 @@ export function BatchSellTokenSelect() {
 
     dispatch(setBatchSellSourceTokens(selectedTokens));
     navigation.navigate(Routes.BRIDGE.BATCH_SELL_REVIEW);
-  }, [dispatch, navigation, selectedTokens, stablecoinsByChain]);
+  }, [destinationStablecoins, dispatch, navigation, selectedTokens]);
 
   const handleExploreTokensPress = useCallback(() => {
     navigation.navigate(Routes.TRENDING_VIEW, {
@@ -300,7 +304,7 @@ export function BatchSellTokenSelect() {
     [handleTokenPress, selectedTokenKeys, sortedEligibleChains],
   );
 
-  if (eligibleSourceTokens.length === 0) {
+  if (sortedEligibleChains.length === 0) {
     return (
       <BatchSellEmptyState onExploreTokensPress={handleExploreTokensPress} />
     );

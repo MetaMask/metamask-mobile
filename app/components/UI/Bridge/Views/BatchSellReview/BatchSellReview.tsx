@@ -1,8 +1,8 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   AvatarToken,
@@ -25,14 +25,17 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
-  selectBatchSellDestStablecoinsByChain,
+  selectBatchSellDestToken,
+  selectBatchSellDestStablecoins,
   selectBatchSellSourceTokens,
+  setBatchSellDestToken,
 } from '../../../../../core/redux/slices/bridge';
+import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
-import { getBatchSellDestinationToken } from '../BatchSellTokenSelect/BatchSellTokenSelect.utils';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
 
@@ -44,19 +47,14 @@ const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
 
 export function BatchSellReview() {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const tw = useTailwind();
   const selectedTokens = useSelector(selectBatchSellSourceTokens);
-  const stablecoinsByChain = useSelector(selectBatchSellDestStablecoinsByChain);
-  const destinationToken = useMemo(
-    () =>
-      selectedTokens[0]
-        ? getBatchSellDestinationToken(
-            selectedTokens[0].chainId,
-            stablecoinsByChain,
-          )
-        : undefined,
-    [selectedTokens, stablecoinsByChain],
+  const sourceChainId = selectedTokens[0]?.chainId;
+  const destinationTokens = useSelector((state: RootState) =>
+    selectBatchSellDestStablecoins(state, sourceChainId),
   );
+  const selectedDestinationToken = useSelector(selectBatchSellDestToken);
   const [percentsByTokenKey, setPercentsByTokenKey] = useState<
     Record<string, number>
   >({});
@@ -70,6 +68,13 @@ export function BatchSellReview() {
       }),
     );
   }, [navigation]);
+
+  // Seed the selected destination token on entry so the pill always reads from Redux.
+  useEffect(() => {
+    if (destinationTokens[0] && !selectedDestinationToken) {
+      dispatch(setBatchSellDestToken(destinationTokens[0]));
+    }
+  }, [destinationTokens, dispatch, selectedDestinationToken]);
 
   // Keep local percents aligned with selected tokens while defaulting new tokens to 100%.
   useEffect(() => {
@@ -91,6 +96,12 @@ export function BatchSellReview() {
     },
     [],
   );
+
+  const handleOpenDestinationTokenSelector = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL,
+    });
+  }, [navigation]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')} edges={['bottom']}>
@@ -129,32 +140,40 @@ export function BatchSellReview() {
               style={tw.style('rounded-lg')}
               testID={BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_SKELETON}
             />
-            <Box
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
               testID={BatchSellReviewSelectorsIDs.DESTINATION_TOKEN_PILL}
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={2}
-              twClassName="rounded-xl bg-muted px-3 py-3"
+              onPress={handleOpenDestinationTokenSelector}
+              style={tw.style('rounded-xl px-3 py-3')}
             >
-              <AvatarToken
-                name={
-                  destinationToken?.symbol ?? UNKNOWN_DESTINATION_TOKEN_SYMBOL
-                }
-                src={
-                  destinationToken?.image
-                    ? { uri: destinationToken.image }
-                    : undefined
-                }
-                size={AvatarTokenSize.Sm}
-              />
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={2}
               >
-                {destinationToken?.symbol ?? UNKNOWN_DESTINATION_TOKEN_SYMBOL}
-              </Text>
-            </Box>
+                <AvatarToken
+                  name={
+                    selectedDestinationToken?.symbol ??
+                    UNKNOWN_DESTINATION_TOKEN_SYMBOL
+                  }
+                  src={
+                    selectedDestinationToken?.image
+                      ? { uri: selectedDestinationToken.image }
+                      : undefined
+                  }
+                  size={AvatarTokenSize.Sm}
+                />
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {selectedDestinationToken?.symbol ??
+                    UNKNOWN_DESTINATION_TOKEN_SYMBOL}
+                </Text>
+              </Box>
+            </Button>
           </Box>
         </Box>
         <ScrollView

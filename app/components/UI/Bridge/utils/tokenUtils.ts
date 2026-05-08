@@ -1,4 +1,10 @@
-import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
+import {
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  parseCaipAssetType,
+  toCaipAssetType,
+} from '@metamask/utils';
 import {
   formatAddressToAssetId,
   formatChainIdToHex,
@@ -26,6 +32,33 @@ export const normalizeTokenAddress = (
     chainId === CHAIN_IDS.POLYGON && address === POLYGON_NATIVE_TOKEN;
   return isPolygonNativeToken ? zeroAddress() : address;
 };
+
+/**
+ * Normalizes EVM ERC-20 CAIP-19 asset IDs for stable comparisons.
+ *
+ * ERC-20 addresses can arrive checksummed or mixed-case from different sources,
+ * while non-EVM asset references may be case-sensitive. Only lowercase the
+ * asset reference for `eip155:* / erc20:*` assets and leave everything else as-is.
+ */
+export function normalizeEvmAssetId(assetId: CaipAssetType): CaipAssetType {
+  try {
+    const { assetNamespace, assetReference, chain, chainId } =
+      parseCaipAssetType(assetId);
+
+    if (assetNamespace !== 'erc20' || !chainId.startsWith('eip155:')) {
+      return assetId;
+    }
+
+    return toCaipAssetType(
+      chain.namespace,
+      chain.reference,
+      assetNamespace,
+      assetReference.toLowerCase(),
+    );
+  } catch {
+    return assetId;
+  }
+}
 
 /**
  * Creates a formatted native token object for the given chain ID
