@@ -53,19 +53,6 @@
 		AA11BB22CC33DD44EE55FF66 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */; };
 		AA11BB22CC33DD44EE55FF68 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */; };
 		B0EF7FA927BD16EA00D48B4E /* ThemeColors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */; };
-		B339FF03289ABD70001B89FB /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
-		B339FF07289ABD70001B89FB /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
-		B339FF08289ABD70001B89FB /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
-		B339FF09289ABD70001B89FB /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */; };
-		B339FF0C289ABD70001B89FB /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; };
-		B339FF10289ABD70001B89FB /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		B339FF11289ABD70001B89FB /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
-		B339FF12289ABD70001B89FB /* Metamask.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 15D158EC210BD8C8006982B5 /* Metamask.ttf */; };
-		B339FF14289ABD70001B89FB /* ThemeColors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */; };
-		B339FF17289ABD70001B89FB /* debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD82721B7642B006B7C35 /* debug.xcconfig */; };
-		B339FF1C289ABD70001B89FB /* release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD86021B76461006B7C35 /* release.xcconfig */; };
-		B339FF23289ABD70001B89FB /* branch.json in Resources */ = {isa = PBXBuildFile; fileRef = FE3C9A2458A1416290DEDAD4 /* branch.json */; };
-		B339FF32289ABD70001B89FB /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		BAB8A7C7328F48B6AC38DCE9 /* Geist-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = B848D40B87744D32949BDC25 /* Geist-Regular.otf */; };
 		C7B6D2EC4EBB469F9E0658BE /* MMSans-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D3350113F0764105B1E60002 /* MMSans-Bold.otf */; };
 		C8424AE52CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
@@ -76,13 +63,11 @@
 		E4B580742E32F462008165E1 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = E4B580712E32F462008165E1 /* Expo.plist */; };
 		E4B580762E33A001008165E1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580752E33A001008165E1 /* AppDelegate.swift */; };
 		E4B580772E33A001008165E1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580752E33A001008165E1 /* AppDelegate.swift */; };
-		E4B580782E33A001008165E1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580752E33A001008165E1 /* AppDelegate.swift */; };
-		F0B2A3E101000001000000A1 /* BrazeHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F0B2A3E101000001000000A0 /* BrazeHelper.mm */; };
-		F0B2A3E101000001000000A2 /* BrazeHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F0B2A3E101000001000000A0 /* BrazeHelper.mm */; };
-		F0B2A3E101000001000000A3 /* BrazeHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F0B2A3E101000001000000A0 /* BrazeHelper.mm */; };
 		E83DB5522BBDF2AA00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
 		E83DB5542BBDF2AF00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
 		ED2E8FE6D71BE9319F3B27D3 /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2632307C64595BE1B8ABEAF /* libPods-MetaMask.a */; };
+		F0B2A3E101000001000000A1 /* BrazeHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F0B2A3E101000001000000A0 /* BrazeHelper.mm */; };
+		F0B2A3E101000001000000A2 /* BrazeHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F0B2A3E101000001000000A0 /* BrazeHelper.mm */; };
 		F23972D16903249A8EC120BD /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EB256CB3A1A7A1D942A95F6 /* ExpoModulesProvider.swift */; };
 		F961A37228105CF9007442B5 /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 /* End PBXBuildFile section */
@@ -207,10 +192,10 @@
 		D3350113F0764105B1E60002 /* MMSans-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "MMSans-Bold.otf"; path = "../app/fonts/MMSans-Bold.otf"; sourceTree = "<group>"; };
 		E4B580712E32F462008165E1 /* Expo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		E4B580752E33A001008165E1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaMask/AppDelegate.swift; sourceTree = "<group>"; };
-		F0B2A3E101000001000000A0 /* BrazeHelper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MetaMask/BrazeHelper.mm; sourceTree = "<group>"; };
 		E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = MetaMask/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
 		E9629905BA1940ADA4189921 /* Feather.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Feather.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Feather.ttf"; sourceTree = "<group>"; };
 		EBC2B6371CD846D28B9FAADF /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Regular.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf"; sourceTree = "<group>"; };
+		F0B2A3E101000001000000A0 /* BrazeHelper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MetaMask/BrazeHelper.mm; sourceTree = "<group>"; };
 		F10E7EBF946A4F6D8E229143 /* MMPoly-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "MMPoly-Regular.otf"; path = "../app/fonts/MMPoly-Regular.otf"; sourceTree = "<group>"; };
 		F1CCBB0591B4D16C1710A05D /* Pods-MetaMask-Flask.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-Flask.release.xcconfig"; path = "Target Support Files/Pods-MetaMask-Flask/Pods-MetaMask-Flask.release.xcconfig"; sourceTree = "<group>"; };
 		F3C919D8F42C47389FF643E7 /* MMSans-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "MMSans-Regular.otf"; path = "../app/fonts/MMSans-Regular.otf"; sourceTree = "<group>"; };
@@ -975,22 +960,6 @@
 				2EF2825C2B0FF86900D7B4B1 /* RCTScreenshotDetect.m in Sources */,
 				2EF2825E2B0FF86900D7B4B1 /* RCTMinimizer.m in Sources */,
 				F23972D16903249A8EC120BD /* ExpoModulesProvider.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B339FF01289ABD70001B89FB /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CFD8DFC828EDD4C800CC75F6 /* RCTScreenshotDetect.m in Sources */,
-				2EF283332B17EC1A00D7B4B1 /* RNTar.m in Sources */,
-				E4B580782E33A001008165E1 /* AppDelegate.swift in Sources */,
-				F0B2A3E101000001000000A3 /* BrazeHelper.mm in Sources */,
-				2EF2832B2B17EBD600D7B4B1 /* RnTar.swift in Sources */,
-				2EF283382B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */,
-				B339FF03289ABD70001B89FB /* File.swift in Sources */,
-				CF9895782A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */,
-				7696E77F73B5ADD7EE8190E0 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
