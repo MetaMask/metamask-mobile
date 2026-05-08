@@ -1241,4 +1241,4 @@ yarn lint && yarn lint:tsc && yarn jest app/components/UI/Predict/
 - [Architecture Overview](./architecture-overview.md) - Current vs target architecture
 - [Refactoring Tasks](./refactoring-tasks.md) - Task breakdown with progress tracking
 - [UI Development Guidelines](../../.cursor/rules/ui-development-guidelines.mdc) - MetaMask-wide UI patterns
-- [Unit Testing Guidelines](../../.cursor/rules/unit-testing-guidelines.mdc) - Testing best practices
+- [Unit Testing Guidelines](../testing/unit-testing.md) - Testing best practices
