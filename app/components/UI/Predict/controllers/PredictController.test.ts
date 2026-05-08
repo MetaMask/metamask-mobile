@@ -6139,6 +6139,40 @@ describe('PredictController', () => {
     });
   });
 
+  describe('beforePublish', () => {
+    it('passes through by default', async () => {
+      await withController(async ({ controller }) => {
+        const result = await controller.beforePublish({
+          transactionMeta: {
+            id: 'tx-1',
+            txParams: {
+              from: MOCK_ADDRESS,
+            },
+          } as TransactionMeta,
+        });
+
+        expect(result).toBe(true);
+      });
+    });
+  });
+
+  describe('publish', () => {
+    it('passes through by default', async () => {
+      await withController(async ({ controller }) => {
+        const result = await controller.publish({
+          transactionMeta: {
+            id: 'tx-1',
+            txParams: {
+              from: MOCK_ADDRESS,
+            },
+          } as TransactionMeta,
+        });
+
+        expect(result).toEqual({ transactionHash: undefined });
+      });
+    });
+  });
+
   describe('beforeSign', () => {
     const mockTransactionMeta = {
       id: 'tx-1',
