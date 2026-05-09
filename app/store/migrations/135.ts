@@ -1,89 +1,68 @@
 import { captureException } from '@sentry/react-native';
-import { hasProperty, isObject } from '@metamask/utils';
-import { createMMKV } from 'react-native-mmkv';
-import type {
-  AttributionRecord,
-  AttributionState,
-} from '../../core/redux/slices/attribution';
+import { getErrorMessage, hasProperty, isObject } from '@metamask/utils';
+
 import { ensureValidState } from './util';
+import { WALLET_HOME_ONBOARDING_STEPS_INITIAL } from '../../constants/walletHomeOnboardingSteps';
 
-const migrationVersion = 135;
-
-/** Same MMKV instance id as the removed nested redux-persist adapter. */
-const LEGACY_ATTRIBUTION_MMKV_ID = 'redux-persist-attribution';
-const LEGACY_PERSIST_KEY = 'persist:attribution';
-
-function parseLegacyAttributionState(
-  raw: string,
-): AttributionState | undefined {
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (!isObject(parsed) || !hasProperty(parsed, 'attribution')) {
-      return undefined;
-    }
-    const record = parsed.attribution;
-    if (record === null) {
-      return { attribution: null };
-    }
-    if (!isObject(record) || typeof record.capturedAt !== 'number') {
-      return undefined;
-    }
-    return { attribution: record as unknown as AttributionRecord };
-  } catch {
-    return undefined;
-  }
-}
+export const migrationVersion = 135;
 
 /**
- * Migration 135: Move marketing attribution persistence from isolated MMKV
- * (`redux-persist-attribution` + nested persistReducer) into the root
- * redux-persist payload (MigratedStorage). Reads legacy `persist:attribution`
- * once and deletes it so attribution has a single source of truth.
+ * Migration 135: Initialize wallet home post-onboarding steps persisted fields.
  *
- * Numbered 135 because migration 134 on `main` is the Sei block explorer update.
+ * - `walletHomeOnboardingStepsEligible`: existing installs stay false until a first-time
+ * onboarding success flow sets it true.
+ * - `walletHomeOnboardingSteps`: step/suppression state for the empty-balance steps tile.
  */
 const migration = (state: unknown): unknown => {
   if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
-  const root = state as unknown as Record<string, unknown>;
-
-  const current = root.attribution;
-  const currentRecord =
-    isObject(current) && hasProperty(current, 'attribution')
-      ? (current as AttributionState).attribution
-      : null;
-
   try {
-    const legacy = createMMKV({ id: LEGACY_ATTRIBUTION_MMKV_ID });
-    const raw = legacy.getString(LEGACY_PERSIST_KEY);
-
-    if (!raw) {
+    if (!hasProperty(state, 'onboarding') || !isObject(state.onboarding)) {
       return state;
     }
 
-    const fromLegacy = parseLegacyAttributionState(raw);
+    const prev = state.onboarding as Record<string, unknown>;
+    const onboarding = { ...prev };
+    let changed = false;
 
-    if (!fromLegacy) {
-      legacy.remove(LEGACY_PERSIST_KEY);
+    if (
+      !hasProperty(onboarding, 'walletHomeOnboardingStepsEligible') ||
+      typeof onboarding.walletHomeOnboardingStepsEligible !== 'boolean'
+    ) {
+      onboarding.walletHomeOnboardingStepsEligible = false;
+      changed = true;
+    }
+
+    if (
+      !hasProperty(onboarding, 'walletHomeOnboardingSteps') ||
+      !isObject(onboarding.walletHomeOnboardingSteps)
+    ) {
+      onboarding.walletHomeOnboardingSteps = {
+        ...WALLET_HOME_ONBOARDING_STEPS_INITIAL,
+      };
+      changed = true;
+    }
+
+    if (!changed) {
       return state;
     }
 
-    if (currentRecord === null && fromLegacy.attribution !== null) {
-      root.attribution = fromLegacy;
-    }
-
-    legacy.remove(LEGACY_PERSIST_KEY);
+    return {
+      ...state,
+      onboarding,
+    };
   } catch (error) {
     captureException(
       new Error(
-        `Migration ${migrationVersion}: Failed to migrate attribution from legacy MMKV: ${error}`,
+        `Migration ${migrationVersion}: Failed to initialize wallet home onboarding steps: ${getErrorMessage(
+          error,
+        )}`,
       ),
     );
+    return state;
   }
-
-  return state;
 };
 
 export default migration;

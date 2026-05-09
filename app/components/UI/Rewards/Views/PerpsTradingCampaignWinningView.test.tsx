@@ -70,7 +70,6 @@ describe('PerpsTradingCampaignWinningView', () => {
         rank: 3,
         pnl: 1500.25,
         notionalVolume: 30000,
-        marginDeployed: 1200,
         qualified: true,
         neighbors: [],
         computedAt: '2025-08-15T12:00:00.000Z',

@@ -1,125 +1,113 @@
-import { createMMKV } from 'react-native-mmkv';
-
-import migrate from './135';
+import { captureException } from '@sentry/react-native';
+import migrate, { migrationVersion } from './135';
 import { ensureValidState } from './util';
 
-jest.mock('react-native-mmkv', () => ({
-  createMMKV: jest.fn(),
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
 }));
 
 jest.mock('./util', () => ({
   ensureValidState: jest.fn(),
 }));
 
-describe('migration 135', () => {
-  const mockRemove = jest.fn();
-  const mockGetString = jest.fn();
+const mockedEnsureValidState = jest.mocked(ensureValidState);
+const mockedCaptureException = jest.mocked(captureException);
 
-  const mockMMKVInstance = {
-    getString: mockGetString,
-    remove: mockRemove,
-  };
-
-  (createMMKV as jest.Mock).mockImplementation(() => mockMMKVInstance);
-
-  const baseState = {
-    engine: { backgroundState: {} },
-    attribution: { attribution: null },
-  };
-
+describe(`Migration ${migrationVersion}: wallet home onboarding steps`, () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(ensureValidState).mockReturnValue(true);
+    mockedEnsureValidState.mockReturnValue(true);
   });
 
-  it('returns state unchanged when ensureValidState is false', () => {
-    jest.mocked(ensureValidState).mockReturnValueOnce(false);
-    const state = { ...baseState };
+  it('returns state unchanged if ensureValidState returns false', () => {
+    const state = { some: 'state' };
+    mockedEnsureValidState.mockReturnValue(false);
 
     expect(migrate(state)).toBe(state);
-    expect(createMMKV).not.toHaveBeenCalled();
   });
 
-  it('does nothing when legacy storage has no key', () => {
-    mockGetString.mockReturnValue(undefined);
-
-    const state = { ...baseState };
-    const result = migrate(state);
-
-    expect(createMMKV).toHaveBeenCalledWith({
-      id: 'redux-persist-attribution',
-    });
-    expect(mockGetString).toHaveBeenCalledWith('persist:attribution');
-    expect(mockRemove).not.toHaveBeenCalled();
-    expect(result).toEqual(baseState);
-  });
-
-  it('migrates legacy non-null attribution when current is null', () => {
-    const legacyPayload = {
-      _persist: { version: -1, rehydrated: false },
-      attribution: {
-        utm_source: 'x',
-        capturedAt: 1,
-      },
-    };
-    mockGetString.mockReturnValue(JSON.stringify(legacyPayload));
-
+  it('returns state unchanged if onboarding slice is missing', () => {
     const state = {
       engine: { backgroundState: {} },
-      attribution: { attribution: null },
     };
 
-    const result = migrate(state);
+    expect(migrate(state)).toBe(state);
+  });
 
-    expect(result).toEqual({
+  it('adds both eligibility and steps state when missing', () => {
+    const state = {
       engine: { backgroundState: {} },
-      attribution: {
-        attribution: {
-          utm_source: 'x',
-          capturedAt: 1,
+      onboarding: {
+        completedOnboarding: true,
+      },
+    };
+
+    const result = migrate(state) as typeof state & {
+      onboarding: {
+        walletHomeOnboardingStepsEligible: boolean;
+        walletHomeOnboardingSteps: object;
+      };
+    };
+
+    expect(result.onboarding.walletHomeOnboardingStepsEligible).toBe(false);
+    expect(result.onboarding.walletHomeOnboardingSteps).toEqual({
+      suppressedReason: null,
+      stepIndex: 0,
+    });
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('adds only steps state when eligibility already valid', () => {
+    const state = {
+      engine: { backgroundState: {} },
+      onboarding: {
+        walletHomeOnboardingStepsEligible: true,
+      },
+    };
+
+    const result = migrate(state) as typeof state & {
+      onboarding: { walletHomeOnboardingSteps: object };
+    };
+
+    expect(result.onboarding.walletHomeOnboardingStepsEligible).toBe(true);
+    expect(result.onboarding.walletHomeOnboardingSteps).toEqual({
+      suppressedReason: null,
+      stepIndex: 0,
+    });
+  });
+
+  it('adds only eligibility when steps state already exists', () => {
+    const existing = { suppressedReason: 'flow_completed', stepIndex: 2 };
+    const state = {
+      engine: { backgroundState: {} },
+      onboarding: {
+        walletHomeOnboardingSteps: existing,
+      },
+    };
+
+    const result = migrate(state) as typeof state & {
+      onboarding: {
+        walletHomeOnboardingStepsEligible: boolean;
+        walletHomeOnboardingSteps: typeof existing;
+      };
+    };
+
+    expect(result.onboarding.walletHomeOnboardingStepsEligible).toBe(false);
+    expect(result.onboarding.walletHomeOnboardingSteps).toBe(existing);
+  });
+
+  it('returns state unchanged when both fields already valid', () => {
+    const state = {
+      engine: { backgroundState: {} },
+      onboarding: {
+        walletHomeOnboardingStepsEligible: true,
+        walletHomeOnboardingSteps: {
+          suppressedReason: null,
+          stepIndex: 1,
         },
       },
-    });
-    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
-  });
-
-  it('does not overwrite when current attribution is already set', () => {
-    const legacyPayload = {
-      attribution: { utm_source: 'legacy', capturedAt: 1 },
-    };
-    mockGetString.mockReturnValue(JSON.stringify(legacyPayload));
-
-    const existing = {
-      utm_source: 'current',
-      capturedAt: 2,
-    };
-    const state = {
-      engine: { backgroundState: {} },
-      attribution: { attribution: existing },
     };
 
-    const result = migrate(state);
-
-    expect(result).toEqual(state);
-    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
-  });
-
-  it('removes invalid legacy payload without merging', () => {
-    mockGetString.mockReturnValue('not-json');
-
-    const state = { ...baseState };
-    migrate(state);
-
-    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
-  });
-
-  it('handles MMKV errors without throwing', () => {
-    mockGetString.mockImplementation(() => {
-      throw new Error('boom');
-    });
-
-    const state = { ...baseState };
-    expect(() => migrate(state)).not.toThrow();
-    expect(state).toEqual(baseState);
+    expect(migrate(state)).toBe(state);
   });
 });
