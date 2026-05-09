@@ -121,7 +121,7 @@ export function useTransactionConfirm() {
 
       const updatedMetadata = cloneDeep(transactionMetadata);
 
-      if (isGaslessSupportedSTX && !isHardwareWallet) {
+      if (isGaslessSupportedSTX) {
         handleSmartTransaction(updatedMetadata);
       } else if (selectedGasFeeToken && !isHardwareWallet) {
         handleGasless7702(updatedMetadata);

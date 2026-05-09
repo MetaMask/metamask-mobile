@@ -469,6 +469,34 @@ describe('useTransactionConfirm', () => {
         }),
       });
     });
+
+    it('adds batchTransactions for hardware wallets when smart transaction is enabled', async () => {
+      isHardwareAccountMock.mockReturnValue(true);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        txParams: { from: '0xhw' },
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          batchTransactions: [
+            expect.objectContaining({ data: '0xabc', to: '0xdef' }),
+          ],
+          txParams: expect.objectContaining({
+            gas: '0x5208',
+            maxFeePerGas: '0x1',
+            maxPriorityFeePerGas: '0x2',
+          }),
+        }),
+      });
+    });
   });
 
   describe('handleGasless7702', () => {
