@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictBalance from './PredictBalance';
 import { strings } from '../../../../../../locales/i18n';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
+import { PREDICT_BALANCE_TEST_IDS } from './PredictBalance.testIds';
 
 // Mock React Query
 jest.mock('@tanstack/react-query', () => ({
@@ -421,6 +422,46 @@ describe('PredictBalance', () => {
       // Assert
       expect(mockWithdraw).not.toHaveBeenCalled();
       expect(mockOnDepositWalletWithdrawPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('disables Withdraw while account state is unavailable', () => {
+      // Arrange
+      const mockWithdraw = jest.fn();
+      const mockOnDepositWalletWithdrawPress = jest.fn();
+      mockUsePredictBalance.mockReturnValue({
+        data: 100,
+        isLoading: false,
+      });
+      mockUsePredictAccountState.mockReturnValue({
+        data: undefined,
+        isLoading: true,
+      });
+      mockUsePredictWithdraw.mockReturnValue({
+        withdraw: mockWithdraw,
+      });
+
+      // Act
+      const { getByTestId, UNSAFE_getByProps } = renderWithProvider(
+        <PredictBalance
+          onDepositWalletWithdrawPress={mockOnDepositWalletWithdrawPress}
+        />,
+        {
+          state: initialState,
+        },
+      );
+      const withdrawButton = getByTestId(
+        PREDICT_BALANCE_TEST_IDS.WITHDRAW_BUTTON,
+      );
+      fireEvent.press(withdrawButton);
+
+      // Assert
+      const disabledWithdrawButton = UNSAFE_getByProps({
+        testID: PREDICT_BALANCE_TEST_IDS.WITHDRAW_BUTTON,
+        isDisabled: true,
+      });
+      expect(disabledWithdrawButton.props.disabled).toBe(true);
+      expect(mockWithdraw).not.toHaveBeenCalled();
+      expect(mockOnDepositWalletWithdrawPress).not.toHaveBeenCalled();
     });
   });
 

@@ -1,6 +1,7 @@
 export const PREDICT_BALANCE_TEST_IDS = {
   SKELETON: 'predict-balance-card-skeleton',
   CARD: 'predict-balance-card',
+  WITHDRAW_BUTTON: 'predict-balance-withdraw-button',
   WITHDRAW_UNAVAILABLE_SHEET: 'predict-withdraw-unavailable-sheet',
   WITHDRAW_UNAVAILABLE_TITLE: 'predict-withdraw-unavailable-title',
   WITHDRAW_UNAVAILABLE_DESCRIPTION: 'predict-withdraw-unavailable-description',

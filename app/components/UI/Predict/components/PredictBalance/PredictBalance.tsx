@@ -72,6 +72,8 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
   const { data: accountState } = usePredictAccountState({
     enabled: hasBalance,
   });
+  const walletType = accountState?.walletType;
+  const isWithdrawDisabled = hasBalance && !walletType;
 
   useEffect(() => {
     if (!isDepositPending) {
@@ -95,15 +97,21 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
   }, [deposit, executeGuardedAction]);
 
   const handleWithdraw = useCallback(() => {
+    // Do not proceed until account state is loaded; otherwise Deposit Wallet
+    // users can bypass the temporary guard during the query window.
+    if (!walletType) {
+      return;
+    }
+
     // Temporary Deposit Wallet migration guard. Remove this branch and sheet
     // once Deposit Wallet withdrawals are implemented.
-    if (accountState?.walletType === 'deposit-wallet') {
+    if (walletType === 'deposit-wallet') {
       onDepositWalletWithdrawPress?.();
       return;
     }
 
     withdraw();
-  }, [accountState?.walletType, onDepositWalletWithdrawPress, withdraw]);
+  }, [onDepositWalletWithdrawPress, walletType, withdraw]);
 
   if (isLoading) {
     return (
@@ -217,6 +225,9 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
               style={tw.style('flex-1')}
               label={strings('predict.deposit.withdraw')}
               onPress={handleWithdraw}
+              disabled={isWithdrawDisabled}
+              isDisabled={isWithdrawDisabled}
+              testID={PREDICT_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
             />
           )}
         </Box>
