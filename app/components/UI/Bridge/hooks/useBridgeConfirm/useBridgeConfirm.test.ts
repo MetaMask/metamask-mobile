@@ -65,6 +65,27 @@ jest.mock(
 
 jest.mock('../../../../../selectors/confirmTransaction');
 
+jest.mock(
+  '../../Views/HardwareWalletsSwaps/hooks/useHwConnectionMonitoring',
+  () => ({
+    useHwConnectionMonitoring: jest.fn(() => ({
+      isDisconnectedRef: { current: false },
+      resetHandledError: jest.fn(),
+    })),
+  }),
+);
+
+jest.mock('../../Views/HardwareWalletsSwaps/hooks/useHwQrState', () => ({
+  useHwQrState: jest.fn(() => ({
+    isReadingQrSignature: false,
+    setIsReadingQrSignature: jest.fn(),
+    isQrHardwareWallet: false,
+    showInlineQrSigning: false,
+    handleQrSignatureCancel: jest.fn(),
+    pendingScanRequest: undefined,
+  })),
+}));
+
 function renderHook(
   params: Parameters<typeof useBridgeConfirm>[0] = defaultParams,
 ) {
@@ -79,10 +100,11 @@ describe('useBridgeConfirm', () => {
     mockSubmitBridgeTx.mockResolvedValue({ success: true });
   });
 
-  it('returns a function', () => {
+  it('returns an object with handleConfirm and cancelCurrentBatch', () => {
     const { result } = renderHook();
 
-    expect(typeof result.current).toBe('function');
+    expect(typeof result.current.handleConfirm).toBe('function');
+    expect(typeof result.current.cancelCurrentBatch).toBe('function');
   });
 
   describe('successful submission', () => {
@@ -90,7 +112,7 @@ describe('useBridgeConfirm', () => {
       const { result } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
@@ -106,7 +128,7 @@ describe('useBridgeConfirm', () => {
       });
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(mockSubmitBridgeTx).toHaveBeenCalledWith(
@@ -120,7 +142,7 @@ describe('useBridgeConfirm', () => {
       const { result } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
@@ -130,7 +152,7 @@ describe('useBridgeConfirm', () => {
       const { result, store } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       await waitFor(() => {
@@ -173,7 +195,7 @@ describe('useBridgeConfirm', () => {
       const { result, store } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
@@ -196,7 +218,7 @@ describe('useBridgeConfirm', () => {
       const { result, store } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(
@@ -216,7 +238,7 @@ describe('useBridgeConfirm', () => {
       const { result } = renderHook({ ...defaultParams, activeQuote: null });
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
@@ -226,7 +248,7 @@ describe('useBridgeConfirm', () => {
       const { result } = renderHook({ ...defaultParams, activeQuote: null });
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
@@ -242,7 +264,7 @@ describe('useBridgeConfirm', () => {
       const { result } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
@@ -252,7 +274,7 @@ describe('useBridgeConfirm', () => {
       const { result } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
@@ -269,7 +291,7 @@ describe('useBridgeConfirm', () => {
       const { result } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -285,7 +307,7 @@ describe('useBridgeConfirm', () => {
       const { result } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
@@ -296,7 +318,7 @@ describe('useBridgeConfirm', () => {
       const { result, store } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       await waitFor(() => {
@@ -313,7 +335,7 @@ describe('useBridgeConfirm', () => {
       const { result, store } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(

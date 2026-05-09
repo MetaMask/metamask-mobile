@@ -20,6 +20,7 @@ import { ConfirmationsDeveloperOptions } from '../../confirmations/components/de
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
 import { MusdDeveloperOptionsSection } from '../../../UI/Earn/components/MusdDeveloperOptionsSection';
 import { CardDeveloperOptionsSection } from '../../../UI/Card/components/CardDeveloperOptionsSection';
+import { HwSwapsDeveloperOptionsSection } from './HwSwapsDeveloperOptionsSection';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -64,6 +65,7 @@ const DeveloperOptions = () => {
       <ConfirmationsDeveloperOptions />
       {isMusdConversionEnabled && <MusdDeveloperOptionsSection />}
       <CardDeveloperOptionsSection />
+      <HwSwapsDeveloperOptionsSection />
       <HapticsDeveloperOptionsSection />
     </ScrollView>
   );

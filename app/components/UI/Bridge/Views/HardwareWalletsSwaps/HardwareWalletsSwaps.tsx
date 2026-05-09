@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -53,6 +54,15 @@ import {
   getBridgeSubmissionCache,
   clearBridgeSubmissionCache,
 } from '../../hooks/bridgeSubmissionCache';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { IconName as ToastIconName } from '../../../../../component-library/components/Icons/Icon';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import { useHwBatchSignTracker } from '../../hooks/useHwBatchSignTracker';
+import { HwSwapsDebugOverlay } from './debug/HwSwapsDebugOverlay';
+import { useHwSwapsDebug } from './debug/HwSwapsDebugContext';
 
 const HARDWARE_WALLET_RIVE_ARTBOARD = 'Generic';
 const HARDWARE_WALLET_RIVE_STATE_MACHINE = 'wallet_states';
@@ -214,8 +224,17 @@ export function HardwareWalletsSwaps() {
   const tw = useTailwind();
   const riveRef = useRef<RiveRef>(null);
   const [isRivePlaying, setIsRivePlaying] = useState(false);
-  const progress = useSelector(selectHardwareWalletsSwaps);
+  const reduxProgress = useSelector(selectHardwareWalletsSwaps);
+  const { debugState } = useHwSwapsDebug();
+  const progress = debugState ?? reduxProgress;
+  const walletAddress = useSelector(selectSourceWalletAddress);
+  const { cancelCurrentBatch } = useHwBatchSignTracker({
+    fromAddress: walletAddress ?? undefined,
+    isEnabled: Boolean(walletAddress),
+  });
   const { submitBridgeTx } = useSubmitBridgeTx();
+  const toastRef = useContext(ToastContext)?.toastRef;
+  const hasAutoNavigatedRef = useRef(false);
 
   const animationTrigger = useMemo(
     () => getHardwareWalletRiveTrigger(progress),
@@ -232,6 +251,30 @@ export function HardwareWalletsSwaps() {
       animationTrigger,
     );
   }, [animationTrigger, isRivePlaying]);
+
+  useEffect(() => {
+    if (progress.status !== HardwareWalletsSwapsStatus.Submitted) return;
+    if (hasAutoNavigatedRef.current) return;
+
+    hasAutoNavigatedRef.current = true;
+
+    const timer = setTimeout(() => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: ToastIconName.Check,
+        hasNoTimeout: false,
+        labelOptions: [
+          {
+            label: strings('bridge.hardware_wallet_progress.submitted_title'),
+          },
+        ],
+      });
+      dispatch(resetHardwareWalletsSwaps());
+      navigation.navigate(Routes.TRANSACTIONS_VIEW as never);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [progress.status, navigation, dispatch, toastRef]);
 
   const title = useMemo(() => {
     if (progress.status === HardwareWalletsSwapsStatus.Submitted) {
@@ -263,6 +306,7 @@ export function HardwareWalletsSwaps() {
   }, [dispatch, navigation]);
 
   const handleTryAgain = useCallback(async () => {
+    cancelCurrentBatch();
     dispatch(updateHardwareWalletsSwaps({ type: 'RETRY' }));
     const cachedParams = getBridgeSubmissionCache();
     if (cachedParams) {
@@ -272,7 +316,7 @@ export function HardwareWalletsSwaps() {
         // The tracker in useBridgeConfirm dispatches REJECTED/TRANSACTION_FAILED
       }
     }
-  }, [dispatch, submitBridgeTx]);
+  }, [dispatch, submitBridgeTx, cancelCurrentBatch]);
 
   const handleReconnect = useCallback(async () => {
     dispatch(updateHardwareWalletsSwaps({ type: 'RETRY' }));
@@ -297,6 +341,7 @@ export function HardwareWalletsSwaps() {
       testID={HardwareWalletsSwapsSelectorsIDs.CONTAINER}
       style={tw`flex-1 bg-default`}
     >
+      <HwSwapsDebugOverlay />
       <Box
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Between}

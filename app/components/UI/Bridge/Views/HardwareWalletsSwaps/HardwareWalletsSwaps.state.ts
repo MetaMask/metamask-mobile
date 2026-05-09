@@ -35,8 +35,12 @@ export interface HardwareWalletsSwapsState {
 export type HardwareWalletsSwapsEvent =
   | { type: 'START'; payload: { totalSteps: number } }
   | {
-      type: 'SIGNING' | 'SIGNED' | 'REJECTED';
+      type: 'SIGNING' | 'SIGNED';
       payload: { stepKind: HardwareWalletsSwapsStepKind };
+    }
+  | {
+      type: 'REJECTED';
+      payload?: { stepKind: HardwareWalletsSwapsStepKind };
     }
   | { type: 'DEVICE_DISCONNECTED' }
   | { type: 'TRANSACTION_FAILED' }
@@ -126,16 +130,28 @@ export function hardwareWalletsSwapsReducer(
         steps: updateStepStatus(state, event.payload.stepKind, 'signed'),
       };
     }
-    case 'REJECTED':
-      if (!isCurrentStepKind(state, event.payload.stepKind)) {
+    case 'REJECTED': {
+      const stepKind =
+        event.payload?.stepKind ?? state.steps[state.currentStep - 1]?.kind;
+      if (stepKind && !isCurrentStepKind(state, stepKind)) {
         return state;
       }
 
       return {
         ...state,
         status: HardwareWalletsSwapsStatus.Rejected,
-        steps: updateStepStatus(state, event.payload.stepKind, 'rejected'),
+        steps: stepKind
+          ? updateStepStatus(state, stepKind, 'rejected')
+          : state.steps.map((step, index) =>
+              index + 1 === state.currentStep
+                ? {
+                    ...step,
+                    status: 'rejected' as HardwareWalletsSwapsStepStatus,
+                  }
+                : step,
+            ),
       };
+    }
     case 'DEVICE_DISCONNECTED':
       return {
         ...state,

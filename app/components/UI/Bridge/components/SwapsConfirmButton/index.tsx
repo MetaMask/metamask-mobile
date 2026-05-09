@@ -99,7 +99,7 @@ export const SwapsConfirmButton = ({
     isActiveQuoteForCurrentTokenPair,
   } = useBridgeQuoteDataContext();
 
-  const handleConfirm = useBridgeConfirm({
+  const { handleConfirm } = useBridgeConfirm({
     activeQuote,
     location,
     transactionActiveAbTests,

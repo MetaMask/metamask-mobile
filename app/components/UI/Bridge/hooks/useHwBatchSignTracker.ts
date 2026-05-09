@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   type TransactionMeta,
   TransactionStatus,
@@ -52,6 +52,46 @@ export function useHwBatchSignTracker({
   const dispatchRef = useRef(dispatch);
   dispatchRef.current = dispatch;
 
+  const currentBatchIdRef = useRef<string | null | undefined>(undefined);
+  const seenBatchIdsRef = useRef<Set<string>>(new Set());
+  const trackedTxIdsRef = useRef<Set<string>>(new Set());
+  const pendingAbortTxIdsRef = useRef<Set<string>>(new Set());
+  const [confirmationTxId, setConfirmationTxId] = useState<
+    string | undefined
+  >();
+
+  const isFromCurrentBatch = useCallback(
+    (transactionMeta: TransactionMeta): boolean => {
+      if (currentBatchIdRef.current === undefined) return true;
+      if (currentBatchIdRef.current === null) return false;
+      return transactionMeta.batchId === currentBatchIdRef.current;
+    },
+    [],
+  );
+
+  const cancelCurrentBatch = useCallback(async () => {
+    const txIds = [...trackedTxIdsRef.current];
+    trackedTxIdsRef.current = new Set();
+    currentBatchIdRef.current = null;
+    setConfirmationTxId(undefined);
+
+    if (txIds.length === 0) return;
+
+    pendingAbortTxIdsRef.current = new Set(txIds);
+
+    await Promise.allSettled(
+      txIds.map((txId) => {
+        try {
+          Engine.context.TransactionController.abortTransactionSigning(txId);
+          return undefined;
+        } catch {
+          pendingAbortTxIdsRef.current.delete(txId);
+          return undefined;
+        }
+      }),
+    );
+  }, []);
+
   useEffect(() => {
     if (!fromAddress || !isEnabled) {
       return undefined;
@@ -71,6 +111,14 @@ export function useHwBatchSignTracker({
       const stepKind = getStepKind(type as TransactionType);
 
       if (status === TransactionStatus.approved) {
+        if (transactionMeta.batchId) {
+          seenBatchIdsRef.current.add(transactionMeta.batchId);
+          if (!currentBatchIdRef.current) {
+            currentBatchIdRef.current = transactionMeta.batchId;
+          }
+        }
+        trackedTxIdsRef.current.add(transactionMeta.id);
+        setConfirmationTxId(transactionMeta.id);
         dispatchRef.current(
           updateHardwareWalletsSwaps({
             type: 'SIGNING',
@@ -78,6 +126,7 @@ export function useHwBatchSignTracker({
           }),
         );
       } else if (status === TransactionStatus.signed) {
+        if (!isFromCurrentBatch(transactionMeta)) return;
         dispatchRef.current(
           updateHardwareWalletsSwaps({
             type: 'SIGNED',
@@ -85,6 +134,10 @@ export function useHwBatchSignTracker({
           }),
         );
         handledTxIds.add(transactionMeta.id);
+        trackedTxIdsRef.current.delete(transactionMeta.id);
+        if (trackedTxIdsRef.current.size === 0) {
+          setConfirmationTxId(undefined);
+        }
       }
     };
 
@@ -95,6 +148,7 @@ export function useHwBatchSignTracker({
     }) => {
       if (!matchesTx(transactionMeta, targetFrom)) return;
       if (handledTxIds.has(transactionMeta.id)) return;
+      if (!isFromCurrentBatch(transactionMeta)) return;
 
       const stepKind = getStepKind(transactionMeta.type as TransactionType);
       dispatchRef.current(
@@ -104,6 +158,10 @@ export function useHwBatchSignTracker({
         }),
       );
       handledTxIds.add(transactionMeta.id);
+      trackedTxIdsRef.current.delete(transactionMeta.id);
+      if (trackedTxIdsRef.current.size === 0) {
+        setConfirmationTxId(undefined);
+      }
     };
 
     const handleFailed = ({
@@ -113,11 +171,16 @@ export function useHwBatchSignTracker({
     }) => {
       if (!matchesTx(transactionMeta, targetFrom)) return;
       if (handledTxIds.has(transactionMeta.id)) return;
+      if (!isFromCurrentBatch(transactionMeta)) return;
 
       dispatchRef.current(
         updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }),
       );
       handledTxIds.add(transactionMeta.id);
+      trackedTxIdsRef.current.delete(transactionMeta.id);
+      if (trackedTxIdsRef.current.size === 0) {
+        setConfirmationTxId(undefined);
+      }
     };
 
     Engine.controllerMessenger.subscribe(
@@ -147,5 +210,7 @@ export function useHwBatchSignTracker({
         handleFailed,
       );
     };
-  }, [fromAddress, isEnabled]);
+  }, [fromAddress, isEnabled, isFromCurrentBatch]);
+
+  return { cancelCurrentBatch, confirmationTxId };
 }

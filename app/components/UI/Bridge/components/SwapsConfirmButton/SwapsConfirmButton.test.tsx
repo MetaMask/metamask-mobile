@@ -85,6 +85,27 @@ jest.mock(
   }),
 );
 
+jest.mock(
+  '../../Views/HardwareWalletsSwaps/hooks/useHwConnectionMonitoring',
+  () => ({
+    useHwConnectionMonitoring: jest.fn(() => ({
+      isDisconnectedRef: { current: false },
+      resetHandledError: jest.fn(),
+    })),
+  }),
+);
+
+jest.mock('../../Views/HardwareWalletsSwaps/hooks/useHwQrState', () => ({
+  useHwQrState: jest.fn(() => ({
+    isReadingQrSignature: false,
+    setIsReadingQrSignature: jest.fn(),
+    isQrHardwareWallet: false,
+    showInlineQrSigning: false,
+    handleQrSignatureCancel: jest.fn(),
+    pendingScanRequest: undefined,
+  })),
+}));
+
 // Mock navigation
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {

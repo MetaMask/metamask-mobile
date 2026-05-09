@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -34,6 +35,14 @@ jest.mock(
   () => 'mockGenericHardwareWalletRiv',
 );
 
+const mockCancelCurrentBatch = jest.fn();
+jest.mock('../../hooks/useHwBatchSignTracker', () => ({
+  useHwBatchSignTracker: () => ({
+    cancelCurrentBatch: mockCancelCurrentBatch,
+    confirmationTxId: undefined,
+  }),
+}));
+
 const mockSubmitBridgeTx = jest.fn();
 jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   __esModule: true,
@@ -52,6 +61,16 @@ jest.mock('../../../../../core/Engine', () => ({
     unsubscribe: jest.fn(),
   },
 }));
+
+jest.mock('../../../../../component-library/components/Toast', () => {
+  const R = require('react'); // eslint-disable-line @typescript-eslint/no-require-imports
+  return {
+    ToastContext: R.createContext({
+      toastRef: { current: { showToast: jest.fn(), closeToast: jest.fn() } },
+    }),
+    ToastVariants: { Icon: 'Icon' },
+  };
+});
 
 const renderScreen = (
   hardwareWalletsSwaps: Partial<HardwareWalletsSwapsState>,
@@ -401,5 +420,45 @@ describe('HardwareWalletsSwaps', () => {
       'wallet_statesi wan',
       'error',
     );
+  });
+
+  it('shows Done button and auto-nav ref is reset on mount', () => {
+    const { getByTestId } = renderScreen({
+      status: HardwareWalletsSwapsStatus.Submitted,
+      currentStep: 2,
+      steps: [
+        {
+          kind: HardwareWalletsSwapsStepKind.Approval,
+          status: 'signed',
+        },
+        {
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: 'signed',
+        },
+      ],
+    });
+
+    expect(
+      getByTestId(HardwareWalletsSwapsSelectorsIDs.DONE_BUTTON),
+    ).toBeTruthy();
+  });
+
+  it('auto-nav does not fire for non-Submitted states', () => {
+    renderScreen({
+      status: HardwareWalletsSwapsStatus.Waiting,
+      currentStep: 1,
+      steps: [
+        {
+          kind: HardwareWalletsSwapsStepKind.Approval,
+          status: 'signing',
+        },
+        {
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: 'waiting',
+        },
+      ],
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
 });

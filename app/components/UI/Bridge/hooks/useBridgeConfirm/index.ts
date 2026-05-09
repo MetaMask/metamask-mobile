@@ -3,9 +3,11 @@ import type { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { useNavigation } from '@react-navigation/native';
 import {
   resetHardwareWalletsSwaps,
+  selectHardwareWalletsSwaps,
   setIsSubmittingTx,
   updateHardwareWalletsSwaps,
 } from '../../../../../core/redux/slices/bridge';
+import { HardwareWalletsSwapsStatus } from '../../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
 import Routes from '../../../../../constants/navigation/Routes';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
@@ -17,6 +19,9 @@ import {
   setBridgeSubmissionCache,
   clearBridgeSubmissionCache,
 } from '../bridgeSubmissionCache';
+import { useHwConnectionMonitoring } from '../../Views/HardwareWalletsSwaps/hooks/useHwConnectionMonitoring';
+import { useHwQrState } from '../../Views/HardwareWalletsSwaps/hooks/useHwQrState';
+import { useHwConfirmationMonitoring } from '../../Views/HardwareWalletsSwaps/hooks/useHwConfirmationMonitoring';
 
 interface Params {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] | null;
@@ -33,13 +38,33 @@ export const useBridgeConfirm = ({
   const navigation = useNavigation();
   const { submitBridgeTx } = useSubmitBridgeTx();
   const walletAddress = useSelector(selectSourceWalletAddress);
+  const progress = useSelector(selectHardwareWalletsSwaps);
+  const progressStatus = progress?.status ?? HardwareWalletsSwapsStatus.Idle;
   const isHardwareWalletAccount = walletAddress
     ? Boolean(isHardwareAccount(walletAddress))
     : false;
 
-  useHwBatchSignTracker({
+  const { cancelCurrentBatch, confirmationTxId } = useHwBatchSignTracker({
     fromAddress: walletAddress ?? undefined,
     isEnabled: isHardwareWalletAccount,
+  });
+
+  useHwConnectionMonitoring({
+    isEnabled: isHardwareWalletAccount,
+    currentStatus: progressStatus,
+  });
+
+  useHwQrState({
+    isEnabled: isHardwareWalletAccount,
+    currentStatus: progressStatus,
+  });
+
+  useHwConfirmationMonitoring({
+    isEnabled: isHardwareWalletAccount,
+    currentStatus: progressStatus,
+    confirmationTxId,
+    isDeviceDisconnected:
+      progressStatus === HardwareWalletsSwapsStatus.Disconnected,
   });
 
   const handleConfirm = async () => {
@@ -77,9 +102,7 @@ export const useBridgeConfirm = ({
     } catch (error) {
       console.error('Error submitting bridge tx', error);
       if (isHardwareWalletBridgeSubmission) {
-        dispatch(
-          updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }),
-        );
+        dispatch(updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }));
       }
     } finally {
       dispatch(setIsSubmittingTx(false));
@@ -91,5 +114,5 @@ export const useBridgeConfirm = ({
     }
   };
 
-  return handleConfirm;
+  return { handleConfirm, cancelCurrentBatch };
 };

@@ -288,6 +288,27 @@ jest.mock('../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
 }));
 
+jest.mock(
+  '../../Views/HardwareWalletsSwaps/hooks/useHwConnectionMonitoring',
+  () => ({
+    useHwConnectionMonitoring: jest.fn(() => ({
+      isDisconnectedRef: { current: false },
+      resetHandledError: jest.fn(),
+    })),
+  }),
+);
+
+jest.mock('../../Views/HardwareWalletsSwaps/hooks/useHwQrState', () => ({
+  useHwQrState: jest.fn(() => ({
+    isReadingQrSignature: false,
+    setIsReadingQrSignature: jest.fn(),
+    isQrHardwareWallet: false,
+    showInlineQrSigning: false,
+    handleQrSignatureCancel: jest.fn(),
+    pendingScanRequest: undefined,
+  })),
+}));
+
 jest.mock('react-native-fade-in-image', () => {
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
