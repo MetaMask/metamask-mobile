@@ -459,7 +459,7 @@ describe('PredictBalance', () => {
         testID: PREDICT_BALANCE_TEST_IDS.WITHDRAW_BUTTON,
         isDisabled: true,
       });
-      expect(disabledWithdrawButton.props.disabled).toBe(true);
+      expect(disabledWithdrawButton.props.isDisabled).toBe(true);
       expect(mockWithdraw).not.toHaveBeenCalled();
       expect(mockOnDepositWalletWithdrawPress).not.toHaveBeenCalled();
     });

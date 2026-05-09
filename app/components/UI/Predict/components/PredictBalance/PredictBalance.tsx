@@ -225,7 +225,6 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
               style={tw.style('flex-1')}
               label={strings('predict.deposit.withdraw')}
               onPress={handleWithdraw}
-              disabled={isWithdrawDisabled}
               isDisabled={isWithdrawDisabled}
               testID={PREDICT_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
             />
