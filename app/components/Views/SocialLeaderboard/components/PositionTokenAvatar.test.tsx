@@ -3,16 +3,17 @@ import { act } from '@testing-library/react-native';
 import {
   AvatarToken,
   AvatarTokenSize,
+  BadgeNetwork,
 } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PositionTokenAvatar from './PositionTokenAvatar';
 import type { Position } from '@metamask/social-controllers';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import BadgeNetwork from '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
 jest.mock('@metamask/design-system-react-native', () => ({
   ...jest.requireActual('@metamask/design-system-react-native'),
   AvatarToken: jest.fn(() => null),
+  BadgeNetwork: jest.fn(() => null),
 }));
 
 jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
@@ -37,13 +38,6 @@ jest.mock(
   }),
 );
 
-jest.mock(
-  '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork',
-  () => ({
-    __esModule: true,
-    default: jest.fn(() => null),
-  }),
-);
 
 jest.mock('../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'network.png' })),

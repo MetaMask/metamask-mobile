@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   AvatarToken,
   AvatarTokenSize,
+  BadgeNetwork,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
@@ -9,7 +10,6 @@ import { chainNameToId } from '../utils/chainMapping';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../component-library/components/Badges/BadgeWrapper';
-import BadgeNetwork from '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 import { getNetworkImageSource } from '../../../../util/networks';
 
 export interface PositionTokenAvatarProps {
@@ -94,7 +94,7 @@ const PositionTokenAvatar: React.FC<PositionTokenAvatarProps> = ({
         badgeElement={
           <BadgeNetwork
             name={position.chain}
-            imageSource={getNetworkImageSource({ chainId: caipChainId })}
+            src={getNetworkImageSource({ chainId: caipChainId })}
           />
         }
       >
