@@ -39,15 +39,20 @@ import { formatPrice } from '../../utils/format';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictWithdraw } from '../../hooks/usePredictWithdraw';
+import { usePredictAccountState } from '../../hooks/usePredictAccountState';
 import { PredictEventValues } from '../../constants/eventNames';
 import { PREDICT_BALANCE_TEST_IDS } from './PredictBalance.testIds';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
 interface PredictBalanceProps {
   onLayout?: (height: number) => void;
+  onDepositWalletWithdrawPress?: () => void;
 }
 
-const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
+const PredictBalance: React.FC<PredictBalanceProps> = ({
+  onLayout,
+  onDepositWalletWithdrawPress,
+}) => {
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
 
@@ -64,6 +69,9 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
 
   const isAddingFunds = isDepositPending;
   const hasBalance = balance > 0;
+  const { data: accountState } = usePredictAccountState({
+    enabled: hasBalance,
+  });
 
   useEffect(() => {
     if (!isDepositPending) {
@@ -87,8 +95,15 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   }, [deposit, executeGuardedAction]);
 
   const handleWithdraw = useCallback(() => {
+    // Temporary Deposit Wallet migration guard. Remove this branch and sheet
+    // once Deposit Wallet withdrawals are implemented.
+    if (accountState?.walletType === 'deposit-wallet') {
+      onDepositWalletWithdrawPress?.();
+      return;
+    }
+
     withdraw();
-  }, [withdraw]);
+  }, [accountState?.walletType, onDepositWalletWithdrawPress, withdraw]);
 
   if (isLoading) {
     return (

@@ -30,6 +30,13 @@ jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: (options?: unknown) => mockUsePredictBalance(options),
 }));
 
+// Mock usePredictAccountState hook
+const mockUsePredictAccountState = jest.fn();
+jest.mock('../../hooks/usePredictAccountState', () => ({
+  usePredictAccountState: (options?: unknown) =>
+    mockUsePredictAccountState(options),
+}));
+
 // Mock usePredictDeposit hook
 const mockUsePredictDeposit = jest.fn();
 jest.mock('../../hooks/usePredictDeposit', () => ({
@@ -81,6 +88,15 @@ describe('PredictBalance', () => {
     mockUsePredictDeposit.mockReturnValue({
       deposit: jest.fn(),
       isDepositPending: false,
+    });
+
+    mockUsePredictAccountState.mockReturnValue({
+      data: {
+        address: '0x1111111111111111111111111111111111111111',
+        isDeployed: true,
+        walletType: 'safe',
+      },
+      isLoading: false,
     });
 
     mockUsePredictWithdraw.mockReturnValue({
@@ -347,7 +363,7 @@ describe('PredictBalance', () => {
       expect(mockDeposit).toHaveBeenCalled();
     });
 
-    it('calls withdraw directly when Withdraw button is pressed', () => {
+    it('calls withdraw directly when Withdraw button is pressed for Safe users', () => {
       // Arrange
       const mockWithdraw = jest.fn();
       mockUsePredictBalance.mockReturnValue({
@@ -368,6 +384,43 @@ describe('PredictBalance', () => {
       // Assert - withdraw is called directly without executeGuardedAction
       expect(mockWithdraw).toHaveBeenCalledTimes(1);
       expect(mockExecuteGuardedAction).not.toHaveBeenCalled();
+    });
+
+    it('calls temporary unavailable handler instead of withdrawing for Deposit Wallet users', () => {
+      // Arrange
+      const mockWithdraw = jest.fn();
+      const mockOnDepositWalletWithdrawPress = jest.fn();
+      mockUsePredictBalance.mockReturnValue({
+        data: 100,
+        isLoading: false,
+      });
+      mockUsePredictAccountState.mockReturnValue({
+        data: {
+          address: '0x2222222222222222222222222222222222222222',
+          isDeployed: true,
+          walletType: 'deposit-wallet',
+        },
+        isLoading: false,
+      });
+      mockUsePredictWithdraw.mockReturnValue({
+        withdraw: mockWithdraw,
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(
+        <PredictBalance
+          onDepositWalletWithdrawPress={mockOnDepositWalletWithdrawPress}
+        />,
+        {
+          state: initialState,
+        },
+      );
+      const withdrawButton = getByText(/Withdraw/i);
+      fireEvent.press(withdrawButton);
+
+      // Assert
+      expect(mockWithdraw).not.toHaveBeenCalled();
+      expect(mockOnDepositWalletWithdrawPress).toHaveBeenCalledTimes(1);
     });
   });
 
