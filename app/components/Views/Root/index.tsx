@@ -23,7 +23,6 @@ import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
 import { QueryClientProvider } from '@tanstack/react-query';
 import reactQueryService from '../../../core/ReactQueryService';
 import { HardwareWalletProvider } from '../../../core/HardwareWallet';
-import { HwSwapsDebugProvider } from '../../UI/Bridge/Views/HardwareWalletsSwaps/debug/HwSwapsDebugContext';
 
 /**
  * Top level of the component hierarchy
@@ -88,10 +87,8 @@ const Root = ({ foxCode }: RootProps) => {
                     <ControllersGate>
                       <ToastContextWrapper>
                         <HardwareWalletProvider>
-                          <HwSwapsDebugProvider>
-                            <ReducedMotionConfig mode={ReduceMotion.Never} />
-                            <App />
-                          </HwSwapsDebugProvider>
+                          <ReducedMotionConfig mode={ReduceMotion.Never} />
+                          <App />
                         </HardwareWalletProvider>
                       </ToastContextWrapper>
                     </ControllersGate>

@@ -61,8 +61,6 @@ import {
 import { IconName as ToastIconName } from '../../../../../component-library/components/Icons/Icon';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { useHwBatchSignTracker } from '../../hooks/useHwBatchSignTracker';
-import { HwSwapsDebugOverlay } from './debug/HwSwapsDebugOverlay';
-import { useHwSwapsDebug } from './debug/HwSwapsDebugContext';
 
 const HARDWARE_WALLET_RIVE_ARTBOARD = 'Generic';
 const HARDWARE_WALLET_RIVE_STATE_MACHINE = 'wallet_states';
@@ -224,9 +222,7 @@ export function HardwareWalletsSwaps() {
   const tw = useTailwind();
   const riveRef = useRef<RiveRef>(null);
   const [isRivePlaying, setIsRivePlaying] = useState(false);
-  const reduxProgress = useSelector(selectHardwareWalletsSwaps);
-  const { debugState } = useHwSwapsDebug();
-  const progress = debugState ?? reduxProgress;
+  const progress = useSelector(selectHardwareWalletsSwaps);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const { cancelCurrentBatch } = useHwBatchSignTracker({
     fromAddress: walletAddress ?? undefined,
@@ -341,7 +337,6 @@ export function HardwareWalletsSwaps() {
       testID={HardwareWalletsSwapsSelectorsIDs.CONTAINER}
       style={tw`flex-1 bg-default`}
     >
-      <HwSwapsDebugOverlay />
       <Box
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Between}
