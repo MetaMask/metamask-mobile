@@ -338,7 +338,7 @@ jobs:
     name: Fetch RN Playground APK and Upload to BrowserStack
     runs-on: ubuntu-latest
     needs: [wait-for-onboarding-completion]
-    if: always() && !cancelled() && (inputs.build_variant || 'exp') == 'exp'
+    if: always() && !cancelled()
     outputs:
       browserstack-playground-url: ${{ steps.upload-playground.outputs.browserstack-url }}
     steps:
@@ -381,7 +381,7 @@ jobs:
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !cancelled() && (inputs.build_variant || 'exp') == 'exp' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
+    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
     with:
       platform: android
       build_type: mm-connect
