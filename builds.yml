@@ -232,6 +232,11 @@ builds:
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
+    secrets:
+      <<: *secrets
+      ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
+      PREDEFINED_PASSWORD: 'E2E_PASSWORD'
+    code_fencing: *code_fencing_main
   # Release candidate with pre-imported wallet (system tests / performance tests)
   # Same as main-rc but bakes in ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD so the app
   # starts with an imported wallet, skipping onboarding. Used by run-system-tests.yml.
