@@ -99,4 +99,5 @@ jobs:
     if: needs.check-release-trigger.outputs.should-run == 'true'
     with:
       sentry_target: ${{ inputs.sentry_target || 'test' }}
+      build_variant: 'rc'
     secrets: inherit
