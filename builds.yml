@@ -272,7 +272,7 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_main
 
-  # Test builds (QA)
+  # Test builds
   main-test:
     github_environment: build-uat
     signing: *signing_uat
@@ -446,7 +446,7 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_flask
 
-  # Flask test builds (QA)
+  # Flask test builds
   flask-test:
     github_environment: build-flask-uat
     signing: *signing_flask_uat
