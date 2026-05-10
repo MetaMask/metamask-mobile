@@ -79,7 +79,7 @@ jobs:
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
     uses: ./.github/workflows/build.yml
     with:
-      build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-with-srp' || 'main-e2e-bs-with-srp' }}
+      build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-with-srp' || inputs.build_variant == 'rc' && 'main-rc-with-srp' || 'main-e2e-bs-with-srp' }}
       platform: android
       skip_version_bump: true
       source_branch: ${{ inputs.branch_name || github.ref_name }}
@@ -91,7 +91,7 @@ jobs:
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
     uses: ./.github/workflows/build.yml
     with:
-      build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-without-srp' || 'main-e2e-bs-without-srp' }}
+      build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-without-srp' || inputs.build_variant == 'rc' && 'main-rc-without-srp' || 'main-e2e-bs-without-srp' }}
       platform: android
       skip_version_bump: true
       source_branch: ${{ inputs.branch_name || github.ref_name }}
@@ -114,13 +114,13 @@ jobs:
       - name: Download with-SRP APK
         uses: actions/download-artifact@v4
         with:
-          name: android-apk-${{ inputs.build_variant == 'exp' && 'main-exp-with-srp' || 'main-e2e-bs-with-srp' }}
+          name: android-apk-${{ inputs.build_variant == 'exp' && 'main-exp-with-srp' || inputs.build_variant == 'rc' && 'main-rc-with-srp' || 'main-e2e-bs-with-srp' }}
           path: artifacts/with-srp
 
       - name: Download without-SRP APK
         uses: actions/download-artifact@v4
         with:
-          name: android-apk-${{ inputs.build_variant == 'exp' && 'main-exp-without-srp' || 'main-e2e-bs-without-srp' }}
+          name: android-apk-${{ inputs.build_variant == 'exp' && 'main-exp-without-srp' || inputs.build_variant == 'rc' && 'main-rc-without-srp' || 'main-e2e-bs-without-srp' }}
           path: artifacts/without-srp
 
       - name: Upload APKs to BrowserStack
