@@ -78,7 +78,7 @@ on:
         default: 'exp'
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
   actions: write
 
