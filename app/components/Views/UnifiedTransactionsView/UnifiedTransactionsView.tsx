@@ -579,9 +579,7 @@ const UnifiedTransactionsView = ({
           i={index}
           navigation={navigation}
           txChainId={getEvmChainId(item.tx)}
-          selectedAddress={
-            selectedAccountGroupEvmAddress || selectedInternalAccount?.address
-          }
+          selectedAddress={selectedInternalAccount?.address}
           onSpeedUpAction={onSpeedUpAction}
           onCancelAction={onCancelAction}
           signQRTransaction={signQRTransaction}
