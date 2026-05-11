@@ -90,6 +90,21 @@ export function getActiveV2AllowanceRequirements(
   ];
 }
 
+export function filterDepositWalletUnsupportedRequirements(
+  requirements: V2AllowanceRequirement[],
+): V2AllowanceRequirement[] {
+  return requirements.filter((requirement) => {
+    if (requirement.type !== 'erc20-allowance') {
+      return true;
+    }
+
+    // Polymarket's deposit-wallet relayer allow-list blocks Permit2 approvals
+    // (`approve spender 0x000000000022D473030F116dDEE9F6B43aC78BA3 is not in the allowed list`).
+    // Skip this for deposit-wallet setup/claims; fees use a different flow.
+    return requirement.spender.toLowerCase() !== PERMIT2_ADDRESS.toLowerCase();
+  });
+}
+
 export function getCanonicalV2AllowanceRequirements(
   protocol: PolymarketProtocolDefinition = POLYMARKET_V2_PROTOCOL,
 ): V2AllowanceRequirement[] {

@@ -69,12 +69,22 @@ inputs:
     description: 'Whether to configure keystores for E2E tests'
     required: false
     default: 'true'
+  install-foundry:
+    description: >-
+      Whether to install Foundry (anvil/cast/forge) and add `node_modules/.bin`
+      to `$GITHUB_PATH`. Set to `'false'` when the caller already runs
+      `yarn setup:github-ci` afterwards (which itself runs `install:foundryup`
+      via `installFoundryTask`), to avoid the redundant install step. Test
+      runner workflows that go straight to Detox/seeder without an intervening
+      `yarn setup:github-ci` MUST keep this enabled (default).
+    required: false
+    default: 'true'
   keystore-role-to-assume:
     description: 'AWS IAM role to assume for keystore configuration'
     required: false
     default: 'arn:aws:iam::363762752069:role/metamask-mobile-build-signer-qa'
   target:
-    description: 'Target for which the keystore is being configured (e.g., qa, flask, main)'
+    description: 'Target for which the keystore is being configured (e.g. flask, main)'
     required: false
     default: 'qa'
   runner_provider:
@@ -309,6 +319,7 @@ runs:
         YARN_ENABLE_GLOBAL_CACHE: 'true'
 
     - name: Install Foundry
+      if: ${{ inputs.install-foundry == 'true' }}
       shell: bash
       run: |
         echo "Installing Foundry via yarn install:foundryup (matches local dev and tests/seeder)..."
