@@ -192,22 +192,13 @@ jobs:
             ios/build
           key: ${{ runner.os }}-xcode-main-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
 
-      # A/B test (Test A — preset + clear step): try Namespace's built-in cocoapods preset.
+      # A/B test (Test B — preset only, no clear step): drop the clear step to validate
+      # whether the cocoapods preset alone is sufficient on Namespace.
       - name: Configure Namespace iOS cache
         if: ${{ steps.gate.outputs.needs-native-build == 'true' && inputs.runner_provider == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1.4.3
         with:
           cache: cocoapods
-
-      # The Namespace profile's bundled cache persists these between runs (independent of
-      # nscloud-cache-action). Stale entries from earlier configs cause silent build failures;
-      # must clear before pod install so ios/Pods regenerates at the workspace path.
-      - name: Clear stale Xcode and CocoaPods artifacts for clean Namespace build
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' && inputs.runner_provider == 'namespace' }}
-        run: |
-          rm -rf ~/Library/Developer/Xcode/DerivedData
-          rm -rf ios/build
-          rm -rf ios/Pods
 
       # Install Node.js, Xcode tools, and other iOS development dependencies.
       - name: Installing iOS Environment Setup
