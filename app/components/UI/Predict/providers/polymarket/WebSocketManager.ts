@@ -302,16 +302,16 @@ export class WebSocketManager {
     this.ensureMarketConnection(tokenIds);
 
     return () => {
-      const callbacks = this.priceSubscriptions.get(subscriptionKey);
-      if (callbacks) {
-        callbacks.delete(callback);
-        if (callbacks.size === 0) {
+      const subscriptionCallbacks =
+        this.priceSubscriptions.get(subscriptionKey);
+      if (subscriptionCallbacks) {
+        subscriptionCallbacks.delete(callback);
+        if (subscriptionCallbacks.size === 0) {
           this.priceSubscriptions.delete(subscriptionKey);
           const remainingTokenIds = this.getSubscribedMarketTokenIds();
           const tokenIdsToUnsubscribe = tokenIds.filter(
             (tokenId) => !remainingTokenIds.has(tokenId),
           );
-
           if (tokenIdsToUnsubscribe.length > 0) {
             this.sendMarketUnsubscribe(tokenIdsToUnsubscribe);
           }
@@ -637,9 +637,12 @@ export class WebSocketManager {
       return;
     }
 
-    trace({ name: TraceName.CryptoUpDownBufferFlush, op: 'rtds.flush' });
+    let traceStarted = false;
 
     try {
+      trace({ name: TraceName.CryptoUpDownBufferFlush, op: 'rtds.flush' });
+      traceStarted = true;
+
       this.cryptoPriceSubscriptions.forEach((callbacks, key) => {
         const subscribedSymbols = new Set(key.split(','));
 
@@ -663,7 +666,9 @@ export class WebSocketManager {
       });
     } finally {
       this.cryptoPriceBuffer.clear();
-      endTrace({ name: TraceName.CryptoUpDownBufferFlush });
+      if (traceStarted) {
+        endTrace({ name: TraceName.CryptoUpDownBufferFlush });
+      }
     }
   }
 

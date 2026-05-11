@@ -443,6 +443,37 @@ describe('WebSocketManager', () => {
         timestamp: 1700000001,
       });
     });
+
+    it('does not end an unmatched buffer flush trace when trace start throws', () => {
+      const manager = WebSocketManager.getInstance();
+      const traceError = new Error('trace failed');
+      (trace as jest.Mock)
+        .mockImplementationOnce(() => undefined)
+        .mockImplementationOnce(() => {
+          throw traceError;
+        });
+
+      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000000,
+        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+      });
+      (endTrace as jest.Mock).mockClear();
+
+      try {
+        expect(() => jest.advanceTimersByTime(16)).toThrow(traceError);
+      } finally {
+        WebSocketManager.resetInstance();
+      }
+      expect(endTrace).not.toHaveBeenCalledWith({
+        name: TraceName.CryptoUpDownBufferFlush,
+      });
+    });
   });
 
   describe('price subscriptions', () => {

@@ -13,6 +13,7 @@ import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
 import { AGREED, METRICS_OPT_IN } from '../constants/storage';
 import StorageWrapper from '../store/storage-wrapper';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
 const projectLogger = createProjectLogger('sentry');
@@ -251,8 +252,6 @@ export enum TraceOperation {
   CardGetSupportedTokensAllowances = 'card.get.supported.tokens.allowances',
   CardGetPriorityToken = 'card.get.priority.token',
   CardIdentifyCardholder = 'card.identify.cardholder',
-  TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
-  TokenOverviewAdvancedChartTimeRange = 'token_overview.advanced_chart_time_range',
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',
@@ -277,6 +276,10 @@ export enum TraceOperation {
   MarketInsightsViewportTracking = 'market_insights.viewport_tracking',
   // Homepage Section Performance
   HomepageSectionPerformance = 'homepage.section.performance',
+  /** Token overview OHLCV WebView: initial load or asset/currency change */
+  TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
+  /** Token overview OHLCV WebView: time range change only */
+  TokenOverviewAdvancedChartTimeRange = 'token_overview.advanced_chart_time_range',
 }
 
 const ID_DEFAULT = 'default';
@@ -552,9 +555,32 @@ export async function flushBufferedTraces() {
 let cachedConsent: boolean | null = null;
 
 /**
- * Check if user has given consent for metrics
+ * Check if user has given consent for metrics (for Sentry init).
+ * Reads from AnalyticsController's persisted state in FilesystemStorage.
+ *
+ * This bypasses Engine/Redux because Sentry initializes in index.js before they're available.
+ * Follows the same pattern as ControllerStorage.getAllPersistedState() in persistConfig.
  */
 export async function hasMetricsConsent(): Promise<boolean> {
+  try {
+    // Read directly from AnalyticsController's persisted state (same as ControllerStorage does)
+    const persistedData = await FilesystemStorage.getItem(
+      'persist:AnalyticsController',
+    );
+    if (persistedData) {
+      const parsed = JSON.parse(persistedData);
+      // Remove redux-persist metadata and get controller state
+      const { _persist, ...controllerState } = parsed;
+      if (typeof controllerState?.optedIn === 'boolean') {
+        cachedConsent = controllerState.optedIn;
+        return controllerState.optedIn;
+      }
+    }
+  } catch {
+    // Fall through to legacy storage
+  }
+
+  // Fallback: legacy METRICS_OPT_IN (migration 108, may be stale)
   const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
   const hasConsent = metricsOptIn === AGREED;
   cachedConsent = hasConsent;

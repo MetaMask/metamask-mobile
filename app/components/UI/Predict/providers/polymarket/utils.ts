@@ -16,7 +16,6 @@ import {
   type PredictMarket,
   type PredictPosition,
   PredictActivity,
-  Result,
   PredictOutcome,
   PredictOutcomeGroup,
   PredictOutcomeToken,
@@ -57,14 +56,11 @@ import {
   SLIPPAGE_SELL,
   SPORTS_MARKET_TYPE_TO_GROUP,
 } from './constants';
-import { Permit2FeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
-  ClobHeaders,
   COLLATERAL_TOKEN_DECIMALS,
   ContractConfig,
   L2HeaderArgs,
-  OrderResponse,
   OrderSummary,
   PolymarketApiEvent,
   PolymarketApiActivity,
@@ -78,28 +74,6 @@ import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PredictFeeCollection } from '../../types/flags';
 
 export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
-
-interface OrderData {
-  salt: string;
-  maker: string;
-  signer: string;
-  taker: string;
-  tokenId: string;
-  makerAmount: string;
-  takerAmount: string;
-  expiration: string;
-  nonce: string;
-  feeRateBps: string;
-  side: Side;
-  signatureType: number;
-  signature?: string;
-}
-
-interface ClobOrderObject {
-  order: Omit<OrderData, 'side' | 'salt'> & { side: Side };
-  owner: string;
-  orderType?: string;
-}
 
 const FOUR_HOUR_SERIES_SLUG_PATTERN = /(?:^|-)4h(?:-|$)/u;
 
@@ -435,45 +409,6 @@ export const getContractConfig = (chainID: number): ContractConfig => {
   }
 };
 
-export const getOrderTypedData = ({
-  order,
-  chainId,
-  verifyingContract,
-}: {
-  order: OrderData & { salt: string };
-  chainId: number;
-  verifyingContract: string;
-}) => ({
-  primaryType: 'Order',
-  domain: {
-    name: 'Polymarket CTF Exchange',
-    version: '1',
-    chainId,
-    verifyingContract,
-  },
-  types: {
-    EIP712Domain: [
-      ...EIP712Domain,
-      { name: 'verifyingContract', type: 'address' },
-    ],
-    Order: [
-      { name: 'salt', type: 'uint256' },
-      { name: 'maker', type: 'address' },
-      { name: 'signer', type: 'address' },
-      { name: 'taker', type: 'address' },
-      { name: 'tokenId', type: 'uint256' },
-      { name: 'makerAmount', type: 'uint256' },
-      { name: 'takerAmount', type: 'uint256' },
-      { name: 'expiration', type: 'uint256' },
-      { name: 'nonce', type: 'uint256' },
-      { name: 'feeRateBps', type: 'uint256' },
-      { name: 'side', type: 'uint8' },
-      { name: 'signatureType', type: 'uint8' },
-    ],
-  },
-  message: order,
-});
-
 export const encodeApprove = ({
   spender,
   amount,
@@ -510,82 +445,6 @@ export const encodeErc20Transfer = ({
 function replaceAll(s: string, search: string, replace: string) {
   return s.split(search).join(replace);
 }
-
-export const submitClobOrder = async ({
-  headers,
-  clobOrder,
-  feeAuthorization,
-  executor,
-  allowancesTx,
-}: {
-  headers: ClobHeaders;
-  clobOrder: ClobOrderObject;
-  feeAuthorization?: Permit2FeeAuthorization;
-  executor?: string;
-  allowancesTx?: { to: string; data: string };
-}): Promise<Result<OrderResponse>> => {
-  const { CLOB_RELAYER } = getPolymarketEndpoints();
-  const url = `${CLOB_RELAYER}/order`;
-  const body: ClobOrderObject & {
-    feeAuthorization?: Permit2FeeAuthorization;
-    executor?: string;
-    allowancesTx?: { to: string; data: string };
-  } = {
-    ...clobOrder,
-    feeAuthorization,
-    ...(executor && { executor }),
-    ...(allowancesTx && { allowancesTx }),
-  };
-
-  // For our relayer, we need to replace the underscores with dashes
-  // since underscores are not standardly allowed in headers
-  headers = {
-    ...headers,
-    ...Object.entries(headers)
-      .map(([key, value]) => ({
-        [key.replace(/_/g, '-')]: value,
-      }))
-      .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
-  };
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-    });
-
-    if (response.status === 403) {
-      return {
-        success: false,
-        error: 'You are unable to access this provider.',
-      };
-    }
-
-    let responseData;
-    try {
-      responseData = (await response.json()) as OrderResponse;
-    } catch (error) {
-      responseData = undefined;
-    }
-
-    if (!response.ok || !responseData || responseData?.success === false) {
-      const error = responseData?.errorMsg ?? response.statusText;
-      return {
-        success: false,
-        error,
-      };
-    }
-
-    return { success: true, response: responseData };
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Unknown error';
-    return {
-      success: false,
-      error: `Failed to submit CLOB order: ${msg}`,
-    };
-  }
-};
 
 const normalizeSportsMarketType = (type: string): string => {
   const lower = type.toLowerCase();
