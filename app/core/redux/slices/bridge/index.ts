@@ -119,6 +119,8 @@ export const initialState: BridgeState = {
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
+
+  // Batch Sell
   batchSellSourceTokens: [],
   batchSellDestToken: undefined,
 };
