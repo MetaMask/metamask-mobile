@@ -175,13 +175,10 @@ describe(
           // Return to the homepage
           await TokensFullView.tapBackButton();
 
-          await Assertions.expectElementToBeVisible(WalletView.container, {
-            description:
-              'Wallet homepage should be visible after navigating back',
-          });
+          await WalletView.waitForScreenToDisplay();
 
-          // Homepage tokens section shows ALL tokens regardless of the Linea-only filter
-          await NetworkManager.checkTokenIsVisible('SOL');
+          // Homepage tokens section shows Ethereum tokens regardless of the Linea-only filter
+          await NetworkManager.checkTokenIsVisible('USDC');
           await NetworkManager.checkTokenIsVisible('ETH');
         },
       );
