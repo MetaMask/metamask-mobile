@@ -297,7 +297,7 @@ builds:
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
-      IS_TEST: 'false'
+      IS_TEST: 'true'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
