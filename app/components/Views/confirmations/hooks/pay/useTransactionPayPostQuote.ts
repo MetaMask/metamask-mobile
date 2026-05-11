@@ -9,6 +9,17 @@ import { hasTransactionType } from '../../utils/transaction';
 
 const log = createProjectLogger('transaction-pay-post-quote');
 
+async function isPolymarketDepositWalletWithdraw(): Promise<boolean> {
+  try {
+    const accountState =
+      await Engine.context.PredictController.getAccountState();
+    return accountState.walletType === 'deposit-wallet';
+  } catch (error) {
+    log('Failed to resolve Polymarket account state', { error });
+    return false;
+  }
+}
+
 /**
  * Hook that sets isPostQuote=true for post-quote transactions.
  * This tells TransactionPayController to treat the paymentToken as
@@ -32,6 +43,9 @@ export function useTransactionPayPostQuote(): void {
   ]);
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
+  ]);
+  const isPredictWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.predictWithdraw,
   ]);
 
   useEffect(() => {
@@ -78,6 +92,34 @@ export function useTransactionPayPostQuote(): void {
         isPerpsWithdraw,
         isMoneyAccountWithdraw,
       });
+
+      // Deposit-wallet Predict withdrawals need a follow-up flag set after
+      // resolving the user's Polymarket account state. The strategy switch
+      // also drops refundTo because the bridge mints its own deposit address.
+      if (isPredictWithdraw) {
+        isPolymarketDepositWalletWithdraw()
+          .then((isDepositWallet) => {
+            if (!isDepositWallet) {
+              return;
+            }
+            TransactionPayController.setTransactionConfig(
+              transactionId,
+              (config) => {
+                config.isPolymarketDepositWallet = true;
+                config.refundTo = undefined;
+              },
+            );
+            log('Marked transaction as Polymarket deposit-wallet withdraw', {
+              transactionId,
+            });
+          })
+          .catch((error) =>
+            log('Failed to apply Polymarket deposit-wallet flag', {
+              error,
+              transactionId,
+            }),
+          );
+      }
     } catch (error) {
       log('Error initializing post-quote transaction', {
         error,
@@ -88,6 +130,7 @@ export function useTransactionPayPostQuote(): void {
     canSelectWithdrawToken,
     isMoneyAccountWithdraw,
     isPerpsWithdraw,
+    isPredictWithdraw,
     transactionId,
     transactionMeta?.txParams?.from,
   ]);
