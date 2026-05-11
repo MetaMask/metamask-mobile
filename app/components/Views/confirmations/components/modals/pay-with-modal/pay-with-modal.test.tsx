@@ -228,7 +228,7 @@ describe('PayWithModal', () => {
   );
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
 
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: false,
@@ -281,7 +281,7 @@ describe('PayWithModal', () => {
     );
   });
 
-  it('renders tokens', async () => {
+  it('renders tokens', () => {
     const { getByText } = render();
 
     expect(getByText('Native Token 1')).toBeDefined();
@@ -295,11 +295,9 @@ describe('PayWithModal', () => {
 
   describe('on token select', () => {
     it('sets pay asset', async () => {
-      const { getByText } = render();
+      const { findByText } = render();
 
-      await waitFor(() => {
-        fireEvent.press(getByText('Test Token 1'));
-      });
+      fireEvent.press(await findByText('Test Token 1'));
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
         address: TOKENS_MOCK[1].address,
@@ -318,11 +316,9 @@ describe('PayWithModal', () => {
         type: TransactionType.perpsDepositAndOrder,
       } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
 
-      const { getByText } = render();
+      const { findByText } = render();
 
-      await waitFor(() => {
-        fireEvent.press(getByText('Test Token 1'));
-      });
+      fireEvent.press(await findByText('Test Token 1'));
 
       expect(onPerpsPaymentTokenChangeMock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -343,11 +339,9 @@ describe('PayWithModal', () => {
         type: TransactionType.predictDepositAndOrder,
       } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
 
-      const { getByText } = render();
+      const { findByText } = render();
 
-      await waitFor(() => {
-        fireEvent.press(getByText('Test Token 1'));
-      });
+      fireEvent.press(await findByText('Test Token 1'));
 
       expect(onPredictPaymentTokenChangeMock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -471,11 +465,9 @@ describe('PayWithModal', () => {
         jest.fn(() => [zeroBalanceToken]),
       );
 
-      const { getByText } = render();
+      const { findByText } = render();
 
-      await waitFor(() => {
-        fireEvent.press(getByText('Zero Token'));
-      });
+      fireEvent.press(await findByText('Zero Token'));
 
       await waitFor(() => {
         expect(setPayTokenMock).toHaveBeenCalled();
@@ -505,11 +497,9 @@ describe('PayWithModal', () => {
         jest.fn(() => [zeroBalanceToken]),
       );
 
-      const { getByText } = render();
+      const { findByText } = render();
 
-      await waitFor(() => {
-        fireEvent.press(getByText('Zero Token'));
-      });
+      fireEvent.press(await findByText('Zero Token'));
 
       expect(mockAddTokens).toHaveBeenCalledWith(
         [

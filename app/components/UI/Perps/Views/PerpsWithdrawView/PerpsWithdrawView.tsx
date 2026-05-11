@@ -14,8 +14,11 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -68,11 +71,6 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { BadgePosition } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import {
   IconName,
   IconSize,
@@ -109,17 +107,19 @@ const PerpsWithdrawView: React.FC = () => {
   const { destToken } = useWithdrawTokens();
 
   // Truncate to 2 decimals so the user can withdraw exactly what they see.
-  const availableBalance = useMemo(() => {
-    if (!account?.availableBalance) return 0;
-    return truncateToTwoDecimals(parseCurrencyString(account.availableBalance));
-  }, [account?.availableBalance]);
+  const withdrawableBalance = useMemo(() => {
+    if (!account?.withdrawableBalance) return 0;
+    return truncateToTwoDecimals(
+      parseCurrencyString(account.withdrawableBalance),
+    );
+  }, [account?.withdrawableBalance]);
 
   const formattedBalance = useMemo(
-    () => formatPerpsFiat(availableBalance),
-    [availableBalance],
+    () => formatPerpsFiat(withdrawableBalance),
+    [withdrawableBalance],
   );
 
-  const hasPositiveBalance = availableBalance > 0;
+  const hasPositiveBalance = withdrawableBalance > 0;
 
   // Get withdrawal validation
   const {
@@ -154,9 +154,9 @@ const PerpsWithdrawView: React.FC = () => {
   usePerpsMeasurement({
     traceName: TraceName.PerpsWithdrawView,
     conditions: [
-      !!account?.availableBalance,
+      !!account?.withdrawableBalance,
       !!destToken,
-      availableBalance !== undefined,
+      withdrawableBalance !== undefined,
     ],
   });
 
@@ -215,7 +215,7 @@ const PerpsWithdrawView: React.FC = () => {
     (percentage: number) => {
       if (!hasPositiveBalance) return;
 
-      const amount = availableBalance * percentage;
+      const amount = withdrawableBalance * percentage;
       // Format to 2 or 6 decimal places for USDC
       let formattedAmount = '0';
       if (amount < 0.01) {
@@ -235,10 +235,10 @@ const PerpsWithdrawView: React.FC = () => {
       DevLogger.log(
         `Percentage selected: ${
           percentage * 100
-        }%, Amount: ${formattedAmount}, Available Perps Balance: ${availableBalance}`,
+        }%, Amount: ${formattedAmount}, Withdrawable Balance: ${withdrawableBalance}`,
       );
     },
-    [availableBalance, hasPositiveBalance],
+    [withdrawableBalance, hasPositiveBalance],
   );
 
   const handleMaxPress = useCallback(() => {
@@ -371,7 +371,7 @@ const PerpsWithdrawView: React.FC = () => {
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
       <Box twClassName="flex-1 bg-default">
         {/* Header */}
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('perps.withdrawal.title')}
           onBack={handleBack}
           backButtonProps={{
@@ -406,7 +406,11 @@ const PerpsWithdrawView: React.FC = () => {
                 ]}
               />
             </Box>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              testID={PerpsWithdrawViewSelectorsIDs.AVAILABLE_BALANCE_TEXT}
+            >
               {strings('perps.withdrawal.available_balance', {
                 amount: formattedBalance,
               })}
@@ -667,15 +671,16 @@ const PerpsWithdrawView: React.FC = () => {
               </Box>
             ) : (
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
-                label={strings('perps.withdrawal.withdraw')}
                 onPress={handleContinue}
-                loading={isSubmittingTx}
-                disabled={!hasValidInputs || isSubmittingTx}
+                isLoading={isSubmittingTx}
+                isDisabled={!hasValidInputs || isSubmittingTx}
                 testID={PerpsWithdrawViewSelectorsIDs.CONTINUE_BUTTON}
-                width={ButtonWidthTypes.Full}
-              />
+                isFullWidth
+              >
+                {strings('perps.withdrawal.withdraw')}
+              </Button>
             )}
           </Box>
 

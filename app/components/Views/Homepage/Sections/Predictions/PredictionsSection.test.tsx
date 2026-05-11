@@ -10,7 +10,7 @@ const mockNavigate = jest.fn();
 const mockClaim = jest.fn();
 
 const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
-  { key: string; value: string }[] | undefined,
+  { key: string; value: string; key_value_pair?: string }[] | undefined,
   []
 >(() => undefined);
 
@@ -312,6 +312,41 @@ describe('PredictionsSection', () => {
         expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
         expect(screen.getByText('Test Position 2')).toBeOnTheScreen();
       });
+    });
+
+    it('renders the current active position values from the hook data', async () => {
+      mockUsePredictPositionsForHomepage.mockImplementation(
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
+          positions: claimable
+            ? []
+            : [
+                {
+                  ...mockActivePositions[0],
+                  currentValue: 99,
+                  percentPnl: 890,
+                },
+                mockActivePositions[1],
+              ],
+          isLoading: false,
+          error: null,
+          totalClaimableValue: 0,
+          refetch: jest.fn(),
+        }),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
+      });
+
+      expect(screen.getByText('$99')).toBeOnTheScreen();
+      expect(screen.getByText('890%')).toBeOnTheScreen();
+      expect(screen.queryByText('$12')).not.toBeOnTheScreen();
     });
 
     it('shows position skeletons when loading positions', () => {
@@ -656,6 +691,51 @@ describe('PredictionsSection', () => {
       expect(screen.queryByText('Test Position 1')).not.toBeOnTheScreen();
       expect(screen.queryByText('Test Position 2')).not.toBeOnTheScreen();
     });
+
+    it('does not duplicate the section header when trending carousel is shown above positions', async () => {
+      setupClaimableOnly();
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+      });
+
+      // Title should appear exactly once — from the trending carousel header.
+      // The positions header is gated by showHeader=false in this branch.
+      expect(screen.getAllByText('Predictions')).toHaveLength(1);
+    });
+
+    it('does not show unrealized PnL row when trending carousel is above positions', async () => {
+      setupClaimableOnly();
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+      });
+
+      // showHeader=false when trending carousel is above positions,
+      // so the unrealized PnL row must not render even if the hook returns data
+      expect(screen.queryByText(/P&L/i)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/PnL/i)).not.toBeOnTheScreen();
+    });
   });
 
   describe('positions-only mode with claimable-only', () => {
@@ -936,7 +1016,11 @@ describe('PredictionsSection', () => {
 
     it('passes transactionActiveAbTests when trending-only and experiment is active', () => {
       const abTests = [
-        { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
+        {
+          key: 'homeTMCU470AbtestTrendingSections',
+          value: 'trendingSections',
+          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
+        },
       ];
       mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(abTests);
       mockUsePredictMarketsForHomepage.mockReturnValue({

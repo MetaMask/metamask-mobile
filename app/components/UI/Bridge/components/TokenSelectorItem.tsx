@@ -4,14 +4,12 @@ import {
   ImageSourcePropType,
   View,
   TouchableOpacity,
-  Platform,
   StyleProp,
   TextStyle,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { getAssetTestId } from '../../../../../tests/selectors/Wallet/WalletView.selectors';
 import TagBase, {
   TagSeverity,
   TagShape,
@@ -61,6 +59,7 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
+import { getBridgeTokenSecurityConfig } from '../utils/tokenSecurityUtils';
 
 const createStyles = ({
   theme,
@@ -173,22 +172,10 @@ const isLoadingBalance = (balance?: string) =>
 export const getSecurityTag = (securityType: SecurityDataType | undefined) => {
   if (
     securityType === SecurityDataType.Warning ||
-    securityType === SecurityDataType.Spam
+    securityType === SecurityDataType.Spam ||
+    securityType === SecurityDataType.Malicious
   ) {
-    return {
-      severity: TagSeverity.Warning,
-      label: strings('bridge.token_suspicious'),
-      iconName: IconName.Danger,
-      iconColor: IconColor.WarningDefault,
-    };
-  }
-  if (securityType === SecurityDataType.Malicious) {
-    return {
-      severity: TagSeverity.Danger,
-      label: strings('bridge.token_malicious'),
-      iconName: IconName.Warning,
-      iconColor: IconColor.ErrorDefault,
-    };
+    return getBridgeTokenSecurityConfig(securityType);
   }
   return null;
 };
@@ -345,10 +332,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
         key={token.address}
         onPress={() => onPress(token)}
         style={styles.itemWrapper}
-        {...generateTestId(
-          Platform,
-          getAssetTestId(`${token.chainId}-${token.symbol}`),
-        )}
+        testID={getAssetTestId(`${token.chainId}-${token.symbol}`)}
       >
         <Box
           flexDirection={FlexDirection.Row}

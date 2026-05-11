@@ -74,7 +74,9 @@ describe('PaymentMethodSelector', () => {
       },
     );
 
-    const pressableElements = screen.root.findAllByType(TouchableOpacity);
+    const pressableElements = screen.root.findAllByType(
+      TouchableOpacity as never,
+    );
     if (pressableElements.length > 0) {
       fireEvent.press(pressableElements[0]);
     }

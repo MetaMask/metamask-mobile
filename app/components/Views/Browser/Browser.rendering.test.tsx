@@ -25,6 +25,7 @@ import {
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { parseCaipAccountId } from '@metamask/utils';
+import BrowserTab from '../BrowserTab/BrowserTab';
 
 const Browser = BrowserComponent as React.ComponentType<
   Record<string, unknown>
@@ -118,14 +119,6 @@ jest.mock('../../../core/Engine', () => {
   };
 });
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
-
 jest.mock('../../../util/phishingDetection', () => ({
   getPhishingTestResultAsync: jest.fn().mockResolvedValue({ result: false }),
 }));
@@ -188,7 +181,7 @@ const mockSortMultichainAccountsByLastSelected =
 
 describe('Browser - Rendering and Initialization', () => {
   it('renders Browser component', () => {
-    const { toJSON } = renderWithProvider(
+    renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
         <ThemeContext.Provider value={mockTheme}>
           <NavigationContainer independent>
@@ -213,7 +206,7 @@ describe('Browser - Rendering and Initialization', () => {
       </Provider>,
       { state: { ...mockInitialState } },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(BrowserTab).toHaveBeenCalled();
   });
 
   it('creates a new homepage tab when rendered with no tabs', () => {

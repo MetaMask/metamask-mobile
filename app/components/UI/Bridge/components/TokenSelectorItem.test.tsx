@@ -50,11 +50,6 @@ jest.mock('../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('../../../../../wdio/utils/generateTestId', () => ({
-  __esModule: true,
-  default: () => ({}),
-}));
-
 jest.mock(
   '../../../../component-library/components/Badges/BadgeWrapper',
   () => ({
@@ -94,13 +89,28 @@ jest.mock('@metamask/design-system-react-native', () => {
       InfoDefault: 'InfoDefault',
       WarningDefault: 'WarningDefault',
       ErrorDefault: 'ErrorDefault',
+      SuccessDefault: 'SuccessDefault',
     },
     IconName: {
       VerifiedFilled: 'VerifiedFilled',
       Warning: 'Warning',
       Danger: 'Danger',
+      Error: 'Error',
+      SecurityTick: 'SecurityTick',
+    },
+    IconAlertSeverity: {
+      Info: 'Info',
+      Success: 'Success',
+      Warning: 'Warning',
+      Error: 'Error',
     },
     IconSize: { Sm: 'Sm', Xs: 'Xs' },
+    TextColor: {
+      ErrorDefault: 'ErrorDefault',
+      WarningDefault: 'WarningDefault',
+      SuccessDefault: 'SuccessDefault',
+      TextAlternative: 'TextAlternative',
+    },
   };
 });
 
@@ -566,11 +576,11 @@ describe('TokenSelectorItem', () => {
           color: 'WarningDefault',
           size: 'Sm',
         }),
-        expect.anything(),
+        undefined,
       );
     });
 
-    it('renders Danger icon with ErrorDefault color for Malicious badge', () => {
+    it('renders Error icon with ErrorDefault color for Malicious badge', () => {
       const token = createMockTokenWithBalance({
         securityData: { type: SecurityDataType.Malicious },
       });
@@ -579,11 +589,11 @@ describe('TokenSelectorItem', () => {
 
       expect(mockDSIcon).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Warning',
+          name: 'Error',
           color: 'ErrorDefault',
           size: 'Sm',
         }),
-        expect.anything(),
+        undefined,
       );
     });
   });
@@ -663,7 +673,7 @@ describe('getSecurityTag', () => {
     expect(result).toEqual(
       expect.objectContaining({
         severity: 'Danger',
-        iconName: 'Warning',
+        iconName: 'Error',
         iconColor: 'ErrorDefault',
       }),
     );

@@ -118,7 +118,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     isLoading,
   });
 
-  const previousIdentitiesListSize = useRef<number>();
+  const previousIdentitiesListSize = useRef<number | undefined>(undefined);
   const internalAccounts = useSelector(selectInternalAccountsWithCaipAccountId);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();

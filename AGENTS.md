@@ -179,7 +179,6 @@ The app supports multiple build types:
 
 - `main`: Production MetaMask
 - `flask`: Development/experimental features
-- `qa`: QA testing builds
 
 Use environment variable `METAMASK_BUILD_TYPE` to switch.
 
@@ -213,6 +212,7 @@ If the user asks to implement a ticket directly from Jira:
 | Storybook                 | `/docs/readme/storybook.md`                  |
 | Troubleshooting           | `/docs/readme/troubleshooting.md`            |
 | MetaMask Contributor Docs | https://github.com/MetaMask/contributor-docs |
+| E2E CI Decision Tree      | `.github/guidelines/E2E_DECISION_TREE.md`    |
 
 ## Test Guidelines
 

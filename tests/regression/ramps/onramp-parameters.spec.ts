@@ -12,17 +12,10 @@ import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 import SelectRegionView from '../../page-objects/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../page-objects/Ramps/SelectPaymentMethodView';
 import BuyGetStartedView from '../../page-objects/Ramps/BuyGetStartedView';
-import {
-  EventPayload,
-  getEventsPayloads,
-} from '../../helpers/analytics/helpers';
-import SoftAssert from '../../framework/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import Matchers from '../../framework/Matchers';
 import { Mockttp } from 'mockttp';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
-
-const eventsToCheck: EventPayload[] = [];
 
 const setupOnRampTest = async (testFn: () => Promise<void>) => {
   const selectedRegion = RampsRegions[RampsRegionsEnum.SPAIN];
@@ -37,10 +30,6 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
       restartDevice: true,
       testSpecificMock: async (mockServer: Mockttp) => {
         await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
-      },
-      endTestfn: async ({ mockServer }) => {
-        const events = await getEventsPayloads(mockServer);
-        eventsToCheck.push(...events);
       },
     },
     async () => {
@@ -94,73 +83,5 @@ describe.skip(RegressionTrade('On-Ramp Parameters'), () => {
       );
       await Assertions.expectTextDisplayed('Debit or Credit');
     });
-  });
-
-  it('should validate segment/metametric events for a successful onramp flow (parameters)', async () => {
-    const expectedEvents = {
-      RAMPS_REGION_SELECTED: 'Ramp Region Selected',
-      ONRAMP_PAYMENT_METHOD_SELECTED: 'On-ramp Payment Method Selected',
-    };
-
-    const softAssert = new SoftAssert();
-
-    const rampRegionSelected = eventsToCheck.find(
-      (event) => event.event === expectedEvents.RAMPS_REGION_SELECTED,
-    );
-    const onRampPaymentMethodSelected = eventsToCheck.find(
-      (event) => event.event === expectedEvents.ONRAMP_PAYMENT_METHOD_SELECTED,
-    );
-
-    const checkRampRegionSelectedDefined = softAssert.checkAndCollect(
-      async () => {
-        await Assertions.checkIfValueIsDefined(rampRegionSelected);
-      },
-      'Ramp Region Selected: Should be present',
-    );
-
-    const checkRampRegionSelectedProperties = softAssert.checkAndCollect(
-      async () => {
-        await Assertions.checkIfObjectHasKeysAndValidValues(
-          rampRegionSelected?.properties ?? {},
-          {
-            is_unsupported_onramp: 'boolean',
-            is_unsupported_offramp: 'boolean',
-            country_id: 'string',
-            state_id: 'string',
-            location: 'string',
-          },
-        );
-      },
-      'Ramp Region Selected: Should have correct properties',
-    );
-
-    const checkOnRampPaymentMethodSelectedDefined = softAssert.checkAndCollect(
-      async () => {
-        await Assertions.checkIfValueIsDefined(onRampPaymentMethodSelected);
-      },
-      'On-ramp Payment Method Selected: Should be present',
-    );
-
-    const checkOnRampPaymentMethodSelectedProperties =
-      softAssert.checkAndCollect(async () => {
-        await Assertions.checkIfObjectHasKeysAndValidValues(
-          onRampPaymentMethodSelected?.properties ?? {},
-          {
-            payment_method_id: 'string',
-            available_payment_method_ids: 'array',
-            region: 'string',
-            location: 'string',
-          },
-        );
-      }, 'On-ramp Payment Method Selected: Should have correct properties');
-
-    await Promise.all([
-      checkRampRegionSelectedDefined,
-      checkRampRegionSelectedProperties,
-      checkOnRampPaymentMethodSelectedDefined,
-      checkOnRampPaymentMethodSelectedProperties,
-    ]);
-
-    softAssert.throwIfErrors();
   });
 });

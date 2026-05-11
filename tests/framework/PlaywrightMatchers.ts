@@ -145,6 +145,24 @@ export default class PlaywrightMatchers {
   }
 
   /**
+   * Get a lazy element reference by XPath without requiring the element to
+   * exist in the DOM. Unlike getElementByXPath, this does NOT throw when the
+   * element is absent — use this for negative assertions where the element may
+   * never have been rendered (e.g. waitForDisplayed({ reverse: true })).
+   *
+   * @param xpath - The XPath selector to search for
+   * @returns The wrapped element reference
+   */
+  static async getLazyElementByXPath(
+    xpath: string,
+  ): Promise<PlaywrightElement> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+    const element = await drv.$(xpath);
+    return wrapElement(element as unknown as ChainablePromiseElement);
+  }
+
+  /**
    * Get element by class name
    * @param className - The class name to search for
    * @returns The wrapped element
@@ -211,12 +229,19 @@ export default class PlaywrightMatchers {
   /**
    * Get element by name on iOS
    * @param name - The name to search for
+   * @param lazy - Whether to get a lazy element. Lazy elements are not required to be present in the DOM. This is useful for negative assertions where the element may never have been rendered (e.g. waitForDisplayed({ reverse: true })).
    * @returns The wrapped element
    */
-  static async getElementByNameiOS(name: string): Promise<PlaywrightElement> {
+  static async getElementByNameiOS(
+    name: string,
+    lazy = false,
+  ): Promise<PlaywrightElement> {
     const isIOS = await PlatformDetector.isIOS();
     if (!isIOS) throw new Error('This function is only valid for iOS');
     const xpath = `//*[contains(@name,'${name}')]`;
+    if (lazy) {
+      return await this.getLazyElementByXPath(xpath);
+    }
     return await this.getElementByXPath(xpath);
   }
 

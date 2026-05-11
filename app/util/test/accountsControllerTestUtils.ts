@@ -14,6 +14,8 @@ import {
   AnyAccountType,
   TrxAccountType,
   TrxScope,
+  XlmAccountType,
+  XlmScope,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -68,6 +70,9 @@ function getAccountTypeScopes(accountType: KeyringAccountType): CaipChainId[] {
 
     // Tron account types
     [TrxAccountType.Eoa]: [TrxScope.Mainnet],
+
+    // Stellar account types
+    [XlmAccountType.Account]: [XlmScope.Pubnet],
 
     // Generic account type
     //
@@ -179,8 +184,6 @@ export function createMockSnapInternalAccount(
       },
       snap: {
         id: 'npm:@metamask/snap-simple-keyring-snap',
-        name: 'MetaMask Simple Snap Keyring',
-        enabled: true,
       },
     },
     options: {
@@ -246,8 +249,6 @@ export const MOCK_SOLANA_ACCOUNT: InternalAccount = {
     },
     snap: {
       id: 'npm:"@metamask/solana-wallet-snap',
-      name: 'Solana Wallet Snap',
-      enabled: true,
     },
   },
   scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],
@@ -423,8 +424,6 @@ export const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES: AccountsControll
             ...mockSnapAccount2InternalAccount.metadata,
             snap: {
               id: 'metamask-simple-snap-keyring',
-              name: 'MetaMask Simple Snap Keyring',
-              enabled: true,
             },
           },
         },
@@ -506,8 +505,6 @@ export function createMockAccountsControllerStateWithSnap(
     },
     snap: {
       id: snapName,
-      name: snapName,
-      enabled: true,
     },
   };
 

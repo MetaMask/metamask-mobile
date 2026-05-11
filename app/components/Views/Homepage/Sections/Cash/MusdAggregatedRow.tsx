@@ -1,8 +1,7 @@
 import React, { useCallback } from 'react';
 import { Pressable, TouchableOpacity } from 'react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  Spinner,
   Box,
   Text,
   TextVariant,
@@ -15,6 +14,7 @@ import {
   AvatarTokenSize,
   IconColor,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -57,9 +57,6 @@ const MusdAggregatedRow = () => {
         .addProperties({
           location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
           action_type: 'claim_bonus',
-          button_text: strings('earn.musd_conversion.claim_percentage_bonus', {
-            percentage: MUSD_CONVERSION_APY,
-          }),
           network_chain_id: LINEA_MUSD_ASSET_FOR_MERKL.chainId,
           asset_symbol: LINEA_MUSD_ASSET_FOR_MERKL.symbol,
         })

@@ -28,11 +28,14 @@ jest.mock('@react-navigation/native', () => {
 
 // Mock react-native-safe-area-context (override SafeAreaView only; keep SafeAreaProvider etc. for stack)
 // Mock useTailwind hook
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn((styles) => (typeof styles === 'string' ? {} : styles)),
-  }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const twFn = () => ({});
+  twFn.style = (styles: unknown) => (typeof styles === 'string' ? {} : styles);
+  twFn.color = () => 'black';
+  return {
+    useTailwind: () => twFn,
+  };
+});
 
 // Mock RewardSettingsAccountGroupList component
 jest.mock('../components/Settings/RewardSettingsAccountGroupList', () => {
@@ -220,7 +223,7 @@ describe('RewardsSettingsView', () => {
       expect(getByTestId(REWARDS_SETTINGS_SAFE_AREA_TEST_ID)).toBeOnTheScreen();
     });
 
-    it('renders HeaderCompactStandard with settings title', () => {
+    it('renders HeaderStandard with settings title', () => {
       const { getByText } = renderWithNavigation(<RewardsSettingsView />);
 
       expect(getByText('Settings')).toBeOnTheScreen();

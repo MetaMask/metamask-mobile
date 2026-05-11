@@ -9,17 +9,19 @@ import {
   TextVariant,
   BoxFlexDirection,
   BoxAlignItems,
+  HeaderStandard,
   Skeleton,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import CampaignsGroup from '../components/Campaigns/CampaignsGroup';
 import { strings } from '../../../../../locales/i18n';
+import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
+import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 
 /**
  * CampaignsView displays all campaigns organized by status:
@@ -32,6 +34,8 @@ const CampaignsView: React.FC = () => {
   const navigation = useNavigation();
   const { categorizedCampaigns, isLoading, hasError, fetchCampaigns } =
     useRewardCampaigns();
+  useOndoOutcomeToast();
+  usePerpsTradingCampaignEndedOutcomeToast();
 
   useTrackRewardsPageView({ page_type: 'campaigns_overview' });
 
@@ -106,7 +110,7 @@ const CampaignsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_VIEW}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('rewards.campaigns_view.title')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}

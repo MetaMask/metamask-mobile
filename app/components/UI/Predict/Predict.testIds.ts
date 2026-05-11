@@ -31,6 +31,7 @@ export const PredictMarketListSelectorsIDs = {
   CRYPTO_TAB: 'predict-market-list-crypto-tab',
   POLITICS_TAB: 'predict-market-list-politics-tab',
   BACK_BUTTON: 'back-button',
+  TRENDING_MARKET_CARD: 'predict-market-list-trending-card-',
   // Empty state
   EMPTY_STATE: 'predict-market-list-empty-state',
 } as const;
@@ -49,7 +50,6 @@ export const getPredictMarketListSelector = {
 export const PredictFeedSelectorsIDs = {
   TABS: 'predict-feed-tabs',
   PAGER: 'predict-feed-pager',
-  SEARCH_ICON: 'search-icon',
 } as const;
 
 export const getPredictFeedSelector = {
@@ -187,6 +187,10 @@ export const PredictPositionSelectorsIDs = {
 export const PredictBuyPreviewSelectorsIDs = {
   // Buy/Place bet button
   PLACE_BET_BUTTON: 'predict-buy-preview-place-bet-button',
+
+  // Inline error banners (sheet mode)
+  PRICE_CHANGED_BANNER: 'predict-buy-preview-price-changed-banner',
+  ORDER_FAILED_BANNER: 'predict-buy-preview-order-failed-banner',
 } as const;
 
 // ========================================
@@ -261,6 +265,7 @@ export const getPredictSearchSelector = {
 
 export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
+  WITHDRAW_BUTTON: 'predict-balance-withdraw-button',
 } as const;
 
 export const PredictBalanceSelectorsText = {

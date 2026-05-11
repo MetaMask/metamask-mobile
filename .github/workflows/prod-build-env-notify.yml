@@ -1,0 +1,122 @@
+##############################################################################################
+#
+# Production Build Environment Notification
+#
+# Automatically triggers when production builds complete.
+# Downloads build-env.json artifact and extracts environment values.
+# TODO: Post to Slack (follow-up PR)
+#
+##############################################################################################
+name: Prod Build Env Notify
+
+on:
+  workflow_run:
+    workflows: ["Runway iOS Production", "Runway Android Production"]
+    types: [completed]
+
+jobs:
+  notify-env:
+    name: Post Environment Info
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Download build-env artifact from triggering workflow
+        continue-on-error: true
+        id: download-artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: build-env-main-prod-${{ github.event.workflow_run.name == 'Runway iOS Production' && 'ios' || 'android' }}
+          path: build-env-artifacts
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract and display environment values
+        if: steps.download-artifact.outcome == 'success'
+        id: extract-env
+        run: |
+          JSON_FILE="build-env-artifacts/build-env.json"
+
+          if [ ! -f "$JSON_FILE" ]; then
+            echo "ERROR: build-env.json not found"
+            exit 1
+          fi
+
+          echo "=== Build Environment Values ==="
+          cat "$JSON_FILE"
+          echo ""
+
+          # Extract values
+          BUILD_NAME=$(jq -r '.buildName' "$JSON_FILE")
+          METAMASK_ENV=$(jq -r '.env.METAMASK_ENVIRONMENT' "$JSON_FILE")
+          BUILD_TYPE=$(jq -r '.env.METAMASK_BUILD_TYPE' "$JSON_FILE")
+          REWARDS_URL=$(jq -r '.env.REWARDS_API_URL' "$JSON_FILE")
+          PORTFOLIO_URL=$(jq -r '.env.MM_PORTFOLIO_URL' "$JSON_FILE")
+          RAMPS_ENV=$(jq -r '.env.RAMPS_ENVIRONMENT' "$JSON_FILE")
+
+          # Map to Remote Feature Flag values
+          case "$METAMASK_ENV" in
+            production) REMOTE_FF_ENV="prod" ;;
+            rc) REMOTE_FF_ENV="rc" ;;
+            beta) REMOTE_FF_ENV="beta" ;;
+            test|e2e) REMOTE_FF_ENV="test" ;;
+            exp) REMOTE_FF_ENV="exp" ;;
+            *) REMOTE_FF_ENV="dev" ;;
+          esac
+
+          case "$BUILD_TYPE" in
+            flask) REMOTE_FF_DIST="flask" ;;
+            *) REMOTE_FF_DIST="main" ;;
+          esac
+
+          # Output for next steps
+          {
+            echo "build_name=$BUILD_NAME"
+            echo "environment=$METAMASK_ENV"
+            echo "build_type=$BUILD_TYPE"
+            echo "remote_ff_env=$REMOTE_FF_ENV"
+            echo "remote_ff_dist=$REMOTE_FF_DIST"
+            echo "rewards_url=$REWARDS_URL"
+            echo "portfolio_url=$PORTFOLIO_URL"
+            echo "ramps_env=$RAMPS_ENV"
+          } >> "$GITHUB_OUTPUT"
+
+          echo ""
+          echo "=== Extracted Values ==="
+          echo "Environment: $METAMASK_ENV"
+          echo "Build Type: $BUILD_TYPE"
+          echo "Remote Feature Flag Env: $REMOTE_FF_ENV"
+          echo "Remote Feature Flag Distribution: $REMOTE_FF_DIST"
+          echo "Rewards API URL: $REWARDS_URL"
+          echo "MM_PORTFOLIO_URL: $PORTFOLIO_URL"
+          echo "Ramps Environment: $RAMPS_ENV"
+
+      - name: Post to Slack
+        if: steps.download-artifact.outcome == 'success'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          PLATFORM: ${{ github.event.workflow_run.name == 'Runway iOS Production' && 'iOS' || 'Android' }}
+          ENVIRONMENT: ${{ steps.extract-env.outputs.environment }}
+          BUILD_TYPE: ${{ steps.extract-env.outputs.build_type }}
+          REMOTE_FF_ENV: ${{ steps.extract-env.outputs.remote_ff_env }}
+          REMOTE_FF_DIST: ${{ steps.extract-env.outputs.remote_ff_dist }}
+          REWARDS_URL: ${{ steps.extract-env.outputs.rewards_url }}
+          PORTFOLIO_URL: ${{ steps.extract-env.outputs.portfolio_url }}
+          RAMPS_ENV: ${{ steps.extract-env.outputs.ramps_env }}
+          WORKFLOW_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          echo "TODO: Post to Slack"
+          echo "Platform: $PLATFORM"
+          echo "Environment: $ENVIRONMENT"
+          echo "Build Type: $BUILD_TYPE"
+          echo "Remote FF Env: $REMOTE_FF_ENV"
+          echo "Remote FF Distribution: $REMOTE_FF_DIST"
+          echo "Rewards URL: $REWARDS_URL"
+          echo "Portfolio URL: $PORTFOLIO_URL"
+          echo "Ramps Environment: $RAMPS_ENV"
+          echo "Workflow URL: $WORKFLOW_URL"

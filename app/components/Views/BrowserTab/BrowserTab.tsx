@@ -139,6 +139,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     activeChainId,
     fromPerps,
     fromBenefit,
+    fromCard,
   }) => {
     const navigation = useNavigation();
     const { styles } = useStyles(styleSheet, {});
@@ -186,15 +187,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const loadingUrlRef = useRef('');
     const submittedUrlRef = useRef('');
     const titleRef = useRef<string>('');
-    const iconRef = useRef<ImageSourcePropType | undefined>();
+    const iconRef = useRef<ImageSourcePropType | undefined>(undefined);
     const sessionENSNamesRef = useRef<SessionENSNames>({});
     const ensIgnoreListRef = useRef<string[]>([]);
-    const backgroundBridgeRef = useRef<{
-      url: string;
-      sendNotificationEip1193: (payload: unknown) => void;
-      onDisconnect: () => void;
-      onMessage: (message: Record<string, unknown>) => void;
-    }>();
+    const backgroundBridgeRef = useRef<
+      | {
+          url: string;
+          sendNotificationEip1193: (payload: unknown) => void;
+          onDisconnect: () => void;
+          onMessage: (message: Record<string, unknown>) => void;
+        }
+      | undefined
+    >(undefined);
     const searchEngine = useSelector(selectSearchEngine);
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
@@ -550,27 +554,27 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         return true;
       };
 
-      BackHandler.addEventListener('hardwareBackPress', handleAndroidBackPress);
+      let backHandlerSubscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        handleAndroidBackPress,
+      );
 
       // Handle hardwareBackPress event only for browser, not components rendered on top
-      navigation.addListener('focus', () => {
-        BackHandler.addEventListener(
+      const unsubscribeFocus = navigation.addListener('focus', () => {
+        backHandlerSubscription?.remove();
+        backHandlerSubscription = BackHandler.addEventListener(
           'hardwareBackPress',
           handleAndroidBackPress,
         );
       });
-      navigation.addListener('blur', () => {
-        BackHandler.removeEventListener(
-          'hardwareBackPress',
-          handleAndroidBackPress,
-        );
+      const unsubscribeBlur = navigation.addListener('blur', () => {
+        backHandlerSubscription?.remove();
       });
 
       return function cleanup() {
-        BackHandler.removeEventListener(
-          'hardwareBackPress',
-          handleAndroidBackPress,
-        );
+        backHandlerSubscription?.remove();
+        unsubscribeFocus();
+        unsubscribeBlur();
       };
     }, [goBack, isTabActive, navigation]);
 
@@ -1283,6 +1287,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         });
       } else if (fromBenefit) {
         navigation.goBack();
+      } else if (fromCard) {
+        navigation.navigate(Routes.CARD.ROOT, {
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.HOME,
+          },
+        });
       } else {
         // Navigate to TrendingView/TrendingFeed
         // Note: We use explicit navigation instead of goBack() because the browser
@@ -1292,7 +1303,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           screen: Routes.TRENDING_FEED,
         });
       }
-    }, [navigation, fromPerps, fromBenefit]);
+    }, [navigation, fromPerps, fromBenefit, fromCard]);
 
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();

@@ -31,9 +31,8 @@ import {
 import { PredictHelpers } from './helpers/predict-helpers';
 import { POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE } from '../../api-mocking/mock-responses/polymarket/polymarket-activity-response';
 import Utilities from '../../framework/Utilities';
-import { getEventsPayloads } from '../../helpers/analytics/helpers';
-import SoftAssert from '../../framework/SoftAssert';
 import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage';
+import { predictClaimPositionsAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-claim-positions.analytics';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
 
 /*
@@ -117,6 +116,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: PredictionMarketFeature,
+        analyticsExpectations: predictClaimPositionsAnalyticsExpectations,
       },
       async ({ mockServer }) => {
         await PredictHelpers.setPortugalLocation();
@@ -160,43 +160,6 @@ describe(SmokePredictions('Claim winnings:'), () => {
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapPredictButton();
         await Assertions.expectTextDisplayed('$48.16');
-
-        // Verify analytics events
-        const events = await getEventsPayloads(mockServer);
-        const softAssert = new SoftAssert();
-
-        const expectedEvents = {
-          POSITION_VIEWED: 'Predict Position Viewed',
-          ACTIVITY_VIEWED: 'Predict Activity Viewed',
-        };
-
-        // Event 1: PREDICT_POSITION_VIEWED
-        await softAssert.checkAndCollect(async () => {
-          const positionViewed = events.filter(
-            (event) => event.event === expectedEvents.POSITION_VIEWED,
-          );
-          await Assertions.checkIfValueIsDefined(positionViewed);
-          if (positionViewed.length > 0) {
-            await Assertions.checkIfValueIsDefined(
-              positionViewed[0].properties.open_positions_count,
-            );
-          }
-        }, 'Position Viewed event should be tracked');
-
-        // Event 2: PREDICT_ACTIVITY_VIEWED
-        await softAssert.checkAndCollect(async () => {
-          const activityViewed = events.filter(
-            (event) => event.event === expectedEvents.ACTIVITY_VIEWED,
-          );
-          await Assertions.checkIfValueIsDefined(activityViewed);
-          if (activityViewed.length > 0) {
-            await Assertions.checkIfValueIsDefined(
-              activityViewed[0].properties.activity_type,
-            );
-          }
-        }, 'Activity Viewed event should be tracked');
-
-        softAssert.throwIfErrors();
       },
     );
   });

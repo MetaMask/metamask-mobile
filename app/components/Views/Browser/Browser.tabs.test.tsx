@@ -111,14 +111,6 @@ jest.mock('../../../core/Engine', () => {
   };
 });
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
-
 jest.mock('../../../util/phishingDetection', () => ({
   isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
   getPhishingTestResult: jest.fn().mockReturnValue({ result: false }),
@@ -205,7 +197,7 @@ describe('Browser - Tab Operations', () => {
         { id: 2, url: 'https://test.com', image: '', isArchived: false },
       ];
 
-      const { toJSON } = renderWithProvider(
+      renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
           <NavigationContainer independent>
             <Stack.Navigator>
@@ -229,7 +221,7 @@ describe('Browser - Tab Operations', () => {
         { state: mockInitialState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(BrowserTab).toHaveBeenCalled();
     });
 
     it('navigates away when closing tabs view with zero tabs', async () => {

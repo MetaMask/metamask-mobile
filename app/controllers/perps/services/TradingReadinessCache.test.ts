@@ -228,7 +228,7 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
     describe('isInFlight()', () => {
       it('returns undefined when no in-flight operation', () => {
         const result = PerpsSigningCache.isInFlight(
-          'dexAbstraction',
+          'unifiedAccount',
           network,
           userAddress,
         );
@@ -236,10 +236,10 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
       });
 
       it('returns promise when operation is in-flight', () => {
-        PerpsSigningCache.setInFlight('dexAbstraction', network, userAddress);
+        PerpsSigningCache.setInFlight('unifiedAccount', network, userAddress);
 
         const result = PerpsSigningCache.isInFlight(
-          'dexAbstraction',
+          'unifiedAccount',
           network,
           userAddress,
         );
@@ -260,7 +260,7 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
         // Different operation type should not be in-flight
         expect(
           PerpsSigningCache.isInFlight(
-            'dexAbstraction',
+            'unifiedAccount',
             network,
             uniqueAddress,
           ),
@@ -293,7 +293,7 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
     describe('setInFlight()', () => {
       it('returns a completion function', () => {
         const complete = PerpsSigningCache.setInFlight(
-          'dexAbstraction',
+          'unifiedAccount',
           network,
           userAddress,
         );
@@ -302,14 +302,14 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
 
       it('calling completion function removes in-flight status', () => {
         const complete = PerpsSigningCache.setInFlight(
-          'dexAbstraction',
+          'unifiedAccount',
           network,
           userAddress,
         );
 
         // Should be in-flight
         expect(
-          PerpsSigningCache.isInFlight('dexAbstraction', network, userAddress),
+          PerpsSigningCache.isInFlight('unifiedAccount', network, userAddress),
         ).toBeDefined();
 
         // Complete the operation
@@ -317,7 +317,7 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
 
         // Should no longer be in-flight
         expect(
-          PerpsSigningCache.isInFlight('dexAbstraction', network, userAddress),
+          PerpsSigningCache.isInFlight('unifiedAccount', network, userAddress),
         ).toBeUndefined();
       });
 
@@ -384,7 +384,7 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
     const mainnetAddress = '0xMainnetUser1234567890123456789012345';
     const testnetAddress = '0xTestnetUser1234567890123456789012345';
 
-    describe('clearDexAbstraction()', () => {
+    describe('clearUnifiedAccount()', () => {
       it('clears only DEX abstraction state, preserving other states', () => {
         // Setup all three operation states
         TradingReadinessCache.set('mainnet', mainnetAddress, {
@@ -401,7 +401,7 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
         });
 
         // Clear only DEX abstraction
-        TradingReadinessCache.clearDexAbstraction('mainnet', mainnetAddress);
+        TradingReadinessCache.clearUnifiedAccount('mainnet', mainnetAddress);
 
         // DEX abstraction should be reset
         const dexResult = TradingReadinessCache.get('mainnet', mainnetAddress);
@@ -421,7 +421,7 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
       });
 
       it('does nothing when entry does not exist', () => {
-        TradingReadinessCache.clearDexAbstraction('mainnet', mainnetAddress);
+        TradingReadinessCache.clearUnifiedAccount('mainnet', mainnetAddress);
         expect(TradingReadinessCache.size()).toBe(0);
       });
     });
@@ -639,7 +639,7 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
         const state = TradingReadinessCache.debugState();
 
         expect(state).toContain('mainnet:');
-        expect(state).toContain('dex=true/true');
+        expect(state).toContain('unified=true/true');
         expect(state).toContain('builder=true/false');
         expect(state).toContain('referral=false/false');
       });
@@ -686,7 +686,7 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
 
       // Start all three operations
       const completeDex = PerpsSigningCache.setInFlight(
-        'dexAbstraction',
+        'unifiedAccount',
         network,
         userAddress,
       );
@@ -703,7 +703,7 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
 
       // All should be in-flight
       expect(
-        PerpsSigningCache.isInFlight('dexAbstraction', network, userAddress),
+        PerpsSigningCache.isInFlight('unifiedAccount', network, userAddress),
       ).toBeDefined();
       expect(
         PerpsSigningCache.isInFlight('builderFee', network, userAddress),
@@ -718,7 +718,7 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
         PerpsSigningCache.isInFlight('builderFee', network, userAddress),
       ).toBeUndefined();
       expect(
-        PerpsSigningCache.isInFlight('dexAbstraction', network, userAddress),
+        PerpsSigningCache.isInFlight('unifiedAccount', network, userAddress),
       ).toBeDefined();
 
       completeDex();
@@ -726,7 +726,7 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
 
       // All should be cleared
       expect(
-        PerpsSigningCache.isInFlight('dexAbstraction', network, userAddress),
+        PerpsSigningCache.isInFlight('unifiedAccount', network, userAddress),
       ).toBeUndefined();
       expect(
         PerpsSigningCache.isInFlight('referral', network, userAddress),

@@ -13,6 +13,7 @@ import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { usePerpsFirstTimeUser } from '../../../../UI/Perps/hooks/usePerpsFirstTimeUser';
+import { AdvancedViewSelectorsIDs } from '../AdvancedView.testIds';
 
 export const ResetAccountModal = ({
   resetModalVisible,
@@ -50,6 +51,7 @@ export const ResetAccountModal = ({
       modalVisible={resetModalVisible}
       confirmText={strings('app_settings.reset_account_confirm_button')}
       cancelText={strings('app_settings.reset_account_cancel_button')}
+      confirmTestID={AdvancedViewSelectorsIDs.RESET_ACCOUNT_CONFIRM_BUTTON}
       onCancelPress={cancelResetAccount}
       onRequestClose={cancelResetAccount}
       onConfirmPress={resetAccount}
