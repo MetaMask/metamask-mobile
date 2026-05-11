@@ -233,16 +233,13 @@ describe('MoneyPotentialEarningsView', () => {
   });
 
   it('renders the bottom Convert CTA with the correct label', () => {
-    const { getByTestId, getByText } = renderWithProvider(
-      <MoneyPotentialEarningsView />,
-    );
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
 
-    expect(
-      getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('money.potential_earnings.convert_cta')),
-    ).toBeOnTheScreen();
+    const ctaButton = getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON);
+    expect(ctaButton).toBeOnTheScreen();
+    expect(ctaButton).toHaveTextContent(
+      strings('money.potential_earnings.convert_cta'),
+    );
   });
 
   it('triggers conversion when the bottom Convert CTA is pressed', async () => {
