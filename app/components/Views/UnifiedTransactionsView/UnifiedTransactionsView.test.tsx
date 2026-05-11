@@ -2,7 +2,10 @@ import React, { ComponentType } from 'react';
 import { RefreshControl } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
-import { TransactionStatus } from '@metamask/transaction-controller';
+import {
+  TransactionStatus,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import UnifiedTransactionsView from './UnifiedTransactionsView';
 import _renderWithProvider from '../../../util/test/renderWithProvider';
@@ -618,10 +621,32 @@ describe('UnifiedTransactionsView with transactions', () => {
 describe('UnifiedTransactionsView - EVM network filter for unified list', () => {
   const WALLET = '0xabc';
 
+  /** Required so selectLocalTransactions includes pending txs for UnifiedTransactionsView filtering. */
+  const accountsControllerForWallet = {
+    ...backgroundState.AccountsController,
+    internalAccounts: {
+      accounts: {
+        'wallet-evm-id': {
+          id: 'wallet-evm-id',
+          type: 'eip155:eoa' as const,
+          address: WALLET,
+          options: {},
+          methods: [],
+          metadata: {
+            name: 'Account 1',
+            keyring: { type: 'HD Key Tree' },
+          },
+        },
+      },
+      selectedAccount: 'wallet-evm-id',
+    },
+  };
+
   const emptyEvmChainsState = {
     engine: {
       backgroundState: {
         ...backgroundState,
+        AccountsController: accountsControllerForWallet,
         NetworkEnablementController: {
           ...backgroundState.NetworkEnablementController,
           enabledNetworkMap: {
@@ -637,6 +662,7 @@ describe('UnifiedTransactionsView - EVM network filter for unified list', () => 
     engine: {
       backgroundState: {
         ...backgroundState,
+        AccountsController: accountsControllerForWallet,
         NetworkEnablementController: {
           ...backgroundState.NetworkEnablementController,
           enabledNetworkMap: {
@@ -652,6 +678,7 @@ describe('UnifiedTransactionsView - EVM network filter for unified list', () => 
     engine: {
       backgroundState: {
         ...backgroundState,
+        AccountsController: accountsControllerForWallet,
         NetworkEnablementController: {
           ...backgroundState.NetworkEnablementController,
           enabledNetworkMap: {
@@ -754,6 +781,7 @@ describe('UnifiedTransactionsView - EVM network filter for unified list', () => 
       engine: {
         backgroundState: {
           ...backgroundState,
+          AccountsController: accountsControllerForWallet,
           NetworkEnablementController:
             stateOnlyOptimism.engine.backgroundState
               .NetworkEnablementController,
@@ -780,6 +808,82 @@ describe('UnifiedTransactionsView - EVM network filter for unified list', () => 
 
     const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
       state: stateWithPendingMainnet,
+    });
+
+    expect(getByText('You have no transactions')).toBeOnTheScreen();
+  });
+
+  it('hides pending EVM transactions when no EVM chains are enabled', () => {
+    mockUseTransactionsQuery(emptyTransactionsQueryData);
+
+    const stateWithPendingButNoEvmNetworks = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountsController: accountsControllerForWallet,
+          NetworkEnablementController:
+            emptyEvmChainsState.engine.backgroundState
+              .NetworkEnablementController,
+          TransactionController: {
+            ...backgroundState.TransactionController,
+            transactions: [
+              {
+                id: 'pending-no-enabled-evm',
+                chainId: '0x1' as const,
+                status: TransactionStatus.submitted,
+                time: Date.now(),
+                txParams: {
+                  from: WALLET,
+                  to: '0x1111111111111111111111111111111111111111',
+                  value: '0x0',
+                  nonce: '0x1',
+                },
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: stateWithPendingButNoEvmNetworks,
+    });
+
+    expect(getByText('You have no transactions')).toBeOnTheScreen();
+  });
+
+  it('hides pending EVM transactions when chainId is missing', () => {
+    mockUseTransactionsQuery(emptyTransactionsQueryData);
+
+    const pendingWithoutChainId = {
+      id: 'pending-missing-chain',
+      status: TransactionStatus.submitted,
+      time: Date.now(),
+      txParams: {
+        from: WALLET,
+        to: '0x1111111111111111111111111111111111111111',
+        value: '0x0',
+        nonce: '0x1',
+      },
+    } as unknown as TransactionMeta;
+
+    const stateWithPendingMissingChainId = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountsController: accountsControllerForWallet,
+          NetworkEnablementController:
+            stateOnlyMainnet.engine.backgroundState.NetworkEnablementController,
+          TransactionController: {
+            ...backgroundState.TransactionController,
+            transactions: [pendingWithoutChainId],
+          },
+        },
+      },
+    };
+
+    const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: stateWithPendingMissingChainId,
     });
 
     expect(getByText('You have no transactions')).toBeOnTheScreen();

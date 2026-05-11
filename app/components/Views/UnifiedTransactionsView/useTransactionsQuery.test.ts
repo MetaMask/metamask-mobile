@@ -179,4 +179,20 @@ describe('useTransactionsQuery', () => {
       includeTxMetadata: true,
     });
   });
+
+  it('does not use global EVM address when group account has an empty string address', () => {
+    setupSelectors({
+      evmAddress: ADDRESS_MOCK,
+      groupEvmAccount: { address: '' },
+    });
+
+    renderHook(() => useTransactionsQuery());
+
+    expect(getQueryOptionsMock).toHaveBeenCalledWith(
+      expect.objectContaining({ accountAddresses: [] }),
+    );
+    expect(useInfiniteQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
 });
