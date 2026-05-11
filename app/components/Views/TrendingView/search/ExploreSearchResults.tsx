@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Pressable } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -19,13 +18,11 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import SitesSearchFooter from '../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { trackExploreEvent, useScrollTracking } from './analytics';
 import {
@@ -39,7 +36,7 @@ const MAX_ITEMS_PER_SECTION = 3;
 
 interface ExploreSearchResultsProps {
   searchQuery: string;
-  onViewMore?: (feedId: SearchFeedId) => void;
+  onViewMore: (feedId: SearchFeedId) => void;
 }
 
 interface ListItemHeader {
@@ -68,7 +65,6 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   searchQuery,
   onViewMore,
 }) => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const { sections } = useExploreSearch(searchQuery);
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
@@ -92,18 +88,9 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         search_query: searchQuery,
         section_name: section.title,
       });
-      if (onViewMore) {
-        onViewMore(section.feedId);
-      } else {
-        navigation.navigate(Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW, {
-          feedId: section.feedId,
-          title: section.title,
-          searchQuery,
-          data: section.items,
-        });
-      }
+      onViewMore(section.feedId);
     },
-    [navigation, onViewMore, searchQuery],
+    [onViewMore, searchQuery],
   );
 
   const renderSectionHeader = useCallback(
