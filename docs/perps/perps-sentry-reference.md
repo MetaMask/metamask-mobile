@@ -169,6 +169,9 @@ setMeasurement(
 | `PERPS_CLOSE_ORDER_CONFIRMATION_TOAST_LOADED` | ms | Close confirmation |
 | `PERPS_LEVERAGE_BOTTOM_SHEET_LOADED` | ms | Leverage picker |
 
+Toast measurements only track toast display/loading behavior. Order submission
+round-trip timing is tracked by `PerpsPlaceOrder` in Trading Operations.
+
 ### Trading Operations (9 events)
 
 **Purpose:** Track order execution, position management, and transaction completion.
@@ -184,6 +187,11 @@ setMeasurement(
 | `PerpsFlipPosition`  | `PerpsPositionManagement` | provider, coin, fromDirection, toDirection, isTestnet               | size, success                                                                                        |
 | `PerpsWithdraw`      | `PerpsOperation`          | assetId, provider, isTestnet                                        | success, txHash, withdrawalId                                                                        |
 | `PerpsDeposit`       | `PerpsOperation`          | assetId, provider, isTestnet                                        | success, txHash                                                                                      |
+
+`PerpsPlaceOrder` measures the order submission operation from controller
+handoff through provider confirmation, rejection, exception, or the 60s
+client-side timeout. It is independent of the order screen lifecycle and should
+not end with `reason: 'unmount'` during normal optimistic navigation.
 
 **Batch Operations Pattern:**
 

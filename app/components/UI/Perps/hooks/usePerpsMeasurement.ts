@@ -86,6 +86,7 @@ export const usePerpsMeasurement = ({
   const previousEndState = useRef(false);
   const traceStarted = useRef(false);
   const traceId = useRef<string>(uuidv4()); // Generate new ID on each trace start
+  const traceNameRef = useRef(traceName);
 
   // Note: debugContext is used directly rather than memoized since:
   // 1. It's typically used sparingly for debugging/logging
@@ -137,6 +138,29 @@ export const usePerpsMeasurement = ({
   const shouldReset = useMemo(
     () => anyTrue(actualResetConditions),
     [actualResetConditions],
+  );
+
+  useEffect(() => {
+    traceNameRef.current = traceName;
+  }, [traceName]);
+
+  useEffect(
+    () => () => {
+      if (!traceStarted.current) {
+        return;
+      }
+
+      endTrace({
+        name: traceNameRef.current,
+        id: traceId.current,
+        data: {
+          success: false,
+          reason: 'unmount',
+        },
+      });
+      traceStarted.current = false;
+    },
+    [],
   );
 
   useEffect(() => {

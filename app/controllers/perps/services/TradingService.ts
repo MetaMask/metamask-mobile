@@ -356,6 +356,25 @@ export class TradingService {
     }
   }
 
+  async #withOrderSubmissionTimeout<TResult>(
+    operation: Promise<TResult>,
+  ): Promise<TResult> {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const timeoutPromise = new Promise<never>((_resolve, reject) => {
+      timeoutId = setTimeout(
+        () => reject(new PerpsOrderTimeoutError()),
+        PERPS_CONSTANTS.PlaceOrderTimeoutMs,
+      );
+    });
+
+    return Promise.race([operation, timeoutPromise]).finally(() => {
+      if (timeoutId !== undefined) {
+        clearTimeout(timeoutId);
+      }
+    });
+  }
+
   /**
    * Place a new order with full orchestration
    * Handles tracing, fee discounts, state management, analytics, and data lake reporting
@@ -448,23 +467,12 @@ export class TradingService {
         },
       );
 
-      // Execute order with fee discount management.
-      // The timeout race lives inside the operation callback so that
-      // #withFeeDiscount's fee-discount cleanup still runs on timeout.
-      const result = await this.#withFeeDiscount({
+      const operation = this.#withFeeDiscount({
         provider,
         feeDiscountBips,
-        operation: () =>
-          Promise.race([
-            provider.placeOrder(params),
-            new Promise<never>((_resolve, reject) =>
-              setTimeout(
-                () => reject(new PerpsOrderTimeoutError()),
-                PERPS_CONSTANTS.PlaceOrderTimeoutMs,
-              ),
-            ),
-          ]),
+        operation: () => provider.placeOrder(params),
       });
+      const result = await this.#withOrderSubmissionTimeout(operation);
 
       this.#deps.debugLogger.log('TradingService: Provider response received', {
         success: result.success,

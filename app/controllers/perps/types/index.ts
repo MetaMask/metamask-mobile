@@ -1272,7 +1272,6 @@ export type PerpsTraceName =
   | 'Perps Update TP/SL'
   | 'Perps Update Margin'
   | 'Perps Flip Position'
-  | 'Perps Order Submission Toast'
   | 'Perps Market Data Update'
   | 'Perps Order View'
   | 'Perps Tab View'
