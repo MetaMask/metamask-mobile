@@ -104,7 +104,7 @@ export class UIMessenger extends Messenger<
       );
     }
 
-    return (...args: unknown[]) =>
+    return async (...args: unknown[]) =>
       // @ts-expect-error: `unknown[]` is not assignable to `args`, but the type
       // here is checked in `call`, so this is safe.
       Engine.controllerMessenger.call(actionType, ...args);
