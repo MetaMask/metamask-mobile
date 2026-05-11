@@ -55,7 +55,8 @@ export const useInsufficientNativeReserveError = ({
     !token?.address ||
     !token?.chainId ||
     !latestAtomicBalance ||
-    !walletAddress
+    !walletAddress ||
+    isNonEvmChainId(token.chainId)
   ) {
     return undefined;
   }
