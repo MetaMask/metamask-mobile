@@ -365,6 +365,41 @@ describe('TabsIconBar', () => {
       });
       expect(getByTestId('icon-bar')).toBeOnTheScreen();
     });
+
+    it('renders without throwing when collapseHeightOffset is provided', () => {
+      const collapseAnim = new Animated.Value(0);
+      expect(() =>
+        render(
+          <TabsIconBar
+            tabs={mockTabs}
+            activeIndex={0}
+            onTabPress={jest.fn()}
+            collapseAnim={collapseAnim}
+            collapseHeightOffset={28}
+            testID="icon-bar"
+          />,
+        ),
+      ).not.toThrow();
+    });
+
+    it('renders without throwing when collapseHeightOffset exceeds tabRowHeight', () => {
+      const collapseAnim = new Animated.Value(0);
+      const { getByTestId } = render(
+        <TabsIconBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={jest.fn()}
+          collapseAnim={collapseAnim}
+          collapseHeightOffset={9999}
+          testID="icon-bar"
+        />,
+      );
+      // Tab row height is clamped to 0 (no negative height); should not crash.
+      act(() => {
+        fireEvent(getByTestId('icon-bar'), 'onLayout', mockLayoutEvent(400));
+      });
+      expect(getByTestId('icon-bar')).toBeOnTheScreen();
+    });
   });
 
   describe('Tab Array Changes', () => {
