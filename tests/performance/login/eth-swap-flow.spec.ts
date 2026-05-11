@@ -1,12 +1,18 @@
 import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
-import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
+import {
+  Performance,
+  System,
+  PerformanceLogin,
+  PerformanceSwaps,
+} from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
 import QuoteView from '../../page-objects/swaps/QuoteView';
+import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui';
 
 /* Scenario 6: Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3 */
-test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
+test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`, () => {
   test(
     'Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3',
     { tag: '@swap-bridge-dev-team' },
@@ -27,12 +33,18 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
         { ios: 9000, android: 7000 },
         currentDeviceDetails.platform,
       );
-      await QuoteView.selectNetworkAndTokenTo('Ethereum', 'LINK');
+      await QuoteView.selectNetworkAndTokenTo('Ethereum', 'USDC');
       await QuoteView.enterSourceTokenAmount('1');
 
       await swapTimer.measure(() => QuoteView.isQuoteDisplayed());
 
       performanceTracker.addTimers(swapLoadTimer, swapTimer);
+
+      if (process.env.SUBMIT_SWAP === 'true') {
+        await QuoteView.dismissKeypad();
+        await QuoteView.tapConfirmSwap();
+        await checkSwapActivity('ETH', 'USDC');
+      }
     },
   );
 });

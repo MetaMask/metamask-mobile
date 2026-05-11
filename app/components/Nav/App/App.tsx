@@ -1,6 +1,9 @@
 import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import { useRoute } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  type StackNavigationOptions,
+} from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import OAuthRehydration from '../../Views/OAuthRehydration';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
@@ -166,6 +169,31 @@ import { AccessRestrictedProvider } from '../../UI/Compliance';
 
 const Stack = createStackNavigator();
 
+const accountSelectorTransitionOptions: StackNavigationOptions = {
+  animationEnabled: true,
+  cardStyle: { backgroundColor: importedColors.transparent },
+  cardStyleInterpolator: ({ current, layouts }) => ({
+    cardStyle: {
+      transform: [
+        {
+          translateX: current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [layouts.screen.width, 0],
+          }),
+        },
+      ],
+    },
+  }),
+  detachPreviousScreen: false,
+};
+
+const isAccountSelectorRootModalRoute = (params: object | undefined) =>
+  Boolean(
+    params &&
+      'screen' in params &&
+      params.screen === Routes.SHEET.ACCOUNT_SELECTOR,
+  );
+
 // Type helper for screen components that use v5 pattern of requiring route props
 // In React Navigation v6, screen components should ideally use useRoute() hook,
 // but for migration compatibility, we cast these components to satisfy the type checker.
@@ -318,7 +346,7 @@ const OnboardingNav = () => {
  * child OnboardingNav navigator to push modals on top of it
  */
 const SimpleWebviewScreen = () => (
-  <Stack.Navigator>
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name={Routes.WEBVIEW.SIMPLE} component={SimpleWebview} />
   </Stack.Navigator>
 );
@@ -464,15 +492,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
-      options={{
-        cardStyle: { backgroundColor: importedColors.transparent },
-        cardStyleInterpolator: () => ({
-          overlayStyle: {
-            opacity: 0,
-          },
-        }),
-        detachPreviousScreen: false,
-      }}
+      options={accountSelectorTransitionOptions}
     />
     <Stack.Screen
       name={Routes.SHEET.ADD_WALLET}
@@ -1009,6 +1029,11 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.MODAL.ROOT_MODAL_FLOW}
         component={RootModalFlow as ScreenComponent}
+        options={({ route }) =>
+          isAccountSelectorRootModalRoute(route.params)
+            ? accountSelectorTransitionOptions
+            : {}
+        }
       />
       <Stack.Screen
         name={Routes.IMPORT_PRIVATE_KEY_VIEW}

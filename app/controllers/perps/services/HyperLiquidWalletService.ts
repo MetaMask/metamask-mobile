@@ -1,4 +1,8 @@
-import { parseCaipAccountId, isValidHexAddress } from '@metamask/utils';
+import {
+  hasProperty,
+  isValidHexAddress,
+  parseCaipAccountId,
+} from '@metamask/utils';
 import type { CaipAccountId, Hex } from '@metamask/utils';
 
 import { getChainId } from '../constants/hyperLiquidConfig';
@@ -8,7 +12,14 @@ import type {
   PerpsTypedMessageParams,
 } from '../types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
-import { getSelectedEvmAccount } from '../utils/accountUtils';
+import { findEvmAccount, getSelectedEvmAccount } from '../utils/accountUtils';
+
+// Mirrors KeyringTypes from @metamask/keyring-controller. Inlined to keep this
+// service portable between mobile and the core monorepo.
+const HARDWARE_KEYRING_TYPES = new Set<string>([
+  'Ledger Hardware',
+  'QR Hardware Wallet Device',
+]);
 
 /**
  * Service for MetaMask wallet integration with HyperLiquid SDK
@@ -39,6 +50,29 @@ export class HyperLiquidWalletService {
    */
   public isKeyringUnlocked(): boolean {
     return this.#messenger.call('KeyringController:getState').isUnlocked;
+  }
+
+  /**
+   * Check whether the selected EVM account is backed by hardware.
+   *
+   * @returns True for Ledger / QR hardware keyrings; false for software accounts.
+   */
+  public isSelectedHardwareWallet(): boolean {
+    const selectedEvmAccount = findEvmAccount(
+      this.#messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ),
+    );
+    if (!selectedEvmAccount || !hasProperty(selectedEvmAccount, 'metadata')) {
+      return false;
+    }
+
+    const metadata = selectedEvmAccount.metadata as
+      | { keyring?: { type?: string } }
+      | undefined;
+    const keyringType = metadata?.keyring?.type;
+
+    return Boolean(keyringType && HARDWARE_KEYRING_TYPES.has(keyringType));
   }
 
   /**

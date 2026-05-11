@@ -222,7 +222,7 @@ export interface NestedNavigationParams {
   [key: string]: unknown;
 }
 
-import { SectionId } from '../../components/Views/TrendingView/sections.config';
+import type { SearchFeedId } from '../../components/Views/TrendingView/search/useExploreSearch';
 
 type TraderPositionViewParams =
   | {
@@ -348,10 +348,10 @@ export interface RootStackParamList extends ParamListBase {
   WhatsHappeningDetailView:
     | { items: WhatsHappeningItem[]; initialIndex: number }
     | undefined;
-  SitesFullView: undefined;
+  SitesFullView: { mode?: 'favorites' } | undefined;
   ExploreSearch: undefined;
   ExploreSectionResultsFullView: {
-    sectionId: SectionId;
+    feedId: SearchFeedId;
     title: string;
     searchQuery: string;
     data: unknown[];
@@ -657,13 +657,10 @@ export interface RootStackParamList extends ParamListBase {
 
   // Card routes
   CardScreens: undefined;
-  CardMainRoutes: undefined;
   CardHome: undefined;
   CardWelcome: undefined;
   CardAuthentication: { showAuthPrompt?: boolean } | undefined;
   CardSpendingLimit: undefined;
-  CardChangeAsset: undefined;
-  VerifyingRegistration: undefined;
   ChooseYourCard: undefined;
   ReviewOrder: undefined;
   OrderCompleted:
@@ -682,7 +679,6 @@ export interface RootStackParamList extends ParamListBase {
   CardOnboardingVerifyingVeriffKYC: undefined;
   CardOnboardingPersonalDetails: undefined;
   CardOnboardingPhysicalAddress: undefined;
-  CardOnboardingMailingAddress: undefined;
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingKYCPending: undefined;

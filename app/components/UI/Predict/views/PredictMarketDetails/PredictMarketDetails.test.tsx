@@ -211,6 +211,10 @@ jest.mock('../../hooks/usePredictPositions', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePredictLivePositions', () => ({
+  usePredictLivePositions: jest.fn(),
+}));
+
 jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: jest.fn(() => ({
     data: 100,
@@ -562,6 +566,9 @@ function setupPredictMarketDetailsTest(
   const { usePredictPositions } = jest.requireMock(
     '../../hooks/usePredictPositions',
   );
+  const { usePredictLivePositions } = jest.requireMock(
+    '../../hooks/usePredictLivePositions',
+  );
   const { usePredictEligibility } = jest.requireMock(
     '../../hooks/usePredictEligibility',
   );
@@ -624,6 +631,7 @@ function setupPredictMarketDetailsTest(
     ({ claimable }: { claimable?: boolean }) =>
       claimable ? claimablePositionsHook : activePositionsHook,
   );
+  usePredictLivePositions.mockImplementation(() => undefined);
 
   // Set up usePredictOrderPreview mock to return preview data matching position currentValue
   mockUsePredictOrderPreview.mockImplementation(
@@ -708,7 +716,7 @@ const extractText = (node: React.ReactNode): string => {
   }
 
   if (React.isValidElement(node)) {
-    return extractText(node.props.children);
+    return extractText((node.props as { children?: React.ReactNode }).children);
   }
 
   return '';
@@ -3657,6 +3665,33 @@ describe('PredictMarketDetails', () => {
         ),
       ).toBeOnTheScreen();
       expect(screen.getByText('NFL: Team A vs Team B')).toBeOnTheScreen();
+    });
+
+    it('threads childMarketIds to usePredictPositions for both active and claimable queries', () => {
+      const marketWithChildren = createMockMarket({
+        childMarketIds: ['child-1', 'child-2'],
+      });
+
+      setupPredictMarketDetailsTest(marketWithChildren);
+
+      const { usePredictPositions } = jest.requireMock(
+        '../../hooks/usePredictPositions',
+      );
+
+      const calls = usePredictPositions.mock.calls;
+      const activeCall = calls.find(
+        ([args]: [{ claimable: boolean }]) => !args.claimable,
+      );
+      const claimableCall = calls.find(
+        ([args]: [{ claimable: boolean }]) => args.claimable,
+      );
+
+      expect(activeCall[0]).toEqual(
+        expect.objectContaining({ childMarketIds: ['child-1', 'child-2'] }),
+      );
+      expect(claimableCall[0]).toEqual(
+        expect.objectContaining({ childMarketIds: ['child-1', 'child-2'] }),
+      );
     });
 
     it('renders regular market details when market has no game property', () => {

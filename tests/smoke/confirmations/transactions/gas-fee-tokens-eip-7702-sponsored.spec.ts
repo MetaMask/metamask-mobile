@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../../framework/fixtures/FixtureBuilder';
@@ -262,6 +263,7 @@ describe(
       jest.setTimeout(2500000);
     });
 
+    // Also implemented in cv tests (eip-7702-sponsored-relay-api-failure.view.test.tsx)
     it('fails transaction if error occurs on API', async () => {
       await withFixtures(
         {

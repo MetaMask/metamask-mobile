@@ -19,7 +19,7 @@ import { isNegativeSecurityType } from '../../utils/tokenSecurityUtils';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
@@ -39,6 +39,7 @@ import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 import type { TokenWarningModalParams } from '../TokenWarningModal';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -55,11 +56,6 @@ export const SwapsConfirmButton = ({
   transactionActiveAbTests,
 }: Props) => {
   const navigation = useNavigation();
-  const handleConfirm = useBridgeConfirm({
-    latestSourceBalance,
-    location,
-    transactionActiveAbTests,
-  });
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const destToken = useSelector(selectDestToken);
@@ -82,6 +78,17 @@ export const SwapsConfirmButton = ({
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
+  const insufficientNativeReserveError = useInsufficientNativeReserveError({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+    walletAddress,
+  });
+
+  const hasInsufficientNativeReserveError = Boolean(
+    insufficientNativeReserveError,
+  );
+
   const {
     activeQuote,
     isLoading,
@@ -90,8 +97,12 @@ export const SwapsConfirmButton = ({
     quoteFetchError,
     isNoQuotesAvailable,
     isActiveQuoteForCurrentTokenPair,
-  } = useBridgeQuoteData({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+  } = useBridgeQuoteDataContext();
+
+  const handleConfirm = useBridgeConfirm({
+    activeQuote,
+    location,
+    transactionActiveAbTests,
   });
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
@@ -154,6 +165,7 @@ export const SwapsConfirmButton = ({
     isPendingQuoteRefresh ||
     (isLoading && !activeQuote) ||
     hasInsufficientBalance ||
+    hasInsufficientNativeReserveError ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
     hasError ||
@@ -236,7 +248,8 @@ export const SwapsConfirmButton = ({
       return strings('bridge.confirm_swap');
     }
 
-    if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
+    if (hasInsufficientBalance || hasInsufficientNativeReserveError)
+      return strings('bridge.insufficient_funds');
     if (!hasSufficientGas) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
@@ -246,6 +259,7 @@ export const SwapsConfirmButton = ({
     isLoading,
     sourceAmount,
     hasInsufficientBalance,
+    hasInsufficientNativeReserveError,
     hasSufficientGas,
     isSubmittingTx,
     needsNewQuote,
