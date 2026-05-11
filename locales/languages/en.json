@@ -6592,8 +6592,10 @@
     "potential_earnings": {
       "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
+      "description_with_amounts_prefix": "Convert your {{total}} in assets and you could earn up to ",
+      "description_with_amounts_suffix": " in one year.",
       "convert": "Convert",
-      "convert_cta": "Convert",
+      "convert_cta": "Convert your crypto",
       "no_fee": "No MetaMask fee",
       "view_all": "View all",
       "view_potential_earnings": "View potential earnings"
@@ -6664,7 +6666,7 @@
     },
     "earn_crypto_info_sheet": {
       "title": "Earn on your crypto",
-      "body": "Convert eligible tokens to mUSD to start earning APY. The list below shows only assets that are currently supported for mUSD conversion."
+      "body": "Illustration assumes 4% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and may change due to various factors. No guarantee of return."
     },
     "activity": {
       "title": "Activity",

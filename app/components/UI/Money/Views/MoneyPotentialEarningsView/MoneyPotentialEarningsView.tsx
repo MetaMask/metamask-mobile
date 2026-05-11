@@ -35,7 +35,6 @@ import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
-import MoneyGradientText from '../../components/MoneyPotentialEarnings/MoneyGradientText';
 import PotentialEarningsTokenRow from '../../components/MoneyPotentialEarnings/PotentialEarningsTokenRow';
 import { isPositiveNumber } from '../../utils/number';
 import {
@@ -59,6 +58,11 @@ const MoneyPotentialEarningsView = () => {
   const eligibleTokens = useMemo(
     () => (tokens ?? []).filter((token) => tokenFiatValue(token) > 0),
     [tokens],
+  );
+
+  const totalAssetsFiat = useMemo(
+    () => eligibleTokens.reduce((sum, token) => sum + tokenFiatValue(token), 0),
+    [eligibleTokens],
   );
 
   const projectedAmount = useMemo(
@@ -163,19 +167,44 @@ const MoneyPotentialEarningsView = () => {
             {strings('money.potential_earnings.title')}
           </Text>
 
-          {isPositiveNumber(projectedAmount) && (
-            <MoneyGradientText
-              value={`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
-            />
+          {isPositiveNumber(projectedAmount) &&
+          isPositiveNumber(totalAssetsFiat) ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Regular}
+              color={TextColor.TextAlternative}
+              testID={MoneyPotentialEarningsViewTestIds.DESCRIPTION}
+            >
+              {strings(
+                'money.potential_earnings.description_with_amounts_prefix',
+                {
+                  total: moneyFormatFiat(
+                    new BigNumber(totalAssetsFiat),
+                    currentCurrency,
+                  ),
+                },
+              )}
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.SuccessDefault}
+              >
+                {`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
+              </Text>
+              {strings(
+                'money.potential_earnings.description_with_amounts_suffix',
+              )}
+            </Text>
+          ) : (
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Regular}
+              color={TextColor.TextAlternative}
+              testID={MoneyPotentialEarningsViewTestIds.DESCRIPTION}
+            >
+              {strings('money.potential_earnings.description')}
+            </Text>
           )}
-
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
-            color={TextColor.TextAlternative}
-          >
-            {strings('money.potential_earnings.description')}
-          </Text>
         </Box>
 
         {eligibleTokens.map((token) => (

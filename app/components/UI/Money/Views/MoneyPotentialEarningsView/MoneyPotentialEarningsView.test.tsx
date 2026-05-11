@@ -184,9 +184,29 @@ describe('MoneyPotentialEarningsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the description text', () => {
-    const { getByText } = renderWithProvider(<MoneyPotentialEarningsView />);
+  it('renders the parameterized description with total and projected amounts when there are eligible tokens', () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
 
+    const description = getByTestId(
+      MoneyPotentialEarningsViewTestIds.DESCRIPTION,
+    );
+    expect(description).toBeOnTheScreen();
+    expect(description).toHaveTextContent(/Convert your/);
+    expect(description).toHaveTextContent(/in one year\./);
+    // green-highlighted projected amount renders inline with a "+" prefix
+    expect(description).toHaveTextContent(/\+\$/);
+  });
+
+  it('falls back to the generic description when there are no eligible tokens', () => {
+    mockTokens = [];
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyPotentialEarningsView />,
+    );
+
+    expect(
+      getByTestId(MoneyPotentialEarningsViewTestIds.DESCRIPTION),
+    ).toBeOnTheScreen();
     expect(
       getByText(strings('money.potential_earnings.description')),
     ).toBeOnTheScreen();
