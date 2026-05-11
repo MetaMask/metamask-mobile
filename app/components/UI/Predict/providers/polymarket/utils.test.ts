@@ -244,6 +244,40 @@ describe('polymarket utils', () => {
     );
   });
 
+  it('rejects invalid CLOB market info responses without caching', async () => {
+    const validMarketInfo = {
+      fd: {
+        r: 0.02,
+        e: 1,
+        to: true,
+      },
+      mts: 1,
+      mos: 1,
+    };
+
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: 'invalid',
+          mts: '1',
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(validMarketInfo),
+      });
+
+    await expect(
+      getClobMarketInfo({ conditionId: 'condition-1' }),
+    ).rejects.toThrow('Invalid CLOB market info response');
+    await expect(
+      getClobMarketInfo({ conditionId: 'condition-1' }),
+    ).resolves.toEqual(validMarketInfo);
+
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
   it('logs CLOB market info failures once per condition ID and fails open', async () => {
     mockFetch.mockRejectedValue(new Error('network down'));
 

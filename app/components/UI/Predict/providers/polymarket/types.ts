@@ -38,14 +38,20 @@ export type ClobHeaders = {
 };
 
 export interface ClobFeeDetails {
+  /** Fee rate returned by the CLOB API, e.g. 0.02 means 2%. */
   r?: number | null;
+  /** Exponent used by the CLOB fee curve. */
   e?: number | null;
+  /** Whether taker-only fees apply for this market. */
   to?: boolean | null;
 }
 
 export interface ClobMarketInfo {
+  /** Fee details used to calculate conservative market fees. */
   fd?: ClobFeeDetails;
+  /** Minimum tick size for orders in this market. */
   mts?: number;
+  /** Minimum order size for this market. */
   mos?: number;
 }
 
