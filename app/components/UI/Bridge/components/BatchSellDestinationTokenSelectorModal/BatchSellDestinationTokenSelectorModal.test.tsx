@@ -12,8 +12,8 @@ const mockGoBack = jest.fn();
 const mockOnCloseBottomSheet = jest.fn();
 const usdcAssetId =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
-const musdAssetId =
-  'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da' as CaipAssetType;
+const usdtAssetId =
+  'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7' as CaipAssetType;
 const mockSourceToken: BridgeToken = {
   address: '0x1111111111111111111111111111111111111111',
   chainId: '0x1' as Hex,
@@ -145,10 +145,10 @@ jest.mock('react-redux', () => ({
 describe('BatchSellDestinationTokenSelectorModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectedDestinationToken = BridgeTokenMetadata[musdAssetId];
+    mockSelectedDestinationToken = BridgeTokenMetadata[usdtAssetId];
     mockDestinationStablecoins = [
       BridgeTokenMetadata[usdcAssetId],
-      BridgeTokenMetadata[musdAssetId],
+      BridgeTokenMetadata[usdtAssetId],
     ];
     mockBalancesByAssetId = {};
   });
@@ -163,7 +163,7 @@ describe('BatchSellDestinationTokenSelectorModal', () => {
     ).toBeOnTheScreen();
     expect(getByText('Select a stablecoin')).toBeOnTheScreen();
     expect(getByText('USDC')).toBeOnTheScreen();
-    expect(getByText('MUSD')).toBeOnTheScreen();
+    expect(getByText('USDT')).toBeOnTheScreen();
   });
 
   it('renders the stablecoin fiat value from wallet balances', () => {
@@ -193,7 +193,7 @@ describe('BatchSellDestinationTokenSelectorModal', () => {
     const { getByTestId } = render(<BatchSellDestinationTokenSelectorModal />);
 
     const selectedRow = getByTestId(
-      `${BatchSellDestinationTokenSelectorModalSelectorsIDs.TOKEN_ROW}-0x1:0xaca92e438df0b2401ff60da7e4337b687a2435da`,
+      `${BatchSellDestinationTokenSelectorModalSelectorsIDs.TOKEN_ROW}-0x1:0xdac17f958d2ee523a2206206994597c13d831ec7`,
     );
 
     expect(selectedRow.props.style).toContain('bg-muted');
