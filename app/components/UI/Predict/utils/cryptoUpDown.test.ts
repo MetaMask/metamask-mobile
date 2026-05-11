@@ -221,12 +221,29 @@ describe('cryptoUpDown utilities', () => {
     it('returns symbol from slug when no matching tag', () => {
       const market = createMockMarket({
         slug: 'btc-up-or-down-5m',
-        tags: ['crypto'],
+        tags: ['crypto', 'up-or-down'],
+        series: {
+          id: 's1',
+          slug: 'btc-up-or-down-5m',
+          title: 'BTC Up or Down',
+          recurrence: '5m',
+        },
       });
 
       const result = getCryptoSymbol(market);
 
       expect(result).toBe('BTC');
+    });
+
+    it('returns undefined for non-crypto slug prefixes', () => {
+      const market = createMockMarket({
+        slug: 'will-trump-win',
+        tags: ['politics'],
+      });
+
+      const result = getCryptoSymbol(market);
+
+      expect(result).toBeUndefined();
     });
 
     it('returns undefined when no matching tag and empty slug', () => {

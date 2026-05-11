@@ -248,13 +248,14 @@ export const useCryptoUpDownChartData = (
 
   useEffect(() => {
     if (
+      isCurrentMarket &&
       isLive &&
       liveLoadingRef.current &&
       typeof historicalValue === 'number'
     ) {
       setLiveValue(historicalValue);
     }
-  }, [historicalValue, isLive]);
+  }, [historicalValue, isCurrentMarket, isLive]);
 
   if (!isCurrentMarket && isLive) {
     return {

@@ -38,6 +38,16 @@ const CRYPTO_TAG_TO_SYMBOL: Record<string, string> = {
   hype: 'HYPE',
 };
 
+const CRYPTO_SLUG_PREFIX_TO_SYMBOL: Record<string, string> = {
+  btc: 'BTC',
+  eth: 'ETH',
+  sol: 'SOL',
+  xrp: 'XRP',
+  doge: 'DOGE',
+  bnb: 'BNB',
+  hype: 'HYPE',
+};
+
 /**
  * Extracts the crypto trading symbol from a market's tags.
  * Uses tag-based mapping as primary strategy, falls back to parsing the market slug.
@@ -47,8 +57,11 @@ export function getCryptoSymbol(market: PredictMarket): string | undefined {
   const tag = market.tags.find((t) => CRYPTO_TAG_TO_SYMBOL[t]);
   if (tag) return CRYPTO_TAG_TO_SYMBOL[tag];
   // Fallback: parse from slug (e.g., "btc-up-or-down-5m" → "BTC")
-  const slugPrefix = market.slug.split('-')[0];
-  return slugPrefix ? slugPrefix.toUpperCase() : undefined;
+  if (!isCryptoUpDown(market)) {
+    return undefined;
+  }
+  const slugPrefix = market.slug.split('-')[0]?.toLowerCase();
+  return slugPrefix ? CRYPTO_SLUG_PREFIX_TO_SYMBOL[slugPrefix] : undefined;
 }
 
 /**
