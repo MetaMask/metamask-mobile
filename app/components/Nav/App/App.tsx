@@ -1119,6 +1119,7 @@ const AppFlow = () => {
         component={MultichainAddressList}
         options={{
           animationEnabled: true,
+          presentation: 'card',
           cardStyle: { backgroundColor: colors.background.default },
           cardStyleInterpolator: ({ current, layouts }) => ({
             cardStyle: {
