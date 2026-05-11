@@ -8786,7 +8786,8 @@
       "perps_withdraw": "Withdrawal",
       "predict_deposit": "Add funds",
       "swap": "Swap tokens",
-      "swap_approval": "Approve tokens"
+      "swap_approval": "Approve tokens",
+      "fiat_purchase": "Cash order"
     },
     "perps_deposit_solution": "You now have {{fiat}} of USDC on Arbitrum. Try your deposit again."
   },

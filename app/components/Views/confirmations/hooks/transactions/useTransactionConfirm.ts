@@ -24,6 +24,7 @@ import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfi
 import { useHeadlessBuy } from '../../../../UI/Ramp/headless';
 import Engine from '../../../../../core/Engine';
 import type { Quote } from '../../../../UI/Ramp/types';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -46,9 +47,9 @@ export function useTransactionConfirm() {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
   const fiatPayment = useTransactionPayFiatPayment();
+  const { setIsHeadlessBuyInProgress } = useConfirmationContext();
   const isFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
-  // @ts-expect-error orderCode not available until @metamask/transaction-pay-controller dep bump
-  const orderCode = fiatPayment?.orderCode as string | undefined;
+  const orderId = fiatPayment?.orderId as string | undefined;
   const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
     useMusdConfirmNavigation();
   const { startHeadlessBuy } = useHeadlessBuy();
@@ -127,7 +128,7 @@ export function useTransactionConfirm() {
       waitForResult?: boolean;
       existingOrderId?: string;
     }) => {
-      if (isFiatPaymentSelected && !orderCode && !options?.existingOrderId) {
+      if (isFiatPaymentSelected && !orderId && !options?.existingOrderId) {
         const rampsQuote = fiatPayment?.rampsQuote as Quote | undefined;
         const assetId = fiatPayment?.caipAssetId as string | undefined;
         const amountFiat = Number(fiatPayment?.amountFiat);
@@ -141,6 +142,8 @@ export function useTransactionConfirm() {
           return;
         }
 
+        setIsHeadlessBuyInProgress(true);
+
         startHeadlessBuy(
           {
             quote: rampsQuote,
@@ -149,22 +152,22 @@ export function useTransactionConfirm() {
             paymentMethodId: fiatPayment?.selectedPaymentMethodId,
           },
           {
-            onOrderCreated: (orderId) => {
+            onOrderCreated: (orderIdFromCallback) => {
               if (!transactionMetadata?.id) {
                 return;
               }
               Engine.context.TransactionPayController.updateFiatPayment({
                 transactionId: transactionMetadata.id,
                 callback: (fp) => {
-                  fp.orderId = orderId;
+                  fp.orderId = orderIdFromCallback;
                 },
               });
             },
             onError: (error) => {
-              log('OGP - Headless ramp error', error);
+              setIsHeadlessBuyInProgress(false);
             },
             onClose: (info) => {
-              log('OGP - Headless ramp session closed', info);
+              setIsHeadlessBuyInProgress(false);
             },
           },
         );
@@ -231,7 +234,8 @@ export function useTransactionConfirm() {
       navigation,
       musdConversionNavigateOnConfirm,
       onRequestConfirm,
-      orderCode,
+      orderId,
+      setIsHeadlessBuyInProgress,
       selectedGasFeeToken,
       startHeadlessBuy,
       transactionMetadata,
