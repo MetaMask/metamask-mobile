@@ -106,7 +106,7 @@ module.exports = {
       // injects expo-updates meta-data with an incomplete URL into the repacked
       // APK, causing expo-updates to attempt an OTA fetch on launch, fail, and
       // crash the app before Detox can connect.
-      enabled: process.env.E2E !== 'true',
+      enabled: process.env.METAMASK_ENVIRONMENT !== 'e2e',
       codeSigningCertificate: CODE_SIGNING_CERTS[OTA_ENV],
       codeSigningMetadata: {
         keyid: CODE_SIGNING_KEYIDS[OTA_ENV],
