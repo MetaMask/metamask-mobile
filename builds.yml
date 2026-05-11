@@ -239,7 +239,6 @@ builds:
       METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'main'
       IS_BROWSERSTACK_BUILD: 'true'
-      E2E_MOCK_OAUTH: 'true'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       RAMP_INTERNAL_BUILD: 'true'
     secrets:

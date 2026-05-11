@@ -131,6 +131,7 @@ jobs:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: |
+          set +e  # Don't exit on error — attempt both uploads independently
           echo "Uploading IPAs to BrowserStack..."
 
           # Initialize outputs
@@ -139,74 +140,94 @@ jobs:
             echo "without-srp-ipa-uploaded=false"
           } >> "$GITHUB_OUTPUT"
 
+          WITH_SRP_APP_URL=""
+          WITHOUT_SRP_APP_URL=""
+          WITH_SRP_ERROR=""
+          WITHOUT_SRP_ERROR=""
+
           # Find the IPA files (build.yml renames them; find the single .ipa in each directory)
           WITH_SRP_IPA=$(find artifacts/with-srp -name "*.ipa" | head -1)
           WITHOUT_SRP_IPA=$(find artifacts/without-srp -name "*.ipa" | head -1)
 
-          if [ -z "$WITH_SRP_IPA" ]; then
-            echo "❌ With-SRP IPA not found in artifacts/with-srp"
-            exit 1
-          fi
-          if [ -z "$WITHOUT_SRP_IPA" ]; then
-            echo "❌ Without-SRP IPA not found in artifacts/without-srp"
-            exit 1
-          fi
-
           # Upload with-SRP IPA
-          echo "Uploading with-SRP IPA: $WITH_SRP_IPA"
-          WITH_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
-            -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
-            -F "file=@$WITH_SRP_IPA" \
-            -F "custom_id=MetaMask-iOS-With-SRP-${{ github.run_id }}")
+          if [ -n "$WITH_SRP_IPA" ]; then
+            echo "Uploading with-SRP IPA: $WITH_SRP_IPA"
+            WITH_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+              -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+              -F "file=@$WITH_SRP_IPA" \
+              -F "custom_id=MetaMask-iOS-With-SRP-${{ github.run_id }}")
 
-          WITH_SRP_APP_URL=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_url')
-          WITH_SRP_APP_ID=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_id')
+            WITH_SRP_APP_URL=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_url // empty')
+            WITH_SRP_APP_ID=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_id // empty')
 
-          if [ -z "$WITH_SRP_APP_URL" ] || [ "$WITH_SRP_APP_URL" = "null" ]; then
-            echo "❌ BrowserStack upload failed for with-SRP IPA"
-            echo "Response: $WITH_SRP_RESPONSE"
-            exit 1
+            if [ -n "$WITH_SRP_APP_URL" ]; then
+              echo "✅ With-SRP IPA uploaded"
+              echo "  App URL: $WITH_SRP_APP_URL"
+              echo "  App ID:  $WITH_SRP_APP_ID"
+              {
+                echo "with-srp-browserstack-url=$WITH_SRP_APP_URL"
+                echo "with-srp-app-id=$WITH_SRP_APP_ID"
+                echo "with-srp-version=${{ needs.build-with-srp.outputs.semantic_version }}"
+                echo "with-srp-ipa-uploaded=true"
+              } >> "$GITHUB_OUTPUT"
+            else
+              WITH_SRP_ERROR="BrowserStack upload failed"
+              echo "❌ With-SRP: $WITH_SRP_ERROR"
+              echo "Response: $WITH_SRP_RESPONSE"
+            fi
+          else
+            WITH_SRP_ERROR="IPA not found in artifacts/with-srp"
+            echo "❌ With-SRP: $WITH_SRP_ERROR"
           fi
-
-          echo "✅ With-SRP IPA uploaded"
-          echo "  App URL: $WITH_SRP_APP_URL"
-          echo "  App ID:  $WITH_SRP_APP_ID"
-
-          {
-            echo "with-srp-browserstack-url=$WITH_SRP_APP_URL"
-            echo "with-srp-app-id=$WITH_SRP_APP_ID"
-            echo "with-srp-version=${{ needs.build-with-srp.outputs.semantic_version }}"
-            echo "with-srp-ipa-uploaded=true"
-          } >> "$GITHUB_OUTPUT"
 
           # Upload without-SRP IPA
-          echo "Uploading without-SRP IPA: $WITHOUT_SRP_IPA"
-          WITHOUT_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
-            -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
-            -F "file=@$WITHOUT_SRP_IPA" \
-            -F "custom_id=MetaMask-iOS-Without-SRP-${{ github.run_id }}")
+          if [ -n "$WITHOUT_SRP_IPA" ]; then
+            echo "Uploading without-SRP IPA: $WITHOUT_SRP_IPA"
+            WITHOUT_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+              -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+              -F "file=@$WITHOUT_SRP_IPA" \
+              -F "custom_id=MetaMask-iOS-Without-SRP-${{ github.run_id }}")
 
-          WITHOUT_SRP_APP_URL=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_url')
-          WITHOUT_SRP_APP_ID=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_id')
+            WITHOUT_SRP_APP_URL=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_url // empty')
+            WITHOUT_SRP_APP_ID=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_id // empty')
 
-          if [ -z "$WITHOUT_SRP_APP_URL" ] || [ "$WITHOUT_SRP_APP_URL" = "null" ]; then
-            echo "❌ BrowserStack upload failed for without-SRP IPA"
-            echo "Response: $WITHOUT_SRP_RESPONSE"
-            exit 1
+            if [ -n "$WITHOUT_SRP_APP_URL" ]; then
+              echo "✅ Without-SRP IPA uploaded"
+              echo "  App URL: $WITHOUT_SRP_APP_URL"
+              echo "  App ID:  $WITHOUT_SRP_APP_ID"
+              {
+                echo "without-srp-browserstack-url=$WITHOUT_SRP_APP_URL"
+                echo "without-srp-app-id=$WITHOUT_SRP_APP_ID"
+                echo "without-srp-version=${{ needs.build-without-srp.outputs.semantic_version }}"
+                echo "without-srp-ipa-uploaded=true"
+              } >> "$GITHUB_OUTPUT"
+            else
+              WITHOUT_SRP_ERROR="BrowserStack upload failed"
+              echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
+              echo "Response: $WITHOUT_SRP_RESPONSE"
+            fi
+          else
+            WITHOUT_SRP_ERROR="IPA not found in artifacts/without-srp"
+            echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
           fi
 
-          echo "✅ Without-SRP IPA uploaded"
-          echo "  App URL: $WITHOUT_SRP_APP_URL"
-          echo "  App ID:  $WITHOUT_SRP_APP_ID"
-
-          {
-            echo "without-srp-browserstack-url=$WITHOUT_SRP_APP_URL"
-            echo "without-srp-app-id=$WITHOUT_SRP_APP_ID"
-            echo "without-srp-version=${{ needs.build-without-srp.outputs.semantic_version }}"
-            echo "without-srp-ipa-uploaded=true"
-          } >> "$GITHUB_OUTPUT"
-
+          # Summary
           echo ""
           echo "=== BrowserStack Upload Summary ==="
-          echo "✅ With-SRP URL:    $WITH_SRP_APP_URL"
-          echo "✅ Without-SRP URL: $WITHOUT_SRP_APP_URL"
+          if [ -n "$WITH_SRP_APP_URL" ]; then
+            echo "✅ With-SRP URL:    $WITH_SRP_APP_URL"
+          else
+            echo "❌ With-SRP: FAILED — ${WITH_SRP_ERROR:-unknown error}"
+          fi
+          if [ -n "$WITHOUT_SRP_APP_URL" ]; then
+            echo "✅ Without-SRP URL: $WITHOUT_SRP_APP_URL"
+          else
+            echo "❌ Without-SRP: FAILED — ${WITHOUT_SRP_ERROR:-unknown error}"
+          fi
+
+          # Fail only if BOTH uploads failed
+          if [ -z "$WITH_SRP_APP_URL" ] && [ -z "$WITHOUT_SRP_APP_URL" ]; then
+            echo ""
+            echo "❌ Both IPA uploads failed. Failing step."
+            exit 1
+          fi

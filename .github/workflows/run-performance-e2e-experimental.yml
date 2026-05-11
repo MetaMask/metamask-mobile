@@ -61,6 +61,6 @@ jobs:
     if: needs.check-experimental-trigger.outputs.should-run == 'true'
     with:
       branch_name: main
-      build_variant: e2e
+      build_variant: exp
       sentry_target: ${{ inputs.sentry_target || 'test' }}
     secrets: inherit
