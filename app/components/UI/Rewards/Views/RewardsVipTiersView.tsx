@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { ScrollView } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   HeaderStandard,
@@ -8,17 +8,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
-import {
-  selectIsCurrentSubscriptionVipEnabled,
-  selectRewardsSubscriptionId,
-} from '../../../../selectors/rewards';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
-import { useVipDashboard } from '../hooks/useVipDashboard';
-import RewardsErrorBanner from '../components/RewardsErrorBanner';
+import { useVipViewGuard } from '../hooks/useVipViewGuard';
+import VipErrorBanner from '../components/Vip/VipErrorBanner';
 import VipTierRow from '../components/Vip/VipTierRow';
 
 export const REWARDS_VIP_TIERS_VIEW_TEST_IDS = {
@@ -31,35 +24,14 @@ export const REWARDS_VIP_TIERS_VIEW_TEST_IDS = {
 const RewardsVipTiersView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
-  const canViewVip = Boolean(subscriptionId && isVipEnabled);
 
-  const {
-    dashboard,
-    isLoading,
-    hasError,
-    hasAttemptedFetch,
-    fetchVipDashboard,
-  } = useVipDashboard();
-
-  useTrackRewardsPageView({
-    page_type: 'vip_tiers',
-    enabled: canViewVip,
-  });
-
-  useEffect(() => {
-    if (!canViewVip) {
-      navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
-    }
-  }, [canViewVip, navigation]);
+  const { canViewVip, dashboard, showSkeleton, showError, fetchVipDashboard } =
+    useVipViewGuard('vip_tiers');
 
   if (!canViewVip) {
     return null;
   }
 
-  const showSkeleton = (!hasAttemptedFetch || isLoading) && !dashboard;
-  const showError = hasError && !dashboard;
   const tiers = dashboard?.tiers ?? [];
   const nextTierId = dashboard?.nextTier?.id;
 
@@ -86,11 +58,8 @@ const RewardsVipTiersView: React.FC = () => {
               ))}
             </Box>
           ) : showError ? (
-            <RewardsErrorBanner
-              title={strings('rewards.vip.error_title')}
-              description={strings('rewards.vip.error_description')}
-              onConfirm={fetchVipDashboard}
-              confirmButtonLabel={strings('rewards.vip.retry_button')}
+            <VipErrorBanner
+              onRetry={fetchVipDashboard}
               testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.ERROR}
             />
           ) : (
