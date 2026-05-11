@@ -213,6 +213,9 @@ export const createLivelineChartTemplate = (
             if (currentProps && currentProps.window) {
               liveData = trimLivelineData(liveData, currentProps.window);
             }
+            if (!currentProps) {
+              break;
+            }
             var t0 = performance.now();
             render();
             var t1 = performance.now();

@@ -81,6 +81,19 @@ describe('LivelineChartTemplate', () => {
       'mergeLivelineData(liveData, incoming.data)',
     );
   });
+
+  it('does not render appended points before SET_PROPS initializes props', () => {
+    const { createLivelineChartTemplate } = jest.requireActual(
+      '../LivelineChartTemplate',
+    );
+    const theme = {
+      colors: { background: { default: 'white' } },
+    };
+
+    expect(createLivelineChartTemplate(theme, '', '', '')).toContain(
+      'if (!currentProps) {',
+    );
+  });
 });
 
 // ---- component tests ----

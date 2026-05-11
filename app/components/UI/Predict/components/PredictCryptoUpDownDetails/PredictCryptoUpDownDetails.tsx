@@ -159,9 +159,14 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     ? durationSecs * 1000
     : 5 * 60 * 1000;
   const selectedEndDateMs = getEndDateTime(selectedMarket.endDate);
-  const [currentWindowMs, setCurrentWindowMs] = useState(() =>
-    getCurrentWindowMs(durationMs),
-  );
+  const [currentWindowState, setCurrentWindowState] = useState(() => ({
+    durationMs,
+    windowMs: getCurrentWindowMs(durationMs),
+  }));
+  const currentWindowMs =
+    currentWindowState.durationMs === durationMs
+      ? currentWindowState.windowMs
+      : getCurrentWindowMs(durationMs);
   const { endDateMin, endDateMax } = useMemo(() => {
     const seriesWindowAnchorMs = Math.max(
       currentWindowMs,
@@ -238,12 +243,18 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
           return;
         }
 
-        setCurrentWindowMs(getCurrentWindowMs(durationMs));
+        setCurrentWindowState({
+          durationMs,
+          windowMs: getCurrentWindowMs(durationMs),
+        });
         scheduleNextWindowRefresh();
       }, timeUntilNextWindow);
     };
 
-    setCurrentWindowMs(getCurrentWindowMs(durationMs));
+    setCurrentWindowState({
+      durationMs,
+      windowMs: getCurrentWindowMs(durationMs),
+    });
     scheduleNextWindowRefresh();
 
     return () => {

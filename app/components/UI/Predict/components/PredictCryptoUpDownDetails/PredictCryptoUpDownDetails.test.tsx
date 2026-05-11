@@ -576,6 +576,60 @@ describe('PredictCryptoUpDownDetails', () => {
     }
   });
 
+  it('uses the selected recurrence window immediately when recurrence changes', () => {
+    const now = Date.UTC(2026, 0, 1, 0, 7, 0);
+    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
+    const fiveMinuteMarket = createMockMarket({
+      id: 'market-5m',
+      endDate: undefined,
+      series: {
+        id: 's1',
+        slug: 'btc-up-or-down-5m',
+        title: 'BTC Up or Down - 5 Minutes',
+        recurrence: '5m',
+      },
+    });
+    const fifteenMinuteMarket = createMockMarket({
+      id: 'market-15m',
+      endDate: undefined,
+      series: {
+        id: 's1',
+        slug: 'btc-up-or-down-15m',
+        title: 'BTC Up or Down - 15 Minutes',
+        recurrence: '15m',
+      },
+    });
+    mockUsePredictSeries.mockReturnValue({
+      data: [fiveMinuteMarket, fifteenMinuteMarket],
+    });
+
+    try {
+      render(
+        <PredictCryptoUpDownDetails
+          market={fiveMinuteMarket}
+          onBack={mockOnBack}
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('mock-time-slot-market-15m'));
+
+      const selectedQueryParams =
+        mockUsePredictSeries.mock.calls[
+          mockUsePredictSeries.mock.calls.length - 1
+        ][0];
+      const expectedWindowStart = Date.UTC(2026, 0, 1, 0, 0, 0);
+
+      expect(new Date(selectedQueryParams.endDateMin).getTime()).toBe(
+        expectedWindowStart - 3 * 15 * 60 * 1000,
+      );
+      expect(new Date(selectedQueryParams.endDateMax).getTime()).toBe(
+        expectedWindowStart + 10 * 15 * 60 * 1000,
+      );
+    } finally {
+      dateNowSpy.mockRestore();
+    }
+  });
+
   it('anchors the series query window to the selected slot instead of the prop market', () => {
     const now = Date.UTC(2026, 0, 1, 0, 0, 0);
     const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
