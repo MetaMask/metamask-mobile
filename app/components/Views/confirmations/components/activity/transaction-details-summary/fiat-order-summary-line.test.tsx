@@ -128,4 +128,21 @@ describe('FiatOrderSummaryLine', () => {
       expect.stringContaining('Pending'),
     );
   });
+
+  it('renders order details button when fiatOrderId exists', () => {
+    const { getByTestId } = render();
+
+    expect(getByTestId('block-explorer-button')).toBeDefined();
+  });
+
+  it('does not render order details button when fiatOrderId is missing', () => {
+    const txWithoutFiatOrder = {
+      ...PARENT_TRANSACTION,
+      metamaskPay: {},
+    } as unknown as TransactionMeta;
+
+    const { queryByTestId } = render(txWithoutFiatOrder);
+
+    expect(queryByTestId('block-explorer-button')).toBeNull();
+  });
 });

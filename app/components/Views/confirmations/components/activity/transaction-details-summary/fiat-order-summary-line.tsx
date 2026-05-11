@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import Routes from '../../../../../../constants/navigation/Routes';
 import I18n, { strings } from '../../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import { ProgressListItem } from '../../progress-list';
@@ -11,6 +14,7 @@ export function FiatOrderSummaryLine({
 }: {
   parentTransaction: TransactionMeta;
 }) {
+  const navigation = useNavigation();
   const { fiatOrderId, fiatProvider } = parentTransaction.metamaskPay ?? {};
   const walletAddress = parentTransaction.txParams.from;
 
@@ -35,8 +39,21 @@ export function FiatOrderSummaryLine({
 
   const subtitle = formatSubtitle(parentTransaction.time, statusText);
 
+  const handleOrderDetailsPress = useCallback(() => {
+    navigation.navigate(Routes.RAMP.RAMPS_ORDER_DETAILS, {
+      orderId: fiatOrderId,
+      showCloseButton: true,
+    });
+  }, [navigation, fiatOrderId]);
+
   return (
-    <ProgressListItem title={title} subtitle={subtitle} severity={severity} />
+    <ProgressListItem
+      title={title}
+      subtitle={subtitle}
+      severity={severity}
+      buttonIcon={fiatOrderId ? IconName.Export : undefined}
+      onButtonPress={fiatOrderId ? handleOrderDetailsPress : undefined}
+    />
   );
 }
 
