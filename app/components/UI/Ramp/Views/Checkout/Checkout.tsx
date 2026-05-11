@@ -434,7 +434,7 @@ const Checkout = () => {
       const durationMs = Date.now() - loadStartTimeRef.current;
       loadStartTimeRef.current = null;
       lastLoadCompleteUrlRef.current = redactedLoadedUrl;
-      const loadSuccess = !loadUrlErrorsRef.current.has(loadedUrl);
+      const loadSuccess = !loadUrlErrorsRef.current.delete(loadedUrl);
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETED)
