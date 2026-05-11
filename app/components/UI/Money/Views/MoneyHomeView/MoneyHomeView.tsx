@@ -9,6 +9,7 @@ import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
+import MoneyEarnings from '../../components/MoneyEarnings';
 import MoneyMusdTokenRow from '../../components/MoneyMusdTokenRow';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
@@ -29,6 +30,7 @@ import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMon
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
+import { calculateProjectedEarnings } from '../../utils/projections';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
@@ -78,6 +80,37 @@ const MoneyHomeView = () => {
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
   const isCardholderWithMilestone = isMilestone && isCardholder;
+
+  const formattedZero = useMemo(
+    () => moneyFormatFiat(new BigNumber(0), currentCurrency),
+    [currentCurrency],
+  );
+
+  const monthlyEarnings = useMemo(() => {
+    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    const balance = new BigNumber(totalFiatRaw);
+    if (balance.isZero() || balance.isNaN()) return formattedZero;
+    const earnings = calculateProjectedEarnings(
+      balance.toNumber(),
+      apyPercent,
+      1 / 12,
+    );
+    if (!Number.isFinite(earnings)) return formattedZero;
+    return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
+
+  const yearlyEarnings = useMemo(() => {
+    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    const balance = new BigNumber(totalFiatRaw);
+    if (balance.isZero() || balance.isNaN()) return formattedZero;
+    const earnings = calculateProjectedEarnings(
+      balance.toNumber(),
+      apyPercent,
+      1,
+    );
+    if (!Number.isFinite(earnings)) return formattedZero;
+    return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   // When the user has already deposited (non-zero Money balance), surface the
   // current total balance in the Earn-on-crypto headline instead of the
@@ -131,6 +164,12 @@ const MoneyHomeView = () => {
       params: { apy: apyPercent },
     });
   }, [navigation, apyPercent]);
+
+  const handleEarningsInfoPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
+    });
+  }, [navigation]);
 
   const handleEarnCryptoInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -248,6 +287,13 @@ const MoneyHomeView = () => {
           currentStep={isMilestone ? 2 : 1}
           variant={isCardholderWithMilestone ? 'link-card' : 'get-card'}
           onCtaPress={handleOnboardingCtaPress}
+        />
+        <Divider />
+        <MoneyEarnings
+          monthlyEarnings={monthlyEarnings}
+          yearlyEarnings={yearlyEarnings}
+          isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
+          onInfoPress={handleEarningsInfoPress}
         />
         <Divider />
         {!isMilestone && (

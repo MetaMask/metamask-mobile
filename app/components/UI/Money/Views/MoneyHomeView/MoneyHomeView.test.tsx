@@ -7,6 +7,7 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import { MoneyHeaderTestIds } from '../../components/MoneyHeader/MoneyHeader.testIds';
 import { MoneyBalanceSummaryTestIds } from '../../components/MoneyBalanceSummary/MoneyBalanceSummary.testIds';
 import { MoneyActionButtonRowTestIds } from '../../components/MoneyActionButtonRow/MoneyActionButtonRow.testIds';
+import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
 import { MoneyOnboardingCardTestIds } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard.testIds';
 import { MoneyHowItWorksTestIds } from '../../components/MoneyHowItWorks/MoneyHowItWorks.testIds';
 import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings.testIds';
@@ -253,6 +254,12 @@ describe('MoneyHomeView', () => {
     expect(getByTestId(MoneyOnboardingCardTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
+  it('renders the earnings section', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
+  });
+
   it('hides the how it works section in filled state', () => {
     const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
     expect(
@@ -347,6 +354,16 @@ describe('MoneyHomeView', () => {
     });
   });
 
+  it('opens the earnings info sheet when the earnings info button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneySectionHeaderTestIds.INFO_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
+    });
+  });
+
   it('opens the earn-crypto info sheet when the section info button is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -392,6 +409,52 @@ describe('MoneyHomeView', () => {
 
     expect(mockOpenURL).toHaveBeenCalledTimes(1);
     mockOpenURL.mockRestore();
+  });
+
+  describe('monthly and yearly earnings', () => {
+    it('passes the formatted monthly earnings to MoneyEarnings', () => {
+      mockMoneyFormatFiat.mockReturnValue('$0.12');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyEarningsTestIds.MONTHLY_VALUE)).toHaveTextContent(
+        '$0.12',
+      );
+    });
+
+    it('passes the formatted yearly earnings to MoneyEarnings', () => {
+      mockMoneyFormatFiat.mockReturnValue('$0.12');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyEarningsTestIds.YEARLY_VALUE)).toHaveTextContent(
+        '$0.12',
+      );
+    });
+
+    it('displays the zero-formatted value for monthly earnings when totalFiatRaw is absent', () => {
+      mockMoneyFormatFiat.mockReturnValue('$0.00');
+      mockUseMoneyAccountBalance.mockReturnValue({
+        totalFiatFormatted: undefined,
+        musdFiatFormatted: undefined,
+        musdSHFvdFiatFormatted: undefined,
+        totalFiatRaw: undefined,
+        tokenTotal: undefined,
+        isAggregatedBalanceLoading: false,
+        apyDecimal: 0.05,
+        apyPercent: 5,
+        apyPercentFormatted: '5%',
+        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
+        musdBalanceQuery: { data: undefined, isLoading: false },
+        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyEarningsTestIds.MONTHLY_VALUE)).toHaveTextContent(
+        '$0.00',
+      );
+    });
   });
 
   describe('milestone state (1-9 transactions)', () => {
@@ -506,6 +569,11 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(MoneyActionButtonRowTestIds.CONTAINER),
       ).toBeOnTheScreen();
+    });
+
+    it('renders the earnings section', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
     it('renders the activity list', () => {
