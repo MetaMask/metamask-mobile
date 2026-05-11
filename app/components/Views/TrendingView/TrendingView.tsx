@@ -70,9 +70,8 @@ interface ExploreFeedRouteParams {
 
 const useExploreTabNavigationEffect = (opts: {
   tabsListRef: React.RefObject<TabsListRef | null>;
-  handleTabChange: (params: { i: number }) => void;
 }) => {
-  const { tabsListRef, handleTabChange } = opts;
+  const { tabsListRef } = opts;
   const route =
     useRoute<RouteProp<{ params: ExploreFeedRouteParams }, 'params'>>();
   const { setParams } = useNavigation();
@@ -86,10 +85,9 @@ const useExploreTabNavigationEffect = (opts: {
         return;
       }
 
-      handleTabChange({ i: initialTabIndex });
       tabsListRef.current?.goToTabIndex(initialTabIndex);
       setParams?.({ initialTab: null });
-    }, [initialTabIndex, setParams, handleTabChange, tabsListRef]),
+    }, [initialTabIndex, setParams, tabsListRef]),
   );
 };
 
@@ -100,6 +98,9 @@ export const ExploreFeed: React.FC = () => {
   const tabProps = useExploreRefresh();
   const tabsListRef = useRef<TabsListRef>(null);
   const sessionManager = TrendingFeedSessionManager.getInstance();
+
+  // Handle tab navigation from route params
+  useExploreTabNavigationEffect({ tabsListRef });
 
   // Initialize session and enable AppState listener on mount
   useEffect(() => {
@@ -160,8 +161,6 @@ export const ExploreFeed: React.FC = () => {
     });
     previousTabRef.current = destinationTab;
   }, []);
-
-  useExploreTabNavigationEffect({ handleTabChange, tabsListRef });
 
   return (
     <SafeAreaView
