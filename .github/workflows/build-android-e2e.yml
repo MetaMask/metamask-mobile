@@ -71,6 +71,7 @@ jobs:
             .yarn/cache
             ${{ env.GRADLE_USER_HOME }}/caches
             ${{ env.GRADLE_USER_HOME }}/wrapper
+            ${{ env.GRADLE_USER_HOME }}/apk-cache
 
       - name: Report source fingerprint
         run: |
@@ -107,7 +108,6 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' }}
         shell: bash
         env:
-          CACHE_DIR: ${{ github.workspace }}/../.namespace-apk-cache
           APK_TARGET: ${{ steps.determine-target-paths.outputs.apk-target-path }}
           TEST_APK_TARGET: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
           ARTIFACT_NAME: ${{ steps.determine-target-paths.outputs.artifact_name }}
