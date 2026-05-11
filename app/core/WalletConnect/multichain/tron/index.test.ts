@@ -440,7 +440,7 @@ describe('multichain/tron - buildTronNamespace', () => {
       proposal: {
         requiredNamespaces: { tron: { chains: ['tron:728126428'] } },
       },
-      existingTronAccounts: ['tron:728126428:TExistingAddress'],
+      existingAccounts: ['tron:728126428:TExistingAddress'],
     });
 
     expect(result?.accounts).toStrictEqual(['tron:728126428:TExistingAddress']);
@@ -454,8 +454,8 @@ describe('multichain/tron - buildTronNamespace', () => {
       proposal: {
         optionalNamespaces: { tron: { chains: ['tron:728126428'] } },
       },
-      existingTronMethods: ['tron_customMethod'],
-      existingTronEvents: ['tron_customEvent'],
+      existingMethods: ['tron_customMethod'],
+      existingEvents: ['tron_customEvent'],
     });
 
     expect(result?.methods).toStrictEqual(['tron_customMethod']);
@@ -469,7 +469,7 @@ describe('multichain/tron - buildTronNamespace', () => {
           tron: { chains: ['tron:728126428', 'tron:0x94a9059e'] },
         },
       },
-      existingTronAccounts: ['tron:728126428:TAddrA'],
+      existingAccounts: ['tron:728126428:TAddrA'],
     });
 
     expect(result?.accounts).toStrictEqual([

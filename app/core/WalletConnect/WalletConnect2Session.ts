@@ -45,7 +45,6 @@ import {
   getChainIdForCaipChainId,
   getHostname,
   normalizeDappUrl,
-  normalizeCaipChainIdInbound,
   getChainChangedEmissionForWalletConnect,
   shouldEmitChainChangedForWalletConnect,
 } from './wc-utils';
@@ -55,6 +54,8 @@ import {
   mapRequestForSnap,
   normalizeSnapResponse,
   proposalReferencedAdapterNamespaces,
+  normalizeCaipChainIdInbound,
+  type NamespaceConfig,
 } from './multichain';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { errorCodes, providerErrors, rpcErrors } from '@metamask/rpc-errors';
@@ -507,7 +508,10 @@ class WalletConnect2Session {
           requiredNamespaces: this.session.requiredNamespaces,
           optionalNamespaces: this.session.optionalNamespaces,
         },
-        existingNamespaces: mergedNamespaces,
+        existingNamespaces: mergedNamespaces as Record<
+          string,
+          Partial<NamespaceConfig>
+        >,
       });
       Object.assign(mergedNamespaces, adapterSlices);
 
@@ -744,7 +748,7 @@ class WalletConnect2Session {
     }
 
     const method = requestEvent.params.request.method;
-    const rawRequestChainId = requestEvent.params.chainId;
+    const rawRequestChainId = requestEvent.params.chainId as CaipChainId;
     if (typeof rawRequestChainId !== 'string') {
       this._isHandlingRequest = false;
       return this.web3Wallet.respondSessionRequest({

@@ -14,6 +14,7 @@
 
 import { TrxAccountType, TrxScope } from '@metamask/keyring-api';
 import {
+  type CaipChainId,
   type CaipAccountId,
   KnownCaipNamespace,
   parseCaipAccountId,
@@ -28,12 +29,11 @@ import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import Engine from '../../../Engine';
 import { addPermittedAccounts } from '../../../Permissions';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import type { ChainAdapter } from '../types';
-
-interface SnapMappedRequest {
-  method: string;
-  params: unknown;
-}
+import type {
+  ChainAdapter,
+  NamespaceConfig,
+  SnapMappedRequest,
+} from '../types';
 
 /** WalletConnect methods the wallet exposes for the Tron namespace. */
 const TRON_METHODS: string[] = ['tron_signTransaction', 'tron_signMessage'];
@@ -43,11 +43,11 @@ const TRON_EVENTS: readonly string[] = [];
 
 /** CAIP-2 prefix used to identify Tron chain ids in proposals. */
 const TRON_PREFIX = 'tron:';
-const DEFAULT_TRON_CHAIN_ID = 'tron:0x2b6653dc';
+const DEFAULT_TRON_CHAIN_ID: CaipChainId = 'tron:0x2b6653dc';
 
-export const normalizeCaipChainIdInboundForWalletConnectTron = (
-  caipChainId: string,
-): string => {
+export const normalizeCaipChainIdInboundTron = (
+  caipChainId: CaipChainId,
+): CaipChainId => {
   if (!caipChainId.startsWith(TRON_PREFIX)) {
     return caipChainId;
   }
@@ -58,9 +58,9 @@ export const normalizeCaipChainIdInboundForWalletConnectTron = (
   return caipChainId;
 };
 
-export const normalizeCaipChainIdOutboundForWalletConnectTron = (
-  caipChainId: string,
-): string => {
+export const normalizeCaipChainIdOutboundTron = (
+  caipChainId: CaipChainId,
+): CaipChainId => {
   if (!caipChainId.startsWith(TRON_PREFIX)) {
     return caipChainId;
   }
@@ -75,13 +75,13 @@ export const normalizeCaipChainIdOutboundForWalletConnectTron = (
 };
 
 export const getCompatibleTronCaipChainIdsForWalletConnect = (
-  caipChainId: string,
-): string[] =>
+  caipChainId: CaipChainId,
+): CaipChainId[] =>
   Array.from(
     new Set([
       caipChainId,
-      normalizeCaipChainIdInboundForWalletConnectTron(caipChainId),
-      normalizeCaipChainIdOutboundForWalletConnectTron(caipChainId),
+      normalizeCaipChainIdInboundTron(caipChainId),
+      normalizeCaipChainIdOutboundTron(caipChainId),
     ]),
   );
 
@@ -102,17 +102,6 @@ export interface TronProposalLike {
 }
 
 /**
- * Shape of a single namespace slice in WalletConnect's approved
- * namespaces map. Mirrors `SessionTypes.Namespace` but kept loose.
- */
-export interface TronNamespaceSlice {
-  chains: string[];
-  methods: string[];
-  events: string[];
-  accounts: `${string}:${string}:${string}`[];
-}
-
-/**
  * List Tron EOA addresses currently managed by the wallet.
  */
 const listTronEoaAddresses = (): string[] =>
@@ -125,8 +114,8 @@ export const buildTronScopedPermissionsNamespace = ({
   permittedChains,
 }: {
   channelId: string;
-  permittedChains: string[];
-}): TronNamespaceSlice | undefined => {
+  permittedChains: CaipChainId[];
+}): NamespaceConfig | undefined => {
   const tronChains = permittedChains
     .filter((chain) => chain.startsWith(`${KnownCaipNamespace.Tron}:`))
     .flatMap((chain) => getCompatibleTronCaipChainIdsForWalletConnect(chain));
@@ -152,7 +141,8 @@ export const buildTronScopedPermissionsNamespace = ({
             if (parsedAccount.chain.namespace !== KnownCaipNamespace.Tron) {
               return [account];
             }
-            const chainId = `${parsedAccount.chain.namespace}:${parsedAccount.chain.reference}`;
+            const chainId =
+              `${parsedAccount.chain.namespace}:${parsedAccount.chain.reference}` as CaipChainId;
             return getCompatibleTronCaipChainIdsForWalletConnect(chainId).map(
               (compatibleChainId) =>
                 `${compatibleChainId}:${parsedAccount.address}`,
@@ -467,7 +457,9 @@ export const seedTronPermissions = (channelId: string): void => {
  * plus any bare `tron:<ref>` chain reference appearing under any
  * other namespace key.
  */
-const collectRequestedTronChains = (proposal: TronProposalLike): string[] => {
+const collectRequestedTronChains = (
+  proposal: TronProposalLike,
+): CaipChainId[] => {
   const allNamespaces = {
     ...(proposal.optionalNamespaces ?? {}),
     ...(proposal.requiredNamespaces ?? {}),
@@ -476,7 +468,7 @@ const collectRequestedTronChains = (proposal: TronProposalLike): string[] => {
   const bare = Object.values(allNamespaces).flatMap(
     (ns) => ns?.chains?.filter((chain) => chain.startsWith(TRON_PREFIX)) ?? [],
   );
-  return Array.from(new Set([...direct, ...bare]));
+  return Array.from(new Set([...direct, ...bare])) as CaipChainId[];
 };
 
 /**
@@ -499,15 +491,15 @@ export const proposalReferencesTron = (proposal: TronProposalLike): boolean =>
  */
 export const buildTronNamespace = ({
   proposal,
-  existingTronAccounts = [],
-  existingTronMethods,
-  existingTronEvents,
+  existingAccounts = [],
+  existingMethods,
+  existingEvents,
 }: {
   proposal: TronProposalLike;
-  existingTronAccounts?: string[];
-  existingTronMethods?: string[];
-  existingTronEvents?: string[];
-}): TronNamespaceSlice | undefined => {
+  existingAccounts?: string[];
+  existingMethods?: string[];
+  existingEvents?: string[];
+}): NamespaceConfig | undefined => {
   if (!proposalReferencesTron(proposal)) {
     return undefined;
   }
@@ -527,7 +519,7 @@ export const buildTronNamespace = ({
 
   const existingAddresses = Array.from(
     new Set(
-      existingTronAccounts
+      existingAccounts
         .map((account) => {
           const parts = account.split(':');
           return parts.length >= 3 ? parts.slice(2).join(':') : '';
@@ -541,20 +533,18 @@ export const buildTronNamespace = ({
     new Set([...existingAddresses, ...fallbackAddresses]),
   );
 
-  const slice: TronNamespaceSlice = {
+  const slice: NamespaceConfig = {
     chains: tronChains,
     methods:
       requestedTronMethods.length > 0
         ? requestedTronMethods
-        : (existingTronMethods ?? [...TRON_METHODS]),
+        : (existingMethods ?? [...TRON_METHODS]),
     events:
       requestedTronEvents.length > 0
         ? requestedTronEvents
-        : (existingTronEvents ?? [...TRON_EVENTS]),
+        : (existingEvents ?? [...TRON_EVENTS]),
     accounts: tronAddresses.flatMap((address) =>
-      tronChains.map(
-        (chainId) => `${chainId}:${address}` as `${string}:${string}:${string}`,
-      ),
+      tronChains.map((chainId) => `${chainId}:${address}` as CaipAccountId),
     ),
   };
 
@@ -582,7 +572,7 @@ export const buildTronNamespace = ({
  * dispatcher can treat Tron the same as any future non-EVM chain.
  */
 export const tronAdapter: ChainAdapter = {
-  namespace: 'tron',
+  namespace: KnownCaipNamespace.Tron,
   redirectMethods: ['tron_signTransaction', 'tron_signMessage'],
   proposalReferencesNamespace: proposalReferencesTron,
   onBeforeApprove: ({ proposal, channelId }) => {
@@ -591,18 +581,10 @@ export const tronAdapter: ChainAdapter = {
     }
     seedTronPermissions(channelId);
   },
-  buildNamespace: ({
-    proposal,
-    existingAccounts,
-    existingMethods,
-    existingEvents,
-  }) =>
-    buildTronNamespace({
-      proposal,
-      existingTronAccounts: existingAccounts,
-      existingTronMethods: existingMethods,
-      existingTronEvents: existingEvents,
-    }),
+  buildScopedPermissionsNamespace: buildTronScopedPermissionsNamespace,
+  buildNamespace: buildTronNamespace,
+  normalizeCaipChainIdInbound: normalizeCaipChainIdInboundTron,
+  normalizeCaipChainIdOutbound: normalizeCaipChainIdOutboundTron,
   mapRequestForSnap: mapTronRequestForSnap,
   normalizeSnapResponse: normalizeTronSnapResponse,
 };

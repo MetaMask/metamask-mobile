@@ -1,8 +1,8 @@
 import {
   getRedirectMethodsForChain,
   mapRequestForSnap,
-  normalizeCaipChainIdInboundForWalletConnect,
-  normalizeCaipChainIdOutboundForWalletConnect,
+  normalizeCaipChainIdInbound,
+  normalizeCaipChainIdOutbound,
   normalizeSnapResponse,
 } from './index';
 import type { ChainAdapter } from './types';
@@ -149,20 +149,18 @@ describe('getRedirectMethodsForChain', () => {
 
 describe('CAIP chain id normalization helpers', () => {
   it('normalizes tron hex chain ids inbound to decimal', () => {
-    expect(normalizeCaipChainIdInboundForWalletConnect('tron:0x2b6653dc')).toBe(
+    expect(normalizeCaipChainIdInbound('tron:0x2b6653dc')).toBe(
       'tron:728126428',
     );
   });
 
   it('normalizes tron decimal chain ids outbound to hex', () => {
-    expect(normalizeCaipChainIdOutboundForWalletConnect('tron:728126428')).toBe(
+    expect(normalizeCaipChainIdOutbound('tron:728126428')).toBe(
       'tron:0x2b6653dc',
     );
   });
 
   it('keeps non-numeric tron chain references unchanged outbound', () => {
-    expect(normalizeCaipChainIdOutboundForWalletConnect('tron:mainnet')).toBe(
-      'tron:mainnet',
-    );
+    expect(normalizeCaipChainIdOutbound('tron:mainnet')).toBe('tron:mainnet');
   });
 });

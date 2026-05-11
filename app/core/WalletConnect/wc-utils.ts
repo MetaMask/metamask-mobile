@@ -20,11 +20,7 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
 import { WalletKitTypes } from '@reown/walletkit';
 import { APPROVED_METHODS_BY_NAMESPACE } from './wc-config';
-import {
-  buildAdapterScopedPermissionsNamespaces,
-  normalizeCaipChainIdInboundForWalletConnect as normalizeCaipChainIdInboundFromMultichain,
-  normalizeCaipChainIdOutboundForWalletConnect as normalizeCaipChainIdOutboundFromMultichain,
-} from './multichain';
+import { buildAdapterScopedPermissionsNamespaces } from './multichain';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -231,38 +227,6 @@ export const waitForNetworkModalOnboarding = async ({
     }
   }
 };
-
-/**
- * Normalizes a CAIP-2 chain ID coming FROM WalletConnect to MetaMask's internal format.
- * Dispatches per namespace — add a new chain block below to handle future format mismatches.
- *
- * All conversions are currently no-ops (commented out per chain) until dApps adopt
- * the canonical formats from ChainAgnostic/namespaces.
- */
-export const normalizeCaipChainIdInbound = (caipChainId: string): string =>
-  normalizeCaipChainIdInboundForWalletConnect(caipChainId);
-
-/**
- * Normalizes a CAIP-2 chain ID going TO WalletConnect from MetaMask's internal format.
- * Dispatches per namespace — add a new chain block below to handle future format mismatches.
- *
- * All conversions are currently no-ops (commented out per chain) until dApps adopt
- * the canonical formats from ChainAgnostic/namespaces.
- */
-export const normalizeCaipChainIdOutbound = (caipChainId: string): string =>
-  normalizeCaipChainIdOutboundForWalletConnect(caipChainId);
-
-export function normalizeCaipChainIdInboundForWalletConnect(
-  caipChainId: string,
-): string {
-  return normalizeCaipChainIdInboundFromMultichain(caipChainId);
-}
-
-export function normalizeCaipChainIdOutboundForWalletConnect(
-  caipChainId: string,
-): string {
-  return normalizeCaipChainIdOutboundFromMultichain(caipChainId);
-}
 
 export const getScopedPermissions = async ({
   channelId,

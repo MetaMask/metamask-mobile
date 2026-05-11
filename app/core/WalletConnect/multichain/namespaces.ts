@@ -8,12 +8,15 @@
  * specific chain.
  */
 
+import type { KnownCaipNamespace } from '@metamask/utils';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 import { getAllAdapters } from './registry';
 import type { NamespaceConfig, ProposalLike } from './types';
 
-export type ApprovedNamespaces = Record<string, NamespaceConfig>;
+export type ApprovedNamespaces = Partial<
+  Record<KnownCaipNamespace, NamespaceConfig>
+>;
 
 /**
  * Run every adapter's pre-approval hook for the given session proposal.
@@ -61,14 +64,14 @@ export const buildAdapterNamespaces = ({
   const namespaces: ApprovedNamespaces = {};
   for (const adapter of getAllAdapters()) {
     const existing = existingNamespaces[adapter.namespace];
-    const slice = adapter.buildNamespace({
+    const config = adapter.buildNamespace({
       proposal,
       existingAccounts: existing?.accounts,
       existingMethods: existing?.methods,
       existingEvents: existing?.events,
     });
-    if (slice) {
-      namespaces[adapter.namespace] = slice;
+    if (config) {
+      namespaces[adapter.namespace] = config;
     }
   }
   return namespaces;

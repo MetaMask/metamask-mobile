@@ -10,9 +10,6 @@ import {
   normalizeDappUrl,
   isValidUrl,
   getUnverifiedRequestOrigin,
-  normalizeCaipChainIdInboundForWalletConnect,
-  normalizeCaipChainIdOutboundForWalletConnect,
-  getCompatibleTronCaipChainIdsForWalletConnect,
   getChainChangedEmissionForWalletConnect,
   shouldEmitChainChangedForWalletConnect,
 } from './wc-utils';
@@ -470,92 +467,6 @@ describe('WalletConnect Utils', () => {
           defaultOrigin,
         ),
       ).toBe(defaultOrigin);
-    });
-  });
-
-  describe('normalizeCaipChainIdOutboundForWalletConnect', () => {
-    it('rewrites tron decimal references to hex form for WalletConnect', () => {
-      const input = 'tron:728126428';
-
-      const result = normalizeCaipChainIdOutboundForWalletConnect(input);
-
-      expect(result).toBe('tron:0x2b6653dc');
-    });
-
-    it('keeps tron hex references unchanged', () => {
-      const input = 'tron:0x2b6653dc';
-
-      const result = normalizeCaipChainIdOutboundForWalletConnect(input);
-
-      expect(result).toBe('tron:0x2b6653dc');
-    });
-
-    it('returns eip155 chain ids unchanged', () => {
-      const input = 'eip155:1';
-
-      const result = normalizeCaipChainIdOutboundForWalletConnect(input);
-
-      expect(result).toBe('eip155:1');
-    });
-
-    it('returns non-numeric tron references unchanged', () => {
-      const input = 'tron:mainnet';
-
-      const result = normalizeCaipChainIdOutboundForWalletConnect(input);
-
-      expect(result).toBe('tron:mainnet');
-    });
-  });
-
-  describe('normalizeCaipChainIdInboundForWalletConnect', () => {
-    it('rewrites tron hex references to decimal form for the wallet', () => {
-      const input = 'tron:0x2b6653dc';
-
-      const result = normalizeCaipChainIdInboundForWalletConnect(input);
-
-      expect(result).toBe('tron:728126428');
-    });
-
-    it('keeps tron decimal references unchanged', () => {
-      const input = 'tron:728126428';
-
-      const result = normalizeCaipChainIdInboundForWalletConnect(input);
-
-      expect(result).toBe('tron:728126428');
-    });
-
-    it('returns eip155 chain ids unchanged', () => {
-      const input = 'eip155:137';
-
-      const result = normalizeCaipChainIdInboundForWalletConnect(input);
-
-      expect(result).toBe('eip155:137');
-    });
-  });
-
-  describe('getCompatibleTronCaipChainIdsForWalletConnect', () => {
-    it('returns decimal chain id followed by its hex equivalent', () => {
-      const input = 'tron:728126428';
-
-      const result = getCompatibleTronCaipChainIdsForWalletConnect(input);
-
-      expect(result).toStrictEqual(['tron:728126428', 'tron:0x2b6653dc']);
-    });
-
-    it('returns hex chain id followed by its decimal equivalent', () => {
-      const input = 'tron:0x2b6653dc';
-
-      const result = getCompatibleTronCaipChainIdsForWalletConnect(input);
-
-      expect(result).toStrictEqual(['tron:0x2b6653dc', 'tron:728126428']);
-    });
-
-    it('returns only the input chain id for non-tron namespaces', () => {
-      const input = 'eip155:1';
-
-      const result = getCompatibleTronCaipChainIdsForWalletConnect(input);
-
-      expect(result).toStrictEqual(['eip155:1']);
     });
   });
 

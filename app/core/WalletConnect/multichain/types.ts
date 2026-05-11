@@ -1,3 +1,9 @@
+import type {
+  CaipChainId,
+  KnownCaipNamespace,
+  CaipAccountId,
+} from '@metamask/utils';
+
 /**
  * Shared types for the WalletConnect non-EVM (multichain) adapter layer.
  *
@@ -16,19 +22,14 @@
 
 /** Shape of a single namespace slice in WalletConnect's approved namespaces map. */
 export interface NamespaceConfig {
-  chains: string[];
+  chains: CaipChainId[];
   methods: string[];
   events: string[];
-  /**
-   * CAIP-10 account ids: `${namespace}:${chainRef}:${address}`.
-   * Kept as `string[]` (rather than a template-literal type) so this
-   * matches `SessionTypes.Namespace.accounts` which is a plain string[].
-   */
-  accounts: string[];
+  accounts: CaipAccountId[];
 }
 
 /** Snap-shaped request after WC method translation. */
-export interface SnapMappedRequest {
+export interface SnapMappedRequest<Param = unknown> {
   method: string;
   params: unknown;
 }
@@ -67,7 +68,7 @@ export interface BuildNamespaceArgs {
  */
 export interface ChainAdapter {
   /** CAIP-2 namespace this adapter handles ('tron', 'solana', ...). */
-  namespace: string;
+  namespace: KnownCaipNamespace;
 
   /**
    * Methods in this namespace that should redirect the user back to the
@@ -94,11 +95,34 @@ export interface ChainAdapter {
   }): void | Promise<void>;
 
   /**
+   * Build this chain's namespace slice from the wallet's current state
+   * What the wallet is *capable of exposing* for this channel, independent of
+   * any dapp proposal.
+   */
+  buildScopedPermissionsNamespace({
+    channelId,
+    permittedChains,
+  }: {
+    channelId: string;
+    permittedChains: CaipChainId[];
+  }): NamespaceConfig | undefined;
+
+  /**
    * Build this chain's namespace slice for the WC session. Return
    * `undefined` to skip (e.g. proposal doesn't reference us, or no
    * accounts available).
    */
   buildNamespace(args: BuildNamespaceArgs): NamespaceConfig | undefined;
+
+  /**
+   * Normalize a CAIP chain id from WC into the shape the Snap expects.
+   */
+  normalizeCaipChainIdInbound(caipChainId: CaipChainId): CaipChainId;
+
+  /**
+   * Normalize a CAIP chain id from the Snap back into the shape WC expects.
+   */
+  normalizeCaipChainIdOutbound(caipChainId: CaipChainId): CaipChainId;
 
   /** Maps a WC-shaped request into the Snap's expected shape. */
   mapRequestForSnap(args: {

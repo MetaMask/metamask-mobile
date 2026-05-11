@@ -10,18 +10,14 @@
  * specific chain (`./tron`, `./solana`, ...) directly.
  */
 
-import { getAdapter } from './registry';
 import type { NamespaceConfig, SnapMappedRequest } from './types';
 import {
-  CaipAccountId,
-  CaipChainId,
-  Json,
-  KnownCaipNamespace,
+  parseCaipChainId,
+  type CaipAccountId,
+  type CaipChainId,
+  type Json,
 } from '@metamask/utils';
 import Engine from '../../Engine';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
-import { buildTronScopedPermissionsNamespace } from './tron';
-///: END:ONLY_INCLUDE_IF
 
 export {
   buildAdapterNamespaces,
@@ -29,6 +25,7 @@ export {
   seedAdapterPermissions,
 } from './namespaces';
 export type { ApprovedNamespaces } from './namespaces';
+import { getAdapter, getAllAdapters } from './registry';
 export {
   getAdapter,
   getAllAdapters,
@@ -42,55 +39,59 @@ export type {
   SnapMappedRequest,
 } from './types';
 
-const splitNamespace = (scope: string): string => scope.split(':')[0];
-
+/**
+ * Build this chain's namespace slice from the wallet's current state
+ * What the wallet is *capable of exposing* for this channel, independent of
+ * any dapp proposal.
+ */
 export const buildAdapterScopedPermissionsNamespaces = ({
   channelId,
   permittedChains,
 }: {
   channelId: string;
-  permittedChains: string[];
+  permittedChains: CaipChainId[];
 }): Record<string, NamespaceConfig> => {
   const namespaces: Record<string, NamespaceConfig> = {};
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const tronNamespace = buildTronScopedPermissionsNamespace({
-    channelId,
-    permittedChains,
-  });
-  if (tronNamespace) {
-    namespaces[KnownCaipNamespace.Tron] = tronNamespace;
+  for (const adapter of getAllAdapters()) {
+    const config = adapter.buildScopedPermissionsNamespace({
+      channelId,
+      permittedChains,
+    });
+    if (config) {
+      namespaces[adapter.namespace] = config;
+    }
   }
-  ///: END:ONLY_INCLUDE_IF
   return namespaces;
 };
 
-export const normalizeCaipChainIdInboundForWalletConnect = (
-  caipChainId: string,
-): string => {
-  if (!caipChainId.startsWith(`${KnownCaipNamespace.Tron}:`)) {
-    return caipChainId;
+/**
+ * Normalize a CAIP chain id from WC into the shape the Snap expects.
+ */
+export const normalizeCaipChainIdInbound = (
+  caipChainId: CaipChainId,
+): CaipChainId => {
+  for (const adapter of getAllAdapters()) {
+    if (caipChainId.startsWith(`${adapter.namespace}:`)) {
+      return adapter.normalizeCaipChainIdInbound(caipChainId);
+    }
   }
-  const chainRef = caipChainId.slice(`${KnownCaipNamespace.Tron}:`.length);
-  if (!chainRef.startsWith('0x')) {
-    return caipChainId;
-  }
-  return `${KnownCaipNamespace.Tron}:${parseInt(chainRef, 16)}`;
+
+  return caipChainId;
 };
 
-export const normalizeCaipChainIdOutboundForWalletConnect = (
-  caipChainId: string,
-): string => {
-  if (!caipChainId.startsWith(`${KnownCaipNamespace.Tron}:`)) {
-    return caipChainId;
+/**
+ * Normalize a CAIP chain id from the Snap back into the shape WC expects.
+ */
+export const normalizeCaipChainIdOutbound = (
+  caipChainId: CaipChainId,
+): CaipChainId => {
+  for (const adapter of getAllAdapters()) {
+    if (caipChainId.startsWith(`${adapter.namespace}:`)) {
+      return adapter.normalizeCaipChainIdOutbound(caipChainId);
+    }
   }
-  const chainRef = caipChainId.slice(`${KnownCaipNamespace.Tron}:`.length);
-  if (chainRef.startsWith('0x')) {
-    return caipChainId;
-  }
-  if (!/^\d+$/.test(chainRef)) {
-    return caipChainId;
-  }
-  return `${KnownCaipNamespace.Tron}:0x${parseInt(chainRef, 10).toString(16)}`;
+
+  return caipChainId;
 };
 
 /**
@@ -103,11 +104,12 @@ export const mapRequestForSnap = ({
   method,
   params,
 }: {
-  scope: string;
+  scope: CaipChainId;
   method: string;
   params: unknown;
 }): SnapMappedRequest => {
-  const adapter = getAdapter(splitNamespace(scope));
+  const { namespace } = parseCaipChainId(scope);
+  const adapter = getAdapter(namespace);
   return adapter
     ? adapter.mapRequestForSnap({ method, params })
     : { method, params };
@@ -123,12 +125,13 @@ export const normalizeSnapResponse = ({
   params,
   result,
 }: {
-  scope: string;
+  scope: CaipChainId;
   method: string;
   params: unknown;
   result: unknown;
 }): unknown => {
-  const adapter = getAdapter(splitNamespace(scope));
+  const { namespace } = parseCaipChainId(scope);
+  const adapter = getAdapter(namespace);
   return adapter
     ? adapter.normalizeSnapResponse({ method, params, result })
     : result;
@@ -136,9 +139,10 @@ export const normalizeSnapResponse = ({
 
 /** Methods (across all chains) that should redirect the user back to the dapp. */
 export const getRedirectMethodsForChain = (
-  scope: string,
+  scope: CaipChainId,
 ): readonly string[] => {
-  const adapter = getAdapter(splitNamespace(scope));
+  const { namespace } = parseCaipChainId(scope);
+  const adapter = getAdapter(namespace);
   return adapter?.redirectMethods ?? [];
 };
 
