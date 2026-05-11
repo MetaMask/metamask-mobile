@@ -912,7 +912,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "../scripts/ios/configure-ats.sh\n";
+			shellScript = "# Define script\nCONFIGURE_ATS=\"../scripts/ios/configure-ats.sh\"\n\n# Give permissions to script\nchmod +x $CONFIGURE_ATS\n\n# Run script\n$CONFIGURE_ATS\n";
 		};
 		E6DF8EB7C7F8301263C260CE /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
