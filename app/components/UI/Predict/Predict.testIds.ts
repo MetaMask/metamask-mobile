@@ -143,6 +143,7 @@ export const PredictCryptoUpDownDetailsSelectorsIDs = {
   SHARE_BUTTON: 'predict-crypto-up-down-details-share-button',
   SCROLL_VIEW: 'predict-crypto-up-down-details-scroll-view',
   TITLE_SECTION: 'predict-crypto-up-down-details-title-section',
+  PRICE_SUMMARY: 'predict-crypto-up-down-details-price-summary',
 } as const;
 
 export const PredictMarketDetailsSelectorsText = {
