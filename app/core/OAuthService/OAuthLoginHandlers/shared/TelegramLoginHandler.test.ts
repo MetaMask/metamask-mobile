@@ -252,13 +252,11 @@ describe('TelegramLoginHandler', () => {
           { status: 200 },
         ),
       );
-      jest
-        .spyOn(global, 'fetch')
-        .mockResolvedValueOnce(
-          new Response(JSON.stringify({ token_type: 'Bearer' }), {
-            status: 200,
-          }),
-        );
+      jest.spyOn(global, 'fetch').mockResolvedValueOnce(
+        new Response(JSON.stringify({ token_type: 'Bearer' }), {
+          status: 200,
+        }),
+      );
 
       await expect(
         handler.getAuthTokens(codeVerifierOnly, baseOptions.authServerUrl),
