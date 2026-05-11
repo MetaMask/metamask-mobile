@@ -50,7 +50,7 @@ export async function importNewSecretRecoveryPhrase(
   });
   const entropySource = wallet.entropySource;
 
-  const [newAccountAddress] = await KeyringController.withKeyring(
+  const [newAccount] = await KeyringController.withKeyringV2(
     {
       id: entropySource,
     },
@@ -80,7 +80,7 @@ export async function importNewSecretRecoveryPhrase(
     } catch (error) {
       await MultichainAccountService.removeMultichainAccountWallet(
         entropySource,
-        newAccountAddress,
+        newAccount.address,
       );
 
       const errorMessage =
@@ -129,7 +129,7 @@ export async function importNewSecretRecoveryPhrase(
     } finally {
       // We trigger the callback with the results, even in case of error (0 discovered accounts)
       await callback?.({
-        address: newAccountAddress,
+        address: newAccount.address,
         discoveredAccountsCount,
         error: capturedError,
       });
@@ -137,26 +137,10 @@ export async function importNewSecretRecoveryPhrase(
   })();
 
   if (shouldSelectAccount) {
-    Engine.setSelectedAddress(newAccountAddress);
+    Engine.setSelectedAddress(newAccount.address);
   }
 
-  return { address: newAccountAddress, discoveredAccountsCount };
-}
-
-export async function createNewSecretRecoveryPhrase() {
-  const { KeyringController } = Engine.context;
-  const newHdkeyring = await KeyringController.addNewKeyring(
-    ExtendedKeyringTypes.hd,
-  );
-
-  const [newAccountAddress] = await KeyringController.withKeyring(
-    {
-      id: newHdkeyring.id,
-    },
-    async ({ keyring }) => keyring.getAccounts(),
-  );
-
-  return Engine.setSelectedAddress(newAccountAddress);
+  return { address: newAccount.address, discoveredAccountsCount };
 }
 
 export async function addNewHdAccount(

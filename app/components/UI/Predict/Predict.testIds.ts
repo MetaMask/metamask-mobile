@@ -265,6 +265,7 @@ export const getPredictSearchSelector = {
 
 export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
+  WITHDRAW_BUTTON: 'predict-balance-withdraw-button',
 } as const;
 
 export const PredictBalanceSelectorsText = {
