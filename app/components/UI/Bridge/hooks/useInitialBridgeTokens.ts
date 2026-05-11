@@ -6,7 +6,7 @@ import { useBalancesByAssetId } from './useBalancesByAssetId';
 import { tokenMatchesQuery, tokenToIncludeAsset } from '../utils/tokenUtils';
 import { getBaseSemVerVersion } from '../../../../util/version';
 import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { selectAllowedChainRanking } from '../../../../core/redux/slices/bridge';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import type { IncludeAsset, PopularToken } from '../types';
@@ -30,8 +30,6 @@ export const useInitialBridgeTokens = (
   chainIds?: CaipChainId[],
   searchString?: string,
 ) => {
-  const dispatch = useDispatch();
-
   const [bearerToken, setBearerToken] = useState<string | null>(null);
 
   const enabledChainRanking = useSelector(selectAllowedChainRanking);

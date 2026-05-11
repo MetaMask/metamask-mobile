@@ -119,7 +119,7 @@ export const useSearchTokens = ({
           requestBody.after = cursor;
         }
 
-        if (includeAssetsRef.current) {
+        if (includeAssetsRef.current && !isPagination) {
           requestBody.includeAssets = includeAssetsRef.current;
         }
 

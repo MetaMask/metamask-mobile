@@ -47,7 +47,6 @@ import {
   selectIsNonEvmNonEvmBridge,
   selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
-import { SecurityDataType } from '../../types';
 import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { IconName as CLIconName } from '../../../../../component-library/components/Icons/Icon';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
@@ -59,7 +58,7 @@ import {
 } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import { BridgeViewMode } from '../../types';
+import { BridgeViewMode, SecurityDataType } from '../../types';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
