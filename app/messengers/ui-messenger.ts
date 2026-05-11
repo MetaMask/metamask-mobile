@@ -72,6 +72,13 @@ export type UIMessengerEvents = WithJsonPayload<
 
 const UI_MESSENGER_NAMESPACE = 'UI';
 
+// `UIMessenger` is a subclass of `Messenger` rather than a type alias because
+// it functions as a denylist rather than an allowlist.
+//
+// Although it is a "child" of the root messenger, it does not expect to be set
+// up using the conventional delegation pattern. Rather, it delegates all
+// actions and events to the root messenger by default, using an exclusion list
+// to guard action delegation in particular.
 export class UIMessenger extends Messenger<
   typeof UI_MESSENGER_NAMESPACE,
   UIMessengerActions,
