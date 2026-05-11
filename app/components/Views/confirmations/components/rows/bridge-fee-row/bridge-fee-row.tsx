@@ -29,6 +29,8 @@ import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { Json } from '@metamask/utils';
+import { useConfirmationContext } from '../../../context/confirmation-context';
+import { IconColor } from '../../../../../../component-library/components/Icons/Icon/Icon.types';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -37,6 +39,7 @@ export function BridgeFeeRow() {
   const totals = useTransactionPayTotals();
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
+  const { isHeadlessBuyInProgress } = useConfirmationContext();
 
   return (
     <TransactionFeeRow
@@ -45,6 +48,8 @@ export function BridgeFeeRow() {
       transactionMeta={transactionMetadata}
       hasAlert={hasAlert}
       isLoading={isLoading}
+      tooltipDisabled={isHeadlessBuyInProgress}
+      isDisabled={isHeadlessBuyInProgress}
     />
   );
 }
@@ -55,12 +60,16 @@ function TransactionFeeRow({
   quotes,
   totals,
   isLoading,
+  tooltipDisabled,
+  isDisabled,
 }: {
   transactionMeta: TransactionMeta;
   hasAlert: boolean;
   quotes?: TransactionPayQuote<Json>[];
   totals?: TransactionPayTotals;
   isLoading: boolean;
+  tooltipDisabled?: boolean;
+  isDisabled?: boolean;
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
@@ -84,6 +93,13 @@ function TransactionFeeRow({
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
 
+  const labelColor = isDisabled ? TextColor.Muted : undefined;
+  const valueColor = isDisabled
+    ? TextColor.Muted
+    : hasAlert
+      ? TextColor.Error
+      : TextColor.Alternative;
+
   return (
     <AlertRow
       testID="bridge-fee-row"
@@ -95,11 +111,14 @@ function TransactionFeeRow({
         ) : undefined
       }
       tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
+      tooltipDisabled={tooltipDisabled}
+      tooltipColor={isDisabled ? IconColor.Muted : undefined}
       rowVariant={InfoRowVariant.Small}
+      variant={labelColor}
     >
       <Text
         variant={TextVariant.BodyMD}
-        color={hasAlert ? TextColor.Error : TextColor.Alternative}
+        color={valueColor}
         testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
       >
         {feeTotalUsd}

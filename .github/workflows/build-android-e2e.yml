@@ -18,12 +18,7 @@ on:
       metamask_environment:
         description: 'The environment to build for'
         required: false
-        default: 'qa'
-        type: string
-      keystore_target:
-        description: 'The target to use for the keystore'
-        required: false
-        default: 'qa'
+        default: 'e2e'
         type: string
       source-fingerprint:
         description: >-
@@ -198,7 +193,6 @@ jobs:
           setup-simulator: false
           configure-keystores: true
           install-foundry: false
-          target: ${{ inputs.keystore_target }} # qa for target=main, flask for target=flask
 
       # The Namespace cache action above already includes `.metamask`, so the
       # dedicated actions/cache restore is only needed on non-Namespace runners.
