@@ -246,7 +246,7 @@
     "@metamask/client-controller": "^1.0.1",
     "@metamask/compliance-controller": "2.0.0",
     "@metamask/connectivity-controller": "^0.1.0",
-    "@metamask/controller-utils": "^12.0.0",
+    "@metamask/controller-utils": "^11.18.0",
     "@metamask/core-backend": "^6.2.0",
     "@metamask/delegation-controller": "^2.0.2",
     "@metamask/delegation-deployments": "^1.0.0",
