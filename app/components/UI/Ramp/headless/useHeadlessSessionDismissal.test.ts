@@ -11,6 +11,29 @@ import type { Quote } from '../types';
 
 import { useHeadlessSessionDismissal } from './useHeadlessSessionDismissal';
 
+// Default mock: navigator has no HEADLESS_HOST in its routes, so the dismissal
+// cleanup treats unmount as a real user dismissal and closes the session.
+// Tests covering the stack-rebuild guard override `mockGetState` per-test.
+interface MockRoute {
+  name: string;
+  state?: { routes: MockRoute[] };
+}
+const mockGetState = jest.fn<{ routes: MockRoute[] }, []>(() => ({
+  routes: [],
+}));
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ getState: mockGetState }),
+}));
+
+jest.mock('../../../../constants/navigation/Routes', () => ({
+  __esModule: true,
+  default: {
+    RAMP: {
+      HEADLESS_HOST: 'RampHeadlessHost',
+    },
+  },
+}));
+
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn(), log: jest.fn() },
@@ -48,6 +71,7 @@ function buildCallbacks(): HeadlessBuyCallbacks {
 beforeEach(() => {
   __resetSessionRegistryForTests();
   jest.clearAllMocks();
+  mockGetState.mockReturnValue({ routes: [] });
 });
 
 describe('useHeadlessSessionDismissal', () => {
@@ -203,5 +227,96 @@ describe('useHeadlessSessionDismissal', () => {
     );
 
     expect(() => unmount()).not.toThrow();
+  });
+
+  describe('stack-rebuild guard', () => {
+    it('skips close when HEADLESS_HOST is still a direct route after unmount', () => {
+      const callbacks = buildCallbacks();
+      const session = createSession(baseParams, callbacks);
+
+      // Simulate `useTransakRouting.navigateToWebviewModalCallback` rebuilding
+      // the stack: HEADLESS_HOST is re-pinned at the base, Checkout is on top.
+      // The old HEADLESS_HOST instance unmounts but the user is still in the
+      // headless flow.
+      mockGetState.mockReturnValue({
+        routes: [{ name: 'RampHeadlessHost' }, { name: 'Checkout' }],
+      });
+
+      const { unmount } = renderHook(
+        (id: string | undefined) => useHeadlessSessionDismissal(id),
+        { initialProps: session.id },
+      );
+
+      unmount();
+
+      expect(callbacks.onClose).not.toHaveBeenCalled();
+    });
+
+    it('skips close when HEADLESS_HOST appears in a nested navigator state', () => {
+      const callbacks = buildCallbacks();
+      const session = createSession(baseParams, callbacks);
+
+      mockGetState.mockReturnValue({
+        routes: [
+          {
+            name: 'RampTokenSelection',
+            state: {
+              routes: [{ name: 'RampHeadlessHost' }, { name: 'Checkout' }],
+            },
+          },
+        ],
+      });
+
+      const { unmount } = renderHook(
+        (id: string | undefined) => useHeadlessSessionDismissal(id),
+        { initialProps: session.id },
+      );
+
+      unmount();
+
+      expect(callbacks.onClose).not.toHaveBeenCalled();
+    });
+
+    it('still closes when HEADLESS_HOST is absent from the navigator state (true dismissal)', () => {
+      const callbacks = buildCallbacks();
+      const session = createSession(baseParams, callbacks);
+
+      mockGetState.mockReturnValue({
+        routes: [{ name: 'WalletView' }],
+      });
+
+      const { unmount } = renderHook(
+        (id: string | undefined) => useHeadlessSessionDismissal(id),
+        { initialProps: session.id },
+      );
+
+      unmount();
+
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+      expect(callbacks.onClose).toHaveBeenCalledWith({
+        reason: 'user_dismissed',
+      });
+    });
+
+    it('falls through to close when getState throws (navigator torn down)', () => {
+      const callbacks = buildCallbacks();
+      const session = createSession(baseParams, callbacks);
+
+      mockGetState.mockImplementation(() => {
+        throw new Error('navigator unmounted');
+      });
+
+      const { unmount } = renderHook(
+        (id: string | undefined) => useHeadlessSessionDismissal(id),
+        { initialProps: session.id },
+      );
+
+      unmount();
+
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+      expect(callbacks.onClose).toHaveBeenCalledWith({
+        reason: 'user_dismissed',
+      });
+    });
   });
 });

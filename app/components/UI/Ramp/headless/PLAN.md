@@ -18,7 +18,7 @@
 - [x] **Phase 8** — Cancellation + `onClose` semantics (including user-dismissed detection)
 - [ ] **Phase 9** — Expose `getOrder` / `refreshOrder` from hook and show in playground (now an MVP requirement — see Phase 9 Update)
 - [ ] **Phase 9.5** — HeadlessHost visual treatment (transparent or bottom-sheet) — driven by the May 6 design thread
-- [ ] **Phase 10** — Implement deferred Phase 5b + playground polish
+- [ ] **Phase 10** — Implement deferred Phase 5b + playground polish + navigation/state cleanups + headless toast suppression
 
 ---
 
@@ -628,6 +628,10 @@ Deliverable: HeadlessHost is invisible (or bottom-sheet) and MMPay's TPC renders
 > Goal 1 (primary): implement the deferred Phase 5b — `startHeadlessBuy({ assetId, amount, paymentMethodId, providerId? })` raw-params start mode, where the Host fetches quotes itself and auto-picks one. See the existing "Phase 5b (deferred)" section above for the full spec.
 >
 > Goal 2 (secondary): playground polish — the bullets below.
+>
+> Goal 3 (secondary): clean up two React Navigation warnings (nested-screen descriptor + non-serializable route param) surfaced during Phase 8 — the bullets below.
+>
+> Goal 4 (secondary): close the global-toast leak that Phase 7 missed — suppress `showV2OrderToast` for headless orders in the background order processor. Bullets below.
 
 ### Goal 1 — implement Phase 5b (raw-params start mode)
 
@@ -640,6 +644,26 @@ Deliverable: HeadlessHost is invisible (or bottom-sheet) and MMPay's TPC renders
 - Pretty-print session events (`onOrderCreated`, `onError`, `onClose`) in a scrolling log panel.
 - Persist the last playground input to `AsyncStorage` to speed iteration.
 - Add a quick "Try aggregator" vs "Try native" preset pair (preset = a hardcoded `{ amount, paymentMethodId, providerId }` triple that pre-fills the sandbox inputs and triggers `getQuotes`).
+
+### Goal 3 — Navigation / state cleanups (surfaced during Phase 8)
+
+Two React Navigation warnings surface from the existing headless wiring. Both are pre-existing, non-blocking for Phase 8's bypass fix, but each carries a real (if narrow) failure mode. Address as part of Phase 10 since both touch the same `startHeadlessBuy` → `HeadlessHost` → `Checkout` path Phase 5b will be re-walking.
+
+- **Flatten the `startHeadlessBuy` nested-screen descriptor.** [useHeadlessBuy.ts:183-191](useHeadlessBuy.ts#L183-L191) currently produces a navigation tree with three `RampTokenSelection` levels (`Main > RampTokenSelection > RampTokenSelection > RampTokenSelection`), triggering React Navigation's "Found screens with the same name nested inside one another" warning. The in-code comment describes a two-level descriptor (outer mount in `MainNavigator` + RootStack slot wrapping `MainRoutes`); something is over-wrapping. Investigate whether the descriptor itself adds an extra `screen` level or whether `RAMP.TOKEN_SELECTION` is registered at an extra slot. **Risk if left:** ambiguous `navigation.navigate('RampTokenSelection')` targets, `useNavigation()` returning a different navigator than expected, and fragile `navigation.reset` behavior — any of which can hide real bugs.
+- **Move `Checkout`'s `onNavigationStateChange` callback out of route params.** [useTransakRouting.ts:483-494](../hooks/useTransakRouting.ts#L483-L494) stashes `handleNavigationStateChange` (the Transak WebView redirect handler) as a Checkout route param, producing the "Non-serializable values were found in the navigation state ... `Checkout > params.onNavigationStateChange (Function)`" warning. **Risk if left:** if the app is killed mid-Checkout (OOM, swipe-to-close) and React Navigation restores state, the function reference is gone — the WebView redirect would fire with no handler, the order would be created server-side but the headless consumer would never get `onOrderCreated` (and so never get `onClose`). Suggested fix shape: register the redirect handler in the session registry keyed by `headlessSessionId`, then look it up in `Checkout` at WebView mount time instead of capturing it in route params. The same shape can replace any other "function-via-route-param" instances under the ramp stack.
+
+### Goal 4 — Suppress the global order toast for headless orders (Phase 7 follow-up)
+
+After a headless buy completes, the global FiatOrders background processor still fires `showV2OrderToast` ("Your purchase of X ETH was successful") when the order's polled state transitions to `Completed`. Phase 7 audited the in-flow toast call sites (`Checkout.tsx`, `useTransakRouting.ts`) and added `getSession(headlessSessionId)` guards there, but missed the global processor in [index.tsx:62-77](../index.tsx#L62-L77), which runs at the FiatOrders level and has no access to the headless session id. By the time it runs the session is already terminated (Phase 6 closed it with `'completed'` immediately after `onOrderCreated`), so consulting the session registry isn't viable either.
+
+**Fix shape — stamp the order on creation.** In the Phase 6 bypass paths in [Checkout.tsx:212-225](../Views/Checkout/Checkout.tsx#L212-L225) and [useTransakRouting.ts:321-353](../hooks/useTransakRouting.ts#L321-L353) (and the manual-bank-transfer success path at [useTransakRouting.ts:605-609](../hooks/useTransakRouting.ts#L605-L609)), add a `headless: true` (or `headlessSessionId: id`) field to the order object before `addOrder(...)`. The flag survives Redux persistence and lives with the order itself. In `processFiatOrder` ([index.tsx:62-77](../index.tsx#L62-L77)), check that flag and skip `showV2OrderToast` — but keep `dispatchUpdateFiatOrder` and the analytics `trackEvent` calls so Redux state + telemetry parity is preserved (matches the Phase 7 in-flow guard's pattern).
+
+Tests:
+
+- `processFiatOrder.test.ts` (or wherever it's covered) — given an order with `headless: true`, no toast is shown but state + analytics still flow.
+- `Checkout.test.tsx` / `useTransakRouting.test.ts` — bypass paths set `headless: true` on the added order.
+
+This closes the same gap Phase 7 set out to close, just at the FiatOrders layer instead of the in-flow layer.
 
 ---
 
