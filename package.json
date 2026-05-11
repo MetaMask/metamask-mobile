@@ -709,7 +709,7 @@
   },
   "engines": {
     "node": "^20.18.0",
-    "yarn": "^4.10.3"
+    "yarn": "^4.14.1"
   },
   "optionalDependencies": {
     "@img/sharp-darwin-arm64": "^0.34.3",
@@ -799,7 +799,7 @@
       "built": true
     }
   },
-  "packageManager": "yarn@4.10.3",
+  "packageManager": "yarn@4.14.1",
   "foundryup": {
     "binaries": [
       "anvil"
