@@ -3,7 +3,7 @@ import type { WhatsHappeningSourceValue } from './constants';
 
 /**
  * Shared properties bag for Whats Happening analytics events.
- * Used by CARD_SCROLLED_TO_VIEW, DETAILS_VIEWED,
+ * Used by CARD_SCROLLED_TO_VIEW, DETAILS_OPENED, CARD_VIEWED,
  * DETAILS_INTERACTED, and DETAILS_CLOSED.
  *
  * Optional fields (`trend_category`, `trend_impact`) are stripped when
