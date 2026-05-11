@@ -4511,7 +4511,17 @@ describe('RewardsDataService', () => {
         },
       ],
       localizedText: {
-        title: 'VIP',
+        period: 'Mar 31 - Apr 30',
+        progressToNextTier: 'Subline',
+        swapsFeeTitle: 'Swaps fee',
+        perpsFeeTitle: 'Perps fee',
+        nextTierSwapsFeeDelta: '↓ 12 bps next tier',
+        nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+        volumeTitle: 'Volume',
+        statusMessage: 'On track',
+        pointsTitle: 'Points',
+        pointsAllocationTitle: 'Earn VIP allocations',
+        pointsAllocationDescription: 'Body copy',
       },
     };
 
