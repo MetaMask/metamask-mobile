@@ -52,6 +52,13 @@ on:
         type: string
         default: current
 
+# Needed when this workflow is dispatched directly (workflow_dispatch). When called
+# via workflow_call, permissions are inherited from the caller. id-token: write is
+# required by setup-e2e-env's AWS OIDC role assumption for signing-cert fetch.
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   build-ios-apps:
     name: Build iOS E2E Apps
