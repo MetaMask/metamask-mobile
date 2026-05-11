@@ -22,6 +22,7 @@ import PredictAddFunds from '../../page-objects/Predict/PredictAddFunds';
 import PredictUnavailableView from '../../page-objects/Predict/PredictUnavailableView';
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import type { AnalyticsExpectations } from '../../framework/types';
+import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants';
 
 const predictionGeoBlockedFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
@@ -94,7 +95,9 @@ describe(SmokePredictions('Predictions - Geo Restriction'), () => {
 
         await PredictMarketList.tapBackButton();
         await WalletView.scrollAndTapPredictionsPosition('Spurs vs. Pelicans');
-        await PredictDetailsPage.tapCashOutButton();
+        await PredictDetailsPage.tapGameCashOutButton(
+          SPURS_PELICANS_POSITION_ID,
+        );
         await PredictUnavailableView.expectVisible();
         await PredictUnavailableView.tapGotIt();
 
