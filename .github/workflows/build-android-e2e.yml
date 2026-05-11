@@ -71,6 +71,8 @@ jobs:
             .yarn/cache
             ${{ env.GRADLE_USER_HOME }}/caches
             ${{ env.GRADLE_USER_HOME }}/wrapper
+            ${{ inputs.build_type == 'flask' && 'android/app/build/outputs/apk/flask/release' || 'android/app/build/outputs/apk/prod/release' }}
+            ${{ inputs.build_type == 'flask' && 'android/app/build/outputs/apk/androidTest/flask/release' || 'android/app/build/outputs/apk/androidTest/prod/release' }}
 
       - name: Report source fingerprint
         run: |
@@ -100,6 +102,29 @@ jobs:
           else
             echo "❌ Error: build_type ${{ inputs.build_type }} is not valid"
             exit 1
+          fi
+
+      - name: Check Namespace E2E APK cache
+        id: namespace-apk-cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        shell: bash
+        env:
+          MARKER_PATH: ${{ steps.determine-target-paths.outputs.apk-target-path }}/.e2e-apk-cache-marker
+          APK_PATH: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+          TEST_APK_PATH: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+          FINGERPRINT: ${{ inputs.source-fingerprint }}
+          CACHE_GENERATION: ${{ env.CACHE_GENERATION }}
+          GRADLE_FILES_HASH: ${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          REF_NAME: ${{ github.ref_name }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+        run: |
+          EXPECTED="${REF_NAME}"$'\n'"${BUILD_TYPE}"$'\n'"${CACHE_GENERATION}"$'\n'"${FINGERPRINT}"$'\n'"${GRADLE_FILES_HASH}"
+          if [[ -f "${MARKER_PATH}" ]] && [[ -f "${APK_PATH}" ]] && [[ -f "${TEST_APK_PATH}" ]] && [[ "$(<"${MARKER_PATH}")" == "${EXPECTED}" ]]; then
+            echo "cache-hit=true" >> "${GITHUB_OUTPUT}"
+            echo "Namespace E2E APK cache hit (marker matches key inputs)."
+          else
+            echo "cache-hit=false" >> "${GITHUB_OUTPUT}"
+            echo "Namespace E2E APK cache miss — full build required."
           fi
 
       - name: Find reusable build from prior run
@@ -167,7 +192,10 @@ jobs:
       - name: Compute native-build gate
         id: gate
         run: |
-          if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
+          if [[ "${{ steps.namespace-apk-cache.outputs.cache-hit }}" == "true" ]]; then
+            echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+            echo "Namespace APK cache hit; heavy Android setup + Gradle restore will be skipped."
+          elif [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
              && "${{ steps.download-reusable-apk.outcome }}" == "success" \
              && "${{ steps.download-reusable-test-apk.outcome }}" == "success" ]]; then
             echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
@@ -314,6 +342,21 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
           MM_PREDICT_GTM_MODAL_ENABLED: 'false'
+
+      - name: Record Namespace E2E APK cache marker
+        if: ${{ inputs.runner_provider == 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
+        shell: bash
+        env:
+          MARKER_PATH: ${{ steps.determine-target-paths.outputs.apk-target-path }}/.e2e-apk-cache-marker
+          FINGERPRINT: ${{ inputs.source-fingerprint }}
+          CACHE_GENERATION: ${{ env.CACHE_GENERATION }}
+          GRADLE_FILES_HASH: ${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          REF_NAME: ${{ github.ref_name }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+        run: |
+          EXPECTED="${REF_NAME}"$'\n'"${BUILD_TYPE}"$'\n'"${CACHE_GENERATION}"$'\n'"${FINGERPRINT}"$'\n'"${GRADLE_FILES_HASH}"
+          printf '%s\n' "${EXPECTED}" > "${MARKER_PATH}"
+          echo "Namespace APK cache marker written."
 
       - name: Repack APK with JS updates using @expo/repack-app
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
