@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -220,5 +220,102 @@ describe('useVipDashboard', () => {
     renderHook(() => useVipDashboard());
 
     expect(useFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+  });
+
+  it('starts with hasAttemptedFetch=false and flips it to true once a fetch resolves', async () => {
+    mockEngineCall.mockResolvedValue(vipDashboard);
+
+    const { result } = renderHook(() => useVipDashboard());
+
+    expect(result.current.hasAttemptedFetch).toBe(false);
+
+    await act(async () => {
+      await result.current.fetchVipDashboard();
+    });
+
+    expect(result.current.hasAttemptedFetch).toBe(true);
+  });
+
+  it('flips hasAttemptedFetch=true on the non-VIP early-return path so the view exits the loading state', async () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId)
+        return 'test-subscription-id';
+      if (selector === selectIsCurrentSubscriptionVipEnabled) return false;
+      if (selector === mockVipDashboardSelector) return null;
+      if (selector === selectVipDashboardLoading) return false;
+      if (selector === selectVipDashboardError) return false;
+      return undefined;
+    });
+
+    const { result } = renderHook(() => useVipDashboard());
+
+    expect(result.current.hasAttemptedFetch).toBe(false);
+
+    await act(async () => {
+      await result.current.fetchVipDashboard();
+    });
+
+    expect(result.current.hasAttemptedFetch).toBe(true);
+  });
+
+  it('flips hasAttemptedFetch=true even when the fetch rejects', async () => {
+    mockEngineCall.mockRejectedValue(new Error('boom'));
+
+    const { result } = renderHook(() => useVipDashboard());
+
+    await act(async () => {
+      await result.current.fetchVipDashboard();
+    });
+
+    expect(result.current.hasAttemptedFetch).toBe(true);
+  });
+
+  it('triggers the registered focus callback which refetches the dashboard', async () => {
+    mockEngineCall.mockResolvedValue(vipDashboard);
+
+    renderHook(() => useVipDashboard());
+
+    const focusCallback = (useFocusEffect as jest.Mock).mock.calls.at(-1)?.[0];
+    expect(focusCallback).toBeInstanceOf(Function);
+
+    await act(async () => {
+      await focusCallback();
+    });
+
+    expect(mockEngineCall).toHaveBeenCalledWith(
+      'RewardsController:getVIPDashboard',
+      'test-subscription-id',
+    );
+  });
+
+  it('short-circuits a re-entrant fetch while a fetch is already in flight', async () => {
+    // Resolve the API call on a controllable promise so we can fire a second
+    // fetchVipDashboard before the first completes.
+    let resolveFirst!: (value: VipDashboardState) => void;
+    mockEngineCall.mockImplementationOnce(
+      () =>
+        new Promise<VipDashboardState>((resolve) => {
+          resolveFirst = resolve;
+        }),
+    );
+
+    const { result } = renderHook(() => useVipDashboard());
+
+    let firstPromise!: Promise<void>;
+    await act(async () => {
+      // Kick off the first fetch (do NOT await — leave it in flight).
+      firstPromise = result.current.fetchVipDashboard();
+      // While that one is mid-flight, kick off a second fetch. The
+      // re-entrancy guard should make this a no-op.
+      await result.current.fetchVipDashboard();
+    });
+
+    // Only one Engine call so far: the second fetch returned early.
+    expect(mockEngineCall).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveFirst(vipDashboard);
+      await firstPromise;
+    });
   });
 });

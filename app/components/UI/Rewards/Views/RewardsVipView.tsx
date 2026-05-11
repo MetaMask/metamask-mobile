@@ -45,8 +45,13 @@ const RewardsVipView: React.FC = () => {
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
   const canViewVip = Boolean(subscriptionId && isVipEnabled);
 
-  const { dashboard, isLoading, hasError, fetchVipDashboard } =
-    useVipDashboard();
+  const {
+    dashboard,
+    isLoading,
+    hasError,
+    hasAttemptedFetch,
+    fetchVipDashboard,
+  } = useVipDashboard();
 
   useTrackRewardsPageView({
     page_type: 'vip',
@@ -67,7 +72,10 @@ const RewardsVipView: React.FC = () => {
     return null;
   }
 
-  const showSkeleton = isLoading && !dashboard;
+  // Treat the pre-fetch idle window (mount → first attempt resolved) as
+  // loading too, otherwise the view briefly renders nothing while
+  // useFocusEffect schedules the initial fetch.
+  const showSkeleton = (!hasAttemptedFetch || isLoading) && !dashboard;
   const showError = hasError && !dashboard;
   const localized = dashboard?.localizedText ?? {};
   const headerTitle =

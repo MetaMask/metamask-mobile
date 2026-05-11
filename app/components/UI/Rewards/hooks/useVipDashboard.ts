@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -22,6 +22,7 @@ export interface UseVipDashboardResult {
   dashboard: VipDashboardState | null;
   isLoading: boolean;
   hasError: boolean;
+  hasAttemptedFetch: boolean;
   fetchVipDashboard: () => Promise<void>;
 }
 
@@ -33,6 +34,10 @@ export const useVipDashboard = (): UseVipDashboardResult => {
   const isLoading = useSelector(selectVipDashboardLoading);
   const hasError = useSelector(selectVipDashboardError);
   const isLoadingRef = useRef(false);
+  // Tracks whether at least one fetch (success, null, or error) has resolved
+  // so consumers can distinguish "pre-fetch idle" from "fetch finished with
+  // no data" and avoid a blank-screen flash on first mount.
+  const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
   const fetchVipDashboard = useCallback(async (): Promise<void> => {
     if (!subscriptionId || !isVipEnabled) {
@@ -41,6 +46,7 @@ export const useVipDashboard = (): UseVipDashboardResult => {
       }
       dispatch(setVipDashboardError(false));
       dispatch(setVipDashboardLoading(false));
+      setHasAttemptedFetch(true);
       return;
     }
 
@@ -64,6 +70,7 @@ export const useVipDashboard = (): UseVipDashboardResult => {
     } finally {
       isLoadingRef.current = false;
       dispatch(setVipDashboardLoading(false));
+      setHasAttemptedFetch(true);
     }
   }, [dispatch, isVipEnabled, subscriptionId]);
 
@@ -77,6 +84,7 @@ export const useVipDashboard = (): UseVipDashboardResult => {
     dashboard,
     isLoading,
     hasError,
+    hasAttemptedFetch,
     fetchVipDashboard,
   };
 };

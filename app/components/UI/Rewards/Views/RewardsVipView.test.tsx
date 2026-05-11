@@ -269,6 +269,7 @@ describe('RewardsVipView', () => {
       dashboard: null,
       isLoading: false,
       hasError: false,
+      hasAttemptedFetch: true,
       fetchVipDashboard: mockFetch,
     });
   });
@@ -292,6 +293,21 @@ describe('RewardsVipView', () => {
       dashboard: null,
       isLoading: true,
       hasError: false,
+      hasAttemptedFetch: false,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getByTestId } = render(<RewardsVipView />);
+
+    expect(getByTestId(REWARDS_VIP_VIEW_TEST_IDS.SKELETON)).toBeOnTheScreen();
+  });
+
+  it('renders skeleton on the pre-fetch idle window so there is no blank flash', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: null,
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: false,
       fetchVipDashboard: mockFetch,
     });
 
@@ -305,6 +321,7 @@ describe('RewardsVipView', () => {
       dashboard: null,
       isLoading: false,
       hasError: true,
+      hasAttemptedFetch: true,
       fetchVipDashboard: mockFetch,
     });
 
@@ -320,6 +337,7 @@ describe('RewardsVipView', () => {
       dashboard: defaultDashboard,
       isLoading: false,
       hasError: false,
+      hasAttemptedFetch: true,
       fetchVipDashboard: mockFetch,
     });
 
@@ -348,6 +366,7 @@ describe('RewardsVipView', () => {
       dashboard: defaultDashboard,
       isLoading: false,
       hasError: false,
+      hasAttemptedFetch: true,
       fetchVipDashboard: mockFetch,
     });
 
@@ -377,6 +396,7 @@ describe('RewardsVipView', () => {
       },
       isLoading: false,
       hasError: false,
+      hasAttemptedFetch: true,
       fetchVipDashboard: mockFetch,
     });
 
