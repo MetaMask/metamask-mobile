@@ -219,9 +219,14 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   }, []);
 
   useEffect(() => {
+    let isActive = true;
     let timeout: ReturnType<typeof setTimeout> | undefined;
 
     const scheduleNextWindowRefresh = () => {
+      if (!isActive) {
+        return;
+      }
+
       const currentTimeMs = Date.now();
       const remainder =
         Number.isFinite(currentTimeMs) && durationMs > 0
@@ -231,6 +236,10 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         remainder > 0 ? durationMs - remainder : durationMs;
 
       timeout = setTimeout(() => {
+        if (!isActive) {
+          return;
+        }
+
         setCurrentWindowMs(getCurrentWindowMs(durationMs));
         scheduleNextWindowRefresh();
       }, timeUntilNextWindow);
@@ -240,6 +249,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     scheduleNextWindowRefresh();
 
     return () => {
+      isActive = false;
       if (timeout) {
         clearTimeout(timeout);
       }

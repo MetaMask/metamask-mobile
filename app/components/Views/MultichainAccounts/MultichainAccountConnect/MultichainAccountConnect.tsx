@@ -130,7 +130,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
   const [tabIndex, setTabIndex] = useState(0);
-  const previousIdentitiesListSize = useRef<number>();
+  const previousIdentitiesListSize = useRef<number | undefined>(undefined);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
 

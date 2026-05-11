@@ -129,6 +129,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     childMarketIds: market?.childMarketIds,
     claimable: false,
     enabled: !isMarketLoading && Boolean(resolvedMarketId),
+    livePriceUpdates: true,
   });
 
   // "claimable" positions
@@ -406,17 +407,15 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       edges={['left', 'right', 'bottom']}
       testID={PredictMarketDetailsSelectorsIDs.SCREEN}
     >
-      <Box twClassName="px-3 gap-4">
-        <PredictMarketDetailsHeader
-          isLoading={isMarketLoading}
-          market={market}
-          title={title}
-          image={image}
-          titleLineCount={titleLineCount}
-          insetsTop={insets.top}
-          onBackPress={handleBackPress}
-        />
-      </Box>
+      <PredictMarketDetailsHeader
+        isLoading={isMarketLoading}
+        market={market}
+        title={title}
+        image={image}
+        titleLineCount={titleLineCount}
+        insetsTop={insets.top}
+        onBackPress={handleBackPress}
+      />
 
       <ScrollView
         testID={PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW}
@@ -496,21 +495,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         )}
       </ScrollView>
 
-      <Box twClassName="px-3 bg-default border-t border-muted">
-        <PredictMarketDetailsActions
-          isClaimablePositionsLoading={isClaimablePositionsLoading}
-          hasPositivePnl={hasPositivePnl}
-          marketStatus={market?.status as PredictMarketStatus | undefined}
-          singleOutcomeMarket={singleOutcomeMarket}
-          isMarketLoading={isMarketLoading}
-          market={market}
-          openOutcomes={openOutcomes}
-          yesPercentage={yesPercentage}
-          onClaimPress={handleClaimPress}
-          onBuyPress={handleBuyPress}
-          isClaimPending={isClaimPending}
-        />
-      </Box>
+      <PredictMarketDetailsActions
+        isClaimablePositionsLoading={isClaimablePositionsLoading}
+        hasPositivePnl={hasPositivePnl}
+        marketStatus={market?.status as PredictMarketStatus | undefined}
+        singleOutcomeMarket={singleOutcomeMarket}
+        isMarketLoading={isMarketLoading}
+        market={market}
+        openOutcomes={openOutcomes}
+        yesPercentage={yesPercentage}
+        onClaimPress={handleClaimPress}
+        onBuyPress={handleBuyPress}
+        isClaimPending={isClaimPending}
+      />
       {isFeeExemption && (
         <Box
           style={tw`absolute inset-x-0 bottom-4 pb-3`}

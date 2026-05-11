@@ -190,7 +190,7 @@ export const createLivelineChartTemplate = (
             if (inLiveMode) {
               var incoming = Object.assign({}, msg.payload);
               if (Array.isArray(incoming.data) && incoming.data.length > 0) {
-                liveData = mergeLivelineData(incoming.data, liveData);
+                liveData = mergeLivelineData(liveData, incoming.data);
                 liveData = trimLivelineData(liveData, incoming.window);
               }
               delete incoming.data;

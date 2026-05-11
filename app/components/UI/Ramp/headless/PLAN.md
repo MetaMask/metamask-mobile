@@ -12,12 +12,13 @@
 - [x] **Phase 4b** — Introduce Headless Host screen as stack base for the headless flow + parameterize `useTransakRouting` reset helpers with `baseRoute`
 - [x] **Phase 4c** — Make `useContinueWithQuote` headless-ready — extend `ContinueWithQuoteContext` with optional overrides so callers without controller state (the Host) can drive it from a `Quote`
 - [x] **Phase 5 (revised)** — Quote-first headless start path — `startHeadlessBuy({ quote, redirectUrl? })` creates a session carrying the quote, navigates to Headless Host, Host calls `continueWithQuote(quote, ctx)` and re-orchestrates after auth loops
-- [ ] **Phase 5b (deferred)** — `startHeadlessBuy({ assetId, amount, paymentMethodId, providerId? })` "open BuildQuote / Host fetches quotes" mode — picked up after the quote-first path is stable
-- [ ] **Phase 6** — Bypass order-processing redirect in Transak/aggregator routing when headless; fire `onOrderCreated` and end session
-- [ ] **Phase 7** — Extract UI-coupled error/limit surfacing; route errors through `onError` as typed `HeadlessBuyError`
-- [ ] **Phase 8** — Cancellation + `onClose` semantics (including user-dismissed detection)
-- [ ] **Phase 9** — Expose `getOrder` / `refreshOrder` from hook and show in playground
-- [ ] **Phase 10** — Playground polish — event log, input persistence, aggregator/native presets
+- [ ] **Phase 5b** — superseded; scheduled as part of **Phase 10** (see below). Spec preserved in the Phase 5b section for historical reference.
+- [x] **Phase 6** — Bypass order-processing redirect in Transak/aggregator routing when headless; fire `onOrderCreated` and end session
+- [x] **Phase 7** — Extract UI-coupled error/limit surfacing; route errors through `onError` as typed `HeadlessBuyError`
+- [x] **Phase 8** — Cancellation + `onClose` semantics (including user-dismissed detection)
+- [ ] **Phase 9** — Expose `getOrder` / `refreshOrder` from hook and show in playground (now an MVP requirement — see Phase 9 Update)
+- [ ] **Phase 9.5** — HeadlessHost visual treatment (transparent or bottom-sheet) — driven by the May 6 design thread
+- [ ] **Phase 10** — Implement deferred Phase 5b + playground polish + navigation/state cleanups + headless toast suppression
 
 ---
 
@@ -41,6 +42,28 @@ flowchart LR
 ```
 
 Key idea: the hook orchestrates by (a) seeding the controller with the quote's token/provider/payment method (Phase 5 — same as BuildQuote before calling `continueWithQuote`), (b) storing attempt params + callbacks in the session registry, (c) navigating into the existing v2 screens with a `headlessSessionId` param, and (d) having existing routing callbacks detect the session and fire the callback instead of navigating to order-details.
+
+---
+
+## Design principles
+
+Cross-cutting rules that shape what `useHeadlessBuy` does and doesn't expose. They keep the consumer surface small so new consumers (MMPay's `TransactionPayController`, future SDKs, future non-MMPay teams) can integrate without coupling to ramp internals or being forced into a specific UI.
+
+### 1. Callbacks-only, three terminal events
+
+The hook exposes exactly three lifecycle callbacks: `onOrderCreated`, `onError`, `onClose`. Each session ends in exactly one of them. **No intermediate progress callbacks** (`onAuthStarted`, `onKycRequired`, `onPaymentMethodChosen`, etc.) — consumers do not get a play-by-play of the ramp flow.
+
+**Why.** Intermediate callbacks couple consumers to ramp internals; changing the order of OTP / KYC / payment-method screens or adding a fraud step would force every consumer to update. The "wait for any of the three terminal callbacks" model lets ramp evolve internally without breaking consumers.
+
+**How to apply.** When a consumer asks for state-aware copy ("Verifying email…", "Awaiting KYC…"), point them at their own context — they know the quote, the user, and the time elapsed. Don't add a callback. If timing-based copy is the real ask, see the Phase 9 timeout open question for a single opaque "past expected latency" signal that doesn't expose flow internals.
+
+### 2. The consumer renders all visible UI
+
+`useHeadlessBuy` returns no render-shape props (no `loadingText`, no `spinnerComponent`, no required JSX). Consumers render whatever loading indicator, error treatment, or copy fits their design system. **Headless Ramps is a behavior provider, not a UI provider.**
+
+**Why.** Render-shape props would force consumers either to accept ramp's design choices or to opt out via overrides — both bad. The [May 6 design thread](https://consensys.slack.com/archives/C0AK3NXRM7W/p1778072992397499) settled on "consumer owns the visible UI" (Pedro reply 11; Lorenzo + Yanrong reply 9/17; Goktug reply 20). Phase 9.5 implements this on the Host side by stripping its visible chrome.
+
+**How to apply.** When a consumer asks "can the hook render the spinner for me?", the answer is no — give them the three callbacks and let them flip their own `isLoading` boolean. Shared UI primitives belong in a design-system library, not in `useHeadlessBuy`.
 
 ---
 
@@ -440,6 +463,8 @@ Deliverable: an external dev can build a quote-comparison UI on top of `getQuote
 
 ## Phase 5b (deferred) — Raw-params start (Host fetches quotes & auto-picks)
 
+> Scheduled as part of Phase 10 (May 2026). Content here is the canonical spec.
+>
 > Was the original Phase 5; sequenced after the quote-first path is stable.
 
 Goal: support the second developer story — "I have user intent (amount + filters) but I don't want to do the quote dance myself; just take me to checkout".
@@ -523,11 +548,9 @@ Today (post-Phase 3) only the consumer-initiated `cancel()` returned by `startHe
 ### Implementation plan
 
 - Add a small `useHeadlessSessionDismissal(headlessSessionId)` hook in `app/components/UI/Ramp/headless/`:
-  - On mount: marks session as alive (`setStatus('pending')` if not already past).
-  - On unmount or blur-with-no-headless-route-on-stack: if `getSession(id)?.status` is not in `{'completed', 'cancelled'}`, call `endSession(id)` and `callbacks.onClose({ reason: 'user_dismissed' })`.
-- Wire it from:
-  - `BuildQuote` (Phase 8) — handles the "user opens headless, backs out of BuildQuote" case directly.
-  - Headless Host (Phase 4b) — handles every subsequent screen, since the Host is the stack base for the headless flow and unmounts only when the user truly leaves.
+  - On unmount (or when `headlessSessionId` changes): if `getSession(id)` is still present, call `closeSession(id, { reason: 'user_dismissed' })`. Terminal sessions are removed from the registry by their respective close paths (Phase 6 `completed`, Phase 7 `unknown`, consumer / restart `consumer_cancelled`), so the live-session check is the same predicate as "still cancellable".
+  - No on-mount work needed — `createSession` already initializes status to `'pending'`.
+- Wire it from `HeadlessHost` only — the Host is the single headless entry under quote-first (Phase 5 revised), and React Navigation keeps it mounted while child screens are pushed on top, so a single dismissal point catches every "user left the headless flow" path. **BuildQuote dismissal is deferred to Phase 10** (which absorbs the deferred Phase 5b raw-params start mode); BuildQuote is not a headless entry today, so there is no production target for that wiring.
 - Centralize the terminal-state lifecycle in the registry to avoid double-close: add a small helper `closeSession(id, reason)` that does `setStatus(id, 'completed' | 'cancelled')` + `endSession(id)` + `callbacks.onClose({ reason })`, no-op if the session is already gone. All call-sites (Phase 6 success, Phase 7 errors, Phase 8 dismissal, the existing Phase 3 `cancel()`) should funnel through it.
 - Idempotency contract: `onClose` fires **at most once per session**, regardless of how many code paths try to close it.
 
@@ -541,9 +564,21 @@ Today (post-Phase 3) only the consumer-initiated `cancel()` returned by `startHe
 
 Deliverable: closing the buy flow from anywhere on the headless stack notifies the consumer; the playground no longer needs the manual "Cancel headless session" tap (the button stays for explicit consumer-side cancellation but is no longer required for cleanup).
 
+> **Drove the elevated priority:** MetaMask Pay's `TransactionPayController` ([MetaMask/core#8628](https://github.com/MetaMask/core/pull/8628)) depends on terminal `onClose` events to sequence step II of its two-step Fiat-purchase → Intent-transaction flow. Flagged in the Apr 28 2026 progress sync as the open blocker ("Callbacks for canceling/going back not yet wired to events"); production money account ships end of May.
+
 ---
 
 ## Phase 9 — Expose `getOrder` + polling helpers
+
+### Update (May 2026 — driven by MetaMask Pay)
+
+Phase 9 is now an MVP requirement, not playground polish. MetaMask Pay's `TransactionPayController` ([MetaMask/core#8628](https://github.com/MetaMask/core/pull/8628)) needs to know when the fiat order reaches a terminal state to fire step II (intent transaction) of its two-step flow.
+
+The original Phase 9 surface (`getOrder`, `refreshOrder` + a "Refresh order" playground button) doesn't fit a controller consumer. The Phase 9 API should add an **imperative `awaitOrderTerminalState(orderId)` Promise** so TPC can `await` settlement instead of polling itself. Polling and the playground button stay as additional surfaces; the Promise is the load-bearing API.
+
+The Apr 28 progress sync also called out a missing **auto-select-best-provider utility** ("Need utility function to auto-select best provider rather than requiring explicit provider ID"). Either fold into Phase 9 alongside `getOrder` or split as a follow-up phase — to be decided during Phase 9 implementation.
+
+**Open question** (Barbara, [May 6 design thread](https://consensys.slack.com/archives/C0AK3NXRM7W/p1778072992397499)): does ramps need an internal timeout — distinct from the registry's 1-hour GC — so the consumer isn't pinned to a "loading forever" state when a quote stalls? Two shapes worth considering during Phase 9 implementation: (i) `awaitOrderTerminalState(orderId, { timeoutMs })` rejects with a timed-out error so the consumer can decide what to surface; (ii) the registry grows a per-session timeout that fires `onError({ code: 'TIMED_OUT' })` + `onClose` if no terminal event arrives within N seconds. Pedro's reply 37 in the same thread noted Phase 3's `cancel()` is today's escape hatch; not blocking for v1 but worth resolving before MMPay launch.
 
 Goal: complete the hook surface.
 
@@ -554,14 +589,81 @@ Goal: complete the hook surface.
 
 ---
 
-## Phase 10 — Playground polish & discoverability
+## Phase 9.5 — HeadlessHost visual treatment
 
-Goal: make the playground actually useful for exploring the API.
+Goal: make production HeadlessHost stop rendering user-visible chrome (header, spinner, cancel button, error text). The Host stays mounted — it is still the routing landing pad and the `nativeFlowError` surface from Phase 4b — but becomes either fully transparent or a bottom-sheet, so the consumer (TPC / MMPay) renders the only user-visible loading UI during a headless buy.
+
+Driver: [May 6 2026 design thread](https://consensys.slack.com/archives/C0AK3NXRM7W/p1778072992397499). Pedro confirmed the Host can't be removed (it's the routing base and Phase 7's error surface) but it doesn't have to be visible. Two shapes were evaluated: (a) transparent overlay with consumer-rendered spinner, (b) bottom-sheet with the Host's own spinner and cancel action. Pedro favored (a). Final shape pending Lucas's design recommendation (deadline May 13).
+
+### Settled in the same thread
+
+- **Back navigation stays available during loading** (Lucas, May 8 16:54 reply 39). Phase 8's `useHeadlessSessionDismissal` already fires `onClose({ reason: 'user_dismissed' })` on unmount, so the consumer's back-press still produces a terminal callback regardless of Host visibility.
+- Latency expectation: 1–2 seconds typical (Lorenzo, reply 19).
+- Cancel-session (Phase 3 `cancel()`) is the escape hatch for stuck quotes (Pedro, reply 37).
+
+### Implementation sketch
+
+- Strip `HeaderCompactStandard`, `ActivityIndicator`, the loader/no-session/error `Text` blocks, and the bottom `Cancel` button from [HeadlessHost.tsx](../Views/HeadlessHost/HeadlessHost.tsx).
+- The wrapping `SafeAreaView` becomes either fully transparent (option a) or sized to the bottom-sheet spec (option b, per Lucas's design).
+- The local `errorMessage` state becomes redundant once the consumer renders all UI; remove it. `failSession` / `closeSession` calls stay — the consumer receives the error via `onError`.
+- Keep the orchestration `useEffect`, the `nativeFlowError` handler, and `useHeadlessSessionDismissal` untouched — they are behavior, not chrome.
+- Update `HeadlessHost.test.tsx`: drop the visual-presence assertions, keep all orchestration / dismissal / `nativeFlowError` tests.
+
+### Out of scope
+
+- The MMPay consumer-side loading UI (TPC PR [`MetaMask/core#8628`](https://github.com/MetaMask/core/pull/8628) and downstream MMPay UI work).
+- Internal Host timeout — see the Open question in the Phase 9 Update.
+
+### References
+
+- [Money Account Figma](https://www.figma.com/design/XKZ8hRqSn2iTiuzmlQLuYQ/Money-Account?node-id=3041-13117) (Lorenzo, reply 16).
+- [UB2 loading-states reference](https://www.figma.com/design/ItZzm9CzSAjOWQTUKsOdSk/BUY?node-id=4347-3909) (Lorenzo, reply 23) for design parity.
+
+Deliverable: HeadlessHost is invisible (or bottom-sheet) and MMPay's TPC renders the only user-visible loading UI during a headless buy. Phase 8's dismissal contract continues to work unchanged.
+
+---
+
+## Phase 10 — Implement deferred Phase 5b + playground polish
+
+> Goal 1 (primary): implement the deferred Phase 5b — `startHeadlessBuy({ assetId, amount, paymentMethodId, providerId? })` raw-params start mode, where the Host fetches quotes itself and auto-picks one. See the existing "Phase 5b (deferred)" section above for the full spec.
+>
+> Goal 2 (secondary): playground polish — the bullets below.
+>
+> Goal 3 (secondary): clean up two React Navigation warnings (nested-screen descriptor + non-serializable route param) surfaced during Phase 8 — the bullets below.
+>
+> Goal 4 (secondary): close the global-toast leak that Phase 7 missed — suppress `showV2OrderToast` for headless orders in the background order processor. Bullets below.
+
+### Goal 1 — implement Phase 5b (raw-params start mode)
+
+- Pick up the deferred spec from the [Phase 5b (deferred)](#phase-5b-deferred--raw-params-start-host-fetches-quotes--auto-picks) section above. The discriminated-union `HeadlessBuyParams`, the in-Host `getQuotes` + auto-pick step, and the `NO_QUOTES` / `LIMIT_EXCEEDED` error mapping all carry over unchanged.
+- Wire `useHeadlessSessionDismissal` into `BuildQuote` as part of this work, since BuildQuote becomes a headless entry under raw-params and needs the same dismissal contract as the Host. This closes out the deferral noted in Phase 8.
+
+### Goal 2 — playground polish & discoverability
 
 - Per-quote "Start headless buy" buttons + standalone-button removal landed early in Phase 5 (revised) — see that section for details. Phase 10 picks up the polish work on top of that surface.
 - Pretty-print session events (`onOrderCreated`, `onError`, `onClose`) in a scrolling log panel.
 - Persist the last playground input to `AsyncStorage` to speed iteration.
 - Add a quick "Try aggregator" vs "Try native" preset pair (preset = a hardcoded `{ amount, paymentMethodId, providerId }` triple that pre-fills the sandbox inputs and triggers `getQuotes`).
+
+### Goal 3 — Navigation / state cleanups (surfaced during Phase 8)
+
+Two React Navigation warnings surface from the existing headless wiring. Both are pre-existing, non-blocking for Phase 8's bypass fix, but each carries a real (if narrow) failure mode. Address as part of Phase 10 since both touch the same `startHeadlessBuy` → `HeadlessHost` → `Checkout` path Phase 5b will be re-walking.
+
+- **Flatten the `startHeadlessBuy` nested-screen descriptor.** [useHeadlessBuy.ts:183-191](useHeadlessBuy.ts#L183-L191) currently produces a navigation tree with three `RampTokenSelection` levels (`Main > RampTokenSelection > RampTokenSelection > RampTokenSelection`), triggering React Navigation's "Found screens with the same name nested inside one another" warning. The in-code comment describes a two-level descriptor (outer mount in `MainNavigator` + RootStack slot wrapping `MainRoutes`); something is over-wrapping. Investigate whether the descriptor itself adds an extra `screen` level or whether `RAMP.TOKEN_SELECTION` is registered at an extra slot. **Risk if left:** ambiguous `navigation.navigate('RampTokenSelection')` targets, `useNavigation()` returning a different navigator than expected, and fragile `navigation.reset` behavior — any of which can hide real bugs.
+- **Move `Checkout`'s `onNavigationStateChange` callback out of route params.** [useTransakRouting.ts:483-494](../hooks/useTransakRouting.ts#L483-L494) stashes `handleNavigationStateChange` (the Transak WebView redirect handler) as a Checkout route param, producing the "Non-serializable values were found in the navigation state ... `Checkout > params.onNavigationStateChange (Function)`" warning. **Risk if left:** if the app is killed mid-Checkout (OOM, swipe-to-close) and React Navigation restores state, the function reference is gone — the WebView redirect would fire with no handler, the order would be created server-side but the headless consumer would never get `onOrderCreated` (and so never get `onClose`). Suggested fix shape: register the redirect handler in the session registry keyed by `headlessSessionId`, then look it up in `Checkout` at WebView mount time instead of capturing it in route params. The same shape can replace any other "function-via-route-param" instances under the ramp stack.
+
+### Goal 4 — Suppress the global order toast for headless orders (Phase 7 follow-up)
+
+After a headless buy completes, the global FiatOrders background processor still fires `showV2OrderToast` ("Your purchase of X ETH was successful") when the order's polled state transitions to `Completed`. Phase 7 audited the in-flow toast call sites (`Checkout.tsx`, `useTransakRouting.ts`) and added `getSession(headlessSessionId)` guards there, but missed the global processor in [index.tsx:62-77](../index.tsx#L62-L77), which runs at the FiatOrders level and has no access to the headless session id. By the time it runs the session is already terminated (Phase 6 closed it with `'completed'` immediately after `onOrderCreated`), so consulting the session registry isn't viable either.
+
+**Fix shape — stamp the order on creation.** In the Phase 6 bypass paths in [Checkout.tsx:212-225](../Views/Checkout/Checkout.tsx#L212-L225) and [useTransakRouting.ts:321-353](../hooks/useTransakRouting.ts#L321-L353) (and the manual-bank-transfer success path at [useTransakRouting.ts:605-609](../hooks/useTransakRouting.ts#L605-L609)), add a `headless: true` (or `headlessSessionId: id`) field to the order object before `addOrder(...)`. The flag survives Redux persistence and lives with the order itself. In `processFiatOrder` ([index.tsx:62-77](../index.tsx#L62-L77)), check that flag and skip `showV2OrderToast` — but keep `dispatchUpdateFiatOrder` and the analytics `trackEvent` calls so Redux state + telemetry parity is preserved (matches the Phase 7 in-flow guard's pattern).
+
+Tests:
+
+- `processFiatOrder.test.ts` (or wherever it's covered) — given an order with `headless: true`, no toast is shown but state + analytics still flow.
+- `Checkout.test.tsx` / `useTransakRouting.test.ts` — bypass paths set `headless: true` on the added order.
+
+This closes the same gap Phase 7 set out to close, just at the FiatOrders layer instead of the in-flow layer.
 
 ---
 

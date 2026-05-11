@@ -24,11 +24,11 @@ jest.mock('../../../../../selectors/multichainNetworkController', () => ({
   selectNonEvmNetworkConfigurationsByChainId: jest.fn(),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn((...args) => args.join(' ')),
-  }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 jest.mock('@metamask/design-system-react-native', () => ({
   Box: 'Box',

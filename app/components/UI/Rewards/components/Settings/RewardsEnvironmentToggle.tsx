@@ -7,6 +7,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -18,7 +19,6 @@ import AppConstants from '../../../../../core/AppConstants';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import { VerticalAlignment } from '../../../../../component-library/components/List/ListItem';
 import { cancelBulkLink } from '../../../../../store/sagas/rewardsBulkLinkAccountGroups';
@@ -118,7 +118,7 @@ const RewardsEnvironmentToggle: React.FC = () => {
             ref={sheetRef}
             onClose={() => setIsSheetOpen(false)}
           >
-            <HeaderCompactStandard
+            <HeaderStandard
               title={strings('rewards.settings.environment_selector')}
               onClose={() => sheetRef.current?.onCloseBottomSheet()}
               closeButtonProps={{ testID: 'environment-sheet-close-button' }}

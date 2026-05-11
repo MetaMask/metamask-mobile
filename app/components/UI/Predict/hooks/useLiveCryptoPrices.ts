@@ -42,8 +42,9 @@ export const useLiveCryptoPrices = (
     );
 
     const status = PredictController.getConnectionStatus();
-    isConnectedRef.current = status.rtdsConnected;
-    setIsConnected(status.rtdsConnected);
+    const isCurrentlyConnected = isConnectedRef.current || status.rtdsConnected;
+    isConnectedRef.current = isCurrentlyConnected;
+    setIsConnected(isCurrentlyConnected);
 
     return () => {
       isMountedRef.current = false;

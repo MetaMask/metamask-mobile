@@ -22,7 +22,7 @@ describe('InfoRowOrigin', () => {
       state: siweSignatureConfirmationState,
     });
     expect(getByText('Signing in with')).toBeDefined();
-    expect(getByText('0x935E7...05477')).toBeDefined();
+    expect(getByText('0x8Eeee...73D12')).toBeDefined();
   });
 
   it('does not render origin for wallet originated approvals', async () => {

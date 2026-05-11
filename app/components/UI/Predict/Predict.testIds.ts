@@ -31,6 +31,7 @@ export const PredictMarketListSelectorsIDs = {
   CRYPTO_TAB: 'predict-market-list-crypto-tab',
   POLITICS_TAB: 'predict-market-list-politics-tab',
   BACK_BUTTON: 'back-button',
+  TRENDING_MARKET_CARD: 'predict-market-list-trending-card-',
   // Empty state
   EMPTY_STATE: 'predict-market-list-empty-state',
 } as const;
@@ -265,6 +266,7 @@ export const getPredictSearchSelector = {
 
 export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
+  WITHDRAW_BUTTON: 'predict-balance-withdraw-button',
 } as const;
 
 export const PredictBalanceSelectorsText = {

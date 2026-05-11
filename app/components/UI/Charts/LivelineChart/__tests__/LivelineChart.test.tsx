@@ -68,6 +68,21 @@ const makeReady = (webView: { props: Record<string, unknown> }) => {
   fireMessage(webView, { type: 'CHART_READY' });
 };
 
+describe('LivelineChartTemplate', () => {
+  it('lets incoming SET_PROPS data replace matching live timestamps', () => {
+    const { createLivelineChartTemplate } = jest.requireActual(
+      '../LivelineChartTemplate',
+    );
+    const theme = {
+      colors: { background: { default: 'white' } },
+    };
+
+    expect(createLivelineChartTemplate(theme, '', '', '')).toContain(
+      'mergeLivelineData(liveData, incoming.data)',
+    );
+  });
+});
+
 // ---- component tests ----
 
 describe('LivelineChart', () => {

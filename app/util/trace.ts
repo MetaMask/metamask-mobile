@@ -64,6 +64,10 @@ export enum TraceName {
   FetchHistoricalPrices = 'Fetch Historical Prices',
   CryptoUpDownWsMessage = 'Crypto Up Down WS Message',
   CryptoUpDownBufferFlush = 'Crypto Up Down Buffer Flush',
+  /** Token overview advanced chart: skeleton cleared after initial load / asset or currency change. */
+  TokenOverviewAdvancedChartInitialVisible = 'Token Overview Advanced Chart Initial Visible',
+  /** Token overview advanced chart: skeleton cleared after time range selector change only. */
+  TokenOverviewAdvancedChartTimeRangeVisible = 'Token Overview Advanced Chart Time Range Visible',
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',

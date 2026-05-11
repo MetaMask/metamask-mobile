@@ -60,16 +60,11 @@ const { mockTheme: baseMockTheme } = jest.requireActual(
 );
 
 // Mock useTailwind
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: jest.fn(() => ({
-    style: jest.fn((styles) => {
-      if (Array.isArray(styles)) {
-        return styles.reduce((acc, style) => ({ ...acc, ...style }), {});
-      }
-      return styles || {};
-    }),
-  })),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 // Mock strings
 jest.mock('../../../../../../locales/i18n', () => ({

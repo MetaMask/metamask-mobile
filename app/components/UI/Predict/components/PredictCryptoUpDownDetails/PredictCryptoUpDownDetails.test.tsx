@@ -499,6 +499,32 @@ describe('PredictCryptoUpDownDetails', () => {
     }
   });
 
+  it('stops refreshing series query params after unmount', () => {
+    const now = Date.UTC(2026, 0, 1, 0, 1, 0);
+    jest.useFakeTimers();
+    jest.setSystemTime(now);
+    const market = createMockMarket({ endDate: undefined });
+    mockUsePredictSeries.mockReturnValue({ data: [market] });
+
+    try {
+      const { unmount } = render(
+        <PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />,
+      );
+      const callCountBeforeUnmount = mockUsePredictSeries.mock.calls.length;
+
+      unmount();
+      act(() => {
+        jest.advanceTimersByTime(10 * 60 * 1000);
+      });
+
+      expect(mockUsePredictSeries).toHaveBeenCalledTimes(
+        callCountBeforeUnmount,
+      );
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('uses the selected market recurrence for series query window duration', () => {
     const now = Date.UTC(2026, 0, 1, 0, 0, 0);
     const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
