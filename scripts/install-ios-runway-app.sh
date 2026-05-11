@@ -193,7 +193,7 @@ download_latest_app() {
 
   # Handle new zip format where the zip contains a .app directory at its root
   # (rather than the raw app bundle contents). Promote the inner .app to MetaMask.app.
-  INNER_APP=$(find "$EXTRACTED_APP_PATH" -name "*.app" -type d -maxdepth 1 2>/dev/null | head -1)
+  INNER_APP=$(find "$EXTRACTED_APP_PATH" -name "*.app" -type d -mindepth 1 -maxdepth 1 2>/dev/null | head -1)
   if [[ -n "$INNER_APP" ]]; then
     echo -e "${BLUE}Detected nested .app bundle in zip, restructuring...${NC}"
     TEMP_APP="$RUNWAY_DIR/.metamask_tmp.app"
