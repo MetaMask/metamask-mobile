@@ -21,6 +21,7 @@ import { BigNumber } from 'ethers';
 import { SolScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 
 jest.mock('../../utils/quoteUtils', () => ({
   isQuoteExpired: jest.fn(),
@@ -64,6 +65,9 @@ jest.mock('../useInsufficientBalance', () => ({
 
 // Mock Engine context
 jest.mock('../../../../../core/Engine', () => ({
+  state: {
+    BridgeController: {},
+  },
   context: {
     NetworkController: {
       findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
@@ -75,6 +79,11 @@ jest.mock('../../../../../core/Engine', () => ({
     },
   },
 }));
+const mockEngine = jest.requireMock('../../../../../core/Engine') as {
+  state: {
+    BridgeController: unknown;
+  };
+};
 
 // Mock getProviderByChainId
 jest.mock('../../../../../util/notifications/methods/common', () => ({
@@ -91,7 +100,14 @@ describe('useBridgeQuoteData', () => {
     (shouldRefreshQuote as jest.Mock).mockReturnValue(false);
     mockUseIsInsufficientBalance.mockReturnValue(false);
     mockValidateBridgeTx.mockResolvedValue({ status: 'SUCCESS' });
+    mockEngine.state.BridgeController = {};
   });
+
+  interface MockBridgeQuotes {
+    recommendedQuote: typeof mockQuoteWithMetadata | undefined;
+    sortedQuotes: (typeof mockQuoteWithMetadata)[];
+    alternativeQuotes: (typeof mockQuoteWithMetadata)[];
+  }
 
   it('returns quote data when quotes are available', () => {
     // Set up mock for this specific test
@@ -548,6 +564,57 @@ describe('useBridgeQuoteData', () => {
       validQuotes: [],
       isActiveQuoteForCurrentTokenPair: false,
     });
+  });
+
+  it('needs a new quote when a refetch clears the active quote after a quote was shown', () => {
+    let bridgeQuotes: MockBridgeQuotes = {
+      recommendedQuote: mockQuoteWithMetadata,
+      sortedQuotes: [mockQuoteWithMetadata],
+      alternativeQuotes: [],
+    };
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(
+      () => bridgeQuotes,
+    );
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: RequestStatus.FETCHED,
+        quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+        quotesLastFetched: Date.now(),
+      },
+    });
+
+    const { result, rerender, store } = renderHookWithProvider(
+      () => useBridgeQuoteData(),
+      {
+        state: testState,
+      },
+    );
+
+    expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+    expect(result.current.needsNewQuote).toBe(false);
+
+    bridgeQuotes = {
+      recommendedQuote: undefined,
+      sortedQuotes: [],
+      alternativeQuotes: [],
+    };
+    mockEngine.state.BridgeController = {
+      ...testState.engine.backgroundState.BridgeController,
+      quotes: [],
+      quotesLoadingStatus: RequestStatus.LOADING,
+      quotesLastFetched: Date.now(),
+    };
+
+    act(() => {
+      store.dispatch(updateBgState({ key: 'BridgeController' }));
+    });
+    rerender({});
+
+    expect(result.current.activeQuote).toBeUndefined();
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.needsNewQuote).toBe(true);
   });
 
   it('displays error state when quote fetch fails', () => {

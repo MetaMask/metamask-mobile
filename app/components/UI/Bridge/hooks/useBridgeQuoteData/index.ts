@@ -128,6 +128,13 @@ export const useBridgeQuoteData = ({
     ? (manuallySelectedQuote ?? bestQuote)
     : rawActiveQuote;
 
+  const hasShownActiveQuoteRef = useRef(false);
+  useEffect(() => {
+    if (activeQuote) {
+      hasShownActiveQuoteRef.current = true;
+    }
+  }, [activeQuote]);
+
   const priceImpactFiat = usePriceImpactFiat(activeQuote);
 
   // Validate that the quote's source asset matches the selected source token
@@ -258,12 +265,15 @@ export const useBridgeQuoteData = ({
 
   const isNoQuotesAvailable = quoteStreamComplete?.hasQuotes === false;
 
-  // The quote expired and no fetch is in progress — offer to get a new one.
-  // Also treat the edge-case where a fetch IS running but there is no active
-  // quote to fall back on — the user would otherwise be stuck on a spinner
-  // with no way to retry ("escape hatch").
+  // Show "Get new quote" when an expired quote needs refresh, or when a
+  // refetch clears the active quote after a previous quote existed.
+  // hasShownActiveQuoteRef keeps the initial quote load in the skeleton state.
+  const isExpiredWithoutUsableQuote = isExpired && (!isLoading || !activeQuote);
+  const isRefetchingAfterPreviousQuote =
+    isLoading && !activeQuote && hasShownActiveQuoteRef.current;
   const needsNewQuote =
-    isExpired && !isSubmittingTx && (!isLoading || !activeQuote);
+    !isSubmittingTx &&
+    (isExpiredWithoutUsableQuote || isRefetchingAfterPreviousQuote);
 
   const shouldShowPriceImpactWarning = Boolean(
     activeQuote?.quote.priceData?.priceImpact !== undefined &&
