@@ -5,6 +5,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import MultichainTransactionDetailsSheet from './MultichainTransactionDetailsSheet';
 import type { MultichainTransactionDisplayData } from '../../hooks/useMultichainTransactionDisplay';
 import type { Transaction } from '@metamask/keyring-api';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockOnCloseBottomSheet = jest.fn();
@@ -66,6 +67,14 @@ jest.mock('../../../core/Multichain/utils', () => ({
     (address: string, chain: string) =>
       `https://explorer.example.com/address/${address}?chain=${chain}`,
   ),
+}));
+
+jest.mock('../../../util/address', () => ({
+  formatAddress: jest.fn((address: string) => `short:${address}`),
+}));
+
+jest.mock('../../../util/date', () => ({
+  toDateFormat: jest.fn(() => 'Nov 14, 2023'),
 }));
 
 const mockDisplayData: MultichainTransactionDisplayData = {
@@ -169,5 +178,81 @@ describe('MultichainTransactionDetailsSheet', () => {
     expect(queryByText('From')).toBeNull();
     expect(queryByText('To')).toBeNull();
     expect(queryByText('Network fee')).toBeNull();
+  });
+
+  it('renders the transaction ID row', () => {
+    const { getByText } = renderSheet();
+    expect(getByText('Transaction ID')).toBeOnTheScreen();
+  });
+
+  it('renders the priority fee label', () => {
+    const { getByText } = renderSheet();
+    expect(getByText('Priority fee')).toBeOnTheScreen();
+  });
+
+  it('renders the timestamp when present', () => {
+    const { getByText } = renderSheet();
+    expect(getByText('Nov 14, 2023')).toBeOnTheScreen();
+  });
+
+  it('does not render a timestamp when absent', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        displayData: mockDisplayData,
+        transaction: { ...mockTransaction, timestamp: undefined },
+      },
+    });
+    const { queryByText } = renderSheet();
+    expect(queryByText('Nov 14, 2023')).toBeNull();
+  });
+
+  it('navigates to block explorer when transaction ID link is pressed', () => {
+    mockOnCloseBottomSheet.mockImplementation((cb?: () => void) => cb?.());
+    const { getByText } = renderSheet();
+    fireEvent.press(getByText(`short:${mockTransaction.id}`));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: `https://explorer.example.com/tx/${mockTransaction.id}?chain=${mockTransaction.chain}`,
+      },
+    });
+  });
+
+  it('navigates to block explorer when from address link is pressed', () => {
+    mockOnCloseBottomSheet.mockImplementation((cb?: () => void) => cb?.());
+    const fromAddress = '0xabc123def456abc123def456abc123def456abc1';
+    const { getByText } = renderSheet();
+    fireEvent.press(getByText(`short:${fromAddress}`));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: `https://explorer.example.com/address/${fromAddress}?chain=${mockTransaction.chain}`,
+      },
+    });
+  });
+
+  it('navigates to block explorer when to address link is pressed', () => {
+    mockOnCloseBottomSheet.mockImplementation((cb?: () => void) => cb?.());
+    const toAddress = '0xdef456abc123def456abc123def456abc123def4';
+    const { getByText } = renderSheet();
+    fireEvent.press(getByText(`short:${toAddress}`));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: `https://explorer.example.com/address/${toAddress}?chain=${mockTransaction.chain}`,
+      },
+    });
+  });
+
+  it('navigates to block explorer when "View details" button is pressed', () => {
+    mockOnCloseBottomSheet.mockImplementation((cb?: () => void) => cb?.());
+    const { getByText } = renderSheet();
+    fireEvent.press(getByText('View details'));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: `https://explorer.example.com/tx/${mockTransaction.id}?chain=${mockTransaction.chain}`,
+      },
+    });
   });
 });
