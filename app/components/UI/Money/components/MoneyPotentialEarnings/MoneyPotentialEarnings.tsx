@@ -22,7 +22,6 @@ import {
 } from '../../../Earn/hooks/useMusdConversionTokens';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';
-import MoneyGradientText from './MoneyGradientText';
 import PotentialEarningsTokenRow from './PotentialEarningsTokenRow';
 import {
   calculateProjectedEarnings,
@@ -46,7 +45,7 @@ interface MoneyPotentialEarningsProps {
   /**
    * APY expressed as a percentage (e.g. 3 for 3%) used together with
    * {@link PROJECTION_YEARS} to compute the projected earnings displayed
-   * alongside each token and in the gradient headline.
+   * alongside each token and in the headline.
    */
   apy: number | undefined;
   onTokenPress?: (token: AssetType) => void;
@@ -78,8 +77,8 @@ const MoneyPotentialEarnings = ({
 
   // Sum across every eligible token (not just the five we render). The "View
   // all" affordance tells users there are more rows than shown, so the
-  // gradient headline is intentionally the full projection — clipping the
-  // headline to the visible five would contradict that affordance.
+  // headline is intentionally the full projection — clipping the headline to
+  // the visible five would contradict that affordance.
   const projectedAmount = useMemo(
     () =>
       eligibleTokens.reduce(
@@ -113,9 +112,14 @@ const MoneyPotentialEarnings = ({
         />
 
         {isPositiveNumber(projectedAmount) && (
-          <MoneyGradientText
-            value={`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
-          />
+          <Text
+            variant={TextVariant.HeadingMd}
+            fontWeight={FontWeight.Bold}
+            color={TextColor.SuccessDefault}
+            testID={MoneyPotentialEarningsTestIds.TEXT}
+          >
+            {`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
+          </Text>
         )}
 
         <Text

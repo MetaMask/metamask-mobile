@@ -123,6 +123,21 @@ describe('MoneyPotentialEarnings', () => {
     );
   });
 
+  it('renders the projected amount as a plain Text (no gradient mask)', () => {
+    const { getByTestId, toJSON } = render(
+      <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} />,
+    );
+
+    // The filled state should be a plain DSRN Text, not the masked gradient
+    // wrapper that used to host it. `MaskedView` and `LinearGradient` are
+    // both mocked as plain string components in this suite, so their type
+    // would surface in the serialized tree if MoneyGradientText were used.
+    expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toBeOnTheScreen();
+    const serialized = JSON.stringify(toJSON());
+    expect(serialized).not.toContain('MaskedView');
+    expect(serialized).not.toContain('LinearGradient');
+  });
+
   it('excludes tokens with zero balance', () => {
     const zeroBalanceToken = makeToken({
       name: 'Zero',
@@ -210,7 +225,7 @@ describe('MoneyPotentialEarnings', () => {
     expect(onHeader).toHaveBeenCalledTimes(1);
   });
 
-  it('hides the gradient amount when apy is undefined', () => {
+  it('hides the projected amount when apy is undefined', () => {
     const { queryByTestId } = render(
       <MoneyPotentialEarnings apy={undefined} tokens={[MOCK_USDC]} />,
     );
