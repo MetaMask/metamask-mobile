@@ -13,6 +13,24 @@ import { ConnectionInfo } from '../types/connection-info';
 import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 import logger from '../services/logger';
+import { Alert } from 'react-native';
+
+type AlertWithPrompt = typeof Alert & {
+  prompt?: (
+    title: string,
+    message?: string,
+    callbackOrButtons?:
+      | ((text: string) => void)
+      | {
+          text?: string;
+          onPress?: (text?: string) => void;
+          style?: 'default' | 'cancel' | 'destructive';
+        }[],
+    type?: 'plain-text' | 'secure-text' | 'login-password',
+    defaultValue?: string,
+    keyboardType?: string,
+  ) => void;
+};
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
   showConnectionLoading(conninfo: ConnectionInfo): void {
@@ -91,6 +109,48 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
         status: 'success',
       }),
     );
+  }
+
+  requestCliOtp(
+    dappName: string,
+    errorMessage?: string,
+  ): Promise<string | null> {
+    const prompt = (Alert as AlertWithPrompt).prompt;
+    
+    if (!prompt) {
+      Alert.alert(
+        'Verification required',
+        'This platform does not support the demo CLI OTP prompt.',
+      );
+      return Promise.resolve(null);
+    }
+
+    return new Promise((resolve) => {
+      prompt(
+        'Enter CLI code',
+        `${
+          errorMessage ? `${errorMessage}\n\n` : ''
+        }Enter the 6-digit code shown by ${dappName}.`,
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => {
+              resolve(null);
+            },
+          },
+          {
+            text: 'Verify',
+            onPress: (text) => {
+              resolve(text ?? '');
+            },
+          },
+        ],
+        'plain-text',
+        '',
+        'number-pad',
+      );
+    });
   }
 
   showNotFoundError(): void {

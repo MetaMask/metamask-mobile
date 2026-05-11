@@ -5,6 +5,11 @@ import { isUUID } from '../../SDKConnect/utils/isUUID';
 const HANDSHAKE_CHANNEL_REGEX =
   /^handshake:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+export type ConnectionType = {
+  name: 'agentic-cli';
+  preHandshake: 'cli-otp';
+};
+
 /**
  * Represents an incoming connection request parsed from a QR code or deep link.
  * This is the shared data contract between the dApp SDK and the mobile wallet,
@@ -22,6 +27,12 @@ export interface ConnectionRequest {
    * Metadata about the dApp and SDK that is requesting the connection.
    */
   metadata: Metadata;
+
+  /**
+   * Optional connection profile for clients that need behavior beyond the
+   * default dapp flow. Normal dapp connections omit this field.
+   */
+  connectionType?: ConnectionType;
 }
 
 /**
@@ -158,6 +169,20 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
       !isUUID(metadata.analytics.remote_session_id)
     ) {
       delete (metadata as unknown as Record<string, unknown>).analytics;
+    }
+  }
+
+  // Normal dapp requests omit connectionType. When present, only the
+  // Agentic CLI OTP pre-handshake profile is currently supported.
+  if (obj.connectionType !== undefined) {
+    if (
+      !obj.connectionType ||
+      typeof obj.connectionType !== 'object' ||
+      Array.isArray(obj.connectionType) ||
+      obj.connectionType.name !== 'agentic-cli' ||
+      obj.connectionType.preHandshake !== 'cli-otp'
+    ) {
+      return false;
     }
   }
 

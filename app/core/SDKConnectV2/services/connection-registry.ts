@@ -2,6 +2,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import {
   IKeyManager,
   DEFAULT_SESSION_TTL,
+  WebSocketTransport,
 } from '@metamask/mobile-wallet-protocol-core';
 import {
   ConnectionRequest,
@@ -23,6 +24,7 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import type { IMetaMetricsEvent } from '../../Analytics/MetaMetrics.types';
 import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
+import { KVStore } from '../store/kv-store';
 
 /**
  * Fire-and-forget analytics helper. Never throws — a broken analytics
@@ -55,6 +57,38 @@ function trackMwpEvent(
  * evicted before the new one is created.
  */
 export const MAX_CONNECTIONS = 20;
+
+const CLI_OTP_MAX_ATTEMPTS = 3;
+const CLI_OTP_SUBSCRIBE_TIMEOUT_MS = 15000;
+const CLI_OTP_RESPONSE_TIMEOUT_MS = 15000;
+
+type CliOtpResultMessage = {
+  type: 'cli-otp-result';
+  payload: {
+    ok: boolean;
+    message?: string;
+    terminal?: boolean;
+    remainingAttempts?: number;
+  };
+};
+
+type CliOtpTransportContext = {
+  responseChannel: string;
+  keyPair: ReturnType<IKeyManager['generateKeyPair']>;
+  transport: WebSocketTransport;
+};
+
+const withTimeout = async <T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  timeoutMessage: string,
+): Promise<T> =>
+  await Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+    }),
+  ]);
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -275,6 +309,13 @@ export class ConnectionRegistry {
           message: 'External transactions cannot use internal origins',
         });
       }
+
+      const requiresCliOtp = this.requiresCliOtp(connReq);
+
+      if (requiresCliOtp) {
+        await this.verifyCliOtp(connReq);
+      }
+
       await this.evictIfAtCapacity();
 
       connInfo = this.toConnectionInfo(connReq);
@@ -286,6 +327,12 @@ export class ConnectionRegistry {
         this.hostapp,
       );
       await conn.connect(connReq.sessionRequest);
+
+      if (requiresCliOtp) {
+        const hydraToken = await this.getCliHydraToken();
+        await conn.sendHydraToken(hydraToken, 'test');
+      }
+
       this.connections.set(conn.id, conn);
       await this.store.save(connInfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
@@ -396,6 +443,182 @@ export class ConnectionRegistry {
       metadata: connReq.metadata,
       expiresAt: Date.now() + DEFAULT_SESSION_TTL,
     };
+  }
+
+  private requiresCliOtp(connReq: ConnectionRequest): boolean {
+    return (
+      connReq.connectionType?.name === 'agentic-cli' &&
+      connReq.connectionType.preHandshake === 'cli-otp'
+    );
+  }
+
+  private async verifyCliOtp(connReq: ConnectionRequest): Promise<void> {
+    let errorMessage: string | undefined;
+    const otpContext = await this.createCliOtpTransport(connReq);
+
+    try {
+      for (let attempt = 0; attempt < CLI_OTP_MAX_ATTEMPTS; attempt++) {
+        const otp = await this.hostapp.requestCliOtp(
+          connReq.metadata.dapp.name,
+          errorMessage,
+        );
+
+        const trimmedOtp = otp.trim();
+
+        const result = await this.submitCliOtp(
+          connReq,
+          trimmedOtp,
+          otpContext,
+          attempt + 1,
+        );
+
+        if (result.ok) {
+          return;
+        }
+
+        if (result.terminal) {
+          throw new Error(result.message ?? 'CLI OTP verification failed.');
+        }
+
+        errorMessage = /^\d{6}$/.test(trimmedOtp)
+          ? 'Incorrect code. Try again.'
+          : 'Enter a 6-digit code.';
+      }
+
+      throw new Error('CLI OTP verification failed.');
+    } finally {
+      await this.cleanupCliOtpTransport(otpContext);
+    }
+  }
+
+  private async createCliOtpTransport(
+    connReq: ConnectionRequest,
+  ): Promise<CliOtpTransportContext> {
+    const responseChannel = connReq.sessionRequest.channel;
+    const keyPair = this.keymanager.generateKeyPair();
+    const transport = await WebSocketTransport.create({
+      url: this.RELAY_URL,
+      kvstore: new KVStore(
+        `mwp/cli-otp/${connReq.sessionRequest.id}/${responseChannel}`,
+      ),
+      useSharedConnection: true,
+    });
+    transport.on('error', (error) => {
+      console.error('[MWP CLI OTP] transport error', error);
+    });
+
+    await transport.connect();
+    await withTimeout(
+      transport.subscribe(responseChannel),
+      CLI_OTP_SUBSCRIBE_TIMEOUT_MS,
+      'CLI OTP response channel subscription timed out.',
+    );
+    return { responseChannel, keyPair, transport };
+  }
+
+  private async submitCliOtp(
+    connReq: ConnectionRequest,
+    otp: string,
+    otpContext: CliOtpTransportContext,
+    attempt: number,
+  ): Promise<CliOtpResultMessage['payload']> {
+    const { responseChannel, keyPair, transport } = otpContext;
+    const responsePromise = new Promise<CliOtpResultMessage['payload']>(
+      (resolve, reject) => {
+        const onMessage = async ({
+          channel,
+          data,
+        }: {
+          channel: string;
+          data: string;
+        }) => {
+          if (channel !== responseChannel) return;
+
+          try {
+            const decrypted = await this.keymanager.decrypt(
+              data,
+              keyPair.privateKey,
+            );
+            const response = JSON.parse(decrypted) as CliOtpResultMessage;
+
+            clearTimeout(timeoutId);
+            transport.off('message', onMessage);
+            console.log('[MWP CLI OTP] decrypted OTP result from CLI', {
+              response,
+            });
+            resolve(
+              response.type === 'cli-otp-result'
+                ? response.payload
+                : { ok: false },
+            );
+          } catch (error) {
+            clearTimeout(timeoutId);
+            transport.off('message', onMessage);
+            console.error(
+              '[MWP CLI OTP] failed to decrypt or parse OTP result from CLI',
+              {
+                error: error instanceof Error ? error.message : String(error),
+                responseChannel,
+              },
+            );
+            reject(error);
+          }
+        };
+
+        const timeoutId = setTimeout(() => {
+          transport.off('message', onMessage);
+          console.error(
+            '[MWP CLI OTP] timed out waiting for CLI OTP response',
+            {
+              responseChannel,
+              attempt,
+            },
+          );
+          reject(new Error('CLI OTP verification response timed out.'));
+        }, CLI_OTP_RESPONSE_TIMEOUT_MS);
+
+        transport.on('message', onMessage);
+      },
+    );
+
+    const dappPublicKey = this.getDappPublicKey(connReq);
+    const encrypted = await this.keymanager.encrypt(
+      JSON.stringify({
+        type: 'cli-otp-submit',
+        payload: {
+          otp,
+          responseChannel,
+          publicKeyB64: Buffer.from(keyPair.publicKey).toString('base64'),
+        },
+      }),
+      dappPublicKey,
+    );
+
+    await transport.publish(connReq.sessionRequest.channel, encrypted);
+
+    return await responsePromise;
+  }
+
+  private async getCliHydraToken(): Promise<string> {
+    const hydraToken =
+      await Engine.context.AuthenticationController.getBearerToken();
+
+    console.log('[MWP CLI OTP] Hydra token', hydraToken);
+
+    return hydraToken;
+  }
+
+  private getDappPublicKey(connReq: ConnectionRequest): Uint8Array {
+    return new Uint8Array(
+      Buffer.from(connReq.sessionRequest.publicKeyB64, 'base64'),
+    );
+  }
+
+  private async cleanupCliOtpTransport(
+    otpContext: CliOtpTransportContext,
+  ): Promise<void> {
+    await otpContext.transport.clear(otpContext.responseChannel);
+    await otpContext.transport.disconnect();
   }
 
   /**

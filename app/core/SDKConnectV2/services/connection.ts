@@ -39,6 +39,12 @@ const REJECTION_MESSAGE_PATTERNS: readonly string[] = [
   'user rejected',
 ];
 
+type HydraTokenMessagePayload = {
+  type: 'auth-token';
+  token: string;
+  scope?: string;
+};
+
 const isRejectionMessage = (message: unknown): boolean => {
   if (typeof message !== 'string') return false;
   const lower = message.toLowerCase();
@@ -194,6 +200,25 @@ export class Connection {
    */
   public async connect(sessionRequest: SessionRequest): Promise<void> {
     await this.client.connect({ sessionRequest });
+  }
+
+  public async sendHydraToken(
+    hydraToken: string,
+    hydraScope: string,
+  ): Promise<void> {
+    const payload: HydraTokenMessagePayload = {
+      type: 'auth-token',
+      token: hydraToken,
+      scope: hydraScope,
+    };
+
+    logger.debug('Sending Hydra token to CLI:', this.id, {
+      hydraScope,
+      hydraTokenLength: hydraToken.length,
+    });
+    console.log('[MWP CLI OTP] sending Hydra token to CLI', payload);
+    const res = await this.client.sendResponse(payload);
+    console.log('[MWP CLI OTP] sendResponse result', res);
   }
 
   /**

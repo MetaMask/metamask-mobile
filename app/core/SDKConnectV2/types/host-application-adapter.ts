@@ -54,6 +54,11 @@ export interface IHostApplicationAdapter {
   showReturnToApp(conninfo: ConnectionInfo): void;
 
   /**
+   * Requests the CLI-displayed OTP from the user.
+   */
+  requestCliOtp(dappName: string, errorMessage?: string): Promise<string | null>;
+
+  /**
    * Syncs the full list of active v2 connections with the application's
    * UI layer (e.g., dispatching an action to update a Redux store).
    * @param connections The complete array of active Connection objects.
