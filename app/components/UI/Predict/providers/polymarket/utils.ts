@@ -85,24 +85,20 @@ const getSeriesRecurrence = (
     ? '4h'
     : series.recurrence;
 
-export const getPolymarketEndpoints = () => {
-  const API_ENDPOINT = 'https://polymarket.com/api';
-
-  return {
-    GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
-    CLOB_ENDPOINT: DEFAULT_CLOB_BASE_URL,
-    DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
-    API_ENDPOINT,
-    GEOBLOCK_API_ENDPOINT: `${API_ENDPOINT}/geoblock`,
-    HOMEPAGE_CAROUSEL_ENDPOINT: `${API_ENDPOINT}/homepage/carousel`,
-    CRYPTO_PRICE_ENDPOINT: `${API_ENDPOINT}/crypto/crypto-price`,
-    CRYPTO_PRICE_HISTORY_ENDPOINT: `${API_ENDPOINT}/crypto/price-history`,
-    CLOB_RELAYER:
-      process.env.METAMASK_ENVIRONMENT === 'dev'
-        ? 'https://predict.dev-api.cx.metamask.io'
-        : 'https://predict.api.cx.metamask.io',
-  };
-};
+export const getPolymarketEndpoints = () => ({
+  GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
+  CLOB_ENDPOINT: DEFAULT_CLOB_BASE_URL,
+  DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
+  CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
+  CRYPTO_PRICE_HISTORY_ENDPOINT:
+    'https://polymarket.com/api/crypto/price-history',
+  GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
+  HOMEPAGE_CAROUSEL_ENDPOINT: 'https://polymarket.com/api/homepage/carousel',
+  CLOB_RELAYER:
+    process.env.METAMASK_ENVIRONMENT === 'dev'
+      ? 'https://predict.dev-api.cx.metamask.io'
+      : 'https://predict.api.cx.metamask.io',
+});
 
 /**
  * Parse a fetch `Response` body as JSON, raising a contextual error when the
