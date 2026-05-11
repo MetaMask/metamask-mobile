@@ -97,6 +97,38 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
+jest.mock('../components/RewardsErrorBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, Pressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      title,
+      onConfirm,
+      confirmButtonLabel,
+      testID,
+    }: {
+      title: string;
+      description: string;
+      onConfirm?: () => void;
+      confirmButtonLabel?: string;
+      testID?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID },
+        ReactActual.createElement(Text, null, title),
+        confirmButtonLabel
+          ? ReactActual.createElement(
+              Pressable,
+              { onPress: onConfirm, testID: `${testID}-retry` },
+              ReactActual.createElement(Text, null, confirmButtonLabel),
+            )
+          : null,
+      ),
+  };
+});
+
 jest.mock('../../../../../locales/i18n', () => ({
   __esModule: true,
   default: { locale: 'en-US' },
@@ -218,6 +250,7 @@ describe('RewardsVipTiersView', () => {
       dashboard: dashboardWithTiers,
       isLoading: false,
       hasError: false,
+      hasAttemptedFetch: true,
       fetchVipDashboard: mockFetch,
     });
   });
@@ -241,6 +274,21 @@ describe('RewardsVipTiersView', () => {
       dashboard: null,
       isLoading: true,
       hasError: false,
+      hasAttemptedFetch: false,
+      fetchVipDashboard: mockFetch,
+    });
+    const { getByTestId } = render(<RewardsVipTiersView />);
+    expect(
+      getByTestId(REWARDS_VIP_TIERS_VIEW_TEST_IDS.SKELETON),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders skeleton on the pre-fetch idle window so there is no blank flash', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: null,
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: false,
       fetchVipDashboard: mockFetch,
     });
     const { getByTestId } = render(<RewardsVipTiersView />);

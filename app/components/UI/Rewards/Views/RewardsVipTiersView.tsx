@@ -35,8 +35,13 @@ const RewardsVipTiersView: React.FC = () => {
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
   const canViewVip = Boolean(subscriptionId && isVipEnabled);
 
-  const { dashboard, isLoading, hasError, fetchVipDashboard } =
-    useVipDashboard();
+  const {
+    dashboard,
+    isLoading,
+    hasError,
+    hasAttemptedFetch,
+    fetchVipDashboard,
+  } = useVipDashboard();
 
   useTrackRewardsPageView({
     page_type: 'vip_tiers',
@@ -53,7 +58,7 @@ const RewardsVipTiersView: React.FC = () => {
     return null;
   }
 
-  const showSkeleton = isLoading && !dashboard;
+  const showSkeleton = (!hasAttemptedFetch || isLoading) && !dashboard;
   const showError = hasError && !dashboard;
   const tiers = dashboard?.tiers ?? [];
   const nextTierId = dashboard?.nextTier?.id;
