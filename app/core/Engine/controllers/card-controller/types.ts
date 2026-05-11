@@ -1,6 +1,6 @@
 import type {
   ControllerGetStateAction,
-  ControllerStateChangeEvent,
+  ControllerStateChangedEvent,
 } from '@metamask/base-controller';
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
@@ -18,8 +18,10 @@ import type {
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
 import type { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metamask/network-controller';
-import type { TransactionControllerAddTransactionAction } from '@metamask/transaction-controller';
-import type { CardHomeData } from './provider-types';
+import type {
+  TransactionControllerAddTransactionAction,
+  TransactionControllerTransactionConfirmedEvent,
+} from '@metamask/transaction-controller';
 
 export const CARD_CONTROLLER_NAME = 'CardController';
 
@@ -59,7 +61,7 @@ export type CardControllerActions = ControllerGetStateAction<
   CardControllerState
 >;
 
-export type CardControllerEvents = ControllerStateChangeEvent<
+export type CardControllerEvents = ControllerStateChangedEvent<
   typeof CARD_CONTROLLER_NAME,
   CardControllerState
 >;
@@ -75,7 +77,8 @@ type CardControllerAllowedActions =
 type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent
   | RemoteFeatureFlagControllerStateChangeEvent
-  | KeyringControllerUnlockEvent;
+  | KeyringControllerUnlockEvent
+  | TransactionControllerTransactionConfirmedEvent;
 
 export type CardControllerMessenger = Messenger<
   typeof CARD_CONTROLLER_NAME,
