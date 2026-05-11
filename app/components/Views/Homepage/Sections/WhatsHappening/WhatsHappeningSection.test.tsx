@@ -60,7 +60,11 @@ const mockItem = {
   articles: [],
 };
 
-const defaultProps = { sectionIndex: 1, totalSectionsLoaded: 3 };
+const defaultProps = {
+  sectionIndex: 1,
+  totalSectionsLoaded: 3,
+  source: 'homepage' as const,
+};
 
 describe('WhatsHappeningSection', () => {
   beforeEach(() => {
@@ -154,6 +158,7 @@ describe('WhatsHappeningSection', () => {
     fireEvent.press(screen.getByText(mockItem.title));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
       initialIndex: 0,
+      source: 'homepage',
     });
   });
 
@@ -168,6 +173,7 @@ describe('WhatsHappeningSection', () => {
     fireEvent.press(screen.getByText(/view more/i));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
       initialIndex: 0,
+      source: 'homepage',
     });
   });
 
@@ -187,6 +193,7 @@ describe('WhatsHappeningSection', () => {
     fireEvent.press(screen.getByText(secondItem.title));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
       initialIndex: 1,
+      source: 'homepage',
     });
   });
 });

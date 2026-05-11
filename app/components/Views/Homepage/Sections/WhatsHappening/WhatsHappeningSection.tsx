@@ -16,7 +16,10 @@ import { SectionRefreshHandle } from '../../types';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MAX_ITEMS_DISPLAYED } from './constants';
+import {
+  MAX_ITEMS_DISPLAYED,
+  type WhatsHappeningSourceValue,
+} from './constants';
 import { useWhatsHappening } from './hooks';
 import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
 import useHomeViewedEvent, {
@@ -45,12 +48,13 @@ const styles = StyleSheet.create({
 interface WhatsHappeningSectionProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
+  source: WhatsHappeningSourceValue;
 }
 
 const WhatsHappeningSection = forwardRef<
   SectionRefreshHandle,
   WhatsHappeningSectionProps
->(({ sectionIndex, totalSectionsLoaded }, ref) => {
+>(({ sectionIndex, totalSectionsLoaded, source }, ref) => {
   const sectionViewRef = useRef<View>(null);
   const tw = useTailwind();
   const navigation = useNavigation();
@@ -92,9 +96,10 @@ const WhatsHappeningSection = forwardRef<
     (initialIndex: number) => {
       navigation.navigate(Routes.WHATS_HAPPENING_DETAIL, {
         initialIndex,
+        source,
       });
     },
-    [navigation],
+    [navigation, source],
   );
 
   const handleViewAll = useCallback(() => {
@@ -162,6 +167,7 @@ const WhatsHappeningSection = forwardRef<
                 key={item.id}
                 item={item}
                 cardIndex={index}
+                source={source}
                 onPress={() => handleCardPress(index)}
               />
             ))}

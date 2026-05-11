@@ -25,7 +25,10 @@ import type { WhatsHappeningItem } from '../Homepage/Sections/WhatsHappening/typ
 import { strings } from '../../../../locales/i18n';
 import { useWhatsHappening } from '../Homepage/Sections/WhatsHappening/hooks';
 import { WhatsHappeningCardSkeleton } from '../Homepage/Sections/WhatsHappening/components';
-import { MAX_ITEMS_DISPLAYED } from '../Homepage/Sections/WhatsHappening/constants';
+import {
+  MAX_ITEMS_DISPLAYED,
+  type WhatsHappeningSourceValue,
+} from '../Homepage/Sections/WhatsHappening/constants';
 import { getWhatsHappeningEventProps } from '../Homepage/Sections/WhatsHappening/eventProperties';
 import ErrorState from '../Homepage/components/ErrorState/ErrorState';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
@@ -49,6 +52,7 @@ const SKELETON_KEYS = Array.from(
 
 interface WhatsHappeningDetailParams {
   initialIndex: number;
+  source: WhatsHappeningSourceValue;
 }
 
 const WhatsHappeningDetailView = () => {
@@ -58,6 +62,7 @@ const WhatsHappeningDetailView = () => {
     useRoute<RouteProp<{ params: WhatsHappeningDetailParams }, 'params'>>();
 
   const initialIndex = route.params?.initialIndex ?? 0;
+  const source = route.params?.source;
 
   const { items, isLoading, error, refresh } =
     useWhatsHappening(MAX_ITEMS_DISPLAYED);
@@ -128,24 +133,30 @@ const WhatsHappeningDetailView = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED)
           .addProperties(
-            getWhatsHappeningEventProps(items[initialIndex], initialIndex),
+            getWhatsHappeningEventProps(
+              items[initialIndex],
+              initialIndex,
+              source,
+            ),
           )
           .build(),
       );
     }
-  }, [isLoading, items, initialIndex, trackEvent, createEventBuilder]);
+  }, [isLoading, items, initialIndex, source, trackEvent, createEventBuilder]);
 
   const handleBackPress = useCallback(() => {
     const visible = items[currentIndex];
     if (visible) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_CLOSED)
-          .addProperties(getWhatsHappeningEventProps(visible, currentIndex))
+          .addProperties(
+            getWhatsHappeningEventProps(visible, currentIndex, source),
+          )
           .build(),
       );
     }
     navigation.goBack();
-  }, [navigation, items, currentIndex, trackEvent, createEventBuilder]);
+  }, [navigation, items, currentIndex, source, trackEvent, createEventBuilder]);
 
   // Updates the dot indicator live during the drag.
   // Flips at 20% visibility (bias = 0.8) — responsive without being erratic.
@@ -178,14 +189,16 @@ const WhatsHappeningDetailView = () => {
         if (newItem) {
           trackEvent(
             createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED)
-              .addProperties(getWhatsHappeningEventProps(newItem, index))
+              .addProperties(
+                getWhatsHappeningEventProps(newItem, index, source),
+              )
               .build(),
           );
         }
         previousIndexRef.current = index;
       }
     },
-    [items, trackEvent, createEventBuilder],
+    [items, source, trackEvent, createEventBuilder],
   );
 
   const hasError = !isLoading && items.length === 0 && !!error;
@@ -259,6 +272,7 @@ const WhatsHappeningDetailView = () => {
                       cardIndex={index}
                       cardWidth={CARD_WIDTH}
                       cardHeight={cardHeight}
+                      source={source}
                       onSourcesPress={(articles) =>
                         handleSourcesPress(articles, item, index)
                       }
@@ -277,6 +291,7 @@ const WhatsHappeningDetailView = () => {
           articles={sourcesContext.articles}
           item={sourcesContext.item}
           cardIndex={sourcesContext.cardIndex}
+          source={source}
         />
       )}
     </SafeAreaView>

@@ -3,7 +3,10 @@ import type { RelatedAsset } from '@metamask/ai-controllers';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { WhatsHappeningInteractionType } from '../../Homepage/Sections/WhatsHappening/constants';
+import {
+  WhatsHappeningInteractionType,
+  type WhatsHappeningSourceValue,
+} from '../../Homepage/Sections/WhatsHappening/constants';
 import { getWhatsHappeningEventProps } from '../../Homepage/Sections/WhatsHappening/eventProperties';
 import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
 import { formatAssetPrice } from '../utils/formatAssetPrice';
@@ -15,6 +18,7 @@ interface PerpsRowProps {
   asset: RelatedAsset;
   item: WhatsHappeningItem;
   cardIndex: number;
+  source: WhatsHappeningSourceValue;
   /** Map from perps symbol → live price data, resolved by the parent card hook. */
   perpsPriceBySymbol: Record<string, PerpsPriceEntry>;
 }
@@ -29,6 +33,7 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
   asset,
   item,
   cardIndex,
+  source,
   perpsPriceBySymbol,
 }) => {
   const { handleTrade } = useTradeNavigation(asset);
@@ -51,7 +56,7 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED)
         .addProperties({
-          ...getWhatsHappeningEventProps(item, cardIndex),
+          ...getWhatsHappeningEventProps(item, cardIndex, source),
           interaction_type: WhatsHappeningInteractionType.TradePressed,
           asset_symbol: asset.symbol,
           perps_market: perpsMarket,
@@ -65,6 +70,7 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
     asset.hlPerpsMarket,
     item,
     cardIndex,
+    source,
     trackEvent,
     createEventBuilder,
   ]);

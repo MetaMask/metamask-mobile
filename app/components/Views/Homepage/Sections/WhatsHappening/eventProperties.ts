@@ -1,4 +1,5 @@
 import type { WhatsHappeningItem } from './types';
+import type { WhatsHappeningSourceValue } from './constants';
 
 /**
  * Shared properties bag for Whats Happening analytics events.
@@ -18,15 +19,18 @@ export type WhatsHappeningEventProps = {
   trend_category?: WhatsHappeningItem['category'];
   trend_impact?: WhatsHappeningItem['impact'];
   asset_symbols: string[];
+  source: WhatsHappeningSourceValue;
 } & Record<string, unknown>;
 
 export const getWhatsHappeningEventProps = (
   item: WhatsHappeningItem,
   cardIndex: number,
+  source: WhatsHappeningSourceValue,
 ): WhatsHappeningEventProps => ({
   trend_id: item.id,
   card_index: cardIndex,
   ...(item.category ? { trend_category: item.category } : {}),
   ...(item.impact ? { trend_impact: item.impact } : {}),
   asset_symbols: item.relatedAssets.map((asset) => asset.symbol),
+  source,
 });
