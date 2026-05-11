@@ -112,6 +112,7 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         articles={articles as never}
         item={mockItem}
         cardIndex={0}
+        source="homepage"
       />,
     );
     expect(screen.getByText('coindesk.com')).toBeOnTheScreen();
@@ -125,6 +126,7 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         articles={articles as never}
         item={mockItem}
         cardIndex={0}
+        source="homepage"
       />,
     );
     fireEvent.press(screen.getByText('coindesk.com'));
@@ -139,6 +141,7 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         articles={articles as never}
         item={mockItem}
         cardIndex={0}
+        source="homepage"
       />,
     );
     fireEvent.press(screen.getByText('coindesk.com'));
@@ -152,6 +155,7 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         articles={articles as never}
         item={mockItem}
         cardIndex={0}
+        source="homepage"
       />,
     );
     expect(screen.getByText('News sources')).toBeOnTheScreen();
@@ -164,6 +168,7 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         articles={[]}
         item={mockItem}
         cardIndex={0}
+        source="homepage"
       />,
     );
     expect(screen.queryByText('coindesk.com')).toBeNull();
@@ -176,6 +181,7 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         articles={articles as never}
         item={mockItem}
         cardIndex={3}
+        source="homepage"
       />,
     );
     fireEvent.press(screen.getByText('coindesk.com'));
@@ -187,7 +193,8 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
         properties: expect.objectContaining({
           interaction_type: 'source_click',
-          source: 'https://coindesk.com/fed-pauses',
+          article_url: 'https://coindesk.com/fed-pauses',
+          source: 'homepage',
           trend_id: 'trend-7',
           card_index: 3,
           trend_category: 'macro',
@@ -206,6 +213,7 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         articles={articles as never}
         item={mockItem}
         cardIndex={0}
+        source="homepage"
       />,
     );
     fireEvent.press(screen.getByText('coindesk.com'));
