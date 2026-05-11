@@ -7,12 +7,10 @@ import { strings } from '../../../../../locales/i18n';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import Badge, {
-  BadgeStatusState,
-  BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
 import {
+  BadgeStatus,
+  BadgeStatusStatus,
   Button,
   ButtonBaseSize,
   ButtonVariant,
@@ -124,10 +122,7 @@ export const SDKSessionItem = ({
         style={styles.selfCenter}
         badgeElement={
           connection.connected ? (
-            <Badge
-              variant={BadgeVariant.Status}
-              state={BadgeStatusState.Active}
-            />
+            <BadgeStatus status={BadgeStatusStatus.Active} />
           ) : undefined
         }
       >
