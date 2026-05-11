@@ -5,8 +5,8 @@ import {
   BoxJustifyContent,
   Text,
   TextColor,
+  Spinner,
 } from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import images from 'images/image-icons';
 import React, { useCallback, useEffect } from 'react';
@@ -39,15 +39,20 @@ import { formatPrice } from '../../utils/format';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictWithdraw } from '../../hooks/usePredictWithdraw';
+import { usePredictAccountState } from '../../hooks/usePredictAccountState';
 import { PredictEventValues } from '../../constants/eventNames';
 import { PREDICT_BALANCE_TEST_IDS } from './PredictBalance.testIds';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
 interface PredictBalanceProps {
   onLayout?: (height: number) => void;
+  onDepositWalletWithdrawPress?: () => void;
 }
 
-const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
+const PredictBalance: React.FC<PredictBalanceProps> = ({
+  onLayout,
+  onDepositWalletWithdrawPress,
+}) => {
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
 
@@ -64,6 +69,11 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
 
   const isAddingFunds = isDepositPending;
   const hasBalance = balance > 0;
+  const { data: accountState } = usePredictAccountState({
+    enabled: hasBalance,
+  });
+  const walletType = accountState?.walletType;
+  const isWithdrawDisabled = hasBalance && !walletType;
 
   useEffect(() => {
     if (!isDepositPending) {
@@ -87,8 +97,21 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   }, [deposit, executeGuardedAction]);
 
   const handleWithdraw = useCallback(() => {
+    // Do not proceed until account state is loaded; otherwise Deposit Wallet
+    // users can bypass the temporary guard during the query window.
+    if (!walletType) {
+      return;
+    }
+
+    // Temporary Deposit Wallet migration guard. Remove this branch and sheet
+    // once Deposit Wallet withdrawals are implemented.
+    if (walletType === 'deposit-wallet') {
+      onDepositWalletWithdrawPress?.();
+      return;
+    }
+
     withdraw();
-  }, [withdraw]);
+  }, [onDepositWalletWithdrawPress, walletType, withdraw]);
 
   if (isLoading) {
     return (
@@ -202,6 +225,8 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
               style={tw.style('flex-1')}
               label={strings('predict.deposit.withdraw')}
               onPress={handleWithdraw}
+              isDisabled={isWithdrawDisabled}
+              testID={PREDICT_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
             />
           )}
         </Box>

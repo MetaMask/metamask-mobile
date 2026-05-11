@@ -57,7 +57,13 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     <Box>
       <SectionHeader
         title={strings('trending.perps_movers')}
-        onViewAll={() => navigateToPerpsMarketList(navigation)}
+        onViewAll={() =>
+          navigateToPerpsMarketList(
+            navigation,
+            'all',
+            perps.defaultSortOptionId,
+          )
+        }
         testID="section-header-view-all-perps"
         tabName="Now"
         sectionName="perps_movers"
@@ -104,7 +110,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   }, [refresh.trigger]);
 
   const predictions = usePredictionsFeed({ refresh });
-  const cryptoMovers = useTokensFeed({ refresh });
+  const cryptoMovers = useTokensFeed({ refresh, hideRiskyTokens: true });
   const stocks = useStocksFeed({ refresh });
 
   const renderPredictionItem: ListRenderItem<PredictMarketType> = useCallback(

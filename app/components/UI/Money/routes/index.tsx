@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
 import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { useTheme } from '../../../../util/theme';
+import useThunkDispatch from '../../../hooks/useThunkDispatch';
+import { upgradeMoneyAccount } from '../../../../actions/money';
 import MoneyHomeView from '../Views/MoneyHomeView';
 import MoneyActivityView from '../Views/MoneyActivityView';
 import MoneyHowItWorksView from '../Views/MoneyHowItWorksView';
@@ -93,4 +95,14 @@ const MoneyModalStack = () => (
   </ModalStack.Navigator>
 );
 
-export { MoneyScreenStack, MoneyModalStack };
+const MoneyAccountStackGate = () => {
+  const dispatch = useThunkDispatch();
+
+  useEffect(() => {
+    dispatch(upgradeMoneyAccount());
+  }, [dispatch]);
+
+  return <MoneyScreenStack />;
+};
+
+export { MoneyAccountStackGate, MoneyScreenStack, MoneyModalStack };
