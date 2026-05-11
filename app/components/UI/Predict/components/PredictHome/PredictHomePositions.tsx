@@ -42,7 +42,7 @@ const PredictHomePositions = forwardRef<
     refetch,
     isLoading: isActiveLoading,
     error: activeError,
-  } = usePredictPositions({ claimable: false });
+  } = usePredictPositions({ claimable: false, livePriceUpdates: true });
 
   const {
     data: claimablePositions = [],

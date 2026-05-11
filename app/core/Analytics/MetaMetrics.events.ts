@@ -663,12 +663,21 @@ enum EVENT_NAME {
   // Explore Search
   EXPLORE_SEARCH_INTERACTED = 'Explore Search Interacted',
 
+  // Explore
+  EXPLORE_INTERACTED = 'Explore Page Interacted',
+
   // Market Insights
   MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW = 'Market Insights Card Scrolled to View',
   MARKET_INSIGHTS_OPENED = 'Market Insights Opened',
   MARKET_INSIGHTS_VIEWED = 'Market Insights Viewed',
   MARKET_INSIGHTS_INTERACTION = 'Market Insights Interaction',
   MARKET_INSIGHTS_CLOSED = 'Market Insights Closed',
+
+  // Whats Happening
+  WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW = 'Whats Happening Card Scrolled to View',
+  WHATS_HAPPENING_DETAILS_VIEWED = 'Whats Happening Details Viewed',
+  WHATS_HAPPENING_DETAILS_INTERACTED = 'Whats Happening Details Interacted',
+  WHATS_HAPPENING_DETAILS_CLOSED = 'Whats Happening Details Closed',
 
   // Share
   SHARE_ACTION = 'Share Action',
@@ -696,7 +705,6 @@ enum EVENT_NAME {
   MONEY_HUB_SCREEN_VIEWED = 'Money Hub Screen Viewed',
   MONEY_HUB_TOKEN_ROW_CONVERT_CLICKED = 'Money Hub Token Row Convert Clicked',
   MONEY_HUB_CONVERT_BUTTON_CLICKED = 'Money Hub Convert Button Clicked',
-  MONEY_HUB_LEARN_MORE_PRESSED = 'Money Hub Learn More Pressed',
   MONEY_HUB_SWAP_BUTTON_CLICKED = 'Money Hub Swap Button Clicked',
   MONEY_HUB_BUY_BUTTON_CLICKED = 'Money Hub Buy Button Clicked',
 
@@ -1651,6 +1659,19 @@ const events = {
     EVENT_NAME.MARKET_INSIGHTS_INTERACTION,
   ),
   MARKET_INSIGHTS_CLOSED: generateOpt(EVENT_NAME.MARKET_INSIGHTS_CLOSED),
+  // Whats Happening
+  WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW: generateOpt(
+    EVENT_NAME.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
+  ),
+  WHATS_HAPPENING_DETAILS_VIEWED: generateOpt(
+    EVENT_NAME.WHATS_HAPPENING_DETAILS_VIEWED,
+  ),
+  WHATS_HAPPENING_DETAILS_INTERACTED: generateOpt(
+    EVENT_NAME.WHATS_HAPPENING_DETAILS_INTERACTED,
+  ),
+  WHATS_HAPPENING_DETAILS_CLOSED: generateOpt(
+    EVENT_NAME.WHATS_HAPPENING_DETAILS_CLOSED,
+  ),
   // Card
   CARD_BUTTON_VIEWED: generateOpt(EVENT_NAME.CARD_BUTTON_VIEWED),
   CARD_HOME_CLICKED: generateOpt(EVENT_NAME.CARD_HOME_CLICKED),
@@ -1772,6 +1793,8 @@ const events = {
 
   EXPLORE_SEARCH_INTERACTED: generateOpt(EVENT_NAME.EXPLORE_SEARCH_INTERACTED),
 
+  EXPLORE_INTERACTED: generateOpt(EVENT_NAME.EXPLORE_INTERACTED),
+
   // Share
   SHARE_ACTION: generateOpt(EVENT_NAME.SHARE_ACTION),
 
@@ -1822,9 +1845,6 @@ const events = {
   ),
   MONEY_HUB_CONVERT_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.MONEY_HUB_CONVERT_BUTTON_CLICKED,
-  ),
-  MONEY_HUB_LEARN_MORE_PRESSED: generateOpt(
-    EVENT_NAME.MONEY_HUB_LEARN_MORE_PRESSED,
   ),
   MONEY_HUB_SWAP_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.MONEY_HUB_SWAP_BUTTON_CLICKED,

@@ -5,7 +5,7 @@ import {
   POLYMARKET_V2_PROTOCOL,
   type PolymarketProtocolDefinition,
 } from '../protocol/definitions';
-import { encodeUnwrap, encodeWrap } from '../protocol/orderCodec';
+import { encodeWrap } from '../protocol/orderCodec';
 import { OperationType, type SafeTransaction } from '../safe/types';
 import {
   aggregateTransaction,
@@ -61,7 +61,7 @@ export function buildWrapTransaction({
   amount: bigint;
   protocol?: PolymarketProtocolDefinition;
 }): SafeTransaction | undefined {
-  if (amount <= 0n || protocol.collateral.onrampAddress === undefined) {
+  if (amount <= 0n) {
     return undefined;
   }
 
@@ -77,29 +77,18 @@ export function buildWrapTransaction({
   };
 }
 
-export function buildUnwrapTransaction({
-  recipientAddress,
-  amount,
-  protocol = POLYMARKET_V2_PROTOCOL,
+function isLegacySweepRequirement({
+  requirement,
+  protocol,
 }: {
-  recipientAddress: string;
-  amount: bigint;
-  protocol?: PolymarketProtocolDefinition;
-}): SafeTransaction | undefined {
-  if (amount <= 0n || protocol.collateral.offrampAddress === undefined) {
-    return undefined;
-  }
-
-  return {
-    to: protocol.collateral.offrampAddress,
-    data: encodeUnwrap({
-      asset: protocol.collateral.legacyUsdceToken,
-      to: recipientAddress,
-      amount,
-    }),
-    operation: OperationType.Call,
-    value: '0',
-  };
+  requirement: V2AllowanceRequirement;
+  protocol: PolymarketProtocolDefinition;
+}): boolean {
+  return (
+    requirement.type === 'erc20-allowance' &&
+    requirement.tokenAddress === protocol.collateral.legacyUsdceToken &&
+    requirement.spender === protocol.collateral.onrampAddress
+  );
 }
 
 export function compileAllowanceMaintenanceTransactions({
@@ -113,7 +102,11 @@ export function compileAllowanceMaintenanceTransactions({
   usdceBalance: bigint;
   protocol?: PolymarketProtocolDefinition;
 }): SafeTransaction[] {
-  const transactions = compileRequirementTransactions(missingRequirements);
+  const requirements = missingRequirements.filter(
+    (requirement) =>
+      usdceBalance > 0n || !isLegacySweepRequirement({ requirement, protocol }),
+  );
+  const transactions = compileRequirementTransactions(requirements);
   const wrapTransaction = buildWrapTransaction({
     safeAddress,
     amount: usdceBalance,

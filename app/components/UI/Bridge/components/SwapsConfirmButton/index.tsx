@@ -39,6 +39,7 @@ import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 import type { TokenWarningModalParams } from '../TokenWarningModal';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -76,6 +77,17 @@ export const SwapsConfirmButton = ({
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
+
+  const insufficientNativeReserveError = useInsufficientNativeReserveError({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+    walletAddress,
+  });
+
+  const hasInsufficientNativeReserveError = Boolean(
+    insufficientNativeReserveError,
+  );
 
   const {
     activeQuote,
@@ -153,6 +165,7 @@ export const SwapsConfirmButton = ({
     isPendingQuoteRefresh ||
     (isLoading && !activeQuote) ||
     hasInsufficientBalance ||
+    hasInsufficientNativeReserveError ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
     hasError ||
@@ -235,7 +248,8 @@ export const SwapsConfirmButton = ({
       return strings('bridge.confirm_swap');
     }
 
-    if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
+    if (hasInsufficientBalance || hasInsufficientNativeReserveError)
+      return strings('bridge.insufficient_funds');
     if (!hasSufficientGas) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
@@ -245,6 +259,7 @@ export const SwapsConfirmButton = ({
     isLoading,
     sourceAmount,
     hasInsufficientBalance,
+    hasInsufficientNativeReserveError,
     hasSufficientGas,
     isSubmittingTx,
     needsNewQuote,
