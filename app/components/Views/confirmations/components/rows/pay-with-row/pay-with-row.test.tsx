@@ -6,7 +6,6 @@ import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayW
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import { useMoneyAccountPayToken } from '../../../hooks/pay/useMoneyAccountPayToken';
-import { useMMPayFiatConfig } from '../../../hooks/pay/useMMPayFiatConfig';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
@@ -31,7 +30,6 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
 jest.mock('../../../hooks/pay/useMoneyAccountPayToken');
-jest.mock('../../../hooks/pay/useMMPayFiatConfig');
 jest.mock('../../../../../../util/address');
 jest.mock('../../../hooks/metrics/useConfirmationMetricEvents');
 jest.mock('@react-navigation/native', () => ({
@@ -54,9 +52,6 @@ jest.mock(
     useTransactionPaySelectedFiatPaymentMethod: jest.fn(),
   }),
 );
-jest.mock('../../../hooks/pay/useMMPayFiatConfig', () => ({
-  useMMPayFiatConfig: jest.fn(),
-}));
 jest.mock('../../../../../../util/address');
 jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
@@ -144,8 +139,6 @@ describe('PayWithRow', () => {
       navigate: navigateMock,
     } as never);
 
-    jest.mocked(useMMPayFiatConfig).mockReturnValue({ enabled: false });
-
     isHardwareAccountMock.mockReturnValue(false);
 
     useMoneyAccountPayTokenMock.mockReturnValue({
@@ -162,20 +155,6 @@ describe('PayWithRow', () => {
   });
 
   it('navigates to token picker on token pill click', async () => {
-    const { getByText } = render();
-
-    await act(() => {
-      fireEvent.press(getByText(`${ADDRESS_MOCK} ${CHAIN_ID_MOCK}`));
-    });
-
-    expect(navigateMock).toHaveBeenCalledWith(
-      Routes.CONFIRMATION_PAY_WITH_MODAL,
-    );
-  });
-
-  it('routes to existing PayWithModal when remote flag is enabled but env override is unset', async () => {
-    jest.mocked(useMMPayFiatConfig).mockReturnValue({ enabled: true });
-
     const { getByText } = render();
 
     await act(() => {

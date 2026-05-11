@@ -13,7 +13,6 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
-import { useMMPayFiatConfig } from '../../../hooks/pay/useMMPayFiatConfig';
 import { TouchableOpacity } from 'react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import {
@@ -68,13 +67,8 @@ export function PayWithRow() {
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
-  const { enabled: isFiatFlagEnabled } = useMMPayFiatConfig();
-  // The new bottom sheet requires BOTH gates ON: the local dev env var AND
-  // the remote `confirmations_pay_fiat` flag. Either alone routes to the
-  // existing PayWithModal — this prevents the bottom sheet from opening.
-  // Remove once the first section of the redesign is complete.
   const isPayWithBottomSheetEnabled =
-    process.env.MM_DEV_PAY_WITH_BOTTOM_SHEET === 'true' && isFiatFlagEnabled;
+    process.env.MM_DEV_PAY_WITH_BOTTOM_SHEET === 'true';
 
   const {
     txParams: { from },
