@@ -3,10 +3,16 @@ import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  IconColor,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -108,6 +114,11 @@ const MoneyPotentialEarnings = ({
     [eligibleTokens, apyPercent],
   );
 
+  const totalAssetsFiat = useMemo(
+    () => eligibleTokens.reduce((sum, token) => sum + tokenFiatValue(token), 0),
+    [eligibleTokens],
+  );
+
   const handleTokenPress = useCallback(
     (token: AssetType) => () => onTokenPress?.(token),
     [onTokenPress],
@@ -123,9 +134,6 @@ const MoneyPotentialEarnings = ({
         <MoneySectionHeader
           title={strings('money.potential_earnings.title')}
           onPress={onHeaderPress}
-          onInfoPress={onInfoPress}
-          infoAccessibilityLabel={strings('money.earn_crypto_info_sheet.title')}
-          infoTestID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
         />
 
         {headlineFiat && (
@@ -138,24 +146,63 @@ const MoneyPotentialEarnings = ({
             {headlineFiat}
           </Text>
         )}
-        {!headlineFiat && isPositiveNumber(projectedAmount) && (
-          <Text
-            variant={TextVariant.HeadingMd}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.SuccessDefault}
-            testID={MoneyPotentialEarningsTestIds.TEXT}
-          >
-            {`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
-          </Text>
-        )}
 
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Regular}
-          color={TextColor.TextAlternative}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.End}
+          twClassName="gap-2"
         >
-          {strings('money.potential_earnings.description')}
-        </Text>
+          <Box twClassName="flex-1">
+            {!headlineFiat &&
+            isPositiveNumber(projectedAmount) &&
+            isPositiveNumber(totalAssetsFiat) ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Regular}
+                color={TextColor.TextAlternative}
+                testID={MoneyPotentialEarningsTestIds.TEXT}
+              >
+                {strings(
+                  'money.potential_earnings.description_with_amounts_prefix',
+                  {
+                    total: moneyFormatFiat(
+                      new BigNumber(totalAssetsFiat),
+                      currentCurrency,
+                    ),
+                  },
+                )}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.SuccessDefault}
+                >
+                  {`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
+                </Text>
+                {strings(
+                  'money.potential_earnings.description_with_amounts_suffix',
+                )}
+              </Text>
+            ) : (
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Regular}
+                color={TextColor.TextAlternative}
+              >
+                {strings('money.potential_earnings.description')}
+              </Text>
+            )}
+          </Box>
+          {onInfoPress && (
+            <ButtonIcon
+              iconName={IconName.Info}
+              iconProps={{ color: IconColor.IconAlternative }}
+              size={ButtonIconSize.Sm}
+              onPress={onInfoPress}
+              accessibilityLabel={strings('money.earn_crypto_info_sheet.title')}
+              testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
+            />
+          )}
+        </Box>
       </Box>
 
       <>

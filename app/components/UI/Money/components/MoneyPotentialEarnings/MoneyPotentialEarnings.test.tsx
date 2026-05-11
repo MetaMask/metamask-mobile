@@ -99,17 +99,17 @@ describe('MoneyPotentialEarnings', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the section title and description', () => {
-    const { getByText } = render(
+  it('renders the section title and parameterized description', () => {
+    const { getByText, getByTestId } = render(
       <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} />,
     );
 
     expect(
       getByText(strings('money.potential_earnings.title')),
     ).toBeOnTheScreen();
-    expect(
-      getByText(strings('money.potential_earnings.description')),
-    ).toBeOnTheScreen();
+    const description = getByTestId(MoneyPotentialEarningsTestIds.TEXT);
+    expect(description).toHaveTextContent(/Convert your/);
+    expect(description).toHaveTextContent(/in one year\./);
   });
 
   it('computes the aggregate projected amount from token fiat balances', () => {
@@ -119,7 +119,7 @@ describe('MoneyPotentialEarnings', () => {
     );
 
     expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toHaveTextContent(
-      '+$360.00',
+      /\+\$360\.00/,
     );
   });
 
