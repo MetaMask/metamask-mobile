@@ -185,9 +185,13 @@ jobs:
           path: github-tools
           ref: v1
 
+      # Use the standalone action (MetaMask/action-checkout-and-setup) directly. The previous
+      # `./github-tools/.github/actions/checkout-and-setup` reference broke when MetaMask/github-tools@v1
+      # (a moving major-version tag) rolled forward past the point where that local action existed —
+      # github-tools itself now delegates to this standalone action.
       - name: Setup Node for changelog tooling
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
-        uses: ./github-tools/.github/actions/checkout-and-setup
+        uses: MetaMask/action-checkout-and-setup@v1
         with:
           is-high-risk-environment: true
 
