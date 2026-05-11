@@ -29,6 +29,7 @@ jest.mock('../../../OAuthService/OAuthLoginHandlers/constants', () => ({
   get web3AuthNetwork() {
     return mockWeb3AuthNetwork.value;
   },
+  ProfilePairingEndpoint: 'https://auth.unit-test.example/api/v2/profile/pair',
 }));
 
 // Mock AuthTokenHandler - define mock functions inside the factory to avoid hoisting issues
@@ -538,6 +539,45 @@ describe('seedless onboarding controller init', () => {
       expect(() => seedlessOnboardingControllerInit(initRequestMock)).toThrow(
         'Missing environment variables for SeedlessOnboardingController',
       );
+    });
+  });
+
+  describe('pairingDebugFetch wrapper', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    function getFetchFunction(): typeof fetch {
+      seedlessOnboardingControllerInit(initRequestMock);
+      const ctorArg = seedlessOnboardingControllerClassMock.mock.calls[
+        seedlessOnboardingControllerClassMock.mock.calls.length - 1
+      ][0] as Record<string, unknown>;
+      return ctorArg.fetchFunction as typeof fetch;
+    }
+
+    it('passes ProfilePairingEndpoint and fetch wrapper into SeedlessOnboardingController', () => {
+      seedlessOnboardingControllerInit(initRequestMock);
+      const ctorArgs = seedlessOnboardingControllerClassMock.mock.calls[
+        seedlessOnboardingControllerClassMock.mock.calls.length - 1
+      ][0] as Record<string, unknown>;
+
+      expect(ctorArgs.profilePairingEndpoint).toBe(
+        'https://auth.unit-test.example/api/v2/profile/pair',
+      );
+      expect(ctorArgs.fetchFunction).toEqual(expect.any(Function));
+    });
+
+    it('delegates to global fetch for URLs that do not target profile pairing', async () => {
+      const underlyingResponse = new Response('ok');
+      const fetchSpy = jest
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce(underlyingResponse);
+
+      const fetchWrapper = getFetchFunction();
+      const out = await fetchWrapper('https://example.com/other', {});
+
+      expect(fetchSpy).toHaveBeenCalledWith('https://example.com/other', {});
+      expect(await out.text()).toBe('ok');
     });
   });
 });
