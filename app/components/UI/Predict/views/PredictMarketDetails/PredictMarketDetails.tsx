@@ -34,8 +34,8 @@ import PredictDetailsChart from '../../components/PredictDetailsChart/PredictDet
 
 import { usePredictMarket } from '../../hooks/usePredictMarket';
 import {
+  OPEN_PREDICT_OUTCOME_STATUS,
   PredictMarketStatus,
-  type PredictOutcome,
   PredictOutcomeToken,
 } from '../../types';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
@@ -63,8 +63,6 @@ import { usePredictPreviewSheet } from '../../contexts';
 // Use theme tokens instead of hex values for multi-series charts
 
 interface PredictMarketDetailsProps {}
-
-const OPEN_OUTCOME_STATUS: PredictOutcome['status'] = 'open';
 
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const navigation =
@@ -215,7 +213,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           selectedMarket.id === market?.id
             ? openOutcomes
             : selectedMarket.outcomes.filter(
-                (outcome) => outcome.status === OPEN_OUTCOME_STATUS,
+                (outcome) => outcome.status === OPEN_PREDICT_OUTCOME_STATUS,
               );
         const matchingOutcome =
           selectedMarket.outcomes.find((o) =>

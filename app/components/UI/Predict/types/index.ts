@@ -42,6 +42,8 @@ export enum PredictMarketStatus {
   RESOLVED = 'resolved',
 }
 
+export const OPEN_PREDICT_OUTCOME_STATUS: PredictOutcome['status'] = 'open';
+
 export enum Recurrence {
   NONE = 'none',
   DAILY = 'daily',

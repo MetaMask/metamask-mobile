@@ -26,6 +26,7 @@ import { useTheme } from '../../../../../util/theme';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import TitleSubpage from '../../../../../component-library/components-temp/TitleSubpage';
 import {
+  OPEN_PREDICT_OUTCOME_STATUS,
   PredictMarketStatus,
   type PredictMarket,
   type PredictOutcome,
@@ -67,10 +68,11 @@ const getCurrentWindowMs = (durationMs: number) => {
 };
 
 type PredictMarketWithSeries = PredictMarket & { series: PredictSeries };
-const OPEN_OUTCOME_STATUS: PredictOutcome['status'] = 'open';
 
 const getOpenOutcomes = (market: PredictMarket): PredictOutcome[] =>
-  market.outcomes.filter((outcome) => outcome.status === OPEN_OUTCOME_STATUS);
+  market.outcomes.filter(
+    (outcome) => outcome.status === OPEN_PREDICT_OUTCOME_STATUS,
+  );
 
 const getEndDateTime = (endDate?: string) => {
   if (!endDate) {
@@ -399,6 +401,8 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       testID={PredictCryptoUpDownDetailsSelectorsIDs.SCREEN}
     >
       <HeaderCompactStandard
+        title={title}
+        subtitle={subtitle}
         onBack={onBack}
         backButtonProps={{
           testID: PredictCryptoUpDownDetailsSelectorsIDs.BACK_BUTTON,
