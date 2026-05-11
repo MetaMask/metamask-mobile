@@ -164,6 +164,7 @@
     ]
   },
   "resolutions": {
+    "@metamask/core-backend": "npm:@metamask-previews/core-backend@6.2.2-preview-094d56fb3",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
     "@appium/schema/json-schema": "^0.4.0",

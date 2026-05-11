@@ -8240,22 +8240,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/core-backend@npm:^6.1.1, @metamask/core-backend@npm:^6.2.1":
-  version: 6.2.1
-  resolution: "@metamask/core-backend@npm:6.2.1"
-  dependencies:
-    "@metamask/accounts-controller": "npm:^37.1.0"
-    "@metamask/controller-utils": "npm:^11.19.0"
-    "@metamask/keyring-controller": "npm:^25.1.1"
-    "@metamask/messenger": "npm:^1.0.0"
-    "@metamask/profile-sync-controller": "npm:^28.0.1"
-    "@metamask/utils": "npm:^11.9.0"
-    "@tanstack/query-core": "npm:^5.62.16"
-    uuid: "npm:^8.3.2"
-  checksum: 10/ce31c391dd385afd9a7c4a7e79e9df55813cf7c37e590d03df5d9deed75d367621c441e76699e38fd48231a791df63a0119d9d76febb649beb687da1b99cd311
-  languageName: node
-  linkType: hard
-
 "@metamask/delegation-controller@npm:^2.0.2":
   version: 2.0.2
   resolution: "@metamask/delegation-controller@npm:2.0.2"
