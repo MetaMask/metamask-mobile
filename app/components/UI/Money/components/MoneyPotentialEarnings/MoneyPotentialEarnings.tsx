@@ -48,6 +48,13 @@ interface MoneyPotentialEarningsProps {
    * alongside each token and in the headline.
    */
   apy: number | undefined;
+  /**
+   * Pre-formatted fiat string to render as the headline (e.g. the user's
+   * current Money balance). When provided, the headline shows this value
+   * instead of the aggregated projected earnings — used to surface the
+   * deposited balance once a user has any mUSD held.
+   */
+  headlineFiat?: string;
   onTokenPress?: (token: AssetType) => void;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
@@ -61,6 +68,7 @@ interface MoneyPotentialEarningsProps {
 const MoneyPotentialEarnings = ({
   tokens,
   apy,
+  headlineFiat,
   onTokenPress,
   onViewAllPress,
   onHeaderPress,
@@ -120,7 +128,17 @@ const MoneyPotentialEarnings = ({
           infoTestID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
         />
 
-        {isPositiveNumber(projectedAmount) && (
+        {headlineFiat && (
+          <Text
+            variant={TextVariant.HeadingMd}
+            fontWeight={FontWeight.Bold}
+            color={TextColor.SuccessDefault}
+            testID={MoneyPotentialEarningsTestIds.TEXT}
+          >
+            {headlineFiat}
+          </Text>
+        )}
+        {!headlineFiat && isPositiveNumber(projectedAmount) && (
           <Text
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}

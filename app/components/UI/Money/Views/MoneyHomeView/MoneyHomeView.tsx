@@ -112,6 +112,16 @@ const MoneyHomeView = () => {
     return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
+  // When the user has already deposited (non-zero Money balance), surface the
+  // current total balance in the Earn-on-crypto headline instead of the
+  // aggregate projection of unconverted holdings.
+  const potentialEarningsHeadline = useMemo(() => {
+    if (!totalFiatRaw || !totalFiatFormatted) return undefined;
+    const balance = new BigNumber(totalFiatRaw);
+    if (balance.isNaN() || balance.isLessThanOrEqualTo(0)) return undefined;
+    return totalFiatFormatted;
+  }, [totalFiatRaw, totalFiatFormatted]);
+
   const handleMenuPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.MORE_SHEET,
@@ -317,6 +327,7 @@ const MoneyHomeView = () => {
             <MoneyPotentialEarnings
               tokens={conversionTokens}
               apy={apyPercent}
+              headlineFiat={potentialEarningsHeadline}
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}
