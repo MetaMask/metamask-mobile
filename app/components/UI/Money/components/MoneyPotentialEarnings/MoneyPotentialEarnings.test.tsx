@@ -225,6 +225,45 @@ describe('MoneyPotentialEarnings', () => {
     expect(onHeader).toHaveBeenCalledTimes(1);
   });
 
+  it('renders the inline info button when onInfoPress is provided', () => {
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC]}
+        onInfoPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render the info button when onInfoPress is omitted', () => {
+    const { queryByTestId } = render(
+      <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} />,
+    );
+
+    expect(
+      queryByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('calls onInfoPress when the info button is pressed', () => {
+    const onInfoPress = jest.fn();
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC]}
+        onInfoPress={onInfoPress}
+      />,
+    );
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON));
+
+    expect(onInfoPress).toHaveBeenCalledTimes(1);
+  });
+
   it('hides the projected amount when apy is undefined', () => {
     const { queryByTestId } = render(
       <MoneyPotentialEarnings apy={undefined} tokens={[MOCK_USDC]} />,

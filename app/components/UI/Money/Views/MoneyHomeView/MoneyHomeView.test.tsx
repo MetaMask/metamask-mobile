@@ -364,6 +364,16 @@ describe('MoneyHomeView', () => {
     });
   });
 
+  it('opens the earn-crypto info sheet when the section info button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
+    });
+  });
+
   it('navigates to Card root when Get now row is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 

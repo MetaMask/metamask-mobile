@@ -161,6 +161,12 @@ const MoneyHomeView = () => {
     });
   }, [navigation]);
 
+  const handleEarnCryptoInfoPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
+    });
+  }, [navigation]);
+
   const handleMusdRowPress = useCallback(() => {
     NavigationService.navigation.navigate('Asset', {
       ...MUSD_MAINNET_ASSET_FOR_DETAILS,
@@ -314,6 +320,7 @@ const MoneyHomeView = () => {
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}
+              onInfoPress={handleEarnCryptoInfoPress}
             />
             <Divider />
           </>

@@ -51,6 +51,11 @@ interface MoneyPotentialEarningsProps {
   onTokenPress?: (token: AssetType) => void;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
+  /**
+   * Called when the inline info button next to the section title is pressed.
+   * Typically navigates to the Earn-on-your-crypto info bottom sheet.
+   */
+  onInfoPress?: () => void;
 }
 
 const MoneyPotentialEarnings = ({
@@ -59,6 +64,7 @@ const MoneyPotentialEarnings = ({
   onTokenPress,
   onViewAllPress,
   onHeaderPress,
+  onInfoPress,
 }: MoneyPotentialEarningsProps) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const apyPercent = apy ?? 0;
@@ -109,6 +115,9 @@ const MoneyPotentialEarnings = ({
         <MoneySectionHeader
           title={strings('money.potential_earnings.title')}
           onPress={onHeaderPress}
+          onInfoPress={onInfoPress}
+          infoAccessibilityLabel={strings('money.earn_crypto_info_sheet.title')}
+          infoTestID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
         />
 
         {isPositiveNumber(projectedAmount) && (
