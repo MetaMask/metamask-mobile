@@ -32,6 +32,7 @@ import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 import {
   PermissionDoesNotExistError,
   SubjectType,
+  createPermissionMiddleware,
 } from '@metamask/permission-controller';
 
 import {
@@ -684,6 +685,13 @@ export class BackgroundBridge extends EventEmitter {
       );
     }
     ///: END:ONLY_INCLUDE_IF
+
+    engine.push(
+      createPermissionMiddleware({
+        origin,
+        messenger: Engine.controllerMessenger,
+      }),
+    );
 
     // Origin throttling middleware for spam filtering
     engine.push(createOriginThrottlingMiddleware(this.navigation));
