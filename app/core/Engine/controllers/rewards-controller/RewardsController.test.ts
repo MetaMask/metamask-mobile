@@ -6,7 +6,6 @@ import {
 } from './RewardsController';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import { deriveStateFromMetadata } from '@metamask/base-controller';
-import type { Draft } from 'immer';
 import {
   RewardClaimStatus,
   CampaignType,
@@ -185,9 +184,7 @@ class TestableRewardsController extends RewardsController {
   }
 
   public testUpdate(
-    callback: (
-      state: Draft<RewardsControllerState>,
-    ) => void | RewardsControllerState,
+    callback: (state: RewardsControllerState) => void | RewardsControllerState,
   ) {
     this.update(callback);
   }
