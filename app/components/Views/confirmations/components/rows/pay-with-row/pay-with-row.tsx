@@ -13,6 +13,7 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
+import { useMMPayFiatConfig } from '../../../hooks/pay/useMMPayFiatConfig';
 import { TouchableOpacity } from 'react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import {
@@ -47,6 +48,12 @@ import {
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useMoneyAccountPayToken } from '../../../hooks/pay/useMoneyAccountPayToken';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+
+interface PayWithRouteParams {
+  preferredPaymentToken?: SetPayTokenRequest;
+}
 
 export function PayWithRow() {
   const navigation = useNavigation();
@@ -60,11 +67,14 @@ export function PayWithRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
-  // Local dev override: set MM_DEV_PAY_WITH_BOTTOM_SHEET=true in `.js.env` to
-  // preview the redesigned picker. Routes to the existing PayWithModal.
+  const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
+  const { enabled: isFiatFlagEnabled } = useMMPayFiatConfig();
+  // The new bottom sheet requires BOTH gates ON: the local dev env var AND
+  // the remote `confirmations_pay_fiat` flag. Either alone routes to the
+  // existing PayWithModal — this prevents the bottom sheet from opening.
   // Remove once the first section of the redesign is complete.
   const isPayWithBottomSheetEnabled =
-    process.env.MM_DEV_PAY_WITH_BOTTOM_SHEET === 'true';
+    process.env.MM_DEV_PAY_WITH_BOTTOM_SHEET === 'true' && isFiatFlagEnabled;
 
   const {
     txParams: { from },
@@ -81,15 +91,19 @@ export function PayWithRow() {
         mm_pay_token_list_opened: true,
       },
     });
-    navigation.navigate(
-      isPayWithBottomSheetEnabled
-        ? Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET
-        : Routes.CONFIRMATION_PAY_WITH_MODAL,
-    );
+    if (isPayWithBottomSheetEnabled) {
+      navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
+        preferredPaymentToken,
+      });
+      return;
+    }
+
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [
     isDisabled,
     isPayWithBottomSheetEnabled,
     navigation,
+    preferredPaymentToken,
     setConfirmationMetric,
   ]);
 

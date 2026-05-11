@@ -6955,7 +6955,11 @@
     "confirm": "Confirm",
     "pay_with_bottom_sheet": {
       "title": "Pay with",
-      "last_used": "Last used"
+      "last_used": "Last used",
+      "crypto": "Crypto",
+      "available_balance": "{{balance}} available",
+      "other_assets": "Other assets",
+      "other_assets_description": "Select from your tokens"
     },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
