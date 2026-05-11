@@ -7,8 +7,11 @@ export const EXCLUDED_CAPABILITIES = defineExcludedCapabilities({
     'KeyringController:addNewKeyring',
     'KeyringController:getKeyringsByType',
     'KeyringController:getKeyringForAccount',
+    'KeyringController:withController',
     'KeyringController:withKeyring',
     'KeyringController:withKeyringUnsafe',
+    'KeyringController:withKeyringV2',
+    'KeyringController:withKeyringV2Unsafe',
   ],
   events: [],
 });

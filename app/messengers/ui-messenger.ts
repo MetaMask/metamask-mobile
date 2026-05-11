@@ -2,8 +2,6 @@ import {
   Messenger,
   ActionConstraint,
   ExtractEventPayload,
-  ExtractActionResponse,
-  ExtractActionParameters,
 } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
 import { MESSENGERS_WITH_EXCLUSIONS } from './configs';
@@ -11,9 +9,9 @@ import { captureException } from '@sentry/react-native';
 import Engine, { GlobalActions, GlobalEvents } from '../core/Engine';
 
 /**
- * All actions we call through the UI messenger will go through the background
- * connection and will therefore be asynchronous, even if they weren't
- * originally. This type makes a function asynchronous.
+ * All actions are made asynchronous to match the implementation of the
+ * extension, which routes all actions through the background connection. This
+ * type makes a function asynchronous.
  */
 type MakeAsynchronous<InputFunction extends (...args: never[]) => unknown> =
   InputFunction extends (...args: infer Args) => infer Return
@@ -21,9 +19,9 @@ type MakeAsynchronous<InputFunction extends (...args: never[]) => unknown> =
     : never;
 
 /**
- * All actions we call through the UI messenger will go through the background
- * connection and will therefore be asynchronous, even if they weren't
- * originally. This type makes the given actions asynchronous.
+ * All actions are made asynchronous to match the implementation of the
+ * extension, which routes all actions through the background connection. This
+ * type makes the given actions asynchronous.
  */
 // Use a conditional type to ensure that TypeScript distributes a given union
 // and we get a union back (this is essentially a `map`)
@@ -43,7 +41,7 @@ type ExcludedEventTypes =
 
 /**
  * Keeps only actions whose parameters and return value are JSON-serializable,
- * since all actions go through the background connection.
+ * to match the implementation of the extension.
  */
 type WithJsonParams<Action extends ActionConstraint> =
   Action extends ActionConstraint
@@ -53,8 +51,8 @@ type WithJsonParams<Action extends ActionConstraint> =
     : never;
 
 /**
- * Keeps only events whose payload is JSON-serializable, since all events come
- * through the background connection.
+ * Keeps only events whose payload is JSON-serializable, to match the
+ * implementation of the extension.
  */
 type WithJsonPayload<Event> = Event extends {
   payload: infer P extends unknown[];
@@ -87,8 +85,7 @@ export class UIMessenger extends Messenger<
    * Get the handler for a given action type.
    *
    * This is called when `call` is invoked on the messenger. We override it here
-   * to route all calls through the background connection, except for the
-   * excluded actions.
+   * to match the implementation of the extension.
    *
    * @param actionType - The action type. This is a unique identifier for this
    * action.
@@ -130,14 +127,33 @@ export class UIMessenger extends Messenger<
     handler: (
       ...payload: ExtractEventPayload<UIMessengerEvents, EventType>
     ) => void,
-  ): Promise<() => Promise<void>> {
+  ): Promise<void> {
     // @ts-expect-error: Type of handler is not compatible.
     Engine.controllerMessenger.subscribe(eventType, handler);
+  }
 
-    return async () => {
-      // @ts-expect-error: Type of handler is not compatible.
-      Engine.controllerMessenger.unsubscribe(eventType, handler);
-    };
+  /**
+   * Unsubscribe from an event emitted by the background.
+   *
+   * Unregisters the given function as an event handler for the given event
+   * type.
+   *
+   * @param eventType - The event type. This is a unique identifier for this
+   * event.
+   * @param handler - The event handler to remove. The type of the parameters
+   * for this event handler must match the type of the payload for this event
+   * type.
+   * @returns A promise that resolves when the unsubscription is complete.
+   */
+  // @ts-expect-error: Intentionally different type than `messenger.unsubscribe`.
+  async unsubscribe<EventType extends UIMessengerEvents['type']>(
+    eventType: EventType,
+    handler: (
+      ...payload: ExtractEventPayload<UIMessengerEvents, EventType>
+    ) => void,
+  ): Promise<void> {
+    // @ts-expect-error: Type of handler is not compatible.
+    Engine.controllerMessenger.unsubscribe(eventType, handler);
   }
 }
 
