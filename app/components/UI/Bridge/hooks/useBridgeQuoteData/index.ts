@@ -89,19 +89,6 @@ export const useBridgeQuoteData = ({
   );
 
   const isExpired = isQuoteExpired(willRefresh, refreshRate, quotesLastFetched);
-  const sourceTokenQuoteKey = sourceToken
-    ? `${sourceToken.chainId}:${sourceToken.address}`
-    : undefined;
-  const destTokenQuoteKey = destToken
-    ? `${destToken.chainId}:${destToken.address}`
-    : undefined;
-  // Slippage is intentionally excluded so slippage-triggered refetches can
-  // still use the last shown quote as the retry boundary for this bug fix.
-  const selectedQuoteInputsKey =
-    sourceTokenQuoteKey && destTokenQuoteKey && sourceAmount !== undefined
-      ? `${sourceTokenQuoteKey}|${destTokenQuoteKey}|${sourceAmount}`
-      : undefined;
-  const lastShownQuoteInputsKeyRef = useRef<string | undefined>(undefined);
 
   const bestQuote = quotes?.recommendedQuote;
   const allQuotes = useMemo(
@@ -140,12 +127,6 @@ export const useBridgeQuoteData = ({
   const activeQuote = isShowingCachedQuote
     ? (manuallySelectedQuote ?? bestQuote)
     : rawActiveQuote;
-
-  useEffect(() => {
-    if (activeQuote && selectedQuoteInputsKey) {
-      lastShownQuoteInputsKeyRef.current = selectedQuoteInputsKey;
-    }
-  }, [activeQuote, selectedQuoteInputsKey]);
 
   const priceImpactFiat = usePriceImpactFiat(activeQuote);
 
@@ -277,18 +258,9 @@ export const useBridgeQuoteData = ({
 
   const isNoQuotesAvailable = quoteStreamComplete?.hasQuotes === false;
 
-  // Show "Get new quote" when an expired quote needs refresh, or when a
-  // refetch clears the active quote after a previous quote existed.
-  // lastShownQuoteInputsKeyRef keeps the initial quote load in the skeleton
-  // state and prevents token-pair changes from reusing a previous quote.
-  const isExpiredWithoutUsableQuote = isExpired && (!isLoading || !activeQuote);
-  const isRefetchingAfterPreviousQuote =
-    isLoading &&
-    !activeQuote &&
-    lastShownQuoteInputsKeyRef.current === selectedQuoteInputsKey;
+  // Show "Get new quote" only when an expired quote needs refresh.
   const needsNewQuote =
-    !isSubmittingTx &&
-    (isExpiredWithoutUsableQuote || isRefetchingAfterPreviousQuote);
+    isExpired && !isSubmittingTx && (!isLoading || !activeQuote);
 
   const shouldShowPriceImpactWarning = Boolean(
     activeQuote?.quote.priceData?.priceImpact !== undefined &&

@@ -381,8 +381,15 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     });
 
   const getContentMode = () => {
-    if (isLoading && !activeQuote && !needsNewQuote) return 'loading';
     if (isZeroState) return 'zero';
+    if (
+      !activeQuote &&
+      !needsNewQuote &&
+      !quoteFetchError &&
+      !isNoQuotesAvailable
+    ) {
+      return 'loading';
+    }
     return 'quote';
   };
   const contentMode = getContentMode();
