@@ -41,7 +41,7 @@ function buildInitRequestMock<
   baseMessenger.registerActionHandler(
     // @ts-expect-error: Action not allowed on root messenger.
     'RemoteFeatureFlagController:getState',
-    jest.fn().mockReturnValue({ remoteFeatureFlags: {} }),
+    jest.fn().mockReturnValue({ remoteFeatureFlags: {}, localOverrides: {} }),
   );
 
   baseMessenger.registerActionHandler(
@@ -191,6 +191,51 @@ describe('moneyAccountControllerInit', () => {
       await Promise.resolve();
 
       expect(jest.mocked(controller.clearState)).not.toHaveBeenCalled();
+    });
+
+    it('respects localOverrides over remoteFeatureFlags when determining if flag is enabled', async () => {
+      // isMoneyAccountEnabled is mocked globally, so we restore it for this test
+      // to verify that getResolvedRemoteFeatureFlags correctly merges the flags.
+      jest.mocked(isMoneyAccountEnabled).mockRestore();
+
+      const baseMessenger = new ExtendedMessenger<
+        MockAnyNamespace,
+        never,
+        RemoteFeatureFlagControllerStateChangeEvent
+      >({ namespace: MOCK_ANY_NAMESPACE });
+
+      const { requestMock } = buildInitRequestMock(baseMessenger);
+
+      // Override getState: remoteFeatureFlags has the flag disabled, localOverrides enables it
+      baseMessenger.unregisterActionHandler(
+        // @ts-expect-error: Action not allowed on root messenger.
+        'RemoteFeatureFlagController:getState',
+      );
+      baseMessenger.registerActionHandler(
+        // @ts-expect-error: Action not allowed on root messenger.
+        'RemoteFeatureFlagController:getState',
+        jest.fn().mockReturnValue({
+          remoteFeatureFlags: {
+            moneyEnableMoneyAccount: {
+              enabled: false,
+              minimumVersion: '0.0.0',
+            },
+          },
+          localOverrides: {
+            moneyEnableMoneyAccount: { enabled: true, minimumVersion: '0.0.0' },
+          },
+        }),
+      );
+
+      const { controller } = moneyAccountControllerInit(requestMock);
+      (controller as unknown as { state: unknown }).state =
+        EMPTY_MONEY_ACCOUNTS;
+
+      publishStateChange(baseMessenger);
+      await Promise.resolve();
+
+      // localOverride (enabled: true) should win — controller.init() must be called
+      expect(jest.mocked(controller.init)).toHaveBeenCalledTimes(1);
     });
 
     it('logs an error when the stateChange callback throws', async () => {

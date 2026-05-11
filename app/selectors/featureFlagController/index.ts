@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { StateWithPartialEngine } from './types';
+import { getResolvedRemoteFeatureFlags } from '../../util/remoteFeatureFlag';
 
 // Access the controller state directly
 export const selectRemoteFeatureFlagControllerState = (
@@ -14,16 +15,7 @@ export const selectRawFeatureFlags = createSelector(
 
 export const selectRemoteFeatureFlags = createSelector(
   selectRemoteFeatureFlagControllerState,
-  (remoteFeatureFlagControllerState) => {
-    const localOverrides =
-      remoteFeatureFlagControllerState?.localOverrides ?? {};
-    const remoteFeatureFlags =
-      remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {};
-    return {
-      ...remoteFeatureFlags,
-      ...localOverrides,
-    };
-  },
+  getResolvedRemoteFeatureFlags,
 );
 
 export const selectLocalOverrides = createSelector(
