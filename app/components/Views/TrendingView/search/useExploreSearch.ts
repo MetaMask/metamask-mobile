@@ -21,7 +21,6 @@ export type SearchFeedId =
   | 'sites';
 
 const DEBOUNCE_MS = 200;
-const TOP_ITEMS_WITHOUT_QUERY = 3;
 
 /** Result shape per feed so consumers can render with the right row item. */
 export type SearchFeedData =
@@ -69,15 +68,11 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
   const sites = useSitesFeed({ query: debouncedQuery });
 
   return useMemo<ExploreSearchResult>(() => {
-    const showTopItems = !debouncedQuery.trim();
-    const trim = <T>(arr: T[]) =>
-      showTopItems ? arr.slice(0, TOP_ITEMS_WITHOUT_QUERY) : arr;
-
     const sections: SearchFeedSection[] = [
       {
         feedId: 'tokens',
-        title: strings('trending.trending_tokens'),
-        items: trim(tokens.data),
+        title: strings('trending.tabs.crypto'),
+        items: tokens.data,
         isLoading: isDebouncing || tokens.isLoading,
       },
     ];
@@ -86,7 +81,7 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
       sections.push({
         feedId: 'perps',
         title: strings('trending.perps'),
-        items: trim(perps.data.map((d) => d.market)),
+        items: perps.data.map((d) => d.market),
         isLoading: isDebouncing || perps.isLoading,
       });
     }
@@ -95,26 +90,25 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
       {
         feedId: 'stocks',
         title: strings('trending.stocks'),
-        items: trim(stocks.data),
+        items: stocks.data,
         isLoading: isDebouncing || stocks.isLoading,
       },
       {
         feedId: 'predictions',
-        title: strings('wallet.predict'),
-        items: trim(predictions.data),
+        title: strings('trending.predictions'),
+        items: predictions.data,
         isLoading: isDebouncing || predictions.isLoading,
       },
       {
         feedId: 'sites',
-        title: strings('sites.popular'),
-        items: trim(sites.data),
+        title: strings('trending.sites'),
+        items: sites.data,
         isLoading: isDebouncing || sites.isLoading,
       },
     );
 
     return { sections };
   }, [
-    debouncedQuery,
     isDebouncing,
     isPerpsEnabled,
     tokens.data,

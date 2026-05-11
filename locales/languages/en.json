@@ -8895,6 +8895,7 @@
       "description": "We were not able to find this token"
     },
     "tabs": {
+      "all": "All",
       "now": "Now",
       "macro": "Macro",
       "rwas": "RWAs",

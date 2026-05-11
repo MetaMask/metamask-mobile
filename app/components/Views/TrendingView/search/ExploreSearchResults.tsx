@@ -39,6 +39,7 @@ const MAX_ITEMS_PER_SECTION = 3;
 
 interface ExploreSearchResultsProps {
   searchQuery: string;
+  onViewMore?: (feedId: SearchFeedId) => void;
 }
 
 interface ListItemHeader {
@@ -65,6 +66,7 @@ type FlatListItem = ListItemHeader | ListItemData | ListItemSkeleton;
 
 const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   searchQuery,
+  onViewMore,
 }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
@@ -90,14 +92,18 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         search_query: searchQuery,
         section_name: section.title,
       });
-      navigation.navigate(Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW, {
-        feedId: section.feedId,
-        title: section.title,
-        searchQuery,
-        data: section.items,
-      });
+      if (onViewMore) {
+        onViewMore(section.feedId);
+      } else {
+        navigation.navigate(Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW, {
+          feedId: section.feedId,
+          title: section.title,
+          searchQuery,
+          data: section.items,
+        });
+      }
     },
-    [navigation, searchQuery],
+    [navigation, onViewMore, searchQuery],
   );
 
   const renderSectionHeader = useCallback(
