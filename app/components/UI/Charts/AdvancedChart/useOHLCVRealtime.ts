@@ -22,7 +22,11 @@ export interface UseOHLCVRealtimeResult {
   latestBar: WSOHLCVBar | null;
 }
 
-const DEBOUNCE_MS = 300;
+const DEBOUNCE_MS = 500;
+
+// TODO: Remove before merging to production.
+// DEV-ONLY: Auto-simulate a WebSocket disconnect/reconnect after this many ms (0 = disabled).
+const DEV_SIMULATE_WS_DISCONNECT_AFTER_MS = 0;
 
 /** How often we check whether data is stale (ms) */
 const STALENESS_CHECK_INTERVAL_MS = 15_000;
@@ -108,6 +112,7 @@ export function useOHLCVRealtime({
 }: UseOHLCVRealtimeOptions): UseOHLCVRealtimeResult {
   const [latestBar, setLatestBar] = useState<WSOHLCVBar | null>(null);
   const subscribedRef = useRef(false);
+  const cancelledRef = useRef(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const channelRef = useRef<string>('');
 
@@ -124,21 +129,15 @@ export function useOHLCVRealtime({
 
   useEffect(() => {
     if (!enabled || !assetId || !interval || !currency) {
-      console.log(
-        `[OHLCVRealtime] Skipping — enabled=${enabled}, assetId=${assetId}, interval=${interval}, currency=${currency}`,
-      );
       return;
     }
 
     const channel = buildChannel();
     channelRef.current = channel;
+    cancelledRef.current = false;
     setLatestBar(null);
     lastMessageTimeRef.current = 0;
     chainDownRef.current = false;
-
-    console.log(
-      `[OHLCVRealtime] Setting up subscription for channel: ${channel}`,
-    );
 
     const handleBarUpdated = (payload: {
       channel: string;
@@ -146,7 +145,7 @@ export function useOHLCVRealtime({
     }) => {
       if (payload.channel === channelRef.current) {
         console.log(
-          `[OHLCVRealtime] Bar received — channel=${payload.channel}, close=${payload.bar.close}, ts=${payload.bar.timestamp}`,
+          `[OHLCV-WS] Bar received — channel=${payload.channel}, close=${payload.bar.close}, ts=${payload.bar.timestamp}`,
         );
         lastMessageTimeRef.current = Date.now();
         chainDownRef.current = false;
@@ -160,7 +159,7 @@ export function useOHLCVRealtime({
       operation: string;
     }) => {
       console.log(
-        `[OHLCVRealtime] Subscription error on ${payload.channel}: ${payload.error} (${payload.operation})`,
+        `[OHLCV-WS] Subscription error on ${payload.channel}: ${payload.error} (${payload.operation})`,
       );
     };
 
@@ -172,7 +171,7 @@ export function useOHLCVRealtime({
     }) => {
       if (payload.chainIds.includes(chainId)) {
         console.log(
-          `[OHLCVRealtime] Chain status changed — chainId=${chainId}, status=${payload.status}`,
+          `[OHLCV-WS] Chain status changed — chainId=${chainId}, status=${payload.status}`,
         );
         chainDownRef.current = payload.status === 'down';
       }
@@ -198,7 +197,7 @@ export function useOHLCVRealtime({
       const controller = new AbortController();
       pollingAbortRef.current = controller;
 
-      console.log('[OHLCVRealtime] Polling /latest via REST fallback');
+      console.log('[OHLCV-WS] Polling /latest via REST fallback');
       try {
         const bar = await fetchLatestBar(
           assetId,
@@ -208,16 +207,13 @@ export function useOHLCVRealtime({
           controller.signal,
         );
         if (bar) {
-          console.log(
-            `[OHLCVRealtime] REST fallback bar — close=${bar.close}, ts=${bar.timestamp}`,
-          );
           lastMessageTimeRef.current = Date.now();
           setLatestBar(bar);
         }
       } catch (err) {
         if ((err as Error)?.name !== 'AbortError') {
           console.log(
-            `[OHLCVRealtime] REST fallback error: ${err instanceof Error ? err.message : String(err)}`,
+            `[OHLCV-WS] REST fallback error: ${err instanceof Error ? err.message : String(err)}`,
           );
         }
       }
@@ -230,7 +226,7 @@ export function useOHLCVRealtime({
 
       if (isStale || chainDownRef.current) {
         console.log(
-          `[OHLCVRealtime] Stream stale or chain down — isStale=${isStale}, chainDown=${chainDownRef.current}, elapsed=${elapsed}ms`,
+          `[OHLCV-WS] Stream stale or chain down — isStale=${isStale}, chainDown=${chainDownRef.current}, elapsed=${elapsed}ms`,
         );
         pollLatest();
       }
@@ -239,7 +235,7 @@ export function useOHLCVRealtime({
     // Debounce the actual WS subscribe call
     debounceTimerRef.current = setTimeout(async () => {
       console.log(
-        `[OHLCVRealtime] Debounce fired — calling OHLCVService:subscribe for ${channel}`,
+        `[OHLCV-WS] Debounce fired — calling OHLCVService:subscribe for ${channel}`,
       );
       try {
         await Engine.controllerMessenger.call('OHLCVService:subscribe', {
@@ -247,20 +243,53 @@ export function useOHLCVRealtime({
           interval,
           currency,
         });
+
+        if (cancelledRef.current) {
+          console.log(
+            `[OHLCV-WS] Subscribe completed but effect was cancelled — undoing subscribe for ${channel}`,
+          );
+          await Engine.controllerMessenger.call('OHLCVService:unsubscribe', {
+            assetId,
+            interval,
+            currency,
+          });
+          return;
+        }
+
         subscribedRef.current = true;
         lastMessageTimeRef.current = Date.now();
-        console.log(`[OHLCVRealtime] Subscribe SUCCESS for ${channel}`);
       } catch (err) {
         console.log(
-          `[OHLCVRealtime] Failed to subscribe: ${err instanceof Error ? err.message : String(err)}`,
+          `[OHLCV-WS] Failed to subscribe: ${err instanceof Error ? err.message : String(err)}`,
         );
       }
     }, DEBOUNCE_MS);
 
+    // TODO: Remove before merging to production.
+    // DEV-ONLY: simulate a WebSocket disconnect/reconnect after N ms.
+    // Set DEV_SIMULATE_WS_DISCONNECT_AFTER_MS to e.g. 10000 (10s) to activate.
+    let devDisconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    if (__DEV__ && DEV_SIMULATE_WS_DISCONNECT_AFTER_MS > 0) {
+      devDisconnectTimer = setTimeout(() => {
+        console.log(
+          `[OHLCV-WS] DEV: Simulating WS disconnect (no reconnect) after ${DEV_SIMULATE_WS_DISCONNECT_AFTER_MS}ms`,
+        );
+        Engine.controllerMessenger.call(
+          'BackendWebSocketService:disconnect' as never,
+        );
+      }, DEV_SIMULATE_WS_DISCONNECT_AFTER_MS);
+    }
+
     return () => {
       console.log(
-        `[OHLCVRealtime] Cleanup — channel=${channel}, wasSubscribed=${subscribedRef.current}`,
+        `[OHLCV-WS] Cleanup — channel=${channel}, wasSubscribed=${subscribedRef.current}`,
       );
+
+      cancelledRef.current = true;
+
+      if (devDisconnectTimer) {
+        clearTimeout(devDisconnectTimer);
+      }
 
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -287,22 +316,14 @@ export function useOHLCVRealtime({
         handleChainStatusChanged,
       );
 
-      if (subscribedRef.current) {
-        console.log(
-          `[OHLCVRealtime] Calling OHLCVService:unsubscribe for ${channel}`,
-        );
-        Engine.controllerMessenger
-          .call('OHLCVService:unsubscribe', { assetId, interval, currency })
-          .then(() => {
-            console.log(`[OHLCVRealtime] Unsubscribe SUCCESS for ${channel}`);
-          })
-          .catch((err: unknown) => {
-            console.log(
-              `[OHLCVRealtime] Failed to unsubscribe: ${err instanceof Error ? (err as Error).message : String(err)}`,
-            );
-          });
-        subscribedRef.current = false;
-      }
+      Engine.controllerMessenger
+        .call('OHLCVService:unsubscribe', { assetId, interval, currency })
+        .catch((err: unknown) => {
+          console.log(
+            `[OHLCV-WS] Failed to unsubscribe: ${err instanceof Error ? (err as Error).message : String(err)}`,
+          );
+        });
+      subscribedRef.current = false;
     };
   }, [assetId, interval, currency, timePeriod, enabled, buildChannel]);
 
