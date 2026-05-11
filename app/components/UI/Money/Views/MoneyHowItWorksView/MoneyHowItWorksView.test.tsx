@@ -100,6 +100,16 @@ describe('MoneyHowItWorksView', () => {
     expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
+  it('applies safe-area bottom padding to the scroll content', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHowItWorksView />);
+
+    const scrollView = getByTestId(MoneyHowItWorksViewTestIds.SCROLL_VIEW);
+
+    expect(scrollView.props.contentContainerStyle).toEqual(
+      expect.objectContaining({ paddingBottom: 34 + 24 }),
+    );
+  });
+
   it('renders the "Frequently asked questions" FAQ header', () => {
     const { getByText } = renderWithProvider(<MoneyHowItWorksView />);
 

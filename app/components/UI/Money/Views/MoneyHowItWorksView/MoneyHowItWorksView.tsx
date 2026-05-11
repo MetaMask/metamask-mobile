@@ -162,7 +162,8 @@ const MoneyHowItWorksView = () => {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        testID={MoneyHowItWorksViewTestIds.SCROLL_VIEW}
       >
         <Box twClassName="px-4 pt-6 pb-3 gap-3">
           <Text
