@@ -83,6 +83,16 @@ jobs:
             exit 0
           fi
 
+          # Gate on the auto-rc-builds label so release managers can opt out of the
+          # version-bump force-push (which becomes the new HEAD and skips CI on the
+          # release PR) by removing the label before merging.
+          HAS_LABEL=$(gh pr view "$PR_NUMBER" --json labels --jq '[.labels[].name] | contains(["auto-rc-builds"])')
+          if [[ "$HAS_LABEL" != "true" ]]; then
+            echo "PR #$PR_NUMBER does not have the auto-rc-builds label. Skipping RC build."
+            echo "has-pr=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           echo "Found PR #$PR_NUMBER - proceeding with RC build"
           echo "pr-number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "has-pr=true" >> "$GITHUB_OUTPUT"

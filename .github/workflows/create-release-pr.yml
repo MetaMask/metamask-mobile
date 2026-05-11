@@ -125,6 +125,23 @@ jobs:
           github-token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
           google-application-creds-base64: ${{ github.event_name == 'workflow_dispatch' && secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 || secrets.google-application-creds-base64 }}
 
+      # Apply the auto-rc-builds label so the build-rc-auto workflow runs by default
+      # on pushes to this release branch. Release managers remove the label when ready
+      # to merge so the [skip ci] version-bump force-push doesn't land on top.
+      - name: Apply auto-rc-builds label to native release PR
+        if: needs.resolve-bases.outputs.is_ota != 'true'
+        shell: bash
+        env:
+          SEMVER: ${{ inputs.semver-version }}
+          RELEASE_BASE: ${{ needs.resolve-bases.outputs.release_base }}
+          GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+        run: |
+          set -euo pipefail
+          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "release/${SEMVER}" --base "$RELEASE_BASE" --json number --jq '.[0].number // ""')
+          if [[ -n "$PR_NUMBER" ]]; then
+            gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label auto-rc-builds
+          fi
+
       # Check PR before checkout/bump/push so retries do not overwrite OTA_VERSION again when a PR already exists.
       - name: Check for existing OTA release PR
         id: ota_release_pr
@@ -226,5 +243,6 @@ jobs:
           BODY="${BODY}"$'\n'"- CHANGELOG.md header and production git tag both use bare \`${SEMVER}\` / \`v${SEMVER}\`; the \`-ota\` suffix is branch-only."
           gh pr create --repo "$GITHUB_REPOSITORY" --draft \
             --base "$RELEASE_BASE" --head "$BRANCH" \
+            --label auto-rc-builds \
             --title "release: ${SEMVER} (OTA)" \
             --body "$BODY"
