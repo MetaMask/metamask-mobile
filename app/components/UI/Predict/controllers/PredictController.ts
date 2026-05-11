@@ -1454,6 +1454,7 @@ export class PredictController extends BaseController<
         networkClientId,
         disableHook: true,
         disableSequential: true,
+        skipInitialGasEstimate: true,
         // Temporarily breaking abstraction, can instead be abstracted via provider.
         gasFeeToken: MATIC_CONTRACTS_V2.collateral as Hex,
         transactions,
@@ -2144,6 +2145,38 @@ export class PredictController extends BaseController<
     });
   }
 
+  private async syncDepositWalletBalanceAllowanceIfNeeded({
+    transactionMeta,
+    address,
+  }: {
+    transactionMeta: TransactionMeta;
+    address: string;
+  }): Promise<void> {
+    try {
+      await this.provider.syncDepositWalletBalanceAllowanceForDepositTransaction(
+        {
+          transactionMeta,
+          signerAddress: address,
+        },
+      );
+    } catch (error) {
+      DevLogger.log(
+        'PredictController: Deposit wallet balance-allowance sync failed',
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          transactionId: transactionMeta.id,
+        },
+      );
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('syncDepositWalletBalanceAllowanceIfNeeded', {
+          operation: 'deposit_wallet_balance_allowance_sync',
+          transactionId: transactionMeta.id,
+        }),
+      );
+    }
+  }
+
   private handleTransactionSideEffects(
     type: PredictTransactionEventType,
     status: PredictTransactionEventStatus,
@@ -2155,6 +2188,20 @@ export class PredictController extends BaseController<
 
     if (type === 'deposit' && isTerminal) {
       this.clearPendingDepositForAddress({ address });
+    }
+
+    let depositWalletSyncPromise: Promise<void> | undefined;
+    if (
+      (type === 'deposit' || type === 'depositAndOrder') &&
+      status === 'confirmed'
+    ) {
+      this.provider.invalidateAccountState(address);
+      depositWalletSyncPromise = this.syncDepositWalletBalanceAllowanceIfNeeded(
+        {
+          transactionMeta,
+          address,
+        },
+      );
     }
 
     if (type === 'depositAndOrder' && status === 'confirmed') {
@@ -2186,20 +2233,24 @@ export class PredictController extends BaseController<
         activeAbTests: pendingActiveAbTests,
       } = pendingOrder;
 
-      this.placeOrder({
-        analyticsProperties: pendingAnalytics,
-        activeAbTests: pendingActiveAbTests,
-        preview,
-        address: signerAddress,
-        transactionId,
-      }).catch((error) => {
-        Logger.error(
-          ensureError(error),
-          this.getErrorContext('handleTransactionSideEffects', {
-            operation: 'placeOrder',
+      (depositWalletSyncPromise ?? Promise.resolve())
+        .then(() =>
+          this.placeOrder({
+            analyticsProperties: pendingAnalytics,
+            activeAbTests: pendingActiveAbTests,
+            preview,
+            address: signerAddress,
+            transactionId,
           }),
-        );
-      });
+        )
+        .catch((error) => {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('handleTransactionSideEffects', {
+              operation: 'placeOrder',
+            }),
+          );
+        });
     }
 
     if (type === 'depositAndOrder' && status === 'failed') {
@@ -2621,13 +2672,71 @@ export class PredictController extends BaseController<
     }
   }
 
-  public async beforePublish(_request: {
+  public async beforePublish(request: {
     transactionMeta: TransactionMeta;
   }): Promise<boolean> {
-    return true;
+    return this.provider.beforePublishDepositWalletDeposit({
+      transactionMeta: request.transactionMeta,
+      getSigner: (address?: string) => this.getSigner(address),
+    });
   }
 
-  public async beforeSign(request: {
+  private getPendingClaimContext(transactionMeta: TransactionMeta):
+    | {
+        senderAddress: string;
+        matchedAddress: string;
+        pendingValue: string;
+        positions: PredictPosition[];
+        signer: Signer;
+      }
+    | undefined {
+    const isClaim = transactionMeta.nestedTransactions?.some(
+      (tx) => tx.type === TransactionType.predictClaim,
+    );
+
+    if (!isClaim) {
+      return undefined;
+    }
+
+    const senderAddress = transactionMeta.txParams.from as string | undefined;
+    if (!senderAddress) {
+      return undefined;
+    }
+
+    const normalizedAddress = senderAddress.toLowerCase();
+    const matchedAddress = Object.keys(this.state.pendingClaims).find(
+      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+    );
+
+    if (!matchedAddress) {
+      return undefined;
+    }
+
+    const pendingValue = this.state.pendingClaims[matchedAddress];
+
+    if (
+      pendingValue !== 'pending' &&
+      transactionMeta.batchId &&
+      pendingValue !== transactionMeta.batchId
+    ) {
+      throw new Error('Pending claim batch does not match transaction batch');
+    }
+
+    const claimablePositions = this.state.claimablePositions[matchedAddress];
+    if (!claimablePositions || claimablePositions.length === 0) {
+      throw new Error('No claimable positions found for pending claim');
+    }
+
+    return {
+      senderAddress,
+      matchedAddress,
+      pendingValue,
+      positions: [...claimablePositions],
+      signer: this.getSigner(senderAddress),
+    };
+  }
+
+  private async beforeSignWithdrawIfNeeded(request: {
     transactionMeta: TransactionMeta;
   }): Promise<
     | {
@@ -2730,10 +2839,49 @@ export class PredictController extends BaseController<
     };
   }
 
-  public async publish(_request: {
+  public async beforeSign(request: {
+    transactionMeta: TransactionMeta;
+  }): Promise<
+    | {
+        updateTransaction?: (transaction: TransactionMeta) => void;
+      }
+    | undefined
+  > {
+    const withdrawResult = await this.beforeSignWithdrawIfNeeded(request);
+    if (withdrawResult) {
+      return withdrawResult;
+    }
+
+    const claimContext = this.getPendingClaimContext(request.transactionMeta);
+    if (!claimContext) {
+      return undefined;
+    }
+
+    return this.provider.beforeSignClaim?.({
+      transactionMeta: request.transactionMeta,
+      signer: claimContext.signer,
+      positions: claimContext.positions,
+    });
+  }
+
+  public async publish(request: {
     transactionMeta: TransactionMeta;
   }): Promise<{ transactionHash?: string }> {
-    return { transactionHash: undefined };
+    const claimContext = this.getPendingClaimContext(request.transactionMeta);
+
+    if (!claimContext) {
+      return { transactionHash: undefined };
+    }
+
+    if (!this.provider.publishClaim) {
+      return { transactionHash: undefined };
+    }
+
+    return this.provider.publishClaim({
+      transactionMeta: request.transactionMeta,
+      signer: claimContext.signer,
+      positions: claimContext.positions,
+    });
   }
 
   public clearWithdrawTransaction(): void {
