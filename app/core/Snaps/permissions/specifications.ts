@@ -75,93 +75,93 @@ export const getSnapPermissionSpecifications = (
   >,
   { addNewKeyring }: SnapPermissionSpecificationsHooks,
 ) => ({
-    ...buildSnapEndowmentSpecifications(Object.keys(ExcludedSnapEndowments)),
-    ...buildSnapRestrictedMethodSpecifications(
-      Object.keys(ExcludedSnapPermissions),
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-        getUnlockPromise: () => {
-          if (messenger.call('KeyringController:getState').isUnlocked) {
-            return Promise.resolve();
-          }
+  ...buildSnapEndowmentSpecifications(Object.keys(ExcludedSnapEndowments)),
+  ...buildSnapRestrictedMethodSpecifications(
+    Object.keys(ExcludedSnapPermissions),
+    {
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      getUnlockPromise: async () => {
+        if (messenger.call('KeyringController:getState').isUnlocked) {
+          return;
+        }
 
-          return messenger.waitUntil('KeyringController:unlock');
-        },
-        maybeUpdatePhishingList: messenger.call.bind(
-          messenger,
-          'PhishingController:maybeUpdateState',
-        ),
-        isOnPhishingList: (origin: string) =>
-          messenger.call('PhishingController:testOrigin', origin).result,
-        showInAppNotification: (origin: string, args: unknown) => {
-          Logger.log(
-            'Snaps/ showInAppNotification called with args: ',
-            args,
-            ' and origin: ',
-            origin,
-          );
+        await messenger.waitUntil('KeyringController:unlock');
+      },
+      maybeUpdatePhishingList: messenger.call.bind(
+        messenger,
+        'PhishingController:maybeUpdateState',
+      ),
+      isOnPhishingList: (origin: string) =>
+        messenger.call('PhishingController:testOrigin', origin).result,
+      showInAppNotification: (origin: string, args: unknown) => {
+        Logger.log(
+          'Snaps/ showInAppNotification called with args: ',
+          args,
+          ' and origin: ',
+          origin,
+        );
 
-          return null;
-        },
-        getClientCryptography: () => ({
-          pbkdf2Sha512: pbkdf2,
-          hmacSha512: async (key: Uint8Array, data: Uint8Array) =>
-            hmacSha512(key, data),
-        }),
-        getPreferences: () => {
-          const {
-            securityAlertsEnabled,
-            useTransactionSimulations,
-            useTokenDetection,
-            privacyMode,
-            useNftDetection,
-            displayNftMedia,
-            isMultiAccountBalancesEnabled,
-            showTestNetworks,
-          } = messenger.call('PreferencesController:getState');
-          const { currentCurrency } = messenger.call(
-            'CurrencyRateController:getState',
-          );
+        return null;
+      },
+      getClientCryptography: () => ({
+        pbkdf2Sha512: pbkdf2,
+        hmacSha512: async (key: Uint8Array, data: Uint8Array) =>
+          hmacSha512(key, data),
+      }),
+      getPreferences: () => {
+        const {
+          securityAlertsEnabled,
+          useTransactionSimulations,
+          useTokenDetection,
+          privacyMode,
+          useNftDetection,
+          displayNftMedia,
+          isMultiAccountBalancesEnabled,
+          showTestNetworks,
+        } = messenger.call('PreferencesController:getState');
+        const { currentCurrency } = messenger.call(
+          'CurrencyRateController:getState',
+        );
 
-          const locale = I18n.locale;
-          return {
-            locale,
-            currency: currentCurrency,
-            hideBalances: privacyMode,
-            useSecurityAlerts: securityAlertsEnabled,
-            simulateOnChainActions: useTransactionSimulations,
-            useTokenDetection,
-            batchCheckBalances: isMultiAccountBalancesEnabled,
-            displayNftMedia,
-            useNftDetection,
-            useExternalPricingData: true,
-            showTestnets: showTestNetworks,
-          };
-        },
-        ///: END:ONLY_INCLUDE_IF
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        getAllowedKeyringMethods: (origin: string) =>
-          keyringSnapPermissionsBuilder(origin),
-        getSnapKeyring: async () => {
+        const locale = I18n.locale;
+        return {
+          locale,
+          currency: currentCurrency,
+          hideBalances: privacyMode,
+          useSecurityAlerts: securityAlertsEnabled,
+          simulateOnChainActions: useTransactionSimulations,
+          useTokenDetection,
+          batchCheckBalances: isMultiAccountBalancesEnabled,
+          displayNftMedia,
+          useNftDetection,
+          useExternalPricingData: true,
+          showTestnets: showTestNetworks,
+        };
+      },
+      ///: END:ONLY_INCLUDE_IF
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      getAllowedKeyringMethods: (origin: string) =>
+        keyringSnapPermissionsBuilder(origin),
+      getSnapKeyring: async () => {
+        // TODO: Replace `getKeyringsByType` with `withKeyring`
+        let [snapKeyring] = messenger.call(
+          'KeyringController:getKeyringsByType',
+          KeyringTypes.snap,
+        );
+
+        if (!snapKeyring) {
+          await addNewKeyring(KeyringTypes.snap);
           // TODO: Replace `getKeyringsByType` with `withKeyring`
-          let [snapKeyring] = messenger.call(
+          [snapKeyring] = messenger.call(
             'KeyringController:getKeyringsByType',
             KeyringTypes.snap,
           );
+        }
 
-          if (!snapKeyring) {
-            await addNewKeyring(KeyringTypes.snap);
-            // TODO: Replace `getKeyringsByType` with `withKeyring`
-            [snapKeyring] = messenger.call(
-              'KeyringController:getKeyringsByType',
-              KeyringTypes.snap,
-            );
-          }
-
-          return snapKeyring;
-        },
-        ///: END:ONLY_INCLUDE_IF
+        return snapKeyring;
       },
-      messenger,
-    ),
-  });
+      ///: END:ONLY_INCLUDE_IF
+    },
+    messenger,
+  ),
+});

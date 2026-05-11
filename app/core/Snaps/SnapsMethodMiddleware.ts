@@ -36,7 +36,7 @@ const snapMethodMiddlewareBuilder = (
     {
       getUnlockPromise: async () => {
         if (engineContext.KeyringController.isUnlocked()) {
-          return Promise.resolve();
+          return;
         }
         await controllerMessenger.waitUntil('KeyringController:unlock');
       },
