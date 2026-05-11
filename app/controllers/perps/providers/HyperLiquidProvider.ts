@@ -128,7 +128,10 @@ import {
   addSpotBalanceToAccountState,
   aggregateAccountStates,
 } from '../utils/accountUtils';
-import { ensureError } from '../utils/errorUtils';
+import {
+  ensureError,
+  isHyperLiquidUserNotFoundError,
+} from '../utils/errorUtils';
 import {
   adaptAccountStateFromSDK,
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
@@ -590,6 +593,77 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
+   * Decide whether the wallet has a Hyperliquid account.
+   *
+   * Hyperliquid accounts are created server-side on first USDC deposit.
+   * Before that, every user-scoped exchange write rejects with
+   * "User or API Wallet 0x... does not exist." — formerly the top source
+   * of `feature:perps` Sentry events (Sentry issues METAMASK-MOBILE-4XB5
+   * iOS / 4Q4M Android: ~530k events / ~100k users in 14d on 7.75.1).
+   *
+   * Probes `infoClient.clearinghouseState` and caches a positive result in
+   * `PerpsSigningCache.walletRegistered`. Negative results are NOT cached —
+   * the wallet may deposit between checks; the next entry must re-probe.
+   * The probe is cheap (~200ms) and non-throwing: fresh wallets return a
+   * zeroed margin summary and an empty `assetPositions` array.
+   *
+   * Marks the wallet registered if any of these signals is present:
+   * `marginSummary.accountValue !== "0.0"`, `withdrawable !== "0.0"`, or
+   * `assetPositions.length > 0`.
+   *
+   * If the probe itself throws (transient network), returns `true` and does
+   * not cache — fail open so one bad probe never traps a real Hyperliquid
+   * user in the deferred state.
+   *
+   * @param userAddress - The wallet address to check.
+   * @param network - The network environment (mainnet | testnet).
+   * @returns True if the wallet has been observed on Hyperliquid OR if
+   * the probe was inconclusive (fail open). False only when the probe
+   * succeeded AND every existence signal was empty.
+   * @private
+   */
+  async #isWalletOnHyperliquid(
+    userAddress: string,
+    network: 'mainnet' | 'testnet',
+  ): Promise<boolean> {
+    const cached = PerpsSigningCache.getWalletRegistered(network, userAddress);
+    if (cached?.registered) {
+      return true;
+    }
+
+    try {
+      const infoClient = this.#clientService.getInfoClient();
+      const state = await infoClient.clearinghouseState({ user: userAddress });
+      const accountValue = state.marginSummary?.accountValue;
+      const { withdrawable } = state;
+      const hasAccountValue =
+        typeof accountValue === 'string' && accountValue !== '0.0';
+      const hasWithdrawable =
+        typeof withdrawable === 'string' && withdrawable !== '0.0';
+      const hasPositions = (state.assetPositions?.length ?? 0) > 0;
+      const registered = hasAccountValue || hasWithdrawable || hasPositions;
+      if (registered) {
+        PerpsSigningCache.setWalletRegistered(network, userAddress, true);
+      }
+      return registered;
+    } catch (error) {
+      // Fail open. A transient probe failure must never prevent a
+      // legitimate Hyperliquid user from completing migration / referral
+      // setup. The next entry will re-probe.
+      this.#deps.debugLogger.log(
+        '[isWalletOnHyperliquid] Probe failed, assuming registered',
+        {
+          network,
+          user: userAddress,
+          error: ensureError(error, 'HyperLiquidProvider.isWalletOnHyperliquid')
+            .message,
+        },
+      );
+      return true;
+    }
+  }
+
+  /**
    * Attempt to enable HyperLiquid Unified Account mode for HIP-3 orders
    *
    * If successful, HyperLiquid automatically manages collateral transfers for HIP-3 orders.
@@ -684,6 +758,32 @@ export class HyperLiquidProvider implements PerpsProvider {
           'HyperLiquidProvider: Unified Account setup completed by another provider',
           { network, userAddress },
         );
+        completeInFlight();
+        return;
+      }
+
+      // Skip the migration entirely for wallets that have no Hyperliquid
+      // account yet. HL creates accounts server-side on first USDC deposit;
+      // before that, both `agentSetAbstraction` and `userSetAbstraction`
+      // reject with "User or API Wallet 0x... does not exist." — formerly
+      // the top source of `feature:perps` Sentry events on 7.75.1.
+      // The probe is cheap, non-throwing, and cached.
+      const isRegistered = await this.#isWalletOnHyperliquid(
+        userAddress,
+        network,
+      );
+      if (!isRegistered) {
+        this.#deps.debugLogger.log(
+          '[ensureUnifiedAccountEnabled] Wallet not yet on Hyperliquid, deferring migration',
+          { user: userAddress, network },
+        );
+        this.#deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.AccountSetup, {
+          [PERPS_EVENT_PROPERTY.STATUS]:
+            PERPS_EVENT_VALUE.STATUS.NOT_APPLICABLE,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: 'no_hl_account',
+        });
+        // Leave TradingReadinessCache untouched so the next entry re-evaluates
+        // after a deposit lands and the wallet becomes a Hyperliquid user.
         completeInFlight();
         return;
       }
@@ -820,6 +920,30 @@ export class HyperLiquidProvider implements PerpsProvider {
           '[ensureUnifiedAccountEnabled] Keyring locked, will retry later',
         );
         this.#unifiedAccountSetupNeedsRetry = true;
+        completeInFlight();
+        return;
+      }
+
+      // Safety net: a Hyperliquid "user does not exist" rejection slipped
+      // past the proactive probe (race with deposit confirmation, transient
+      // probe failure that failed open, ...). Treat as benign — do NOT
+      // forward to Sentry. The walletRegistered cache stores positive
+      // observations only, so no demotion is needed; the next entry will
+      // re-probe.
+      if (isHyperLiquidUserNotFoundError(error)) {
+        this.#deps.debugLogger.log(
+          '[ensureUnifiedAccountEnabled] Wallet not on Hyperliquid (race/stale-cache), deferring migration',
+          { user: userAddress, network, currentMode },
+        );
+        this.#deps.metrics.trackPerpsEvent(PerpsAnalyticsEvent.AccountSetup, {
+          ...(currentMode && {
+            [PERPS_EVENT_PROPERTY.PREVIOUS_ABSTRACTION_MODE]: currentMode,
+            [PERPS_EVENT_PROPERTY.ABSTRACTION_MODE]: HL_UNIFIED_ACCOUNT_MODE,
+          }),
+          [PERPS_EVENT_PROPERTY.STATUS]:
+            PERPS_EVENT_VALUE.STATUS.NOT_APPLICABLE,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: 'no_hl_account',
+        });
         completeInFlight();
         return;
       }
@@ -8373,6 +8497,22 @@ export class HyperLiquidProvider implements PerpsProvider {
       return;
     }
 
+    // Skip the referral write for unfunded wallets — same proactive gate
+    // as `#ensureUnifiedAccountEnabled`. `exchangeClient.setReferrer`
+    // rejects with "User or API Wallet 0x... does not exist." for wallets
+    // that have not yet deposited.
+    const isRegistered = await this.#isWalletOnHyperliquid(
+      userAddress,
+      network,
+    );
+    if (!isRegistered) {
+      this.#deps.debugLogger.log(
+        '[ensureReferralSet] Wallet not yet on Hyperliquid, deferring referral setup',
+        { network },
+      );
+      return;
+    }
+
     // Check GLOBAL cache first
     const globalCached = PerpsSigningCache.getReferral(network, userAddress);
     if (globalCached?.attempted) {
@@ -8477,6 +8617,19 @@ export class HyperLiquidProvider implements PerpsProvider {
         return;
       }
 
+      // Safety net: wallet looked registered but the SDK still rejects with
+      // "User or API Wallet 0x... does not exist." Do not forward to Sentry.
+      // The walletRegistered cache stores positive observations only, so no
+      // demotion is needed; the next entry will re-probe.
+      if (isHyperLiquidUserNotFoundError(error)) {
+        this.#deps.debugLogger.log(
+          '[ensureReferralSet] Wallet not on Hyperliquid (race/stale-cache), deferring referral',
+          { network, user: userAddress },
+        );
+        completeInFlight();
+        return;
+      }
+
       // Cache failure to prevent retries
       PerpsSigningCache.setReferral(network, userAddress, {
         attempted: true,
@@ -8574,6 +8727,17 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       return Boolean(referralData?.referredBy?.code);
     } catch (error) {
+      // Benign for unfunded wallets — downgrade to debug log, do not Sentry.
+      if (isHyperLiquidUserNotFoundError(error)) {
+        this.#deps.debugLogger.log(
+          '[checkReferralSet] Wallet not on Hyperliquid yet, treating as no referral',
+          {
+            error: ensureError(error, 'HyperLiquidProvider.checkReferralSet')
+              .message,
+          },
+        );
+        return false;
+      }
       this.#deps.logger.error(
         ensureError(error, 'HyperLiquidProvider.checkReferralSet'),
         this.#getErrorContext('checkReferralSet', {
@@ -8614,6 +8778,19 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       return result?.status === 'ok';
     } catch (error) {
+      // Benign for unfunded wallets — downgrade and rethrow so the outer
+      // `#ensureReferralSet` catch self-heals the walletRegistered gate
+      // without forwarding to Sentry.
+      if (isHyperLiquidUserNotFoundError(error)) {
+        this.#deps.debugLogger.log(
+          '[setReferralCode] Wallet not on Hyperliquid yet, skipping referral write',
+          {
+            error: ensureError(error, 'HyperLiquidProvider.setReferralCode')
+              .message,
+          },
+        );
+        throw error;
+      }
       this.#deps.logger.error(
         ensureError(error, 'HyperLiquidProvider.setReferralCode'),
         this.#getErrorContext('setReferralCode', {

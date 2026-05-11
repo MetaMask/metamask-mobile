@@ -2849,7 +2849,12 @@ describe('HyperLiquidProvider', () => {
     it('handles missing position in close operation', async () => {
       (
         mockClientService.getInfoClient().clearinghouseState as jest.Mock
-      ).mockResolvedValueOnce({
+      ).mockResolvedValue({
+        // The wallet-registration probe and the position fetch both call
+        // clearinghouseState; the whole scenario has no positions, so
+        // `mockResolvedValue` (not `mockResolvedValueOnce`) is required.
+        marginSummary: { accountValue: '10500', totalMarginUsed: '500' },
+        withdrawable: '9500',
         assetPositions: [], // No positions
       });
 
@@ -10615,6 +10620,170 @@ describe('HyperLiquidProvider', () => {
         throw bomb;
       });
       await expect(provider.getExchangeClient()).rejects.toBe(bomb);
+    });
+  });
+
+  // ──────────────────────────────────────────────────────────────────────
+  // Proactive "user does not exist" gate
+  //
+  // Hyperliquid creates user accounts server-side on first USDC deposit.
+  // Before that, exchange writes (`agentSetAbstraction`, `userSetAbstraction`,
+  // `setReferrer`, ...) reject with
+  //     ApiRequestError: User or API Wallet 0x... does not exist.
+  // and the catch in `#ensureUnifiedAccountEnabled` forwards them to Sentry.
+  //
+  // The provider probes `infoClient.clearinghouseState` first and defers
+  // migration when every existence signal is zero/empty. The classifier in
+  // the catch acts as a safety net for races (probe succeeded but write
+  // still rejected).
+  //
+  // Sentry source: METAMASK-MOBILE-4XB5 (iOS) / 4Q4M (Android).
+  // Standalone repro: scripts/repro-hl-user-not-found.mjs.
+  // ──────────────────────────────────────────────────────────────────────
+  describe('wallet-not-on-hyperliquid gate (ensureUnifiedAccountEnabled)', () => {
+    const USER_ADDRESS = '0x1234567890123456789012345678901234567890';
+    const freshClearinghouseState = {
+      marginSummary: { accountValue: '0.0', totalMarginUsed: '0.0' },
+      crossMarginSummary: { accountValue: '0.0', totalMarginUsed: '0.0' },
+      withdrawable: '0.0',
+      assetPositions: [],
+      time: 1778499320281,
+    };
+
+    const withdrawParams = {
+      amount: '1000',
+      destination: USER_ADDRESS as Hex,
+      assetId:
+        'eip155:42161/erc20:0xa0b86a33e6776e681a06e0e1622c5e5e3e6a8b13/usdc' as CaipAssetId,
+    };
+
+    const stubGetAccountState = (availableBalance: string) =>
+      Object.defineProperty(provider, 'getAccountState', {
+        value: jest.fn().mockResolvedValue({ availableBalance }),
+        writable: true,
+      });
+
+    it('defers migration without firing exchange writes when clearinghouseState is empty', async () => {
+      const exchangeClient = createMockExchangeClient();
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          clearinghouseState: jest
+            .fn()
+            .mockResolvedValue(freshClearinghouseState),
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+      stubGetAccountState('5000');
+
+      await provider.withdraw(withdrawParams).catch(() => undefined);
+
+      // Critical: neither migration write is called for unfunded wallets.
+      expect(exchangeClient.agentSetAbstraction).not.toHaveBeenCalled();
+      expect(exchangeClient.userSetAbstraction).not.toHaveBeenCalled();
+      // And no `logger.error` → no Sentry event.
+      expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
+
+      const trackCalls = (
+        mockPlatformDependencies.metrics.trackPerpsEvent as jest.Mock
+      ).mock.calls.filter((call) => call[0] === 'Perp Account Setup');
+      const notApplicable = trackCalls.find(
+        (call) => call[1]?.status === 'not_applicable',
+      );
+      expect(notApplicable?.[1]).toEqual(
+        expect.objectContaining({
+          status: 'not_applicable',
+          error_message: 'no_hl_account',
+        }),
+      );
+    });
+
+    it('classifier safety net: suppresses Sentry when agentSetAbstraction races and rejects with user-not-found', async () => {
+      // Funded probe — gate passes — but the exchange write still rejects
+      // (deposit not yet visible, address reuse across networks, ...).
+      const userNotFound = new Error(
+        `User or API Wallet ${USER_ADDRESS} does not exist.`,
+      );
+      const exchangeClient = createMockExchangeClient();
+      exchangeClient.agentSetAbstraction = jest
+        .fn()
+        .mockRejectedValue(userNotFound);
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          // Funded clearinghouseState → gate passes
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+      stubGetAccountState('5000');
+
+      await provider.withdraw(withdrawParams).catch(() => undefined);
+
+      expect(exchangeClient.agentSetAbstraction).toHaveBeenCalled();
+      expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
+
+      const trackCalls = (
+        mockPlatformDependencies.metrics.trackPerpsEvent as jest.Mock
+      ).mock.calls.filter((call) => call[0] === 'Perp Account Setup');
+      expect(
+        trackCalls.find((call) => call[1]?.status === 'not_applicable'),
+      ).toBeDefined();
+      expect(
+        trackCalls.find((call) => call[1]?.status === 'failed'),
+      ).toBeUndefined();
+    });
+
+    it('regression: unrelated exchange write failures still reach logger.error', async () => {
+      const exchangeClient = createMockExchangeClient();
+      exchangeClient.agentSetAbstraction = jest
+        .fn()
+        .mockRejectedValue(new Error('Insufficient margin'));
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+      stubGetAccountState('5000');
+
+      await provider.withdraw(withdrawParams).catch(() => undefined);
+
+      expect(mockPlatformDependencies.logger.error).toHaveBeenCalled();
+
+      const trackCalls = (
+        mockPlatformDependencies.metrics.trackPerpsEvent as jest.Mock
+      ).mock.calls.filter((call) => call[0] === 'Perp Account Setup');
+      expect(
+        trackCalls.find((call) => call[1]?.status === 'failed'),
+      ).toBeDefined();
+    });
+
+    it('funded wallets are unaffected: existing migration path runs as before', async () => {
+      const exchangeClient = createMockExchangeClient();
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          // Default funded clearinghouseState from factory
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+      stubGetAccountState('5000');
+
+      await provider.withdraw(withdrawParams).catch(() => undefined);
+
+      expect(exchangeClient.agentSetAbstraction).toHaveBeenCalledWith({
+        // SDK wire format: 'u' = unifiedAccount (see HL_ABSTRACTION_WIRE).
+        abstraction: 'u',
+      });
+      expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
     });
   });
 });
