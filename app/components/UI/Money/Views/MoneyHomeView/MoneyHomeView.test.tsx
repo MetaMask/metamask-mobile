@@ -216,9 +216,7 @@ describe('MoneyHomeView', () => {
       },
       musdEquivalentBalanceQuery: {
         data: {
-          musdEquivalentValue: '2000000',
-          musdSHFvdBalance: '2000000',
-          exchangeRate: '1000000',
+          balanceOfInAssets: '2000000',
         },
         isLoading: false,
       },

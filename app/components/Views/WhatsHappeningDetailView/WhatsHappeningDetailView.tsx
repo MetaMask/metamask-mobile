@@ -31,6 +31,7 @@ import ErrorState from '../Homepage/components/ErrorState/ErrorState';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
 import WhatsHappeningSourcesBottomSheet from './components/WhatsHappeningSourcesBottomSheet';
 import PageIndicator from './components/PageIndicator';
+import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 
@@ -210,64 +211,66 @@ const WhatsHappeningDetailView = () => {
         <Box twClassName="w-10" />
       </Box>
 
-      <Box twClassName="flex-1">
-        {isLoading ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
-            testID="whats-happening-detail-skeleton"
-          >
-            {SKELETON_KEYS.map((key) => (
-              <WhatsHappeningCardSkeleton key={key} />
-            ))}
-          </ScrollView>
-        ) : hasError ? (
-          <ErrorState
-            title={strings('homepage.error.unable_to_load', {
-              section: strings(
-                'homepage.sections.whats_happening',
-              ).toLowerCase(),
-            })}
-            onRetry={refresh}
-          />
-        ) : (
-          <>
+      <PerpsStreamProvider>
+        <Box twClassName="flex-1">
+          {isLoading ? (
             <ScrollView
-              ref={scrollViewRef}
               horizontal
               showsHorizontalScrollIndicator={false}
-              decelerationRate="fast"
-              snapToInterval={SNAP_INTERVAL}
-              snapToAlignment="start"
-              style={tw`flex-1`}
-              contentContainerStyle={tw.style('px-4 gap-3')}
-              onLayout={handleCarouselLayout}
-              onContentSizeChange={handleContentSizeChange}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
-              onMomentumScrollEnd={handleScrollEnd}
-              testID="whats-happening-detail-carousel"
+              contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
+              testID="whats-happening-detail-skeleton"
             >
-              {cardHeight > 0 &&
-                items.map((item, index) => (
-                  <WhatsHappeningExpandedCard
-                    key={item.id}
-                    item={item}
-                    cardIndex={index}
-                    cardWidth={CARD_WIDTH}
-                    cardHeight={cardHeight}
-                    onSourcesPress={(articles) =>
-                      handleSourcesPress(articles, item, index)
-                    }
-                  />
-                ))}
+              {SKELETON_KEYS.map((key) => (
+                <WhatsHappeningCardSkeleton key={key} />
+              ))}
             </ScrollView>
+          ) : hasError ? (
+            <ErrorState
+              title={strings('homepage.error.unable_to_load', {
+                section: strings(
+                  'homepage.sections.whats_happening',
+                ).toLowerCase(),
+              })}
+              onRetry={refresh}
+            />
+          ) : (
+            <>
+              <ScrollView
+                ref={scrollViewRef}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                decelerationRate="fast"
+                snapToInterval={SNAP_INTERVAL}
+                snapToAlignment="start"
+                style={tw`flex-1`}
+                contentContainerStyle={tw.style('px-4 gap-3')}
+                onLayout={handleCarouselLayout}
+                onContentSizeChange={handleContentSizeChange}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                onMomentumScrollEnd={handleScrollEnd}
+                testID="whats-happening-detail-carousel"
+              >
+                {cardHeight > 0 &&
+                  items.map((item, index) => (
+                    <WhatsHappeningExpandedCard
+                      key={item.id}
+                      item={item}
+                      cardIndex={index}
+                      cardWidth={CARD_WIDTH}
+                      cardHeight={cardHeight}
+                      onSourcesPress={(articles) =>
+                        handleSourcesPress(articles, item, index)
+                      }
+                    />
+                  ))}
+              </ScrollView>
 
-            <PageIndicator count={items.length} activeIndex={currentIndex} />
-          </>
-        )}
-      </Box>
+              <PageIndicator count={items.length} activeIndex={currentIndex} />
+            </>
+          )}
+        </Box>
+      </PerpsStreamProvider>
       {sourcesContext && (
         <WhatsHappeningSourcesBottomSheet
           onClose={handleSourcesClose}

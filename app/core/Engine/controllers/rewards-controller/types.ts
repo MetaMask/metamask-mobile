@@ -725,7 +725,7 @@ export interface PerpsTradingCampaignLeaderboardEntry {
   referralCode: string;
   /** Signed USD PnL for the campaign window */
   pnl: number;
-  /** true when notional volume ≥ $25k AND margin deployed ≥ $1k */
+  /** true when notional volume ≥ $25k */
   qualified: boolean;
 }
 
@@ -749,8 +749,6 @@ export interface PerpsTradingCampaignLeaderboardPositionDto {
   pnl: number;
   /** Cumulative notional volume traded during the competition window (USD) */
   notionalVolume: number;
-  /** Cumulative initial margin deployed during the competition window (USD) */
-  marginDeployed: number;
   qualified: boolean;
   neighbors: PerpsTradingCampaignLeaderboardEntry[];
   computedAt: string;
@@ -783,7 +781,6 @@ export type PerpsTradingCampaignLeaderboardPositionFoundState = {
   rank: number;
   pnl: number;
   notionalVolume: number;
-  marginDeployed: number;
   qualified: boolean;
   neighbors: {
     rank: number;
