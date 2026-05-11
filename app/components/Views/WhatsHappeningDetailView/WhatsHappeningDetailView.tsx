@@ -27,6 +27,7 @@ import { useWhatsHappening } from '../Homepage/Sections/WhatsHappening/hooks';
 import { WhatsHappeningCardSkeleton } from '../Homepage/Sections/WhatsHappening/components';
 import {
   MAX_ITEMS_DISPLAYED,
+  WhatsHappeningSource,
   type WhatsHappeningSourceValue,
 } from '../Homepage/Sections/WhatsHappening/constants';
 import { getWhatsHappeningEventProps } from '../Homepage/Sections/WhatsHappening/eventProperties';
@@ -62,7 +63,8 @@ const WhatsHappeningDetailView = () => {
     useRoute<RouteProp<{ params: WhatsHappeningDetailParams }, 'params'>>();
 
   const initialIndex = route.params?.initialIndex ?? 0;
-  const source = route.params?.source;
+  const source: WhatsHappeningSourceValue =
+    route.params?.source ?? WhatsHappeningSource.Unknown;
 
   const { items, isLoading, error, refresh } =
     useWhatsHappening(MAX_ITEMS_DISPLAYED);

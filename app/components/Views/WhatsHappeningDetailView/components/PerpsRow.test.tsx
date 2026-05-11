@@ -68,6 +68,7 @@ describe('PerpsRow', () => {
         asset={perpsOnlyAsset}
         item={mockItem}
         cardIndex={0}
+        source="homepage"
         perpsPriceBySymbol={emptyPriceMap}
       />,
     );
@@ -80,6 +81,7 @@ describe('PerpsRow', () => {
         asset={perpsOnlyAsset}
         item={mockItem}
         cardIndex={0}
+        source="homepage"
         perpsPriceBySymbol={emptyPriceMap}
       />,
     );
@@ -92,6 +94,7 @@ describe('PerpsRow', () => {
         asset={perpsOnlyAsset}
         item={mockItem}
         cardIndex={0}
+        source="homepage"
         perpsPriceBySymbol={emptyPriceMap}
       />,
     );
@@ -114,6 +117,7 @@ describe('PerpsRow', () => {
         asset={multiMarketAsset}
         item={mockItem}
         cardIndex={0}
+        source="homepage"
         perpsPriceBySymbol={emptyPriceMap}
       />,
     );
@@ -136,6 +140,7 @@ describe('PerpsRow', () => {
         asset={assetNoPerps}
         item={mockItem}
         cardIndex={0}
+        source="homepage"
         perpsPriceBySymbol={emptyPriceMap}
       />,
     );
@@ -150,6 +155,7 @@ describe('PerpsRow', () => {
         asset={perpsOnlyAsset}
         item={mockItem}
         cardIndex={1}
+        source="homepage"
         perpsPriceBySymbol={emptyPriceMap}
       />,
     );
@@ -168,6 +174,7 @@ describe('PerpsRow', () => {
           card_index: 1,
           trend_category: 'macro',
           trend_impact: 'positive',
+          source: 'homepage',
         }),
       }),
     );
@@ -182,6 +189,7 @@ describe('PerpsRow', () => {
         asset={perpsOnlyAsset}
         item={mockItem}
         cardIndex={0}
+        source="homepage"
         perpsPriceBySymbol={priceMap}
       />,
     );
@@ -195,6 +203,7 @@ describe('PerpsRow', () => {
         asset={perpsOnlyAsset}
         item={mockItem}
         cardIndex={0}
+        source="homepage"
         perpsPriceBySymbol={emptyPriceMap}
       />,
     );

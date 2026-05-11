@@ -8,6 +8,7 @@ export const WhatsHappeningEntryPoint = {
 export const WhatsHappeningSource = {
   Homepage: 'homepage',
   Explore: 'explore',
+  Unknown: 'unknown',
 } as const;
 
 export type WhatsHappeningSourceValue =

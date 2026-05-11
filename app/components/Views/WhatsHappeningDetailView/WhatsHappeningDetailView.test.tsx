@@ -94,7 +94,9 @@ const mockItem = {
 describe('WhatsHappeningDetailView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseRoute.mockReturnValue({ params: { initialIndex: 0 } });
+    mockUseRoute.mockReturnValue({
+      params: { initialIndex: 0, source: 'homepage' },
+    });
     mockUseNavigation.mockReturnValue({ goBack: mockGoBack });
 
     (WhatsHappeningExpandedCard as unknown as jest.Mock).mockImplementation(
@@ -232,6 +234,7 @@ describe('WhatsHappeningDetailView', () => {
           trend_category: 'macro',
           trend_impact: 'positive',
           asset_symbols: [],
+          source: 'homepage',
         }),
       }),
     );
@@ -286,6 +289,7 @@ describe('WhatsHappeningDetailView', () => {
           card_index: 1,
           trend_category: 'social',
           trend_impact: 'negative',
+          source: 'homepage',
         }),
       }),
     );
@@ -326,6 +330,7 @@ describe('WhatsHappeningDetailView', () => {
         properties: expect.objectContaining({
           trend_id: mockItem.id,
           card_index: 0,
+          source: 'homepage',
         }),
       }),
     );
