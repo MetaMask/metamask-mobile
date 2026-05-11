@@ -29,6 +29,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
+import MoneyWhatYouGet from '../../components/MoneyWhatYouGet';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
 
 const localStyles = StyleSheet.create({
@@ -121,6 +123,7 @@ const MoneyHowItWorksView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { colors: themeColors } = useTheme();
+  const { apyPercent } = useMoneyAccountBalance();
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -184,6 +187,10 @@ const MoneyHowItWorksView = () => {
             {strings('money.how_it_works_page.description_2')}
           </Text>
         </Box>
+
+        <SectionDivider />
+
+        <MoneyWhatYouGet apy={apyPercent} />
 
         <SectionDivider />
 

@@ -3,8 +3,15 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHowItWorksView from './MoneyHowItWorksView';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
+import { MoneyWhatYouGetTestIds } from '../../components/MoneyWhatYouGet/MoneyWhatYouGet.testIds';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 
 const mockGoBack = jest.fn();
+
+jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -57,6 +64,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
 describe('MoneyHowItWorksView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+      apyPercent: 4,
+    });
   });
 
   it('renders the section title', () => {
@@ -82,6 +92,12 @@ describe('MoneyHowItWorksView', () => {
     const { getByTestId } = renderWithProvider(<MoneyHowItWorksView />);
 
     expect(getByTestId(MoneyHowItWorksViewTestIds.FAQ_TITLE)).toBeOnTheScreen();
+  });
+
+  it('renders the What you get section inside How it works view', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHowItWorksView />);
+
+    expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
   it('renders the "Frequently asked questions" FAQ header', () => {
