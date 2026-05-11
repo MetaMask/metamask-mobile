@@ -5,12 +5,12 @@ import {
   fetchAccountNotificationSettings,
   disableAccounts,
   enableAccounts,
-  resetNotifications,
   toggleFeatureAnnouncements,
   fetchNotifications,
   markNotificationsAsRead,
   enablePushNotifications,
   disablePushNotifications,
+  hasNotificationPreferences,
   type setContentPreviewToken as setContentPreviewTokenFn,
   type getContentPreviewToken as getContentPreviewTokenFn,
   type subscribeToContentPreviewToken as subscribeToContentPreviewTokenFn,
@@ -38,7 +38,14 @@ jest.mock('../../../core/Engine', () => ({
       disablePushNotifications: jest.fn(),
     },
   },
+  controllerMessenger: {
+    call: jest.fn(),
+  },
 }));
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
 describe('helpers - enableNotificationServices()', () => {
   it('invoke notification services method', async () => {
@@ -46,6 +53,35 @@ describe('helpers - enableNotificationServices()', () => {
     expect(
       Engine.context.NotificationServicesController.enableMetamaskNotifications,
     ).toHaveBeenCalled();
+  });
+
+  it('passes marketing consent to notification services method', async () => {
+    const options = { hasMarketingConsent: true };
+
+    await enableNotifications(options);
+
+    expect(
+      Engine.context.NotificationServicesController.enableMetamaskNotifications,
+    ).toHaveBeenCalledWith(options);
+  });
+});
+
+describe('helpers - hasNotificationPreferences()', () => {
+  it('returns true when AUS preferences exist', async () => {
+    jest.mocked(Engine.controllerMessenger.call).mockResolvedValue({
+      walletActivity: { enabled: true, accounts: [] },
+    });
+
+    await expect(hasNotificationPreferences()).resolves.toBe(true);
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+      'AuthenticatedUserStorageService:getNotificationPreferences',
+    );
+  });
+
+  it('returns false when AUS preferences are missing', async () => {
+    jest.mocked(Engine.controllerMessenger.call).mockResolvedValue(null);
+
+    await expect(hasNotificationPreferences()).resolves.toBe(false);
   });
 });
 
@@ -85,15 +121,6 @@ describe('helpers - enableAccounts()', () => {
     expect(
       Engine.context.NotificationServicesController.enableAccounts,
     ).toHaveBeenCalledWith(accounts);
-  });
-});
-
-describe('helpers - createOnChainTriggersByAccount()', () => {
-  it('invoke notification services method', async () => {
-    await resetNotifications();
-    expect(
-      Engine.context.NotificationServicesController.createOnChainTriggers,
-    ).toHaveBeenCalled();
   });
 });
 

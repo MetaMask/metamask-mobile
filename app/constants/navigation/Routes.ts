@@ -216,6 +216,7 @@ const Routes = {
     DEVELOPER_OPTIONS: 'DeveloperOptions',
     EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
     NOTIFICATIONS: 'NotificationsSettings',
+    NOTIFICATION_SETTINGS_SECTION: 'NotificationSettingsSection',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
     NETWORKS_MANAGEMENT: 'NetworksManagement',

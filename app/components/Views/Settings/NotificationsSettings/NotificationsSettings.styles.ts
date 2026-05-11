@@ -4,6 +4,10 @@ import { Theme } from '../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: params.theme.colors.background.default,
+    },
     container: {
       flex: 1,
       paddingLeft: 16,

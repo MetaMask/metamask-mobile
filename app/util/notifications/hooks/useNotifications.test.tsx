@@ -16,7 +16,6 @@ import {
   useEnableNotifications,
   useListNotifications,
   useMarkNotificationAsRead,
-  useResetNotifications,
 } from './useNotifications';
 // eslint-disable-next-line import-x/no-namespace
 import * as UsePushNotifications from './usePushNotifications';
@@ -131,6 +130,25 @@ describe('useNotifications - useEnableNotifications()', () => {
     expect(mocks.mockTogglePushNotification).toHaveBeenCalled();
     expect(mocks.mockSelectLoading).toHaveBeenCalled();
     expect(mocks.mockSelectData).toHaveBeenCalled();
+    expect(mocks.mockEnableNotifications).toHaveBeenCalledWith({
+      hasMarketingConsent: false,
+    });
+  });
+
+  it('passes the current marketing consent when enabling notifications', async () => {
+    const mocks = arrangeMocks();
+
+    const hook = renderHookWithProvider(() => useEnableNotifications(), {
+      state: { security: { dataCollectionForMarketing: true } },
+    });
+    await act(() => hook.result.current.enableNotifications());
+    await waitFor(() =>
+      expect(mocks.mockEnableNotifications).toHaveBeenCalled(),
+    );
+
+    expect(mocks.mockEnableNotifications).toHaveBeenCalledWith({
+      hasMarketingConsent: true,
+    });
   });
 
   it('creates an error when fails', async () => {
@@ -234,48 +252,6 @@ describe('useNotifications - useMarkNotificationAsRead()', () => {
     await waitFor(() =>
       expect(mocks.mockMarkNotificationsAsRead).toHaveBeenCalled(),
     );
-  });
-});
-
-describe('useNotifications - useResetNotifications()', () => {
-  const arrangeMocks = () => {
-    const mockSelectLoading = jest
-      .spyOn(Selectors, 'selectIsUpdatingMetamaskNotifications')
-      .mockReturnValue(false);
-    const mockResetNotifications = jest.spyOn(Actions, 'resetNotifications');
-    return {
-      mockSelectLoading,
-      mockResetNotifications,
-    };
-  };
-
-  type Mocks = ReturnType<typeof arrangeMocks>;
-  const arrangeAct = async (mutateMocks?: (mocks: Mocks) => void) => {
-    // Arrange
-    const mocks = arrangeMocks();
-    mutateMocks?.(mocks);
-
-    // Act
-    const hook = renderHookWithProvider(() => useResetNotifications());
-    await act(() => hook.result.current.resetNotifications());
-    await waitFor(() =>
-      expect(mocks.mockResetNotifications).toHaveBeenCalled(),
-    );
-
-    return { mocks, hook };
-  };
-
-  it('successfully invokes action', async () => {
-    const { mocks } = await arrangeAct();
-    expect(mocks.mockSelectLoading).toHaveBeenCalled();
-  });
-
-  it('creates an error when fails', async () => {
-    const { hook } = await arrangeAct((m) => {
-      m.mockResetNotifications.mockRejectedValue(new Error('Test Error'));
-    });
-
-    expect(hook.result.current.error).toBeDefined();
   });
 });
 
