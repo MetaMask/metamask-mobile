@@ -29,9 +29,9 @@ describe('MoneyWhatYouGet', () => {
     expect(container).toHaveTextContent(/Get full liquidity/);
     expect(container).toHaveTextContent(/1-3% mUSD back/);
     expect(container).toHaveTextContent(
-      /Transfer money to any of your wallets/,
+      /Transfer funds to any of your wallets/,
     );
-    expect(container).toHaveTextContent(/Send and receive money globally/);
+    expect(container).toHaveTextContent(/Send and receive funds globally/);
   });
 
   it('renders the Learn more button', () => {
