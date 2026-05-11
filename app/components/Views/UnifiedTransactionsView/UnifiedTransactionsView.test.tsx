@@ -615,6 +615,177 @@ describe('UnifiedTransactionsView with transactions', () => {
   });
 });
 
+describe('UnifiedTransactionsView - EVM network filter for unified list', () => {
+  const WALLET = '0xabc';
+
+  const emptyEvmChainsState = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        NetworkEnablementController: {
+          ...backgroundState.NetworkEnablementController,
+          enabledNetworkMap: {
+            ...backgroundState.NetworkEnablementController.enabledNetworkMap,
+            eip155: {},
+          },
+        },
+      },
+    },
+  };
+
+  const stateOnlyOptimism = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        NetworkEnablementController: {
+          ...backgroundState.NetworkEnablementController,
+          enabledNetworkMap: {
+            ...backgroundState.NetworkEnablementController.enabledNetworkMap,
+            eip155: { '0xa': true },
+          },
+        },
+      },
+    },
+  };
+
+  const stateOnlyMainnet = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        NetworkEnablementController: {
+          ...backgroundState.NetworkEnablementController,
+          enabledNetworkMap: {
+            ...backgroundState.NetworkEnablementController.enabledNetworkMap,
+            eip155: { '0x1': true },
+          },
+        },
+      },
+    },
+  };
+
+  const createOutgoingMainnetConfirmed = (): V1TransactionByHashResponse =>
+    ({
+      accountId: `eip155:1:${WALLET}`,
+      blockHash: '0xblock',
+      blockNumber: 1,
+      chainId: 1,
+      cumulativeGasUsed: 21000,
+      effectiveGasPrice: '1',
+      from: WALLET,
+      gas: 21000,
+      gasPrice: '1',
+      gasUsed: 21000,
+      hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      isError: false,
+      logs: [],
+      methodId: '0x',
+      nonce: 1,
+      readable: 'Transfer',
+      timestamp: '2026-04-29T19:28:41.000Z',
+      to: '0x1111111111111111111111111111111111111111',
+      transactionCategory: 'TRANSFER',
+      transactionType: 'SIMPLE_SEND',
+      value: '1',
+      valueTransfers: [],
+    }) as V1TransactionByHashResponse;
+
+  const queryDataMainnetConfirmed = selectTransactions({
+    address: WALLET,
+  })({
+    pageParams: [undefined],
+    pages: [
+      {
+        data: [createOutgoingMainnetConfirmed()],
+        unprocessedNetworks: [],
+        pageInfo: {
+          count: 1,
+          endCursor: undefined,
+          hasNextPage: false,
+        },
+      },
+    ],
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseTransactionsQuery();
+    (useUnifiedTxActions as jest.Mock).mockImplementation(
+      () => mockDefaultUnifiedTxActionsReturn,
+    );
+  });
+
+  it('hides confirmed EVM rows when no EVM chains are enabled', () => {
+    mockUseTransactionsQuery(queryDataMainnetConfirmed);
+
+    const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: emptyEvmChainsState,
+    });
+
+    expect(getByText('You have no transactions')).toBeOnTheScreen();
+  });
+
+  it('hides confirmed EVM rows when their chain is not in the enabled filter', () => {
+    mockUseTransactionsQuery(queryDataMainnetConfirmed);
+
+    const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: stateOnlyOptimism,
+    });
+
+    expect(getByText('You have no transactions')).toBeOnTheScreen();
+  });
+
+  it('shows confirmed EVM rows when their chain matches the enabled filter', () => {
+    mockUseTransactionsQuery(queryDataMainnetConfirmed);
+
+    const { UNSAFE_queryAllByType } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      { state: stateOnlyMainnet },
+    );
+
+    expect(
+      UNSAFE_queryAllByType(asComponentType('TransactionElement')).length,
+    ).toBeGreaterThanOrEqual(1);
+  });
+
+  it('hides pending EVM transactions when their chain is not in the enabled filter', () => {
+    mockUseTransactionsQuery(emptyTransactionsQueryData);
+
+    const stateWithPendingMainnet = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkEnablementController:
+            stateOnlyOptimism.engine.backgroundState
+              .NetworkEnablementController,
+          TransactionController: {
+            ...backgroundState.TransactionController,
+            transactions: [
+              {
+                id: 'pending-mainnet',
+                chainId: '0x1' as const,
+                status: TransactionStatus.submitted,
+                time: Date.now(),
+                txParams: {
+                  from: WALLET,
+                  to: '0x1111111111111111111111111111111111111111',
+                  value: '0x0',
+                  nonce: '0x1',
+                },
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: stateWithPendingMainnet,
+    });
+
+    expect(getByText('You have no transactions')).toBeOnTheScreen();
+  });
+});
+
 describe('UnifiedTransactionsView - Speed up / Cancel modal', () => {
   const initialState = {
     engine: {

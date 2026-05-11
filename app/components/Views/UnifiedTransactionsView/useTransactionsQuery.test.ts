@@ -164,4 +164,19 @@ describe('useTransactionsQuery', () => {
       expect.objectContaining({ enabled: false }),
     );
   });
+
+  it('prefers the account group EVM address over the global EVM address when both are set', () => {
+    setupSelectors({
+      evmAddress: ADDRESS_MOCK,
+      groupEvmAccount: { address: GROUP_EVM_ADDRESS_MOCK },
+    });
+
+    renderHook(() => useTransactionsQuery());
+
+    expect(getQueryOptionsMock).toHaveBeenCalledWith({
+      accountAddresses: [`eip155:0:${GROUP_EVM_ADDRESS_MOCK}`],
+      networks: NETWORKS_MOCK,
+      includeTxMetadata: true,
+    });
+  });
 });
