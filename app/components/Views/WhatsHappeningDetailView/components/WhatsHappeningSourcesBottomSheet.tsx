@@ -17,7 +17,10 @@ import ArticleRow from '../../../UI/MarketInsights/components/ArticleRow';
 import { isSafeUrl } from '../../../UI/MarketInsights/utils/marketInsightsFormatting';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { WhatsHappeningInteractionType } from '../../Homepage/Sections/WhatsHappening/constants';
+import {
+  WhatsHappeningInteractionType,
+  type WhatsHappeningSourceValue,
+} from '../../Homepage/Sections/WhatsHappening/constants';
 import { getWhatsHappeningEventProps } from '../../Homepage/Sections/WhatsHappening/eventProperties';
 import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
 
@@ -26,11 +29,12 @@ interface WhatsHappeningSourcesBottomSheetProps {
   articles: Article[];
   item: WhatsHappeningItem;
   cardIndex: number;
+  source: WhatsHappeningSourceValue;
 }
 
 const WhatsHappeningSourcesBottomSheet: React.FC<
   WhatsHappeningSourcesBottomSheetProps
-> = ({ onClose, articles, item, cardIndex }) => {
+> = ({ onClose, articles, item, cardIndex, source }) => {
   const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -38,11 +42,11 @@ const WhatsHappeningSourcesBottomSheet: React.FC<
   const handleSourcePress = useCallback(
     (url: string) => {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTION)
+        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED)
           .addProperties({
-            ...getWhatsHappeningEventProps(item, cardIndex),
+            ...getWhatsHappeningEventProps(item, cardIndex, source),
             interaction_type: WhatsHappeningInteractionType.SourceClick,
-            source: url,
+            article_url: url,
           })
           .build(),
       );
@@ -50,7 +54,7 @@ const WhatsHappeningSourcesBottomSheet: React.FC<
         Linking.openURL(url);
       }
     },
-    [item, cardIndex, trackEvent, createEventBuilder],
+    [item, cardIndex, source, trackEvent, createEventBuilder],
   );
 
   return (
