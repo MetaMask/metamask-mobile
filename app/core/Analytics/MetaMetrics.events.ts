@@ -364,9 +364,9 @@ enum EVENT_NAME {
   RAMPS_INFO_TOOLTIP_CLICKED = 'Ramps Info Tooltip Clicked',
   RAMPS_TOAST_BUTTON_CLICKED = 'Ramps Toast Button Clicked',
   RAMPS_CHECKOUT_OPENED = 'Ramps Checkout Opened',
-  RAMPS_CHECKOUT_URL_CHANGED = 'Ramps Checkout Url Changed',
+  RAMPS_CHECKOUT_URL_CHANGED = 'Ramps Checkout URL Changed',
   RAMPS_CHECKOUT_LOAD_COMPLETED = 'Ramps Checkout Load Completed',
-  RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED = 'Ramps Checkout Http Error Received',
+  RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED = 'Ramps Checkout HTTP Error Received',
   RAMPS_CHECKOUT_CALLBACK_DETECTED = 'Ramps Checkout Callback Detected',
   RAMPS_CHECKOUT_CLOSED = 'Ramps Checkout Closed',
 
