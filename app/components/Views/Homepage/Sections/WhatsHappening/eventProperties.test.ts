@@ -82,7 +82,7 @@ describe('getWhatsHappeningEventProps', () => {
     const result = getWhatsHappeningEventProps(
       item,
       3,
-      WhatsHappeningSource.Detail,
+      WhatsHappeningSource.Explore,
     );
 
     expect(result.asset_symbols).toEqual(['SOL']);
@@ -93,7 +93,7 @@ describe('getWhatsHappeningEventProps', () => {
     const result = getWhatsHappeningEventProps(
       item,
       0,
-      WhatsHappeningSource.Detail,
+      WhatsHappeningSource.Explore,
     );
 
     expect(result.asset_symbols).toEqual([]);
@@ -109,13 +109,13 @@ describe('getWhatsHappeningEventProps', () => {
     expect(result.source).toBe('homepage');
   });
 
-  it('sets source to detail for detail view calls', () => {
+  it('sets source to explore for explore calls', () => {
     const result = getWhatsHappeningEventProps(
       baseItem,
       0,
-      WhatsHappeningSource.Detail,
+      WhatsHappeningSource.Explore,
     );
 
-    expect(result.source).toBe('detail');
+    expect(result.source).toBe('explore');
   });
 });
