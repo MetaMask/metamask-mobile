@@ -135,6 +135,7 @@ const Checkout = () => {
   const loadStartTimeRef = useRef<number | null>(null);
   const loadUrlErrorsRef = useRef<Set<string>>(new Set());
   const lastLoadCompleteUrlRef = useRef<string | null>(null);
+  const previousNavStateUrlRef = useRef<string | null>(null);
 
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
@@ -408,8 +409,9 @@ const Checkout = () => {
 
   const handleNavigationStateChangeWithDedup = useCallback(
     (navState: { url: string }) => {
-      const isNewUrl = recordUrlChange(navState.url);
-      if (isNewUrl) {
+      recordUrlChange(navState.url);
+      if (navState.url !== previousNavStateUrlRef.current) {
+        previousNavStateUrlRef.current = navState.url;
         onNavigationStateChange?.(navState);
       }
     },
@@ -533,6 +535,7 @@ const Checkout = () => {
                 closeSourceRef.current = null;
                 urlHistoryRef.current = { current: null, previous: null };
                 stepIndexRef.current = 0;
+                previousNavStateUrlRef.current = null;
               }}
               location="Provider Webview"
             />
