@@ -2,14 +2,11 @@ import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokePerps } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import WalletView from '../../page-objects/wallet/WalletView';
-import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
 import {
   PERPS_ARBITRUM_MOCKS,
   mockPerpsGeolocation,
 } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
-import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
 import {
   createLogger,
@@ -21,16 +18,38 @@ import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
 import CommandQueueServer from '../../framework/fixtures/CommandQueueServer';
+import {
+  openPosition,
+  type PerpsPositionDirection,
+} from '../../flows/perps.flow';
 
 const logger = createLogger({
   name: 'PerpsPositionLiquidationSpec',
   level: LogLevel.INFO,
 });
 
-const NON_LIQUIDATING_ETH_MARK_PRICE = '2400.00';
-const LIQUIDATING_ETH_MARK_PRICE = '1.00';
+const MARKET_SYMBOL = 'ETH';
+const POSITION_DIRECTION: PerpsPositionDirection = 'long';
+const MARK_PRICE_BY_DIRECTION: Record<
+  PerpsPositionDirection,
+  {
+    nonLiquidating: string;
+    liquidating: string;
+    liquidatingPriceDirection: 'below' | 'above';
+  }
+> = {
+  long: {
+    nonLiquidating: '2400.00',
+    liquidating: '1.00',
+    liquidatingPriceDirection: 'below',
+  },
+  short: {
+    nonLiquidating: '2600.00',
+    liquidating: '100000.00',
+    liquidatingPriceDirection: 'above',
+  },
+};
 
 const setupPerpsMocks = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
@@ -76,27 +95,17 @@ const expectPositionClosedAfterLiquidation = async () => {
   );
 };
 
-const openEthLongPosition = async () => {
-  await WalletView.scrollAndTapPerpsSection();
-  await PerpsHomeView.tapExploreCryptoIfVisible();
-
-  await PerpsMarketListView.selectMarket('ETH');
-  await PerpsMarketDetailsView.tapLongButton();
-  await PerpsOrderView.tapPlaceOrderButton();
-  await PerpsMarketDetailsView.waitForScreenReady();
-  await PerpsMarketDetailsView.expectClosePositionButtonVisible();
-};
-
-const queueEthLiquidationCheckAtPrice = async (
+const queueLiquidationCheckAtPrice = async (
   commandQueueServer: CommandQueueServer,
+  symbol: string,
   price: string,
 ) => {
   await PerpsE2EModifiers.updateMarketPriceServer(
     commandQueueServer,
-    'ETH',
+    symbol,
     price,
   );
-  await PerpsE2EModifiers.triggerLiquidationServer(commandQueueServer, 'ETH');
+  await PerpsE2EModifiers.triggerLiquidationServer(commandQueueServer, symbol);
 };
 
 const waitForCommandQueueToProcess = async (
@@ -107,7 +116,7 @@ const waitForCommandQueueToProcess = async (
 };
 
 describe(SmokePerps('Perps Position Liquidation'), () => {
-  it('liquidates a long position when mark price falls below liquidation price', async () => {
+  it(`liquidates a ${POSITION_DIRECTION} position when mark price moves ${MARK_PRICE_BY_DIRECTION[POSITION_DIRECTION].liquidatingPriceDirection} liquidation price`, async () => {
     await withFixtures(
       {
         fixture: buildPerpsFixture(),
@@ -121,38 +130,42 @@ describe(SmokePerps('Perps Position Liquidation'), () => {
         }
 
         logger.info('Using E2E mock balance - no wallet import needed');
-        logger.info('Opening ETH long position');
+        logger.info(`Opening ${MARKET_SYMBOL} ${POSITION_DIRECTION} position`);
 
         await loginToApp();
         await device.disableSynchronization();
 
-        await openEthLongPosition();
+        await openPosition(MARKET_SYMBOL, POSITION_DIRECTION);
 
         logger.info(
-          'Pushing ETH mark price above liquidation price; long should stay open',
+          `Pushing ${MARKET_SYMBOL} mark price that should keep ${POSITION_DIRECTION} open`,
         );
 
-        await queueEthLiquidationCheckAtPrice(
+        await queueLiquidationCheckAtPrice(
           commandQueueServer,
-          NON_LIQUIDATING_ETH_MARK_PRICE,
+          MARKET_SYMBOL,
+          MARK_PRICE_BY_DIRECTION[POSITION_DIRECTION].nonLiquidating,
         );
         await waitForCommandQueueToProcess(commandQueueServer);
 
         logger.info(
-          'Verifying ETH long remains open after non-liquidating price change',
+          `Verifying ${MARKET_SYMBOL} ${POSITION_DIRECTION} remains open after non-liquidating price change`,
         );
         await PerpsMarketDetailsView.expectClosePositionButtonVisible();
 
         logger.info(
-          'Pushing ETH mark price below liquidation price to liquidate long',
+          `Pushing ${MARKET_SYMBOL} mark price ${MARK_PRICE_BY_DIRECTION[POSITION_DIRECTION].liquidatingPriceDirection} liquidation price to liquidate ${POSITION_DIRECTION}`,
         );
 
-        await queueEthLiquidationCheckAtPrice(
+        await queueLiquidationCheckAtPrice(
           commandQueueServer,
-          LIQUIDATING_ETH_MARK_PRICE,
+          MARKET_SYMBOL,
+          MARK_PRICE_BY_DIRECTION[POSITION_DIRECTION].liquidating,
         );
 
-        logger.info('Verifying ETH long is closed after liquidation');
+        logger.info(
+          `Verifying ${MARKET_SYMBOL} ${POSITION_DIRECTION} is closed after liquidation`,
+        );
         await expectPositionClosedAfterLiquidation();
       },
     );
