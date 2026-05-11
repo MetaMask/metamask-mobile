@@ -17,7 +17,18 @@ export interface UseStocksFeedResult {
   refetch: () => Promise<void>;
 }
 
-/** Tokenized stocks (RWAs). Only Ethereum mainnet tokens are shown in the section. */
+/**
+ * Tokenized stocks (RWAs) feed.
+ *
+ * Tab sections (no query): only Ethereum mainnet tokens are shown, matching
+ * the design intent of the RWAs/Now tab.
+ *
+ * Search (query present): all chains in RWA_CHAIN_IDS are included so users
+ * can find stocks across Ethereum and BNB.
+ *
+ * Chain filtering is done client-side (not in the request) to share the same
+ * server-side cache across all surfaces.
+ */
 export const useStocksFeed = ({
   query,
   refresh,
@@ -26,15 +37,17 @@ export const useStocksFeed = ({
     searchQuery: query,
   });
 
-  // Keep mainnet filtering here (not in the request) so all surfaces share the same
-  // RWA cache (server-side); chain-specific params would split the cache and diverge from the main feed.
-  const ethereumData = useMemo(
-    () =>
-      data.filter((asset) => asset.assetId.startsWith(ETHEREUM_CAIP_CHAIN_ID)),
-    [data],
-  );
+  const filteredData = useMemo(() => {
+    // During search, surface tokens from all supported RWA chains so the user
+    // can find any matching stock regardless of chain.
+    if (query?.trim()) return data;
+    // Tab sections only show Ethereum mainnet tokens.
+    return data.filter((asset) =>
+      asset.assetId.startsWith(ETHEREUM_CAIP_CHAIN_ID),
+    );
+  }, [data, query]);
 
   useFeedRefresh(refresh, refetch);
 
-  return { data: ethereumData, isLoading, refetch };
+  return { data: filteredData, isLoading, refetch };
 };

@@ -66,15 +66,20 @@ jest.mock('../../../core/Analytics', () => ({
 jest.mock('../OnboardingSuccess', () => ({
   OnboardingSuccessComponent: ({
     onDone,
-    backedUpSRP,
+    successFlow,
   }: {
     onDone: () => void;
-    backedUpSRP: boolean;
+    successFlow?: string;
   }) => {
     const { TouchableOpacity, Text } = jest.requireActual('react-native');
+    const { ONBOARDING_SUCCESS_FLOW: Flow } = jest.requireActual(
+      '../../../constants/onboarding',
+    );
     return (
       <TouchableOpacity testID="onboarding-success-done" onPress={onDone}>
-        <Text>{backedUpSRP ? 'backed-up' : 'not-backed-up'}</Text>
+        <Text>
+          {successFlow === Flow.BACKED_UP_SRP ? 'backed-up' : 'not-backed-up'}
+        </Text>
       </TouchableOpacity>
     );
   },
@@ -233,7 +238,7 @@ describe('ManualBackupStep3', () => {
       });
     });
 
-    it('passes backedUpSRP=true to OnboardingSuccessComponent', async () => {
+    it('passes successFlow BACKED_UP_SRP to OnboardingSuccessComponent', async () => {
       const { getByText } = renderComponent();
 
       await waitFor(() => {
@@ -317,7 +322,11 @@ describe('ManualBackupStep3', () => {
 
   describe('componentWillUnmount', () => {
     it('removes BackHandler listener on unmount', async () => {
-      const removeSpy = jest.spyOn(BackHandler, 'removeEventListener');
+      const mockRemove = jest.fn();
+      const addSpy = jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockReturnValue({ remove: mockRemove });
+
       const { unmount } = renderComponent();
 
       await waitFor(() => {
@@ -326,12 +335,13 @@ describe('ManualBackupStep3', () => {
 
       unmount();
 
-      expect(removeSpy).toHaveBeenCalledWith(
+      expect(addSpy).toHaveBeenCalledWith(
         'hardwareBackPress',
         expect.any(Function),
       );
+      expect(mockRemove).toHaveBeenCalled();
 
-      removeSpy.mockRestore();
+      addSpy.mockRestore();
     });
   });
 

@@ -88,6 +88,7 @@ describe('polymarket utils', () => {
       status: 200,
       ok: true,
       json: jest.fn().mockResolvedValue(apiKeyCreds),
+      text: jest.fn().mockResolvedValue(JSON.stringify(apiKeyCreds)),
     });
 
     await expect(
@@ -109,6 +110,7 @@ describe('polymarket utils', () => {
       status: 200,
       ok: true,
       json: jest.fn().mockResolvedValue(apiKeyCreds),
+      text: jest.fn().mockResolvedValue(JSON.stringify(apiKeyCreds)),
     });
 
     await expect(
@@ -127,11 +129,13 @@ describe('polymarket utils', () => {
         status: 400,
         ok: false,
         json: jest.fn(),
+        text: jest.fn().mockResolvedValue('Bad Request'),
       })
       .mockResolvedValueOnce({
         status: 200,
         ok: true,
         json: jest.fn().mockResolvedValue(apiKeyCreds),
+        text: jest.fn().mockResolvedValue(JSON.stringify(apiKeyCreds)),
       });
 
     await expect(

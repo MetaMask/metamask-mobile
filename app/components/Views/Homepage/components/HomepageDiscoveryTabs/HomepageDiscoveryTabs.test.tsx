@@ -3,6 +3,18 @@ import { InteractionManager, Text } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { SectionRefreshHandle } from '../../types';
 import HomepageDiscoveryTabs from './HomepageDiscoveryTabs';
+import { HomeTabNames } from '../../hooks/useTabViewedEvent';
+
+const mockTrackTabViewed = jest.fn();
+jest.mock('../../hooks/useTabViewedEvent', () => ({
+  __esModule: true,
+  HomeTabNames: {
+    PORTFOLIO: 'portfolio',
+    PERPETUALS: 'perpetuals',
+    PREDICTIONS: 'predictions',
+  },
+  default: () => ({ trackTabViewed: mockTrackTabViewed }),
+}));
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
@@ -19,6 +31,7 @@ jest
     if (typeof task === 'function') {
       task();
     } else {
+      // eslint-disable-next-line no-void
       void task.gen();
     }
     return { cancel: jest.fn(), then: jest.fn(), done: jest.fn() };
@@ -56,10 +69,14 @@ jest.mock('../../../../UI/Perps/Views/PerpsHomeView/PerpsHomeView', () => {
   };
 });
 
+const mockPredictFeedProps: { current: Record<string, unknown> | null } = {
+  current: null,
+};
 jest.mock('../../../../UI/Predict/views/PredictFeed', () => {
   const { View } = jest.requireActual('react-native');
   const ReactLib = jest.requireActual('react');
-  return function MockPredictFeed() {
+  return function MockPredictFeed(props: Record<string, unknown>) {
+    mockPredictFeedProps.current = props;
     return ReactLib.createElement(View, { testID: 'predict-feed' });
   };
 });
@@ -196,6 +213,88 @@ describe('HomepageDiscoveryTabs', () => {
 
     it('renders without throwing when walletHeaderOffset is 0', () => {
       expect(() => renderComponent({ walletHeaderOffset: 0 })).not.toThrow();
+    });
+  });
+
+  describe('PredictFeed wallet header forwarding', () => {
+    beforeEach(() => {
+      mockPredictFeedProps.current = null;
+    });
+
+    it('forwards walletHeaderTranslateY and walletHeaderHeight to PredictFeed', async () => {
+      const walletHeaderTranslateY = { value: 0 } as unknown;
+      renderComponent({
+        walletHeaderTranslateY,
+        walletHeaderHeight: 120,
+      });
+      await pressTab('Predictions');
+
+      expect(mockPredictFeedProps.current).not.toBeNull();
+      expect(mockPredictFeedProps.current?.walletHeaderTranslateY).toBe(
+        walletHeaderTranslateY,
+      );
+      expect(mockPredictFeedProps.current?.walletHeaderHeight).toBe(120);
+    });
+
+    it('passes onHeaderHiddenChange to PredictFeed so discovery icons collapse', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+
+      expect(typeof mockPredictFeedProps.current?.onHeaderHiddenChange).toBe(
+        'function',
+      );
+    });
+
+    it('passes hideHeader=true to PredictFeed', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+
+      expect(mockPredictFeedProps.current?.hideHeader).toBe(true);
+    });
+  });
+
+  describe('tab_viewed analytics', () => {
+    it('fires trackTabViewed with portfolio on initial mount', () => {
+      renderComponent();
+      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PORTFOLIO);
+    });
+
+    it('fires trackTabViewed with perpetuals when switching to Perpetuals tab', async () => {
+      renderComponent();
+      mockTrackTabViewed.mockClear();
+      await pressTab('Perpetuals');
+      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PERPETUALS);
+    });
+
+    it('fires trackTabViewed with predictions when switching to Predictions tab', async () => {
+      renderComponent();
+      mockTrackTabViewed.mockClear();
+      await pressTab('Predictions');
+      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PREDICTIONS);
+    });
+
+    it('fires trackTabViewed with portfolio when switching back to Portfolio', async () => {
+      renderComponent();
+      await pressTab('Perpetuals');
+      mockTrackTabViewed.mockClear();
+      await pressTab('Portfolio');
+      expect(mockTrackTabViewed).toHaveBeenCalledWith(HomeTabNames.PORTFOLIO);
+    });
+
+    it('does not fire trackTabViewed again when pressing the active tab', async () => {
+      renderComponent();
+      mockTrackTabViewed.mockClear();
+      await pressTab('Portfolio');
+      expect(mockTrackTabViewed).not.toHaveBeenCalled();
+    });
+
+    it('fires once per distinct tab switch across multiple switches', async () => {
+      renderComponent();
+      mockTrackTabViewed.mockClear();
+      await pressTab('Perpetuals');
+      await pressTab('Predictions');
+      await pressTab('Portfolio');
+      expect(mockTrackTabViewed).toHaveBeenCalledTimes(3);
     });
   });
 });
