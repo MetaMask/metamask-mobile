@@ -1,12 +1,11 @@
 import React from 'react';
-import { createRouteWithMessenger } from './route-messenger-helpers';
+import { withMessenger } from './route-messenger-helpers';
 
-describe('createRouteWithMessenger', () => {
+describe('withMessenger', () => {
   const FooComponent = () => <div>Foo</div>;
 
   it('returns a Route component with the expected shape', () => {
-    const Route = createRouteWithMessenger({
-      Component: FooComponent,
+    const Route = withMessenger(FooComponent, {
       capabilities: {
         actions: ['SnapController:installSnaps'],
         events: ['SnapController:snapInstalled'],

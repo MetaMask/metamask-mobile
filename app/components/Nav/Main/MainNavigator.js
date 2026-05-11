@@ -171,7 +171,7 @@ import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
-import { createRouteWithMessenger } from '../../../messengers/helpers/route-messenger-helpers';
+import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
@@ -434,8 +434,7 @@ const ExploreHome = () => {
 };
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-const SnapSettingsWithMessenger = createRouteWithMessenger({
-  Component: SnapSettings,
+const SnapSettingsWithMessenger = withMessenger(SnapSettings, {
   capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 });
 

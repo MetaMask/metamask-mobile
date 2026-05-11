@@ -47,24 +47,7 @@ export function defineAllowedRouteCapabilities<
   return capabilities as { actions: ActionTypes; events: EventTypes };
 }
 
-interface RouteWithMessengerProps<
-  ParamList extends ParamListBase,
-  RouteName extends keyof ParamList,
-  NavigatorID extends string | undefined = undefined,
-  State extends NavigationState = NavigationState<ParamList>,
-  ScreenOptions extends {} = {},
-  EventMap extends EventMapBase = {},
-> {
-  Component: ComponentType<
-    RouteProps<
-      ParamList,
-      RouteName,
-      NavigatorID,
-      State,
-      ScreenOptions,
-      EventMap
-    >
-  >;
+interface WithMessengerOptions {
   capabilities: {
     actions?: UIMessengerActions['type'][];
     events?: UIMessengerEvents['type'][];
@@ -94,31 +77,33 @@ interface RouteProps<
  * Create a route object with a {@link RouteWithMessenger} element that provides
  * a route messenger with the specified capabilities.
  *
+ * @param Component - The component to render for this route. This will be
+ * wrapped in a {@link RouteWithMessenger} component that provides the route
+ * messenger.
  * @param options - Options bag.
  * @param options.capabilities - Capabilities to delegate from the UI messenger
  * to the route messenger.
- * @param options.Component - The component to render for this route. This will
- * be wrapped in a {@link RouteWithMessenger} component that provides the route
- * messenger.
  */
-export function createRouteWithMessenger<
+export function withMessenger<
   ParamList extends ParamListBase,
   RouteName extends keyof ParamList,
   NavigatorID extends string | undefined = undefined,
   State extends NavigationState = NavigationState<ParamList>,
   ScreenOptions extends {} = {},
   EventMap extends EventMapBase = {},
->({
-  capabilities,
-  Component,
-}: RouteWithMessengerProps<
-  ParamList,
-  RouteName,
-  NavigatorID,
-  State,
-  ScreenOptions,
-  EventMap
->): FunctionComponent<
+>(
+  Component: ComponentType<
+    RouteProps<
+      ParamList,
+      RouteName,
+      NavigatorID,
+      State,
+      ScreenOptions,
+      EventMap
+    >
+  >,
+  { capabilities }: WithMessengerOptions,
+): FunctionComponent<
   RouteProps<ParamList, RouteName, NavigatorID, State, ScreenOptions, EventMap>
 > {
   return function RouteWithMessengerElement(
