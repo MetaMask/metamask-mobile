@@ -102,6 +102,11 @@ module.exports = {
     owner: 'metamask',
     runtimeVersion: RUNTIME_VERSION,
     updates: {
+      // Disable OTA updates in E2E/test builds. Without this, @expo/repack-app
+      // injects expo-updates meta-data with an incomplete URL into the repacked
+      // APK, causing expo-updates to attempt an OTA fetch on launch, fail, and
+      // crash the app before Detox can connect.
+      enabled: process.env.E2E !== 'true',
       codeSigningCertificate: CODE_SIGNING_CERTS[OTA_ENV],
       codeSigningMetadata: {
         keyid: CODE_SIGNING_KEYIDS[OTA_ENV],
