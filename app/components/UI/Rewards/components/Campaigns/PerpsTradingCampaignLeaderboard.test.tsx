@@ -4,6 +4,7 @@ import PerpsTradingCampaignLeaderboard, {
   PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS,
 } from './PerpsTradingCampaignLeaderboard';
 import type { PerpsTradingCampaignLeaderboardEntry } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import { PERPS_TRADING_MAX_WINNERS } from '../../utils/perpsCampaignConstants';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -50,6 +51,7 @@ jest.mock('../../../../../constants/navigation/Routes', () => ({
 }));
 
 const TEST_IDS = PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS;
+const CrownIcon = 'CrownIcon' as unknown as React.ComponentType;
 
 const createPerpsEntry = (
   overrides: Partial<PerpsTradingCampaignLeaderboardEntry> = {},
@@ -105,6 +107,40 @@ describe('PerpsTradingCampaignLeaderboard', () => {
         }),
       }),
     );
+  });
+
+  it('shows crown in full view for perps winner ranks only', () => {
+    const entries = [
+      createPerpsEntry({
+        rank: PERPS_TRADING_MAX_WINNERS,
+        referralCode: 'WINNER',
+      }),
+      createPerpsEntry({
+        rank: PERPS_TRADING_MAX_WINNERS + 1,
+        referralCode: 'NEXT',
+      }),
+    ];
+    const { UNSAFE_queryAllByType } = render(
+      <PerpsTradingCampaignLeaderboard {...defaultProps} entries={entries} />,
+    );
+
+    expect(UNSAFE_queryAllByType(CrownIcon)).toHaveLength(1);
+  });
+
+  it('hides crown in preview mode for perps winner ranks', () => {
+    const entries = [
+      createPerpsEntry({ rank: 1, referralCode: 'AAA111' }),
+      createPerpsEntry({ rank: 2, referralCode: 'BBB222' }),
+    ];
+    const { UNSAFE_queryAllByType } = render(
+      <PerpsTradingCampaignLeaderboard
+        {...defaultProps}
+        entries={entries}
+        maxEntries={entries.length}
+      />,
+    );
+
+    expect(UNSAFE_queryAllByType(CrownIcon)).toHaveLength(0);
   });
 
   describe('split view top count (preview vs full, ranks 21–22 vs other)', () => {
