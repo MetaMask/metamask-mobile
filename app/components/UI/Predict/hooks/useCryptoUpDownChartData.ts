@@ -80,11 +80,11 @@ export const useCryptoUpDownChartData = (
   const fallbackStartPointRef = useRef<LivelinePoint[]>(EMPTY_DATA);
   const frozenRef = useRef(false);
   const durationSecsRef = useRef(durationSecs);
-  const liveEndDateMsRef = useRef(liveEndDateMs);
+  const liveMarketRef = useRef({ id: market.id, liveEndDateMs });
   const marketIdRef = useRef(market.id);
   const frozenMarketIdRef = useRef(frozenMarketId);
   durationSecsRef.current = durationSecs;
-  liveEndDateMsRef.current = liveEndDateMs;
+  liveMarketRef.current = { id: market.id, liveEndDateMs };
   marketIdRef.current = market.id;
   frozenMarketIdRef.current = frozenMarketId;
 
@@ -122,9 +122,13 @@ export const useCryptoUpDownChartData = (
   }, [frozenMarketId, hasExpiredLiveData, market.id]);
 
   const handleLiveUpdate = useCallback((update: CryptoPriceUpdate) => {
-    const currentLiveEndDateMs = liveEndDateMsRef.current;
+    const { id: liveMarketId, liveEndDateMs: currentLiveEndDateMs } =
+      liveMarketRef.current;
     const currentMarketId = marketIdRef.current;
-    if (prevMarketIdRef.current !== currentMarketId) {
+    if (
+      liveMarketId !== currentMarketId ||
+      prevMarketIdRef.current !== currentMarketId
+    ) {
       return;
     }
 
