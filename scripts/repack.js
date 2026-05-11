@@ -3,6 +3,24 @@
  * App Repack Script using @expo/repack-app
  */
 
+// Force production NODE_ENV / BABEL_ENV BEFORE requiring anything that may
+// touch process.env. @expo/repack-app calls a helper at the start of every
+// repack that does `process.env.NODE_ENV = process.env.NODE_ENV || 'development'`
+// and `process.env.BABEL_ENV = process.env.BABEL_ENV || NODE_ENV`. That env
+// is then inherited by the spawned `npx expo export:embed --dev false` child,
+// where `setNodeEnv('production')` is a no-op because both are already set.
+// Babel's React JSX transform reads BABEL_ENV/NODE_ENV (not metro's --dev
+// flag) to choose between `jsx` (production) and `jsxDEV` (development), so
+// without this guard the rebundled JS contains `jsxDEV(...)` calls while
+// metro emits `__DEV__ = false`. The dev-only React runtime then references
+// helpers that are tree-shaken when `__DEV__` is false, crashing the app at
+// the first render with `TypeError: undefined is not a function` inside
+// AppContainer. The native build path is immune because RN's community CLI
+// hard-assigns NODE_ENV from --dev. Pre-setting here makes both paths
+// produce equivalent production bundles.
+process.env.NODE_ENV = 'production';
+process.env.BABEL_ENV = 'production';
+
 const fs = require('fs');
 const path = require('path');
 

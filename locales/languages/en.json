@@ -2500,6 +2500,9 @@
       "withdraw_completed": "Withdrawal complete",
       "withdraw_completed_subtitle": "{{amount}} USDC moved to your wallet",
       "withdraw_any_token_completed_subtitle": "{{amount}} {{token}} moved to your wallet",
+      "unavailable_title": "Withdrawals temporarily unavailable",
+      "unavailable_description": "For urgent assistance, please contact Customer Service.",
+      "unavailable_got_it": "Got it",
       "error_title": "Something went wrong",
       "error_description": "Failed to proceed with withdraw",
       "try_again": "Try again"
