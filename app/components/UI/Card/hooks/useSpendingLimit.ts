@@ -644,7 +644,4 @@ const useSpendingLimit = ({
 export default useSpendingLimit;
 
 // Re-export for backwards compatibility
-export {
-  QUICK_SELECT_TOKENS,
-  LINEA_CAIP_CHAIN_ID,
-} from '../util/buildTokenList';
+export { LINEA_CAIP_CHAIN_ID } from '../util/buildTokenList';
