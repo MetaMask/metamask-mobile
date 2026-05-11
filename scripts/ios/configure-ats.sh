@@ -5,22 +5,25 @@
 # Why this exists: a single Info.plist (ios/MetaMask/Info.plist) is shared by
 # every "main" build (production, rc, beta, exp, e2e, test, dev). The source
 # plist intentionally ships the strict App Store defaults
-# (NSAllowsArbitraryLoads = false). For non-production builds we want to allow
-# arbitrary loads + an explicit localhost exception so devs and CI can talk to
-# Metro / mock servers / locally-hosted dapps over plain HTTP.
+# (NSAllowsArbitraryLoads = false). For local development and automated testing
+# we need to allow arbitrary loads + an explicit localhost exception so devs
+# and CI can talk to Metro / mock servers / locally-hosted dapps over plain
+# HTTP. All other environments (production, rc, beta, exp) ship strict ATS so
+# binaries distributed to real users keep full HTTPS enforcement.
 #
 # This phase mutates the *built* Info.plist (TARGET_BUILD_DIR/INFOPLIST_PATH),
 # never the source file, so:
 #   - the working tree is never dirtied
-#   - the App Store binary keeps the strict defaults if METAMASK_ENVIRONMENT is
-#     unset or anything goes wrong (fail-safe = secure)
+#   - any build whose METAMASK_ENVIRONMENT is unset or unrecognized keeps the
+#     strict defaults (fail-safe = secure)
 #
 # Behavior:
-#   - METAMASK_ENVIRONMENT=production -> no-op (ship strict defaults)
-#   - anything else (rc/beta/exp/e2e/test/dev/unset) -> relax ATS:
+#   - METAMASK_ENVIRONMENT in {dev, test, e2e} -> relax ATS:
 #       NSAllowsArbitraryLoads = true
 #       NSAllowsLocalNetworking removed (subsumed by NSAllowsArbitraryLoads)
 #       NSExceptionDomains.localhost.NSExceptionAllowsInsecureHTTPLoads = true
+#   - anything else (production/rc/beta/exp/unset/unknown) -> no-op (ship
+#     strict defaults)
 #
 # Run as an Xcode "Run Script" build phase on the MetaMask target (after Copy
 # Bundle Resources). Not used by the MetaMask-Flask target: that target's
@@ -30,7 +33,7 @@ set -eu
 
 PLIST_BUDDY=/usr/libexec/PlistBuddy
 PLIST="${TARGET_BUILD_DIR:-}/${INFOPLIST_PATH:-}"
-ENV_NAME="${METAMASK_ENVIRONMENT:-dev}"
+ENV_NAME="${METAMASK_ENVIRONMENT:-production}"
 
 if [ -z "${TARGET_BUILD_DIR:-}" ] || [ -z "${INFOPLIST_PATH:-}" ]; then
   echo "configure-ios-ats: TARGET_BUILD_DIR or INFOPLIST_PATH not set; skipping" >&2
@@ -42,10 +45,14 @@ if [ ! -f "$PLIST" ]; then
   exit 0
 fi
 
-if [ "$ENV_NAME" = "production" ]; then
-  echo "configure-ios-ats: METAMASK_ENVIRONMENT=production, leaving strict ATS defaults"
-  exit 0
-fi
+case "$ENV_NAME" in
+  dev|test|e2e)
+    ;;
+  *)
+    echo "configure-ios-ats: METAMASK_ENVIRONMENT=$ENV_NAME, leaving strict ATS defaults"
+    exit 0
+    ;;
+esac
 
 echo "configure-ios-ats: METAMASK_ENVIRONMENT=$ENV_NAME, relaxing ATS in $PLIST"
 
