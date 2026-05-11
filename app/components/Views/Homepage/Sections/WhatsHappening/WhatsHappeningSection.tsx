@@ -73,6 +73,7 @@ const WhatsHappeningSection = forwardRef<
   // hook's immediate-fire path once loading completes, so the event still fires
   // for the truly-empty state (no items, no error) with isEmpty: true.
   const willRender = !isLoading && (items.length > 0 || hasError);
+  const feedSettledWithNoItems = !isLoading && items.length === 0 && !hasError;
 
   const { onLayout } = useHomeViewedEvent({
     sectionRef: willRender ? sectionViewRef : null,
@@ -86,7 +87,7 @@ const WhatsHappeningSection = forwardRef<
 
   useSectionPerformance({
     sectionId: HomeSectionNames.WHATS_HAPPENING,
-    contentReady: willRender,
+    contentReady: willRender || feedSettledWithNoItems,
     isEmpty: items.length === 0,
     isLoading,
     enabled: isEnabled,

@@ -470,9 +470,10 @@ const PredictionsSectionDefault = forwardRef<
     });
 
     useSectionPerformance({
-      sectionId: HomeSectionNames.PREDICT,
-      contentReady: willRender,
-      isEmpty: isEmpty || !!hasError,
+      sectionId: analyticsName,
+      contentReady: isPredictEnabled && !isLoading,
+      isEmpty: isEmpty && !hasError,
+      contentStateForTrace: hasError ? 'error' : undefined,
       isLoading,
       enabled: isPredictEnabled,
     });

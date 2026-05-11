@@ -17,7 +17,15 @@ interface UseSectionPerformanceConfig {
   contentReady: boolean;
   /** True when the section is in an empty / placeholder state. */
   isEmpty: boolean;
-  /** When provided, a separate data-fetch latency span is tracked via loading transitions. */
+  /**
+   * When set, sent as `content_state` on successful trace ends instead of
+   * deriving from `isEmpty` (e.g. `error` for connection / fetch error UI).
+   */
+  contentStateForTrace?: 'filled' | 'empty' | 'error';
+  /**
+   * When provided, a separate data-fetch latency span is tracked for the first
+   * `isLoading` true→false transition per mount (refresh / later cycles are not traced).
+   */
   isLoading?: boolean;
   /** Skip all tracing when false. Use for feature-flagged sections that return null. @default true */
   enabled?: boolean;
@@ -35,7 +43,7 @@ const DEFAULT_RE_RENDER_WINDOW_MS = 500;
  *
  * Captures three metrics via the existing trace/endTrace Sentry integration:
  * 1. **Time to Content** — mount until `contentReady` flips true.
- * 2. **Data Fetch Latency** — `isLoading` true→false transition (opt-in).
+ * 2. **Data Fetch Latency** — first `isLoading` true→false transition per mount (opt-in; refresh excluded).
  * 3. **Re-render Monitoring** — breadcrumb when commits exceed threshold in a window (runs in `useEffect` after paint, not during render).
  *
  * Bookkeeping is ref-based; the hook does not intentionally trigger extra re-renders.
@@ -44,6 +52,7 @@ export const useSectionPerformance = ({
   sectionId,
   contentReady,
   isEmpty,
+  contentStateForTrace,
   isLoading,
   enabled = true,
   reRenderThreshold = DEFAULT_RE_RENDER_THRESHOLD,
@@ -64,7 +73,8 @@ export const useSectionPerformance = ({
   const renderTimestamps = useRef<number[]>([]);
   const hasLoggedExcessiveRenders = useRef(false);
 
-  const contentState = isEmpty ? 'empty' : 'filled';
+  const traceContentState =
+    contentStateForTrace ?? (isEmpty ? 'empty' : 'filled');
 
   // ──────────────────────────────────────────────
   // 1. Time to Content — start span on mount
@@ -112,12 +122,12 @@ export const useSectionPerformance = ({
         data: {
           success: true,
           section_id: sectionId,
-          content_state: contentState,
+          content_state: traceContentState,
         },
       });
       ttcEnded.current = true;
     }
-  }, [enabled, contentReady, sectionId, contentState]);
+  }, [enabled, contentReady, sectionId, traceContentState]);
 
   // ──────────────────────────────────────────────
   // 2. Data Fetch Latency — track isLoading transitions
@@ -128,7 +138,7 @@ export const useSectionPerformance = ({
     const wasLoading = prevIsLoading.current;
     prevIsLoading.current = isLoading;
 
-    // Start: isLoading just became true (or was true on first observed render)
+    // Start: first loading spell only (subsequent refresh cycles are not traced)
     if (isLoading && !fetchStarted.current && !fetchEnded.current) {
       fetchTraceId.current = uuidv4();
       trace({
@@ -153,13 +163,13 @@ export const useSectionPerformance = ({
         data: {
           success: true,
           section_id: sectionId,
-          content_state: contentState,
+          content_state: traceContentState,
         },
       });
       fetchStarted.current = false;
       fetchEnded.current = true;
     }
-  }, [enabled, isLoading, sectionId, contentState]);
+  }, [enabled, isLoading, sectionId, traceContentState]);
 
   // ──────────────────────────────────────────────
   // 3. Re-render Monitoring — useEffect after commit (not during render)
