@@ -28,9 +28,7 @@ describe('MoneyWhatYouGet', () => {
     expect(container).toHaveTextContent(/dollar-backed stablecoin/);
     expect(container).toHaveTextContent(/Get full liquidity/);
     expect(container).toHaveTextContent(/1-3% mUSD back/);
-    expect(container).toHaveTextContent(
-      /Transfer funds to any of your wallets/,
-    );
+    expect(container).toHaveTextContent(/Transfer to any of your wallets/);
     expect(container).toHaveTextContent(/Send and receive funds globally/);
   });
 

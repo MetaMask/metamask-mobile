@@ -55,7 +55,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'money.how_it_works_page.faq_q9': 'Who controls my money?',
       'money.how_it_works_page.faq_q10':
         'What cash back do I get with the MetaMask Card?',
-      'money.how_it_works_page.sounds_good': 'Sounds good',
     };
     return map[key] ?? key;
   },
@@ -153,11 +152,8 @@ describe('MoneyHowItWorksView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('pressing the Sounds good button calls navigation.goBack', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHowItWorksView />);
-
-    fireEvent.press(getByTestId(MoneyHowItWorksViewTestIds.SOUNDS_GOOD_BUTTON));
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  it('does not render a Sounds good primary CTA', () => {
+    const { queryByText } = renderWithProvider(<MoneyHowItWorksView />);
+    expect(queryByText('Sounds good')).toBeNull();
   });
 });

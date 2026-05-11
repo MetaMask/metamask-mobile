@@ -6618,12 +6618,12 @@
     },
     "what_you_get": {
       "title": "What you get",
-      "benefit_auto_earn": "Auto-earn ",
+      "benefit_auto_earn": "Auto-earn up to ",
       "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
       "benefit_liquidity": "Get full liquidity with no lockups, so you can trade or withdraw anytime",
       "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
       "benefit_spend_cashback": "1-3% mUSD back",
-      "benefit_transfer": "Transfer funds to any of your wallets across MetaMask",
+      "benefit_transfer": "Transfer to any of your wallets across MetaMask",
       "benefit_global": "Send and receive funds globally",
       "learn_more": "Learn more"
     },
@@ -6725,8 +6725,7 @@
       "faq_q7": "Does the APY rate change?",
       "faq_q8": "Is this a savings account or a spending account?",
       "faq_q9": "Who controls my money?",
-      "faq_q10": "What mUSD back do I get with the MetaMask Card?",
-      "sounds_good": "Sounds good"
+      "faq_q10": "What mUSD back do I get with the MetaMask Card?"
     }
   },
   "stake": {

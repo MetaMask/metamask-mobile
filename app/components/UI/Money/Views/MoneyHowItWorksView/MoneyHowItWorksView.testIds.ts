@@ -8,5 +8,4 @@ export const MoneyHowItWorksViewTestIds = {
   DESCRIPTION_2: 'money-how-it-works-view-description-2',
   FAQ_TITLE: 'money-how-it-works-view-faq-title',
   FAQ_ITEM: (n: number) => `money-how-it-works-view-faq-item-${n}`,
-  SOUNDS_GOOD_BUTTON: 'money-how-it-works-view-sounds-good',
 };

@@ -7,11 +7,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
   ButtonIconSize,
   ButtonIcon,
-  ButtonSize,
-  ButtonVariant,
   FontWeight,
   Icon,
   IconColor,
@@ -216,18 +213,6 @@ const MoneyHowItWorksView = () => {
           </React.Fragment>
         ))}
       </ScrollView>
-
-      <Box twClassName="px-4" style={{ paddingBottom: insets.bottom + 16 }}>
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleGoBack}
-          testID={MoneyHowItWorksViewTestIds.SOUNDS_GOOD_BUTTON}
-        >
-          {strings('money.how_it_works_page.sounds_good')}
-        </Button>
-      </Box>
     </Box>
   );
 };
