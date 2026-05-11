@@ -83,7 +83,7 @@ const createStyles = (colors) =>
       marginBottom: 40,
     },
     versionInfo: {
-      marginTop: 20,
+      marginTop: 21,
       fontSize: 18,
       textAlign: 'left',
       marginBottom: 20,
