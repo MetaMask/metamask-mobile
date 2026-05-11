@@ -41,6 +41,7 @@ import type {
   FeeCalculationParams,
   FeeCalculationResult,
   Funding,
+  HyperliquidBuilderFeeConfig,
   GetAccountStateParams,
   GetFundingParams,
   GetHistoricalPortfolioParams,
@@ -1191,8 +1192,8 @@ export class MYXProvider implements PerpsProvider {
   // Fee Discount (Stage 1 - No-op)
   // ============================================================================
 
-  setUserFeeDiscount(_discountBips: number | undefined): void {
-    // Stage 1: No fee discount support
+  setUserFeeConfig(_config: HyperliquidBuilderFeeConfig | undefined): void {
+    // Stage 1: No VIP builder fee support
   }
 
   // ============================================================================

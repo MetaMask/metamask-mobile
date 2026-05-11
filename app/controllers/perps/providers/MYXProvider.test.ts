@@ -1107,13 +1107,18 @@ describe('MYXProvider', () => {
   });
 
   // ==========================================================================
-  // Fee Discount
+  // VIP Builder Fee
   // ==========================================================================
 
-  describe('setUserFeeDiscount', () => {
+  describe('setUserFeeConfig', () => {
     it('does not throw (no-op)', () => {
-      expect(() => provider.setUserFeeDiscount(100)).not.toThrow();
-      expect(() => provider.setUserFeeDiscount(undefined)).not.toThrow();
+      expect(() =>
+        provider.setUserFeeConfig({
+          builderAddress: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+          builderFeeBips: 8,
+        }),
+      ).not.toThrow();
+      expect(() => provider.setUserFeeConfig(undefined)).not.toThrow();
     });
   });
 

@@ -171,14 +171,16 @@ export type RewardsControllerGetOptInStatusAction = {
 };
 
 /**
- * Get perps fee discount for an account with caching and threshold logic
+ * Get HyperLiquid builder fees for an account's VIP tier.
+ * Returns null when the account is not VIP or no cached/authenticated
+ * subscription is available. On fetch errors, stale cached data is reused.
  *
  * @param account - The account address in CAIP-10 format
- * @returns Promise<number> - The discount in basis points
+ * @returns Promise<HyperliquidFeesDto | null> - VIP HyperLiquid builder fees
  */
-export type RewardsControllerGetPerpsDiscountForAccountAction = {
-  type: `RewardsController:getPerpsDiscountForAccount`;
-  handler: RewardsController['getPerpsDiscountForAccount'];
+export type RewardsControllerGetHyperliquidBuilderFeesForAccountAction = {
+  type: `RewardsController:getHyperliquidBuilderFeesForAccount`;
+  handler: RewardsController['getHyperliquidBuilderFeesForAccount'];
 };
 
 /**
@@ -788,7 +790,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetHasAccountOptedInAction
   | RewardsControllerCheckOptInStatusAgainstCacheAction
   | RewardsControllerGetOptInStatusAction
-  | RewardsControllerGetPerpsDiscountForAccountAction
+  | RewardsControllerGetHyperliquidBuilderFeesForAccountAction
   | RewardsControllerGetPointsEventsAction
   | RewardsControllerGetPointsEventsIfChangedAction
   | RewardsControllerGetPointsEventsLastUpdatedAction

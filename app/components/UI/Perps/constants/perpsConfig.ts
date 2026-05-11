@@ -144,9 +144,6 @@ export const PERPS_GTM_MODAL_DECLINE = 'decline';
  * These constants are only active when __DEV__ is true
  */
 export const DEVELOPMENT_CONFIG = {
-  // Magic number to simulate fee discount state (20% discount)
-  SimulateFeeDiscountAmount: 41,
-
   // Magic number to simulate rewards error state (set order amount to this value)
   SimulateRewardsErrorAmount: 42,
 

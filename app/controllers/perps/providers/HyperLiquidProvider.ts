@@ -76,6 +76,7 @@ import type {
   GetPositionsParams,
   GetSupportedPathsParams,
   HistoricalPortfolioResult,
+  HyperliquidBuilderFeeConfig,
   InitializeResult,
   PerpsPlatformDependencies,
   PerpsProvider,
@@ -332,8 +333,10 @@ export class HyperLiquidProvider implements PerpsProvider {
   // Key: `network:userAddress`, Value: true if referral is set
   readonly #referralCheckCache = new Map<string, boolean>();
 
-  // Session cache for builder fee approval state (cleared on disconnect/reconnect)
-  // Key: `network:userAddress`, Value: true if builder fee is approved
+  // Session cache for builder fee approval state (cleared on disconnect/reconnect).
+  // Key: `network:userAddress:builderAddress`, where builderAddress is the
+  // scoped key segment. Default and VIP builders must not share approval state.
+  // Value: true if builder fee is approved for that builder.
   readonly #builderFeeCheckCache = new Map<string, boolean>();
 
   // Pending promise trackers for deduplicating concurrent calls
@@ -347,8 +350,8 @@ export class HyperLiquidProvider implements PerpsProvider {
 
   readonly #compiledBlocklistPatterns: CompiledMarketPattern[] = [];
 
-  // Fee discount context for MetaMask reward discounts (in basis points)
-  #userFeeDiscountBips?: number;
+  // VIP builder fee context for MetaMask rewards
+  #userBuilderFeeConfig?: HyperliquidBuilderFeeConfig;
 
   // Feature flag configuration for HIP-3 market filtering
   readonly #hip3Enabled: boolean;
@@ -1654,14 +1657,19 @@ export class HyperLiquidProvider implements PerpsProvider {
 
   /**
    * Generate session cache key for user-specific caches
-   * Format: "network:userAddress" (address normalized to lowercase)
+   * Format: "network:userAddress[:scope]" (address and scope normalized to lowercase).
+   * Scope is an optional discriminator for account/network caches that can vary
+   * by target. Builder fee approval uses the active builder address as scope so
+   * default and VIP builder approvals remain independent.
    *
    * @param network - 'mainnet' or 'testnet'
    * @param userAddress - User's Ethereum address
+   * @param scope - Optional cache discriminator appended to the key.
    * @returns Cache key for session-based caches
    */
-  #getCacheKey(network: string, userAddress: string): string {
-    return `${network}:${userAddress.toLowerCase()}`;
+  #getCacheKey(network: string, userAddress: string, scope?: string): string {
+    const baseKey = `${network}:${userAddress.toLowerCase()}`;
+    return scope ? `${baseKey}:${scope.toLowerCase()}` : baseKey;
   }
 
   /**
@@ -2340,18 +2348,18 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
-   * Set user fee discount context for next operations
-   * Used by PerpsController to apply MetaMask reward discounts
+   * Set user VIP builder fee context for next operations.
+   * Used by PerpsController to apply MetaMask VIP fee data.
    *
-   * @param discountBips - The discount in basis points (e.g., 550 = 5.5%)
+   * @param config - The VIP builder fee config.
    */
-  setUserFeeDiscount(discountBips: number | undefined): void {
-    this.#userFeeDiscountBips = discountBips;
+  setUserFeeConfig(config: HyperliquidBuilderFeeConfig | undefined): void {
+    this.#userBuilderFeeConfig = config;
 
-    this.#deps.debugLogger.log('HyperLiquid: Fee discount context updated', {
-      discountBips,
-      discountPercentage: discountBips ? discountBips / 100 : undefined,
-      isActive: discountBips !== undefined,
+    this.#deps.debugLogger.log('HyperLiquid: VIP builder fee context updated', {
+      builderAddress: config?.builderAddress,
+      builderFeeBips: config?.builderFeeBips,
+      isActive: config !== undefined,
     });
   }
 
@@ -2506,6 +2514,47 @@ export class HyperLiquidProvider implements PerpsProvider {
     return this.getDepositRoutes(params);
   }
 
+  #getValidatedUserBuilderFeeConfig(): HyperliquidBuilderFeeConfig | undefined {
+    const config = this.#userBuilderFeeConfig;
+    const builderFeeBips = Number(config?.builderFeeBips);
+    const maxFeeBips = BUILDER_FEE_CONFIG.MaxFeeTenthsBps / 10;
+
+    if (
+      !config?.builderAddress ||
+      !Number.isFinite(builderFeeBips) ||
+      builderFeeBips < 0 ||
+      builderFeeBips > maxFeeBips
+    ) {
+      return undefined;
+    }
+
+    return {
+      builderAddress: config.builderAddress,
+      builderFeeBips,
+    };
+  }
+
+  #getActiveBuilderAddress(isTestnet: boolean): string {
+    return (
+      this.#getValidatedUserBuilderFeeConfig()?.builderAddress ??
+      this.#getBuilderAddress(isTestnet)
+    );
+  }
+
+  #getActiveBuilderFeeTenthsBps(): number {
+    const config = this.#getValidatedUserBuilderFeeConfig();
+    return config
+      ? Math.floor(config.builderFeeBips * 10)
+      : BUILDER_FEE_CONFIG.MaxFeeTenthsBps;
+  }
+
+  #getActiveBuilderFeeDecimal(): number {
+    const config = this.#getValidatedUserBuilderFeeConfig();
+    return config
+      ? config.builderFeeBips / BASIS_POINTS_DIVISOR
+      : BUILDER_FEE_CONFIG.MaxFeeDecimal;
+  }
+
   /**
    * Check current builder fee approval for the user
    *
@@ -2514,7 +2563,7 @@ export class HyperLiquidProvider implements PerpsProvider {
   async #checkBuilderFeeApproval(): Promise<number | null> {
     const infoClient = this.#clientService.getInfoClient();
     const userAddress = await this.#walletService.getUserAddressWithDefault();
-    const builder = this.#getBuilderAddress(
+    const builder = this.#getActiveBuilderAddress(
       this.#clientService.isTestnetMode(),
     );
 
@@ -2537,17 +2586,21 @@ export class HyperLiquidProvider implements PerpsProvider {
   async #ensureBuilderFeeApproval(): Promise<void> {
     const isTestnet = this.#clientService.isTestnetMode();
     const network = isTestnet ? 'testnet' : 'mainnet';
-    const builderAddress = this.#getBuilderAddress(isTestnet);
+    const builderAddress = this.#getActiveBuilderAddress(isTestnet);
     const userAddress = await this.#walletService.getUserAddressWithDefault();
-    const cacheKey = this.#getCacheKey(network, userAddress);
+    const cacheKey = this.#getCacheKey(network, userAddress, builderAddress);
 
     // Check GLOBAL cache first to avoid repeated signing requests across reconnections
     // This is CRITICAL for hardware wallets to prevent QR popup spam
-    const globalCached = PerpsSigningCache.getBuilderFee(network, userAddress);
+    const globalCached = PerpsSigningCache.getBuilderFee(
+      network,
+      userAddress,
+      builderAddress,
+    );
     if (globalCached?.attempted) {
       this.#deps.debugLogger.log(
         '[ensureBuilderFeeApproval] Using global cache (prevents QR popup spam)',
-        { network, success: globalCached.success },
+        { network, builderAddress, success: globalCached.success },
       );
       if (globalCached.success) {
         this.#builderFeeCheckCache.set(cacheKey, true);
@@ -2560,11 +2613,12 @@ export class HyperLiquidProvider implements PerpsProvider {
       'builderFee',
       network,
       userAddress,
+      builderAddress,
     );
     if (inFlightPromise) {
       this.#deps.debugLogger.log(
         '[ensureBuilderFeeApproval] Global in-flight, waiting...',
-        { network },
+        { network, builderAddress },
       );
       await inFlightPromise;
       return;
@@ -2575,6 +2629,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       'builderFee',
       network,
       userAddress,
+      builderAddress,
     );
 
     try {
@@ -2582,11 +2637,12 @@ export class HyperLiquidProvider implements PerpsProvider {
       const recheckCache = PerpsSigningCache.getBuilderFee(
         network,
         userAddress,
+        builderAddress,
       );
       if (recheckCache?.attempted) {
         this.#deps.debugLogger.log(
           '[ensureBuilderFeeApproval] Completed by another provider',
-          { network },
+          { network, builderAddress },
         );
         completeInFlight();
         return;
@@ -2597,15 +2653,20 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       if (isApproved) {
         // User already has approval on-chain
-        PerpsSigningCache.setBuilderFee(network, userAddress, {
-          attempted: true,
-          success: true,
-        });
+        PerpsSigningCache.setBuilderFee(
+          network,
+          userAddress,
+          {
+            attempted: true,
+            success: true,
+          },
+          builderAddress,
+        );
         this.#builderFeeCheckCache.set(cacheKey, true);
 
         this.#deps.debugLogger.log(
           '[ensureBuilderFeeApproval] Already approved on-chain',
-          { network },
+          { network, builderAddress },
         );
       } else {
         this.#deps.debugLogger.log(
@@ -2634,10 +2695,15 @@ export class HyperLiquidProvider implements PerpsProvider {
         }
 
         // Cache success in BOTH global and instance caches
-        PerpsSigningCache.setBuilderFee(network, userAddress, {
-          attempted: true,
-          success: true,
-        });
+        PerpsSigningCache.setBuilderFee(
+          network,
+          userAddress,
+          {
+            attempted: true,
+            success: true,
+          },
+          builderAddress,
+        );
         this.#builderFeeCheckCache.set(cacheKey, true);
 
         this.#deps.debugLogger.log(
@@ -2660,15 +2726,21 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
 
       // Cache failure to prevent retries
-      PerpsSigningCache.setBuilderFee(network, userAddress, {
-        attempted: true,
-        success: false,
-      });
+      PerpsSigningCache.setBuilderFee(
+        network,
+        userAddress,
+        {
+          attempted: true,
+          success: false,
+        },
+        builderAddress,
+      );
 
       this.#deps.debugLogger.log(
         '[ensureBuilderFeeApproval] Failed, cached to prevent retries',
         {
           network,
+          builderAddress,
           error: ensureError(
             error,
             'HyperLiquidProvider.ensureBuilderFeeApproval',
@@ -3443,18 +3515,10 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     const exchangeClient = this.#clientService.getExchangeClient();
 
-    // Calculate discounted builder fee
-    let builderFee = BUILDER_FEE_CONFIG.MaxFeeTenthsBps;
-    if (this.#userFeeDiscountBips !== undefined) {
-      builderFee = Math.floor(
-        builderFee * (1 - this.#userFeeDiscountBips / BASIS_POINTS_DIVISOR),
-      );
-      this.#deps.debugLogger.log('Applying builder fee discount', {
-        originalFee: BUILDER_FEE_CONFIG.MaxFeeTenthsBps,
-        discountBips: this.#userFeeDiscountBips,
-        discountedFee: builderFee,
-      });
-    }
+    const builderFee = this.#getActiveBuilderFeeTenthsBps();
+    const builderAddress = this.#getActiveBuilderAddress(
+      this.#clientService.isTestnetMode(),
+    );
 
     this.#deps.debugLogger.log('Submitting order via asset ID routing', {
       symbol,
@@ -3463,6 +3527,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       mainOrder: orders[0],
       dexName: dexName ?? 'main',
       isHip3: Boolean(dexName),
+      builderAddress,
+      builderFee,
     });
 
     try {
@@ -3470,7 +3536,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         orders,
         grouping,
         builder: {
-          b: this.#getBuilderAddress(this.#clientService.isTestnetMode()),
+          b: builderAddress,
           f: builderFee,
         },
       });
@@ -4195,20 +4261,17 @@ export class HyperLiquidProvider implements PerpsProvider {
         });
       }
 
-      // Calculate discounted builder fee if reward discount is active
-      let builderFee = BUILDER_FEE_CONFIG.MaxFeeTenthsBps;
-      if (this.#userFeeDiscountBips !== undefined) {
-        builderFee = Math.floor(
-          builderFee * (1 - this.#userFeeDiscountBips / BASIS_POINTS_DIVISOR),
-        );
-      }
+      const builderFee = this.#getActiveBuilderFeeTenthsBps();
+      const builderAddress = this.#getActiveBuilderAddress(
+        this.#clientService.isTestnetMode(),
+      );
 
       // Single batch API call
       const result = await exchangeClient.order({
         orders,
         grouping: 'na',
         builder: {
-          b: this.#getBuilderAddress(this.#clientService.isTestnetMode()),
+          b: builderAddress,
           f: builderFee,
         },
       });
@@ -4551,28 +4614,17 @@ export class HyperLiquidProvider implements PerpsProvider {
         };
       }
 
-      // Calculate discounted builder fee if reward discount is active
-      let builderFee = BUILDER_FEE_CONFIG.MaxFeeTenthsBps;
-      if (this.#userFeeDiscountBips !== undefined) {
-        builderFee = Math.floor(
-          builderFee * (1 - this.#userFeeDiscountBips / BASIS_POINTS_DIVISOR),
-        );
-        this.#deps.debugLogger.log(
-          'HyperLiquid: Applying builder fee discount to TP/SL',
-          {
-            originalFee: BUILDER_FEE_CONFIG.MaxFeeTenthsBps,
-            discountBips: this.#userFeeDiscountBips,
-            discountedFee: builderFee,
-          },
-        );
-      }
+      const builderFee = this.#getActiveBuilderFeeTenthsBps();
+      const builderAddress = this.#getActiveBuilderAddress(
+        this.#clientService.isTestnetMode(),
+      );
 
       // Submit via SDK exchange client with positionTpsl grouping
       const result = await exchangeClient.order({
         orders,
         grouping: 'positionTpsl',
         builder: {
-          b: this.#getBuilderAddress(this.#clientService.isTestnetMode()),
+          b: builderAddress,
           f: builderFee,
         },
       });
@@ -7976,22 +8028,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       protocolFeeAmount = parsedAmount * protocolFeeRate;
     }
 
-    // MetaMask builder fee (0.1% = 0.001) with optional reward discount
-    let metamaskFeeRate = BUILDER_FEE_CONFIG.MaxFeeDecimal;
-
-    // Apply MetaMask reward discount if active
-    if (this.#userFeeDiscountBips !== undefined) {
-      const discount = this.#userFeeDiscountBips / BASIS_POINTS_DIVISOR; // Convert basis points to decimal
-      metamaskFeeRate = BUILDER_FEE_CONFIG.MaxFeeDecimal * (1 - discount);
-
-      this.#deps.debugLogger.log('HyperLiquid: Applied MetaMask fee discount', {
-        originalRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
-        discountBips: this.#userFeeDiscountBips,
-        discountPercentage: this.#userFeeDiscountBips / 100,
-        adjustedRate: metamaskFeeRate,
-        discountAmount: BUILDER_FEE_CONFIG.MaxFeeDecimal * discount,
-      });
-    }
+    // MetaMask builder fee (0.1% = 0.001) with optional VIP final fee
+    const metamaskFeeRate = this.#getActiveBuilderFeeDecimal();
 
     const validAmountForMetamaskFee = isNaN(parsedAmount)
       ? 0

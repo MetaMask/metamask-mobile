@@ -300,10 +300,10 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
 
     // === Rewards (DI — no RewardsController in Core yet) ===
     rewards: {
-      getPerpsDiscountForAccount(
+      getHyperliquidBuilderFeesForAccount(
         caipAccountId: `${string}:${string}:${string}`,
       ) {
-        return Engine.context.RewardsController.getPerpsDiscountForAccount(
+        return Engine.context.RewardsController.getHyperliquidBuilderFeesForAccount(
           caipAccountId,
         );
       },

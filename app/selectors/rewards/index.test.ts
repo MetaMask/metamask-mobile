@@ -514,8 +514,6 @@ describe('Rewards Selectors', () => {
           account: 'eip155:1:0x123',
           hasOptedIn: true,
           subscriptionId,
-          perpsFeeDiscount: null,
-          lastPerpsDiscountRateFetched: null,
         },
       });
 
@@ -533,8 +531,6 @@ describe('Rewards Selectors', () => {
           account: 'eip155:1:0x123',
           hasOptedIn: false,
           subscriptionId: null,
-          perpsFeeDiscount: null,
-          lastPerpsDiscountRateFetched: null,
         },
       });
 

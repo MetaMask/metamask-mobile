@@ -30,6 +30,7 @@ import type {
   UpdatePositionTPSLParams,
   PerpsAnalyticsProperties,
   PerpsPlatformDependencies,
+  HyperliquidBuilderFeeConfig,
 } from '../types';
 import { ensureError } from '../utils/errorUtils';
 
@@ -44,7 +45,7 @@ export type TradingServiceControllerDeps = {
 /**
  * TradingService
  *
- * Handles trading operations with fee discount management.
+ * Handles trading operations with VIP builder fee management.
  * Controller is responsible for analytics, state management, and tracing.
  *
  * Instance-based service with constructor injection of platform dependencies.
@@ -58,7 +59,7 @@ export class TradingService {
   readonly #deps: PerpsPlatformDependencies;
 
   /**
-   * Controller-level dependencies for fee discount calculation.
+   * Controller-level dependencies for VIP builder fee lookup.
    * Set via setControllerDependencies() after construction.
    */
   #controllerDeps: TradingServiceControllerDeps | null = null;
@@ -73,7 +74,7 @@ export class TradingService {
   }
 
   /**
-   * Set controller-level dependencies for fee discount calculation.
+   * Set controller-level dependencies for VIP builder fee lookup.
    * Called by PerpsController after construction to inject singleton dependencies.
    *
    * @param controllerDeps - Controller-level dependencies (RewardsController, etc.)
@@ -301,30 +302,31 @@ export class TradingService {
   }
 
   /**
-   * Execute a trading operation with fee discount context
-   * Ensures fee discount is always cleared after operation (success or failure)
+   * Execute a trading operation with VIP builder fee context.
+   * Ensures builder fee config is always cleared after operation.
    *
    * @param options - The configuration options.
    * @param options.provider - The perps provider instance.
-   * @param options.feeDiscountBips - The fee discount bips value.
+   * @param options.builderFeeConfig - The VIP builder fee config.
    * @param options.operation - The operation value.
    * @returns The result of the operation.
    */
-  async #withFeeDiscount<TResult>(options: {
+  async #withBuilderFeeConfig<TResult>(options: {
     provider: PerpsProvider;
-    feeDiscountBips?: number;
+    builderFeeConfig?: HyperliquidBuilderFeeConfig;
     operation: () => Promise<TResult>;
   }): Promise<TResult> {
-    const { provider, feeDiscountBips, operation } = options;
+    const { provider, builderFeeConfig, operation } = options;
 
     try {
-      // Set discount context in provider for this operation
-      if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
-        provider.setUserFeeDiscount(feeDiscountBips);
+      // Set builder fee context in provider for this operation
+      if (builderFeeConfig !== undefined && provider.setUserFeeConfig) {
+        provider.setUserFeeConfig(builderFeeConfig);
         this.#deps.debugLogger.log(
-          'TradingService: Fee discount set in provider',
+          'TradingService: VIP builder fee config set in provider',
           {
-            feeDiscountBips,
+            builderAddress: builderFeeConfig.builderAddress,
+            builderFeeBips: builderFeeConfig.builderFeeBips,
           },
         );
       }
@@ -332,11 +334,11 @@ export class TradingService {
       // Execute the operation
       return await operation();
     } finally {
-      // Always clear discount context, even on exception
-      if (provider.setUserFeeDiscount) {
-        provider.setUserFeeDiscount(undefined);
+      // Always clear builder fee context, even on exception
+      if (provider.setUserFeeConfig) {
+        provider.setUserFeeConfig(undefined);
         this.#deps.debugLogger.log(
-          'TradingService: Fee discount cleared from provider',
+          'TradingService: VIP builder fee config cleared from provider',
         );
       }
     }
@@ -344,7 +346,7 @@ export class TradingService {
 
   /**
    * Place a new order with full orchestration
-   * Handles tracing, fee discounts, state management, analytics, and data lake reporting
+   * Handles tracing, VIP builder fees, state management, analytics, and data lake reporting
    *
    * @param options - The configuration options.
    * @param options.provider - The perps provider instance.
@@ -408,13 +410,17 @@ export class TradingService {
         },
       });
 
-      // Calculate fee discount at execution time (fresh, secure)
-      const feeDiscountBips = await this.#calculateFeeDiscountWithMeasurement();
+      // Resolve VIP builder fee at execution time (fresh, secure)
+      const builderFeeConfig = await this.#getBuilderFeeConfigWithMeasurement();
 
-      this.#deps.debugLogger.log('TradingService: Fee discount calculated', {
-        feeDiscountBips,
-        hasDiscount: feeDiscountBips !== undefined,
-      });
+      this.#deps.debugLogger.log(
+        'TradingService: Builder fee config resolved',
+        {
+          builderAddress: builderFeeConfig?.builderAddress,
+          builderFeeBips: builderFeeConfig?.builderFeeBips,
+          hasVipBuilderFee: builderFeeConfig !== undefined,
+        },
+      );
 
       this.#deps.debugLogger.log(
         'TradingService: Submitting order to provider',
@@ -429,10 +435,10 @@ export class TradingService {
         },
       );
 
-      // Execute order with fee discount management
-      const result = await this.#withFeeDiscount({
+      // Execute order with builder fee management
+      const result = await this.#withBuilderFeeConfig({
         provider,
-        feeDiscountBips,
+        builderFeeConfig,
         operation: () => provider.placeOrder(params),
       });
 
@@ -482,7 +488,7 @@ export class TradingService {
         duration: completionDuration,
       });
 
-      // withFeeDiscount handles fee discount cleanup automatically
+      // withBuilderFeeConfig handles builder fee cleanup automatically
 
       this.#deps.logger.error(ensureError(error, 'TradingService.placeOrder'), {
         tags: {
@@ -852,17 +858,18 @@ export class TradingService {
   }
 
   /**
-   * Calculate fee discount with performance measurement
-   * Uses controller dependencies injected via setControllerDependencies()
-   * Helper method for placeOrder orchestration
+   * Resolve VIP builder fee config with performance measurement.
+   * Uses controller dependencies injected via setControllerDependencies().
    *
    * @returns The result of the operation.
    */
-  async #calculateFeeDiscountWithMeasurement(): Promise<number | undefined> {
+  async #getBuilderFeeConfigWithMeasurement(): Promise<
+    HyperliquidBuilderFeeConfig | undefined
+  > {
     // Check if controller dependencies are available
     if (!this.#controllerDeps) {
       this.#deps.debugLogger.log(
-        'TradingService: Controller dependencies not set, skipping fee discount',
+        'TradingService: Controller dependencies not set, skipping VIP builder fees',
       );
       return undefined;
     }
@@ -871,9 +878,9 @@ export class TradingService {
 
     const orderExecutionFeeDiscountStartTime = this.#deps.performance.now();
 
-    // Calculate fee discount using messenger pattern (service handles controller access internally)
-    const discountBips =
-      await rewardsIntegrationService.calculateUserFeeDiscount();
+    // Resolve VIP builder fee using messenger pattern (service handles controller access internally)
+    const builderFeeConfig =
+      await rewardsIntegrationService.getUserHyperliquidBuilderFeeConfig();
 
     const orderExecutionFeeDiscountDuration =
       this.#deps.performance.now() - orderExecutionFeeDiscountStartTime;
@@ -886,19 +893,20 @@ export class TradingService {
     );
 
     this.#deps.debugLogger.log(
-      'TradingService: Fee discount API call completed',
+      'TradingService: VIP builder fees API call completed',
       {
-        discountBips,
+        builderAddress: builderFeeConfig?.builderAddress,
+        builderFeeBips: builderFeeConfig?.builderFeeBips,
         duration: `${orderExecutionFeeDiscountDuration.toFixed(0)}ms`,
       },
     );
 
-    return discountBips;
+    return builderFeeConfig;
   }
 
   /**
    * Edit an existing order with full orchestration
-   * Handles tracing, fee discounts, state management, and analytics
+   * Handles tracing, VIP builder fees, state management, and analytics
    *
    * @param options - The configuration options.
    * @param options.provider - The perps provider instance.
@@ -936,13 +944,13 @@ export class TradingService {
         },
       });
 
-      // Calculate fee discount only if required dependencies are available
-      const feeDiscountBips = await this.#calculateFeeDiscountWithMeasurement();
+      // Resolve VIP builder fee only if required dependencies are available
+      const builderFeeConfig = await this.#getBuilderFeeConfigWithMeasurement();
 
-      // Execute order edit with fee discount management
-      const result = await this.#withFeeDiscount({
+      // Execute order edit with builder fee management
+      const result = await this.#withBuilderFeeConfig({
         provider,
-        feeDiscountBips,
+        builderFeeConfig,
         operation: () => provider.editOrder(params),
       });
 
@@ -1336,7 +1344,7 @@ export class TradingService {
 
   /**
    * Close a single position with full orchestration
-   * Handles tracing, fee discounts, state management, analytics, and data lake reporting
+   * Handles tracing, VIP builder fees, state management, analytics, and data lake reporting
    *
    * @param options - The configuration options.
    * @param options.provider - The perps provider instance.
@@ -1382,13 +1390,13 @@ export class TradingService {
         context,
       });
 
-      // Calculate fee discount with measurement
-      const feeDiscountBips = await this.#calculateFeeDiscountWithMeasurement();
+      // Resolve VIP builder fee with measurement
+      const builderFeeConfig = await this.#getBuilderFeeConfigWithMeasurement();
 
-      // Execute position close with fee discount management
-      result = await this.#withFeeDiscount({
+      // Execute position close with builder fee management
+      result = await this.#withBuilderFeeConfig({
         provider,
-        feeDiscountBips,
+        builderFeeConfig,
         operation: () => provider.closePosition(params),
       });
 
@@ -1477,7 +1485,7 @@ export class TradingService {
 
   /**
    * Close multiple positions with full orchestration
-   * Handles tracing, fee discounts, batch operations, and analytics
+   * Handles tracing, VIP builder fees, batch operations, and analytics
    *
    * @param options - The configuration options.
    * @param options.provider - The perps provider instance.
@@ -1522,12 +1530,12 @@ export class TradingService {
 
       // Use batch close if provider supports it (provider handles filtering)
       if (provider.closePositions) {
-        const feeDiscountBips =
-          await this.#calculateFeeDiscountWithMeasurement();
+        const builderFeeConfig =
+          await this.#getBuilderFeeConfigWithMeasurement();
 
-        operationResult = await this.#withFeeDiscount({
+        operationResult = await this.#withBuilderFeeConfig({
           provider,
-          feeDiscountBips,
+          builderFeeConfig,
           operation: async () => {
             if (!provider.closePositions) {
               throw new Error('closePositions method not available');
@@ -1649,7 +1657,7 @@ export class TradingService {
 
   /**
    * Update TP/SL for an existing position with full orchestration
-   * Handles tracing, fee discounts, state management, and analytics
+   * Handles tracing, VIP builder fees, state management, and analytics
    *
    * @param options - The configuration options.
    * @param options.provider - The perps provider instance.
@@ -1695,13 +1703,13 @@ export class TradingService {
         },
       });
 
-      // Get fee discount from rewards
-      const feeDiscountBips = await this.#calculateFeeDiscountWithMeasurement();
+      // Get VIP builder fee from rewards
+      const builderFeeConfig = await this.#getBuilderFeeConfigWithMeasurement();
 
-      // Execute with fee discount management
-      result = await this.#withFeeDiscount({
+      // Execute with builder fee management
+      result = await this.#withBuilderFeeConfig({
         provider,
-        feeDiscountBips,
+        builderFeeConfig,
         operation: () => provider.updatePositionTPSL(params),
       });
 

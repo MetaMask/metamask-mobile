@@ -5106,52 +5106,54 @@ describe('HyperLiquidProvider', () => {
       });
     });
 
-    describe('fee discount functionality', () => {
-      describe('setUserFeeDiscount', () => {
-        it('logs discount context updates', () => {
+    describe('VIP builder fee functionality', () => {
+      const vipBuilderFeeConfig = {
+        builderAddress: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+        builderFeeBips: 8,
+      };
+
+      describe('setUserFeeConfig', () => {
+        it('logs VIP builder fee context updates', () => {
           // Arrange
-          const discountBips = 3000; // 30% in basis points
           (mockPlatformDependencies.debugLogger.log as jest.Mock).mockClear();
 
           // Act
-          provider.setUserFeeDiscount(discountBips);
+          provider.setUserFeeConfig(vipBuilderFeeConfig);
 
           // Assert
           expect(mockPlatformDependencies.debugLogger.log).toHaveBeenCalledWith(
-            'HyperLiquid: Fee discount context updated',
+            'HyperLiquid: VIP builder fee context updated',
             {
-              discountBips,
-              discountPercentage: 30,
+              builderAddress: vipBuilderFeeConfig.builderAddress,
+              builderFeeBips: vipBuilderFeeConfig.builderFeeBips,
               isActive: true,
             },
           );
         });
 
-        it('logs when clearing discount context', () => {
+        it('logs when clearing VIP builder fee context', () => {
           // Arrange
           (mockPlatformDependencies.debugLogger.log as jest.Mock).mockClear();
 
           // Act
-          provider.setUserFeeDiscount(undefined);
+          provider.setUserFeeConfig(undefined);
 
           // Assert
           expect(mockPlatformDependencies.debugLogger.log).toHaveBeenCalledWith(
-            'HyperLiquid: Fee discount context updated',
+            'HyperLiquid: VIP builder fee context updated',
             {
-              discountBips: undefined,
-              discountPercentage: undefined,
+              builderAddress: undefined,
+              builderFeeBips: undefined,
               isActive: false,
             },
           );
         });
       });
 
-      describe('discount applied to orders', () => {
-        it('applies discount to builder fee in placeOrder', async () => {
-          // Arrange: Set 65% discount (6500 basis points)
-          provider.setUserFeeDiscount(6500);
+      describe('VIP builder fee applied to orders', () => {
+        it('applies VIP builder fee in placeOrder', async () => {
+          provider.setUserFeeConfig(vipBuilderFeeConfig);
 
-          // Act
           await provider.placeOrder({
             symbol: 'BTC',
             isBuy: true,
@@ -5160,57 +5162,51 @@ describe('HyperLiquidProvider', () => {
             currentPrice: 50000, // Add price for validation
           });
 
-          // Assert: Verify exchangeClient.order called with discounted fee
-          // 100 * (1 - 0.65) = 35
           expect(
             mockClientService.getExchangeClient().order,
           ).toHaveBeenCalledWith(
             expect.objectContaining({
               builder: expect.objectContaining({
-                f: 35,
+                b: vipBuilderFeeConfig.builderAddress,
+                f: 80,
               }),
             }),
           );
         });
 
-        it('applies discount to builder fee in updatePositionTPSL', async () => {
-          // Arrange: Set 65% discount
-          provider.setUserFeeDiscount(6500);
+        it('applies VIP builder fee in updatePositionTPSL', async () => {
+          provider.setUserFeeConfig(vipBuilderFeeConfig);
 
-          // Act
           await provider.updatePositionTPSL({
             symbol: 'BTC',
             takeProfitPrice: '50000',
           });
 
-          // Assert: Verify discounted fee (35 instead of 100)
           expect(
             mockClientService.getExchangeClient().order,
           ).toHaveBeenCalledWith(
             expect.objectContaining({
               builder: expect.objectContaining({
-                f: 35,
+                b: vipBuilderFeeConfig.builderAddress,
+                f: 80,
               }),
             }),
           );
         });
       });
 
-      describe('calculateFees with fee discount', () => {
+      describe('calculateFees with VIP final builder fee', () => {
         beforeEach(() => {
-          // Reset mocks for fee discount tests
+          // Reset mocks for VIP fee tests
           (mockClientService.getInfoClient().userFees as jest.Mock).mockClear();
           mockWalletService.getUserAddressWithDefault.mockRejectedValue(
             new Error('No wallet connected'),
           );
         });
 
-        it('applies discount to MetaMask fees when active', async () => {
-          // Arrange
-          const discountBips = 2000; // 20% discount in basis points
-          provider.setUserFeeDiscount(discountBips);
+        it('uses VIP final MetaMask fee when active', async () => {
+          provider.setUserFeeConfig(vipBuilderFeeConfig);
 
-          // Act
           const result = await provider.calculateFees({
             orderType: 'market',
             isMaker: false,
@@ -5218,19 +5214,16 @@ describe('HyperLiquidProvider', () => {
             symbol: 'BTC',
           });
 
-          // Assert
-          // Base: 0.045% protocol + 0.1% MetaMask = 0.145%
-          // With 20% discount on MetaMask fee: 0.045% + (0.1% * 0.8) = 0.045% + 0.08% = 0.125%
           expect(result.feeRate).toBe(0.00125);
           expect(result.feeAmount).toBe(125);
         });
 
-        it('applies discount to maker fees correctly', async () => {
-          // Arrange
-          const discountBips = 5000; // 50% discount in basis points
-          provider.setUserFeeDiscount(discountBips);
+        it('uses VIP final MetaMask fee for maker fees correctly', async () => {
+          provider.setUserFeeConfig({
+            builderAddress: vipBuilderFeeConfig.builderAddress,
+            builderFeeBips: 5,
+          });
 
-          // Act
           const result = await provider.calculateFees({
             orderType: 'limit',
             isMaker: true,
@@ -5238,19 +5231,16 @@ describe('HyperLiquidProvider', () => {
             symbol: 'BTC',
           });
 
-          // Assert
-          // Base: 0.015% protocol + 0.1% MetaMask = 0.115%
-          // With 50% discount on MetaMask fee: 0.015% + (0.1% * 0.5) = 0.015% + 0.05% = 0.065%
           expect(result.feeRate).toBe(0.00065);
           expect(result.feeAmount).toBe(65);
         });
 
-        it('preserves protocol fees unchanged', async () => {
-          // Arrange
-          const discountBips = 10000; // 100% discount on MetaMask fees (in basis points)
-          provider.setUserFeeDiscount(discountBips);
+        it('preserves protocol fees unchanged with zero VIP builder fee', async () => {
+          provider.setUserFeeConfig({
+            builderAddress: vipBuilderFeeConfig.builderAddress,
+            builderFeeBips: 0,
+          });
 
-          // Act
           const result = await provider.calculateFees({
             orderType: 'market',
             isMaker: false,
@@ -5258,18 +5248,11 @@ describe('HyperLiquidProvider', () => {
             symbol: 'BTC',
           });
 
-          // Assert
-          // Should only have protocol fees: 0.045%
-          // MetaMask fee should be 0 with 100% discount
           expect(result.feeRate).toBe(0.00045);
           expect(result.feeAmount).toBe(45);
         });
 
-        it('works without discount - backward compatibility', async () => {
-          // Arrange - no discount set
-          // provider.setUserFeeDiscount() not called
-
-          // Act
+        it('works without VIP builder fee', async () => {
           const result = await provider.calculateFees({
             orderType: 'market',
             isMaker: false,
@@ -5283,11 +5266,12 @@ describe('HyperLiquidProvider', () => {
           expect(result.feeAmount).toBe(145);
         });
 
-        it('handles 0% discount edge case', async () => {
-          // Arrange
-          provider.setUserFeeDiscount(0);
+        it('ignores invalid VIP builder fee data', async () => {
+          provider.setUserFeeConfig({
+            builderAddress: vipBuilderFeeConfig.builderAddress,
+            builderFeeBips: 11,
+          });
 
-          // Act
           const result = await provider.calculateFees({
             orderType: 'limit',
             isMaker: true,
@@ -5295,16 +5279,12 @@ describe('HyperLiquidProvider', () => {
             symbol: 'BTC',
           });
 
-          // Assert
-          // 0% discount means full MetaMask fee: 0.015% + 0.1% = 0.115%
           expect(result.feeRate).toBe(0.00115);
           expect(result.feeAmount).toBeCloseTo(115, 10);
         });
 
-        it('combines discount with user staking discount', async () => {
-          // Arrange
-          const rewardsDiscountBips = 2000; // 20% MetaMask rewards discount in basis points
-          provider.setUserFeeDiscount(rewardsDiscountBips);
+        it('combines VIP builder fee with user staking discount', async () => {
+          provider.setUserFeeConfig(vipBuilderFeeConfig);
 
           // Clear fee cache to ensure fresh API call
           provider.clearFeeCache();
@@ -5331,31 +5311,26 @@ describe('HyperLiquidProvider', () => {
             symbol: 'BTC',
           });
 
-          // Assert
-          // Note: If staking discount is not applied properly in test, it falls back to base rates
-          // Base protocol fee: 0.045% + MetaMask fee with rewards discount: 0.08% = 0.125%
-          // This test validates that the rewards discount is properly applied even when staking API is mocked
           expect(result.feeRate).toBeCloseTo(0.00125, 5);
           expect(result.feeAmount).toBeCloseTo(125, 0);
         });
 
-        it('clears discount context after undefined is set', async () => {
-          // Arrange - first set a discount
-          provider.setUserFeeDiscount(2500); // 25% discount in basis points
+        it('clears VIP builder fee context after undefined is set', async () => {
+          provider.setUserFeeConfig({
+            builderAddress: vipBuilderFeeConfig.builderAddress,
+            builderFeeBips: 7.5,
+          });
 
-          // Verify discount is applied
           let result = await provider.calculateFees({
             orderType: 'market',
             isMaker: false,
             amount: '100000',
             symbol: 'BTC',
           });
-          expect(result.feeRate).toBeCloseTo(0.0012, 5); // 0.045% + (0.1% * 0.75)
+          expect(result.feeRate).toBeCloseTo(0.0012, 5);
 
-          // Act - clear discount
-          provider.setUserFeeDiscount(undefined);
+          provider.setUserFeeConfig(undefined);
 
-          // Assert - should return to full fees
           result = await provider.calculateFees({
             orderType: 'market',
             isMaker: false,

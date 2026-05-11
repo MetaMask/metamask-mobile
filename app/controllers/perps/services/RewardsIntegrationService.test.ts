@@ -54,39 +54,58 @@ describe('RewardsIntegrationService', () => {
     jest.resetAllMocks();
   });
 
-  describe('calculateUserFeeDiscount', () => {
-    it('calculates fee discount successfully with valid discount', async () => {
-      const mockDiscountBips = 6500; // 65%
-
+  describe('getUserHyperliquidBuilderFeeConfig', () => {
+    it('returns parsed VIP builder fee config for valid fees', async () => {
       setupMessengerDefaults();
       (
-        mockDeps.rewards.getPerpsDiscountForAccount as jest.Mock
-      ).mockResolvedValue(mockDiscountBips);
+        mockDeps.rewards.getHyperliquidBuilderFeesForAccount as jest.Mock
+      ).mockResolvedValue({
+        builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+        builderFeeBips: '8',
+      });
 
-      const result = await service.calculateUserFeeDiscount();
+      const result = await service.getUserHyperliquidBuilderFeeConfig();
 
-      expect(result).toBe(6500);
-      expect(mockDeps.rewards.getPerpsDiscountForAccount).toHaveBeenCalledWith(
-        expect.stringMatching(/^eip155:1:0x/),
-      );
+      expect(result).toEqual({
+        builderAddress: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+        builderFeeBips: 8,
+      });
+      expect(
+        mockDeps.rewards.getHyperliquidBuilderFeesForAccount,
+      ).toHaveBeenCalledWith(expect.stringMatching(/^eip155:1:0x/));
       expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
-        'RewardsIntegrationService: Fee discount calculated',
+        'RewardsIntegrationService: VIP builder fee config resolved',
         expect.objectContaining({
-          discountBips: 6500,
-          discountPercentage: 65,
+          builderAddress: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+          builderFeeBips: 8,
+          hasVipBuilderFee: true,
         }),
       );
     });
 
-    it('returns 0 when no discount available', async () => {
+    it('returns undefined when no VIP fee is available', async () => {
       setupMessengerDefaults();
       (
-        mockDeps.rewards.getPerpsDiscountForAccount as jest.Mock
-      ).mockResolvedValue(0);
+        mockDeps.rewards.getHyperliquidBuilderFeesForAccount as jest.Mock
+      ).mockResolvedValue(null);
 
-      const result = await service.calculateUserFeeDiscount();
+      const result = await service.getUserHyperliquidBuilderFeeConfig();
 
-      expect(result).toBe(0);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined for invalid VIP fee data', async () => {
+      setupMessengerDefaults();
+      (
+        mockDeps.rewards.getHyperliquidBuilderFeesForAccount as jest.Mock
+      ).mockResolvedValue({
+        builderCode: '',
+        builderFeeBips: '8',
+      });
+
+      const result = await service.getUserHyperliquidBuilderFeeConfig();
+
+      expect(result).toBeUndefined();
     });
 
     it('returns undefined when no EVM account found', async () => {
@@ -94,14 +113,14 @@ describe('RewardsIntegrationService', () => {
         'AccountTreeController:getAccountsFromSelectedAccountGroup': [],
       });
 
-      const result = await service.calculateUserFeeDiscount();
+      const result = await service.getUserHyperliquidBuilderFeeConfig();
 
       expect(result).toBeUndefined();
       expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
-        'RewardsIntegrationService: No EVM account found for fee discount',
+        'RewardsIntegrationService: No EVM account found for VIP builder fees',
       );
       expect(
-        mockDeps.rewards.getPerpsDiscountForAccount,
+        mockDeps.rewards.getHyperliquidBuilderFeesForAccount,
       ).not.toHaveBeenCalled();
     });
 
@@ -112,30 +131,30 @@ describe('RewardsIntegrationService', () => {
         },
       });
 
-      const result = await service.calculateUserFeeDiscount();
+      const result = await service.getUserHyperliquidBuilderFeeConfig();
 
       expect(result).toBeUndefined();
       expect(
-        mockDeps.rewards.getPerpsDiscountForAccount,
+        mockDeps.rewards.getHyperliquidBuilderFeesForAccount,
       ).not.toHaveBeenCalled();
     });
 
-    it('returns undefined when getFeeDiscount throws error', async () => {
+    it('returns undefined when VIP fees lookup throws error', async () => {
       const mockError = new Error('Rewards API error');
 
       setupMessengerDefaults();
       (
-        mockDeps.rewards.getPerpsDiscountForAccount as jest.Mock
+        mockDeps.rewards.getHyperliquidBuilderFeesForAccount as jest.Mock
       ).mockRejectedValue(mockError);
 
-      const result = await service.calculateUserFeeDiscount();
+      const result = await service.getUserHyperliquidBuilderFeeConfig();
 
       expect(result).toBeUndefined();
       expect(mockDeps.logger.error).toHaveBeenCalledWith(
         mockError,
         expect.objectContaining({
           context: expect.objectContaining({
-            name: 'RewardsIntegrationService.calculateUserFeeDiscount',
+            name: 'RewardsIntegrationService.getUserHyperliquidBuilderFeeConfig',
           }),
         }),
       );
@@ -150,79 +169,10 @@ describe('RewardsIntegrationService', () => {
         },
       });
 
-      const result = await service.calculateUserFeeDiscount();
+      const result = await service.getUserHyperliquidBuilderFeeConfig();
 
       expect(result).toBeUndefined();
       expect(mockDeps.logger.error).toHaveBeenCalled();
-    });
-
-    it('handles different chain IDs correctly', async () => {
-      const chains = [
-        { chainId: '0x1', name: 'Mainnet' },
-        { chainId: '0x89', name: 'Polygon' },
-        { chainId: '0xa4b1', name: 'Arbitrum' },
-      ];
-
-      for (const chain of chains) {
-        jest.clearAllMocks();
-        mockDeps = createMockInfrastructure();
-        mockMessenger = createMockMessenger();
-        service = new RewardsIntegrationService(mockDeps, mockMessenger);
-
-        (mockMessenger.call as jest.Mock).mockImplementation(
-          (action: string) => {
-            if (
-              action ===
-              'AccountTreeController:getAccountsFromSelectedAccountGroup'
-            ) {
-              return [mockEvmAccount];
-            }
-            if (action === 'NetworkController:getState') {
-              return { selectedNetworkClientId: chain.name.toLowerCase() };
-            }
-            if (action === 'NetworkController:getNetworkClientById') {
-              return { configuration: { chainId: chain.chainId } };
-            }
-            return undefined;
-          },
-        );
-        (
-          mockDeps.rewards.getPerpsDiscountForAccount as jest.Mock
-        ).mockResolvedValue(5000);
-
-        const result = await service.calculateUserFeeDiscount();
-
-        expect(result).toBe(5000);
-      }
-    });
-
-    it('calculates discount percentage correctly in logs', async () => {
-      const testCases = [
-        { bips: 6500, percentage: 65 },
-        { bips: 5000, percentage: 50 },
-        { bips: 2500, percentage: 25 },
-        { bips: 1000, percentage: 10 },
-        { bips: 0, percentage: 0 },
-      ];
-
-      for (const testCase of testCases) {
-        jest.clearAllMocks();
-
-        setupMessengerDefaults();
-        (
-          mockDeps.rewards.getPerpsDiscountForAccount as jest.Mock
-        ).mockResolvedValue(testCase.bips);
-
-        await service.calculateUserFeeDiscount();
-
-        expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
-          'RewardsIntegrationService: Fee discount calculated',
-          expect.objectContaining({
-            discountBips: testCase.bips,
-            discountPercentage: testCase.percentage,
-          }),
-        );
-      }
     });
   });
 
@@ -241,7 +191,7 @@ describe('RewardsIntegrationService', () => {
         }
         return undefined;
       });
-      await service.calculateUserFeeDiscount();
+      await service.getUserHyperliquidBuilderFeeConfig();
 
       // Second service - no EVM account
       (mockMessenger2.call as jest.Mock).mockImplementation(
@@ -255,7 +205,7 @@ describe('RewardsIntegrationService', () => {
           return undefined;
         },
       );
-      await service2.calculateUserFeeDiscount();
+      await service2.getUserHyperliquidBuilderFeeConfig();
 
       // Each instance should use its own logger
       expect(mockDeps.debugLogger.log).toHaveBeenCalledTimes(1);

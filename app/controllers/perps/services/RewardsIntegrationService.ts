@@ -1,5 +1,10 @@
+import { BUILDER_FEE_CONFIG } from '../constants/hyperLiquidConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import type { PerpsPlatformDependencies } from '../types';
+import type {
+  HyperliquidBuilderFeeConfig,
+  HyperliquidBuilderFees,
+  PerpsPlatformDependencies,
+} from '../types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
@@ -8,7 +13,7 @@ import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 /**
  * RewardsIntegrationService
  *
- * Handles rewards-related operations and fee discount calculations.
+ * Handles rewards-related operations and VIP builder fee lookup.
  * Stateless service that coordinates with RewardsController and NetworkController.
  *
  * Instance-based service with constructor injection of platform dependencies.
@@ -52,12 +57,40 @@ export class RewardsIntegrationService {
   }
 
   /**
-   * Calculate user fee discount from rewards
-   * Returns discount in basis points (e.g., 6500 = 65% discount)
+   * Validate and parse HyperLiquid VIP builder fee data.
    *
-   * @returns The fee discount in basis points, or undefined if unavailable.
+   * @param fees - The raw VIP builder fee data from RewardsController.
+   * @returns Parsed builder fee config, or undefined if invalid/unavailable.
    */
-  async calculateUserFeeDiscount(): Promise<number | undefined> {
+  #parseHyperliquidBuilderFeeConfig(
+    fees: HyperliquidBuilderFees | null,
+  ): HyperliquidBuilderFeeConfig | undefined {
+    const builderFeeBips = Number(fees?.builderFeeBips);
+    const maxFeeBips = BUILDER_FEE_CONFIG.MaxFeeTenthsBps / 10;
+
+    if (
+      !fees?.builderCode ||
+      !Number.isFinite(builderFeeBips) ||
+      builderFeeBips < 0 ||
+      builderFeeBips > maxFeeBips
+    ) {
+      return undefined;
+    }
+
+    return {
+      builderAddress: fees.builderCode,
+      builderFeeBips,
+    };
+  }
+
+  /**
+   * Get user HyperLiquid builder fee config from rewards VIP fees.
+   *
+   * @returns The builder fee config, or undefined if unavailable.
+   */
+  async getUserHyperliquidBuilderFeeConfig(): Promise<
+    HyperliquidBuilderFeeConfig | undefined
+  > {
     try {
       const evmAccount = getSelectedEvmAccount(
         this.#messenger.call(
@@ -67,7 +100,7 @@ export class RewardsIntegrationService {
 
       if (!evmAccount) {
         this.#deps.debugLogger.log(
-          'RewardsIntegrationService: No EVM account found for fee discount',
+          'RewardsIntegrationService: No EVM account found for VIP builder fees',
         );
         return undefined;
       }
@@ -79,11 +112,11 @@ export class RewardsIntegrationService {
 
       if (!chainId) {
         this.#deps.logger.error(
-          new Error('Chain ID not found for fee discount calculation'),
+          new Error('Chain ID not found for VIP builder fees'),
           {
             tags: { feature: PERPS_CONSTANTS.FeatureName },
             context: {
-              name: 'RewardsIntegrationService.calculateUserFeeDiscount',
+              name: 'RewardsIntegrationService.getUserHyperliquidBuilderFeeConfig',
               data: {
                 selectedNetworkClientId,
               },
@@ -102,11 +135,11 @@ export class RewardsIntegrationService {
 
       if (!caipAccountId) {
         this.#deps.logger.error(
-          new Error('Failed to format CAIP account ID for fee discount'),
+          new Error('Failed to format CAIP account ID for VIP builder fees'),
           {
             tags: { feature: PERPS_CONSTANTS.FeatureName },
             context: {
-              name: 'RewardsIntegrationService.calculateUserFeeDiscount',
+              name: 'RewardsIntegrationService.getUserHyperliquidBuilderFeeConfig',
               data: {
                 address: evmAccount.address,
                 chainId,
@@ -119,30 +152,34 @@ export class RewardsIntegrationService {
       }
 
       // Use rewards via DI (no RewardsController in Core yet)
-      const discountBips =
-        await this.#deps.rewards.getPerpsDiscountForAccount(caipAccountId);
+      const fees =
+        await this.#deps.rewards.getHyperliquidBuilderFeesForAccount(
+          caipAccountId,
+        );
+      const builderFeeConfig = this.#parseHyperliquidBuilderFeeConfig(fees);
 
       this.#deps.debugLogger.log(
-        'RewardsIntegrationService: Fee discount calculated',
+        'RewardsIntegrationService: VIP builder fee config resolved',
         {
           address: evmAccount.address,
           caipAccountId,
-          discountBips,
-          discountPercentage: discountBips / 100,
+          builderAddress: builderFeeConfig?.builderAddress,
+          builderFeeBips: builderFeeConfig?.builderFeeBips,
+          hasVipBuilderFee: builderFeeConfig !== undefined,
         },
       );
 
-      return discountBips;
+      return builderFeeConfig;
     } catch (error) {
       this.#deps.logger.error(
         ensureError(
           error,
-          'RewardsIntegrationService.calculateUserFeeDiscount',
+          'RewardsIntegrationService.getUserHyperliquidBuilderFeeConfig',
         ),
         {
           tags: { feature: PERPS_CONSTANTS.FeatureName },
           context: {
-            name: 'RewardsIntegrationService.calculateUserFeeDiscount',
+            name: 'RewardsIntegrationService.getUserHyperliquidBuilderFeeConfig',
             data: {},
           },
         },

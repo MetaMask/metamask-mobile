@@ -13,6 +13,18 @@ import { type FeeCalculationResult } from '@metamask/perps-controller';
 
 jest.mock('./usePerpsTrading');
 
+jest.mock('@metamask/perps-controller', () => {
+  const actual = jest.requireActual('@metamask/perps-controller');
+  return {
+    ...actual,
+    formatAccountToCaipAccountId: jest
+      .fn()
+      .mockReturnValue(
+        'eip155:42161:0x1234567890123456789012345678901234567890',
+      ),
+  };
+});
+
 // Import existing mocks
 import { createMockEngineContext, TEST_CONSTANTS } from '../__mocks__';
 
@@ -23,10 +35,27 @@ const mockControllerMessenger = {
   call: jest.fn(),
 };
 
-jest.mock('../../../../core/Engine', () => ({
-  controllerMessenger: mockControllerMessenger,
-  context: mockEngineContext,
-}));
+jest.mock('../../../../core/Engine', () => {
+  const mockEngine = {
+    get controllerMessenger() {
+      return mockControllerMessenger;
+    },
+    get context() {
+      return mockEngineContext;
+    },
+  };
+
+  return {
+    __esModule: true,
+    default: mockEngine,
+    get controllerMessenger() {
+      return mockControllerMessenger;
+    },
+    get context() {
+      return mockEngineContext;
+    },
+  };
+});
 
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest
@@ -71,6 +100,13 @@ const createWrapper = () => {
   };
 };
 
+const mockPerpsSelectors = () => {
+  const selectorValue = {
+    address: TEST_CONSTANTS.MOCK_ADDRESS,
+  };
+  mockUseSelector.mockReturnValue(selectorValue);
+};
+
 describe('usePerpsOrderFees', () => {
   const mockCalculateFees = jest.fn<
     Promise<FeeCalculationResult>,
@@ -80,66 +116,12 @@ describe('usePerpsOrderFees', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     clearRewardsCaches();
+    mockEngineContext.RewardsController.getHyperliquidBuilderFeesForAccount.mockResolvedValue(
+      null,
+    );
+    mockEngineContext.RewardsController.estimatePoints.mockResolvedValue(null);
 
-    // Mock Redux state selectors correctly based on the selector function
-    mockUseSelector.mockImplementation((selectorFn) => {
-      // Create a mock state that the selectors can use
-      const mockState = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                ENABLE_REWARDS: true,
-              },
-              cacheTimestamp: 0,
-            },
-            AccountsController: {
-              internalAccounts: {
-                accounts: {
-                  [TEST_CONSTANTS.MOCK_ACCOUNT_ID]: {
-                    address: TEST_CONSTANTS.MOCK_ADDRESS,
-                    id: TEST_CONSTANTS.MOCK_ACCOUNT_ID,
-                    metadata: { name: 'Test Account' },
-                  },
-                },
-                selectedAccount: TEST_CONSTANTS.MOCK_ACCOUNT_ID,
-              },
-            },
-            NetworkController: {
-              selectedNetworkClientId: 'arbitrum',
-              networkConfigurationsByChainId: {
-                '0xa4b1': { chainId: '0xa4b1' },
-              },
-            },
-          },
-        },
-      };
-
-      // Call the actual selector with our mock state
-      try {
-        return selectorFn(mockState);
-      } catch (error) {
-        // Fallback for selectors that don't match our mock structure
-        // Return sensible defaults based on common selector patterns
-        const selectorStr = selectorFn.toString();
-        if (
-          selectorStr.includes('rewards') ||
-          selectorStr.includes('Rewards')
-        ) {
-          return true; // rewardsEnabled
-        }
-        if (
-          selectorStr.includes('address') ||
-          selectorStr.includes('Address')
-        ) {
-          return TEST_CONSTANTS.MOCK_ADDRESS; // selectedAddress
-        }
-        if (selectorStr.includes('chain') || selectorStr.includes('Chain')) {
-          return '0xa4b1'; // chainId
-        }
-        return undefined;
-      }
-    });
+    mockPerpsSelectors();
     mockUsePerpsTrading.mockReturnValue({
       calculateFees: mockCalculateFees,
       placeOrder: jest.fn(),
@@ -463,20 +445,31 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.originalMetamaskFeeRate).toBe(0.00045);
     });
 
-    it('should apply fee discount when discountBips provided', async () => {
-      // Mock controller to return fee discount
+    it('should apply VIP builder fee when provided', async () => {
+      // Mock controller to return VIP final fee
+      mockEngineContext.RewardsController.getHyperliquidBuilderFeesForAccount.mockResolvedValue(
+        {
+          builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+          builderFeeBips: '9',
+        },
+      );
       mockControllerMessenger.call.mockImplementation((method: string) => {
-        if (method === 'RewardsController:getPerpsDiscountForAccount') {
-          return Promise.resolve(1000); // 10% discount (1000 bips)
+        if (
+          method === 'RewardsController:getHyperliquidBuilderFeesForAccount'
+        ) {
+          return Promise.resolve({
+            builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+            builderFeeBips: '9',
+          });
         }
         return Promise.resolve(null);
       });
 
       const mockFeeResult: FeeCalculationResult = {
-        feeRate: 0.01045, // 0.045% protocol + 1% metamask
-        feeAmount: 1045,
+        feeRate: 0.00145, // 0.045% protocol + 0.1% metamask
+        feeAmount: 145,
         protocolFeeRate: 0.00045,
-        metamaskFeeRate: 0.01, // 1% base rate
+        metamaskFeeRate: 0.001, // 0.1% base rate
       };
       mockCalculateFees.mockResolvedValue(mockFeeResult);
 
@@ -493,9 +486,12 @@ describe('usePerpsOrderFees', () => {
         expect(result.current.isLoadingMetamaskFee).toBe(false);
       });
 
+      expect(
+        mockEngineContext.RewardsController.getHyperliquidBuilderFeesForAccount,
+      ).toHaveBeenCalled();
       expect(result.current.totalFee).toBeGreaterThan(0);
-      expect(result.current.originalMetamaskFeeRate).toBe(0.01);
-      // The hook should apply discount internally
+      expect(result.current.originalMetamaskFeeRate).toBe(0.001);
+      expect(result.current.metamaskFeeRate).toBe(0.0009);
     });
   });
 
@@ -718,63 +714,11 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
     jest.clearAllMocks();
     clearRewardsCaches();
     mockControllerMessenger.call.mockReset();
-    mockUseSelector.mockImplementation((selectorFn) => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                ENABLE_REWARDS: true,
-              },
-              cacheTimestamp: 0,
-            },
-            AccountsController: {
-              internalAccounts: {
-                accounts: {
-                  [TEST_CONSTANTS.MOCK_ACCOUNT_ID]: {
-                    address: TEST_CONSTANTS.MOCK_ADDRESS,
-                    id: TEST_CONSTANTS.MOCK_ACCOUNT_ID,
-                    metadata: { name: 'Test Account' },
-                  },
-                },
-                selectedAccount: TEST_CONSTANTS.MOCK_ACCOUNT_ID,
-              },
-            },
-            NetworkController: {
-              selectedNetworkClientId: 'arbitrum',
-              networkConfigurationsByChainId: {
-                '0xa4b1': { chainId: '0xa4b1' },
-              },
-            },
-          },
-        },
-      };
-
-      try {
-        return selectorFn(mockState);
-      } catch (error) {
-        // Fallback to string-based selector detection for mock state
-        // eslint-disable-next-line no-console
-        console.debug('Selector fallback:', error);
-        const selectorStr = selectorFn.toString();
-        if (
-          selectorStr.includes('rewards') ||
-          selectorStr.includes('Rewards')
-        ) {
-          return true;
-        }
-        if (
-          selectorStr.includes('address') ||
-          selectorStr.includes('Address')
-        ) {
-          return TEST_CONSTANTS.MOCK_ADDRESS;
-        }
-        if (selectorStr.includes('chain') || selectorStr.includes('Chain')) {
-          return '0xa4b1';
-        }
-        return undefined;
-      }
-    });
+    mockEngineContext.RewardsController.getHyperliquidBuilderFeesForAccount.mockResolvedValue(
+      null,
+    );
+    mockEngineContext.RewardsController.estimatePoints.mockResolvedValue(null);
+    mockPerpsSelectors();
     mockUsePerpsTrading.mockReturnValue({
       calculateFees: mockCalculateFees,
       placeOrder: jest.fn(),
@@ -1483,8 +1427,14 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    clearRewardsCaches();
     // Reset controller messenger mock
     mockControllerMessenger.call.mockReset();
+    mockEngineContext.RewardsController.getHyperliquidBuilderFeesForAccount.mockResolvedValue(
+      null,
+    );
+    mockEngineContext.RewardsController.estimatePoints.mockResolvedValue(null);
+    mockPerpsSelectors();
     mockUsePerpsTrading.mockReturnValue({
       calculateFees: mockCalculateFees,
       placeOrder: jest.fn(),
@@ -1525,8 +1475,10 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
         metamaskFeeRate: 0.00045,
       };
       mockControllerMessenger.call.mockImplementation((method: string) => {
-        if (method === 'RewardsController:getPerpsDiscountForAccount') {
-          return Promise.resolve(0);
+        if (
+          method === 'RewardsController:getHyperliquidBuilderFeesForAccount'
+        ) {
+          return Promise.resolve(null);
         }
         if (method === 'RewardsController:estimatePoints') {
           return Promise.resolve({ pointsEstimate: 100, bonusBips: 200 });
@@ -1563,8 +1515,10 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
         metamaskFeeRate: 0.00045,
       };
       mockControllerMessenger.call.mockImplementation((method: string) => {
-        if (method === 'RewardsController:getPerpsDiscountForAccount') {
-          return Promise.resolve(0);
+        if (
+          method === 'RewardsController:getHyperliquidBuilderFeesForAccount'
+        ) {
+          return Promise.resolve(null);
         }
         if (method === 'RewardsController:estimatePoints') {
           return Promise.resolve({ pointsEstimate: 100, bonusBips: -10000 });
@@ -1709,7 +1663,9 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
 
       // Mock rewards API to fail
       mockControllerMessenger.call.mockImplementation((method: string) => {
-        if (method === 'RewardsController:getPerpsDiscountForAccount') {
+        if (
+          method === 'RewardsController:getHyperliquidBuilderFeesForAccount'
+        ) {
           return Promise.reject(new Error('Rewards API unavailable'));
         }
         return Promise.resolve();
@@ -1748,8 +1704,10 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
       mockCalculateFees.mockResolvedValue(mockFeeResult);
 
       mockControllerMessenger.call.mockImplementation((method: string) => {
-        if (method === 'RewardsController:getPerpsDiscountForAccount') {
-          return Promise.resolve(0);
+        if (
+          method === 'RewardsController:getHyperliquidBuilderFeesForAccount'
+        ) {
+          return Promise.resolve(null);
         }
         if (method === 'RewardsController:estimatePoints') {
           return Promise.reject(new Error('Points estimation failed'));
@@ -1791,8 +1749,10 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
 
       // Mock negative discount
       mockControllerMessenger.call.mockImplementation((method: string) => {
-        if (method === 'RewardsController:getPerpsDiscountForAccount') {
-          return Promise.resolve(-500); // -5% discount
+        if (
+          method === 'RewardsController:getHyperliquidBuilderFeesForAccount'
+        ) {
+          return Promise.resolve({ builderCode: '', builderFeeBips: '-5' });
         }
         return Promise.resolve();
       });
@@ -1829,8 +1789,10 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
       mockCalculateFees.mockResolvedValue(mockFeeResult);
 
       mockControllerMessenger.call.mockImplementation((method: string) => {
-        if (method === 'RewardsController:getPerpsDiscountForAccount') {
-          return Promise.resolve(0); // No discount
+        if (
+          method === 'RewardsController:getHyperliquidBuilderFeesForAccount'
+        ) {
+          return Promise.resolve(null); // No discount
         }
         if (method === 'RewardsController:estimatePoints') {
           return Promise.resolve({

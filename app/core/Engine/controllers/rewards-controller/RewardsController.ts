@@ -4,7 +4,8 @@ import {
   type RewardsControllerState,
   type RewardsAccountState,
   type LoginResponseDto,
-  type PerpsDiscountData,
+  type HyperliquidFeesDto,
+  type VipFeesResponseDto,
   type EstimatePointsDto,
   type EstimatedPointsDto,
   type SeasonDtoState,
@@ -97,8 +98,8 @@ export const DEFAULT_BLOCKED_REGIONS = ['UK', 'GB', 'GI'];
 
 const controllerName = 'RewardsController';
 
-// Perps discount refresh threshold
-const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+// VIP fees cache threshold
+const VIP_FEES_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Season status cache threshold
 const SEASON_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
@@ -295,6 +296,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  vipFees: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   pointsEstimateHistory: {
     includeInStateLogs: true,
     persist: true,
@@ -430,7 +437,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPerpsTradingCampaignVolume',
   'getOptInStatus',
   'getPerpsTradingCampaignParticipantOutcome',
-  'getPerpsDiscountForAccount',
+  'getHyperliquidBuilderFeesForAccount',
   'getPointsEvents',
   'getPointsEventsIfChanged',
   'getPointsEventsLastUpdated',
@@ -1194,8 +1201,6 @@ export class RewardsController extends BaseController<
           account: account as CaipAccountId,
           hasOptedIn: false,
           subscriptionId: null,
-          perpsFeeDiscount: null, // Default value, will be updated when fetched
-          lastPerpsDiscountRateFetched: null,
         };
         this.update((state) => {
           state.accounts[account as CaipAccountId] =
@@ -1235,8 +1240,6 @@ export class RewardsController extends BaseController<
               account,
               hasOptedIn: false,
               subscriptionId: null,
-              perpsFeeDiscount: null,
-              lastPerpsDiscountRateFetched: null,
               lastFreshOptInStatusCheck: Date.now(),
             };
             state.accounts[account] = accountState;
@@ -1365,8 +1368,6 @@ export class RewardsController extends BaseController<
           account,
           hasOptedIn: authUnexpectedError ? undefined : !!subscription,
           subscriptionId: subscription?.id || null,
-          perpsFeeDiscount: null, // Default value, will be updated when fetched
-          lastPerpsDiscountRateFetched: null,
           lastFreshOptInStatusCheck: Date.now(),
         };
         state.accounts[account] = accountState;
@@ -1384,83 +1385,6 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Update perps fee discount for a given address
-   * @param address - The account address in CAIP-10 format
-   */
-  async #getPerpsFeeDiscountData(
-    account: CaipAccountId,
-  ): Promise<PerpsDiscountData | null> {
-    const accountState = this.#getAccountState(account);
-
-    // Check if we have a cached discount and if threshold hasn't been reached
-    if (
-      accountState?.perpsFeeDiscount !== null &&
-      accountState?.lastPerpsDiscountRateFetched !== null &&
-      accountState?.lastPerpsDiscountRateFetched &&
-      Date.now() - accountState.lastPerpsDiscountRateFetched <
-        PERPS_DISCOUNT_CACHE_THRESHOLD_MS
-    ) {
-      return {
-        hasOptedIn: !!accountState?.hasOptedIn,
-        discountBips: accountState?.perpsFeeDiscount,
-      };
-    }
-
-    try {
-      Logger.log(
-        'RewardsController: Fetching fresh perps discount data via API call for',
-        account,
-      );
-      const perpsDiscountData = await this.messenger.call(
-        'RewardsDataService:getPerpsDiscount',
-        { account },
-      );
-
-      // Make sure all account caip indexes are stored the same way
-      let coercedAccount: CaipAccountId;
-      if (account?.startsWith('eip155') && !account?.startsWith('eip155:0')) {
-        coercedAccount =
-          `eip155:0:${account.split(':')[2]?.toLowerCase()}` as CaipAccountId;
-      } else if (account?.startsWith('eip155')) {
-        coercedAccount = account.toLowerCase() as CaipAccountId;
-      } else {
-        coercedAccount = account;
-      }
-
-      this.update((state) => {
-        // Create account state if it doesn't exist
-        if (!state.accounts[coercedAccount]) {
-          state.accounts[coercedAccount] = {
-            account: coercedAccount,
-            hasOptedIn: perpsDiscountData.hasOptedIn,
-            subscriptionId: null,
-            perpsFeeDiscount: perpsDiscountData.discountBips ?? 0,
-            lastPerpsDiscountRateFetched: Date.now(),
-          };
-        } else {
-          // Update account state
-          state.accounts[coercedAccount].hasOptedIn =
-            perpsDiscountData.hasOptedIn;
-          if (!perpsDiscountData.hasOptedIn) {
-            state.accounts[coercedAccount].subscriptionId = null;
-          }
-          state.accounts[coercedAccount].perpsFeeDiscount =
-            perpsDiscountData.discountBips ?? 0;
-          state.accounts[coercedAccount].lastPerpsDiscountRateFetched =
-            Date.now();
-        }
-      });
-      return perpsDiscountData;
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to update perps fee discount:',
-        error instanceof Error ? error.message : String(error),
-      );
-      return null;
-    }
-  }
-
-  /**
    * Check if the given account (caip-10 format) has opted in to rewards
    * @param account - The account address in CAIP-10 format
    * @returns Promise<boolean> - True if the account has opted in, false otherwise
@@ -1468,12 +1392,34 @@ export class RewardsController extends BaseController<
   async getHasAccountOptedIn(account: CaipAccountId): Promise<boolean> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) return false;
-    const accountState = this.#getAccountState(account);
-    if (accountState?.hasOptedIn) return accountState.hasOptedIn;
 
-    // Right now we'll derive this from either cached map state or perps fee discount api call.
-    const perpsDiscountData = await this.#getPerpsFeeDiscountData(account);
-    return !!perpsDiscountData?.hasOptedIn;
+    const accountState = this.#getAccountState(account);
+    if (accountState?.hasOptedIn === true) return true;
+
+    if (accountState?.hasOptedIn === false) {
+      const shouldRecheckFreshIfNotOptedIn =
+        !accountState.lastFreshOptInStatusCheck ||
+        Date.now() - accountState.lastFreshOptInStatusCheck >
+          NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS;
+
+      if (!shouldRecheckFreshIfNotOptedIn) {
+        return false;
+      }
+    }
+
+    const address = account.split(':').slice(2).join(':');
+    if (!address) return false;
+
+    try {
+      const optInStatus = await this.getOptInStatus({ addresses: [address] });
+      return optInStatus.ois[0] ?? false;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get opt-in status:',
+        error instanceof Error ? error.message : String(error),
+      );
+      return false;
+    }
   }
 
   checkOptInStatusAgainstCache(
@@ -1620,8 +1566,6 @@ export class RewardsController extends BaseController<
                     account: caipAccount,
                     hasOptedIn,
                     subscriptionId,
-                    perpsFeeDiscount: null,
-                    lastPerpsDiscountRateFetched: null,
                     lastFreshOptInStatusCheck,
                   };
                 } else {
@@ -1671,16 +1615,75 @@ export class RewardsController extends BaseController<
     }
   }
 
+  #extractHyperliquidBuilderFees(
+    vipFees: VipFeesResponseDto | null | undefined,
+  ): HyperliquidFeesDto | null {
+    if (!vipFees || vipFees.vipTier === 0 || !vipFees.fees) {
+      return null;
+    }
+
+    return vipFees.fees.hyperliquid ?? null;
+  }
+
   /**
-   * Get perps fee discount for an account with caching and threshold logic
+   * Get HyperLiquid builder fees for an account's VIP tier.
+   * Returns null when the account is not VIP or no cached/authenticated
+   * subscription is available. On fetch errors, stale cached data is reused.
+   *
    * @param account - The account address in CAIP-10 format
-   * @returns Promise<number> - The discount in basis points
+   * @returns Promise<HyperliquidFeesDto | null> - VIP HyperLiquid builder fees
    */
-  async getPerpsDiscountForAccount(account: CaipAccountId): Promise<number> {
+  async getHyperliquidBuilderFeesForAccount(
+    account: CaipAccountId,
+  ): Promise<HyperliquidFeesDto | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) return 0;
-    const perpsDiscountData = await this.#getPerpsFeeDiscountData(account);
-    return perpsDiscountData?.discountBips || 0;
+    if (!rewardsEnabled) return null;
+
+    const subscriptionId = this.getActualSubscriptionId(account);
+    if (!subscriptionId) {
+      return null;
+    }
+
+    const cached = this.state.vipFees[subscriptionId];
+    if (
+      cached &&
+      Date.now() - cached.lastFetched < VIP_FEES_CACHE_THRESHOLD_MS
+    ) {
+      return this.#extractHyperliquidBuilderFees(cached);
+    }
+
+    try {
+      Logger.log(
+        'RewardsController: Fetching fresh VIP fees via API call for subscription',
+        subscriptionId,
+      );
+
+      const vipFees = await this.#withAuthRetry(
+        () =>
+          this.messenger.call('RewardsDataService:getVipFees', subscriptionId),
+        subscriptionId,
+      );
+
+      this.update((state) => {
+        state.vipFees[subscriptionId] = {
+          ...vipFees,
+          lastFetched: Date.now(),
+        };
+      });
+
+      return this.#extractHyperliquidBuilderFees(vipFees);
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get VIP fees:',
+        error instanceof Error ? error.message : String(error),
+      );
+
+      if (cached) {
+        return this.#extractHyperliquidBuilderFees(cached);
+      }
+
+      return null;
+    }
   }
 
   /**
@@ -2281,8 +2284,6 @@ export class RewardsController extends BaseController<
             ...accountState,
             hasOptedIn: false,
             subscriptionId: null,
-            perpsFeeDiscount: null,
-            lastPerpsDiscountRateFetched: null,
             lastFreshOptInStatusCheck: null,
           };
         }
@@ -2294,8 +2295,6 @@ export class RewardsController extends BaseController<
           ...state.activeAccount,
           hasOptedIn: false,
           subscriptionId: null,
-          perpsFeeDiscount: null,
-          lastPerpsDiscountRateFetched: null,
           lastFreshOptInStatusCheck: null,
         };
       }
@@ -2560,8 +2559,6 @@ export class RewardsController extends BaseController<
           account: caipAccount,
           hasOptedIn: true,
           subscriptionId: optinResponse.subscription.id,
-          perpsFeeDiscount: null,
-          lastPerpsDiscountRateFetched: null,
         };
         if (
           state.activeAccount &&
@@ -2613,8 +2610,6 @@ export class RewardsController extends BaseController<
             account: currentActiveAccount,
             hasOptedIn: false,
             subscriptionId: null,
-            perpsFeeDiscount: null,
-            lastPerpsDiscountRateFetched: null,
             lastFreshOptInStatusCheck: null,
           };
         }
@@ -3071,8 +3066,6 @@ export class RewardsController extends BaseController<
           account: caipAccount,
           hasOptedIn: true, // via linking this is now opted in.
           subscriptionId: updatedSubscription.id,
-          perpsFeeDiscount: null,
-          lastPerpsDiscountRateFetched: null,
         };
         if (state.activeAccount?.account === caipAccount) {
           state.activeAccount = state.accounts[caipAccount];
@@ -4430,6 +4423,7 @@ export class RewardsController extends BaseController<
         delete state.activeBoosts[compositeKey];
         delete state.pointsEvents[compositeKey];
         delete state.subscriptionReferralDetails[compositeKey];
+        delete state.vipFees[subscriptionId];
         Object.keys(state.campaignParticipantStatus).forEach((key) => {
           if (key.startsWith(`${subscriptionId}:`)) {
             delete state.campaignParticipantStatus[key];
@@ -4485,6 +4479,7 @@ export class RewardsController extends BaseController<
             OffDeviceSubscriptionAccountsState
           >
         )[subscriptionId];
+        delete state.vipFees[subscriptionId];
         Object.keys(state.campaignParticipantStatus).forEach((key) => {
           if (key.startsWith(`${subscriptionId}:`)) {
             delete state.campaignParticipantStatus[key];

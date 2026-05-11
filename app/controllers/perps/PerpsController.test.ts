@@ -79,7 +79,7 @@ jest.mock('../../components/UI/Perps/providers/PerpsStreamManager', () => ({
 // Create persistent mock controllers INSIDE jest.mock factory
 jest.mock('../../core/Engine', () => {
   const mockRewardsController = {
-    getPerpsDiscountForAccount: jest.fn(),
+    getHyperliquidBuilderFeesForAccount: jest.fn(),
   };
 
   const mockNetworkController = {
@@ -291,7 +291,7 @@ class TestablePerpsController extends PerpsController {
    * @param callback
    */
   public testUpdate(callback: (state: PerpsControllerState) => void) {
-    this.update(callback);
+    this.update(callback as any);
   }
 
   /**
@@ -426,7 +426,8 @@ describe('PerpsController', () => {
 
     // Reset Engine.context mocks to default state to prevent test interdependence
     (
-      Engine.context.RewardsController.getPerpsDiscountForAccount as jest.Mock
+      Engine.context.RewardsController
+        .getHyperliquidBuilderFeesForAccount as jest.Mock
     ).mockResolvedValue(null);
     (
       Engine.context.NetworkController.getNetworkClientById as jest.Mock

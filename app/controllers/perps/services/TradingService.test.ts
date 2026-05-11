@@ -36,7 +36,13 @@ describe('TradingService', () => {
   let mockGetPositions: jest.Mock;
   let mockGetOpenOrders: jest.Mock;
   let mockSaveTradeConfiguration: jest.Mock;
-  let mockRewardsIntegrationService: { calculateUserFeeDiscount: jest.Mock };
+  let mockRewardsIntegrationService: {
+    getUserHyperliquidBuilderFeeConfig: jest.Mock;
+  };
+  const mockBuilderFeeConfig = {
+    builderAddress: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+    builderFeeBips: 8,
+  };
 
   const createContextWithRewards = (): ServiceContext =>
     createMockServiceContext({
@@ -51,9 +57,11 @@ describe('TradingService', () => {
     mockDeps = createMockInfrastructure();
     tradingService = new TradingService(mockDeps);
     mockRewardsIntegrationService = {
-      calculateUserFeeDiscount: jest.fn().mockResolvedValue(undefined),
+      getUserHyperliquidBuilderFeeConfig: jest
+        .fn()
+        .mockResolvedValue(undefined),
     };
-    // Set controller dependencies for fee discount calculation
+    // Set controller dependencies for VIP builder fee calculation
     tradingService.setControllerDependencies({
       rewardsIntegrationService: mockRewardsIntegrationService as never,
     });
@@ -81,7 +89,7 @@ describe('TradingService', () => {
   });
 
   describe('placeOrder', () => {
-    it('places order successfully without fee discount', async () => {
+    it('places order successfully without VIP builder fee', async () => {
       const orderParams: OrderParams = {
         symbol: 'BTC',
         isBuy: true,
@@ -96,7 +104,7 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -109,10 +117,10 @@ describe('TradingService', () => {
 
       expect(result).toEqual(mockOrderResult);
       expect(mockProvider.placeOrder).toHaveBeenCalledWith(orderParams);
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(undefined);
+      expect(mockProvider.setUserFeeConfig).toHaveBeenCalledWith(undefined);
     });
 
-    it('places order successfully with fee discount applied and cleared', async () => {
+    it('places order successfully with VIP builder fee applied and cleared', async () => {
       const orderParams: OrderParams = {
         symbol: 'BTC',
         isBuy: true,
@@ -129,8 +137,8 @@ describe('TradingService', () => {
       const contextWithRewards = createContextWithRewards();
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
-        6500,
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
+        mockBuilderFeeConfig,
       );
 
       const result = await tradingService.placeOrder({
@@ -141,14 +149,14 @@ describe('TradingService', () => {
       });
 
       expect(result).toEqual(mockOrderResult);
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
-      expect(mockProvider.placeOrder).toHaveBeenCalledWith(orderParams);
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
-        undefined,
+      expect(mockProvider.setUserFeeConfig).toHaveBeenCalledWith(
+        mockBuilderFeeConfig,
       );
+      expect(mockProvider.placeOrder).toHaveBeenCalledWith(orderParams);
+      expect(mockProvider.setUserFeeConfig).toHaveBeenLastCalledWith(undefined);
     });
 
-    it('clears fee discount when order placement fails', async () => {
+    it('clears VIP builder fee when order placement fails', async () => {
       const orderParams: OrderParams = {
         symbol: 'BTC',
         isBuy: true,
@@ -160,8 +168,8 @@ describe('TradingService', () => {
       mockProvider.placeOrder.mockRejectedValue(
         new Error('Order placement failed'),
       );
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
-        6500,
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
+        mockBuilderFeeConfig,
       );
 
       await expect(
@@ -173,10 +181,10 @@ describe('TradingService', () => {
         }),
       ).rejects.toThrow('Order placement failed');
 
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
-        undefined,
+      expect(mockProvider.setUserFeeConfig).toHaveBeenCalledWith(
+        mockBuilderFeeConfig,
       );
+      expect(mockProvider.setUserFeeConfig).toHaveBeenLastCalledWith(undefined);
     });
 
     it('adds and removes order from pending state optimistically', async () => {
@@ -192,7 +200,7 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -220,7 +228,7 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -259,7 +267,7 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -301,7 +309,7 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -344,7 +352,7 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -378,7 +386,7 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -412,7 +420,7 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -444,7 +452,7 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
       mockReportOrderToDataLake.mockRejectedValue(new Error('Data lake error'));
@@ -472,7 +480,7 @@ describe('TradingService', () => {
       };
 
       mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -508,7 +516,7 @@ describe('TradingService', () => {
         filledSize: '0.1',
         averagePrice: '50000',
       });
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -548,7 +556,7 @@ describe('TradingService', () => {
         filledSize: '0.1',
         averagePrice: '50000',
       });
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -579,7 +587,7 @@ describe('TradingService', () => {
         success: false,
         error: 'Insufficient margin',
       });
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -604,7 +612,7 @@ describe('TradingService', () => {
       };
       const error = new Error('Network timeout');
       mockProvider.placeOrder.mockRejectedValue(error);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -641,7 +649,7 @@ describe('TradingService', () => {
       mockReportOrderToDataLake.mockRejectedValue(
         new Error('Data lake unavailable'),
       );
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -662,7 +670,7 @@ describe('TradingService', () => {
   });
 
   describe('editOrder', () => {
-    it('edits order successfully without fee discount', async () => {
+    it('edits order successfully without VIP builder fee', async () => {
       const editParams: EditOrderParams = {
         orderId: 'order-123',
         newOrder: {
@@ -679,7 +687,7 @@ describe('TradingService', () => {
       };
 
       mockProvider.editOrder.mockResolvedValue(mockOrderResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -691,10 +699,10 @@ describe('TradingService', () => {
 
       expect(result).toEqual(mockOrderResult);
       expect(mockProvider.editOrder).toHaveBeenCalledWith(editParams);
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(undefined);
+      expect(mockProvider.setUserFeeConfig).toHaveBeenCalledWith(undefined);
     });
 
-    it('edits order successfully with fee discount applied and cleared', async () => {
+    it('edits order successfully with VIP builder fee applied and cleared', async () => {
       const editParams: EditOrderParams = {
         orderId: 'order-123',
         newOrder: {
@@ -712,8 +720,8 @@ describe('TradingService', () => {
 
       mockProvider.editOrder.mockResolvedValue(mockOrderResult);
       const contextWithRewards = createContextWithRewards();
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
-        6500,
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
+        mockBuilderFeeConfig,
       );
 
       const result = await tradingService.editOrder({
@@ -723,11 +731,11 @@ describe('TradingService', () => {
       });
 
       expect(result).toEqual(mockOrderResult);
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
-      expect(mockProvider.editOrder).toHaveBeenCalledWith(editParams);
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
-        undefined,
+      expect(mockProvider.setUserFeeConfig).toHaveBeenCalledWith(
+        mockBuilderFeeConfig,
       );
+      expect(mockProvider.editOrder).toHaveBeenCalledWith(editParams);
+      expect(mockProvider.setUserFeeConfig).toHaveBeenLastCalledWith(undefined);
     });
 
     it('tracks analytics event when edit succeeds', async () => {
@@ -747,7 +755,7 @@ describe('TradingService', () => {
       };
 
       mockProvider.editOrder.mockResolvedValue(mockOrderResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -782,7 +790,7 @@ describe('TradingService', () => {
       };
 
       mockProvider.editOrder.mockResolvedValue(mockOrderResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -800,7 +808,7 @@ describe('TradingService', () => {
       );
     });
 
-    it('clears fee discount when edit throws exception', async () => {
+    it('clears VIP builder fee when edit throws exception', async () => {
       const editParams: EditOrderParams = {
         orderId: 'order-123',
         newOrder: {
@@ -814,8 +822,8 @@ describe('TradingService', () => {
 
       mockProvider.editOrder.mockRejectedValue(new Error('Edit failed'));
       const contextWithRewards = createContextWithRewards();
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
-        6500,
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
+        mockBuilderFeeConfig,
       );
 
       await expect(
@@ -826,10 +834,10 @@ describe('TradingService', () => {
         }),
       ).rejects.toThrow('Edit failed');
 
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
-        undefined,
+      expect(mockProvider.setUserFeeConfig).toHaveBeenCalledWith(
+        mockBuilderFeeConfig,
       );
+      expect(mockProvider.setUserFeeConfig).toHaveBeenLastCalledWith(undefined);
     });
 
     it('handles order edit failure', async () => {
@@ -1277,7 +1285,7 @@ describe('TradingService', () => {
       stopLossCount: 0,
     };
 
-    it('closes position successfully without fee discount', async () => {
+    it('closes position successfully without VIP builder fee', async () => {
       const params: ClosePositionParams = {
         symbol: 'BTC',
       };
@@ -1290,7 +1298,7 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.closePosition.mockResolvedValue(mockResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -1303,10 +1311,10 @@ describe('TradingService', () => {
 
       expect(result).toEqual(mockResult);
       expect(mockProvider.closePosition).toHaveBeenCalledWith(params);
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(undefined);
+      expect(mockProvider.setUserFeeConfig).toHaveBeenCalledWith(undefined);
     });
 
-    it('closes position successfully with fee discount applied and cleared', async () => {
+    it('closes position successfully with VIP builder fee applied and cleared', async () => {
       const params: ClosePositionParams = {
         symbol: 'BTC',
       };
@@ -1318,8 +1326,8 @@ describe('TradingService', () => {
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.closePosition.mockResolvedValue(mockResult);
       const contextWithRewards = createContextWithRewards();
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
-        6500,
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
+        mockBuilderFeeConfig,
       );
 
       const result = await tradingService.closePosition({
@@ -1330,11 +1338,11 @@ describe('TradingService', () => {
       });
 
       expect(result).toEqual(mockResult);
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
-      expect(mockProvider.closePosition).toHaveBeenCalledWith(params);
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
-        undefined,
+      expect(mockProvider.setUserFeeConfig).toHaveBeenCalledWith(
+        mockBuilderFeeConfig,
       );
+      expect(mockProvider.closePosition).toHaveBeenCalledWith(params);
+      expect(mockProvider.setUserFeeConfig).toHaveBeenLastCalledWith(undefined);
     });
 
     it('tracks analytics with PNL calculation', async () => {
@@ -1350,7 +1358,7 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.closePosition.mockResolvedValue(mockResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -1380,7 +1388,7 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.closePosition.mockResolvedValue(mockResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -1412,7 +1420,7 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([shortPosition]);
       mockProvider.closePosition.mockResolvedValue(mockResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -1442,7 +1450,7 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.closePosition.mockResolvedValue(mockFailureResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -1511,7 +1519,7 @@ describe('TradingService', () => {
           { success: true, orderId: 'close-2', symbol: 'ETH' },
         ],
       });
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -1535,7 +1543,7 @@ describe('TradingService', () => {
         success: true,
         results: [{ success: true, orderId: 'close-1', symbol: 'BTC' }],
       });
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -1585,7 +1593,7 @@ describe('TradingService', () => {
           { success: false, symbol: 'ETH', error: 'Insufficient liquidity' },
         ],
       });
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -1610,7 +1618,7 @@ describe('TradingService', () => {
         success: true,
         orderId: 'close-1',
       });
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -1642,7 +1650,7 @@ describe('TradingService', () => {
       stopLossCount: 0,
     };
 
-    it('updates TP/SL successfully without fee discount', async () => {
+    it('updates TP/SL successfully without VIP builder fee', async () => {
       const params: UpdatePositionTPSLParams = {
         symbol: 'BTC',
         takeProfitPrice: '55000',
@@ -1654,7 +1662,7 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.updatePositionTPSL.mockResolvedValue(mockResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -1666,10 +1674,10 @@ describe('TradingService', () => {
 
       expect(result).toEqual(mockResult);
       expect(mockProvider.updatePositionTPSL).toHaveBeenCalledWith(params);
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(undefined);
+      expect(mockProvider.setUserFeeConfig).toHaveBeenCalledWith(undefined);
     });
 
-    it('updates TP/SL successfully with fee discount applied and cleared', async () => {
+    it('updates TP/SL successfully with VIP builder fee applied and cleared', async () => {
       const params: UpdatePositionTPSLParams = {
         symbol: 'BTC',
         takeProfitPrice: '55000',
@@ -1681,8 +1689,8 @@ describe('TradingService', () => {
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.updatePositionTPSL.mockResolvedValue(mockResult);
       const contextWithRewards = createContextWithRewards();
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
-        6500,
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
+        mockBuilderFeeConfig,
       );
 
       const result = await tradingService.updatePositionTPSL({
@@ -1692,11 +1700,11 @@ describe('TradingService', () => {
       });
 
       expect(result).toEqual(mockResult);
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
-      expect(mockProvider.updatePositionTPSL).toHaveBeenCalledWith(params);
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
-        undefined,
+      expect(mockProvider.setUserFeeConfig).toHaveBeenCalledWith(
+        mockBuilderFeeConfig,
       );
+      expect(mockProvider.updatePositionTPSL).toHaveBeenCalledWith(params);
+      expect(mockProvider.setUserFeeConfig).toHaveBeenLastCalledWith(undefined);
     });
 
     it('tracks analytics event when update succeeds', async () => {
@@ -1711,7 +1719,7 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.updatePositionTPSL.mockResolvedValue(mockResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -1741,7 +1749,7 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.updatePositionTPSL.mockResolvedValue(mockResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -1775,7 +1783,7 @@ describe('TradingService', () => {
 
       mockGetPositions.mockResolvedValue([mockPosition]);
       mockProvider.updatePositionTPSL.mockResolvedValue(mockResult);
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
         undefined,
       );
 
@@ -1794,7 +1802,7 @@ describe('TradingService', () => {
       );
     });
 
-    it('clears fee discount when update throws exception', async () => {
+    it('clears VIP builder fee when update throws exception', async () => {
       const params: UpdatePositionTPSLParams = {
         symbol: 'BTC',
         takeProfitPrice: '55000',
@@ -1805,8 +1813,8 @@ describe('TradingService', () => {
         new Error('Update failed'),
       );
       const contextWithRewards = createContextWithRewards();
-      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
-        6500,
+      mockRewardsIntegrationService.getUserHyperliquidBuilderFeeConfig.mockResolvedValue(
+        mockBuilderFeeConfig,
       );
 
       await expect(
@@ -1817,10 +1825,10 @@ describe('TradingService', () => {
         }),
       ).rejects.toThrow('Update failed');
 
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
-      expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
-        undefined,
+      expect(mockProvider.setUserFeeConfig).toHaveBeenCalledWith(
+        mockBuilderFeeConfig,
       );
+      expect(mockProvider.setUserFeeConfig).toHaveBeenLastCalledWith(undefined);
     });
   });
 

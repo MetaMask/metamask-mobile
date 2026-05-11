@@ -25,6 +25,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   perpsTradingCampaignLeaderboard: {},
   perpsTradingCampaignLeaderboardPositions: {},
   perpsTradingCampaignVolume: {},
+  vipFees: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });

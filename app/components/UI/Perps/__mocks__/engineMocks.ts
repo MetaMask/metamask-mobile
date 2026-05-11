@@ -46,7 +46,9 @@ export const createMockEngineContext = () => ({
     clearDepositResult: jest.fn(),
   },
   RewardsController: {
-    getPerpsDiscountForAccount: jest.fn().mockReturnValue(Promise.resolve(0)),
+    getHyperliquidBuilderFeesForAccount: jest
+      .fn()
+      .mockReturnValue(Promise.resolve(null)),
     estimatePoints: jest
       .fn()
       .mockReturnValue(

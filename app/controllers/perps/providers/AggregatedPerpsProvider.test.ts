@@ -98,7 +98,7 @@ const createMockProvider = (providerId: string): jest.Mocked<PerpsProvider> => {
 
     // Configuration
     setLiveDataConfig: jest.fn(),
-    setUserFeeDiscount: jest.fn(),
+    setUserFeeConfig: jest.fn(),
 
     // Lifecycle
     toggleTestnet: jest
@@ -622,11 +622,20 @@ describe('AggregatedPerpsProvider', () => {
       });
     });
 
-    it('applies setUserFeeDiscount to all providers', () => {
-      aggregatedProvider.setUserFeeDiscount(1000);
+    it('applies setUserFeeConfig to all providers', () => {
+      const builderFeeConfig = {
+        builderAddress: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+        builderFeeBips: 8,
+      };
 
-      expect(mockHLProvider.setUserFeeDiscount).toHaveBeenCalledWith(1000);
-      expect(mockMYXProvider.setUserFeeDiscount).toHaveBeenCalledWith(1000);
+      aggregatedProvider.setUserFeeConfig(builderFeeConfig);
+
+      expect(mockHLProvider.setUserFeeConfig).toHaveBeenCalledWith(
+        builderFeeConfig,
+      );
+      expect(mockMYXProvider.setUserFeeConfig).toHaveBeenCalledWith(
+        builderFeeConfig,
+      );
     });
   });
 

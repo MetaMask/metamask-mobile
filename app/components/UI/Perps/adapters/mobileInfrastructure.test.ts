@@ -73,7 +73,10 @@ jest.mock('../../../../store/storage-wrapper', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RewardsController: {
-      getPerpsDiscountForAccount: jest.fn().mockResolvedValue(5),
+      getHyperliquidBuilderFeesForAccount: jest.fn().mockResolvedValue({
+        builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+        builderFeeBips: '8',
+      }),
     },
   },
 }));
@@ -210,18 +213,21 @@ describe('createMobileInfrastructure', () => {
   });
 
   describe('rewards', () => {
-    it('delegates getPerpsDiscountForAccount to RewardsController', async () => {
+    it('delegates getHyperliquidBuilderFeesForAccount to RewardsController', async () => {
       const infra = createMobileInfrastructure();
       const caipAccountId =
         'eip155:42161:0x1234' as `${string}:${string}:${string}`;
 
       const result =
-        await infra.rewards.getPerpsDiscountForAccount(caipAccountId);
+        await infra.rewards.getHyperliquidBuilderFeesForAccount(caipAccountId);
 
       expect(
-        Engine.context.RewardsController.getPerpsDiscountForAccount,
+        Engine.context.RewardsController.getHyperliquidBuilderFeesForAccount,
       ).toHaveBeenCalledWith(caipAccountId);
-      expect(result).toBe(5);
+      expect(result).toEqual({
+        builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+        builderFeeBips: '8',
+      });
     });
   });
 

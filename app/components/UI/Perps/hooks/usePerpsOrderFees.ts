@@ -14,16 +14,17 @@ import {
 import {
   PerpsMeasurementName,
   PERFORMANCE_CONFIG,
+  BUILDER_FEE_CONFIG,
   formatAccountToCaipAccountId,
+  type HyperliquidBuilderFees,
 } from '@metamask/perps-controller';
-import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 import { usePerpsTrading } from './usePerpsTrading';
 import { determineMakerStatus } from '../utils/orderUtils';
 
-// Cache for fee discount to avoid repeated API calls
-let feeDiscountCache: {
+// Cache for VIP builder fees to avoid repeated API calls
+let vipBuilderFeeCache: {
   address: string;
-  discountBips: number | undefined;
+  fees: HyperliquidBuilderFees | null;
   timestamp: number;
   ttl: number;
 } | null = null;
@@ -96,9 +97,38 @@ interface UsePerpsOrderFeesParams {
  * Useful when switching accounts or when caches need to be refreshed
  */
 export function clearRewardsCaches(): void {
-  feeDiscountCache = null;
+  vipBuilderFeeCache = null;
   pointsCalculationCache = null;
   DevLogger.log('Rewards: Cleared all caches');
+}
+
+function parseVipBuilderFeeRate(
+  fees: HyperliquidBuilderFees | null | undefined,
+): number | undefined {
+  const builderFeeBips = Number(fees?.builderFeeBips);
+  const maxFeeBips = BUILDER_FEE_CONFIG.MaxFeeTenthsBps / 10;
+
+  if (
+    !fees?.builderCode ||
+    !Number.isFinite(builderFeeBips) ||
+    builderFeeBips < 0 ||
+    builderFeeBips > maxFeeBips
+  ) {
+    return undefined;
+  }
+
+  return builderFeeBips / 10000;
+}
+
+function calculateFeeDiscountPercentage(
+  originalRate: number,
+  adjustedRate: number,
+): number | undefined {
+  if (originalRate <= 0 || adjustedRate >= originalRate) {
+    return undefined;
+  }
+
+  return ((originalRate - adjustedRate) / originalRate) * 100;
 }
 
 export function usePerpsOrderFees({
@@ -144,26 +174,25 @@ export function usePerpsOrderFees({
   }, []);
 
   /**
-   * Fetch fee discount from RewardsController (non-blocking)
+   * Fetch VIP builder fees from RewardsController (non-blocking)
    */
-  const fetchFeeDiscount = useCallback(
+  const fetchVipBuilderFees = useCallback(
     async (
       address: string,
-    ): Promise<{ discountBips?: number; tier?: string }> => {
+    ): Promise<HyperliquidBuilderFees | null | undefined> => {
       // Check cache first
       const now = Date.now();
       if (
-        feeDiscountCache?.address === address &&
-        now - feeDiscountCache.timestamp < feeDiscountCache.ttl
+        vipBuilderFeeCache?.address === address &&
+        now - vipBuilderFeeCache.timestamp < vipBuilderFeeCache.ttl
       ) {
-        DevLogger.log('Rewards: Using cached fee discount', {
+        DevLogger.log('Rewards: Using cached VIP builder fees', {
           address,
-          discountBips: feeDiscountCache.discountBips,
-          cacheAge: Math.round((now - feeDiscountCache.timestamp) / 1000) + 's',
+          fees: vipBuilderFeeCache.fees,
+          cacheAge:
+            Math.round((now - vipBuilderFeeCache.timestamp) / 1000) + 's',
         });
-        return {
-          discountBips: feeDiscountCache.discountBips,
-        };
+        return vipBuilderFeeCache.fees;
       }
 
       try {
@@ -172,49 +201,54 @@ export function usePerpsOrderFees({
           currentChainId,
         );
         if (!caipAccountId) {
-          return {};
+          return undefined;
         }
 
-        DevLogger.log('Rewards: Fetching fee discount via controller', {
+        DevLogger.log('Rewards: Fetching VIP builder fees via controller', {
           address,
           caipAccountId,
         });
 
         const { RewardsController } = Engine.context;
-        const feeDiscountStartTime = performance.now();
-        const discountBips =
-          await RewardsController.getPerpsDiscountForAccount(caipAccountId);
-        const feeDiscountDuration = performance.now() - feeDiscountStartTime;
+        const vipFeesStartTime = performance.now();
+        const fees =
+          await RewardsController.getHyperliquidBuilderFeesForAccount(
+            caipAccountId,
+          );
+        const vipFeesDuration = performance.now() - vipFeesStartTime;
 
-        // Measure fee discount API call performance
+        // Measure VIP fees API call performance
         setMeasurement(
           PerpsMeasurementName.PerpsRewardsFeeDiscountApiCall,
-          feeDiscountDuration,
+          vipFeesDuration,
           'millisecond',
         );
 
-        DevLogger.log('Rewards: Fee discount bips fetched via controller', {
+        DevLogger.log('Rewards: VIP builder fees fetched via controller', {
           address,
-          discountBips,
-          duration: `${feeDiscountDuration.toFixed(0)}ms`,
+          fees,
+          duration: `${vipFeesDuration.toFixed(0)}ms`,
         });
 
-        // Cache the discount for configured duration
-        feeDiscountCache = {
+        // Cache the response for configured duration, including null non-VIP state
+        vipBuilderFeeCache = {
           address,
-          discountBips,
+          fees,
           timestamp: Date.now(),
           ttl: PERFORMANCE_CONFIG.FeeDiscountCacheDurationMs,
         };
 
-        return { discountBips };
+        return fees;
       } catch (error) {
-        DevLogger.log('Rewards: Error fetching fee discount via controller', {
-          error: error instanceof Error ? error.message : String(error),
-          address,
-        });
-        // Non-blocking - return empty if fails
-        return {};
+        DevLogger.log(
+          'Rewards: Error fetching VIP builder fees via controller',
+          {
+            error: error instanceof Error ? error.message : String(error),
+            address,
+          },
+        );
+        // Non-blocking - return undefined if fails
+        return undefined;
       }
     },
     [currentChainId],
@@ -328,56 +362,41 @@ export function usePerpsOrderFees({
   const [bonusBips, setBonusBips] = useState<number | undefined>();
 
   /**
-   * Apply fee discount and calculate actual rate
+   * Apply VIP builder fee and calculate actual rate.
    */
-  const applyFeeDiscount = useCallback(
+  const applyVipBuilderFee = useCallback(
     async (originalRate: number) => {
       if (!selectedAddress) {
         return { adjustedRate: originalRate, discountPercentage: undefined };
       }
 
       try {
-        // Development-only simulation for testing fee discount UI
-        const shouldSimulateFeeDiscount =
-          __DEV__ &&
-          Number.parseFloat(amount) ===
-            DEVELOPMENT_CONFIG.SimulateFeeDiscountAmount;
+        const vipBuilderFeeRate = parseVipBuilderFeeRate(
+          await fetchVipBuilderFees(selectedAddress),
+        );
 
-        let discountData: { discountBips?: number };
-
-        if (shouldSimulateFeeDiscount) {
-          discountData = { discountBips: 2000 };
-        } else {
-          discountData = await fetchFeeDiscount(selectedAddress);
-        }
-
-        if (discountData.discountBips !== undefined) {
-          // Validate discount doesn't exceed 100%
-          const clampedDiscountBips = Math.min(
-            discountData.discountBips,
-            10000,
-          );
-          const percentage = clampedDiscountBips / 100;
-          const discount = percentage / 100;
-          const adjustedRate = originalRate * (1 - discount);
+        if (vipBuilderFeeRate !== undefined) {
           return {
-            adjustedRate,
-            discountPercentage: percentage,
+            adjustedRate: vipBuilderFeeRate,
+            discountPercentage: calculateFeeDiscountPercentage(
+              originalRate,
+              vipBuilderFeeRate,
+            ),
           };
         }
 
         return { adjustedRate: originalRate, discountPercentage: undefined };
-      } catch (discountError) {
-        DevLogger.log('Rewards: Fee discount calculation failed', {
+      } catch (vipFeeError) {
+        DevLogger.log('Rewards: VIP builder fee calculation failed', {
           error:
-            discountError instanceof Error
-              ? discountError.message
-              : String(discountError),
+            vipFeeError instanceof Error
+              ? vipFeeError.message
+              : String(vipFeeError),
         });
         return { adjustedRate: originalRate, discountPercentage: undefined };
       }
     },
-    [fetchFeeDiscount, amount, selectedAddress],
+    [fetchVipBuilderFees, selectedAddress],
   );
 
   /**
@@ -563,8 +582,8 @@ export function usePerpsOrderFees({
           return;
         }
 
-        // Step 3: Apply fee discount if rewards are enabled (rates are guaranteed defined here)
-        const { adjustedRate, discountPercentage } = await applyFeeDiscount(
+        // Step 3: Apply VIP builder fee if rewards are enabled (rates are guaranteed defined here)
+        const { adjustedRate, discountPercentage } = await applyVipBuilderFee(
           coreFeesResult.metamaskFeeRate,
         );
 
@@ -574,7 +593,7 @@ export function usePerpsOrderFees({
         let pointsResult: { points?: number; bonusBips?: number } = {};
         if (selectedAddress && Number.parseFloat(amount) > 0) {
           const actualFeeUSD = Number.parseFloat(amount) * adjustedRate;
-          DevLogger.log('Rewards: Calculating points with discounted fee', {
+          DevLogger.log('Rewards: Calculating points with VIP-adjusted fee', {
             originalRate: coreFeesResult.metamaskFeeRate,
             discountPercentage,
             adjustedRate,
@@ -625,7 +644,7 @@ export function usePerpsOrderFees({
     amount,
     symbol,
     calculateFees,
-    applyFeeDiscount,
+    applyVipBuilderFee,
     handlePointsEstimation,
     updateFeeState,
     clearFeeState,

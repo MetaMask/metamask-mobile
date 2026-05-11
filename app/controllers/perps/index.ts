@@ -212,6 +212,8 @@ export type {
   UpdatePositionTPSLParams,
   Order,
   Funding,
+  HyperliquidBuilderFees,
+  HyperliquidBuilderFeeConfig,
   PerpsProvider,
   PerpsProviderType,
   PerpsActiveProviderMode,

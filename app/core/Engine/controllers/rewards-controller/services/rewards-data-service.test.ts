@@ -120,7 +120,7 @@ describe('RewardsDataService', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsDataService:getPerpsDiscount',
+        'RewardsDataService:getVipFees',
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
@@ -1000,72 +1000,53 @@ describe('RewardsDataService', () => {
     });
   });
 
-  describe('getPerpsDiscount', () => {
-    const testAddress = 'eip155:1:0x123456789' as CaipAccountId;
+  describe('getVipFees', () => {
+    const subscriptionId = 'sub-vip-fees';
+    const vipFeesResponse = {
+      vipTier: 1,
+      fees: {
+        hyperliquid: {
+          builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+          builderFeeBips: '8',
+        },
+        swaps: {
+          feeBips: '87.5',
+        },
+      },
+      updatedAt: '2026-05-07T12:34:56.000Z',
+    };
 
-    it('should successfully get perps discount', async () => {
+    it('should successfully get authenticated VIP fees', async () => {
       const mockResponse = {
         ok: true,
-        text: jest.fn().mockResolvedValue('1,550'),
+        json: jest.fn().mockResolvedValue(vipFeesResponse),
       } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
-      const result = await service.getPerpsDiscount({
-        account: testAddress as CaipAccountId,
-      });
+      const result = await service.getVipFees(subscriptionId);
 
-      expect(result).toEqual({
-        hasOptedIn: true,
-        discountBips: 550,
-      });
+      expect(result).toEqual(vipFeesResponse);
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(subscriptionId);
       expect(mockFetch).toHaveBeenCalledWith(
-        `https://uat.rewards.test/public/rewards/perps-fee-discount/${testAddress}`,
+        'https://uat.rewards.test/vip/fees',
         expect.objectContaining({
           method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': 'test-access-token',
+          }),
         }),
       );
     });
 
-    it('should parse not opted in response', async () => {
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue('0,1000'),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      const result = await service.getPerpsDiscount({
-        account: testAddress as CaipAccountId,
-      });
-
-      expect(result).toEqual({
-        hasOptedIn: false,
-        discountBips: 1000,
-      });
-    });
-
-    it('should handle perps discount errors', async () => {
+    it('should handle VIP fees errors', async () => {
       const mockResponse = {
         ok: false,
-        status: 404,
+        status: 500,
       } as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
-      await expect(
-        service.getPerpsDiscount({ account: testAddress as CaipAccountId }),
-      ).rejects.toThrow('Get Perps discount failed: 404');
-    });
-
-    it('should handle invalid response format', async () => {
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue('invalid_format'),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      await expect(
-        service.getPerpsDiscount({ account: testAddress as CaipAccountId }),
-      ).rejects.toThrow(
-        'Invalid perps discount response format: invalid_format',
+      await expect(service.getVipFees(subscriptionId)).rejects.toThrow(
+        'Get VIP fees failed: 500',
       );
     });
   });

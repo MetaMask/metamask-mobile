@@ -966,6 +966,16 @@ export type Funding = {
   transactionHash?: string; // Optional transaction hash
 };
 
+export type HyperliquidBuilderFees = {
+  builderCode: string;
+  builderFeeBips: string;
+};
+
+export type HyperliquidBuilderFeeConfig = {
+  builderAddress: string;
+  builderFeeBips: number;
+};
+
 export type PerpsProvider = {
   readonly protocolId: string;
 
@@ -1124,8 +1134,8 @@ export type PerpsProvider = {
   // Block explorer
   getBlockExplorerUrl(address?: string): string;
 
-  // Fee discount context (optional - for MetaMask reward discounts)
-  setUserFeeDiscount?(discountBips: number | undefined): void;
+  // Builder fee context (optional - for MetaMask VIP fees)
+  setUserFeeConfig?(config: HyperliquidBuilderFeeConfig | undefined): void;
 
   // HIP-3 (Builder-deployed DEXs) operations - optional for backward compatibility
   /**
@@ -1588,12 +1598,12 @@ export type PerpsPlatformDependencies = {
   // === Rewards (DI — no RewardsController in Core yet) ===
   rewards: {
     /**
-     * Get fee discount for an account from the RewardsController.
-     * Returns discount in basis points (e.g., 6500 = 65% discount)
+     * Get HyperLiquid VIP builder fee data for an account from the RewardsController.
+     * Returns null when the account has no VIP fee.
      */
-    getPerpsDiscountForAccount(
+    getHyperliquidBuilderFeesForAccount(
       caipAccountId: `${string}:${string}:${string}`,
-    ): Promise<number>;
+    ): Promise<HyperliquidBuilderFees | null>;
   };
 };
 

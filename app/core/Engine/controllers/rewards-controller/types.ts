@@ -1620,8 +1620,6 @@ export type RewardsAccountState = {
   account: CaipAccountId;
   hasOptedIn?: boolean;
   subscriptionId: string | null;
-  perpsFeeDiscount: number | null;
-  lastPerpsDiscountRateFetched: number | null;
   lastFreshOptInStatusCheck?: number | null;
 };
 
@@ -1975,6 +1973,10 @@ export type RewardsControllerState = {
   perpsTradingCampaignVolume: {
     [campaignId: string]: PerpsTradingCampaignVolumeState;
   };
+  /** VIP fees keyed by subscription ID. */
+  vipFees: {
+    [subscriptionId: string]: VipFeesState;
+  };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -2103,30 +2105,65 @@ export interface Patch {
 }
 
 /**
- * Request for getting Perps discount
+ * HyperLiquid builder fee configuration returned by the VIP fees endpoint.
  */
-export interface GetPerpsDiscountDto {
-  /**
-   * Account address in CAIP-10 format
-   * @example 'eip155:1:0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
-   */
-  account: CaipAccountId;
+export interface HyperliquidFeesDto {
+  builderCode: string;
+  builderFeeBips: string;
 }
 
 /**
- * Parsed response for Perps discount data
+ * Swaps fee configuration returned by the VIP fees endpoint.
  */
-export interface PerpsDiscountData {
-  /**
-   * Whether the account has opted in (0 = not opted in, 1 = opted in)
-   */
-  hasOptedIn: boolean;
-  /**
-   * The discount percentage in basis points
-   * @example 550
-   */
-  discountBips: number;
+export interface SwapsFeesDto {
+  feeBips: string;
 }
+
+/**
+ * Grouped VIP fee data for supported products.
+ */
+export interface VipFeesGroupDto {
+  hyperliquid: HyperliquidFeesDto;
+  swaps: SwapsFeesDto;
+}
+
+/**
+ * Authenticated VIP fees response.
+ * `fees` is null when vipTier is 0.
+ */
+export interface VipFeesResponseDto {
+  vipTier: number;
+  fees: VipFeesGroupDto | null;
+  updatedAt: string | null;
+}
+
+/**
+ * Cached VIP fees response keyed by subscription ID.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type HyperliquidFeesDtoState = {
+  builderCode: string;
+  builderFeeBips: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SwapsFeesDtoState = {
+  feeBips: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipFeesGroupDtoState = {
+  hyperliquid: HyperliquidFeesDtoState;
+  swaps: SwapsFeesDtoState;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipFeesState = {
+  vipTier: number;
+  fees: VipFeesGroupDtoState | null;
+  updatedAt: string | null;
+  lastFetched: number;
+};
 
 /**
  * Geo rewards metadata containing location and support info

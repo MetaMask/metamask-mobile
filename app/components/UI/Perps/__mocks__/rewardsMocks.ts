@@ -6,22 +6,25 @@
 export const createMockFormatAccountToCaipAccountId = () => jest.fn();
 
 export const createMockRewardsController = () => ({
-  getPerpsDiscountForAccount: jest.fn(),
+  getHyperliquidBuilderFeesForAccount: jest.fn(),
 });
 
 export const mockCaipAccountId =
   'eip155:42161:0x1234567890123456789012345678901234567890';
 
 export const createMockDiscountScenarios = () => ({
-  validDiscount: {
+  validVipFees: {
     caipAccountId: mockCaipAccountId,
-    discountBips: 2000, // 20% in basis points (20 * 100 = 2000 bips)
+    fees: {
+      builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+      builderFeeBips: '8',
+    },
   },
-  noDiscount: {
+  noVipFees: {
     caipAccountId: null,
-    discountBips: 0,
+    fees: null,
   },
-  errorDiscount: {
+  errorVipFees: {
     caipAccountId: mockCaipAccountId,
     error: new Error('Rewards service down'),
   },
@@ -32,16 +35,20 @@ export const setupMockDiscountSuccess = (
     (...args: unknown[]) => string | null
   >,
   mockRewardsController: {
-    getPerpsDiscountForAccount: jest.MockedFunction<
-      (...args: unknown[]) => Promise<number>
+    getHyperliquidBuilderFeesForAccount: jest.MockedFunction<
+      (...args: unknown[]) => Promise<{
+        builderCode: string;
+        builderFeeBips: string;
+      } | null>
     >;
   },
-  discountBips: number, // Renamed to reflect that this should be in basis points
+  builderFeeBips: string,
 ) => {
   mockFormatAccountToCaipAccountId.mockReturnValue(mockCaipAccountId);
-  mockRewardsController.getPerpsDiscountForAccount.mockResolvedValue(
-    discountBips, // Now correctly using basis points
-  );
+  mockRewardsController.getHyperliquidBuilderFeesForAccount.mockResolvedValue({
+    builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+    builderFeeBips,
+  });
 };
 
 export const setupMockDiscountError = (
@@ -49,8 +56,11 @@ export const setupMockDiscountError = (
     (...args: unknown[]) => string | null
   >,
   mockRewardsController: {
-    getPerpsDiscountForAccount: jest.MockedFunction<
-      (...args: unknown[]) => Promise<number>
+    getHyperliquidBuilderFeesForAccount: jest.MockedFunction<
+      (...args: unknown[]) => Promise<{
+        builderCode: string;
+        builderFeeBips: string;
+      } | null>
     >;
   },
   errorType: 'format' | 'rewards' = 'rewards',
@@ -59,7 +69,7 @@ export const setupMockDiscountError = (
     mockFormatAccountToCaipAccountId.mockReturnValue(null);
   } else {
     mockFormatAccountToCaipAccountId.mockReturnValue(mockCaipAccountId);
-    mockRewardsController.getPerpsDiscountForAccount.mockRejectedValue(
+    mockRewardsController.getHyperliquidBuilderFeesForAccount.mockRejectedValue(
       new Error('Rewards service down'),
     );
   }

@@ -4,8 +4,6 @@ import type {
   LoginResponseDto,
   EstimatePointsDto,
   EstimatedPointsDto,
-  GetPerpsDiscountDto,
-  PerpsDiscountData,
   SubscriptionSeasonReferralDetailsDto,
   PaginatedPointsEventsDto,
   GetPointsEventsDto,
@@ -39,6 +37,7 @@ import type {
   PerpsTradingCampaignLeaderboardPositionDto,
   PerpsTradingCampaignVolumeDto,
   PerpsTradingCampaignParticipantOutcomeDto,
+  VipFeesResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -117,9 +116,9 @@ export interface RewardsDataServiceEstimatePointsAction {
   handler: RewardsDataService['estimatePoints'];
 }
 
-export interface RewardsDataServiceGetPerpsDiscountAction {
-  type: `${typeof SERVICE_NAME}:getPerpsDiscount`;
-  handler: RewardsDataService['getPerpsDiscount'];
+export interface RewardsDataServiceGetVipFeesAction {
+  type: `${typeof SERVICE_NAME}:getVipFees`;
+  handler: RewardsDataService['getVipFees'];
 }
 
 export interface RewardsDataServiceMobileOptinAction {
@@ -322,7 +321,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetPointsEventsLastUpdatedAction
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceEstimatePointsAction
-  | RewardsDataServiceGetPerpsDiscountAction
+  | RewardsDataServiceGetVipFeesAction
   | RewardsDataServiceGetSeasonStatusAction
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
@@ -421,8 +420,8 @@ export class RewardsDataService {
       this.estimatePoints.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getPerpsDiscount`,
-      this.getPerpsDiscount.bind(this),
+      `${SERVICE_NAME}:getVipFees`,
+      this.getVipFees.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:mobileOptin`,
@@ -860,53 +859,24 @@ export class RewardsDataService {
   }
 
   /**
-   * Get Perps fee discount in bips for a given address.
-   * @param params - The request parameters containing the CAIP-10 address.
-   * @returns The parsed Perps discount data containing opt-in status and discount percentage.
+   * Get VIP fee configuration for the authenticated subscription.
+   * @param subscriptionId - The subscription ID to use for authentication.
+   * @returns The VIP fees response DTO.
    */
-  async getPerpsDiscount(
-    params: GetPerpsDiscountDto,
-  ): Promise<PerpsDiscountData> {
+  async getVipFees(subscriptionId: string): Promise<VipFeesResponseDto> {
     const response = await this.makeRequest(
-      `/public/rewards/perps-fee-discount/${params.account}`,
+      '/vip/fees',
       {
         method: 'GET',
       },
+      subscriptionId,
     );
 
     if (!response.ok) {
-      throw new Error(`Get Perps discount failed: ${response.status}`);
+      throw new Error(`Get VIP fees failed: ${response.status}`);
     }
 
-    const responseText = await response.text();
-
-    // Parse the X,Y format where X is opt-in status (0 or 1) and Y is discount
-    const parts = responseText.split(',');
-    if (parts.length !== 2) {
-      throw new Error(
-        `Invalid perps discount response format: ${responseText}`,
-      );
-    }
-
-    const optInStatus = parseInt(parts[0]);
-    const discountBips = parseFloat(parts[1]);
-
-    if (isNaN(optInStatus) || isNaN(discountBips)) {
-      throw new Error(
-        `Invalid perps discount values: optIn=${parts[0]}, discount=${parts[1]}`,
-      );
-    }
-
-    if (optInStatus !== 0 && optInStatus !== 1) {
-      throw new Error(
-        `Invalid opt-in status: ${optInStatus}. Expected 0 or 1.`,
-      );
-    }
-
-    return {
-      hasOptedIn: optInStatus === 1,
-      discountBips,
-    };
+    return (await response.json()) as VipFeesResponseDto;
   }
 
   /**

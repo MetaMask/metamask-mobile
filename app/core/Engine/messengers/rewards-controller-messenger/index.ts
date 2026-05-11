@@ -14,7 +14,7 @@ import type { GeolocationControllerGetGeolocationAction } from '@metamask/geoloc
 import {
   RewardsDataServiceLoginAction,
   RewardsDataServiceEstimatePointsAction,
-  RewardsDataServiceGetPerpsDiscountAction,
+  RewardsDataServiceGetVipFeesAction,
   RewardsDataServiceGetSeasonStatusAction,
   RewardsDataServiceGetReferralDetailsAction,
   RewardsDataServiceMobileOptinAction,
@@ -89,7 +89,7 @@ type AllowedActions =
   | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceGetPointsEventsLastUpdatedAction
   | RewardsDataServiceEstimatePointsAction
-  | RewardsDataServiceGetPerpsDiscountAction
+  | RewardsDataServiceGetVipFeesAction
   | RewardsDataServiceGetSeasonStatusAction
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
@@ -180,7 +180,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPointsEvents',
       'RewardsDataService:getPointsEventsLastUpdated',
       'RewardsDataService:estimatePoints',
-      'RewardsDataService:getPerpsDiscount',
+      'RewardsDataService:getVipFees',
       'RewardsDataService:getSeasonStatus',
       'RewardsDataService:getReferralDetails',
       'RewardsDataService:mobileOptin',

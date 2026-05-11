@@ -37,6 +37,7 @@ import type {
   FeeCalculationParams,
   FeeCalculationResult,
   Funding,
+  HyperliquidBuilderFeeConfig,
   GetAccountStateParams,
   GetAvailableDexsParams,
   GetFundingParams,
@@ -647,11 +648,11 @@ export class AggregatedPerpsProvider implements PerpsProvider {
     });
   }
 
-  setUserFeeDiscount(discountBips: number | undefined): void {
+  setUserFeeConfig(config: HyperliquidBuilderFeeConfig | undefined): void {
     // Apply to all providers that support it
     this.#providers.forEach((provider) => {
-      if (provider.setUserFeeDiscount) {
-        provider.setUserFeeDiscount(discountBips);
+      if (provider.setUserFeeConfig) {
+        provider.setUserFeeConfig(config);
       }
     });
   }
