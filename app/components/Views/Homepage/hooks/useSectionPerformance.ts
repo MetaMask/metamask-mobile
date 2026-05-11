@@ -13,7 +13,11 @@ import type { HomeSectionName } from './useHomeViewedEvent';
 interface UseSectionPerformanceConfig {
   /** Section identifier — primary Sentry tag for filtering. */
   sectionId: HomeSectionName;
-  /** True once meaningful content (not skeleton/spinner) is rendered. */
+  /**
+   * True once the user can see **valuable** UI (real rows/cards/error), not a
+   * section skeleton. May flip true while `isLoading` is still true if other
+   * data continues loading in the background (see Data Fetch span).
+   */
   contentReady: boolean;
   /** True when the section is in an empty / placeholder state. */
   isEmpty: boolean;
@@ -23,8 +27,9 @@ interface UseSectionPerformanceConfig {
    */
   contentStateForTrace?: 'filled' | 'empty' | 'error';
   /**
-   * When provided, a separate data-fetch latency span is tracked for the first
-   * `isLoading` true→false transition per mount (refresh / later cycles are not traced).
+   * When provided, tracks **full** data loading (including background work) via
+   * the first `isLoading` true→false transition per mount. Can stay true after
+   * `contentReady` if the section still fetches optional/secondary data.
    */
   isLoading?: boolean;
   /** Skip all tracing when false. Use for feature-flagged sections that return null. @default true */
@@ -42,8 +47,8 @@ const DEFAULT_RE_RENDER_WINDOW_MS = 500;
  * Reusable performance telemetry for homepage sections.
  *
  * Captures three metrics via the existing trace/endTrace Sentry integration:
- * 1. **Time to Content** — mount until `contentReady` flips true.
- * 2. **Data Fetch Latency** — first `isLoading` true→false transition per mount (opt-in; refresh excluded).
+ * 1. **Time to Content** — mount until `contentReady` (valuable non-skeleton UI).
+ * 2. **Data Fetch Latency** — first full `isLoading` cycle per mount (opt-in; refresh excluded).
  * 3. **Re-render Monitoring** — breadcrumb when commits exceed threshold in a window (runs in `useEffect` after paint, not during render).
  *
  * Bookkeeping is ref-based; the hook does not intentionally trigger extra re-renders.
