@@ -4,6 +4,9 @@ import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/co
 import { Utilities, Assertions } from '../../framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 class SendView {
   get ethereumTokenButton(): DetoxElement {
@@ -75,8 +78,16 @@ class SendView {
   }
 
   async selectEthereumToken(): Promise<void> {
-    await Gestures.waitAndTap(this.ethereumTokenButton, {
-      elemDescription: 'Select ethereum token',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.ethereumTokenButton, {
+          elemDescription: 'Select ethereum token',
+        });
+      },
+      appium: async () => {
+        const el = await PlaywrightMatchers.getElementByText('Ethereum');
+        await PlaywrightGestures.waitAndTap(el);
+      },
     });
   }
 
@@ -110,37 +121,113 @@ class SendView {
     });
   }
 
-  async pressContinueButton() {
-    await Gestures.waitAndTap(this.continueButton, {
-      elemDescription: 'Continue button',
+  async pressContinueButton(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.continueButton, {
+          elemDescription: 'Continue button',
+        });
+      },
+      appium: async () => {
+        const el = await PlaywrightMatchers.getElementByText('Continue');
+        await PlaywrightGestures.waitAndTap(el);
+      },
     });
   }
 
   async inputRecipientAddress(address: string): Promise<void> {
-    await Gestures.typeText(this.recipientAddressInput, address, {
-      elemDescription: 'Enter recipient address',
-      hideKeyboard: true,
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.typeText(this.recipientAddressInput, address, {
+          elemDescription: 'Enter recipient address',
+          hideKeyboard: true,
+        });
+      },
+      appium: async () => {
+        const el = await PlaywrightMatchers.getElementById(
+          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        );
+        await PlaywrightGestures.typeText(el, address);
+        await PlaywrightGestures.hideKeyboard();
+      },
     });
   }
 
-  async pressReviewButton() {
-    await Utilities.waitForElementToBeVisible(this.reviewButton, 15000);
-    await Utilities.waitForElementToBeEnabled(this.reviewButton);
-    await Utilities.waitForElementToStopMoving(this.reviewButton, {
-      timeout: 10000,
-      interval: 250,
-      stableCount: 3,
-    });
-    await Gestures.waitAndTap(this.reviewButton, {
-      elemDescription: 'Review button',
-      checkStability: false,
-      timeout: 20000,
+  async pressReviewButton(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Utilities.waitForElementToBeVisible(this.reviewButton, 15000);
+        await Utilities.waitForElementToBeEnabled(this.reviewButton);
+        await Utilities.waitForElementToStopMoving(this.reviewButton, {
+          timeout: 10000,
+          interval: 250,
+          stableCount: 3,
+        });
+        await Gestures.waitAndTap(this.reviewButton, {
+          elemDescription: 'Review button',
+          checkStability: false,
+          timeout: 20000,
+        });
+      },
+      appium: async () => {
+        const el = await PlaywrightMatchers.getElementById(
+          RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        );
+        await PlaywrightGestures.waitAndTap(el, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+        });
+      },
     });
   }
 
   async typeInTransactionAmount(amount: string): Promise<void> {
     await Gestures.replaceText(this.amountInputField, amount, {
       elemDescription: 'Amount Input Field',
+    });
+  }
+
+  /**
+   * Enter an amount by tapping individual numpad digits.
+   * Works in both Detox and Playwright/Appium contexts.
+   * @param amount - The amount string to enter (e.g., '1', '0.5', '100')
+   */
+  async enterAmountViaNumpad(amount: string): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        for (const digit of amount.split('')) {
+          const el = Matchers.getElementByText(digit);
+          await Gestures.waitAndTap(el, {
+            elemDescription: `Numpad digit ${digit}`,
+          });
+        }
+      },
+      appium: async () => {
+        for (const digit of amount.split('')) {
+          const el = await PlaywrightMatchers.getElementByText(digit);
+          await PlaywrightGestures.waitAndTap(el);
+        }
+      },
+    });
+  }
+
+  /**
+   * Select a recipient account by name from the my accounts suggestions
+   * on the recipient selection screen.
+   * @param accountName - The account name to select (e.g., 'Account 2')
+   */
+  async selectRecipientAccount(accountName: string): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        const el = Matchers.getElementByText(accountName);
+        await Gestures.waitAndTap(el, {
+          elemDescription: `Select recipient account: ${accountName}`,
+        });
+      },
+      appium: async () => {
+        const el = await PlaywrightMatchers.getElementByText(accountName);
+        await PlaywrightGestures.waitAndTap(el);
+      },
     });
   }
 

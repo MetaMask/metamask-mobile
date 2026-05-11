@@ -329,8 +329,19 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON);
   }
 
-  get walletSendButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON);
+  get walletSendButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.WALLET_SEND_BUTTON,
+            { exact: true },
+          ),
+        ios: () => PlaywrightMatchers.getElementByText('Send'),
+      },
+    });
   }
 
   // mUSD conversion (Earn) - asset list CTA, education screen, token list CTA, asset overview CTA
@@ -1156,8 +1167,8 @@ class WalletView {
   }
 
   async tapWalletSendButton(): Promise<void> {
-    await Gestures.waitAndTap(this.walletSendButton, {
-      elemDescription: 'Wallet Send Button',
+    await UnifiedGestures.waitAndTap(this.walletSendButton, {
+      description: 'Wallet Send Button',
     });
   }
 

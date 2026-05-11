@@ -11,6 +11,8 @@ import {
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class ActivitiesView {
   get title(): DetoxElement {
@@ -245,6 +247,39 @@ class ActivitiesView {
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
       rowIndex,
     );
+  }
+
+  /**
+   * Wait for a transaction to show "Confirmed" status in the activity list.
+   * Works in both Detox and Playwright/Appium contexts.
+   * For real on-chain transactions, polls with a longer timeout.
+   * @param timeoutMs - Maximum time to wait for confirmation (default: 120s)
+   */
+  async waitForTransactionConfirmed(timeoutMs = 120_000): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(this.confirmedLabel, {
+          description: 'Transaction should be confirmed',
+        });
+      },
+      appium: async () => {
+        const interval = 3_000;
+        const start = Date.now();
+        while (Date.now() - start < timeoutMs) {
+          try {
+            const el = await PlaywrightMatchers.getElementByText(
+              ActivitiesViewSelectorsText.CONFIRM_TEXT,
+            );
+            const visible = await el.isVisible();
+            if (visible) return;
+          } catch {
+            // Transaction not yet confirmed, keep polling
+          }
+          await new Promise((resolve) => setTimeout(resolve, interval));
+        }
+        throw new Error(`Transaction was not confirmed within ${timeoutMs}ms`);
+      },
+    });
   }
 }
 

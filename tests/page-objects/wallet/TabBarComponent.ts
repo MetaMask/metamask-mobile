@@ -6,8 +6,11 @@ import { Assertions, Utilities } from '../../framework';
 import {
   encapsulated,
   EncapsulatedElementType,
+  asPlaywrightElement,
 } from '../../framework/EncapsulatedElement';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
 import AccountMenu from '../AccountMenu/AccountMenu';
@@ -120,9 +123,7 @@ class TabBarComponent {
             exact: true,
           }),
         ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.ACTIVITY,
-          ),
+          PlaywrightMatchers.getElementById(TabBarSelectorIDs.ACTIVITY),
       },
     });
   }
@@ -226,23 +227,32 @@ class TabBarComponent {
   }
 
   async tapActivity(): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        await UnifiedGestures.waitAndTap(this.tabBarActivityButton, {
-          timeout: 2000,
-        });
-        await Assertions.expectElementToBeVisible(ActivitiesView.title, {
-          description: 'Activity View Title',
-          timeout: 500,
-        });
+    await encapsulatedAction({
+      detox: async () => {
+        await Utilities.executeWithRetry(
+          async () => {
+            await UnifiedGestures.waitAndTap(this.tabBarActivityButton, {
+              timeout: 2000,
+            });
+            await Assertions.expectElementToBeVisible(ActivitiesView.title, {
+              description: 'Activity View Title',
+              timeout: 500,
+            });
+          },
+          {
+            // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
+            maxRetries: 15,
+            timeout: 45000,
+            description: 'Tap Activity Button',
+          },
+        );
       },
-      {
-        // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
-        maxRetries: 15,
-        timeout: 45000,
-        description: 'Tap Activity Button',
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.tabBarActivityButton),
+        );
       },
-    );
+    });
   }
 
   async tapRewards(): Promise<void> {
