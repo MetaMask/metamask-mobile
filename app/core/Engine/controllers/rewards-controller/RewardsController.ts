@@ -114,8 +114,8 @@ const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 // Benefits details cache threshold
 const BENEFITS_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 
-// VIP dashboard cache threshold
-const VIP_DASHBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
+// VIP dashboard cache threshold — disabled while backend still serves hardcoded data
+const VIP_DASHBOARD_CACHE_THRESHOLD_MS = 0;
 
 // Active boosts cache threshold
 const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
@@ -4318,6 +4318,18 @@ export class RewardsController extends BaseController<
         this.update((state) => {
           if (payload) {
             state.vipDashboard[key] = payload;
+            // A non-null dashboard means the backend considers this
+            // subscription VIP-eligible. Keep the cached subscription's
+            // feature flag in sync so consumers reading `features.vip.enabled`
+            // (e.g. the dashboard crown icon) reflect reality without needing
+            // a full subscription refetch.
+            const subscription = state.subscriptions[key];
+            if (subscription && !subscription.features?.vip?.enabled) {
+              subscription.features = {
+                ...subscription.features,
+                vip: { enabled: true },
+              };
+            }
           } else {
             delete state.vipDashboard[key];
           }
