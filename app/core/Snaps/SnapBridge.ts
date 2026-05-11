@@ -21,6 +21,7 @@ import {
 import {
   RequestedPermissions,
   SubjectType,
+  createPermissionMiddleware,
 } from '@metamask/permission-controller';
 import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
@@ -169,8 +170,9 @@ export default class SnapBridge {
     engine.push(asLegacyMiddleware(createWalletSnapPermissionMiddleware()));
 
     engine.push(
-      PermissionController.createPermissionMiddleware({
+      createPermissionMiddleware({
         origin: this.#snapId,
+        messenger: controllerMessenger,
       }),
     );
 
