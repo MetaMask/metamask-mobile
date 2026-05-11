@@ -9,6 +9,11 @@ const styles = StyleSheet.create({
     width: 152,
     height: 96,
   },
+  manageCardImage: {
+    width: 88,
+    height: 56,
+    borderRadius: 6,
+  },
 });
 
 export default styles;

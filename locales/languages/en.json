@@ -6608,7 +6608,9 @@
       "link_subtitle": "Spend your Money balance and earn.",
       "link_bullet_cashback": "Get 1% mUSD back",
       "link_bullet_apy": "Earn up to {{apy}}% APY",
-      "link_card": "Link card"
+      "link_card": "Link card",
+      "manage_card": "Manage",
+      "avail_balance": "Avail. balance"
     },
     "what_you_get": {
       "title": "What you get",

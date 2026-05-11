@@ -197,6 +197,60 @@ describe('MoneyMetaMaskCard', () => {
     });
   });
 
+  describe('mode="manage"', () => {
+    const props = {
+      mode: 'manage' as const,
+      onGetNowPress: jest.fn(),
+      onManagePress: jest.fn(),
+      cardBalance: '$2,342.86',
+      apy: 4,
+    };
+
+    beforeEach(() => {
+      props.onGetNowPress.mockClear();
+      props.onManagePress.mockClear();
+    });
+
+    it('renders both balance and metal rows', () => {
+      const { getByTestId } = render(<MoneyMetaMaskCard {...props} />);
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE_ROW),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_METAL_ROW),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the available balance', () => {
+      const { getByTestId } = render(<MoneyMetaMaskCard {...props} />);
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).toHaveTextContent('$2,342.86');
+    });
+
+    it('calls onManagePress when Manage is tapped', () => {
+      const { getByTestId } = render(<MoneyMetaMaskCard {...props} />);
+      fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BUTTON));
+      expect(props.onManagePress).toHaveBeenCalled();
+    });
+
+    it('calls onGetNowPress when metal Get now is tapped', () => {
+      const { getByTestId } = render(<MoneyMetaMaskCard {...props} />);
+      fireEvent.press(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_METAL_GET_NOW),
+      );
+      expect(props.onGetNowPress).toHaveBeenCalled();
+    });
+
+    it('does not render upsell or link content', () => {
+      const { queryByTestId } = render(<MoneyMetaMaskCard {...props} />);
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).toBeNull();
+      expect(queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER)).toBeNull();
+    });
+  });
+
   describe('upsell mode (default)', () => {
     it('renders virtual and metal card rows when showMetalCard is true', () => {
       const { getByTestId } = render(
