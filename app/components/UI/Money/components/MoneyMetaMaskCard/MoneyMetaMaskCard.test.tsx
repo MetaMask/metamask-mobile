@@ -121,8 +121,8 @@ describe('MoneyMetaMaskCard', () => {
     });
 
     it('renders cashback and APY bullets', () => {
-      const { getByTestId } = render(
-        <MoneyMetaMaskCard mode="link" apy={5} onGetNowPress={jest.fn()} />,
+      const { getByTestId, getByText } = render(
+        <MoneyMetaMaskCard mode="link" apy={4} onGetNowPress={jest.fn()} />,
       );
 
       expect(
@@ -131,6 +131,8 @@ describe('MoneyMetaMaskCard', () => {
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
       ).toBeOnTheScreen();
+      expect(getByText('Get 1% mUSD back')).toBeOnTheScreen();
+      expect(getByText('Earn up to 4% APY')).toBeOnTheScreen();
     });
 
     it('renders "Link card" button', () => {

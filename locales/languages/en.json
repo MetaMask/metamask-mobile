@@ -6606,8 +6606,8 @@
       "get_now": "Get now",
       "link_title": "Link MetaMask Card",
       "link_subtitle": "Spend your Money balance and earn.",
-      "link_bullet_cashback": "Up to 3% mUSD back",
-      "link_bullet_apy": "Up to {{apy}}% APY",
+      "link_bullet_cashback": "Get 1% mUSD back",
+      "link_bullet_apy": "Earn up to {{apy}}% APY",
       "link_card": "Link card"
     },
     "what_you_get": {
