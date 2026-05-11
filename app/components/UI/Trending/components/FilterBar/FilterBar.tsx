@@ -38,7 +38,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
       testID={testID}
       onPress={onPress}
       style={tw.style(
-        'min-w-0 shrink flex-row items-center justify-center gap-1 rounded-lg bg-muted',
+        'min-w-0 shrink flex-row items-center justify-center gap-1 rounded-xl bg-muted',
         'py-2 px-3',
         disabled && 'opacity-50',
         twClassName,
