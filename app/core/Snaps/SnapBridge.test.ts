@@ -31,6 +31,7 @@ jest.mock('../Engine/Engine', () => ({
         ];
       }
     }),
+    delegate: jest.fn(),
   },
   context: {
     AccountsController: {

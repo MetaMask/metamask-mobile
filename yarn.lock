@@ -10058,7 +10058,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-rpc-methods@npm:^15.0.2, @metamask/snaps-rpc-methods@npm:^15.1.1":
+"@metamask/snaps-rpc-methods@npm:15.1.1":
   version: 15.1.1
   resolution: "@metamask/snaps-rpc-methods@npm:15.1.1"
   dependencies:
@@ -10072,6 +10072,23 @@ __metadata:
     "@noble/hashes": "npm:^1.7.1"
     async-mutex: "npm:^0.5.0"
   checksum: 10/906eafa8a2d4944e50d73b8aa4d32a7070c33367ad3d58843e892e62b3bd8facb0a02e1d88a9245c18a281637435d97266212b7706ef67ee6a68db85a5991ea3
+  languageName: node
+  linkType: hard
+
+"@metamask/snaps-rpc-methods@patch:@metamask/snaps-rpc-methods@npm%3A15.1.1#~/.yarn/patches/@metamask-snaps-rpc-methods-npm-15.1.1-95e9049d30.patch":
+  version: 15.1.1
+  resolution: "@metamask/snaps-rpc-methods@patch:@metamask/snaps-rpc-methods@npm%3A15.1.1#~/.yarn/patches/@metamask-snaps-rpc-methods-npm-15.1.1-95e9049d30.patch::version=15.1.1&hash=b5fc90"
+  dependencies:
+    "@metamask/key-tree": "npm:^10.1.1"
+    "@metamask/permission-controller": "npm:^12.3.0"
+    "@metamask/rpc-errors": "npm:^7.0.3"
+    "@metamask/snaps-sdk": "npm:^11.1.0"
+    "@metamask/snaps-utils": "npm:^12.2.0"
+    "@metamask/superstruct": "npm:^3.2.1"
+    "@metamask/utils": "npm:^11.11.0"
+    "@noble/hashes": "npm:^1.7.1"
+    async-mutex: "npm:^0.5.0"
+  checksum: 10/38b6eb1dd2d8fc0eb6d8abf0f85339df9df4285b57f27e1f9f88ab07510e116f9a8d6c83dae3e1ba326258de115cc3ced1490aa16eeef785ee965219032ab9eb
   languageName: node
   linkType: hard
 
@@ -35377,7 +35394,7 @@ __metadata:
     "@metamask/smart-transactions-controller": "npm:^24.0.0"
     "@metamask/snaps-controllers": "npm:^20.0.3"
     "@metamask/snaps-execution-environments": "npm:^11.0.2"
-    "@metamask/snaps-rpc-methods": "npm:^15.1.1"
+    "@metamask/snaps-rpc-methods": "patch:@metamask/snaps-rpc-methods@npm%3A15.1.1#~/.yarn/patches/@metamask-snaps-rpc-methods-npm-15.1.1-95e9049d30.patch"
     "@metamask/snaps-sdk": "npm:^11.1.0"
     "@metamask/snaps-utils": "npm:^12.2.0"
     "@metamask/social-controllers": "npm:^2.2.0"
