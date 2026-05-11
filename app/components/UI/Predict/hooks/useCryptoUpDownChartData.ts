@@ -89,22 +89,28 @@ export const useCryptoUpDownChartData = (
   frozenMarketIdRef.current = frozenMarketId;
 
   const prevMarketIdRef = useRef(market.id);
+  const marketResetPendingRef = useRef(false);
   const isCurrentMarket = prevMarketIdRef.current === market.id;
+  if (!isCurrentMarket) {
+    prevMarketIdRef.current = market.id;
+    marketResetPendingRef.current = true;
+    frozenRef.current = false;
+    frozenMarketIdRef.current = undefined;
+    liveLoadingRef.current = true;
+    stableHistoricalDataRef.current = EMPTY_DATA;
+    fallbackStartPointRef.current = EMPTY_DATA;
+  }
+
   useEffect(() => {
-    if (prevMarketIdRef.current === market.id) {
+    if (!marketResetPendingRef.current) {
       return;
     }
 
-    prevMarketIdRef.current = market.id;
-    frozenRef.current = false;
-    frozenMarketIdRef.current = undefined;
+    marketResetPendingRef.current = false;
     setFrozenMarketId(undefined);
-    liveLoadingRef.current = true;
     setLiveLoading(true);
     setLiveValue(0);
     setLivePoints(EMPTY_DATA);
-    stableHistoricalDataRef.current = EMPTY_DATA;
-    fallbackStartPointRef.current = EMPTY_DATA;
     chartRef?.current?.clearData();
   }, [chartRef, market.id]);
 
