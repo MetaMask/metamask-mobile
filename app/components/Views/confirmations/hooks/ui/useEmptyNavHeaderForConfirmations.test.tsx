@@ -29,11 +29,10 @@ describe('useEmptyNavHeaderForConfirmations', () => {
     headerTitleAlign: 'center' as const,
     headerStyle: {
       backgroundColor: mockTheme.colors.background.default,
-      shadowColor: 'transparent',
-      elevation: 0,
     },
     headerShown: true,
     gestureEnabled: false,
+    headerShadowVisible: false,
   };
 
   beforeEach(() => {

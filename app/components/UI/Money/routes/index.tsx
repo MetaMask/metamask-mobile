@@ -1,8 +1,5 @@
 import React, { useEffect } from 'react';
-import {
-  createNativeStackNavigator,
-  type NativeStackNavigationOptions,
-} from '@react-navigation/native-stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   clearNativeStackNavigatorOptions,
@@ -54,7 +51,7 @@ const MoneyScreenStack = () => {
       />
       <Stack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-        options={emptyNavHeaderOptions as NativeStackNavigationOptions}
+        options={emptyNavHeaderOptions}
         component={Confirm}
       />
     </Stack.Navigator>

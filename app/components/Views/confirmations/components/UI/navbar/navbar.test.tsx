@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
-import { getNavbar } from './navbar';
+import { getEmptyNavHeader, getNavbar } from './navbar';
 import { mockTheme } from '../../../../../../util/theme';
 
 describe('getNavbar', () => {
@@ -134,6 +134,18 @@ describe('getNavbar', () => {
         mockTheme.colors.background.default,
       );
       expect(result.headerStyle.borderBottomWidth).toBe(2);
+    });
+  });
+});
+
+describe('getEmptyNavHeader', () => {
+  it('uses a native-stack-safe header style and hides the header shadow', () => {
+    const result = getEmptyNavHeader({ theme: mockTheme });
+
+    expect(result.headerShadowVisible).toBe(false);
+    expect(result.headerShown).toBe(true);
+    expect(result.headerStyle).toEqual({
+      backgroundColor: mockTheme.colors.background.default,
     });
   });
 });
