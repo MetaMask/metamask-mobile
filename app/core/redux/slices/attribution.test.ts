@@ -109,6 +109,54 @@ describe('attribution slice', () => {
       expect(next.attribution?.capturedAt).toBe(1_000);
     });
 
+    it('deduplicates acquisition fields ignoring leading and trailing whitespace', () => {
+      dateNowSpy.mockReturnValue(100);
+      const withFirst = reducer(
+        emptyState,
+        saveAttribution({
+          utm_source: '  email  ',
+          utm_campaign: 'spring',
+        }),
+      );
+
+      dateNowSpy.mockReturnValue(200);
+      const next = reducer(
+        withFirst,
+        saveAttribution({
+          utm_source: 'email',
+          utm_campaign: 'spring',
+        }),
+      );
+
+      expect(next.attribution?.capturedAt).toBe(100);
+    });
+
+    it('updates capturedAt when acquisition fields match except utm_content', () => {
+      dateNowSpy.mockReturnValue(300);
+      const withFirst = reducer(
+        emptyState,
+        saveAttribution({
+          utm_source: 'x',
+          utm_content: 'a',
+        }),
+      );
+
+      dateNowSpy.mockReturnValue(400);
+      const next = reducer(
+        withFirst,
+        saveAttribution({
+          utm_source: 'x',
+          utm_content: 'b',
+        }),
+      );
+
+      expect(next.attribution).toEqual({
+        utm_source: 'x',
+        utm_content: 'b',
+        capturedAt: 400,
+      });
+    });
+
     it('refreshes capturedAt when the same campaign is saved after the TTL expires', () => {
       const capturedAt = 1_000;
       dateNowSpy.mockReturnValue(capturedAt);

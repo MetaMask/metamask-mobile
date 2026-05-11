@@ -152,6 +152,34 @@ describe('processAttribution', () => {
     );
   });
 
+  it('does not populate attributionId when both camelCase and snake_case IDs are blank', () => {
+    (store.getState as jest.Mock).mockReturnValue({
+      security: { dataCollectionForMarketing: true },
+    });
+    (extractURLParams as jest.Mock).mockReturnValue({
+      params: {
+        attributionId: '',
+        attribution_id: '   ',
+        utm_source: 'news',
+        utm_medium: '',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
+      },
+    });
+
+    const result = processAttribution({
+      currentDeeplink: 'metamask://connect',
+      store,
+    });
+    expect(result).toEqual(
+      expect.objectContaining({
+        attributionId: undefined,
+        utm_source: 'news',
+      }),
+    );
+  });
+
   it('handles empty UTM parameters gracefully', () => {
     (store.getState as jest.Mock).mockReturnValue({
       security: { dataCollectionForMarketing: true },

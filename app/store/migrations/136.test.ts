@@ -122,4 +122,52 @@ describe('migration 136', () => {
     expect(() => migrate(state)).not.toThrow();
     expect(state).toEqual(baseState);
   });
+
+  it('removes persisted key when legacy JSON has no attribution field', () => {
+    mockGetString.mockReturnValue(JSON.stringify({ other: true }));
+
+    const state = { ...baseState };
+    migrate(state);
+
+    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
+  });
+
+  it('removes key when attribution is null without merging root state', () => {
+    mockGetString.mockReturnValue(
+      JSON.stringify({ attribution: null, _persist: {} }),
+    );
+
+    const state = { ...baseState };
+    migrate(state);
+
+    expect(state.attribution?.attribution).toBeNull();
+    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
+  });
+
+  it('removes key when attribution object lacks capturedAt', () => {
+    mockGetString.mockReturnValue(
+      JSON.stringify({ attribution: { utm_source: 'x' } }),
+    );
+
+    const state = { ...baseState };
+    migrate(state);
+
+    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
+    expect(state).toEqual(baseState);
+  });
+
+  it('treats malformed root attribution as current null without throwing', () => {
+    mockGetString.mockReturnValue(
+      JSON.stringify({ attribution: [{ bad: true }] }),
+    );
+
+    const state = {
+      engine: { backgroundState: {} },
+      attribution: 'not-an-object',
+    };
+
+    migrate(state);
+
+    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
+  });
 });
