@@ -74,8 +74,8 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import { ALLOWED_BRIDGE_CHAIN_IDS } from '@metamask/bridge-controller';
 import {
-  makeMethodMiddlewareMaker,
   UNSUPPORTED_RPC_METHODS,
+  createMultichainApiMethodMiddleware,
 } from '../RPCMethods/utils';
 import {
   getChangedAuthorization,
@@ -755,15 +755,8 @@ export class BackgroundBridge extends EventEmitter {
 
     engine.push(multichainMethodCallValidatorMiddleware);
 
-    const middlewareMaker = makeMethodMiddlewareMaker([
-      walletRevokeSession,
-      walletGetSession,
-      walletInvokeMethod,
-      walletCreateSession,
-    ]);
-
     engine.push(
-      middlewareMaker({
+      createMultichainApiMethodMiddleware({
         findNetworkClientIdByChainId:
           NetworkController.findNetworkClientIdByChainId.bind(
             NetworkController,

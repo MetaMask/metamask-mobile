@@ -39,18 +39,12 @@ import { RPCMethodsMiddleParameters } from '../RPCMethods/RPCMethodMiddleware';
 import snapMethodMiddlewareBuilder from './SnapsMethodMiddleware';
 import { isSnapPreinstalled } from '../SnapKeyring/utils/snaps';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
-import {
-  multichainMethodCallValidatorMiddleware,
-  walletCreateSession,
-  walletGetSession,
-  walletInvokeMethod,
-  walletRevokeSession,
-} from '@metamask/multichain-api-middleware';
+import { multichainMethodCallValidatorMiddleware } from '@metamask/multichain-api-middleware';
 import { rpcErrors } from '@metamask/rpc-errors';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
 import {
-  makeMethodMiddlewareMaker,
   UNSUPPORTED_RPC_METHODS,
+  createMultichainApiMethodMiddleware,
 } from '../RPCMethods/utils';
 import { MultichainRoutingService } from '@metamask/snaps-controllers';
 import { asLegacyMiddleware } from '@metamask/json-rpc-engine/v2';
@@ -249,19 +243,8 @@ export default class SnapBridge {
 
     engine.push(multichainMethodCallValidatorMiddleware);
 
-    const middlewareMaker = makeMethodMiddlewareMaker([
-      // @ts-expect-error These types are currently incompatible, but work in practice.
-      walletRevokeSession,
-      // @ts-expect-error These types are currently incompatible, but work in practice.
-      walletGetSession,
-      // @ts-expect-error These types are currently incompatible, but work in practice.
-      walletInvokeMethod,
-      // @ts-expect-error These types are currently incompatible, but work in practice.
-      walletCreateSession,
-    ]);
-
     engine.push(
-      middlewareMaker({
+      createMultichainApiMethodMiddleware({
         findNetworkClientIdByChainId:
           NetworkController.findNetworkClientIdByChainId.bind(
             NetworkController,
