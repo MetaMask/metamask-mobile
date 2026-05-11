@@ -58,7 +58,6 @@ import {
 } from './constants';
 import {
   ApiKeyCreds,
-  ClobHeaders,
   COLLATERAL_TOKEN_DECIMALS,
   ContractConfig,
   L2HeaderArgs,
@@ -109,6 +108,8 @@ export const getPolymarketEndpoints = () => ({
   CLOB_ENDPOINT: DEFAULT_CLOB_BASE_URL,
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
   CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
+  CRYPTO_PRICE_HISTORY_ENDPOINT:
+    'https://polymarket.com/api/crypto/price-history',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
   HOMEPAGE_CAROUSEL_ENDPOINT: 'https://polymarket.com/api/homepage/carousel',
   CLOB_RELAYER:
@@ -116,6 +117,16 @@ export const getPolymarketEndpoints = () => ({
       ? 'https://predict.dev-api.cx.metamask.io'
       : 'https://predict.api.cx.metamask.io',
 });
+
+const FOUR_HOUR_SERIES_SLUG_PATTERN = /(?:^|-)4h(?:-|$)/u;
+
+const getSeriesRecurrence = (
+  series: PolymarketApiEvent['series'][number],
+): string =>
+  series.recurrence === 'daily' &&
+  FOUR_HOUR_SERIES_SLUG_PATTERN.test(series.slug)
+    ? '4h'
+    : series.recurrence;
 
 export const getL1Headers = async ({ address }: { address: string }) => {
   const domain = {
@@ -226,14 +237,36 @@ export const getL2Headers = async ({
   return headers;
 };
 
-function getClobEndpoint(): string {
+function getClobEndpoint({
+  clobVersion = 'v1',
+  clobBaseUrl,
+}: {
+  clobVersion?: 'v1' | 'v2';
+  clobBaseUrl?: string;
+}): string {
   const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+
+  if (clobVersion === 'v2') {
+    return clobBaseUrl ?? CLOB_ENDPOINT;
+  }
+
   return CLOB_ENDPOINT;
 }
 
-export const deriveApiKey = async ({ address }: { address: string }) => {
+export const deriveApiKey = async ({
+  address,
+  clobVersion = 'v1',
+  clobBaseUrl,
+}: {
+  address: string;
+  clobVersion?: 'v1' | 'v2';
+  clobBaseUrl?: string;
+}) => {
   const headers = await getL1Headers({ address });
-  const url = `${getClobEndpoint()}/auth/derive-api-key`;
+  const url = `${getClobEndpoint({
+    clobVersion,
+    clobBaseUrl,
+  })}/auth/derive-api-key`;
   const response = await fetch(url, {
     method: 'GET',
     headers,
@@ -245,16 +278,24 @@ export const deriveApiKey = async ({ address }: { address: string }) => {
   return apiKeyRaw;
 };
 
-export const createApiKey = async ({ address }: { address: string }) => {
+export const createApiKey = async ({
+  address,
+  clobVersion = 'v1',
+  clobBaseUrl,
+}: {
+  address: string;
+  clobVersion?: 'v1' | 'v2';
+  clobBaseUrl?: string;
+}) => {
   const headers = await getL1Headers({ address });
-  const url = `${getClobEndpoint()}/auth/api-key`;
+  const url = `${getClobEndpoint({ clobVersion, clobBaseUrl })}/auth/api-key`;
   const response = await fetch(url, {
     method: 'POST',
     headers,
     body: '',
   });
   if (response.status === 400) {
-    return await deriveApiKey({ address });
+    return await deriveApiKey({ address, clobVersion, clobBaseUrl });
   }
   const apiKeyRaw = await parseJsonOrThrow<ApiKeyCreds>(response, url);
   return apiKeyRaw;
@@ -263,9 +304,17 @@ export const createApiKey = async ({ address }: { address: string }) => {
 export const priceValid = (price: number, tickSize: TickSize): boolean =>
   price >= parseFloat(tickSize) && price <= 1 - parseFloat(tickSize);
 
-export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
+export const getOrderBook = async ({
+  tokenId,
+  clobVersion = 'v1',
+  clobBaseUrl,
+}: {
+  tokenId: string;
+  clobVersion?: 'v1' | 'v2';
+  clobBaseUrl?: string;
+}) => {
   const response = await fetch(
-    `${getClobEndpoint()}/book?token_id=${tokenId}`,
+    `${getClobEndpoint({ clobVersion, clobBaseUrl })}/book?token_id=${tokenId}`,
     {
       method: 'GET',
     },
@@ -833,7 +882,7 @@ export const parsePolymarketEvents = (
               id: event.series[0].id,
               slug: event.series[0].slug,
               title: event.series[0].title,
-              recurrence: event.series[0].recurrence,
+              recurrence: getSeriesRecurrence(event.series[0]),
             }
           : undefined;
 
@@ -1752,13 +1801,25 @@ export const roundOrderAmount = ({
 export const previewOrder = async (
   params: Omit<PreviewOrderParams, 'providerId'> & {
     feeCollection?: PredictFeeCollection;
+    isV2?: boolean;
+    clobBaseUrl?: string;
   },
 ): Promise<OrderPreview> => {
-  const { marketId, outcomeId, outcomeTokenId, side, size, feeCollection } =
-    params;
+  const {
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    side,
+    size,
+    feeCollection,
+    isV2,
+    clobBaseUrl,
+  } = params;
   const [book, feeRateBps] = await Promise.all([
     getOrderBook({
       tokenId: outcomeTokenId,
+      clobVersion: isV2 ? 'v2' : 'v1',
+      clobBaseUrl: isV2 ? clobBaseUrl : undefined,
     }),
     Promise.resolve('0'),
   ]);

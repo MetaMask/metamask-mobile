@@ -67,10 +67,12 @@ import {
   ActiveOrderState,
   ClaimParams,
   ConnectionStatus,
+  CryptoPriceHistoryPoint,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GetAccountStateParams,
   GetBalanceParams,
+  GetCryptoPriceHistoryParams,
   GetCryptoTargetPriceParams,
   GetMarketsParams,
   GetPositionsParams,
@@ -364,6 +366,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getMarketSeries',
   'getMarkets',
   'getPositions',
+  'getCryptoPriceHistory',
   'getPriceHistory',
   'getPrices',
   'getUnrealizedPnL',
@@ -734,7 +737,7 @@ export class PredictController extends BaseController<
           // Provider threw — fall through to groupItemThreshold fallback.
         }
 
-        if (price !== null) {
+        if (typeof price === 'number' && price > 0) {
           return price;
         }
 
@@ -749,7 +752,10 @@ export class PredictController extends BaseController<
           if (!market?.outcomes?.length) {
             return null;
           }
-          return market.outcomes[0].groupItemThreshold ?? null;
+          const threshold = market.outcomes[0].groupItemThreshold;
+          return typeof threshold === 'number' && threshold > 0
+            ? threshold
+            : null;
         } catch {
           return null;
         }
@@ -784,6 +790,40 @@ export class PredictController extends BaseController<
       },
       async () => {
         const history = await this.provider.getPriceHistory(params);
+        return history ?? [];
+      },
+    );
+  }
+
+  async getCryptoPriceHistory(
+    params: GetCryptoPriceHistoryParams,
+  ): Promise<CryptoPriceHistoryPoint[]> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'getCryptoPriceHistory',
+        trace: {
+          name: TraceName.PredictGetCryptoPriceHistory,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+            symbol: params.symbol,
+            variant: params.variant,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          symbol: params.symbol,
+          eventStartTime: params.eventStartTime,
+          variant: params.variant,
+          endDate: params.endDate,
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.CRYPTO_PRICE_HISTORY_FAILED,
+        traceData: (history) => ({ pointCount: history.length }),
+      },
+      async () => {
+        const history = await this.provider.getCryptoPriceHistory?.(params);
         return history ?? [];
       },
     );

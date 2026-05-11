@@ -18,7 +18,7 @@ import {
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { analytics } from '../../../../util/analytics/analytics';
-import { endTrace, trace } from '../../../../util/trace';
+import { endTrace, trace, TraceName } from '../../../../util/trace';
 import {
   addTransaction,
   addTransactionBatch,
@@ -264,6 +264,7 @@ describe('PredictController', () => {
       getPositions: jest.fn(),
       getMarketDetails: jest.fn(),
       getActivity: jest.fn(),
+      getCryptoPriceHistory: jest.fn(),
       placeOrder: jest.fn(),
       calculateBetAmounts: jest.fn(),
       calculateCashOutAmounts: jest.fn(),
@@ -899,6 +900,115 @@ describe('PredictController', () => {
         ).rejects.toBe('String error');
 
         expect(controller.state.lastError).toBe('PREDICT_PRICE_HISTORY_FAILED');
+      });
+    });
+  });
+
+  describe('getCryptoPriceHistory', () => {
+    const mockCryptoPriceHistory = [
+      { timestamp: 1234567890, value: 65000 },
+      { timestamp: 1234567900, value: 65100 },
+    ];
+
+    it('delegates to provider.getCryptoPriceHistory', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getCryptoPriceHistory = jest
+          .fn()
+          .mockResolvedValue(mockCryptoPriceHistory);
+
+        const params = {
+          symbol: 'BTC',
+          eventStartTime: '2025-01-01T00:00:00Z',
+          variant: 'hourly',
+        };
+
+        const result = await controller.getCryptoPriceHistory(params);
+
+        expect(result).toEqual(mockCryptoPriceHistory);
+        expect(
+          mockPolymarketProvider.getCryptoPriceHistory,
+        ).toHaveBeenCalledWith(params);
+        expect(trace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.PredictGetCryptoPriceHistory,
+            tags: expect.objectContaining({
+              symbol: 'BTC',
+              variant: 'hourly',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('returns empty array when provider method is undefined', async () => {
+      await withController(async ({ controller }) => {
+        (
+          mockPolymarketProvider as unknown as {
+            getCryptoPriceHistory?: (params: {
+              symbol: string;
+              eventStartTime: string;
+              variant: string;
+              endDate?: string;
+            }) => Promise<unknown[]>;
+          }
+        ).getCryptoPriceHistory = undefined;
+
+        const result = await controller.getCryptoPriceHistory({
+          symbol: 'ETH',
+          eventStartTime: '2025-01-01T00:00:00Z',
+          variant: 'daily',
+        });
+
+        expect(result).toEqual([]);
+      });
+    });
+
+    it('sets lastError and ends trace when getCryptoPriceHistory throws', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Failed to fetch crypto price history';
+        mockPolymarketProvider.getCryptoPriceHistory = jest
+          .fn()
+          .mockRejectedValue(new Error(errorMessage));
+
+        await expect(
+          controller.getCryptoPriceHistory({
+            symbol: 'BTC',
+            eventStartTime: '2025-01-01T00:00:00Z',
+            variant: 'hourly',
+          }),
+        ).rejects.toThrow(errorMessage);
+
+        expect(controller.state.lastError).toBe(errorMessage);
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        expect(endTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.PredictGetCryptoPriceHistory,
+            data: expect.objectContaining({
+              success: false,
+              error: errorMessage,
+            }),
+          }),
+        );
+      });
+    });
+
+    it('uses crypto price history error code for non-Error failures', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getCryptoPriceHistory = jest
+          .fn()
+          .mockRejectedValue('String error');
+
+        await expect(
+          controller.getCryptoPriceHistory({
+            symbol: 'BTC',
+            eventStartTime: '2025-01-01T00:00:00Z',
+            variant: 'hourly',
+          }),
+        ).rejects.toBe('String error');
+
+        expect(controller.state.lastError).toBe(
+          PREDICT_ERROR_CODES.CRYPTO_PRICE_HISTORY_FAILED,
+        );
       });
     });
   });
