@@ -6550,7 +6550,7 @@
   "money": {
     "title": "Money",
     "your_balance": "Your balance",
-    "apy_label": "{{percentage}}% APY",
+    "apy_label": "{{percentage}}% APY • mUSD",
     "apy_info_label": "APY info",
     "onboarding": {
       "step_progress": "Step {{current}} of {{total}}",
