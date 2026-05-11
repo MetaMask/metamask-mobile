@@ -50,7 +50,7 @@ const LABEL_KEY_MAP: Record<ActivityEntryType, string> = {
 };
 
 const tokenLabel = (token: ActivityTokenDto): string =>
-  token.tokenSymbol || token.tokenName;
+  token.tokenSymbol.toUpperCase() || token.tokenName;
 
 /** Rebalance USD is not portfolio P&L; omit the '+' used for signed inflows/outflows. */
 const formatActivityUsd = (

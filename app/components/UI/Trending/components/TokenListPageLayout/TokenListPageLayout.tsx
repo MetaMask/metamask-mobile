@@ -88,6 +88,7 @@ const TokenListPageLayout: React.FC<TokenListPageLayoutProps> = ({
           priceChangeButtonText={filters.priceChangeButtonText}
           onPriceChangePress={filters.handlePriceChangePress}
           isPriceChangeDisabled={searchResults.length === 0}
+          priceChangeIconName={filters.priceChangeSortDirectionIcon}
           networkName={filters.selectedNetworkName}
           onNetworkPress={filters.handleAllNetworksPress}
           extraFilters={extraFilters}

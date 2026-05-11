@@ -14,10 +14,12 @@ import {
 // =============================================================================
 
 export interface UseFeedScrollManagerParams {
-  headerRef: React.RefObject<View>;
-  tabBarRef: React.RefObject<View>;
+  headerRef: React.RefObject<View | null>;
+  tabBarRef: React.RefObject<View | null>;
   setActiveIndex: (index: number) => void;
   onHeaderHiddenChange?: (hidden: boolean) => void;
+  walletHeaderTranslateY?: SharedValue<number>;
+  walletHeaderHeight?: number;
 }
 
 export interface UseFeedScrollManagerReturn {
@@ -71,12 +73,18 @@ export const useFeedScrollManager = ({
   tabBarRef,
   setActiveIndex,
   onHeaderHiddenChange,
+  walletHeaderTranslateY,
+  walletHeaderHeight = 0,
 }: UseFeedScrollManagerParams): UseFeedScrollManagerReturn => {
   const isHeaderHidden = useSharedValue(0);
   const headerTranslateY = useSharedValue(0);
 
   const sharedHeaderHeight = useSharedValue(0);
   const sharedTabBarHeight = useSharedValue(0);
+  const sharedWalletHeaderHeight = useSharedValue(walletHeaderHeight);
+  useLayoutEffect(() => {
+    sharedWalletHeaderHeight.value = walletHeaderHeight;
+  }, [walletHeaderHeight, sharedWalletHeaderHeight]);
   const lastScrollY = useSharedValue(0);
 
   const isTabSwitching = useSharedValue(false);
@@ -185,6 +193,9 @@ export const useFeedScrollManager = ({
       if (atTop && isHeaderHidden.value === 1 && currentDirection === -1) {
         isHeaderHidden.value = 0;
         headerTranslateY.value = withTiming(0, animationConfig);
+        if (walletHeaderTranslateY) {
+          walletHeaderTranslateY.value = withTiming(0, animationConfig);
+        }
         accumulatedDelta.value = 0;
         lastDirection.value = 0;
         runOnJS(setHeaderHidden)(false);
@@ -196,13 +207,23 @@ export const useFeedScrollManager = ({
         return;
       }
 
-      // Scrolling down -> hide header
+      // Scrolling down -> hide header.
+      // When embedded in the Hub Page Discovery Tabs (feature flag treatment), walletHeaderTranslateY
+      // is provided and we slide both the predict header and predict tab bar away together so the
+      // outer discovery tabs become the only navigation row at the top. In the standalone screen
+      // path (no walletHeaderTranslateY), only the balance/carousel hides — predict tabs stay pinned.
       if (currentDirection === 1 && isHeaderHidden.value === 0) {
         isHeaderHidden.value = 1;
-        headerTranslateY.value = withTiming(
-          -sharedHeaderHeight.value,
-          animationConfig,
-        );
+        const hiddenTranslate = walletHeaderTranslateY
+          ? -(sharedHeaderHeight.value + sharedTabBarHeight.value)
+          : -sharedHeaderHeight.value;
+        headerTranslateY.value = withTiming(hiddenTranslate, animationConfig);
+        if (walletHeaderTranslateY) {
+          walletHeaderTranslateY.value = withTiming(
+            -sharedWalletHeaderHeight.value,
+            animationConfig,
+          );
+        }
         accumulatedDelta.value = 0;
         runOnJS(setHeaderHidden)(true);
         if (onHeaderHiddenChange) runOnJS(onHeaderHiddenChange)(true);
@@ -212,6 +233,9 @@ export const useFeedScrollManager = ({
       if (currentDirection === -1 && isHeaderHidden.value === 1) {
         isHeaderHidden.value = 0;
         headerTranslateY.value = withTiming(0, animationConfig);
+        if (walletHeaderTranslateY) {
+          walletHeaderTranslateY.value = withTiming(0, animationConfig);
+        }
         accumulatedDelta.value = 0;
         runOnJS(setHeaderHidden)(false);
         if (onHeaderHiddenChange) runOnJS(onHeaderHiddenChange)(false);
