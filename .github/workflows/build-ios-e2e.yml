@@ -1,26 +1,6 @@
 name: Build iOS E2E Apps
 
 on:
-  workflow_dispatch:
-    inputs:
-      runner_provider:
-        description: Runner provider for this manual trial run
-        required: true
-        type: choice
-        options:
-          - current
-          - namespace
-        default: current
-      build_type:
-        description: The type of build to perform
-        required: false
-        default: main
-        type: string
-      metamask_environment:
-        description: The environment to build for
-        required: false
-        default: qa
-        type: string
   workflow_call:
     outputs:
       app-uploaded:
@@ -51,13 +31,6 @@ on:
         required: false
         type: string
         default: current
-
-# Needed when this workflow is dispatched directly (workflow_dispatch). When called
-# via workflow_call, permissions are inherited from the caller. id-token: write is
-# required by setup-e2e-env's AWS OIDC role assumption for signing-cert fetch.
-permissions:
-  contents: read
-  id-token: write
 
 jobs:
   build-ios-apps:
