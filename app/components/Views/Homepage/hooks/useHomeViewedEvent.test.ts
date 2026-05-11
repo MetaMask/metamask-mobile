@@ -61,7 +61,7 @@ const triggerScroll = () => {
   scrollSubscribers.forEach((cb) => cb());
 };
 
-const createMockRef = (y: number, height: number): RefObject<View> =>
+const createMockRef = (y: number, height: number): RefObject<View | null> =>
   ({
     current: {
       measureInWindow: jest.fn(
@@ -69,10 +69,10 @@ const createMockRef = (y: number, height: number): RefObject<View> =>
           cb(0, y, 300, height),
       ),
     },
-  }) as unknown as RefObject<View>;
+  }) as unknown as RefObject<View | null>;
 
 const defaultParams = {
-  sectionRef: null as RefObject<View> | null,
+  sectionRef: null as RefObject<View | null> | null,
   isLoading: false,
   sectionName: HomeSectionNames.TOKENS,
   sectionIndex: 0,

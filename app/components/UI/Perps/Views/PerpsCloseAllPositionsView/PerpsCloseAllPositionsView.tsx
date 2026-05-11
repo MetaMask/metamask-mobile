@@ -42,7 +42,7 @@ import {
 } from '@metamask/perps-controller';
 
 interface PerpsCloseAllPositionsViewProps {
-  sheetRef?: React.RefObject<BottomSheetRef>;
+  sheetRef?: React.RefObject<BottomSheetRef | null>;
   onClose?: () => void;
 }
 

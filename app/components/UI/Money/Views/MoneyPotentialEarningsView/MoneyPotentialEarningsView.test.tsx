@@ -141,9 +141,7 @@ describe('MoneyPotentialEarningsView', () => {
       },
       musdEquivalentBalanceQuery: {
         data: {
-          musdEquivalentValue: '0',
-          musdSHFvdBalance: '0',
-          exchangeRate: '1000000',
+          balanceOfInAssets: '0',
         },
         isLoading: false,
       },

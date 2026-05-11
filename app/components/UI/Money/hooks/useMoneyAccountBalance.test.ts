@@ -112,9 +112,9 @@ const DEFAULT_VAULT_APY_QUERY: QueryState<{ apy: number }> = {
   isLoading: false,
 };
 const DEFAULT_MUSD_EQUIVALENT_BALANCE_QUERY: QueryState<{
-  musdEquivalentValue: string;
+  balanceOfInAssets: string;
 }> = {
-  data: { musdEquivalentValue: '2000000' },
+  data: { balanceOfInAssets: '2000000' },
   isLoading: false,
 };
 
@@ -125,7 +125,7 @@ function makeQueryResults({
 }: {
   musdBalance?: QueryState<{ balance: string }>;
   vaultApy?: QueryState<{ apy: number }>;
-  musdEquivalentBalance?: QueryState<{ musdEquivalentValue: string }>;
+  musdEquivalentBalance?: QueryState<{ balanceOfInAssets: string }>;
 } = {}) {
   return [musdBalance, vaultApy, musdEquivalentBalance] as ReturnType<
     typeof useQueries
