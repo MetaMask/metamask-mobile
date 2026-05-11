@@ -24,6 +24,7 @@ import {
 } from '../framework/Constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 import { logLiveMetaMetricsPostIfDebug } from '../helpers/analytics/analyticsDebug.ts';
+import { ensureE2ECa, DEFAULT_CA_CACHE_DIR } from './certs.ts';
 
 const logger = createLogger({
   name: 'MockServer',
@@ -226,6 +227,7 @@ export default class MockServerE2E implements Resource {
   private _server: InternalMockServer | null = null;
   private _events: MockEventsObject;
   private _testSpecificMock?: TestSpecificMock;
+  private _caCacheDir: string;
   private _activeRequests = 0;
   private _shuttingDown = false;
   private _abortFilterHandler: ((...args: unknown[]) => void) | null = null;
@@ -237,14 +239,37 @@ export default class MockServerE2E implements Resource {
   constructor(params: {
     events: MockEventsObject;
     testSpecificMock?: TestSpecificMock;
+    caCacheDir?: string;
   }) {
     this._events = params.events;
     this._serverPort = 0; // Will be set when starting the server
     this._testSpecificMock = params.testSpecificMock;
+    this._caCacheDir = params.caCacheDir ?? DEFAULT_CA_CACHE_DIR;
   }
 
   isStarted(): boolean {
     return this._serverStatus === ServerStatus.STARTED;
+  }
+
+  /**
+   * Returns events whose URL matches `urlEndpoint` for the given method.
+   * URL match is regex.test for RegExp endpoints; exact-or-startsWith for strings.
+   * Body matching (for POST) happens separately via `findMatchingPostEvent`.
+   */
+  private _findEventCandidatesByUrl(
+    urlEndpoint: string,
+    method: string,
+  ): MockApiEndpoint[] {
+    const methodEvents = this._events[method] || [];
+    return methodEvents.filter((event: MockApiEndpoint) => {
+      const eventUrl = event.urlEndpoint;
+      if (!eventUrl) return false;
+      if (eventUrl instanceof RegExp) {
+        return eventUrl.test(urlEndpoint);
+      }
+      const eventUrlStr = String(eventUrl);
+      return urlEndpoint === eventUrlStr || urlEndpoint.startsWith(eventUrlStr);
+    });
   }
 
   getServerPort(): number {
@@ -276,12 +301,15 @@ export default class MockServerE2E implements Resource {
       return;
     }
 
-    this._server = getLocal() as InternalMockServer;
+    const { certPath, keyPath } = await ensureE2ECa(this._caCacheDir);
+    this._server = getLocal({
+      https: { certPath, keyPath },
+    }) as InternalMockServer;
     this._server._liveRequests = [];
     await this._server.start(this._serverPort);
 
     logger.info(
-      `Mockttp server running at http://${getLocalHost()}:${this._serverPort}`,
+      `Mockttp server running at http://${getLocalHost()}:${this._serverPort} (HTTPS proxy enabled)`,
     );
 
     await this._server
@@ -348,20 +376,9 @@ export default class MockServerE2E implements Resource {
             logLiveMetaMetricsPostIfDebug(urlEndpoint, requestBodyJson);
           }
 
-          const methodEvents = this._events[method] || [];
-          const candidateEvents = methodEvents.filter(
-            (event: MockApiEndpoint) => {
-              const eventUrl = event.urlEndpoint;
-              if (!eventUrl) return false;
-              if (event.urlEndpoint instanceof RegExp) {
-                return event.urlEndpoint.test(urlEndpoint);
-              }
-              const eventUrlStr = String(eventUrl);
-              return (
-                urlEndpoint === eventUrlStr ||
-                urlEndpoint.startsWith(eventUrlStr)
-              );
-            },
+          const candidateEvents = this._findEventCandidatesByUrl(
+            urlEndpoint,
+            method,
           );
 
           let matchingEvent: MockApiEndpoint | undefined;
@@ -451,6 +468,105 @@ export default class MockServerE2E implements Resource {
             }
             throw error;
           }
+        } finally {
+          this._activeRequests--;
+        }
+      });
+
+    // Dual-mode handler: matches non-/proxy requests that arrive as absolute URLs
+    // (i.e. mockttp acting as a real HTTP/HTTPS proxy via OS-level emulator config).
+    // Fires only when the URL+method matches an `_events` entry, so requests with
+    // no mock fall through to `forUnmatchedRequest` and get tracked as live calls.
+    await this._server
+      .forAnyRequest()
+      .matching((request) => {
+        if (request.path.startsWith('/proxy')) return false;
+        return (
+          this._findEventCandidatesByUrl(request.url, request.method).length > 0
+        );
+      })
+      .thenCallback(async (request) => {
+        if (this._shuttingDown) {
+          try {
+            await request.body.getText();
+          } catch {
+            /* swallow abort errors */
+          }
+          return { statusCode: 503, body: 'Server shutting down' };
+        }
+        this._activeRequests++;
+        try {
+          const urlEndpoint = request.url;
+          const method = request.method;
+
+          let requestBodyText: string | undefined;
+          let requestBodyJson: unknown;
+          if (method === 'POST') {
+            try {
+              requestBodyText = await request.body.getText();
+              if (requestBodyText) {
+                try {
+                  requestBodyJson = JSON.parse(requestBodyText);
+                } catch {
+                  requestBodyJson = undefined;
+                }
+              }
+            } catch {
+              requestBodyText = undefined;
+            }
+            logLiveMetaMetricsPostIfDebug(urlEndpoint, requestBodyJson);
+          }
+
+          const candidateEvents = this._findEventCandidatesByUrl(
+            urlEndpoint,
+            method,
+          );
+
+          const matchingEvent =
+            method === 'POST'
+              ? findMatchingPostEvent(candidateEvents, requestBodyJson)
+              : candidateEvents[0];
+
+          if (!matchingEvent) {
+            // URL matched but body did not (POST-only). Return 404 so the
+            // caller sees a deterministic failure rather than falling through
+            // to a live request.
+            return {
+              statusCode: 404,
+              body: JSON.stringify({
+                error: 'No matching mock for request body',
+                url: urlEndpoint,
+                method,
+              }),
+            };
+          }
+
+          logger.debug(`Mocking ${method} request to: ${urlEndpoint}`);
+          if (method === 'POST' && matchingEvent.requestBody) {
+            const result = processPostRequestBody(
+              requestBodyText,
+              matchingEvent.requestBody,
+              { ignoreFields: matchingEvent.ignoreFields || [] },
+            );
+            if (!result.matches) {
+              return {
+                statusCode: result.error === 'Missing request body' ? 400 : 404,
+                body: JSON.stringify({
+                  error: result.error,
+                  expected: matchingEvent.requestBody,
+                  received: result.requestBodyJson,
+                }),
+              };
+            }
+          }
+
+          return {
+            statusCode: matchingEvent.responseCode,
+            body:
+              typeof matchingEvent.response === 'string'
+                ? matchingEvent.response
+                : JSON.stringify(matchingEvent.response),
+          };
         } finally {
           this._activeRequests--;
         }

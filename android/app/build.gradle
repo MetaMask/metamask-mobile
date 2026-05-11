@@ -305,6 +305,15 @@ android {
             crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
             testProguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules.pro"
         }
+        // E2E-only release variant: identical to `release` (minify, proguard, signing)
+        // but with a relaxed network_security_config that trusts user-installed CAs.
+        // Used by CI Detox runs against the OS-level proxy. The production
+        // `release` variant is untouched and continues to ship strict ATS.
+        e2eRelease {
+            initWith release
+            matchingFallbacks = ['release']
+            manifestPlaceholders.isDebug = false
+        }
     }
 
     flavorDimensions "version"
