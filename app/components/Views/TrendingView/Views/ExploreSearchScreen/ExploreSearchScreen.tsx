@@ -161,7 +161,9 @@ const ExploreSearchScreen: React.FC = () => {
           <Box
             key="all"
             twClassName="flex-1"
-            {...({ tabLabel: strings('trending.tabs.all') } as TabViewProps)}
+            {...({
+              tabLabel: strings('trending.search_tabs.all'),
+            } as TabViewProps)}
           >
             <ExploreSearchResults
               searchQuery={searchQuery}
@@ -172,59 +174,65 @@ const ExploreSearchScreen: React.FC = () => {
             key="crypto"
             twClassName="flex-1"
             {...({
-              tabLabel: strings('trending.tabs.crypto'),
+              tabLabel: strings('trending.search_tabs.crypto'),
             } as TabViewProps)}
           >
             <FeedTab
               feedId="tokens"
               searchQuery={searchQuery}
-              title={strings('trending.tabs.crypto')}
+              title={strings('trending.search_tabs.crypto')}
             />
           </Box>
           <Box
             key="perps"
             twClassName="flex-1"
-            {...({ tabLabel: strings('trending.perps') } as TabViewProps)}
+            {...({
+              tabLabel: strings('trending.search_tabs.perps'),
+            } as TabViewProps)}
           >
             <FeedTab
               feedId="perps"
               searchQuery={searchQuery}
-              title={strings('trending.perps')}
+              title={strings('trending.search_tabs.perps')}
             />
           </Box>
           <Box
             key="stocks"
             twClassName="flex-1"
-            {...({ tabLabel: strings('trending.stocks') } as TabViewProps)}
+            {...({
+              tabLabel: strings('trending.search_tabs.stocks'),
+            } as TabViewProps)}
           >
             <FeedTab
               feedId="stocks"
               searchQuery={searchQuery}
-              title={strings('trending.stocks')}
+              title={strings('trending.search_tabs.stocks')}
             />
           </Box>
           <Box
             key="predictions"
             twClassName="flex-1"
             {...({
-              tabLabel: strings('trending.predictions'),
+              tabLabel: strings('trending.search_tabs.predictions'),
             } as TabViewProps)}
           >
             <FeedTab
               feedId="predictions"
               searchQuery={searchQuery}
-              title={strings('trending.predictions')}
+              title={strings('trending.search_tabs.predictions')}
             />
           </Box>
           <Box
             key="sites"
             twClassName="flex-1"
-            {...({ tabLabel: strings('trending.sites') } as TabViewProps)}
+            {...({
+              tabLabel: strings('trending.search_tabs.sites'),
+            } as TabViewProps)}
           >
             <FeedTab
               feedId="sites"
               searchQuery={searchQuery}
-              title={strings('trending.sites')}
+              title={strings('trending.search_tabs.sites')}
             />
           </Box>
         </TabsList>

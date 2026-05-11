@@ -8895,13 +8895,20 @@
       "description": "We were not able to find this token"
     },
     "tabs": {
-      "all": "All",
       "now": "Now",
       "macro": "Macro",
       "rwas": "RWAs",
       "crypto": "Crypto",
       "sports": "Sports",
       "dapps": "Sites"
+    },
+    "search_tabs": {
+      "all": "All",
+      "crypto": "Crypto",
+      "perps": "Perps",
+      "stocks": "Stocks",
+      "predictions": "Predictions",
+      "sites": "Sites"
     }
   },
   "ota_update_modal": {

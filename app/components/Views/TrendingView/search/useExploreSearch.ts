@@ -71,7 +71,7 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
     const sections: SearchFeedSection[] = [
       {
         feedId: 'tokens',
-        title: strings('trending.tabs.crypto'),
+        title: strings('trending.search_tabs.crypto'),
         items: tokens.data,
         isLoading: isDebouncing || tokens.isLoading,
       },
@@ -80,7 +80,7 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
     if (isPerpsEnabled) {
       sections.push({
         feedId: 'perps',
-        title: strings('trending.perps'),
+        title: strings('trending.search_tabs.perps'),
         items: perps.data.map((d) => d.market),
         isLoading: isDebouncing || perps.isLoading,
       });
@@ -89,19 +89,19 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
     sections.push(
       {
         feedId: 'stocks',
-        title: strings('trending.stocks'),
+        title: strings('trending.search_tabs.stocks'),
         items: stocks.data,
         isLoading: isDebouncing || stocks.isLoading,
       },
       {
         feedId: 'predictions',
-        title: strings('trending.predictions'),
+        title: strings('trending.search_tabs.predictions'),
         items: predictions.data,
         isLoading: isDebouncing || predictions.isLoading,
       },
       {
         feedId: 'sites',
-        title: strings('trending.sites'),
+        title: strings('trending.search_tabs.sites'),
         items: sites.data,
         isLoading: isDebouncing || sites.isLoading,
       },
