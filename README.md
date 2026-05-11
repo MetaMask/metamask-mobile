@@ -208,6 +208,8 @@ git clone git@github.com:Consensys/skills.git ~/path/to/consensys-skills
 export CONSENSYS_SKILLS_DIR=~/path/to/consensys-skills   # add to your shell rc
 ```
 
+Keep that checkout on `main` — `yarn skills` syncs from whatever revision is checked out there.
+
 Then in this repo:
 
 ```bash
