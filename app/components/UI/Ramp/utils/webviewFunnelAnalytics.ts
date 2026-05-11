@@ -9,7 +9,7 @@ export type CloseSource =
   | 'background';
 
 export interface FunnelBaseProps {
-  flow_id: string;
+  checkout_session_id: string;
   location: 'Checkout';
   ramp_type: 'UNIFIED_BUY_2';
   provider_name?: string;
@@ -17,17 +17,17 @@ export interface FunnelBaseProps {
 }
 
 export interface BuildBaseArgs {
-  flowId: string;
+  checkoutSessionId: string;
   providerName?: string;
   rampRouting?: UnifiedRampRoutingType | null;
 }
 
 export const buildBaseProps = ({
-  flowId,
+  checkoutSessionId,
   providerName,
   rampRouting,
 }: BuildBaseArgs): FunnelBaseProps => ({
-  flow_id: flowId,
+  checkout_session_id: checkoutSessionId,
   location: 'Checkout',
   ramp_type: 'UNIFIED_BUY_2',
   provider_name: providerName ?? undefined,

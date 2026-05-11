@@ -121,7 +121,7 @@ const Checkout = () => {
   const registeredOrderIdsRef = useRef<Set<string>>(new Set());
   const hasCallbackFlow = Boolean(providerCode && walletAddress);
 
-  const flowId = useMemo(
+  const checkoutSessionId = useMemo(
     () => effectiveOrderId ?? uuidv4(),
     [effectiveOrderId],
   );
@@ -153,7 +153,7 @@ const Checkout = () => {
         createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_OPENED)
           .addProperties({
             ...buildBaseProps({
-              flowId,
+              checkoutSessionId,
               providerName,
               rampRouting: rampRoutingDecision,
             }),
@@ -169,7 +169,7 @@ const Checkout = () => {
     createEventBuilder,
     trackEvent,
     rampRoutingDecision,
-    flowId,
+    checkoutSessionId,
     providerName,
     hasCallbackFlow,
     effectiveOrderId,
@@ -231,7 +231,7 @@ const Checkout = () => {
         createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_URL_CHANGED)
           .addProperties({
             ...buildBaseProps({
-              flowId,
+              checkoutSessionId,
               providerName,
               rampRouting: rampRoutingDecision,
             }),
@@ -248,7 +248,7 @@ const Checkout = () => {
     [
       createEventBuilder,
       trackEvent,
-      flowId,
+      checkoutSessionId,
       providerName,
       rampRoutingDecision,
       effectiveOrderId,
@@ -272,7 +272,7 @@ const Checkout = () => {
         createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_CALLBACK_DETECTED)
           .addProperties({
             ...buildBaseProps({
-              flowId,
+              checkoutSessionId,
               providerName,
               rampRouting: rampRoutingDecision,
             }),
@@ -382,7 +382,7 @@ const Checkout = () => {
       recordUrlChange,
       createEventBuilder,
       trackEvent,
-      flowId,
+      checkoutSessionId,
       providerName,
       rampRoutingDecision,
       effectiveOrderId,
@@ -438,7 +438,7 @@ const Checkout = () => {
         createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETED)
           .addProperties({
             ...buildBaseProps({
-              flowId,
+              checkoutSessionId,
               providerName,
               rampRouting: rampRoutingDecision,
             }),
@@ -449,7 +449,13 @@ const Checkout = () => {
           .build(),
       );
     },
-    [createEventBuilder, trackEvent, flowId, providerName, rampRoutingDecision],
+    [
+      createEventBuilder,
+      trackEvent,
+      checkoutSessionId,
+      providerName,
+      rampRoutingDecision,
+    ],
   );
 
   const handleShouldStartLoadWithRequest = useCallback(
@@ -468,17 +474,16 @@ const Checkout = () => {
       createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_CLOSED)
         .addProperties({
           ...buildBaseProps({
-            flowId,
+            checkoutSessionId,
             providerName,
             rampRouting: rampRoutingDecision,
           }),
           close_source: closeSourceRef.current ?? 'background',
-          last_hostname: lastUrl ? extractHostname(lastUrl) : undefined,
-          last_sanitized_path: lastUrl
-            ? redactUrlForAnalytics(lastUrl)
-            : undefined,
-          previous_hostname: prevUrl ? extractHostname(prevUrl) : undefined,
-          previous_sanitized_path: prevUrl
+          order_id: effectiveOrderId ?? undefined,
+          last_url_hostname: lastUrl ? extractHostname(lastUrl) : undefined,
+          last_url_path: lastUrl ? redactUrlForAnalytics(lastUrl) : undefined,
+          previous_url_hostname: prevUrl ? extractHostname(prevUrl) : undefined,
+          previous_url_path: prevUrl
             ? redactUrlForAnalytics(prevUrl)
             : undefined,
           callback_reached: isRedirectionHandledRef.current,
@@ -522,6 +527,12 @@ const Checkout = () => {
                 setKey((prevKey) => prevKey + 1);
                 setError('');
                 isRedirectionHandledRef.current = false;
+                lastLoadCompleteUrlRef.current = null;
+                loadUrlErrorsRef.current.clear();
+                loadStartTimeRef.current = null;
+                closeSourceRef.current = null;
+                urlHistoryRef.current = { current: null, previous: null };
+                stepIndexRef.current = 0;
               }}
               location="Provider Webview"
             />
@@ -560,7 +571,7 @@ const Checkout = () => {
               )
                 .addProperties({
                   ...buildBaseProps({
-                    flowId,
+                    checkoutSessionId,
                     providerName,
                     rampRouting: rampRoutingDecision,
                   }),

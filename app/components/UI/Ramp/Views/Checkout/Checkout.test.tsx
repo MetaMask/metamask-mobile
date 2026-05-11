@@ -894,7 +894,7 @@ describe('Checkout', () => {
         )
         .filter((p): p is Record<string, unknown> => p !== null);
 
-    it('fires RAMPS_CHECKOUT_OPENED on mount with flow_id = effectiveOrderId when present', () => {
+    it('fires RAMPS_CHECKOUT_OPENED on mount with checkout_session_id = effectiveOrderId when present', () => {
       mockUseParams.mockReturnValue({
         url: 'https://provider.example.com/checkout?token=secret',
         providerName: 'MoonPay',
@@ -907,7 +907,7 @@ describe('Checkout', () => {
 
       const props = findEventProps(MetaMetricsEvents.RAMPS_CHECKOUT_OPENED);
       expect(props).toMatchObject({
-        flow_id: 'order-123',
+        checkout_session_id: 'order-123',
         location: 'Checkout',
         ramp_type: 'UNIFIED_BUY_2',
         provider_name: 'MoonPay',
@@ -917,7 +917,7 @@ describe('Checkout', () => {
       });
     });
 
-    it('fires RAMPS_CHECKOUT_OPENED with UUID flow_id when no order ID present', () => {
+    it('fires RAMPS_CHECKOUT_OPENED with UUID checkout_session_id when no order ID present', () => {
       mockUseParams.mockReturnValue({
         url: 'https://provider.example.com/checkout',
         providerName: 'Test',
@@ -927,7 +927,7 @@ describe('Checkout', () => {
 
       const props = findEventProps(MetaMetricsEvents.RAMPS_CHECKOUT_OPENED);
       expect(props).toMatchObject({
-        flow_id: 'mock-uuid-xyz',
+        checkout_session_id: 'mock-uuid-xyz',
         has_callback_flow: false,
       });
       expect((props as { order_id?: string }).order_id).toBeUndefined();
@@ -1044,6 +1044,44 @@ describe('Checkout', () => {
         MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETED,
       );
       expect(loadComplete).toMatchObject({ load_success: false });
+    });
+
+    it('fires LOAD_COMPLETED with load_success=true on retry after a terminal HTTP error', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-load-start'));
+        fireEvent.press(getByTestId('trigger-http-error-main-uri'));
+        fireEvent.press(getByTestId('trigger-load-end'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Try again'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-load-start'));
+        fireEvent.press(getByTestId('trigger-load-end'));
+      });
+
+      const loadCompletes = findAllEventProps(
+        MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETED,
+      );
+      expect(loadCompletes.length).toBeGreaterThanOrEqual(2);
+      expect(loadCompletes[loadCompletes.length - 1]).toMatchObject({
+        url_path: 'https://provider.example.com/checkout',
+        load_success: true,
+      });
     });
 
     it('reports is_initial_url=false for callback URL HTTP errors (terminal but not the initial page)', async () => {
@@ -1279,8 +1317,8 @@ describe('Checkout', () => {
         'initial_url_path',
         'url_path',
         'previous_url_path',
-        'last_sanitized_path',
-        'previous_sanitized_path',
+        'last_url_path',
+        'previous_url_path',
       ];
       for (const propsCall of mockAddProperties.mock.calls) {
         const props = propsCall[0] as Record<string, unknown>;

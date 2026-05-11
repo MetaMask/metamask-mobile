@@ -6,12 +6,12 @@ describe('webviewFunnelAnalytics', () => {
     it('returns all base fields when every argument is supplied', () => {
       expect(
         buildBaseProps({
-          flowId: 'flow-1',
+          checkoutSessionId: 'session-1',
           providerName: 'MoonPay',
           rampRouting: UnifiedRampRoutingType.AGGREGATOR,
         }),
       ).toEqual({
-        flow_id: 'flow-1',
+        checkout_session_id: 'session-1',
         location: 'Checkout',
         ramp_type: 'UNIFIED_BUY_2',
         provider_name: 'MoonPay',
@@ -20,8 +20,8 @@ describe('webviewFunnelAnalytics', () => {
     });
 
     it('omits provider_name and ramp_routing when absent', () => {
-      const result = buildBaseProps({ flowId: 'flow-2' });
-      expect(result.flow_id).toBe('flow-2');
+      const result = buildBaseProps({ checkoutSessionId: 'session-2' });
+      expect(result.checkout_session_id).toBe('session-2');
       expect(result.location).toBe('Checkout');
       expect(result.ramp_type).toBe('UNIFIED_BUY_2');
       expect(result.provider_name).toBeUndefined();
@@ -29,7 +29,10 @@ describe('webviewFunnelAnalytics', () => {
     });
 
     it('coerces null ramp_routing to undefined', () => {
-      const result = buildBaseProps({ flowId: 'flow-3', rampRouting: null });
+      const result = buildBaseProps({
+        checkoutSessionId: 'session-3',
+        rampRouting: null,
+      });
       expect(result.ramp_routing).toBeUndefined();
     });
   });

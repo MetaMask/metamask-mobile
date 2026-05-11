@@ -402,7 +402,7 @@ interface RampsToastButtonClicked {
 }
 
 interface RampsCheckoutFunnelBase {
-  flow_id: string;
+  checkout_session_id: string;
   location: 'Checkout';
   ramp_type: 'UNIFIED_BUY_2';
   provider_name?: string;
@@ -449,10 +449,11 @@ interface RampsCheckoutClosed extends RampsCheckoutFunnelBase {
     | 'callback_error'
     | 'http_error'
     | 'background';
-  last_hostname?: string;
-  last_sanitized_path?: string;
-  previous_hostname?: string;
-  previous_sanitized_path?: string;
+  order_id?: string;
+  last_url_hostname?: string;
+  last_url_path?: string;
+  previous_url_hostname?: string;
+  previous_url_path?: string;
   callback_reached: boolean;
   step_index: number;
   time_on_screen_ms: number;
