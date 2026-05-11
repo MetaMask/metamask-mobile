@@ -188,7 +188,10 @@ const MoneyPotentialEarningsView = () => {
           />
         ))}
       </ScrollView>
-      <Box twClassName="px-4 py-3">
+      <Box
+        twClassName="px-4 pt-3"
+        style={{ paddingBottom: insets.bottom + 12 }}
+      >
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
