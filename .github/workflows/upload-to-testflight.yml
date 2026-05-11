@@ -39,11 +39,6 @@ on:
         description: 'The build number of the app (eg. 4134)'
         required: true
         type: string
-      distribute_external:
-        description: 'Whether to distribute to external testers. Set false for nightly/internal builds to avoid expiring previous TestFlight builds.'
-        required: false
-        type: boolean
-        default: true
 
 permissions:
   contents: read
@@ -162,8 +157,7 @@ jobs:
             "github_actions_main-${{ inputs.environment }}" \
             "${{ inputs.source_branch }}" \
             "${{ steps.ipa.outputs.path }}" \
-            "${{ inputs.testflight_group }}" \
-            "${{ inputs.distribute_external }}"
+            "${{ inputs.testflight_group }}"
 
       - name: Cleanup API Key
         if: always()

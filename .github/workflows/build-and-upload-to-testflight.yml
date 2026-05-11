@@ -19,11 +19,6 @@ on:
         required: false
         type: string
         default: 'MetaMask BETA & Release Candidates'
-      distribute_external:
-        description: 'Whether to distribute to external testers. Defaults to false; nightly-build.yml relies on the script default (true) so it always distributes externally.'
-        required: false
-        type: boolean
-        default: false
   workflow_dispatch:
     inputs:
       source_branch:
@@ -49,11 +44,6 @@ on:
           - 'MetaMask BETA & Release Candidates'
           - 'MM Card Team'
           - 'Ramp Provider Testing'
-      distribute_external:
-        description: 'Whether to distribute to external testers'
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -89,7 +79,6 @@ jobs:
       build_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
       build_version: ${{ needs.build.outputs.semantic_version }}
       build_number: ${{ needs.build.outputs.ios_version_code }}
-      distribute_external: ${{ inputs.distribute_external }}
     secrets: inherit
 
   cleanup-build-branch:
