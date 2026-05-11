@@ -1,6 +1,26 @@
 import compareVersions from 'compare-versions';
 import { getVersion } from 'react-native-device-info';
+import { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { isRemoteFeatureFlagOverrideActivated } from '../../core/Engine/controllers/remote-feature-flag-controller';
+
+/**
+ * Resolves the effective remote feature flags by merging remote flags with
+ * any local overrides. Local overrides take precedence, matching the behaviour
+ * of the `selectRemoteFeatureFlags` Redux selector.
+ *
+ * Use this in engine-world where Redux state is not available.
+ *
+ * @param state - The RemoteFeatureFlagController state, or undefined.
+ * @returns The merged flags object.
+ */
+export function getResolvedRemoteFeatureFlags(
+  state: RemoteFeatureFlagControllerState | undefined,
+): Record<string, unknown> {
+  return {
+    ...(state?.remoteFeatureFlags ?? {}),
+    ...(state?.localOverrides ?? {}),
+  };
+}
 
 export interface VersionGatedFeatureFlag {
   enabled: boolean;

@@ -5,6 +5,7 @@ import {
 } from '@metamask/money-account-controller';
 import { MoneyAccountControllerInitMessenger } from '../messengers/money-account-controller-messenger';
 import { isMoneyAccountEnabled } from '../../../lib/Money/feature-flags';
+import { getResolvedRemoteFeatureFlags } from '../../../util/remoteFeatureFlag';
 import Logger from '../../../util/Logger';
 
 /**
@@ -29,9 +30,13 @@ export const moneyAccountControllerInit: MessengerClientInitFunction<
   // Re-check the Money account feature flag whenever remote flags are updated.
   initMessenger.subscribe(
     'RemoteFeatureFlagController:stateChange',
-    async ({ remoteFeatureFlags }) => {
+    async () => {
       try {
-        const isEnabled = isMoneyAccountEnabled(remoteFeatureFlags);
+        const rffState = initMessenger.call(
+          'RemoteFeatureFlagController:getState',
+        );
+        const resolvedFlags = getResolvedRemoteFeatureFlags(rffState);
+        const isEnabled = isMoneyAccountEnabled(resolvedFlags);
         const hasMoneyAccount =
           Object.keys(controller.state.moneyAccounts).length > 0;
 
