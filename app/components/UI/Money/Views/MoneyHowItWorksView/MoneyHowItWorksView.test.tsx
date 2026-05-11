@@ -32,9 +32,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Your Money account earns 4% APY (variable) automatically. Funds go into a curated DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.',
       'money.how_it_works_page.description_2':
         'Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.',
-      'money.how_it_works_page.faq_title': 'FAQ',
+      'money.how_it_works_page.faq_title': 'Frequently asked questions',
       'money.how_it_works_page.faq_placeholder_answer': 'Coming soon.',
-      'money.how_it_works_page.faq_q1': 'What is the Money account?',
+      'money.how_it_works_page.faq_q1': 'How does the 4% APY work?',
       'money.how_it_works_page.faq_q2': 'What is mUSD?',
       'money.how_it_works_page.faq_q3': 'Where does the yield come from?',
       'money.how_it_works_page.faq_q4':
@@ -84,10 +84,22 @@ describe('MoneyHowItWorksView', () => {
     expect(getByTestId(MoneyHowItWorksViewTestIds.FAQ_TITLE)).toBeOnTheScreen();
   });
 
+  it('renders the "Frequently asked questions" FAQ header', () => {
+    const { getByText } = renderWithProvider(<MoneyHowItWorksView />);
+
+    expect(getByText('Frequently asked questions')).toBeOnTheScreen();
+  });
+
+  it('includes "4% APY" in the FAQ questions', () => {
+    const { getByText } = renderWithProvider(<MoneyHowItWorksView />);
+
+    expect(getByText(/4% APY/)).toBeOnTheScreen();
+  });
+
   it('renders all 10 FAQ questions', () => {
     const { getByText } = renderWithProvider(<MoneyHowItWorksView />);
 
-    expect(getByText('What is the Money account?')).toBeOnTheScreen();
+    expect(getByText('How does the 4% APY work?')).toBeOnTheScreen();
     expect(getByText('What is mUSD?')).toBeOnTheScreen();
     expect(getByText('Where does the yield come from?')).toBeOnTheScreen();
     expect(
