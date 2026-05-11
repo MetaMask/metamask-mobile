@@ -13,7 +13,6 @@ import MoneyAddMoneySheet from '../components/MoneyAddMoneySheet';
 import MoneyMoreSheet from '../components/MoneyMoreSheet';
 import MoneyTransferSheet from '../components/MoneyTransferSheet';
 import MoneyApyInfoSheet from '../components/MoneyApyInfoSheet';
-import MoneyEarningsInfoSheet from '../components/MoneyEarningsInfoSheet';
 import MoneyBalanceInfoSheet from '../components/MoneyBalanceInfoSheet';
 import MoneyEarnCryptoInfoSheet from '../components/MoneyEarnCryptoInfoSheet';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
@@ -81,11 +80,6 @@ const MoneyModalStack = () => (
     <ModalStack.Screen
       name={Routes.MONEY.MODALS.APY_INFO_SHEET}
       component={MoneyApyInfoSheet}
-      options={{ headerShown: false }}
-    />
-    <ModalStack.Screen
-      name={Routes.MONEY.MODALS.EARNINGS_INFO_SHEET}
-      component={MoneyEarningsInfoSheet}
       options={{ headerShown: false }}
     />
     <ModalStack.Screen
