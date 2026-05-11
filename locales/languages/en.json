@@ -6662,6 +6662,10 @@
       "title": "Estimated earnings",
       "body": "An estimate of how much you could earn over a period based on your current balance and today's APY. Estimates are not guaranteed returns and remain subject to change."
     },
+    "earn_crypto_info_sheet": {
+      "title": "Earn on your crypto",
+      "body": "Convert eligible tokens to mUSD to start earning APY. The list below shows only assets that are currently supported for mUSD conversion."
+    },
     "activity": {
       "title": "Activity",
       "view_all": "View all",
