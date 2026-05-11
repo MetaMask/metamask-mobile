@@ -190,7 +190,19 @@ download_latest_app() {
   echo -e "${BLUE}Extracting to $APP_NAME...${NC}"
   mkdir -p "$EXTRACTED_APP_PATH"
   ditto -x -k "$ZIP_PATH" "$EXTRACTED_APP_PATH"
-  
+
+  # Handle new zip format where the zip contains a .app directory at its root
+  # (rather than the raw app bundle contents). Promote the inner .app to MetaMask.app.
+  INNER_APP=$(find "$EXTRACTED_APP_PATH" -name "*.app" -type d -maxdepth 1 2>/dev/null | head -1)
+  if [[ -n "$INNER_APP" ]]; then
+    echo -e "${BLUE}Detected nested .app bundle in zip, restructuring...${NC}"
+    TEMP_APP="$RUNWAY_DIR/.metamask_tmp.app"
+    safe_rm_dir "$TEMP_APP"
+    mv "$INNER_APP" "$TEMP_APP"
+    safe_rm_dir "$EXTRACTED_APP_PATH"
+    mv "$TEMP_APP" "$EXTRACTED_APP_PATH"
+  fi
+
   echo -e "${GREEN}✓ Successfully downloaded and extracted app!${NC}"
   
   # Cleanup zip file (debug json cleaned by trap on success)
