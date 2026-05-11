@@ -73,7 +73,11 @@ import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { MINIMUM_BET } from '../../constants/transactions';
-import { getPredictExchangeFee, roundUpToCents } from '../../utils/orders';
+import {
+  getPredictBuyAllInCost,
+  getPredictExchangeFee,
+  roundUpToCents,
+} from '../../utils/orders';
 
 /**
  * Module-level ref so PredictPreviewSheetContext can distinguish a programmatic
@@ -240,11 +244,19 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
 
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
   const exchangeFee = getPredictExchangeFee(preview?.fees);
-  const total = roundUpToCents(currentValue + metamaskFee + exchangeFee);
+  const previewAllInCost = getPredictBuyAllInCost(preview);
+  const total =
+    currentValue > 0 && preview
+      ? previewAllInCost
+      : roundUpToCents(currentValue);
 
   const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
   const isInsufficientBalance =
-    currentValue > 0 && !isBelowMinimum && !isBalanceLoading && total > balance;
+    currentValue > 0 &&
+    !isBelowMinimum &&
+    !isBalanceLoading &&
+    !!preview &&
+    previewAllInCost > balance;
   const insufficientBalanceError = isInsufficientBalance
     ? strings('predict.order.no_funds_enough')
     : undefined;

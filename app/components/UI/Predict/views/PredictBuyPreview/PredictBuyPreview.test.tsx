@@ -70,11 +70,12 @@ let mockMetamaskFee = 0.5;
 let mockProviderFee = 1.0;
 let mockMarketFee = 0;
 let mockTotalFeePercentage = 4;
+let mockMaxAmountSpent: number | undefined;
 let mockIsCalculating = false;
 let mockPreviewError: string | null = null;
 let mockPreviewOverride: Record<string, unknown> | null = null;
 jest.mock('../../hooks/usePredictOrderPreview', () => ({
-  usePredictOrderPreview: () => ({
+  usePredictOrderPreview: ({ size = 0 }: { size?: number } = {}) => ({
     preview:
       mockPreviewOverride !== null
         ? mockPreviewOverride
@@ -85,7 +86,7 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
             timestamp: Date.now(),
             side: 'BUY',
             sharePrice: 0.5,
-            maxAmountSpent: 100,
+            maxAmountSpent: mockMaxAmountSpent ?? size,
             minAmountReceived: mockExpectedAmount,
             slippage: 0.005,
             tickSize: 0.01,
@@ -270,6 +271,7 @@ describe('PredictBuyPreview', () => {
     mockProviderFee = 1.0;
     mockMarketFee = 0;
     mockTotalFeePercentage = 4;
+    mockMaxAmountSpent = undefined;
     mockIsCalculating = false;
     mockPreviewError = null;
     mockPreviewOverride = null;
@@ -2386,6 +2388,29 @@ describe('PredictBuyPreview', () => {
         screen.getByTestId('predict-buy-preview-place-bet-button'),
       ).toHaveProp('accessibilityState', {
         disabled: true,
+      });
+    });
+
+    it('uses preview maxAmountSpent for the all-in balance validation', () => {
+      mockBalance = 1.38;
+      mockMaxAmountSpent = 1.29;
+      mockMetamaskFee = 0.05;
+      mockProviderFee = 0.04;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByText('1'));
+      fireEvent.press(screen.getByText('.'));
+      fireEvent.press(screen.getByText('3'));
+      fireEvent.press(screen.getByText('0'));
+      fireEvent.press(screen.getByText('Done'));
+
+      expect(screen.getByText('$1.38')).toBeOnTheScreen();
+      expect(screen.queryByText('Not enough funds.')).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-buy-preview-place-bet-button'),
+      ).toHaveProp('accessibilityState', {
+        disabled: false,
       });
     });
 
