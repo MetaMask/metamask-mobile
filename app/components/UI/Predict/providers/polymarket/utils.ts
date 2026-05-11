@@ -57,15 +57,13 @@ import {
   SLIPPAGE_SELL,
   SPORTS_MARKET_TYPE_TO_GROUP,
 } from './constants';
-import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
+import { Permit2FeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
   ClobHeaders,
-  ClobOrderObject,
   COLLATERAL_TOKEN_DECIMALS,
   ContractConfig,
   L2HeaderArgs,
-  OrderData,
   OrderResponse,
   OrderSummary,
   PolymarketApiEvent,
@@ -80,6 +78,28 @@ import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PredictFeeCollection } from '../../types/flags';
 
 export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
+
+interface OrderData {
+  salt: string;
+  maker: string;
+  signer: string;
+  taker: string;
+  tokenId: string;
+  makerAmount: string;
+  takerAmount: string;
+  expiration: string;
+  nonce: string;
+  feeRateBps: string;
+  side: Side;
+  signatureType: number;
+  signature?: string;
+}
+
+interface ClobOrderObject {
+  order: Omit<OrderData, 'side' | 'salt'> & { side: Side };
+  owner: string;
+  orderType?: string;
+}
 
 const FOUR_HOUR_SERIES_SLUG_PATTERN = /(?:^|-)4h(?:-|$)/u;
 
@@ -500,14 +520,14 @@ export const submitClobOrder = async ({
 }: {
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
-  feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
+  feeAuthorization?: Permit2FeeAuthorization;
   executor?: string;
   allowancesTx?: { to: string; data: string };
 }): Promise<Result<OrderResponse>> => {
   const { CLOB_RELAYER } = getPolymarketEndpoints();
   const url = `${CLOB_RELAYER}/order`;
   const body: ClobOrderObject & {
-    feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
+    feeAuthorization?: Permit2FeeAuthorization;
     executor?: string;
     allowancesTx?: { to: string; data: string };
   } = {

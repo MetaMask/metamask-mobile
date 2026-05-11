@@ -251,6 +251,8 @@ export enum TraceOperation {
   CardGetSupportedTokensAllowances = 'card.get.supported.tokens.allowances',
   CardGetPriorityToken = 'card.get.priority.token',
   CardIdentifyCardholder = 'card.identify.cardholder',
+  TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
+  TokenOverviewAdvancedChartTimeRange = 'token_overview.advanced_chart_time_range',
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',

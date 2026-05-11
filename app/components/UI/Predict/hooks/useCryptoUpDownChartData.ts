@@ -97,6 +97,7 @@ export const useCryptoUpDownChartData = (
 
     prevMarketIdRef.current = market.id;
     frozenRef.current = false;
+    frozenMarketIdRef.current = undefined;
     setFrozenMarketId(undefined);
     liveLoadingRef.current = true;
     setLiveLoading(true);
@@ -123,6 +124,10 @@ export const useCryptoUpDownChartData = (
   const handleLiveUpdate = useCallback((update: CryptoPriceUpdate) => {
     const currentLiveEndDateMs = liveEndDateMsRef.current;
     const currentMarketId = marketIdRef.current;
+    if (prevMarketIdRef.current !== currentMarketId) {
+      return;
+    }
+
     if (
       typeof currentLiveEndDateMs === 'number' &&
       Date.now() >= currentLiveEndDateMs

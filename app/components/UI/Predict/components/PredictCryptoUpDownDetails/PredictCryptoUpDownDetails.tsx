@@ -158,7 +158,6 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const durationMs = Number.isFinite(durationSecs)
     ? durationSecs * 1000
     : 5 * 60 * 1000;
-  const marketEndDateMs = getEndDateTime(market.endDate);
   const selectedEndDateMs = getEndDateTime(selectedMarket.endDate);
   const [currentWindowMs, setCurrentWindowMs] = useState(() =>
     getCurrentWindowMs(durationMs),
@@ -166,7 +165,6 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const { endDateMin, endDateMax } = useMemo(() => {
     const seriesWindowAnchorMs = Math.max(
       currentWindowMs,
-      marketEndDateMs ?? Number.NEGATIVE_INFINITY,
       selectedEndDateMs ?? Number.NEGATIVE_INFINITY,
     );
 
@@ -176,7 +174,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         seriesWindowAnchorMs + 10 * durationMs,
       ).toISOString(),
     };
-  }, [currentWindowMs, durationMs, marketEndDateMs, selectedEndDateMs]);
+  }, [currentWindowMs, durationMs, selectedEndDateMs]);
 
   const { data: seriesMarkets } = usePredictSeries({
     seriesId: market.series.id,

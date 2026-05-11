@@ -576,6 +576,47 @@ describe('PredictCryptoUpDownDetails', () => {
     }
   });
 
+  it('anchors the series query window to the selected slot instead of the prop market', () => {
+    const now = Date.UTC(2026, 0, 1, 0, 0, 0);
+    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
+    const laterPropMarket = createMockMarket({
+      id: 'later-market',
+      endDate: new Date(now + 60 * 60 * 1000).toISOString(),
+    });
+    const earlierSelectedMarket = createMockMarket({
+      id: 'earlier-market',
+      endDate: new Date(now + 5 * 60 * 1000).toISOString(),
+    });
+    mockUsePredictSeries.mockReturnValue({
+      data: [laterPropMarket, earlierSelectedMarket],
+    });
+
+    try {
+      render(
+        <PredictCryptoUpDownDetails
+          market={laterPropMarket}
+          onBack={mockOnBack}
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('mock-time-slot-earlier-market'));
+
+      const selectedQueryParams =
+        mockUsePredictSeries.mock.calls[
+          mockUsePredictSeries.mock.calls.length - 1
+        ][0];
+
+      expect(new Date(selectedQueryParams.endDateMin).getTime()).toBe(
+        now - 2 * 5 * 60 * 1000,
+      );
+      expect(new Date(selectedQueryParams.endDateMax).getTime()).toBe(
+        now + 11 * 5 * 60 * 1000,
+      );
+    } finally {
+      dateNowSpy.mockRestore();
+    }
+  });
+
   it('passes selected market to chart component and updates subtitle when a different time slot is selected', () => {
     const market = createMockMarket();
 
