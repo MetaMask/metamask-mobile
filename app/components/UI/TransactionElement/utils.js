@@ -839,7 +839,6 @@ function decodeConfirmTx(args) {
 
   const renderFrom = renderFullAddress(from);
   const renderTo = renderFullAddress(to);
-  const chainId = txChainId;
 
   let transactionType;
   if (actionKey === strings('transactions.approve'))
