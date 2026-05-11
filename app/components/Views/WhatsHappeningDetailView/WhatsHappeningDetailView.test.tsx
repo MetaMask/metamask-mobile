@@ -1,6 +1,9 @@
 import React from 'react';
+import { Pressable, View } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
+import WhatsHappeningSourcesBottomSheet from './components/WhatsHappeningSourcesBottomSheet';
 import WhatsHappeningDetailView, {
   CARD_WIDTH,
 } from './WhatsHappeningDetailView';
@@ -19,14 +22,21 @@ const mockCreateEventBuilder = jest.fn((eventName: string) => ({
   build: jest.fn(() => ({ category: eventName })),
 }));
 
-jest.mock('@react-navigation/native', () => {
-  const actual = jest.requireActual('@react-navigation/native');
-  return {
-    ...actual,
-    useNavigation: () => ({ goBack: mockGoBack }),
-    useRoute: () => ({ params: { initialIndex: 0 } }),
-  };
-});
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
+  useRoute: jest.fn(),
+}));
+
+jest.mock('./components/WhatsHappeningExpandedCard', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('./components/WhatsHappeningSourcesBottomSheet', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -66,6 +76,10 @@ const mockUseWhatsHappening = jest.requireMock(
   '../Homepage/Sections/WhatsHappening/hooks',
 ).useWhatsHappening;
 
+const mockNav = jest.requireMock('@react-navigation/native');
+const mockUseRoute = mockNav.useRoute as jest.Mock;
+const mockUseNavigation = mockNav.useNavigation as jest.Mock;
+
 const mockItem = {
   id: 'trend-0',
   title: 'The Federal Reserve pauses interest rates',
@@ -80,6 +94,38 @@ const mockItem = {
 describe('WhatsHappeningDetailView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseRoute.mockReturnValue({ params: { initialIndex: 0 } });
+    mockUseNavigation.mockReturnValue({ goBack: mockGoBack });
+
+    (WhatsHappeningExpandedCard as unknown as jest.Mock).mockImplementation(
+      ({
+        onSourcesPress,
+      }: {
+        onSourcesPress?: (articles: unknown[]) => void;
+      }) => (
+        <Pressable
+          testID="mock-expanded-card"
+          onPress={() =>
+            onSourcesPress?.([
+              {
+                title: 'Test',
+                source: 'coindesk.com',
+                url: 'https://coindesk.com/test',
+                date: '2026-03-15T10:00:00.000Z',
+              },
+            ])
+          }
+        />
+      ),
+    );
+
+    (
+      WhatsHappeningSourcesBottomSheet as unknown as jest.Mock
+    ).mockImplementation(({ onClose }: { onClose: () => void }) => (
+      <View testID="mock-sources-bottom-sheet">
+        <Pressable testID="mock-sources-close" onPress={onClose} />
+      </View>
+    ));
   });
 
   it('renders the screen title', () => {
@@ -139,7 +185,7 @@ describe('WhatsHappeningDetailView', () => {
     fireEvent(carousel, 'layout', {
       nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
     });
-    expect(screen.getByText(mockItem.title)).toBeOnTheScreen();
+    expect(screen.getByTestId('mock-expanded-card')).toBeOnTheScreen();
   });
 
   it('does not show the skeleton or error when items are loaded', () => {
@@ -226,8 +272,8 @@ describe('WhatsHappeningDetailView', () => {
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
     const carousel = screen.getByTestId('whats-happening-detail-carousel');
-    fireEvent(carousel, 'onMomentumScrollEnd', {
-      nativeEvent: { contentOffset: { x: SNAP_INTERVAL_FOR_TEST } },
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: SNAP_INTERVAL_FOR_TEST, y: 0 } },
     });
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
@@ -256,8 +302,8 @@ describe('WhatsHappeningDetailView', () => {
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
     const carousel = screen.getByTestId('whats-happening-detail-carousel');
-    fireEvent(carousel, 'onMomentumScrollEnd', {
-      nativeEvent: { contentOffset: { x: 0 } },
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 0, y: 0 } },
     });
     expect(mockCreateEventBuilder).not.toHaveBeenCalled();
   });
@@ -283,5 +329,81 @@ describe('WhatsHappeningDetailView', () => {
         }),
       }),
     );
+  });
+
+  it('shows the sources bottom sheet when onSourcesPress is called from a card', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'layout', {
+      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
+    });
+    fireEvent.press(screen.getByTestId('mock-expanded-card'));
+    expect(screen.getByTestId('mock-sources-bottom-sheet')).toBeOnTheScreen();
+  });
+
+  it('hides the sources bottom sheet when onClose is called', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'layout', {
+      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
+    });
+    fireEvent.press(screen.getByTestId('mock-expanded-card'));
+    expect(screen.getByTestId('mock-sources-bottom-sheet')).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('mock-sources-close'));
+    expect(screen.queryByTestId('mock-sources-bottom-sheet')).toBeNull();
+  });
+
+  it('updates the active page indicator dot when the carousel is scrolled', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [
+        mockItem,
+        { ...mockItem, id: 'trend-1' },
+        { ...mockItem, id: 'trend-2' },
+      ],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'layout', {
+      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
+    });
+    fireEvent(carousel, 'scroll', {
+      nativeEvent: { contentOffset: { x: 343, y: 0 } },
+    });
+    expect(screen.getByTestId('page-indicator-dot-active')).toBeOnTheScreen();
+    const inactiveDots = screen.getAllByTestId('page-indicator-dot');
+    expect(inactiveDots.length).toBe(2);
+  });
+
+  it('scrolls to initialIndex once content is wide enough', () => {
+    mockUseRoute.mockReturnValue({ params: { initialIndex: 1 } });
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem, { ...mockItem, id: 'trend-1' }],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'layout', {
+      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
+    });
+    expect(() =>
+      fireEvent(carousel, 'contentSizeChange', 700, 600),
+    ).not.toThrow();
   });
 });
