@@ -32,7 +32,6 @@ import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 import {
   PermissionDoesNotExistError,
   SubjectType,
-  createPermissionMiddleware,
 } from '@metamask/permission-controller';
 
 import {
@@ -689,13 +688,6 @@ export class BackgroundBridge extends EventEmitter {
       createTrustSignalsMiddleware({
         phishingController: Engine.context.PhishingController,
         networkController: Engine.context.NetworkController,
-      }),
-    );
-
-    engine.push(
-      createPermissionMiddleware({
-        origin,
-        messenger: Engine.controllerMessenger,
       }),
     );
 
