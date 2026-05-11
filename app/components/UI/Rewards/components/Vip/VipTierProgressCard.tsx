@@ -15,8 +15,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../locales/i18n';
-import { formatCompactUsd } from '../../utils/formatUtils';
 import type {
   VipProgressDto,
   VipTierRefDto,
@@ -31,9 +29,8 @@ export const VIP_TIER_PROGRESS_CARD_TEST_IDS = {
 
 interface VipTierProgressCardProps {
   currentTier: VipTierRefDto;
-  nextTier: VipTierRefDto;
   progress: VipProgressDto;
-  sublineOverride?: string;
+  subline: string;
   onPress?: () => void;
 }
 
@@ -42,20 +39,12 @@ const clampPercent = (value: number): number =>
 
 const VipTierProgressCard: React.FC<VipTierProgressCardProps> = ({
   currentTier,
-  nextTier,
   progress,
-  sublineOverride,
+  subline,
   onPress,
 }) => {
   const tw = useTailwind();
   const fillWidth: `${number}%` = `${clampPercent(progress.percent)}%`;
-  const subline =
-    sublineOverride ??
-    strings('rewards.vip.to_next_tier', {
-      swaps: formatCompactUsd(progress.remainingSwapsUsd),
-      perps: formatCompactUsd(progress.remainingPerpsUsd),
-      tierName: nextTier.name,
-    });
 
   return (
     <Pressable
