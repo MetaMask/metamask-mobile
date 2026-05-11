@@ -140,6 +140,10 @@ const MoneyHomeView = () => {
     });
   }, [navigation]);
 
+  const handleManageCardPress = useCallback(() => {
+    navigation.navigate(Routes.CARD.ROOT);
+  }, [navigation]);
+
   const handleGetNowPress = useCallback(() => {
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation]);
@@ -227,6 +231,19 @@ const MoneyHomeView = () => {
     handleAddPress,
   ]);
 
+  let metamaskCardMode: 'upsell' | 'link' | 'manage';
+  if (isCardholderWithMilestone && isUS) {
+    metamaskCardMode = 'manage';
+  } else if (isCardholderWithMilestone) {
+    metamaskCardMode = 'link';
+  } else {
+    metamaskCardMode = 'upsell';
+  }
+
+  // No selector yet for the user's card balance — pass undefined for now.
+  // `ManageContent` handles `undefined` gracefully via its `subtitle` check.
+  const cardBalance: string | undefined = undefined;
+
   return (
     <Box
       style={[styles.safeArea, { paddingTop: insets.top }]}
@@ -302,12 +319,14 @@ const MoneyHomeView = () => {
           </>
         )}
         <MoneyMetaMaskCard
-          mode={isCardholderWithMilestone ? 'link' : 'upsell'}
+          mode={metamaskCardMode}
           onGetNowPress={handleGetNowPress}
           onHeaderPress={handleHeaderPress}
           onLinkPress={handleLinkCardPress}
+          onManagePress={handleManageCardPress}
           apy={apyPercent}
           showMetalCard={isUS}
+          cardBalance={cardBalance}
         />
         <Divider />
         {isMilestone && (

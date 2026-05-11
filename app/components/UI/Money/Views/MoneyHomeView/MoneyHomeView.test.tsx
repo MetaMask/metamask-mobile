@@ -521,6 +521,8 @@ describe('MoneyHomeView', () => {
         moneyAddress: '0x0000000000000000000000000000000000000001',
       });
       mockSelectIsCardholder.mockReturnValue(true);
+      // Non-US so MetaMask card renders in link mode (manage mode is US-only).
+      mockGetDetectedGeolocation.mockReturnValue('GB');
     });
 
     it('renders onboarding card with step 2 and link-card variant', () => {
@@ -822,6 +824,65 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('MetaMask card mode selection', () => {
+    beforeEach(() => {
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: Array.from({ length: 3 }, (_, index) => ({
+          ...MOCK_MONEY_TRANSACTIONS[index % MOCK_MONEY_TRANSACTIONS.length],
+          id: `mm-card-mode-${index}`,
+        })),
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+      });
+    });
+
+    it('selects mode="manage" when cardholder and US', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockGetDetectedGeolocation.mockReturnValue('US');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('selects mode="link" when cardholder but not US', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockGetDetectedGeolocation.mockReturnValue('GB');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('selects mode="upsell" when not cardholder', () => {
+      mockSelectIsCardholder.mockReturnValue(false);
+      mockGetDetectedGeolocation.mockReturnValue('US');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to Card root when Manage is pressed in manage mode', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockGetDetectedGeolocation.mockReturnValue('US');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
     });
   });
 
