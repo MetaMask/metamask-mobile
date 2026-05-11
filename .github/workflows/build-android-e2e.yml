@@ -71,8 +71,7 @@ jobs:
             .yarn/cache
             ${{ env.GRADLE_USER_HOME }}/caches
             ${{ env.GRADLE_USER_HOME }}/wrapper
-            ${{ inputs.build_type == 'flask' && 'android/app/build/outputs/apk/flask/release' || 'android/app/build/outputs/apk/prod/release' }}
-            ${{ inputs.build_type == 'flask' && 'android/app/build/outputs/apk/androidTest/flask/release' || 'android/app/build/outputs/apk/androidTest/prod/release' }}
+            ~/.namespace-apk-cache
 
       - name: Report source fingerprint
         run: |
@@ -109,22 +108,29 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' }}
         shell: bash
         env:
-          MARKER_PATH: ${{ steps.determine-target-paths.outputs.apk-target-path }}/.e2e-apk-cache-marker
-          APK_PATH: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
-          TEST_APK_PATH: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+          CACHE_DIR: ${{ github.workspace }}/../.namespace-apk-cache
+          APK_TARGET: ${{ steps.determine-target-paths.outputs.apk-target-path }}
+          TEST_APK_TARGET: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
+          ARTIFACT_NAME: ${{ steps.determine-target-paths.outputs.artifact_name }}
           FINGERPRINT: ${{ inputs.source-fingerprint }}
           CACHE_GENERATION: ${{ env.CACHE_GENERATION }}
           GRADLE_FILES_HASH: ${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           REF_NAME: ${{ github.ref_name }}
           BUILD_TYPE: ${{ inputs.build_type }}
         run: |
+          MARKER="${HOME}/.namespace-apk-cache/.e2e-apk-cache-marker"
+          APK_CACHED="${HOME}/.namespace-apk-cache/${ARTIFACT_NAME}.apk"
+          TEST_APK_CACHED="${HOME}/.namespace-apk-cache/${ARTIFACT_NAME}-androidTest.apk"
           EXPECTED="${REF_NAME}"$'\n'"${BUILD_TYPE}"$'\n'"${CACHE_GENERATION}"$'\n'"${FINGERPRINT}"$'\n'"${GRADLE_FILES_HASH}"
-          if [[ -f "${MARKER_PATH}" ]] && [[ -f "${APK_PATH}" ]] && [[ -f "${TEST_APK_PATH}" ]] && [[ "$(<"${MARKER_PATH}")" == "${EXPECTED}" ]]; then
+          if [[ -f "${MARKER}" ]] && [[ -f "${APK_CACHED}" ]] && [[ -f "${TEST_APK_CACHED}" ]] && [[ "$(<"${MARKER}")" == "${EXPECTED}" ]]; then
             echo "cache-hit=true" >> "${GITHUB_OUTPUT}"
-            echo "Namespace E2E APK cache hit (marker matches key inputs)."
+            echo "Namespace APK cache hit — restoring APKs to build output dirs."
+            mkdir -p "${APK_TARGET}" "${TEST_APK_TARGET}"
+            cp "${APK_CACHED}" "${APK_TARGET}/"
+            cp "${TEST_APK_CACHED}" "${TEST_APK_TARGET}/"
           else
             echo "cache-hit=false" >> "${GITHUB_OUTPUT}"
-            echo "Namespace E2E APK cache miss — full build required."
+            echo "Namespace APK cache miss — full build required."
           fi
 
       - name: Find reusable build from prior run
@@ -347,16 +353,22 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
         shell: bash
         env:
-          MARKER_PATH: ${{ steps.determine-target-paths.outputs.apk-target-path }}/.e2e-apk-cache-marker
+          APK_SOURCE: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+          TEST_APK_SOURCE: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+          ARTIFACT_NAME: ${{ steps.determine-target-paths.outputs.artifact_name }}
           FINGERPRINT: ${{ inputs.source-fingerprint }}
           CACHE_GENERATION: ${{ env.CACHE_GENERATION }}
           GRADLE_FILES_HASH: ${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           REF_NAME: ${{ github.ref_name }}
           BUILD_TYPE: ${{ inputs.build_type }}
         run: |
+          CACHE_DIR="${HOME}/.namespace-apk-cache"
+          mkdir -p "${CACHE_DIR}"
+          cp "${APK_SOURCE}" "${CACHE_DIR}/${ARTIFACT_NAME}.apk"
+          cp "${TEST_APK_SOURCE}" "${CACHE_DIR}/${ARTIFACT_NAME}-androidTest.apk"
           EXPECTED="${REF_NAME}"$'\n'"${BUILD_TYPE}"$'\n'"${CACHE_GENERATION}"$'\n'"${FINGERPRINT}"$'\n'"${GRADLE_FILES_HASH}"
-          printf '%s\n' "${EXPECTED}" > "${MARKER_PATH}"
-          echo "Namespace APK cache marker written."
+          printf '%s\n' "${EXPECTED}" > "${CACHE_DIR}/.e2e-apk-cache-marker"
+          echo "Namespace APK cache marker + APKs written to ${CACHE_DIR}."
 
       - name: Repack APK with JS updates using @expo/repack-app
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
