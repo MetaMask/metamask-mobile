@@ -64,7 +64,6 @@ const MOCK_POSITION: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 5,
   pnl: 1500,
   notionalVolume: 30000,
-  marginDeployed: 2000,
   qualified: true,
   neighbors: [],
   computedAt: '2024-03-20T12:00:00.000Z',
