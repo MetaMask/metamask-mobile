@@ -1,5 +1,3 @@
-// TODO: Remove all console.log statements before merging to production.
-/* eslint-disable no-console */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { OHLCVBar as WSOHLCVBar } from '@metamask/core-backend';
 import Engine from '../../../../core/Engine';
@@ -23,10 +21,6 @@ export interface UseOHLCVRealtimeResult {
 }
 
 const DEBOUNCE_MS = 500;
-
-// TODO: Remove before merging to production.
-// DEV-ONLY: Auto-simulate a WebSocket disconnect/reconnect after this many ms (0 = disabled).
-const DEV_SIMULATE_WS_DISCONNECT_AFTER_MS = 0;
 
 /** How often we check whether data is stale (ms) */
 const STALENESS_CHECK_INTERVAL_MS = 15_000;
@@ -87,7 +81,7 @@ function extractChainId(assetId: string): string {
 
 /**
  * Subscribes to real-time OHLCV candle updates via OHLCVService (WebSocket).
- * Uses a 300ms debounce before subscribing to avoid thrashing during rapid
+ * Uses a 500ms debounce before subscribing to avoid thrashing during rapid
  * time-range or asset navigation changes.
  *
  * Includes a staleness-based HTTP polling fallback:
@@ -144,9 +138,6 @@ export function useOHLCVRealtime({
       bar: WSOHLCVBar;
     }) => {
       if (payload.channel === channelRef.current) {
-        console.log(
-          `[OHLCV-WS] Bar received — channel=${payload.channel}, close=${payload.bar.close}, ts=${payload.bar.timestamp}`,
-        );
         lastMessageTimeRef.current = Date.now();
         chainDownRef.current = false;
         setLatestBar(payload.bar);
@@ -158,9 +149,7 @@ export function useOHLCVRealtime({
       error: string;
       operation: string;
     }) => {
-      console.log(
-        `[OHLCV-WS] Subscription error on ${payload.channel}: ${payload.error} (${payload.operation})`,
-      );
+      // Error is logged by OHLCVService in core; hook only needs to react if needed.
     };
 
     const chainId = extractChainId(assetId);
@@ -170,9 +159,6 @@ export function useOHLCVRealtime({
       timestamp?: number;
     }) => {
       if (payload.chainIds.includes(chainId)) {
-        console.log(
-          `[OHLCV-WS] Chain status changed — chainId=${chainId}, status=${payload.status}`,
-        );
         chainDownRef.current = payload.status === 'down';
       }
     };
@@ -197,7 +183,6 @@ export function useOHLCVRealtime({
       const controller = new AbortController();
       pollingAbortRef.current = controller;
 
-      console.log('[OHLCV-WS] Polling /latest via REST fallback');
       try {
         const bar = await fetchLatestBar(
           assetId,
@@ -210,12 +195,8 @@ export function useOHLCVRealtime({
           lastMessageTimeRef.current = Date.now();
           setLatestBar(bar);
         }
-      } catch (err) {
-        if ((err as Error)?.name !== 'AbortError') {
-          console.log(
-            `[OHLCV-WS] REST fallback error: ${err instanceof Error ? err.message : String(err)}`,
-          );
-        }
+      } catch {
+        // no-op
       }
     };
 
@@ -225,18 +206,12 @@ export function useOHLCVRealtime({
         lastMessageTimeRef.current > 0 && elapsed > STALENESS_THRESHOLD_MS;
 
       if (isStale || chainDownRef.current) {
-        console.log(
-          `[OHLCV-WS] Stream stale or chain down — isStale=${isStale}, chainDown=${chainDownRef.current}, elapsed=${elapsed}ms`,
-        );
         pollLatest();
       }
     }, STALENESS_CHECK_INTERVAL_MS);
 
     // Debounce the actual WS subscribe call
     debounceTimerRef.current = setTimeout(async () => {
-      console.log(
-        `[OHLCV-WS] Debounce fired — calling OHLCVService:subscribe for ${channel}`,
-      );
       try {
         await Engine.controllerMessenger.call('OHLCVService:subscribe', {
           assetId,
@@ -245,9 +220,6 @@ export function useOHLCVRealtime({
         });
 
         if (cancelledRef.current) {
-          console.log(
-            `[OHLCV-WS] Subscribe completed but effect was cancelled — undoing subscribe for ${channel}`,
-          );
           await Engine.controllerMessenger.call('OHLCVService:unsubscribe', {
             assetId,
             interval,
@@ -258,38 +230,13 @@ export function useOHLCVRealtime({
 
         subscribedRef.current = true;
         lastMessageTimeRef.current = Date.now();
-      } catch (err) {
-        console.log(
-          `[OHLCV-WS] Failed to subscribe: ${err instanceof Error ? err.message : String(err)}`,
-        );
+      } catch {
+        // Subscribe failure is handled by OHLCVService (reconnection + subscriptionError event).
       }
     }, DEBOUNCE_MS);
 
-    // TODO: Remove before merging to production.
-    // DEV-ONLY: simulate a WebSocket disconnect/reconnect after N ms.
-    // Set DEV_SIMULATE_WS_DISCONNECT_AFTER_MS to e.g. 10000 (10s) to activate.
-    let devDisconnectTimer: ReturnType<typeof setTimeout> | null = null;
-    if (__DEV__ && DEV_SIMULATE_WS_DISCONNECT_AFTER_MS > 0) {
-      devDisconnectTimer = setTimeout(() => {
-        console.log(
-          `[OHLCV-WS] DEV: Simulating WS disconnect (no reconnect) after ${DEV_SIMULATE_WS_DISCONNECT_AFTER_MS}ms`,
-        );
-        Engine.controllerMessenger.call(
-          'BackendWebSocketService:disconnect' as never,
-        );
-      }, DEV_SIMULATE_WS_DISCONNECT_AFTER_MS);
-    }
-
     return () => {
-      console.log(
-        `[OHLCV-WS] Cleanup — channel=${channel}, wasSubscribed=${subscribedRef.current}`,
-      );
-
       cancelledRef.current = true;
-
-      if (devDisconnectTimer) {
-        clearTimeout(devDisconnectTimer);
-      }
 
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -318,10 +265,8 @@ export function useOHLCVRealtime({
 
       Engine.controllerMessenger
         .call('OHLCVService:unsubscribe', { assetId, interval, currency })
-        .catch((err: unknown) => {
-          console.log(
-            `[OHLCV-WS] Failed to unsubscribe: ${err instanceof Error ? (err as Error).message : String(err)}`,
-          );
+        .catch(() => {
+          // Non-fatal: grace period in core will handle cleanup.
         });
       subscribedRef.current = false;
     };
