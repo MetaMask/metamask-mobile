@@ -11,6 +11,7 @@ import { Box } from '@metamask/design-system-react-native';
 import { CashSection } from './Sections/Cash';
 import TokensSection from './Sections/Tokens';
 import WhatsHappeningSection from './Sections/WhatsHappening';
+import { WhatsHappeningSource } from './Sections/WhatsHappening/constants';
 import PerpsSectionWithProvider from './Sections/Perpetuals';
 import { PerpsSection as PerpsSectionBase } from './Sections/Perpetuals/PerpsSection';
 import PredictionsSection from './Sections/Predictions';
@@ -40,12 +41,6 @@ import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectio
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import { HomepageTrendingAbTestContext } from './context/HomepageTrendingAbTestContext';
 
-/**
- * Homepage component - Main view for the redesigned wallet homepage.
- *
- * This component orchestrates all homepage sections and coordinates
- * their refresh functionality via refs.
- */
 interface HomepageProps {
   /**
    * When true, skips rendering PerpsConnectionProvider + PerpsStreamProvider
@@ -54,6 +49,12 @@ interface HomepageProps {
   perpsProvidersHoisted?: boolean;
 }
 
+/**
+ * Homepage component - Main view for the redesigned wallet homepage.
+ *
+ * This component orchestrates all homepage sections and coordinates
+ * their refresh functionality via refs.
+ */
 const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
   ({ perpsProvidersHoisted = false }, ref) => {
     const cashSectionRef = useRef<SectionRefreshHandle>(null);
@@ -254,6 +255,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             ref={whatsHappeningSectionRef}
             sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
             totalSectionsLoaded={totalSectionsLoaded}
+            source={WhatsHappeningSource.Homepage}
           />
           <TokensSection
             ref={trendingTokensRef}
@@ -402,6 +404,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             ref={whatsHappeningSectionRef}
             sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
             totalSectionsLoaded={totalSectionsLoaded}
+            source={WhatsHappeningSource.Homepage}
           />
           <DeFiSection
             ref={defiSectionRef}
