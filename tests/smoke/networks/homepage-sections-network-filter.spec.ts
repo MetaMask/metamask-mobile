@@ -134,14 +134,13 @@ describe(
         {
           // withTokensForAllPopularNetworks seeds both TokensController.allTokens
           // AND TokenBalancesController (required for ERC-20s to show in the selector).
-          // withNetworkEnabledMap restricts popularChainIds to Ethereum only, so the
-          // homepage selector returns exactly 2 tokens (ETH + USDC from Ethereum) —
-          // well within MAX_TOKENS_DISPLAYED = 5. Linea has no tokens seeded, so
-          // selecting Linea in the full view's NetworkManager makes it appear empty
-          // while the homepage (scoped to Ethereum) still shows both tokens.
+          // Enable Linea before filtering to it so the NetworkManager selection
+          // path mirrors the other filter tests and does not need to enable a
+          // network mid-test. No Linea native balance is seeded, so the full view
+          // filter is still empty while the homepage still shows Ethereum tokens.
           fixture: new FixtureBuilder()
             .withTokensForAllPopularNetworks([ETH_TOKEN, USDC_TOKEN])
-            .withNetworkEnabledMap({ eip155: { '0x1': true } })
+            .withNetworkEnabledMap({ eip155: { '0x1': true, '0xe708': true } })
             .build(),
           restartDevice: true,
           testSpecificMock: async (mockServer: Mockttp) => {
