@@ -1,26 +1,37 @@
+import { type CaipChainId, KnownCaipNamespace } from '@metamask/utils';
 import {
   buildAdapterNamespaces,
   proposalReferencedAdapterNamespaces,
   seedAdapterPermissions,
-} from './namespaces';
+} from './helpers';
 import type { ChainAdapter, NamespaceConfig } from './types';
+import {
+  getRedirectMethodsForChain,
+  mapRequestForSnap,
+  normalizeCaipChainIdInbound,
+  normalizeCaipChainIdOutbound,
+  normalizeSnapResponse,
+} from './index';
+import { getAdapter , getAllAdapters } from './registry';
 
 jest.mock('./registry', () => ({
-  getAllAdapters: jest.fn(),
+  getAdapter: jest.fn(),
+  getAllAdapters: jest.fn().mockReturnValue([]),
+  getAllRegisteredNamespaces: jest.fn().mockReturnValue([]),
 }));
 
 jest.mock('../../SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
 }));
 
-import { getAllAdapters } from './registry';
+const mockedGetAdapter = getAdapter as jest.Mock;
 
 const mockedGetAllAdapters = getAllAdapters as jest.Mock;
 
 const createFakeAdapter = (
   overrides: Partial<ChainAdapter> = {},
 ): ChainAdapter => ({
-  namespace: overrides.namespace ?? 'fake',
+  namespace: (overrides.namespace ?? 'fake') as KnownCaipNamespace,
   redirectMethods: overrides.redirectMethods ?? [],
   proposalReferencesNamespace:
     overrides.proposalReferencesNamespace ?? jest.fn().mockReturnValue(false),
@@ -33,6 +44,15 @@ const createFakeAdapter = (
   normalizeSnapResponse:
     overrides.normalizeSnapResponse ??
     jest.fn().mockImplementation(({ result }) => result),
+  buildScopedPermissionsNamespace:
+    overrides.buildScopedPermissionsNamespace ??
+    jest.fn().mockReturnValue(undefined),
+  normalizeCaipChainIdInbound:
+    overrides.normalizeCaipChainIdInbound ??
+    jest.fn().mockImplementation((caipChainId: CaipChainId) => caipChainId),
+  normalizeCaipChainIdOutbound:
+    overrides.normalizeCaipChainIdOutbound ??
+    jest.fn().mockImplementation((caipChainId: CaipChainId) => caipChainId),
 });
 
 beforeEach(() => {
@@ -44,8 +64,14 @@ describe('seedAdapterPermissions', () => {
     const tronHook = jest.fn();
     const solanaHook = jest.fn();
     mockedGetAllAdapters.mockReturnValue([
-      createFakeAdapter({ namespace: 'tron', onBeforeApprove: tronHook }),
-      createFakeAdapter({ namespace: 'solana', onBeforeApprove: solanaHook }),
+      createFakeAdapter({
+        namespace: KnownCaipNamespace.Tron,
+        onBeforeApprove: tronHook,
+      }),
+      createFakeAdapter({
+        namespace: KnownCaipNamespace.Solana,
+        onBeforeApprove: solanaHook,
+      }),
     ]);
 
     await seedAdapterPermissions({
@@ -66,7 +92,9 @@ describe('seedAdapterPermissions', () => {
   });
 
   it('skips adapters that do not declare an onBeforeApprove hook', async () => {
-    const adapterWithoutHook = createFakeAdapter({ namespace: 'btc' });
+    const adapterWithoutHook = createFakeAdapter({
+      namespace: KnownCaipNamespace.Bip122,
+    });
     delete adapterWithoutHook.onBeforeApprove;
     mockedGetAllAdapters.mockReturnValue([adapterWithoutHook]);
 
@@ -79,8 +107,14 @@ describe('seedAdapterPermissions', () => {
     const failingHook = jest.fn().mockRejectedValue(new Error('boom'));
     const followingHook = jest.fn();
     mockedGetAllAdapters.mockReturnValue([
-      createFakeAdapter({ namespace: 'a', onBeforeApprove: failingHook }),
-      createFakeAdapter({ namespace: 'b', onBeforeApprove: followingHook }),
+      createFakeAdapter({
+        namespace: 'a' as KnownCaipNamespace,
+        onBeforeApprove: failingHook,
+      }),
+      createFakeAdapter({
+        namespace: 'b' as KnownCaipNamespace,
+        onBeforeApprove: followingHook,
+      }),
     ]);
 
     await seedAdapterPermissions({ proposal: {}, channelId: 'channel-2' });
@@ -117,11 +151,11 @@ describe('buildAdapterNamespaces', () => {
     };
     mockedGetAllAdapters.mockReturnValue([
       createFakeAdapter({
-        namespace: 'tron',
+        namespace: KnownCaipNamespace.Tron,
         buildNamespace: jest.fn().mockReturnValue(tronSlice),
       }),
       createFakeAdapter({
-        namespace: 'solana',
+        namespace: KnownCaipNamespace.Solana,
         buildNamespace: jest.fn().mockReturnValue(solanaSlice),
       }),
     ]);
@@ -140,11 +174,11 @@ describe('buildAdapterNamespaces', () => {
     };
     mockedGetAllAdapters.mockReturnValue([
       createFakeAdapter({
-        namespace: 'tron',
+        namespace: KnownCaipNamespace.Tron,
         buildNamespace: jest.fn().mockReturnValue(tronSlice),
       }),
       createFakeAdapter({
-        namespace: 'solana',
+        namespace: KnownCaipNamespace.Solana,
         buildNamespace: jest.fn().mockReturnValue(undefined),
       }),
     ]);
@@ -152,13 +186,13 @@ describe('buildAdapterNamespaces', () => {
     const result = buildAdapterNamespaces({ proposal: {} });
 
     expect(result).toStrictEqual({ tron: tronSlice });
-    expect(result).not.toHaveProperty('solana');
+    expect(result).not.toHaveProperty(KnownCaipNamespace.Solana);
   });
 
   it('forwards accounts/methods/events from existingNamespaces to each adapter', () => {
     const buildNamespace = jest.fn().mockReturnValue(undefined);
     mockedGetAllAdapters.mockReturnValue([
-      createFakeAdapter({ namespace: 'tron', buildNamespace }),
+      createFakeAdapter({ namespace: KnownCaipNamespace.Tron, buildNamespace }),
     ]);
 
     buildAdapterNamespaces({
@@ -183,7 +217,7 @@ describe('buildAdapterNamespaces', () => {
   it('passes undefined existing fields when the namespace has no entry in existingNamespaces', () => {
     const buildNamespace = jest.fn().mockReturnValue(undefined);
     mockedGetAllAdapters.mockReturnValue([
-      createFakeAdapter({ namespace: 'tron', buildNamespace }),
+      createFakeAdapter({ namespace: KnownCaipNamespace.Tron, buildNamespace }),
     ]);
 
     buildAdapterNamespaces({ proposal: {}, existingNamespaces: {} });
@@ -201,28 +235,31 @@ describe('proposalReferencedAdapterNamespaces', () => {
   it('returns the namespaces of all adapters that recognize the proposal', () => {
     mockedGetAllAdapters.mockReturnValue([
       createFakeAdapter({
-        namespace: 'tron',
+        namespace: KnownCaipNamespace.Tron,
         proposalReferencesNamespace: jest.fn().mockReturnValue(true),
       }),
       createFakeAdapter({
-        namespace: 'solana',
+        namespace: KnownCaipNamespace.Solana,
         proposalReferencesNamespace: jest.fn().mockReturnValue(false),
       }),
       createFakeAdapter({
-        namespace: 'bitcoin',
+        namespace: KnownCaipNamespace.Bip122,
         proposalReferencesNamespace: jest.fn().mockReturnValue(true),
       }),
     ]);
 
     const result = proposalReferencedAdapterNamespaces({});
 
-    expect(result).toStrictEqual(['tron', 'bitcoin']);
+    expect(result).toStrictEqual([
+      KnownCaipNamespace.Tron,
+      KnownCaipNamespace.Bip122,
+    ]);
   });
 
   it('returns an empty array when no adapter recognizes the proposal', () => {
     mockedGetAllAdapters.mockReturnValue([
       createFakeAdapter({
-        namespace: 'tron',
+        namespace: KnownCaipNamespace.Tron,
         proposalReferencesNamespace: jest.fn().mockReturnValue(false),
       }),
     ]);
@@ -236,5 +273,134 @@ describe('proposalReferencedAdapterNamespaces', () => {
     mockedGetAllAdapters.mockReturnValue([]);
 
     expect(proposalReferencedAdapterNamespaces({})).toStrictEqual([]);
+  });
+});
+
+describe('mapRequestForSnap', () => {
+  it('extracts the CAIP-2 namespace from the scope and looks up the adapter once', () => {
+    mockedGetAdapter.mockReturnValue(undefined);
+
+    mapRequestForSnap({
+      scope: 'tron:728126428',
+      method: 'tron_signTransaction',
+      params: [],
+    });
+
+    expect(mockedGetAdapter).toHaveBeenCalledTimes(1);
+    expect(mockedGetAdapter).toHaveBeenCalledWith('tron');
+  });
+
+  it('delegates to the matched adapter and returns the mapped request', () => {
+    const adapterMapped = { method: 'signTransaction', params: { foo: 1 } };
+    const fakeAdapter = createFakeAdapter({
+      namespace: KnownCaipNamespace.Tron,
+      mapRequestForSnap: jest.fn().mockReturnValue(adapterMapped),
+    });
+    mockedGetAdapter.mockReturnValue(fakeAdapter);
+
+    const result = mapRequestForSnap({
+      scope: 'tron:728126428',
+      method: 'tron_signTransaction',
+      params: [{ raw_data_hex: '0xabc' }],
+    });
+
+    expect(result).toBe(adapterMapped);
+    expect(fakeAdapter.mapRequestForSnap).toHaveBeenCalledWith({
+      method: 'tron_signTransaction',
+      params: [{ raw_data_hex: '0xabc' }],
+    });
+  });
+
+  it('returns the original method/params when no adapter is registered for the scope', () => {
+    mockedGetAdapter.mockReturnValue(undefined);
+
+    const result = mapRequestForSnap({
+      scope: 'eip155:1',
+      method: 'eth_sign',
+      params: ['0x1', '0x2'],
+    });
+
+    expect(result).toStrictEqual({
+      method: 'eth_sign',
+      params: ['0x1', '0x2'],
+    });
+  });
+});
+
+describe('normalizeSnapResponse', () => {
+  it('delegates to the matched adapter and returns its normalized result', () => {
+    const adapterResult = { txID: 'tx-1', signature: ['0xsig'] };
+    const fakeAdapter = createFakeAdapter({
+      namespace: KnownCaipNamespace.Tron,
+      normalizeSnapResponse: jest.fn().mockReturnValue(adapterResult),
+    });
+    mockedGetAdapter.mockReturnValue(fakeAdapter);
+
+    const result = normalizeSnapResponse({
+      scope: 'tron:728126428',
+      method: 'tron_signTransaction',
+      params: [],
+      result: { signature: '0xsig' },
+    });
+
+    expect(result).toBe(adapterResult);
+    expect(fakeAdapter.normalizeSnapResponse).toHaveBeenCalledWith({
+      method: 'tron_signTransaction',
+      params: [],
+      result: { signature: '0xsig' },
+    });
+  });
+
+  it('returns the raw snap result when no adapter is registered for the scope', () => {
+    mockedGetAdapter.mockReturnValue(undefined);
+    const snapResult = { hello: 'world' };
+
+    const result = normalizeSnapResponse({
+      scope: 'eip155:1',
+      method: 'eth_sign',
+      params: [],
+      result: snapResult,
+    });
+
+    expect(result).toBe(snapResult);
+  });
+});
+
+describe('getRedirectMethodsForChain', () => {
+  it('returns the redirectMethods of the adapter for the scope namespace', () => {
+    mockedGetAdapter.mockReturnValue(
+      createFakeAdapter({
+        namespace: KnownCaipNamespace.Tron,
+        redirectMethods: ['tron_signTransaction', 'tron_signMessage'],
+      }),
+    );
+
+    const result = getRedirectMethodsForChain('tron:728126428');
+
+    expect(result).toStrictEqual(['tron_signTransaction', 'tron_signMessage']);
+  });
+
+  it('returns an empty array when no adapter matches the scope', () => {
+    mockedGetAdapter.mockReturnValue(undefined);
+
+    expect(getRedirectMethodsForChain('eip155:1')).toStrictEqual([]);
+  });
+});
+
+describe('CAIP chain id normalization helpers', () => {
+  it('normalizes tron hex chain ids inbound to decimal', () => {
+    expect(normalizeCaipChainIdInbound('tron:0x2b6653dc')).toBe(
+      'tron:728126428',
+    );
+  });
+
+  it('normalizes tron decimal chain ids outbound to hex', () => {
+    expect(normalizeCaipChainIdOutbound('tron:728126428')).toBe(
+      'tron:0x2b6653dc',
+    );
+  });
+
+  it('keeps non-numeric tron chain references unchanged outbound', () => {
+    expect(normalizeCaipChainIdOutbound('tron:mainnet')).toBe('tron:mainnet');
   });
 });

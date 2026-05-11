@@ -1,9 +1,3 @@
-import type {
-  CaipChainId,
-  KnownCaipNamespace,
-  CaipAccountId,
-} from '@metamask/utils';
-
 /**
  * Shared types for the WalletConnect non-EVM (multichain) adapter layer.
  *
@@ -19,6 +13,11 @@ import type {
  * delegate to the adapter for the request's CAIP-2 namespace through
  * the helpers in `./namespaces` and `./index`.
  */
+import type {
+  CaipChainId,
+  KnownCaipNamespace,
+  CaipAccountId,
+} from '@metamask/utils';
 
 /** Shape of a single namespace slice in WalletConnect's approved namespaces map. */
 export interface NamespaceConfig {
@@ -31,7 +30,7 @@ export interface NamespaceConfig {
 /** Snap-shaped request after WC method translation. */
 export interface SnapMappedRequest<Param = unknown> {
   method: string;
-  params: unknown;
+  params: Param;
 }
 
 /**
@@ -61,6 +60,13 @@ export interface BuildNamespaceArgs {
   existingMethods?: string[];
   existingEvents?: string[];
 }
+
+/**
+ * Map of approved namespaces for a WalletConnect session.
+ */
+export type ApprovedNamespaces = Partial<
+  Record<KnownCaipNamespace, NamespaceConfig>
+>;
 
 /**
  * Adapter contract every non-EVM chain implements. Registered in
