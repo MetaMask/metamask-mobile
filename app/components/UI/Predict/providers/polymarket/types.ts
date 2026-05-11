@@ -172,6 +172,11 @@ export enum SignatureType {
    * EIP712 signatures signed by EOAs that own Polymarket Gnosis safes
    */
   POLY_GNOSIS_SAFE,
+
+  /**
+   * ERC-1271 signatures validated by Polymarket deposit wallets
+   */
+  POLY_1271,
 }
 
 // Simplified market order for users

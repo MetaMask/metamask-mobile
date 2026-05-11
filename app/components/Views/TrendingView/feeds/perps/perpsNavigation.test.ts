@@ -39,4 +39,34 @@ describe('navigateToPerpsMarketList', () => {
       }),
     );
   });
+
+  it('passes a custom sort option ID', () => {
+    const navigate = jest.fn();
+    const navigation = {
+      navigate,
+    } as unknown as NavigationProp<PerpsNavigationParamList>;
+
+    navigateToPerpsMarketList(navigation, 'all', 'priceChange');
+
+    expect(navigate).toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.objectContaining({
+        params: expect.objectContaining({
+          defaultSortOptionId: 'priceChange',
+        }),
+      }),
+    );
+  });
+
+  it('does not include defaultSortOptionId when not provided', () => {
+    const navigate = jest.fn();
+    const navigation = {
+      navigate,
+    } as unknown as NavigationProp<PerpsNavigationParamList>;
+
+    navigateToPerpsMarketList(navigation, 'crypto');
+
+    const callParams = navigate.mock.calls[0][1].params;
+    expect(callParams).not.toHaveProperty('defaultSortOptionId');
+  });
 });
