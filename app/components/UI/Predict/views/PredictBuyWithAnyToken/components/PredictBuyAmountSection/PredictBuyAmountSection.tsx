@@ -18,7 +18,7 @@ import type { PredictKeypadHandles } from '../../../../components/PredictKeypad'
 
 interface PredictBuyAmountSectionProps {
   currentValueUSDString: string;
-  keypadRef: React.RefObject<PredictKeypadHandles>;
+  keypadRef: React.RefObject<PredictKeypadHandles | null>;
   isInputFocused: boolean;
   isBalanceLoading: boolean;
   isBalancePulsing: boolean;
