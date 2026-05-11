@@ -679,7 +679,7 @@ describe('seedless onboarding controller init', () => {
         'PATCH',
         pairUrl,
         'body:',
-        'x',
+        expect.any(ReadableStream),
       );
       consoleSpy.mockRestore();
     });

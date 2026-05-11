@@ -168,11 +168,11 @@ export const seedlessOnboardingControllerInit: MessengerClientInitFunction<
     refreshJWTToken: AuthTokenHandler.refreshJWTToken,
     renewRefreshToken: AuthTokenHandler.renewRefreshToken,
     revokeRefreshToken: AuthTokenHandler.revokeRefreshToken,
-    // Types from @metamask/seedless-onboarding-controller omit mobile-only fetch override.
-    // @ts-expect-error -- custom fetch wrapper for profile-pair debug logging
     fetchFunction: pairingDebugFetch,
     profilePairingEndpoint: ProfilePairingEndpoint,
-  });
+  } as unknown as ConstructorParameters<
+    typeof SeedlessOnboardingController
+  >[0]);
 
   return { controller };
 };
