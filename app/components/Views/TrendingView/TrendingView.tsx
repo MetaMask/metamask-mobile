@@ -20,8 +20,8 @@ import {
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import TabsList from '../../../component-library/components-temp/Tabs/TabsList/TabsList';
 import {
+  TabsListRef,
   TabViewProps,
-  type TabsListRef,
 } from '../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
@@ -68,12 +68,14 @@ interface ExploreFeedRouteParams {
   initialTab?: number | null;
 }
 
-const useExploreTabNavigationEffect = () => {
+const useExploreTabNavigationEffect = (opts: {
+  tabsListRef: React.RefObject<TabsListRef | null>;
+  handleTabChange: (params: { i: number }) => void;
+}) => {
+  const { tabsListRef, handleTabChange } = opts;
   const route =
     useRoute<RouteProp<{ params: ExploreFeedRouteParams }, 'params'>>();
-  const navigation = useNavigation();
-  const tabsListRef = useRef<TabsListRef>(null);
-
+  const { setParams } = useNavigation();
   const initialTabIndex = Object.values(EXPLORE_TAB_INDEX).find(
     (tab) => tab === route.params?.initialTab,
   );
@@ -84,15 +86,11 @@ const useExploreTabNavigationEffect = () => {
         return;
       }
 
+      handleTabChange({ i: initialTabIndex });
       tabsListRef.current?.goToTabIndex(initialTabIndex);
-      navigation.setParams?.({ initialTab: null });
-    }, [initialTabIndex, navigation]),
+      setParams?.({ initialTab: null });
+    }, [initialTabIndex, setParams, handleTabChange, tabsListRef]),
   );
-
-  return {
-    tabsListRef,
-    initialActiveIndex: initialTabIndex ?? EXPLORE_TAB_INDEX.NOW,
-  };
 };
 
 export const ExploreFeed: React.FC = () => {
@@ -100,8 +98,7 @@ export const ExploreFeed: React.FC = () => {
   const navigation = useNavigation();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const tabProps = useExploreRefresh();
-  const { tabsListRef, initialActiveIndex } = useExploreTabNavigationEffect();
-
+  const tabsListRef = useRef<TabsListRef>(null);
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
   // Initialize session and enable AppState listener on mount
@@ -164,6 +161,8 @@ export const ExploreFeed: React.FC = () => {
     previousTabRef.current = destinationTab;
   }, []);
 
+  useExploreTabNavigationEffect({ handleTabChange, tabsListRef });
+
   return (
     <SafeAreaView
       edges={{ top: 'additive' }}
@@ -200,7 +199,6 @@ export const ExploreFeed: React.FC = () => {
         ) : isExplorePageV2Enabled ? (
           <TabsList
             ref={tabsListRef}
-            initialActiveIndex={initialActiveIndex}
             tabsListContentTwClassName="px-0 pb-3"
             onChangeTab={handleTabChange}
           >
