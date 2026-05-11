@@ -5,6 +5,8 @@ import {
   ButtonIcon,
   ButtonIconSize,
   IconName,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -41,6 +43,10 @@ import { Pressable, ScrollView } from 'react-native';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import CrownIcon from '../../../../images/rewards/crown.svg';
+import Engine from '../../../../core/Engine';
+
+const VIP_UNLOCK_TAP_COUNT = 5;
+const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -187,6 +193,71 @@ const RewardsDashboard: React.FC = () => {
     }
   }, [trackEvent, createEventBuilder]);
 
+  // Hidden VIP unlock: 5 taps on the title within 3s, once per dashboard visit,
+  // only attempted when the user isn't already VIP. A non-null
+  // getVIPDashboard response means the backend considers them VIP-eligible,
+  // so we flip the cached subscription flag locally.
+  const vipUnlockTapCountRef = useRef(0);
+  const vipUnlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const vipUnlockTriggeredRef = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      vipUnlockTapCountRef.current = 0;
+      vipUnlockTriggeredRef.current = false;
+      return () => {
+        if (vipUnlockTimerRef.current) {
+          clearTimeout(vipUnlockTimerRef.current);
+          vipUnlockTimerRef.current = null;
+        }
+        vipUnlockTapCountRef.current = 0;
+      };
+    }, []),
+  );
+
+  const handleTitlePress = useCallback(() => {
+    if (isVipEnabled || vipUnlockTriggeredRef.current || !subscriptionId) {
+      return;
+    }
+
+    vipUnlockTapCountRef.current += 1;
+
+    if (vipUnlockTimerRef.current) {
+      clearTimeout(vipUnlockTimerRef.current);
+    }
+    vipUnlockTimerRef.current = setTimeout(() => {
+      vipUnlockTapCountRef.current = 0;
+      vipUnlockTimerRef.current = null;
+    }, VIP_UNLOCK_TAP_WINDOW_MS);
+
+    if (vipUnlockTapCountRef.current < VIP_UNLOCK_TAP_COUNT) {
+      return;
+    }
+
+    vipUnlockTriggeredRef.current = true;
+    vipUnlockTapCountRef.current = 0;
+    if (vipUnlockTimerRef.current) {
+      clearTimeout(vipUnlockTimerRef.current);
+      vipUnlockTimerRef.current = null;
+    }
+
+    (async () => {
+      try {
+        // The controller flips `subscription.features.vip.enabled` as a side
+        // effect when the VIP dashboard fetch returns a non-null payload, so
+        // calling this is enough to update the icon visibility.
+        await Engine.controllerMessenger.call(
+          'RewardsController:getVIPDashboard',
+          subscriptionId,
+        );
+      } catch {
+        // Network/other error — leave the flag as-is. The easter-egg can be
+        // retried by re-entering the dashboard.
+        vipUnlockTriggeredRef.current = false;
+      }
+    })();
+  }, [isVipEnabled, subscriptionId]);
+
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED)
@@ -203,7 +274,6 @@ const RewardsDashboard: React.FC = () => {
         testID={REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW}
       >
         <HeaderRoot
-          title={strings('rewards.main_title')}
           endAccessory={
             <Box twClassName="flex-row gap-2">
               {isVipEnabled && (
@@ -241,7 +311,17 @@ const RewardsDashboard: React.FC = () => {
               />
             </Box>
           }
-        />
+        >
+          <Pressable
+            accessibilityRole="header"
+            onPress={handleTitlePress}
+            testID={REWARDS_VIEW_SELECTORS.TITLE}
+          >
+            <Text variant={TextVariant.HeadingLg}>
+              {strings('rewards.main_title')}
+            </Text>
+          </Pressable>
+        </HeaderRoot>
         <ScrollView
           showsVerticalScrollIndicator={false}
           style={tw.style('flex-1')}
