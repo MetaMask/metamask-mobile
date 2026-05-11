@@ -815,9 +815,9 @@ class WalletConnect2Session {
     const isPermittedByPermissionController = compatibleRequestChainIds.some(
       (chainId) => permittedChains.includes(chainId as CaipChainId),
     );
-    const activeSessionChains = Object.values(this.session.namespaces ?? {})
-      .flatMap((namespaceSlice) => namespaceSlice?.chains ?? [])
-      .filter(Boolean);
+    const activeSessionChains = Object.values(
+      this.session.namespaces ?? {},
+    ).flatMap((namespaceSlice) => namespaceSlice?.chains ?? []);
     const isPermittedByActiveSession = compatibleRequestChainIds.some(
       (chainId) => activeSessionChains.includes(chainId),
     );
