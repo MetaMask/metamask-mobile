@@ -82,6 +82,12 @@ interface PerpsHomeViewProps {
   tabEnterCallbackRef?: React.MutableRefObject<(() => void) | null>;
   /** Forwarded to useDiscoveryScrollManager to sync icon animations with header hide/show. */
   onHeaderHiddenChange?: (hidden: boolean) => void;
+  /**
+   * Top padding applied inside the scroll content container — used by HomepageDiscoveryTabs
+   * (Hub Page Discovery Tabs feature flag treatment) so the perps gradient extends up
+   * directly under the discovery tab bar instead of leaving a transparent gap.
+   */
+  topInset?: number;
 }
 
 const PerpsHomeView = ({
@@ -90,6 +96,7 @@ const PerpsHomeView = ({
   walletHeaderHeight = 0,
   tabEnterCallbackRef,
   onHeaderHiddenChange,
+  topInset = 0,
 }: PerpsHomeViewProps) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
@@ -483,7 +490,10 @@ const PerpsHomeView = ({
       {/* Main Content - ScrollView with all carousels */}
       <Reanimated.ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
+        contentContainerStyle={[
+          styles.scrollViewContent,
+          topInset > 0 ? { paddingTop: topInset } : null,
+        ]}
         showsVerticalScrollIndicator={false}
         onScroll={perpsScrollHandler}
         scrollEventThrottle={16}

@@ -14,6 +14,7 @@ import {
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
+import { useConfirmationContext } from '../../../context/confirmation-context';
 
 /**
  * Row component that displays the total cost for deposit/payment transactions.
@@ -23,6 +24,7 @@ export function TotalRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
+  const { isHeadlessBuyInProgress } = useConfirmationContext();
 
   const totalUsd = useMemo(() => {
     if (!totals?.total) return '';
@@ -33,15 +35,20 @@ export function TotalRow() {
     return <InfoRowSkeleton testId="total-row-skeleton" />;
   }
 
+  const textColor = isHeadlessBuyInProgress
+    ? TextColor.Muted
+    : TextColor.Alternative;
+
   return (
     <View testID="total-row">
       <InfoRow
         label={strings('confirm.label.total')}
+        variant={textColor}
         rowVariant={InfoRowVariant.Small}
       >
         <Text
           variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          color={textColor}
           testID={ConfirmationRowComponentIDs.TOTAL}
         >
           {totalUsd}
