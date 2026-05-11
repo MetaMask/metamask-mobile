@@ -91,7 +91,7 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
     },
     branchInfo: {
-      fontSize: 18,
+      fontSize: 19,
       textAlign: 'left',
       marginBottom: 20,
       color: colors.text.alternative,
