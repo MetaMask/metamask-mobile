@@ -308,6 +308,7 @@ const PriceAdvanced = ({
   });
 
   const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
+  // TODO: Check if we want to add a feature flag to gate the WS OHLCV feature
   const wsEnabled =
     !chartLoading &&
     ohlcvData.length >= CHART_DATA_THRESHOLD &&
