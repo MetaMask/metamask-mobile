@@ -96,6 +96,7 @@ export interface BridgeState {
   selectedQuoteRequestId: string | undefined;
   batchSellSourceTokens: BridgeToken[];
   batchSellDestToken: BridgeToken | undefined;
+  batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>;
 }
 
 export const initialState: BridgeState = {
@@ -123,6 +124,7 @@ export const initialState: BridgeState = {
   // Batch Sell
   batchSellSourceTokens: [],
   batchSellDestToken: undefined,
+  batchSellSlippages: {},
 };
 
 const name = 'bridge';
@@ -263,6 +265,22 @@ const slice = createSlice({
       action: PayloadAction<BridgeToken | undefined>,
     ) => {
       state.batchSellDestToken = normalizeBridgeToken(action.payload);
+    },
+    setBatchSellTokenSlippage: (
+      state,
+      action: PayloadAction<{
+        assetId: CaipAssetType;
+        slippage: string | undefined;
+      }>,
+    ) => {
+      state.batchSellSlippages[action.payload.assetId] =
+        action.payload.slippage;
+    },
+    setBatchSellTokenSlippages: (
+      state,
+      action: PayloadAction<BridgeState['batchSellSlippages']>,
+    ) => {
+      state.batchSellSlippages = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -561,6 +579,11 @@ export const selectBatchSellDestToken = createSelector(
   (bridgeState) => bridgeState.batchSellDestToken,
 );
 
+export const selectBatchSellSlippages = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.batchSellSlippages ?? {},
+);
+
 // Selectors for gas included STX/SendBundle support
 export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
   state.bridge.isGasIncludedSTXSendBundleSupported;
@@ -851,4 +874,6 @@ export const {
   setSelectedQuoteRequestId,
   setBatchSellSourceTokens,
   setBatchSellDestToken,
+  setBatchSellTokenSlippage,
+  setBatchSellTokenSlippages,
 } = actions;
