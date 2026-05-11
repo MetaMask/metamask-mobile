@@ -59,6 +59,7 @@ import {
 } from './constants';
 import {
   ApiKeyCreds,
+  ClobFeeDetails,
   ClobHeaders,
   ClobMarketInfo,
   COLLATERAL_TOKEN_DECIMALS,
@@ -238,6 +239,32 @@ function getClobEndpoint(): string {
 const clobMarketInfoCache = new Map<string, ClobMarketInfo>();
 const reportedClobMarketInfoFailures = new Set<string>();
 
+const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const isOptionalFiniteNumber = (value: unknown): boolean =>
+  value === undefined || (typeof value === 'number' && Number.isFinite(value));
+
+const isOptionalNullableFiniteNumber = (value: unknown): boolean =>
+  value === undefined ||
+  value === null ||
+  (typeof value === 'number' && Number.isFinite(value));
+
+const isOptionalNullableBoolean = (value: unknown): boolean =>
+  value === undefined || value === null || typeof value === 'boolean';
+
+const isClobFeeDetails = (value: unknown): value is ClobFeeDetails =>
+  isObjectRecord(value) &&
+  isOptionalNullableFiniteNumber(value.r) &&
+  isOptionalNullableFiniteNumber(value.e) &&
+  isOptionalNullableBoolean(value.to);
+
+const isClobMarketInfo = (value: unknown): value is ClobMarketInfo =>
+  isObjectRecord(value) &&
+  (value.fd === undefined || isClobFeeDetails(value.fd)) &&
+  isOptionalFiniteNumber(value.mts) &&
+  isOptionalFiniteNumber(value.mos);
+
 const ensureClobMarketInfoError = (error: unknown): Error => {
   if (error instanceof Error) {
     return error;
@@ -323,7 +350,12 @@ export const getClobMarketInfo = async ({
     throw new Error('Failed to get CLOB market info');
   }
 
-  const marketInfo = (await response.json()) as ClobMarketInfo;
+  const marketInfo = await response.json();
+
+  if (!isClobMarketInfo(marketInfo)) {
+    throw new Error('Invalid CLOB market info response');
+  }
+
   clobMarketInfoCache.set(conditionId, marketInfo);
   reportedClobMarketInfoFailures.delete(conditionId);
   return marketInfo;
