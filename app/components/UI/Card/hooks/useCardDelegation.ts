@@ -97,26 +97,6 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
   } = useNeedsGasFaucet(token);
 
   /**
-   * Generate SIWE signature message — delegates to CardController to keep
-   * provider-specific formatting in one place (EVM vs Solana variants).
-   */
-  const generateSignatureMessage = useCallback(
-    (
-      address: string,
-      nonce: string,
-      network: CardNetwork,
-      caipChainId?: string | null,
-    ): string =>
-      CardController.generateCardDelegationSignatureMessage({
-        network,
-        address,
-        nonce,
-        caipChainId: caipChainId ?? undefined,
-      }),
-    [CardController],
-  );
-
-  /**
    * Execute approval transaction
    */
   const executeEVMApprovalTransaction = useCallback(
@@ -447,12 +427,13 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
           });
 
         // Step 2: Generate and sign SIWE message
-        const signatureMessage = generateSignatureMessage(
-          address,
-          nonce,
-          params.network,
-          token?.caipChainId,
-        );
+        const signatureMessage =
+          CardController.generateCardDelegationSignatureMessage({
+            network: params.network,
+            address,
+            nonce,
+            caipChainId: token?.caipChainId,
+          });
         const signature = isSolana
           ? await signSolanaMessage(userAccount?.id, signatureMessage)
           : await KeyringController.signPersonalMessage({
@@ -514,7 +495,6 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
     },
     [
       selectAccountByScope,
-      generateSignatureMessage,
       KeyringController,
       executeEVMApprovalTransaction,
       executeSolanaApprovalTransaction,
