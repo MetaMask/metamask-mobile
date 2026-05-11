@@ -129,26 +129,10 @@ jest.mock('react-native-svg', () => {
 jest.mock('../../../../../locales/i18n', () => ({
   __esModule: true,
   default: { locale: 'en-US' },
-  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
-    if (key === 'rewards.vip.to_next_tier' && params) {
-      return `${params.swaps} Swaps • ${params.perps} Perps to ${params.tierName}`;
-    }
-    if (key === 'rewards.vip.next_tier_bps' && params) {
-      return `↓ ${params.bps} bps next tier`;
-    }
-    if (key === 'rewards.vip.on_track_days' && params) {
-      return `On track to reach the next tier in ${params.count} days`;
-    }
+  strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
-      'rewards.vip.title': 'VIP',
-      'rewards.vip.pilot_title': 'VIP Pilot',
-      'rewards.vip.swaps_fee': 'Swaps fee',
-      'rewards.vip.perps_fee': 'Perps fee',
-      'rewards.vip.volume_section_title': 'Volume',
       'rewards.vip.swaps_label': 'Swaps',
       'rewards.vip.perps_label': 'Perps',
-      'rewards.vip.points_section_title': 'Points',
-      'rewards.vip.points_subtitle': 'Earn VIP allocations',
       'rewards.vip.bps_unit': 'bps',
       'rewards.vip.error_title': 'Error title',
       'rewards.vip.error_description': 'Error description',
@@ -286,6 +270,14 @@ describe('RewardsVipView', () => {
   });
 
   it('renders the guarded VIP shell with the pilot title and invite button', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: defaultDashboard,
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
     const { getByTestId, getByText } = render(<RewardsVipView />);
 
     expect(getByTestId(REWARDS_VIEW_SELECTORS.VIP_VIEW)).toBeOnTheScreen();

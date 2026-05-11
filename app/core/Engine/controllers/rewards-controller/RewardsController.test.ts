@@ -9661,6 +9661,67 @@ describe('RewardsController', () => {
   });
 
   describe('invalidateSubscriptionAndAccounts', () => {
+    it('also drops the cached VIP dashboard entry for the invalidated subscription', async () => {
+      const subscriptionId = 'sub-vip';
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            [subscriptionId]: {
+              id: subscriptionId,
+              referralCode: 'REF',
+              accounts: [],
+              features: { vip: { enabled: true } },
+            },
+          },
+          vipDashboard: {
+            [subscriptionId]: {
+              program: { id: 'vip', name: 'VIP Pilot' },
+              period: { start: '2026-03-31', end: '2026-04-30' },
+              currentTier: { id: 't3', name: 'Gold Fox VIP 3', tier: 3 },
+              nextTier: { id: 't4', name: 'Gold Fox VIP 4', tier: 4 },
+              progress: {
+                percent: 72,
+                remainingSwapsUsd: 800000,
+                remainingPerpsUsd: 3600000,
+                estimatedDaysToNextTier: 4,
+                status: 'on_track',
+              },
+              fees: {
+                swapsBps: 15,
+                perpsBps: 4,
+                nextTierSwapsBps: 12,
+                nextTierPerpsBps: 3,
+              },
+              volume: { swapsUsd: 4100000, perpsUsd: 2300000 },
+              pointsAllocation: { earned: 0, max: 1, percent: 0 },
+              tiers: [],
+              localizedText: {
+                period: 'Mar 31 - Apr 30',
+                progressToNextTier: 'Subline',
+                swapsFeeTitle: 'Swaps fee',
+                perpsFeeTitle: 'Perps fee',
+                nextTierSwapsFeeDelta: '↓ 12 bps next tier',
+                nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+                volumeTitle: 'Volume',
+                statusMessage: 'On track',
+                pointsTitle: 'Points',
+                pointsAllocationTitle: 'Earn VIP allocations',
+                pointsAllocationDescription: 'Body copy',
+              },
+              lastFetched: 123,
+            },
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      await testController.invalidateSubscriptionAndAccounts(subscriptionId);
+
+      expect(testController.state.vipDashboard[subscriptionId]).toBeUndefined();
+    });
+
     it('correctly invalidate a specific subscription and its linked accounts', async () => {
       // Arrange
       const subscriptionId = 'sub123';
