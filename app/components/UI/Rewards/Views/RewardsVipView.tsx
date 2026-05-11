@@ -77,7 +77,6 @@ const RewardsVipView: React.FC = () => {
   // useFocusEffect schedules the initial fetch.
   const showSkeleton = (!hasAttemptedFetch || isLoading) && !dashboard;
   const showError = hasError && !dashboard;
-  const localized = dashboard?.localizedText ?? {};
   const headerTitle =
     dashboard?.program?.name ?? strings('rewards.vip.pilot_title');
 
@@ -131,44 +130,34 @@ const RewardsVipView: React.FC = () => {
             <>
               <VipTierProgressCard
                 currentTier={dashboard.currentTier}
-                nextTier={dashboard.nextTier}
                 progress={dashboard.progress}
-                sublineOverride={localized.progressToNextTier}
+                subline={dashboard.localizedText.progressToNextTier}
                 onPress={handleTiersPress}
               />
               <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
                 <VipFeeTile
-                  label={
-                    localized.swapsFeeTitle ?? strings('rewards.vip.swaps_fee')
-                  }
+                  label={dashboard.localizedText.swapsFeeTitle}
                   currentBps={dashboard.fees.swapsBps}
-                  nextTierBps={dashboard.fees.nextTierSwapsBps}
-                  nextTierOverride={localized.nextTierSwapsFeeDelta}
+                  nextTierLabel={dashboard.localizedText.nextTierSwapsFeeDelta}
                   testID={REWARDS_VIP_VIEW_TEST_IDS.SWAPS_FEE_TILE}
                 />
                 <VipFeeTile
-                  label={
-                    localized.perpsFeeTitle ?? strings('rewards.vip.perps_fee')
-                  }
+                  label={dashboard.localizedText.perpsFeeTitle}
                   currentBps={dashboard.fees.perpsBps}
-                  nextTierBps={dashboard.fees.nextTierPerpsBps}
-                  nextTierOverride={localized.nextTierPerpsFeeDelta}
+                  nextTierLabel={dashboard.localizedText.nextTierPerpsFeeDelta}
                   testID={REWARDS_VIP_VIEW_TEST_IDS.PERPS_FEE_TILE}
                 />
               </Box>
               <VipVolumeSection
-                period={dashboard.period}
                 volume={dashboard.volume}
-                daysToNextTier={dashboard.progress.estimatedDaysToNextTier}
-                titleOverride={localized.volumeTitle}
-                periodOverride={localized.period}
-                statusOverride={localized.statusMessage}
+                title={dashboard.localizedText.volumeTitle}
+                period={dashboard.localizedText.period}
+                status={dashboard.localizedText.statusMessage}
               />
               <VipPointsSection
                 pointsAllocation={dashboard.pointsAllocation}
-                titleOverride={localized.pointsTitle}
-                subtitleOverride={localized.pointsAllocationTitle}
-                descriptionOverride={localized.pointsAllocationDescription}
+                title={dashboard.localizedText.pointsTitle}
+                subtitle={dashboard.localizedText.pointsAllocationTitle}
               />
             </>
           ) : null}

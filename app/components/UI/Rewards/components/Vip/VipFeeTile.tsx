@@ -20,16 +20,14 @@ export const VIP_FEE_TILE_TEST_IDS = {
 interface VipFeeTileProps {
   label: string;
   currentBps: number;
-  nextTierBps: number;
-  nextTierOverride?: string;
+  nextTierLabel: string;
   testID?: string;
 }
 
 const VipFeeTile: React.FC<VipFeeTileProps> = ({
   label,
   currentBps,
-  nextTierBps,
-  nextTierOverride,
+  nextTierLabel,
   testID,
 }) => (
   <Box
@@ -70,8 +68,7 @@ const VipFeeTile: React.FC<VipFeeTileProps> = ({
       color={TextColor.TextAlternative}
       testID={VIP_FEE_TILE_TEST_IDS.NEXT}
     >
-      {nextTierOverride ??
-        strings('rewards.vip.next_tier_bps', { bps: nextTierBps })}
+      {nextTierLabel}
     </Text>
   </Box>
 );

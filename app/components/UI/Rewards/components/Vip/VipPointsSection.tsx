@@ -11,7 +11,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
 import { formatCompactUsd } from '../../utils/formatUtils';
 import type { VipPointsAllocationDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -24,9 +23,8 @@ export const VIP_POINTS_SECTION_TEST_IDS = {
 
 interface VipPointsSectionProps {
   pointsAllocation: VipPointsAllocationDto;
-  titleOverride?: string;
-  subtitleOverride?: string;
-  descriptionOverride?: string;
+  title: string;
+  subtitle: string;
 }
 
 const RADIAL_SIZE = 96;
@@ -42,9 +40,8 @@ const formatPointsCompact = (value: number): string =>
 
 const VipPointsSection: React.FC<VipPointsSectionProps> = ({
   pointsAllocation,
-  titleOverride,
-  subtitleOverride,
-  descriptionOverride,
+  title,
+  subtitle,
 }) => {
   const tw = useTailwind();
   const filledPercent = clampPercent(pointsAllocation.percent);
@@ -62,7 +59,7 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
         fontWeight={FontWeight.Bold}
         testID={VIP_POINTS_SECTION_TEST_IDS.TITLE}
       >
-        {titleOverride ?? strings('rewards.vip.points_section_title')}
+        {title}
       </Text>
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -71,10 +68,7 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
       >
         <Box twClassName="flex-1 gap-1">
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {subtitleOverride ?? strings('rewards.vip.points_subtitle')}
-          </Text>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {descriptionOverride ?? strings('rewards.vip.points_body')}
+            {subtitle}
           </Text>
         </Box>
         <Box

@@ -13,19 +13,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string, params?: Record<string, unknown>) => {
-    if (key === 'rewards.vip.to_next_tier' && params) {
-      return `${params.swaps} Swaps • ${params.perps} Perps to ${params.tierName}`;
-    }
-    return key;
-  },
-}));
-
 describe('VipTierProgressCard', () => {
   const baseProps = {
     currentTier: { id: 't3', name: 'Gold Fox VIP 3', tier: 3 },
-    nextTier: { id: 't4', name: 'Gold Fox VIP 4', tier: 4 },
     progress: {
       percent: 72,
       remainingSwapsUsd: 800_000,
@@ -33,9 +23,10 @@ describe('VipTierProgressCard', () => {
       estimatedDaysToNextTier: 4,
       status: 'on_track',
     },
+    subline: '$800K Swaps • $3.6M Perps to Gold Fox VIP 4',
   };
 
-  it('renders the current tier name and the subline composed from remaining volumes', () => {
+  it('renders the current tier name and the subline passed in by the parent', () => {
     const { getByText, getByTestId } = render(
       <VipTierProgressCard {...baseProps} />,
     );
@@ -93,17 +84,5 @@ describe('VipTierProgressCard', () => {
     );
     fireEvent.press(getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.CONTAINER));
     expect(onPress).toHaveBeenCalledTimes(1);
-  });
-
-  it('prefers the backend-provided subline override over the formatted local string', () => {
-    const { getByTestId } = render(
-      <VipTierProgressCard
-        {...baseProps}
-        sublineOverride="Backend-provided copy"
-      />,
-    );
-    expect(
-      getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.SUBLINE),
-    ).toHaveTextContent(/Backend-provided copy/);
   });
 });

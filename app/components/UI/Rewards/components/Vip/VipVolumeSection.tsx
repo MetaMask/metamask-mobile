@@ -12,12 +12,9 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import I18n, { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import { formatUsd } from '../../utils/formatUtils';
-import type {
-  VipPeriodDto,
-  VipVolumeDto,
-} from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type { VipVolumeDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 export const VIP_VOLUME_SECTION_TEST_IDS = {
   CONTAINER: 'vip-volume-section',
@@ -28,55 +25,31 @@ export const VIP_VOLUME_SECTION_TEST_IDS = {
 } as const;
 
 interface VipVolumeSectionProps {
-  period: VipPeriodDto;
   volume: VipVolumeDto;
-  daysToNextTier: number;
-  titleOverride?: string;
-  periodOverride?: string;
-  statusOverride?: string;
+  title: string;
+  period: string;
+  status: string;
 }
 
-const formatMonthDay = (iso: string, locale: string): string => {
-  const parsed = new Date(iso);
-  if (Number.isNaN(parsed.getTime())) {
-    return iso;
-  }
-  return new Intl.DateTimeFormat(locale, {
-    month: 'short',
-    day: 'numeric',
-    timeZone: 'UTC',
-  }).format(parsed);
-};
-
-const formatPeriod = (period: VipPeriodDto): string => {
-  const locale = I18n.locale ?? 'en-US';
-  return `${formatMonthDay(period.start, locale)} - ${formatMonthDay(
-    period.end,
-    locale,
-  )}`;
-};
-
 const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
-  period,
   volume,
-  daysToNextTier,
-  titleOverride,
-  periodOverride,
-  statusOverride,
+  title,
+  period,
+  status,
 }) => (
   <Box
     twClassName="bg-section rounded-2xl p-4 gap-3"
     testID={VIP_VOLUME_SECTION_TEST_IDS.CONTAINER}
   >
     <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
-      {titleOverride ?? strings('rewards.vip.volume_section_title')}
+      {title}
     </Text>
     <Text
       variant={TextVariant.BodySm}
       color={TextColor.TextAlternative}
       testID={VIP_VOLUME_SECTION_TEST_IDS.PERIOD}
     >
-      {periodOverride ?? formatPeriod(period)}
+      {period}
     </Text>
 
     <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6 mt-1">
@@ -110,8 +83,7 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
         color={IconColor.SuccessDefault}
       />
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {statusOverride ??
-          strings('rewards.vip.on_track_days', { count: daysToNextTier })}
+        {status}
       </Text>
     </Box>
   </Box>

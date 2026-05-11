@@ -12,10 +12,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string, params?: Record<string, unknown>) => {
-    if (key === 'rewards.vip.next_tier_bps' && params) {
-      return `↓ ${params.bps} bps next tier`;
-    }
+  strings: (key: string) => {
     if (key === 'rewards.vip.bps_unit') {
       return 'bps';
     }
@@ -24,9 +21,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 describe('VipFeeTile', () => {
-  it('renders the label, current bps value, bps unit, and next-tier delta', () => {
+  it('renders the label, current bps value, bps unit, and next-tier delta passed in by the parent', () => {
     const { getByText, getByTestId } = render(
-      <VipFeeTile label="Swaps fee" currentBps={15} nextTierBps={12} />,
+      <VipFeeTile
+        label="Swaps fee"
+        currentBps={15}
+        nextTierLabel="↓ 12 bps next tier"
+      />,
     );
 
     expect(getByText('Swaps fee')).toBeOnTheScreen();
@@ -42,7 +43,7 @@ describe('VipFeeTile', () => {
       <VipFeeTile
         label="Perps fee"
         currentBps={4}
-        nextTierBps={3}
+        nextTierLabel="↓ 3 bps next tier"
         testID="custom-tile"
       />,
     );

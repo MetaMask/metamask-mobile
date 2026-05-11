@@ -37,7 +37,7 @@ export type SubscriptionDto = {
   features: SubscriptionFeaturesDto;
 };
 
-export type VipStringKey = string;
+export type VipStringKey = keyof VipLocalizedTextDto;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipProgramDto = {
@@ -100,7 +100,23 @@ export type VipTierDto = {
   status: string;
 };
 
-export type VipLocalizedTextDto = Record<VipStringKey, string>;
+// Exact spec from the rewards API (see consensys-vertical-apps/va-mmcx-rewards
+// PR #546). The backend guarantees every key is populated, so the UI can rely
+// on these strings without a local i18n fallback.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipLocalizedTextDto = {
+  period: string;
+  progressToNextTier: string;
+  swapsFeeTitle: string;
+  perpsFeeTitle: string;
+  nextTierSwapsFeeDelta: string;
+  nextTierPerpsFeeDelta: string;
+  volumeTitle: string;
+  statusMessage: string;
+  pointsTitle: string;
+  pointsAllocationTitle: string;
+  pointsAllocationDescription: string;
+};
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipDashboardDto = {
