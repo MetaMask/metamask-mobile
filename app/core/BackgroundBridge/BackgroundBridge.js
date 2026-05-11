@@ -686,13 +686,6 @@ export class BackgroundBridge extends EventEmitter {
     }
     ///: END:ONLY_INCLUDE_IF
 
-    engine.push(
-      createPermissionMiddleware({
-        origin,
-        messenger: Engine.controllerMessenger,
-      }),
-    );
-
     // Origin throttling middleware for spam filtering
     engine.push(createOriginThrottlingMiddleware(this.navigation));
 
@@ -700,6 +693,13 @@ export class BackgroundBridge extends EventEmitter {
       createTrustSignalsMiddleware({
         phishingController: Engine.context.PhishingController,
         networkController: Engine.context.NetworkController,
+      }),
+    );
+
+    engine.push(
+      createPermissionMiddleware({
+        origin,
+        messenger: Engine.controllerMessenger,
       }),
     );
 
