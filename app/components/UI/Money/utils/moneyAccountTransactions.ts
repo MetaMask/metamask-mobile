@@ -7,7 +7,10 @@ import {
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import { UpdateTransactionPayAmountCall } from '../../../Views/confirmations/types/transactions';
-import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
+import {
+  MUSD_DECIMALS,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+} from '../../Earn/constants/musd';
 import AppConstants from '../../../../core/AppConstants';
 import { calcTokenValue } from '../../../../util/transactions';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
@@ -185,9 +188,6 @@ export async function buildMoneyAccountDepositBatch({
   };
 }
 
-/** Decimals for USDC (the deposit asset). */
-const USDC_DECIMALS = 6;
-
 /**
  * Returns the per-nested-call data updates required when the user changes
  * the deposit amount on a Money Account deposit confirmation.
@@ -214,7 +214,7 @@ export async function updateMoneyAccountDepositTokenAmount(
   if (!provider) return [];
 
   const amount = BigInt(
-    calcTokenValue(amountHuman, USDC_DECIMALS)
+    calcTokenValue(amountHuman, MUSD_DECIMALS)
       .decimalPlaces(0, BigNumber.ROUND_UP)
       .toFixed(0),
   );
