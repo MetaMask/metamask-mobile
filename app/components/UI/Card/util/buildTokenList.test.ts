@@ -49,6 +49,9 @@ describe('buildTokenList', () => {
 
       const result = buildDelegationTokenList({
         delegationSettings,
+        getSupportedTokensByChainId: () => [
+          { symbol: 'USDC', address: '0xUSDC', name: 'USD Coin' },
+        ],
       });
 
       expect(result).toHaveLength(1);
@@ -65,7 +68,7 @@ describe('buildTokenList', () => {
       );
     });
 
-    it('normalizes stablecoin symbols', () => {
+    it('uses SDK symbol casing over raw API symbol', () => {
       const delegationSettings = createDelegationSettings([
         {
           network: 'linea',
@@ -80,6 +83,9 @@ describe('buildTokenList', () => {
 
       const result = buildDelegationTokenList({
         delegationSettings,
+        getSupportedTokensByChainId: () => [
+          { symbol: 'USDT', address: '0xUSDT', name: 'Tether' },
+        ],
       });
 
       expect(result[0].symbol).toBe('USDT');
@@ -225,7 +231,7 @@ describe('buildTokenList', () => {
       expect(result[0].caipChainId).toBe(
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       );
-      expect(result[1].symbol).toBe('USDC');
+      expect(result[1].symbol).toBe('usdc');
     });
   });
 

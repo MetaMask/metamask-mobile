@@ -8,9 +8,6 @@ import {
 } from '../types';
 import { SUPPORTED_ASSET_NETWORKS } from '../constants';
 
-/** Stablecoin symbols supported by card that the API may return lowercased */
-const KNOWN_UPPERCASE_SYMBOLS = ['USDT', 'USDC'];
-
 /** CAIP chain ID for Linea mainnet */
 export const LINEA_CAIP_CHAIN_ID = 'eip155:59144' as CaipChainId;
 
@@ -23,13 +20,6 @@ interface SupportedToken {
 interface BuildTokenListParams {
   delegationSettings: DelegationSettingsResponse | null;
   getSupportedTokensByChainId?: (chainId: CaipChainId) => SupportedToken[];
-}
-
-function normalizeSymbol(symbol: string): string {
-  if (KNOWN_UPPERCASE_SYMBOLS.includes(symbol.toUpperCase())) {
-    return symbol.toUpperCase();
-  }
-  return symbol;
 }
 
 function getCaipChainId(
@@ -99,8 +89,7 @@ export function buildDelegationTokenList({
         (t) => t.symbol?.toLowerCase() === tokenConfig.symbol.toLowerCase(),
       );
 
-      // Normalize symbol
-      const symbol = normalizeSymbol(sdkToken?.symbol ?? tokenConfig.symbol);
+      const symbol = sdkToken?.symbol ?? tokenConfig.symbol;
 
       // Get correct address (SDK address for non-production environments)
       const address =
