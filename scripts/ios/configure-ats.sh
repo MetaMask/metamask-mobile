@@ -6,10 +6,10 @@
 # every "main" build (production, rc, beta, exp, e2e, test, dev). The source
 # plist intentionally ships the strict App Store defaults
 # (NSAllowsArbitraryLoads = false). For local development and automated testing
-# we need to allow arbitrary loads + an explicit localhost exception so devs
-# and CI can talk to Metro / mock servers / locally-hosted dapps over plain
-# HTTP. All other environments (production, rc, beta, exp) ship strict ATS so
-# binaries distributed to real users keep full HTTPS enforcement.
+# we need to allow arbitrary loads so devs and CI can talk to Metro / mock
+# servers / locally-hosted dapps over plain HTTP. All other environments
+# (production, rc, beta, exp) ship strict ATS so binaries distributed to real
+# users keep full HTTPS enforcement.
 #
 # This phase mutates the *built* Info.plist (TARGET_BUILD_DIR/INFOPLIST_PATH),
 # never the source file, so:
@@ -20,8 +20,8 @@
 # Behavior:
 #   - METAMASK_ENVIRONMENT in {dev, test, e2e} -> relax ATS:
 #       NSAllowsArbitraryLoads = true
-#       NSAllowsLocalNetworking removed (subsumed by NSAllowsArbitraryLoads)
-#       NSExceptionDomains.localhost.NSExceptionAllowsInsecureHTTPLoads = true
+#       NSAllowsLocalNetworking removed (subsumed by NSAllowsArbitraryLoads;
+#       Apple warns at submission if both are present)
 #   - anything else (production/rc/beta/exp/unset/unknown) -> no-op (ship
 #     strict defaults)
 #
@@ -68,13 +68,5 @@ fi
 # NSAllowsLocalNetworking is redundant once NSAllowsArbitraryLoads is true.
 # Apple emits a warning at App Store submission if both are present.
 $PLIST_BUDDY -c "Delete :NSAppTransportSecurity:NSAllowsLocalNetworking" "$PLIST" 2>/dev/null || true
-
-# Add the localhost exception. Each Add is idempotent because we swallow errors
-# if the key already exists from a previous incremental build.
-$PLIST_BUDDY -c "Add :NSAppTransportSecurity:NSExceptionDomains dict" "$PLIST" 2>/dev/null || true
-$PLIST_BUDDY -c "Add :NSAppTransportSecurity:NSExceptionDomains:localhost dict" "$PLIST" 2>/dev/null || true
-if ! $PLIST_BUDDY -c "Set :NSAppTransportSecurity:NSExceptionDomains:localhost:NSExceptionAllowsInsecureHTTPLoads true" "$PLIST" 2>/dev/null; then
-  $PLIST_BUDDY -c "Add :NSAppTransportSecurity:NSExceptionDomains:localhost:NSExceptionAllowsInsecureHTTPLoads bool true" "$PLIST"
-fi
 
 echo "configure-ios-ats: done"
