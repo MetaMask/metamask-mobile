@@ -12,3 +12,4 @@ export {
   getSession,
   setStatus,
 } from './sessionRegistry';
+export { useHeadlessSessionDismissal } from './useHeadlessSessionDismissal';
