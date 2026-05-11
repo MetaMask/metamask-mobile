@@ -278,7 +278,6 @@ const RewardsDashboard: React.FC = () => {
             <Box twClassName="flex-row gap-2">
               {isVipEnabled && (
                 <Pressable
-                  accessibilityLabel={strings('rewards.vip.title')}
                   accessibilityRole="button"
                   onPress={() => navigation.navigate(Routes.REWARDS_VIP_VIEW)}
                   style={tw.style('h-8 w-8 items-center justify-center')}

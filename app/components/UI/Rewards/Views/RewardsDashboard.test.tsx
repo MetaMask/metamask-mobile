@@ -124,7 +124,6 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'rewards.main_title': 'Rewards',
-      'rewards.vip.title': 'VIP',
     };
     return translations[key] || key;
   }),

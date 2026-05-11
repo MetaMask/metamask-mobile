@@ -77,8 +77,7 @@ const RewardsVipView: React.FC = () => {
   // useFocusEffect schedules the initial fetch.
   const showSkeleton = (!hasAttemptedFetch || isLoading) && !dashboard;
   const showError = hasError && !dashboard;
-  const headerTitle =
-    dashboard?.program?.name ?? strings('rewards.vip.pilot_title');
+  const headerTitle = dashboard?.program?.name ?? '';
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipView">

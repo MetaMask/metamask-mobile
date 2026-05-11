@@ -2285,6 +2285,7 @@ export class RewardsController extends BaseController<
     this.update((state) => {
       // Remove the failing subscription
       delete state.subscriptions[subscriptionId];
+      delete state.vipDashboard[subscriptionId];
 
       // Clear accounts linked to this subscription only
       Object.entries(state.accounts).forEach(([caipAccount, accountState]) => {

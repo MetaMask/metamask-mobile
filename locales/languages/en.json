@@ -8254,8 +8254,6 @@
     },
     "main_title": "Rewards",
     "vip": {
-      "title": "VIP",
-      "pilot_title": "VIP Pilot",
       "bps_unit": "bps",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
