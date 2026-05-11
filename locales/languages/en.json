@@ -6578,8 +6578,8 @@
     },
     "how_it_works": {
       "title": "How it works",
-      "description_prefix": "Hold mUSD in your Money account and auto-earn",
-      "description_suffix": ". It's dollar-backed, always liquid, and ready to spend, send, or trade anytime."
+      "description_prefix": "Deposit mUSD into your Money account and earn up to",
+      "description_suffix": ". Your balance is dollar-backed and ready to spend, trade, or send anytime."
     },
     "musd_row": {
       "add": "Add"
