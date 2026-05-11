@@ -89,6 +89,19 @@ export const useBridgeQuoteData = ({
   );
 
   const isExpired = isQuoteExpired(willRefresh, refreshRate, quotesLastFetched);
+  const sourceTokenQuoteKey = sourceToken
+    ? `${sourceToken.chainId}:${sourceToken.address}`
+    : undefined;
+  const destTokenQuoteKey = destToken
+    ? `${destToken.chainId}:${destToken.address}`
+    : undefined;
+  // Slippage is intentionally excluded so slippage-triggered refetches can
+  // still use the last shown quote as the retry boundary for this bug fix.
+  const selectedQuoteInputsKey =
+    sourceTokenQuoteKey && destTokenQuoteKey && sourceAmount !== undefined
+      ? `${sourceTokenQuoteKey}|${destTokenQuoteKey}|${sourceAmount}`
+      : undefined;
+  const lastShownQuoteInputsKeyRef = useRef<string | undefined>(undefined);
 
   const bestQuote = quotes?.recommendedQuote;
   const allQuotes = useMemo(
@@ -128,12 +141,11 @@ export const useBridgeQuoteData = ({
     ? (manuallySelectedQuote ?? bestQuote)
     : rawActiveQuote;
 
-  const hasShownActiveQuoteRef = useRef(false);
   useEffect(() => {
-    if (activeQuote) {
-      hasShownActiveQuoteRef.current = true;
+    if (activeQuote && selectedQuoteInputsKey) {
+      lastShownQuoteInputsKeyRef.current = selectedQuoteInputsKey;
     }
-  }, [activeQuote]);
+  }, [activeQuote, selectedQuoteInputsKey]);
 
   const priceImpactFiat = usePriceImpactFiat(activeQuote);
 
@@ -267,10 +279,13 @@ export const useBridgeQuoteData = ({
 
   // Show "Get new quote" when an expired quote needs refresh, or when a
   // refetch clears the active quote after a previous quote existed.
-  // hasShownActiveQuoteRef keeps the initial quote load in the skeleton state.
+  // lastShownQuoteInputsKeyRef keeps the initial quote load in the skeleton
+  // state and prevents token-pair changes from reusing a previous quote.
   const isExpiredWithoutUsableQuote = isExpired && (!isLoading || !activeQuote);
   const isRefetchingAfterPreviousQuote =
-    isLoading && !activeQuote && hasShownActiveQuoteRef.current;
+    isLoading &&
+    !activeQuote &&
+    lastShownQuoteInputsKeyRef.current === selectedQuoteInputsKey;
   const needsNewQuote =
     !isSubmittingTx &&
     (isExpiredWithoutUsableQuote || isRefetchingAfterPreviousQuote);
