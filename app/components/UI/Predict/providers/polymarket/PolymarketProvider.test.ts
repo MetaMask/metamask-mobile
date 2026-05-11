@@ -108,7 +108,7 @@ jest.mock('./utils', () => {
       CLOB_RELAYER: 'https://predict.api.cx.metamask.io',
       GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
       CRYPTO_PRICE_HISTORY_ENDPOINT:
-        'https://polymarket.com/api/crypto-price-history',
+        'https://polymarket.com/api/crypto/price-history',
     })),
     parsePolymarketActivity: jest.fn(),
     parsePolymarketEvents: jest.fn(),
