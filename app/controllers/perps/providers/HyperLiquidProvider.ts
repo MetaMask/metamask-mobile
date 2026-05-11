@@ -601,15 +601,14 @@ export class HyperLiquidProvider implements PerpsProvider {
    * of `feature:perps` Sentry events (Sentry issues METAMASK-MOBILE-4XB5
    * iOS / 4Q4M Android: ~530k events / ~100k users in 14d on 7.75.1).
    *
-   * Probes `infoClient.clearinghouseState` and caches a positive result in
-   * `PerpsSigningCache.walletRegistered`. Negative results are NOT cached —
-   * the wallet may deposit between checks; the next entry must re-probe.
-   * The probe is cheap (~200ms) and non-throwing: fresh wallets return a
-   * zeroed margin summary and an empty `assetPositions` array.
-   *
-   * Marks the wallet registered if any of these signals is present:
-   * `marginSummary.accountValue !== "0.0"`, `withdrawable !== "0.0"`, or
-   * `assetPositions.length > 0`.
+   * Probes `infoClient.userNonFundingLedgerUpdates` and caches a positive
+   * result in `PerpsSigningCache.walletRegistered`. Negative results are NOT
+   * cached — the wallet may deposit between checks; the next entry must
+   * re-probe. The probe is cheap (~100ms), non-throwing, and returns the
+   * full deposit/withdraw history. A non-empty array means the wallet has
+   * interacted with Hyperliquid at least once — necessary and sufficient
+   * for `agentSetAbstraction` / `userSetAbstraction` / `setReferrer` to
+   * succeed.
    *
    * If the probe itself throws (transient network), returns `true` and does
    * not cache — fail open so one bad probe never traps a real Hyperliquid
@@ -619,7 +618,7 @@ export class HyperLiquidProvider implements PerpsProvider {
    * @param network - The network environment (mainnet | testnet).
    * @returns True if the wallet has been observed on Hyperliquid OR if
    * the probe was inconclusive (fail open). False only when the probe
-   * succeeded AND every existence signal was empty.
+   * succeeded AND returned an empty ledger.
    * @private
    */
   async #isWalletOnHyperliquid(
@@ -633,15 +632,11 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     try {
       const infoClient = this.#clientService.getInfoClient();
-      const state = await infoClient.clearinghouseState({ user: userAddress });
-      const accountValue = state.marginSummary?.accountValue;
-      const { withdrawable } = state;
-      const hasAccountValue =
-        typeof accountValue === 'string' && accountValue !== '0.0';
-      const hasWithdrawable =
-        typeof withdrawable === 'string' && withdrawable !== '0.0';
-      const hasPositions = (state.assetPositions?.length ?? 0) > 0;
-      const registered = hasAccountValue || hasWithdrawable || hasPositions;
+      const ledger = await infoClient.userNonFundingLedgerUpdates({
+        user: userAddress,
+        startTime: 0,
+      });
+      const registered = Array.isArray(ledger) && ledger.length > 0;
       if (registered) {
         PerpsSigningCache.setWalletRegistered(network, userAddress, true);
       }

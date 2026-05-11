@@ -2849,12 +2849,7 @@ describe('HyperLiquidProvider', () => {
     it('handles missing position in close operation', async () => {
       (
         mockClientService.getInfoClient().clearinghouseState as jest.Mock
-      ).mockResolvedValue({
-        // The wallet-registration probe and the position fetch both call
-        // clearinghouseState; the whole scenario has no positions, so
-        // `mockResolvedValue` (not `mockResolvedValueOnce`) is required.
-        marginSummary: { accountValue: '10500', totalMarginUsed: '500' },
-        withdrawable: '9500',
+      ).mockResolvedValueOnce({
         assetPositions: [], // No positions
       });
 
@@ -10642,13 +10637,6 @@ describe('HyperLiquidProvider', () => {
   // ──────────────────────────────────────────────────────────────────────
   describe('wallet-not-on-hyperliquid gate (ensureUnifiedAccountEnabled)', () => {
     const USER_ADDRESS = '0x1234567890123456789012345678901234567890';
-    const freshClearinghouseState = {
-      marginSummary: { accountValue: '0.0', totalMarginUsed: '0.0' },
-      crossMarginSummary: { accountValue: '0.0', totalMarginUsed: '0.0' },
-      withdrawable: '0.0',
-      assetPositions: [],
-      time: 1778499320281,
-    };
 
     const withdrawParams = {
       amount: '1000',
@@ -10663,16 +10651,15 @@ describe('HyperLiquidProvider', () => {
         writable: true,
       });
 
-    it('defers migration without firing exchange writes when clearinghouseState is empty', async () => {
+    it('defers migration without firing exchange writes when the wallet has no HL ledger history', async () => {
       const exchangeClient = createMockExchangeClient();
       mockClientService.getExchangeClient = jest
         .fn()
         .mockReturnValue(exchangeClient);
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
-          clearinghouseState: jest
-            .fn()
-            .mockResolvedValue(freshClearinghouseState),
+          // Empty ledger = wallet has never deposited / withdrawn / interacted.
+          userNonFundingLedgerUpdates: jest.fn().mockResolvedValue([]),
           userAbstraction: jest.fn().mockResolvedValue('default'),
         }),
       );
