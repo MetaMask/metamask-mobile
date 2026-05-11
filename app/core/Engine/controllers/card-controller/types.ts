@@ -21,6 +21,7 @@ import type { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metam
 import type {
   TransactionControllerAddTransactionAction,
   TransactionControllerTransactionConfirmedEvent,
+  TransactionControllerTransactionFailedEvent,
 } from '@metamask/transaction-controller';
 
 export const CARD_CONTROLLER_NAME = 'CardController';
@@ -78,7 +79,8 @@ type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent
   | RemoteFeatureFlagControllerStateChangeEvent
   | KeyringControllerUnlockEvent
-  | TransactionControllerTransactionConfirmedEvent;
+  | TransactionControllerTransactionConfirmedEvent
+  | TransactionControllerTransactionFailedEvent;
 
 export type CardControllerMessenger = Messenger<
   typeof CARD_CONTROLLER_NAME,

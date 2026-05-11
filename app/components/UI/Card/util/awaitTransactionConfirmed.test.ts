@@ -11,29 +11,58 @@ import {
 
 const TRANSACTION_CONFIRMED_EVENT =
   'TransactionController:transactionConfirmed' as const;
+const TRANSACTION_FAILED_EVENT =
+  'TransactionController:transactionFailed' as const;
 
-type Handler = (meta: TransactionMeta) => void;
+type ConfirmedHandler = (meta: TransactionMeta) => void;
+type FailedHandler = (payload: {
+  actionId?: string;
+  error: string;
+  transactionMeta: TransactionMeta;
+}) => void;
 
 function buildMockMessenger() {
-  const handlers: Handler[] = [];
-  const subscribe = jest.fn((_event: string, handler: Handler) => {
-    handlers.push(handler);
-  });
-  const unsubscribe = jest.fn((_event: string, handler: Handler) => {
-    const index = handlers.indexOf(handler);
-    if (index >= 0) handlers.splice(index, 1);
-  });
-  const emit = (meta: TransactionMeta) => {
-    // Snapshot to avoid mutation during iteration when handler unsubscribes.
-    for (const handler of [...handlers]) {
-      handler(meta);
-    }
+  const confirmedHandlers: ConfirmedHandler[] = [];
+  const failedHandlers: FailedHandler[] = [];
+
+  const subscribe = jest.fn(
+    (event: string, handler: ConfirmedHandler | FailedHandler) => {
+      if (event === TRANSACTION_CONFIRMED_EVENT) {
+        confirmedHandlers.push(handler as ConfirmedHandler);
+      } else if (event === TRANSACTION_FAILED_EVENT) {
+        failedHandlers.push(handler as FailedHandler);
+      }
+    },
+  );
+
+  const unsubscribe = jest.fn(
+    (event: string, handler: ConfirmedHandler | FailedHandler) => {
+      if (event === TRANSACTION_CONFIRMED_EVENT) {
+        const i = confirmedHandlers.indexOf(handler as ConfirmedHandler);
+        if (i >= 0) confirmedHandlers.splice(i, 1);
+      } else if (event === TRANSACTION_FAILED_EVENT) {
+        const i = failedHandlers.indexOf(handler as FailedHandler);
+        if (i >= 0) failedHandlers.splice(i, 1);
+      }
+    },
+  );
+
+  const emitConfirmed = (meta: TransactionMeta) => {
+    for (const h of [...confirmedHandlers]) h(meta);
   };
+
+  const emitFailed = (payload: {
+    error: string;
+    transactionMeta: TransactionMeta;
+  }) => {
+    for (const h of [...failedHandlers]) h(payload);
+  };
+
   const messenger: AwaitTransactionConfirmedMessenger = {
     subscribe,
     unsubscribe,
   };
-  return { messenger, subscribe, unsubscribe, emit, handlers };
+  return { messenger, subscribe, unsubscribe, emitConfirmed, emitFailed };
 }
 
 function buildMeta(overrides: Partial<TransactionMeta> = {}): TransactionMeta {
@@ -58,40 +87,38 @@ describe('awaitTransactionConfirmed', () => {
   });
 
   it('resolves when transactionConfirmed fires after submit returns the id', async () => {
-    const { messenger, subscribe, unsubscribe, emit } = buildMockMessenger();
+    const { messenger, subscribe, unsubscribe, emitConfirmed } =
+      buildMockMessenger();
     const transactionMeta = buildMeta({ id: 'tx-happy' });
 
     const submit = jest.fn().mockImplementation(async () => {
-      // Subscription must be registered before submit runs.
-      expect(subscribe).toHaveBeenCalledTimes(1);
-      return {
-        result: Promise.resolve('0xhash'),
-        transactionMeta,
-      };
+      // Both subscriptions must be registered before submit runs.
+      expect(subscribe).toHaveBeenCalledTimes(2);
+      return { result: Promise.resolve('0xhash'), transactionMeta };
     });
 
     const promise = awaitTransactionConfirmed({ messenger, submit });
 
-    // Let the submit resolve and the transactionId be captured.
     await Promise.resolve();
     await Promise.resolve();
-    emit(buildMeta({ id: 'tx-happy', status: TransactionStatus.confirmed }));
+    emitConfirmed(
+      buildMeta({ id: 'tx-happy', status: TransactionStatus.confirmed }),
+    );
 
     const result = await promise;
     expect(result.txHash).toBe('0xhash');
     expect(result.transactionMeta.id).toBe('tx-happy');
-    expect(unsubscribe).toHaveBeenCalledTimes(1);
+    expect(unsubscribe).toHaveBeenCalledTimes(2);
   });
 
   it('replays a confirmation event that arrived BEFORE the id was known', async () => {
-    const { messenger, emit, unsubscribe } = buildMockMessenger();
+    const { messenger, emitConfirmed, unsubscribe } = buildMockMessenger();
 
     let releaseSubmit: () => void = () => undefined;
-    const submitDelay = new Promise<void>((resolve) => {
-      releaseSubmit = resolve;
-    });
     const submit = jest.fn(async () => {
-      await submitDelay;
+      await new Promise<void>((resolve) => {
+        releaseSubmit = resolve;
+      });
       return {
         result: Promise.resolve('0xhash-race'),
         transactionMeta: buildMeta({ id: 'tx-race' }),
@@ -101,19 +128,20 @@ describe('awaitTransactionConfirmed', () => {
     const promise = awaitTransactionConfirmed({ messenger, submit });
 
     // Confirmation arrives BEFORE submit has finished.
-    emit(buildMeta({ id: 'tx-race', status: TransactionStatus.confirmed }));
+    emitConfirmed(
+      buildMeta({ id: 'tx-race', status: TransactionStatus.confirmed }),
+    );
 
-    // Now let submit resolve so the replay can happen.
     releaseSubmit();
 
     const result = await promise;
     expect(result.txHash).toBe('0xhash-race');
     expect(result.transactionMeta.id).toBe('tx-race');
-    expect(unsubscribe).toHaveBeenCalledTimes(1);
+    expect(unsubscribe).toHaveBeenCalledTimes(2);
   });
 
   it('ignores stashed events for unrelated transaction ids', async () => {
-    const { messenger, emit, unsubscribe } = buildMockMessenger();
+    const { messenger, emitConfirmed, unsubscribe } = buildMockMessenger();
 
     let releaseSubmit: () => void = () => undefined;
     const submit = jest.fn(async () => {
@@ -128,22 +156,24 @@ describe('awaitTransactionConfirmed', () => {
 
     const promise = awaitTransactionConfirmed({ messenger, submit });
 
-    emit(buildMeta({ id: 'tx-other', status: TransactionStatus.confirmed }));
+    emitConfirmed(
+      buildMeta({ id: 'tx-other', status: TransactionStatus.confirmed }),
+    );
     releaseSubmit();
 
-    // After replay, the target id should still be pending; advance time and
-    // emit the right event to confirm the original handler still works.
     await Promise.resolve();
     await Promise.resolve();
-    emit(buildMeta({ id: 'tx-target', status: TransactionStatus.confirmed }));
+    emitConfirmed(
+      buildMeta({ id: 'tx-target', status: TransactionStatus.confirmed }),
+    );
 
     const result = await promise;
     expect(result.txHash).toBe('0xhash-ignored');
-    expect(unsubscribe).toHaveBeenCalledTimes(1);
+    expect(unsubscribe).toHaveBeenCalledTimes(2);
   });
 
-  it('rejects with a TransactionConfirmationFailedError when status === failed', async () => {
-    const { messenger, emit, unsubscribe } = buildMockMessenger();
+  it('rejects immediately via transactionFailed event (not a timeout)', async () => {
+    const { messenger, emitFailed, unsubscribe } = buildMockMessenger();
 
     const submit = jest.fn().mockResolvedValue({
       result: Promise.resolve('0xhash-fail'),
@@ -154,22 +184,51 @@ describe('awaitTransactionConfirmed', () => {
 
     await Promise.resolve();
     await Promise.resolve();
-    emit(
-      buildMeta({
-        id: 'tx-fail',
-        status: TransactionStatus.failed,
-        error: { message: 'reverted', name: 'TransactionFailedError' },
-      } as Partial<TransactionMeta>),
-    );
+    emitFailed({
+      error: 'execution reverted',
+      transactionMeta: buildMeta({ id: 'tx-fail' }),
+    });
 
     await expect(promise).rejects.toBeInstanceOf(
       TransactionConfirmationFailedError,
     );
-    await expect(promise).rejects.toThrow('reverted');
-    expect(unsubscribe).toHaveBeenCalledTimes(1);
+    await expect(promise).rejects.toThrow('execution reverted');
+    expect(unsubscribe).toHaveBeenCalledTimes(2);
+    // Timer must still be cleared — no lingering timeout.
+    expect(jest.getTimerCount()).toBe(0);
   });
 
-  it('rejects with a timeout error when confirmation never arrives', async () => {
+  it('replays a transactionFailed event that arrived BEFORE the id was known', async () => {
+    const { messenger, emitFailed } = buildMockMessenger();
+
+    let releaseSubmit: () => void = () => undefined;
+    const submit = jest.fn(async () => {
+      await new Promise<void>((resolve) => {
+        releaseSubmit = resolve;
+      });
+      return {
+        result: Promise.resolve('0xhash-fail-race'),
+        transactionMeta: buildMeta({ id: 'tx-fail-race' }),
+      };
+    });
+
+    const promise = awaitTransactionConfirmed({ messenger, submit });
+
+    // Failure arrives BEFORE submit has finished.
+    emitFailed({
+      error: 'out of gas',
+      transactionMeta: buildMeta({ id: 'tx-fail-race' }),
+    });
+
+    releaseSubmit();
+
+    await expect(promise).rejects.toBeInstanceOf(
+      TransactionConfirmationFailedError,
+    );
+    await expect(promise).rejects.toThrow('out of gas');
+  });
+
+  it('rejects with a timeout error when neither confirmed nor failed arrives', async () => {
     const { messenger, unsubscribe } = buildMockMessenger();
 
     const submit = jest.fn().mockResolvedValue({
@@ -183,7 +242,6 @@ describe('awaitTransactionConfirmed', () => {
       timeoutMs: 1000,
     });
 
-    // Drive submit + initial drain through.
     await Promise.resolve();
     await Promise.resolve();
     jest.advanceTimersByTime(1000);
@@ -191,7 +249,47 @@ describe('awaitTransactionConfirmed', () => {
     await expect(promise).rejects.toBeInstanceOf(
       TransactionConfirmationTimeoutError,
     );
-    expect(unsubscribe).toHaveBeenCalledTimes(1);
+    expect(unsubscribe).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not produce an unhandled rejection when timeout races with awaiting result', async () => {
+    // Bug: if timeout fires while `await submitResult.result` is pending,
+    // `waitPromise` would be rejected with no handler yet, producing an
+    // unhandled-rejection crash. The `.catch(() => undefined)` guard on
+    // `waitPromise` must suppress this.
+    const { messenger } = buildMockMessenger();
+
+    let releaseResult: (hash: string) => void = () => undefined;
+    const resultPromise = new Promise<string>((resolve) => {
+      releaseResult = resolve;
+    });
+
+    const submit = jest.fn().mockResolvedValue({
+      result: resultPromise, // never resolves during this test
+      transactionMeta: buildMeta({ id: 'tx-race-timeout' }),
+    });
+
+    const promise = awaitTransactionConfirmed({
+      messenger,
+      submit,
+      timeoutMs: 50,
+    });
+
+    // Let submit resolve so transactionId is captured, then fire timeout
+    // before resultPromise settles.
+    await Promise.resolve();
+    await Promise.resolve();
+    jest.advanceTimersByTime(50); // timeout fires → rejectWait() called
+
+    // Let the rejection propagate through the microtask queue before
+    // releasing resultPromise to verify no unhandled rejection occurred.
+    await Promise.resolve();
+    releaseResult('0xhash-late');
+
+    // The final rejection should be the timeout, not an unhandled-rejection crash.
+    await expect(promise).rejects.toBeInstanceOf(
+      TransactionConfirmationTimeoutError,
+    );
   });
 
   it('rejects and unsubscribes if submit itself throws', async () => {
@@ -203,14 +301,21 @@ describe('awaitTransactionConfirmed', () => {
     await expect(awaitTransactionConfirmed({ messenger, submit })).rejects.toBe(
       submitError,
     );
-    expect(unsubscribe).toHaveBeenCalledTimes(1);
+    expect(unsubscribe).toHaveBeenCalledTimes(2);
   });
 
-  it('subscribes BEFORE submit runs', async () => {
-    const { messenger, subscribe, emit } = buildMockMessenger();
+  it('subscribes to BOTH events BEFORE submit runs', async () => {
+    const { messenger, subscribe, emitConfirmed } = buildMockMessenger();
 
     const submit = jest.fn().mockImplementation(async () => {
-      expect(subscribe).toHaveBeenCalledTimes(1);
+      expect(subscribe).toHaveBeenCalledWith(
+        TRANSACTION_CONFIRMED_EVENT,
+        expect.any(Function),
+      );
+      expect(subscribe).toHaveBeenCalledWith(
+        TRANSACTION_FAILED_EVENT,
+        expect.any(Function),
+      );
       return {
         result: Promise.resolve('0xhash-order'),
         transactionMeta: buildMeta({ id: 'tx-order' }),
@@ -220,7 +325,9 @@ describe('awaitTransactionConfirmed', () => {
     const promise = awaitTransactionConfirmed({ messenger, submit });
     await Promise.resolve();
     await Promise.resolve();
-    emit(buildMeta({ id: 'tx-order', status: TransactionStatus.confirmed }));
+    emitConfirmed(
+      buildMeta({ id: 'tx-order', status: TransactionStatus.confirmed }),
+    );
 
     await promise;
     expect(submit).toHaveBeenCalledTimes(1);

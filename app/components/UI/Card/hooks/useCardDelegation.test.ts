@@ -1122,20 +1122,17 @@ describe('useCardDelegation', () => {
       expect(mockApproveFunding).toHaveBeenCalled();
     });
 
-    it('handles transaction failure in confirmation listener', async () => {
+    it('handles transaction failure via transactionFailed event', async () => {
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
 
       (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
         (eventName, callback) => {
-          if (eventName === 'TransactionController:transactionConfirmed') {
+          if (eventName === 'TransactionController:transactionFailed') {
             setImmediate(() => {
               callback({
-                id: 'transaction-meta-id-123',
-                status: TransactionStatus.failed,
-                error: {
-                  message: 'Transaction execution failed',
-                },
+                error: 'Transaction execution failed',
+                transactionMeta: { id: 'transaction-meta-id-123' },
               });
             });
           }
@@ -1154,18 +1151,17 @@ describe('useCardDelegation', () => {
       expect(mockApproveFunding).not.toHaveBeenCalled();
     });
 
-    it('handles transaction failure with generic message when error details not provided', async () => {
+    it('handles transaction failure with generic message when no error string provided', async () => {
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
 
       (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
         (eventName, callback) => {
-          if (eventName === 'TransactionController:transactionConfirmed') {
+          if (eventName === 'TransactionController:transactionFailed') {
             setImmediate(() => {
               callback({
-                id: 'transaction-meta-id-123',
-                status: TransactionStatus.failed,
-                error: undefined,
+                error: '',
+                transactionMeta: { id: 'transaction-meta-id-123' },
               });
             });
           }

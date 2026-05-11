@@ -40,6 +40,7 @@ export function getCardControllerMessenger(
       'RemoteFeatureFlagController:stateChange',
       'KeyringController:unlock',
       'TransactionController:transactionConfirmed',
+      'TransactionController:transactionFailed',
     ],
   });
 

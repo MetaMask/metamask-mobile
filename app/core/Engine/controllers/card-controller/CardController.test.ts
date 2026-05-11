@@ -1722,25 +1722,31 @@ describe('CardController — data pass-throughs', () => {
         transactionMeta: { id: string };
       }>;
     } = {}): LinkMessengerHandle {
-      const subscribedHandlers: ((meta: unknown) => void)[] = [];
+      const confirmedHandlers: ((meta: unknown) => void)[] = [];
+      const failedHandlers: ((payload: unknown) => void)[] = [];
       const addTransactionCalls: unknown[][] = [];
       const signPersonalMessageCalls: unknown[][] = [];
 
       const messenger = buildMockMessenger();
 
       (messenger.subscribe as jest.Mock).mockImplementation(
-        (event: string, handler: (meta: unknown) => void) => {
+        (event: string, handler: (arg: unknown) => void) => {
           if (event === 'TransactionController:transactionConfirmed') {
-            subscribedHandlers.push(handler);
+            confirmedHandlers.push(handler);
+          } else if (event === 'TransactionController:transactionFailed') {
+            failedHandlers.push(handler);
           }
         },
       );
 
       (messenger.unsubscribe as jest.Mock).mockImplementation(
-        (event: string, handler: (meta: unknown) => void) => {
+        (event: string, handler: (arg: unknown) => void) => {
           if (event === 'TransactionController:transactionConfirmed') {
-            const index = subscribedHandlers.indexOf(handler);
-            if (index >= 0) subscribedHandlers.splice(index, 1);
+            const index = confirmedHandlers.indexOf(handler);
+            if (index >= 0) confirmedHandlers.splice(index, 1);
+          } else if (event === 'TransactionController:transactionFailed') {
+            const index = failedHandlers.indexOf(handler);
+            if (index >= 0) failedHandlers.splice(index, 1);
           }
         },
       );
@@ -1788,24 +1794,16 @@ describe('CardController — data pass-throughs', () => {
       return {
         messenger,
         emitConfirmed: (overrides = {}) => {
-          for (const handler of [...subscribedHandlers]) {
-            handler({
-              id: 'tx-1',
-              status: 'confirmed',
-              ...overrides,
-            });
+          for (const handler of [...confirmedHandlers]) {
+            handler({ id: 'tx-1', status: 'confirmed', ...overrides });
           }
         },
         emitFailed: (errorMessage = 'reverted') => {
-          for (const handler of [...subscribedHandlers]) {
-            handler({
-              id: 'tx-1',
-              status: 'failed',
-              error: { message: errorMessage },
-            });
+          for (const handler of [...failedHandlers]) {
+            handler({ error: errorMessage, transactionMeta: { id: 'tx-1' } });
           }
         },
-        subscribedHandlers,
+        subscribedHandlers: confirmedHandlers,
         addTransactionCalls,
         signPersonalMessageCalls,
       };

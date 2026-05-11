@@ -1,29 +1,41 @@
-import {
-  TransactionStatus,
-  type TransactionMeta,
-} from '@metamask/transaction-controller';
+import { type TransactionMeta } from '@metamask/transaction-controller';
 
 const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
 
 const TRANSACTION_CONFIRMED_EVENT =
   'TransactionController:transactionConfirmed' as const;
+const TRANSACTION_FAILED_EVENT =
+  'TransactionController:transactionFailed' as const;
 
 type TransactionConfirmedHandler = (meta: TransactionMeta) => void;
+type TransactionFailedHandler = (payload: {
+  actionId?: string;
+  error: string;
+  transactionMeta: TransactionMeta;
+}) => void;
 
 /**
  * Minimal messenger surface used by `awaitTransactionConfirmed`. Both
  * `Engine.controllerMessenger` (root) and a controller-scoped messenger that
- * has `TransactionController:transactionConfirmed` delegated to it satisfy
- * this shape.
+ * has `TransactionController:transactionConfirmed` and
+ * `TransactionController:transactionFailed` delegated to it satisfy this shape.
  */
 export interface AwaitTransactionConfirmedMessenger {
   subscribe(
     event: typeof TRANSACTION_CONFIRMED_EVENT,
     handler: TransactionConfirmedHandler,
   ): void;
+  subscribe(
+    event: typeof TRANSACTION_FAILED_EVENT,
+    handler: TransactionFailedHandler,
+  ): void;
   unsubscribe(
     event: typeof TRANSACTION_CONFIRMED_EVENT,
     handler: TransactionConfirmedHandler,
+  ): void;
+  unsubscribe(
+    event: typeof TRANSACTION_FAILED_EVENT,
+    handler: TransactionFailedHandler,
   ): void;
 }
 
@@ -36,8 +48,9 @@ export interface AwaitTransactionConfirmedArgs {
   messenger: AwaitTransactionConfirmedMessenger;
   /**
    * Submit the transaction and return its meta. The wait subscription is
-   * registered BEFORE this runs so the `transactionConfirmed` event is never
-   * missed due to the subscribe-after-submit race.
+   * registered BEFORE this runs so neither `transactionConfirmed` nor
+   * `transactionFailed` events are missed due to the subscribe-after-submit
+   * race.
    */
   submit: () => Promise<AwaitTransactionConfirmedSubmitResult>;
   /** Bounded timeout. Defaults to 5 minutes. */
@@ -63,6 +76,10 @@ export class TransactionConfirmationFailedError extends Error {
   }
 }
 
+type StashedEvent =
+  | { kind: 'confirmed'; meta: TransactionMeta }
+  | { kind: 'failed'; error: string; meta: TransactionMeta };
+
 interface PendingWait {
   transactionId?: string;
   settled: boolean;
@@ -72,15 +89,17 @@ interface PendingWait {
 }
 
 /**
- * Submits a transaction and waits for it to reach `confirmed` status, while
- * closing the race window between `addTransaction` returning and the
- * subscription being registered.
+ * Submits a transaction and waits for it to reach a terminal state
+ * (`transactionConfirmed` → resolve, `transactionFailed` → reject immediately),
+ * while closing the race window between `addTransaction` returning and the
+ * subscriptions being registered.
  *
- * Flow: subscribe to `TransactionController:transactionConfirmed`; call
- * `submit()` (stashing any events that arrive before the awaited
- * `transactionMeta.id` is known); replay the stash once the id is captured;
- * resolve on `status === confirmed`, reject on `status === failed`. The
- * subscription is always cleaned up on resolve, reject, and timeout paths.
+ * Both `TransactionController:transactionConfirmed` and
+ * `TransactionController:transactionFailed` are subscribed to BEFORE `submit()`
+ * is called. Events that arrive before the `transactionMeta.id` is known are
+ * stashed and replayed once the id is captured.
+ *
+ * All subscriptions are always cleaned up on resolve, reject, and timeout paths.
  *
  * @param args - The messenger, submit callback, and optional timeout.
  * @returns The transaction hash and final confirmed `TransactionMeta`.
@@ -91,7 +110,7 @@ export const awaitTransactionConfirmed = async (
   const { messenger, submit, timeoutMs = DEFAULT_TIMEOUT_MS } = args;
 
   const state: PendingWait = { settled: false };
-  const stashed: TransactionMeta[] = [];
+  const stashed: StashedEvent[] = [];
 
   let resolveWait: () => void = () => undefined;
   let rejectWait: (error: Error) => void = () => undefined;
@@ -99,11 +118,13 @@ export const awaitTransactionConfirmed = async (
     resolveWait = resolve;
     rejectWait = reject;
   });
+  // Suppress unhandled-rejection reports when the promise is rejected (timeout
+  // or transactionFailed) while `await submitResult.result` is still pending.
+  // The `await waitPromise` below will still throw.
+  waitPromise.catch(() => undefined);
 
-  // Forward refs let `handler` and `cleanup` reference each other without
-  // tripping `no-use-before-define`.
-  const handlerRef: { current?: TransactionConfirmedHandler } = {};
-  const cleanupRef: { current?: () => void } = {};
+  const confirmedHandlerRef: { current?: TransactionConfirmedHandler } = {};
+  const failedHandlerRef: { current?: TransactionFailedHandler } = {};
 
   const cleanup = () => {
     if (state.settled) return;
@@ -112,39 +133,55 @@ export const awaitTransactionConfirmed = async (
       clearTimeout(state.timeoutHandle);
       state.timeoutHandle = undefined;
     }
-    if (handlerRef.current) {
-      messenger.unsubscribe(TRANSACTION_CONFIRMED_EVENT, handlerRef.current);
+    if (confirmedHandlerRef.current) {
+      messenger.unsubscribe(
+        TRANSACTION_CONFIRMED_EVENT,
+        confirmedHandlerRef.current,
+      );
+    }
+    if (failedHandlerRef.current) {
+      messenger.unsubscribe(TRANSACTION_FAILED_EVENT, failedHandlerRef.current);
     }
   };
-  cleanupRef.current = cleanup;
 
-  const handler: TransactionConfirmedHandler = (meta) => {
+  const confirmedHandler: TransactionConfirmedHandler = (meta) => {
     if (state.settled) return;
 
     if (state.transactionId === undefined) {
-      stashed.push(meta);
+      stashed.push({ kind: 'confirmed', meta });
       return;
     }
     if (meta.id !== state.transactionId) return;
 
-    if (meta.status === TransactionStatus.confirmed) {
-      state.confirmedMeta = meta;
-      cleanupRef.current?.();
-      resolveWait();
+    state.confirmedMeta = meta;
+    cleanup();
+    resolveWait();
+  };
+  confirmedHandlerRef.current = confirmedHandler;
+
+  const failedHandler: TransactionFailedHandler = ({
+    error,
+    transactionMeta: meta,
+  }) => {
+    if (state.settled) return;
+
+    if (state.transactionId === undefined) {
+      stashed.push({ kind: 'failed', error, meta });
       return;
     }
-    if (meta.status === TransactionStatus.failed) {
-      const error = new TransactionConfirmationFailedError(
-        meta.error?.message ?? 'Transaction failed',
-      );
-      state.failureReason = error;
-      cleanupRef.current?.();
-      rejectWait(error);
-    }
-  };
-  handlerRef.current = handler;
+    if (meta.id !== state.transactionId) return;
 
-  messenger.subscribe(TRANSACTION_CONFIRMED_EVENT, handler);
+    const err = new TransactionConfirmationFailedError(
+      error || 'Transaction failed',
+    );
+    state.failureReason = err;
+    cleanup();
+    rejectWait(err);
+  };
+  failedHandlerRef.current = failedHandler;
+
+  messenger.subscribe(TRANSACTION_CONFIRMED_EVENT, confirmedHandler);
+  messenger.subscribe(TRANSACTION_FAILED_EVENT, failedHandler);
 
   state.timeoutHandle = setTimeout(() => {
     if (state.settled) return;
@@ -165,9 +202,13 @@ export const awaitTransactionConfirmed = async (
   state.transactionId = submitResult.transactionMeta.id;
 
   // Drain any events that arrived before the id was known.
-  for (const meta of stashed) {
+  for (const event of stashed) {
     if (state.settled) break;
-    handler(meta);
+    if (event.kind === 'confirmed') {
+      confirmedHandler(event.meta);
+    } else {
+      failedHandler({ error: event.error, transactionMeta: event.meta });
+    }
   }
 
   let txHash: string;
@@ -182,7 +223,6 @@ export const awaitTransactionConfirmed = async (
 
   if (state.failureReason) throw state.failureReason;
   if (!state.confirmedMeta) {
-    // Defensive: waitPromise resolved without setting confirmedMeta.
     throw new TransactionConfirmationFailedError(
       'Transaction confirmation resolved without meta',
     );
