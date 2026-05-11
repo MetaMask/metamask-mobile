@@ -66,6 +66,13 @@ describe('MusdCalculatorView', () => {
     expect(getByTestId('musd-calculator-tab')).toBeOnTheScreen();
   });
 
+  it('wraps the calculator in a keyboard avoiding view', () => {
+    const { getByTestId } = render(<MusdCalculatorView />);
+    expect(
+      getByTestId('musd-calculator-keyboard-avoiding-view'),
+    ).toBeOnTheScreen();
+  });
+
   it('tracks REWARDS_PAGE_VIEWED on mount with page_type musd_calculator', () => {
     render(<MusdCalculatorView />);
 

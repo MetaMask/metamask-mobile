@@ -178,7 +178,6 @@ The app supports multiple build types:
 
 - `main`: Production MetaMask
 - `flask`: Development/experimental features
-- `qa`: QA testing builds
 
 Use environment variable `METAMASK_BUILD_TYPE` to switch.
 
