@@ -32,8 +32,6 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
-import useRampsUnifiedV1Enabled from '../../../Ramp/hooks/useRampsUnifiedV1Enabled';
-import useRampsUnifiedV2Enabled from '../../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import parseRampIntent from '../../../Ramp/utils/parseRampIntent';
 import type { RampIntent } from '../../../Ramp/types';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
@@ -86,9 +84,7 @@ const AddFundsBottomSheet: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const { goToBuy } = useRampNavigation();
-  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const buttonClickData = useRampsButtonClickData();
-  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -120,11 +116,7 @@ const AddFundsBottomSheet: React.FC = () => {
           button_text: 'Fund with cash',
           location: 'CardHome',
           chain_id_destination: getDecimalChainId(priorityToken?.caipChainId),
-          ramp_type: isV2UnifiedEnabled
-            ? 'UNIFIED_BUY_2'
-            : rampUnifiedV1Enabled
-              ? 'UNIFIED_BUY'
-              : 'BUY',
+          ramp_type: 'UNIFIED_BUY_2',
           region: rampGeodetectedRegion,
           ramp_routing: buttonClickData.ramp_routing,
           is_authenticated: buttonClickData.is_authenticated,
@@ -146,8 +138,6 @@ const AddFundsBottomSheet: React.FC = () => {
     createEventBuilder,
     priorityToken,
     buttonClickData,
-    isV2UnifiedEnabled,
-    rampUnifiedV1Enabled,
   ]);
 
   const options = [

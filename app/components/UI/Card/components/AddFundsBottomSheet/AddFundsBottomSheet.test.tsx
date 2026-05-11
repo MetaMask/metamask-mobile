@@ -12,8 +12,6 @@ import { CardFundingToken, FundingStatus } from '../../types';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
-import useRampsUnifiedV1Enabled from '../../../Ramp/hooks/useRampsUnifiedV1Enabled';
-import useRampsUnifiedV2Enabled from '../../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { RampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
@@ -88,15 +86,6 @@ jest.mock('../../../Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: jest.fn(() => mockButtonClickData),
 }));
 
-jest.mock('../../../Ramp/hooks/useRampsUnifiedV2Enabled', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-jest.mock('../../../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -161,9 +150,6 @@ describe('AddFundsBottomSheet', () => {
     (useRampNavigation as jest.Mock).mockReturnValue({
       goToBuy: mockGoToBuy,
     });
-
-    (useRampsUnifiedV1Enabled as jest.Mock).mockReturnValue(false);
-    (useRampsUnifiedV2Enabled as jest.Mock).mockReturnValue(false);
 
     (useDepositEnabled as jest.Mock).mockReturnValue({
       isDepositEnabled: true,
@@ -253,7 +239,7 @@ describe('AddFundsBottomSheet', () => {
         button_text: 'Fund with cash',
         location: 'CardHome',
         chain_id_destination: '59144',
-        ramp_type: 'BUY',
+        ramp_type: 'UNIFIED_BUY_2',
         ramp_routing: undefined,
         is_authenticated: false,
         preferred_provider: undefined,
