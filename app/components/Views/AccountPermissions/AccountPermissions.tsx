@@ -173,7 +173,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
-  const previousPermittedAccounts = useRef<CaipAccountId[]>();
+  const previousPermittedAccounts = useRef<CaipAccountId[] | undefined>(
+    undefined,
+  );
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
   const [networkSelectorUserIntent, setNetworkSelectorUserIntent] = useState(

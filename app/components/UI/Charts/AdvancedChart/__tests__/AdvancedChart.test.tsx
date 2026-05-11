@@ -373,6 +373,144 @@ describe('AdvancedChart', () => {
     expect(onChartReady).toHaveBeenCalledTimes(1);
   });
 
+  it('calls onSkeletonHidden once when skeleton overlay is removed', () => {
+    const onSkeletonHidden = jest.fn();
+    const { getByTestId, queryByTestId, rerender } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        isLoading
+        onSkeletonHidden={onSkeletonHidden}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+    expect(onSkeletonHidden).not.toHaveBeenCalled();
+
+    rerender(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        isLoading={false}
+        onSkeletonHidden={onSkeletonHidden}
+      />,
+    );
+
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+    expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        isLoading={false}
+        onSkeletonHidden={onSkeletonHidden}
+      />,
+    );
+
+    expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onSkeletonHidden after CHART_LAYOUT_SETTLED when series key changes', () => {
+    const altBars: OHLCVBar[] = [
+      { time: 2000000, open: 20, high: 22, low: 19, close: 21, volume: 400 },
+      { time: 2000300, open: 21, high: 23, low: 20, close: 22, volume: 500 },
+    ];
+    const onSkeletonHidden = jest.fn();
+
+    const { getByTestId, queryByTestId, rerender } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        ohlcvSeriesKey="range-a"
+        onSkeletonHidden={onSkeletonHidden}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+
+    onSkeletonHidden.mockClear();
+    rerender(
+      <AdvancedChart
+        ohlcvData={altBars}
+        ohlcvSeriesKey="range-b"
+        onSkeletonHidden={onSkeletonHidden}
+      />,
+    );
+
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+
+    const webViewAfter = getByTestId('mock-webview');
+    act(() => {
+      webViewAfter.props.onLoadEnd();
+    });
+    act(() => {
+      webViewAfter.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+    act(() => {
+      webViewAfter.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_LAYOUT_SETTLED', payload: {} }),
+        },
+      });
+    });
+
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+    expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onSkeletonHidden when WebView error UI is shown', () => {
+    const onSkeletonHidden = jest.fn();
+    const { getByTestId, queryByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onSkeletonHidden={onSkeletonHidden}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'ERROR',
+            payload: { message: 'chart init failed' },
+          }),
+        },
+      });
+    });
+
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+    expect(queryByTestId('mock-webview')).not.toBeOnTheScreen();
+    expect(onSkeletonHidden).not.toHaveBeenCalled();
+  });
+
   it('calls onError when chart reports an error', () => {
     const onError = jest.fn();
     const { getByTestId } = render(

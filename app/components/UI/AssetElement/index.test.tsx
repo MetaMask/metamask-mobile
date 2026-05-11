@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import AssetElement from './';
-import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { getAssetTestId } from '../../../../tests/selectors/Wallet/WalletView.selectors';
 import {
   BALANCE_TEST_ID,
   SECONDARY_BALANCE_BUTTON_TEST_ID,
