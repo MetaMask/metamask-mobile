@@ -2,7 +2,6 @@ import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
-import { keyringSnapPermissionsBuilder } from '../../SnapKeyring/keyringSnapsPermissions';
 import { ControllerGetStateAction } from '@metamask/base-controller';
 import { Messenger } from '@metamask/messenger';
 import {
@@ -93,16 +92,6 @@ export const getSnapPermissionSpecifications = (
       ),
       isOnPhishingList: (origin: string) =>
         messenger.call('PhishingController:testOrigin', origin).result,
-      showInAppNotification: (origin: string, args: unknown) => {
-        Logger.log(
-          'Snaps/ showInAppNotification called with args: ',
-          args,
-          ' and origin: ',
-          origin,
-        );
-
-        return null;
-      },
       getClientCryptography: () => ({
         pbkdf2Sha512: pbkdf2,
         hmacSha512: async (key: Uint8Array, data: Uint8Array) =>
@@ -140,8 +129,6 @@ export const getSnapPermissionSpecifications = (
       },
       ///: END:ONLY_INCLUDE_IF
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      getAllowedKeyringMethods: (origin: string) =>
-        keyringSnapPermissionsBuilder(origin),
       getSnapKeyring: async () => {
         // TODO: Replace `getKeyringsByType` with `withKeyring`
         let [snapKeyring] = messenger.call(
