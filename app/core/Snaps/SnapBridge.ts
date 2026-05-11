@@ -19,6 +19,7 @@ import {
   SnapEndowments,
 } from '@metamask/snaps-rpc-methods';
 import {
+  PermissionMiddlewareActions,
   RequestedPermissions,
   SubjectType,
   createPermissionMiddleware,
@@ -27,6 +28,7 @@ import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
 import { SnapId } from '@metamask/snaps-sdk';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { Messenger } from '@metamask/messenger';
 
 import Engine from '../Engine/Engine';
 import { setupMultiplex } from '../../util/streams';
@@ -166,7 +168,10 @@ export default class SnapBridge {
     engine.push(
       createPermissionMiddleware({
         origin: this.#snapId,
-        messenger: controllerMessenger,
+        messenger: controllerMessenger as unknown as Messenger<
+          string,
+          PermissionMiddlewareActions
+        >,
       }),
     );
 
@@ -273,16 +278,21 @@ export default class SnapBridge {
           PermissionController,
           origin,
         ),
+        // @ts-expect-error Type mismatch due to binding.
         getNonEvmSupportedMethods: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
           'MultichainRoutingService:getSupportedMethods',
         ),
+        // @ts-expect-error Type mismatch due to binding.
         isNonEvmScopeSupported: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
           'MultichainRoutingService:isSupportedScope',
         ),
         handleNonEvmRequestForOrigin: (
-          params: Parameters<MultichainRoutingService['handleRequest']>[0],
+          params: Omit<
+            Parameters<MultichainRoutingService['handleRequest']>[0],
+            'origin'
+          >,
         ) =>
           Engine.controllerMessenger.call(
             'MultichainRoutingService:handleRequest',
@@ -291,12 +301,13 @@ export default class SnapBridge {
               origin: this.#snapId,
             },
           ),
+        // @ts-expect-error Type mismatch due to binding.
         getNonEvmAccountAddresses: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
           'MultichainRoutingService:getSupportedAccounts',
         ),
         sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
-        trackSessionCreatedEvent: undefined,
+        trackSessionCreatedEvent: () => undefined,
       }),
     );
 

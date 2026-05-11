@@ -39,10 +39,6 @@ import {
   multichainMethodCallValidatorMiddleware,
   MultichainSubscriptionManager,
   MultichainMiddlewareManager,
-  walletCreateSession,
-  walletGetSession,
-  walletInvokeMethod,
-  walletRevokeSession,
   MultichainApiNotifications,
 } from '@metamask/multichain-api-middleware';
 
