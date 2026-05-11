@@ -412,7 +412,7 @@ jobs:
             security delete-keychain "$KEYCHAIN_PATH" || true
           fi
 
-      # Signing: uses role + secret from builds.yml (skipped when builds.yml omits signing, e.g. simulator-only flask-dev / qa-dev)
+      # Signing: uses role + secret from builds.yml (skipped when builds.yml omits signing, e.g. simulator-only flask-dev)
       - name: Configure signing certificates
         if: needs.prepare.outputs.signing_aws_role != ''
         uses: ./.github/actions/configure-signing
