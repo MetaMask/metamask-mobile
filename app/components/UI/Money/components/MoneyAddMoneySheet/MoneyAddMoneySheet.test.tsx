@@ -110,6 +110,34 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the "Add funds" title', () => {
+    const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(getByText('Add funds')).toBeOnTheScreen();
+  });
+
+  it('renders a description under the Convert crypto row', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_DESCRIPTION),
+    ).toBeOnTheScreen();
+    expect(getByText('Using any account')).toBeOnTheScreen();
+  });
+
+  it('renders a description under the Deposit funds row', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_DESCRIPTION),
+    ).toBeOnTheScreen();
+    expect(getByText('Using debit card or bank')).toBeOnTheScreen();
+  });
+
   it('preserves the locale fiat prefix in the Move mUSD row', () => {
     (useMoneyAccountBalance as jest.Mock).mockReturnValue({
       totalFiatFormatted: 'CA$1,500.00',
