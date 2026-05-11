@@ -136,13 +136,36 @@ export function renderHookWithProvider<Result, Props>(
   hook: (props: Props) => Result,
   providerValues?: ProviderValues,
 ) {
-  const { state = {} } = providerValues ?? {};
+  const {
+    state = {},
+    uiMessenger = createMockUIMessenger(),
+    routeMessenger = null,
+  } = providerValues ?? {};
+
   const store = configureStore(state);
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   require('../../store')._updateMockState(state);
-  const Providers = ({ children }: { children: React.ReactElement }) => (
-    <Provider store={store}>{children}</Provider>
-  );
+
+  const Providers = ({ children }: { children: React.ReactElement }) => {
+    let wrappedChildren = children;
+    if (routeMessenger) {
+      wrappedChildren = (
+        <RouteMessengerContext.Provider value={routeMessenger}>
+          <LegacyRouteMessengerProvider>
+            {wrappedChildren}
+          </LegacyRouteMessengerProvider>
+        </RouteMessengerContext.Provider>
+      );
+    }
+
+    return (
+      <Provider store={store}>
+        <UIMessengerProvider value={uiMessenger}>
+          {wrappedChildren}
+        </UIMessengerProvider>
+      </Provider>
+    );
+  };
 
   return {
     ...renderHook(hook, { wrapper: Providers } as RenderHookOptions<Props>),
