@@ -91,9 +91,9 @@ describe('MoneyHowItWorksView', () => {
   });
 
   it('includes "4% APY" in the FAQ questions', () => {
-    const { getByText } = renderWithProvider(<MoneyHowItWorksView />);
+    const { getAllByText } = renderWithProvider(<MoneyHowItWorksView />);
 
-    expect(getByText(/4% APY/)).toBeOnTheScreen();
+    expect(getAllByText(/4% APY/).length).toBeGreaterThan(0);
   });
 
   it('renders all 10 FAQ questions', () => {
