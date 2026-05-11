@@ -93,17 +93,6 @@ export const normalizeCaipChainIdOutboundForWalletConnect = (
   return `${KnownCaipNamespace.Tron}:0x${parseInt(chainRef, 10).toString(16)}`;
 };
 
-export const getCompatibleCaipChainIdsForWalletConnect = (
-  caipChainId: string,
-): string[] =>
-  Array.from(
-    new Set([
-      caipChainId,
-      normalizeCaipChainIdInboundForWalletConnect(caipChainId),
-      normalizeCaipChainIdOutboundForWalletConnect(caipChainId),
-    ]),
-  );
-
 /**
  * Translate a WalletConnect request into the parameter shape the
  * Snap behind this scope expects. Falls through unchanged when no

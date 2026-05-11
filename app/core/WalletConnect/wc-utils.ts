@@ -22,7 +22,6 @@ import { WalletKitTypes } from '@reown/walletkit';
 import { APPROVED_METHODS_BY_NAMESPACE } from './wc-config';
 import {
   buildAdapterScopedPermissionsNamespaces,
-  getCompatibleCaipChainIdsForWalletConnect,
   normalizeCaipChainIdInboundForWalletConnect as normalizeCaipChainIdInboundFromMultichain,
   normalizeCaipChainIdOutboundForWalletConnect as normalizeCaipChainIdOutboundFromMultichain,
 } from './multichain';
@@ -264,10 +263,6 @@ export function normalizeCaipChainIdOutboundForWalletConnect(
 ): string {
   return normalizeCaipChainIdOutboundFromMultichain(caipChainId);
 }
-
-export const getCompatibleTronCaipChainIdsForWalletConnect = (
-  caipChainId: string,
-): string[] => getCompatibleCaipChainIdsForWalletConnect(caipChainId);
 
 export const getScopedPermissions = async ({
   channelId,

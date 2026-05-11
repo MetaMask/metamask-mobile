@@ -52,7 +52,6 @@ import {
 import {
   buildAdapterNamespaces,
   callMultichainRoutingService,
-  getCompatibleCaipChainIdsForWalletConnect,
   mapRequestForSnap,
   normalizeSnapResponse,
   proposalReferencedAdapterNamespaces,
@@ -810,17 +809,14 @@ class WalletConnect2Session {
     const permittedChains = Array.from(
       new Set([...permittedChainsFromChannel, ...permittedChainsFromSession]),
     );
-    const compatibleRequestChainIds =
-      getCompatibleCaipChainIdsForWalletConnect(requestChainId);
-    const isPermittedByPermissionController = compatibleRequestChainIds.some(
-      (chainId) => permittedChains.includes(chainId as CaipChainId),
-    );
+
+    const isPermittedByPermissionController =
+      permittedChains.includes(requestChainId);
     const activeSessionChains = Object.values(
       this.session.namespaces ?? {},
     ).flatMap((namespaceSlice) => namespaceSlice?.chains ?? []);
-    const isPermittedByActiveSession = compatibleRequestChainIds.some(
-      (chainId) => activeSessionChains.includes(chainId),
-    );
+    const isPermittedByActiveSession =
+      activeSessionChains.includes(requestChainId);
     const isPermittedRequestChain =
       isPermittedByPermissionController || isPermittedByActiveSession;
 

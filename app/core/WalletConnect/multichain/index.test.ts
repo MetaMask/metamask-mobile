@@ -1,6 +1,5 @@
 import {
   getRedirectMethodsForChain,
-  getCompatibleCaipChainIdsForWalletConnect,
   mapRequestForSnap,
   normalizeCaipChainIdInboundForWalletConnect,
   normalizeCaipChainIdOutboundForWalletConnect,
@@ -165,11 +164,5 @@ describe('CAIP chain id normalization helpers', () => {
     expect(normalizeCaipChainIdOutboundForWalletConnect('tron:mainnet')).toBe(
       'tron:mainnet',
     );
-  });
-
-  it('returns compatible inbound and outbound variants for tron chain ids', () => {
-    expect(
-      getCompatibleCaipChainIdsForWalletConnect('tron:0x2b6653dc'),
-    ).toEqual(expect.arrayContaining(['tron:0x2b6653dc', 'tron:728126428']));
   });
 });
