@@ -6,8 +6,14 @@ import { useNavigation } from '@react-navigation/native';
 import { BigNumber } from 'bignumber.js';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
   ButtonIcon,
   ButtonIconSize,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   IconName,
   Text,
@@ -74,6 +80,37 @@ const MoneyPotentialEarningsView = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const handleInfoPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
+    });
+  }, [navigation]);
+
+  const handleConvertPress = useCallback(async () => {
+    // The conversion flow picks the actual source by inspecting balances; the
+    // first eligible token (sorted by useMusdConversionTokens) seeds the
+    // confirmation screen so it can resolve a default if the user does not
+    // change it.
+    const defaultToken = eligibleTokens[0];
+    if (!defaultToken) {
+      return;
+    }
+    try {
+      await initiateCustomConversion({
+        preferredPaymentToken: {
+          address: defaultToken.address as Hex,
+          chainId: defaultToken.chainId as Hex,
+        },
+        navigationStack: Routes.MONEY.ROOT,
+      });
+    } catch (error) {
+      Logger.error(error as Error, {
+        message:
+          '[MoneyPotentialEarningsView] Failed to initiate conversion from CTA',
+      });
+    }
+  }, [eligibleTokens, initiateCustomConversion]);
+
   const handleTokenPress = useCallback(
     (token: AssetType) => async () => {
       try {
@@ -98,11 +135,23 @@ const MoneyPotentialEarningsView = () => {
       style={[styles.safeArea, { paddingTop: insets.top }]}
       testID={MoneyPotentialEarningsViewTestIds.CONTAINER}
     >
-      <Box twClassName="flex-row items-center px-4 py-2">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="px-4 py-2"
+      >
         <ButtonIcon
           iconName={IconName.ArrowLeft}
           size={ButtonIconSize.Md}
           onPress={handleBackPress}
+        />
+        <ButtonIcon
+          iconName={IconName.Info}
+          size={ButtonIconSize.Md}
+          onPress={handleInfoPress}
+          accessibilityLabel={strings('money.earn_crypto_info_sheet.title')}
+          testID={MoneyPotentialEarningsViewTestIds.INFO_BUTTON}
         />
       </Box>
       <ScrollView
@@ -139,6 +188,18 @@ const MoneyPotentialEarningsView = () => {
           />
         ))}
       </ScrollView>
+      <Box twClassName="px-4 py-3">
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={handleConvertPress}
+          isDisabled={eligibleTokens.length === 0}
+          testID={MoneyPotentialEarningsViewTestIds.CTA_BUTTON}
+        >
+          {strings('money.potential_earnings.convert_cta')}
+        </Button>
+      </Box>
     </Box>
   );
 };

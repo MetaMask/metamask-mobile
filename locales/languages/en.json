@@ -6593,6 +6593,7 @@
       "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
       "convert": "Convert",
+      "convert_cta": "Convert",
       "no_fee": "No MetaMask fee",
       "view_all": "View all",
       "view_potential_earnings": "View potential earnings"

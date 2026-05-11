@@ -1,11 +1,16 @@
 import React from 'react';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyPotentialEarningsView from './MoneyPotentialEarningsView';
 import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+const mockInitiateCustomConversion = jest.fn();
+let mockTokens: unknown[] = [];
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -13,6 +18,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       goBack: mockGoBack,
+      navigate: mockNavigate,
     }),
   };
 });
@@ -75,7 +81,7 @@ const mockConversionTokens = [
 ];
 
 jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: () => ({ tokens: mockConversionTokens }),
+  useMusdConversionTokens: () => ({ tokens: mockTokens }),
   STABLECOIN_SYMBOLS: new Set(['USDC', 'USDT', 'DAI']),
   tokenFiatValue: (token: { fiat?: { balance?: number } }) =>
     token?.fiat?.balance ?? 0,
@@ -88,7 +94,7 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
 
 jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
   useMusdConversion: () => ({
-    initiateCustomConversion: jest.fn(),
+    initiateCustomConversion: mockInitiateCustomConversion,
   }),
 }));
 
@@ -123,6 +129,8 @@ const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 describe('MoneyPotentialEarningsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTokens = mockConversionTokens;
+    mockInitiateCustomConversion.mockResolvedValue(undefined);
     mockUseMoneyAccountBalance.mockReturnValue({
       apyPercent: 4,
       apyDecimal: 0.04,
@@ -201,5 +209,59 @@ describe('MoneyPotentialEarningsView', () => {
     expect(
       getByTestId(MoneyPotentialEarningsViewTestIds.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the top-right info button', () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    expect(
+      getByTestId(MoneyPotentialEarningsViewTestIds.INFO_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the earn-crypto info sheet when the info button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.INFO_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MONEY.MODALS.ROOT,
+      expect.objectContaining({
+        screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
+      }),
+    );
+  });
+
+  it('renders the bottom Convert CTA with the correct label', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyPotentialEarningsView />,
+    );
+
+    expect(
+      getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.potential_earnings.convert_cta')),
+    ).toBeOnTheScreen();
+  });
+
+  it('triggers conversion when the bottom Convert CTA is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
+
+    await waitFor(() =>
+      expect(mockInitiateCustomConversion).toHaveBeenCalled(),
+    );
+  });
+
+  it('disables the Convert CTA when there are no eligible tokens', () => {
+    mockTokens = [];
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    expect(
+      getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
   });
 });
