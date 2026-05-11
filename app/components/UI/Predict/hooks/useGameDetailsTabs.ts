@@ -57,6 +57,7 @@ export function useGameDetailsTabs({
   }, []);
 
   const showTabBar = hasPositions;
+  const resolvedActiveTab = activeTab >= tabs.length ? 0 : activeTab;
 
   useEffect(() => {
     if (activeTab >= tabs.length) {
@@ -86,7 +87,7 @@ export function useGameDetailsTabs({
   }, []);
 
   const isOutcomesVisible =
-    enabled && (!showTabBar || tabs[activeTab]?.key === 'outcomes');
+    enabled && (!showTabBar || tabs[resolvedActiveTab]?.key === 'outcomes');
 
   const showChips = isOutcomesVisible && chips.length > 0;
 
@@ -94,7 +95,7 @@ export function useGameDetailsTabs({
     enabled,
     showTabBar,
     tabs,
-    activeTab,
+    activeTab: resolvedActiveTab,
     handleTabPress,
     chips,
     groupMap,

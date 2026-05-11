@@ -167,6 +167,32 @@ describe('useGameDetailsTabs', () => {
       rerender({ ...defaultParams, activePositions: [] });
       expect(result.current.activeTab).toBe(0);
     });
+
+    it('does not expose an out-of-bounds activeTab while tabs shrink', () => {
+      const { result, rerender } = renderHook(
+        (props) => useGameDetailsTabs(props),
+        {
+          initialProps: {
+            ...defaultParams,
+            activePositions: [createMockPosition()],
+          },
+        },
+      );
+
+      act(() => {
+        result.current.handleTabPress(1);
+      });
+      expect(result.current.activeTab).toBe(1);
+
+      mockUseSelector.mockReturnValue([]);
+      rerender({
+        ...defaultParams,
+        activePositions: [createMockPosition()],
+      });
+
+      expect(result.current.tabs).toHaveLength(1);
+      expect(result.current.activeTab).toBe(0);
+    });
   });
 
   describe('handleTabPress', () => {

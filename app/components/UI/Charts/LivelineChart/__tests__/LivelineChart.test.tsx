@@ -205,6 +205,32 @@ describe('LivelineChart', () => {
       expect(onHover).toHaveBeenCalledWith(null);
     });
 
+    it('keeps onMessage stable while using the latest callback props', () => {
+      const firstOnHover = jest.fn();
+      const secondOnHover = jest.fn();
+      const { getByTestId, rerender } = render(
+        <LivelineChart data={MOCK_DATA} value={43.1} onHover={firstOnHover} />,
+      );
+      const webView = getByTestId('liveline-chart-webview');
+      const initialOnMessage = webView.props.onMessage;
+
+      rerender(
+        <LivelineChart data={MOCK_DATA} value={43.1} onHover={secondOnHover} />,
+      );
+
+      expect(getByTestId('liveline-chart-webview').props.onMessage).toBe(
+        initialOnMessage,
+      );
+
+      fireMessage(getByTestId('liveline-chart-webview'), {
+        type: 'HOVER',
+        payload: null,
+      });
+
+      expect(firstOnHover).not.toHaveBeenCalled();
+      expect(secondOnHover).toHaveBeenCalledWith(null);
+    });
+
     it('calls onWindowChange when WINDOW_CHANGE message arrives', () => {
       const onWindowChange = jest.fn();
       const { getByTestId } = render(

@@ -52,6 +52,23 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
     const isChartReadyRef = useRef(false);
     const pendingRef = useRef<RNToWebViewMessage[]>([]);
     const hasFlushedRef = useRef(false);
+    const callbacksRef = useRef({
+      onChartReady,
+      onError,
+      onHover,
+      onWindowChange,
+      onModeChange,
+      onSeriesToggle,
+    });
+
+    callbacksRef.current = {
+      onChartReady,
+      onError,
+      onHover,
+      onWindowChange,
+      onModeChange,
+      onSeriesToggle,
+    };
 
     const htmlContent = useMemo(
       () =>
@@ -152,23 +169,26 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
             isChartReadyRef.current = true;
             setWebViewError(null);
             flushPendingMessages();
-            onChartReady?.();
+            callbacksRef.current.onChartReady?.();
             break;
           case 'ERROR':
             setWebViewError(message.payload.message);
-            onError?.(message.payload.message);
+            callbacksRef.current.onError?.(message.payload.message);
             break;
           case 'HOVER':
-            onHover?.(message.payload);
+            callbacksRef.current.onHover?.(message.payload);
             break;
           case 'WINDOW_CHANGE':
-            onWindowChange?.(message.payload.secs);
+            callbacksRef.current.onWindowChange?.(message.payload.secs);
             break;
           case 'MODE_CHANGE':
-            onModeChange?.(message.payload.mode);
+            callbacksRef.current.onModeChange?.(message.payload.mode);
             break;
           case 'SERIES_TOGGLE':
-            onSeriesToggle?.(message.payload.id, message.payload.visible);
+            callbacksRef.current.onSeriesToggle?.(
+              message.payload.id,
+              message.payload.visible,
+            );
             break;
           case 'PERF':
             if (__DEV__) {
@@ -179,24 +199,16 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
             break;
         }
       },
-      [
-        onChartReady,
-        onError,
-        onHover,
-        onWindowChange,
-        onModeChange,
-        onSeriesToggle,
-        flushPendingMessages,
-      ],
+      [flushPendingMessages],
     );
 
     const handleWebViewError = useCallback(
       (syntheticEvent: { nativeEvent: { description: string } }) => {
         const { description } = syntheticEvent.nativeEvent;
         setWebViewError(description);
-        onError?.(description);
+        callbacksRef.current.onError?.(description);
       },
-      [onError],
+      [],
     );
 
     if (webViewError) {
