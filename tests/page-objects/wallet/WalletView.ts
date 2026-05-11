@@ -905,17 +905,29 @@ class WalletView {
       overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
     } = {},
   ): Promise<void> {
-    await this.scrollAndTapSection(
-      this.predictionsSectionHeader,
-      'Predictions section',
-      direction,
-      {
-        overshootSwipe: options.overshootSwipe ?? {
-          direction: 'up',
-          percentage: 0.15,
-        },
+    const scrollOptions = {
+      overshootSwipe: options.overshootSwipe ?? {
+        direction: 'up' as const,
+        percentage: 0.15,
       },
-    );
+    };
+
+    try {
+      await this.scrollAndTapSection(
+        this.predictionsSectionHeader,
+        'Predictions section',
+        direction,
+        scrollOptions,
+      );
+    } catch {
+      const fallbackDirection = direction === 'down' ? 'up' : 'down';
+      await this.scrollAndTapSection(
+        this.predictionsSectionHeader,
+        'Predictions section',
+        fallbackDirection,
+        scrollOptions,
+      );
+    }
   }
 
   async scrollAndTapPredictionsPosition(positionName: string): Promise<void> {
