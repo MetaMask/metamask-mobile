@@ -1115,7 +1115,7 @@ export class PolymarketProvider implements PredictProvider {
         } as Record<string, unknown>),
       );
 
-      return [];
+      throw error;
     }
   }
 
