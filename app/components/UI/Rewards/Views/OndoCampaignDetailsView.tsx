@@ -20,7 +20,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  FontWeight,
+  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -28,12 +28,10 @@ import {
   Skeleton,
   Text,
   TextButton,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
@@ -81,7 +79,6 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
 
 const sessionUpcomingRedirectCampaignIds = new Set<string>();
 const sessionWinningViewAutoNavCampaignIds = new Set<string>();
-
 export function resetOndoCampaignDetailsSessionAutoNavigationForTests(): void {
   sessionUpcomingRedirectCampaignIds.clear();
   sessionWinningViewAutoNavCampaignIds.clear();
@@ -299,7 +296,7 @@ const OndoCampaignDetailsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={CAMPAIGN_DETAILS_TEST_IDS.CONTAINER}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={campaign?.name ?? ''}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'campaign-details-back-button' }}

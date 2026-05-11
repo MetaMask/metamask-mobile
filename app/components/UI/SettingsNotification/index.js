@@ -74,16 +74,19 @@ const propTypes = {
   ]),
 };
 
-const defaultProps = {
-  style: {},
-  isWarning: false,
-  isHighlighted: false,
-};
+const DEFAULT_STYLE = {};
 
+/**
+ * @param {object} props
+ * @param {object} [props.style]
+ * @param {boolean} [props.isWarning]
+ * @param {boolean} [props.isNotification]
+ * @param {React.ReactNode} [props.children]
+ */
 const SettingsNotification = ({
-  style,
-  isWarning,
-  isNotification,
+  style = DEFAULT_STYLE,
+  isWarning = false,
+  isNotification = false,
   children,
 }) => {
   const { colors } = useTheme();
@@ -105,6 +108,5 @@ const SettingsNotification = ({
 };
 
 SettingsNotification.propTypes = propTypes;
-SettingsNotification.defaultProps = defaultProps;
 
 export default SettingsNotification;

@@ -11,6 +11,15 @@ import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEvent
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
+const mockTrace = jest.fn();
+const mockEndTrace = jest.fn();
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  trace: (...args: unknown[]) => mockTrace(...args),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
+}));
+
 const mockSetIsChartBeingTouched = jest.fn();
 jest.mock('../PriceChart/PriceChart.context', () => ({
   usePriceChart: () => ({
@@ -832,6 +841,205 @@ describe('PriceAdvanced', () => {
 
       fireEvent(chartContainer, 'touchEnd');
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('performance tracing', () => {
+    beforeEach(() => {
+      mockTrace.mockClear();
+      mockEndTrace.mockClear();
+    });
+
+    it('starts initial visibility trace when component mounts with advanced chart', () => {
+      render(<PriceAdvanced {...baseProps} />);
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.stringContaining('Advanced Chart Initial Visible'),
+          op: expect.stringContaining('token_overview.advanced_chart'),
+        }),
+      );
+    });
+
+    it('ends trace when onSkeletonHidden is called with matching series key', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const advancedChart = getByTestId('mock-advanced-chart');
+
+      mockEndTrace.mockClear();
+
+      act(() => {
+        advancedChart.props.onSkeletonHidden?.();
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.stringContaining('Advanced Chart Initial Visible'),
+        }),
+      );
+    });
+
+    it('ends trace with error data when onError is called', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const advancedChart = getByTestId('mock-advanced-chart');
+
+      mockEndTrace.mockClear();
+
+      act(() => {
+        advancedChart.props.onError?.('WebView failed to load');
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.stringContaining('Advanced Chart Initial Visible'),
+          data: expect.objectContaining({
+            errorMessage: 'WebView failed to load',
+          }),
+        }),
+      );
+    });
+
+    it('starts time range visibility trace when time range changes', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+      mockTrace.mockClear();
+
+      act(() => {
+        fireEvent.press(getByTestId('select-1W'));
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.stringContaining('Time Range Visible'),
+          op: expect.stringContaining('time_range'),
+        }),
+      );
+    });
+
+    it('supersedes previous trace when series key changes before skeleton hidden', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+      mockEndTrace.mockClear();
+
+      act(() => {
+        fireEvent.press(getByTestId('select-1W'));
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            superseded: true,
+          }),
+        }),
+      );
+    });
+
+    it('ends trace with fallbackToLegacy when switching to legacy chart', () => {
+      const { rerender } = render(<PriceAdvanced {...baseProps} />);
+
+      mockEndTrace.mockClear();
+
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: true,
+      });
+
+      rerender(<PriceAdvanced {...baseProps} />);
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            fallbackToLegacy: true,
+          }),
+        }),
+      );
+    });
+
+    it('includes assetId in trace data when available', () => {
+      mockTrace.mockClear();
+
+      render(<PriceAdvanced {...baseProps} />);
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            assetId: expect.any(String),
+          }),
+        }),
+      );
+    });
+
+    it('does not start trace when falling back to legacy chart immediately', () => {
+      mockTrace.mockClear();
+
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: true,
+      });
+
+      render(<PriceAdvanced {...baseProps} />);
+
+      expect(mockTrace).not.toHaveBeenCalled();
+    });
+
+    it('ends trace with unmounted flag when component unmounts with open trace', () => {
+      const { unmount } = render(<PriceAdvanced {...baseProps} />);
+
+      mockEndTrace.mockClear();
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.stringContaining('Advanced Chart Initial Visible'),
+          data: expect.objectContaining({
+            unmounted: true,
+          }),
+        }),
+      );
+    });
+
+    it('does not end trace on unmount when trace was already completed', () => {
+      const { getByTestId, unmount } = render(<PriceAdvanced {...baseProps} />);
+      const advancedChart = getByTestId('mock-advanced-chart');
+
+      act(() => {
+        advancedChart.props.onSkeletonHidden?.();
+      });
+
+      mockEndTrace.mockClear();
+
+      unmount();
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('truncates error message to 200 characters', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const advancedChart = getByTestId('mock-advanced-chart');
+
+      mockEndTrace.mockClear();
+
+      const longError = 'A'.repeat(300);
+
+      act(() => {
+        advancedChart.props.onError?.(longError);
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            errorMessage: 'A'.repeat(200),
+          }),
+        }),
+      );
     });
   });
 });

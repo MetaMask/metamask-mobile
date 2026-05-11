@@ -9,7 +9,10 @@ import {
   NativeEventSubscription,
 } from 'react-native';
 ///: END:ONLY_INCLUDE_IF
-import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
+import {
+  CodefiTokenPricesServiceV2,
+  TokenListService,
+} from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
 import {
   KeyringController,
@@ -111,6 +114,14 @@ import {
   getRootExtendedMessenger,
 } from './types';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
+import {
+  getAccountTrackerControllerAccountsByChainId,
+  getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
+  getTokenBalancesControllerTokenBalances,
+  getTokenRatesControllerMarketData,
+  getTokensControllerAllTokens,
+} from '../../selectors/assets/assets-migration';
 import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
 import { initMessengerClients } from './utils';
@@ -188,6 +199,8 @@ import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
+import { chompApiServiceInit } from './controllers/chomp-api-service-init';
+import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -265,6 +278,12 @@ export class Engine {
   >;
 
   /**
+   * Shared token list service. Stored so destroyEngineInstance can call
+   * destroy() to abort in-flight requests and clear the TanStack Query cache.
+   */
+  private tokenListService: TokenListService;
+
+  /**
    * Creates a CoreController instance
    */
   constructor(
@@ -278,6 +297,8 @@ export class Engine {
     this.controllerMessenger = getRootExtendedMessenger();
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
+    const tokenListService = new TokenListService();
+    this.tokenListService = tokenListService;
 
     const initRequest = {
       getState: () => store.getState(),
@@ -289,6 +310,7 @@ export class Engine {
       initialKeyringState: keyringState,
       qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
+      tokenListService,
     };
     const { messengerClientsByName } = initMessengerClients({
       initFunctions: {
@@ -393,6 +415,8 @@ export class Engine {
         CardController: cardControllerInit,
         ComplianceService: complianceServiceInit,
         ComplianceController: complianceControllerInit,
+        ChompApiService: chompApiServiceInit,
+        MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -627,6 +651,9 @@ export class Engine {
       ClientController: clientController,
       ComplianceService: complianceService,
       ComplianceController: complianceController,
+      ChompApiService: messengerClientsByName.ChompApiService,
+      MoneyAccountUpgradeController:
+        messengerClientsByName.MoneyAccountUpgradeController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -839,15 +866,7 @@ export class Engine {
     totalNativeTokenBalance: string;
     ticker: string;
   } => {
-    const {
-      CurrencyRateController,
-      AccountsController,
-      AccountTrackerController,
-      TokenBalancesController,
-      TokenRatesController,
-      TokensController,
-      NetworkController,
-    } = this.context;
+    const { AccountsController, NetworkController } = this.context;
 
     const selectedInternalAccount =
       account ??
@@ -869,11 +888,14 @@ export class Engine {
     const selectedInternalAccountFormattedAddress = toFormattedAddress(
       selectedInternalAccount.address,
     );
-    const { currentCurrency } = CurrencyRateController.state;
-    const { settings: { showFiatOnTestnets } = {} } = store.getState();
+    const state = store.getState();
+    const currentCurrency = getCurrencyRateControllerCurrentCurrency(state);
+    const { settings: { showFiatOnTestnets } = {} } = state;
 
-    const { accountsByChainId } = AccountTrackerController.state;
-    const { marketData } = TokenRatesController.state;
+    const accountsByChainId =
+      getAccountTrackerControllerAccountsByChainId(state);
+    const marketData = getTokenRatesControllerMarketData(state);
+    const currencyRates = getCurrencyRateControllerCurrencyRates(state);
 
     let totalEthFiat = 0;
     let totalEthFiat1dAgo = 0;
@@ -909,9 +931,7 @@ export class Engine {
         return;
       }
 
-      const conversionRate =
-        CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ??
-        0;
+      const conversionRate = currencyRates?.[ticker]?.conversionRate ?? 0;
 
       if (conversionRate === 0) {
         return;
@@ -975,14 +995,13 @@ export class Engine {
       }
 
       const tokens =
-        TokensController.state.allTokens?.[chainIdHex]?.[
+        getTokensControllerAllTokens(state)?.[chainIdHex]?.[
           selectedInternalAccount.address
         ] || [];
       const tokenExchangeRates = marketData?.[chainIdHex];
 
       if (tokens.length > 0) {
-        const { tokenBalances: allTokenBalances } =
-          TokenBalancesController.state;
+        const allTokenBalances = getTokenBalancesControllerTokenBalances(state);
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
             chainId
@@ -1163,6 +1182,7 @@ export class Engine {
       SnapController,
       ///: END:ONLY_INCLUDE_IF
       LoggingController,
+      MoneyAccountController,
     } = this.context;
 
     // Remove all permissions.
@@ -1193,6 +1213,9 @@ export class Engine {
     }));
 
     LoggingController.clear();
+
+    // Accounts:
+    MoneyAccountController.clearState();
   };
 
   removeAllListeners() {
@@ -1214,6 +1237,7 @@ export class Engine {
         controller.destroy();
       }
     });
+    this.tokenListService.destroy();
     this.removeAllListeners();
     await this.resetState();
 
@@ -1422,6 +1446,7 @@ export default {
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController,
       MoneyAccountController,
+      MoneyAccountUpgradeController,
     } = instance.context;
 
     return {
@@ -1497,6 +1522,7 @@ export default {
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
+      MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
     };
   },
 

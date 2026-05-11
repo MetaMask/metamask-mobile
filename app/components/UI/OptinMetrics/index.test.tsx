@@ -785,10 +785,10 @@ describe('OptinMetrics', () => {
   describe('Component Lifecycle Tests', () => {
     it('should handle component unmount', () => {
       const { BackHandler } = jest.requireMock('react-native');
-      const mockRemoveEventListener = jest.spyOn(
-        BackHandler,
-        'removeEventListener',
-      );
+      const mockRemove = jest.fn();
+      const addSpy = jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockReturnValue({ remove: mockRemove });
 
       const { unmount } = renderScreen(
         OptinMetrics,
@@ -798,10 +798,13 @@ describe('OptinMetrics', () => {
 
       unmount();
 
-      expect(mockRemoveEventListener).toHaveBeenCalledWith(
+      expect(addSpy).toHaveBeenCalledWith(
         'hardwareBackPress',
         expect.any(Function),
       );
+      expect(mockRemove).toHaveBeenCalled();
+
+      addSpy.mockRestore();
     });
 
     it('should handle scroll end reached', () => {

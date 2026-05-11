@@ -6,6 +6,7 @@ import PerpsTradingCampaignStatsView, {
 } from './PerpsTradingCampaignStatsView';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
+import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
 import {
   CampaignType,
   type PerpsTradingCampaignLeaderboardPositionDto,
@@ -142,6 +143,13 @@ jest.mock('../components/RewardsErrorBanner', () => {
 
 jest.mock('../hooks/useGetPerpsTradingCampaignLeaderboardPosition');
 jest.mock('../hooks/useGetCampaignParticipantStatus');
+jest.mock('../hooks/usePerpsTradingCampaignParticipantOutcome', () => ({
+  usePerpsTradingCampaignParticipantOutcome: jest.fn(() => ({
+    outcome: null,
+    isLoading: false,
+    hasError: false,
+  })),
+}));
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -156,12 +164,15 @@ const mockUseGetParticipant =
   useGetCampaignParticipantStatus as jest.MockedFunction<
     typeof useGetCampaignParticipantStatus
   >;
+const mockUsePerpsTradingCampaignParticipantOutcome =
+  usePerpsTradingCampaignParticipantOutcome as jest.MockedFunction<
+    typeof usePerpsTradingCampaignParticipantOutcome
+  >;
 
 const basePosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 4,
   pnl: 1500.25,
   notionalVolume: 30_000,
-  marginDeployed: 2000,
   qualified: true,
   neighbors: [],
   computedAt: '2025-01-01T00:00:00.000Z',
@@ -196,6 +207,11 @@ describe('PerpsTradingCampaignStatsView', () => {
       isLoading: false,
       hasError: false,
       refetch: jest.fn(),
+    });
+    mockUsePerpsTradingCampaignParticipantOutcome.mockReturnValue({
+      outcome: null,
+      isLoading: false,
+      hasError: false,
     });
     mockUseGetPosition.mockReturnValue({
       position: basePosition,
@@ -271,9 +287,6 @@ describe('PerpsTradingCampaignStatsView', () => {
     expect(
       getByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME),
     ).toBeDefined();
-    expect(
-      getByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARGIN),
-    ).toBeDefined();
   });
 
   it('shows last-computed when position has a timestamp', () => {
@@ -310,6 +323,27 @@ describe('PerpsTradingCampaignStatsView', () => {
     ).toBeNull();
   });
 
+  it('hides volume StatCell when campaign is complete (only PnL remains)', () => {
+    const completeCampaign = {
+      ...mockCampaign,
+      endDate: '2020-01-01T00:00:00Z',
+    };
+    mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) =>
+      selector({
+        rewards: { campaigns: [completeCampaign] },
+      }),
+    );
+    const { getByTestId, queryByTestId } = render(
+      <PerpsTradingCampaignStatsView />,
+    );
+    expect(
+      getByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_PNL),
+    ).toBeDefined();
+    expect(
+      queryByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME),
+    ).toBeNull();
+  });
+
   it('hides qualification cards when campaign is complete and shows last-computed after performance when position exists', () => {
     const completeCampaign = {
       ...mockCampaign,
@@ -343,7 +377,6 @@ describe('PerpsTradingCampaignStatsView', () => {
         ...basePosition,
         qualified: false,
         notionalVolume: 5_000,
-        marginDeployed: 500,
       },
       isLoading: false,
       hasError: false,
