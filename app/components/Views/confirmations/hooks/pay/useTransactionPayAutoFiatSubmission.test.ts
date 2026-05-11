@@ -35,7 +35,7 @@ describe('useTransactionPayAutoFiatSubmission', () => {
   it('does not auto-submit when selectedPaymentMethodId is missing', async () => {
     useTransactionPayFiatPaymentMock.mockReturnValue({
       amountFiat: '50.00',
-      orderCode: 'order-1',
+      orderId: 'order-1',
     } as never);
 
     renderHook(() => useTransactionPayAutoFiatSubmission());
@@ -66,7 +66,7 @@ describe('useTransactionPayAutoFiatSubmission', () => {
     useTransactionPayFiatPaymentMock.mockReturnValue({
       selectedPaymentMethodId: 'pm-123',
       amountFiat: '50.00',
-      orderCode: 'order-abc',
+      orderId: 'order-abc',
     } as never);
 
     renderHook(() => useTransactionPayAutoFiatSubmission());
@@ -78,11 +78,11 @@ describe('useTransactionPayAutoFiatSubmission', () => {
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
   });
 
-  it('does not auto-submit same orderCode twice', async () => {
+  it('does not auto-submit same orderId twice', async () => {
     useTransactionPayFiatPaymentMock.mockReturnValue({
       selectedPaymentMethodId: 'pm-123',
       amountFiat: '50.00',
-      orderCode: 'order-abc',
+      orderId: 'order-abc',
     } as never);
 
     const { rerender } = renderHook(() =>
@@ -104,13 +104,13 @@ describe('useTransactionPayAutoFiatSubmission', () => {
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
   });
 
-  it('removes orderCode from tracking on failure allowing retry', async () => {
+  it('removes orderId from tracking on failure allowing retry when deps change', async () => {
     onConfirmMock.mockRejectedValueOnce(new Error('submission failed'));
 
     useTransactionPayFiatPaymentMock.mockReturnValue({
       selectedPaymentMethodId: 'pm-123',
       amountFiat: '50.00',
-      orderCode: 'order-abc',
+      orderId: 'order-abc',
     } as never);
 
     const { rerender } = renderHook(() =>
@@ -123,21 +123,23 @@ describe('useTransactionPayAutoFiatSubmission', () => {
 
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
 
-    onConfirmMock.mockResolvedValue(undefined);
+    // Simulate a dep change (new onConfirm reference) to re-trigger effect
+    const freshOnConfirm = jest.fn().mockResolvedValue(undefined);
+    useTransactionConfirmMock.mockReturnValue({ onConfirm: freshOnConfirm });
     rerender();
 
     await act(async () => {
       await flushPromises();
     });
 
-    expect(onConfirmMock).toHaveBeenCalledTimes(2);
+    expect(freshOnConfirm).toHaveBeenCalledTimes(1);
   });
 
-  it('auto-submits for a different orderCode', async () => {
+  it('auto-submits for a different orderId', async () => {
     useTransactionPayFiatPaymentMock.mockReturnValue({
       selectedPaymentMethodId: 'pm-123',
       amountFiat: '50.00',
-      orderCode: 'order-1',
+      orderId: 'order-1',
     } as never);
 
     const { rerender } = renderHook(() =>
@@ -153,7 +155,7 @@ describe('useTransactionPayAutoFiatSubmission', () => {
     useTransactionPayFiatPaymentMock.mockReturnValue({
       selectedPaymentMethodId: 'pm-123',
       amountFiat: '50.00',
-      orderCode: 'order-2',
+      orderId: 'order-2',
     } as never);
 
     rerender();

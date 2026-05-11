@@ -34,7 +34,6 @@ export function getTransactionPayControllerMessenger(
       'RampsController:getOrder',
       'RampsController:getQuotes',
       'RampsController:getState',
-      'RampsController:setSelectedToken',
       'RemoteFeatureFlagController:getState',
       'TokenBalancesController:getState',
       'TokenRatesController:getState',

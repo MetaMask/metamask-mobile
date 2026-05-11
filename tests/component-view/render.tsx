@@ -1,10 +1,25 @@
 import React from 'react';
 import { Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import renderWithProvider, {
   renderScreen,
   type ProviderValues,
 } from '../../app/util/test/renderWithProvider';
+
+const testQueryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
+function withQueryClient(Component: React.ComponentType): React.ComponentType {
+  return function WrappedWithQueryClient(props) {
+    return (
+      <QueryClientProvider client={testQueryClient}>
+        <Component {...props} />
+      </QueryClientProvider>
+    );
+  };
+}
 
 export function renderComponentViewScreen(
   Component: React.ComponentType,
@@ -12,7 +27,12 @@ export function renderComponentViewScreen(
   providerValues?: ProviderValues,
   initialParams?: Record<string, unknown>,
 ) {
-  return renderScreen(Component, options, providerValues, initialParams);
+  return renderScreen(
+    withQueryClient(Component),
+    options,
+    providerValues,
+    initialParams,
+  );
 }
 
 /**

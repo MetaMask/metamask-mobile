@@ -31,6 +31,8 @@ import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 import { isHardwareAccount } from '../../../../../util/address';
+import { useHeadlessBuy } from '../../../../UI/Ramp/headless';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -49,6 +51,8 @@ jest.mock('../gas/useIsGaslessSupported');
 jest.mock('../gas/useGaslessSupportedSmartTransactions');
 jest.mock('../../../../UI/Earn/hooks/useMusdConfirmNavigation');
 jest.mock('../../../../../util/address');
+jest.mock('../../../../UI/Ramp/headless');
+jest.mock('../../context/confirmation-context');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -95,6 +99,14 @@ describe('useTransactionConfirm', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    jest.mocked(useHeadlessBuy).mockReturnValue({
+      startHeadlessBuy: jest.fn(),
+    } as unknown as ReturnType<typeof useHeadlessBuy>);
+
+    jest.mocked(useConfirmationContext).mockReturnValue({
+      setIsHeadlessBuyInProgress: jest.fn(),
+    } as unknown as ReturnType<typeof useConfirmationContext>);
 
     isHardwareAccountMock.mockReturnValue(false);
 
@@ -577,11 +589,11 @@ describe('useTransactionConfirm', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('proceeds with normal confirmation when fiat is selected and orderCode exists', async () => {
+    it('proceeds with normal confirmation when fiat is selected and orderId exists', async () => {
       useTransactionPayFiatPaymentMock.mockReturnValue({
         selectedPaymentMethodId: 'pm-123',
         amountFiat: '50.00',
-        orderCode: 'order-abc',
+        orderId: 'order-abc',
       } as never);
 
       const { result } = renderHook();
