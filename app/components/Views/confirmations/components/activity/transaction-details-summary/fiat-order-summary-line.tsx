@@ -14,14 +14,25 @@ export function FiatOrderSummaryLine({
   const { fiatOrderId, fiatProvider } = parentTransaction.metamaskPay ?? {};
   const walletAddress = parentTransaction.txParams.from;
 
-  const { severity, statusText } = useFiatOrderStatus(
-    fiatOrderId,
-    fiatProvider,
-    walletAddress,
-    parentTransaction.status,
-  );
+  const { severity, statusText, cryptoSymbol, paymentMethodName } =
+    useFiatOrderStatus(
+      fiatOrderId,
+      fiatProvider,
+      walletAddress,
+      parentTransaction.status,
+    );
 
-  const title = strings('transaction_details.summary_title.fiat_purchase');
+  const title =
+    cryptoSymbol && paymentMethodName
+      ? strings('transaction_details.summary_title.fiat_purchase', {
+          token: cryptoSymbol,
+          paymentMethod: paymentMethodName,
+        })
+      : strings('transaction_details.summary_title.fiat_purchase', {
+          token: '...',
+          paymentMethod: '...',
+        });
+
   const subtitle = formatSubtitle(parentTransaction.time, statusText);
 
   return (

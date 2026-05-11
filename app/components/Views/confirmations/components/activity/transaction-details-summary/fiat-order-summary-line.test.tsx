@@ -54,6 +54,8 @@ describe('FiatOrderSummaryLine', () => {
     useFiatOrderStatusMock.mockReturnValue({
       severity: 'success',
       statusText: 'Completed',
+      cryptoSymbol: 'POL',
+      paymentMethodName: 'Debit Card',
     });
 
     jest.mocked(selectBridgeHistoryForAccount).mockReturnValue({});
@@ -69,12 +71,23 @@ describe('FiatOrderSummaryLine', () => {
     });
   });
 
-  it('renders fiat purchase title', () => {
+  it('renders title with token and payment method', () => {
     const { getByText } = render();
 
-    expect(
-      getByText(strings('transaction_details.summary_title.fiat_purchase')),
-    ).toBeDefined();
+    expect(getByText('Buy POL with Debit Card')).toBeDefined();
+  });
+
+  it('renders placeholder title before order data loads', () => {
+    useFiatOrderStatusMock.mockReturnValue({
+      severity: 'warning',
+      statusText: 'Pending',
+      cryptoSymbol: undefined,
+      paymentMethodName: undefined,
+    });
+
+    const { getByText } = render();
+
+    expect(getByText('Buy ... with ...')).toBeDefined();
   });
 
   it('passes fiat order metadata to useFiatOrderStatus', () => {
@@ -92,6 +105,8 @@ describe('FiatOrderSummaryLine', () => {
     useFiatOrderStatusMock.mockReturnValue({
       severity: 'error',
       statusText: 'Failed',
+      cryptoSymbol: 'POL',
+      paymentMethodName: 'Debit Card',
     });
 
     const { getByTestId } = render();
@@ -103,6 +118,8 @@ describe('FiatOrderSummaryLine', () => {
     useFiatOrderStatusMock.mockReturnValue({
       severity: 'warning',
       statusText: 'Pending',
+      cryptoSymbol: 'POL',
+      paymentMethodName: 'Debit Card',
     });
 
     const { getByTestId } = render();

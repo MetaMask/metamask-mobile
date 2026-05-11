@@ -5,7 +5,7 @@ import { RampsOrderStatus } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import type { Severity } from '../../components/status-icon';
 
-const POLL_INTERVAL_MS = 1000;
+const POLL_INTERVAL_MS = 5000;
 
 const TERMINAL_STATUSES = new Set([
   RampsOrderStatus.Completed,
@@ -14,14 +14,25 @@ const TERMINAL_STATUSES = new Set([
   RampsOrderStatus.IdExpired,
 ]);
 
+export interface FiatOrderStatusResult {
+  severity: Severity;
+  statusText: string;
+  cryptoSymbol: string | undefined;
+  paymentMethodName: string | undefined;
+}
+
 export function useFiatOrderStatus(
   fiatOrderId: string | undefined,
   fiatProvider: string | undefined,
   walletAddress: string | undefined,
   parentTransactionStatus: TransactionStatus,
-): { severity: Severity; statusText: string } {
+): FiatOrderStatusResult {
   const [orderStatus, setOrderStatus] = useState<
     RampsOrderStatus | undefined
+  >();
+  const [cryptoSymbol, setCryptoSymbol] = useState<string | undefined>();
+  const [paymentMethodName, setPaymentMethodName] = useState<
+    string | undefined
   >();
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
 
@@ -38,6 +49,8 @@ export function useFiatOrderStatus(
       )
         .then((order) => {
           setOrderStatus(order.status);
+          setCryptoSymbol(order.cryptoCurrency?.symbol);
+          setPaymentMethodName(order.paymentMethod?.name);
 
           if (TERMINAL_STATUSES.has(order.status)) {
             clearInterval(intervalRef.current);
@@ -60,6 +73,8 @@ export function useFiatOrderStatus(
   return {
     severity: getSeverityFromOrderStatus(resolvedStatus),
     statusText: getStatusText(resolvedStatus),
+    cryptoSymbol,
+    paymentMethodName,
   };
 }
 

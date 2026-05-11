@@ -84,6 +84,8 @@ describe('useFiatOrderStatus', () => {
 
     expect(result.current.severity).toBe('success');
     expect(result.current.statusText).toBe('Completed');
+    expect(result.current.cryptoSymbol).toBeUndefined();
+    expect(result.current.paymentMethodName).toBeUndefined();
   });
 
   it('derives error from failed parent transaction before API responds', () => {
@@ -105,6 +107,8 @@ describe('useFiatOrderStatus', () => {
   it('returns success severity when order status is Completed', async () => {
     getOrderMock.mockResolvedValue({
       status: RampsOrderStatus.Completed,
+      cryptoCurrency: { symbol: 'POL' },
+      paymentMethod: { name: 'Debit Card' },
     } as ReturnType<typeof getOrderMock> extends Promise<infer T> ? T : never);
 
     const { result } = renderHook(() =>
@@ -120,6 +124,8 @@ describe('useFiatOrderStatus', () => {
 
     expect(result.current.severity).toBe('success');
     expect(result.current.statusText).toBe('Completed');
+    expect(result.current.cryptoSymbol).toBe('POL');
+    expect(result.current.paymentMethodName).toBe('Debit Card');
     expect(getOrderMock).toHaveBeenCalledWith('transak', 'order-id', '0x123');
   });
 
