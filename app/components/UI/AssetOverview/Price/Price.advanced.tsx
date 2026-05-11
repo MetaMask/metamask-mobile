@@ -245,6 +245,7 @@ const PriceAdvanced = ({
     assetId,
     interval: wsInterval,
     currency: currentCurrency,
+    timePeriod: timeRange.toLowerCase(),
     enabled: wsEnabled,
   });
 
