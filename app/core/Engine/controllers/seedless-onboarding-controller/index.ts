@@ -25,22 +25,23 @@ const encryptor = new Encryptor({
 // TEMP: log POST /api/v2/profile/pair request + response so we can see what
 // the backend returns when local thinks NotPaired but server already paired.
 const pairingDebugFetch: typeof fetch = async (input, init) => {
+  const method =
+    init?.method ?? (input instanceof Request ? input.method : 'GET');
+  const loggedBody =
+    init?.body ?? (input instanceof Request ? input.body : undefined);
+
   const url =
     typeof input === 'string'
       ? input
       : input instanceof URL
         ? input.toString()
-        : input.url;
+        : input instanceof Request
+          ? input.url
+          : '';
   const isPair = url.includes('/api/v2/profile/pair');
   if (isPair) {
     // eslint-disable-next-line no-console
-    console.log(
-      '[PAIR-DEBUG] →',
-      init?.method ?? 'GET',
-      url,
-      'body:',
-      init?.body,
-    );
+    console.log('[PAIR-DEBUG] →', method, url, 'body:', loggedBody);
   }
   const res = await fetch(input, init);
   if (isPair) {
@@ -167,6 +168,8 @@ export const seedlessOnboardingControllerInit: MessengerClientInitFunction<
     refreshJWTToken: AuthTokenHandler.refreshJWTToken,
     renewRefreshToken: AuthTokenHandler.renewRefreshToken,
     revokeRefreshToken: AuthTokenHandler.revokeRefreshToken,
+    // Types from @metamask/seedless-onboarding-controller omit mobile-only fetch override.
+    // @ts-expect-error -- custom fetch wrapper for profile-pair debug logging
     fetchFunction: pairingDebugFetch,
     profilePairingEndpoint: ProfilePairingEndpoint,
   });

@@ -579,5 +579,133 @@ describe('seedless onboarding controller init', () => {
       expect(fetchSpy).toHaveBeenCalledWith('https://example.com/other', {});
       expect(await out.text()).toBe('ok');
     });
+
+    it('logs request and response when URL string targets profile pairing', async () => {
+      const consoleSpy = jest
+        .spyOn(console, 'log')
+        .mockImplementation(jest.fn());
+      const pairUrl = 'https://auth.unit-test.example/api/v2/profile/pair';
+      const payload = '{"paired":true}';
+      jest
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce(new Response('response-body', { status: 201 }));
+
+      const fetchWrapper = getFetchFunction();
+      const out = await fetchWrapper(pairUrl, {
+        method: 'POST',
+        body: payload,
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[PAIR-DEBUG] →',
+        'POST',
+        pairUrl,
+        'body:',
+        payload,
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[PAIR-DEBUG] ←',
+        201,
+        '',
+        'body:',
+        'response-body',
+      );
+      expect(await out.text()).toBe('response-body');
+      consoleSpy.mockRestore();
+    });
+
+    it('defaults method to GET in pair logs when init is omitted', async () => {
+      const consoleSpy = jest
+        .spyOn(console, 'log')
+        .mockImplementation(jest.fn());
+      const pairUrl = 'https://auth.unit-test.example/api/v2/profile/pair';
+      jest
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce(new Response('{}', { status: 200 }));
+
+      const fetchWrapper = getFetchFunction();
+      await fetchWrapper(pairUrl);
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[PAIR-DEBUG] →',
+        'GET',
+        pairUrl,
+        'body:',
+        undefined,
+      );
+      consoleSpy.mockRestore();
+    });
+
+    it('resolves pairing URL when input is a URL instance', async () => {
+      const consoleSpy = jest
+        .spyOn(console, 'log')
+        .mockImplementation(jest.fn());
+      const pairUrl = 'https://auth.unit-test.example/api/v2/profile/pair?q=1';
+      const urlObj = new URL(pairUrl);
+      const fetchSpy = jest
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce(new Response('ok'));
+
+      const fetchWrapper = getFetchFunction();
+      await fetchWrapper(urlObj);
+
+      expect(fetchSpy).toHaveBeenCalledWith(urlObj, undefined);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[PAIR-DEBUG] →',
+        'GET',
+        urlObj.toString(),
+        'body:',
+        undefined,
+      );
+      consoleSpy.mockRestore();
+    });
+
+    it('resolves pairing URL when input is a Request', async () => {
+      const consoleSpy = jest
+        .spyOn(console, 'log')
+        .mockImplementation(jest.fn());
+      const pairUrl = 'https://auth.unit-test.example/api/v2/profile/pair';
+      const request = new Request(pairUrl, { method: 'PATCH', body: 'x' });
+      const fetchSpy = jest
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce(new Response('done'));
+
+      const fetchWrapper = getFetchFunction();
+      await fetchWrapper(request);
+
+      expect(fetchSpy).toHaveBeenCalledWith(request, undefined);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[PAIR-DEBUG] →',
+        'PATCH',
+        pairUrl,
+        'body:',
+        'x',
+      );
+      consoleSpy.mockRestore();
+    });
+
+    it('logs <unreadable> when pair response clone body fails to read', async () => {
+      const consoleSpy = jest
+        .spyOn(console, 'log')
+        .mockImplementation(jest.fn());
+      const pairUrl = 'https://auth.unit-test.example/api/v2/profile/pair';
+      const res = new Response('hidden', { status: 418, statusText: 'Teapot' });
+      jest.spyOn(res, 'clone').mockReturnValue({
+        text: () => Promise.reject(new Error('stream closed')),
+      } as Response);
+      jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce(res);
+
+      const fetchWrapper = getFetchFunction();
+      await fetchWrapper(pairUrl);
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[PAIR-DEBUG] ←',
+        418,
+        'Teapot',
+        'body:',
+        '<unreadable>',
+      );
+      consoleSpy.mockRestore();
+    });
   });
 });
