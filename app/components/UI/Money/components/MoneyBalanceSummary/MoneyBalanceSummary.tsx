@@ -83,7 +83,7 @@ const MoneyBalanceSummary = ({
               color={TextColor.SuccessDefault}
               testID={MoneyBalanceSummaryTestIds.APY}
             >
-              {strings('money.apy_label', { percentage: apy })}
+              {strings('money.apy_label_with_currency', { percentage: apy })}
             </Text>
           )
         )}

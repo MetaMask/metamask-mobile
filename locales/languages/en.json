@@ -6550,7 +6550,8 @@
   "money": {
     "title": "Money",
     "your_balance": "Your balance",
-    "apy_label": "{{percentage}}% APY • mUSD",
+    "apy_label": "{{percentage}}% APY",
+    "apy_label_with_currency": "{{percentage}}% APY • mUSD",
     "apy_info_label": "APY info",
     "onboarding": {
       "step_progress": "Step {{current}} of {{total}}",
@@ -6632,11 +6633,12 @@
     "add_money_sheet": {
       "title": "Add funds",
       "convert_crypto": "Convert crypto",
-      "convert_crypto_description": "Using any account",
+      "convert_crypto_description": "From any account",
       "deposit_funds": "Deposit funds",
-      "deposit_funds_description": "Using debit card or bank",
-      "move_musd": "Move your {{amount}} mUSD",
-      "move_musd_no_amount": "Move your mUSD",
+      "deposit_funds_description": "From debit card or bank",
+      "move_musd": "Transfer your {{amount}} mUSD",
+      "move_musd_no_amount": "Transfer your mUSD",
+      "move_musd_description": "From your balance",
       "receive_external": "Receive from external wallet",
       "coming_soon": "Coming soon"
     },

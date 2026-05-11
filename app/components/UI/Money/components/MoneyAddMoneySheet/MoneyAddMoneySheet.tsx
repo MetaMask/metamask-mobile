@@ -107,6 +107,8 @@ const MoneyAddMoneySheet: React.FC = () => {
     },
     {
       label: moveMusdLabel,
+      description: strings('money.add_money_sheet.move_musd_description'),
+      descriptionTestID: MoneyAddMoneySheetTestIds.MOVE_MUSD_DESCRIPTION,
       icon: IconName.Add,
       onPress: handleMoveMusd,
       testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
