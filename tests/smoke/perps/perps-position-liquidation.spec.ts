@@ -9,116 +9,151 @@ import {
   mockPerpsGeolocation,
 } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
-import PerpsView from '../../page-objects/Perps/PerpsView';
 import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
-import { createLogger, LogLevel, type TestSuiteParams } from '../../framework';
+import {
+  createLogger,
+  LogLevel,
+  Utilities,
+  type TestSuiteParams,
+} from '../../framework';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
+import CommandQueueServer from '../../framework/fixtures/CommandQueueServer';
 
 const logger = createLogger({
   name: 'PerpsPositionLiquidationSpec',
   level: LogLevel.INFO,
 });
 
-// Skipped until liquidation mock + assertions are verified stable on iOS and Android in CI.
-describe.skip(SmokePerps('Perps Position Liquidation'), () => {
-  it('opens a long position and gets liquidated', async () => {
+const NON_LIQUIDATING_ETH_MARK_PRICE = '2400.00';
+const LIQUIDATING_ETH_MARK_PRICE = '1.00';
+
+const setupPerpsMocks = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+  });
+  await PERPS_ARBITRUM_MOCKS(mockServer);
+  await mockPerpsGeolocation(mockServer, RampsRegions[RampsRegionsEnum.SPAIN]);
+};
+
+const buildPerpsFixture = () =>
+  new FixtureBuilder()
+    .withPerpsProfile('no-positions')
+    .withPerpsFirstTimeUser(false)
+    .withNetworkController({
+      type: 'rpc',
+      chainId: '0xa4b1',
+      rpcUrl: 'https://arb1.arbitrum.io/rpc',
+      nickname: 'Arbitrum One',
+      ticker: 'ETH',
+    })
+    .withTokensForAllPopularNetworks([
+      {
+        address: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
+        symbol: 'USDC',
+        decimals: 6,
+        name: 'USD Coin',
+        type: 'erc20',
+      },
+    ])
+    .withPopularNetworks()
+    .build();
+
+const expectPositionClosedAfterLiquidation = async () => {
+  await Utilities.executeWithRetry(
+    async () => {
+      await PerpsMarketDetailsView.expectClosePositionButtonNotVisible();
+    },
+    {
+      interval: 1000,
+      timeout: 30000,
+      description: 'wait for Close position to disappear after liquidation',
+    },
+  );
+};
+
+const openEthLongPosition = async () => {
+  await WalletView.scrollAndTapPerpsSection();
+  await PerpsHomeView.tapExploreCryptoIfVisible();
+
+  await PerpsMarketListView.selectMarket('ETH');
+  await PerpsMarketDetailsView.tapLongButton();
+  await PerpsOrderView.tapPlaceOrderButton();
+  await PerpsMarketDetailsView.waitForScreenReady();
+  await PerpsMarketDetailsView.expectClosePositionButtonVisible();
+};
+
+const queueEthLiquidationCheckAtPrice = async (
+  commandQueueServer: CommandQueueServer,
+  price: string,
+) => {
+  await PerpsE2EModifiers.updateMarketPriceServer(
+    commandQueueServer,
+    'ETH',
+    price,
+  );
+  await PerpsE2EModifiers.triggerLiquidationServer(commandQueueServer, 'ETH');
+};
+
+const waitForCommandQueueToProcess = async (
+  commandQueueServer: CommandQueueServer,
+) => {
+  commandQueueServer.requestStateExport();
+  await commandQueueServer.getExportedState();
+};
+
+describe(SmokePerps('Perps Position Liquidation'), () => {
+  it('liquidates a long position when mark price falls below liquidation price', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withPerpsProfile('no-positions')
-          .withPerpsFirstTimeUser(false)
-          .withNetworkController({
-            type: 'rpc',
-            chainId: '0xa4b1',
-            rpcUrl: 'https://arb1.arbitrum.io/rpc',
-            nickname: 'Arbitrum One',
-            ticker: 'ETH',
-          })
-          .withTokensForAllPopularNetworks([
-            {
-              address: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
-              symbol: 'USDC',
-              decimals: 6,
-              name: 'USD Coin',
-              type: 'erc20',
-            },
-          ])
-          .withPopularNetworks()
-          .build(),
+        fixture: buildPerpsFixture(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
-          await PERPS_ARBITRUM_MOCKS(mockServer);
-          await mockPerpsGeolocation(
-            mockServer,
-            RampsRegions[RampsRegionsEnum.SPAIN],
-          );
-        },
+        testSpecificMock: setupPerpsMocks,
         useCommandQueueServer: true,
       },
       async ({ commandQueueServer }: TestSuiteParams) => {
         if (!commandQueueServer) {
           throw new Error('Command queue server not found');
         }
-        logger.info('💰 Using E2E mock balance - no wallet import needed');
-        logger.info('🎯 Mock account: $10,000 total, $8,000 available');
+
+        logger.info('Using E2E mock balance - no wallet import needed');
+        logger.info('Opening ETH long position');
+
         await loginToApp();
         await device.disableSynchronization();
 
-        // Navigate to Perps via homepage section (same click path as smoke perps tests)
-        await WalletView.scrollAndTapPerpsSection();
-        await PerpsMarketListView.selectMarket('ETH');
-        await PerpsMarketDetailsView.tapLongButton();
-        await PerpsOrderView.tapPlaceOrderButton();
+        await openEthLongPosition();
 
-        // Wait for market details like perps-position.spec: a price push before the
-        // sheet finishes closing can redraw the chart and leave the scroll view
-        // under the 75% visible / not-obscured threshold on Android.
-        await PerpsMarketDetailsView.waitForScreenReady();
+        logger.info(
+          'Pushing ETH mark price above liquidation price; long should stay open',
+        );
+
+        await queueEthLiquidationCheckAtPrice(
+          commandQueueServer,
+          NON_LIQUIDATING_ETH_MARK_PRICE,
+        );
+        await waitForCommandQueueToProcess(commandQueueServer);
+
+        logger.info(
+          'Verifying ETH long remains open after non-liquidating price change',
+        );
         await PerpsMarketDetailsView.expectClosePositionButtonVisible();
 
-        logger.info('📈 E2E Mock: Order placed successfully');
-        logger.info('💎 E2E Mock: Position created with mock data');
-
-        await PerpsE2EModifiers.updateMarketPriceServer(
-          commandQueueServer,
-          'ETH',
-          '2125.00',
-        );
-        await PerpsE2EModifiers.triggerLiquidationServer(
-          commandQueueServer,
-          'ETH',
-        );
         logger.info(
-          'E2E Mock: First liquidation attempt at 2125 — position expected to stay open until a lower mark',
+          'Pushing ETH mark price below liquidation price to liquidate long',
         );
 
-        await PerpsView.tapBackButtonPositionSheet();
-        await PerpsE2EModifiers.updateMarketPriceServer(
+        await queueEthLiquidationCheckAtPrice(
           commandQueueServer,
-          'ETH',
-          '1200.00',
-        );
-        await PerpsE2EModifiers.triggerLiquidationServer(
-          commandQueueServer,
-          'ETH',
+          LIQUIDATING_ETH_MARK_PRICE,
         );
 
-        logger.info(
-          'E2E Mock: Second liquidation attempt at 1200 — position expected to clear',
-        );
-
-        await PerpsView.expectPositionRowNotVisibleAnyLeverage(
-          'ETH',
-          'long',
-          0,
-        );
+        logger.info('Verifying ETH long is closed after liquidation');
+        await expectPositionClosedAfterLiquidation();
       },
     );
   });
