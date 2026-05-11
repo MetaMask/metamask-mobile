@@ -1,6 +1,6 @@
 import type {
   ControllerGetStateAction,
-  ControllerStateChangedEvent,
+  ControllerStateChangeEvent,
 } from '@metamask/base-controller';
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
@@ -61,7 +61,7 @@ export type CardControllerActions = ControllerGetStateAction<
   CardControllerState
 >;
 
-export type CardControllerEvents = ControllerStateChangedEvent<
+export type CardControllerEvents = ControllerStateChangeEvent<
   typeof CARD_CONTROLLER_NAME,
   CardControllerState
 >;
