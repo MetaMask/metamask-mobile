@@ -109,6 +109,16 @@ jest.mock('../../../../images/rewards/crown.svg', () => {
   };
 });
 
+const mockControllerMessengerCall = jest.fn();
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    controllerMessenger: {
+      call: (...args: unknown[]) => mockControllerMessengerCall(...args),
+    },
+  },
+}));
+
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -1174,6 +1184,156 @@ describe('RewardsDashboard', () => {
 
       // Assert
       expect(mockResumeBulkLink).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('VIP unlock easter-egg (5 taps on title)', () => {
+    const tapTitle = (
+      getByTestId: (id: string) => ReturnType<typeof render>['getByTestId'],
+      times: number,
+    ) => {
+      const node = getByTestId(
+        REWARDS_VIEW_SELECTORS.TITLE,
+      ) as unknown as Parameters<typeof fireEvent.press>[0];
+      for (let i = 0; i < times; i++) {
+        fireEvent.press(node);
+      }
+    };
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      mockControllerMessengerCall.mockReset();
+      mockControllerMessengerCall.mockResolvedValue(null);
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('calls getVIPDashboard once after 5 taps within the 3s window', async () => {
+      // Arrange
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      // Act — 5 quick taps
+      tapTitle(getByTestId as never, 5);
+
+      // Assert
+      await waitFor(() => {
+        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
+      });
+      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+        'RewardsController:getVIPDashboard',
+        defaultSelectorValues.subscriptionId,
+      );
+    });
+
+    it('does not call getVIPDashboard before reaching 5 taps', () => {
+      // Arrange
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      // Act
+      tapTitle(getByTestId as never, 4);
+
+      // Assert
+      expect(mockControllerMessengerCall).not.toHaveBeenCalled();
+    });
+
+    it('does not trigger when the user is already VIP', () => {
+      // Arrange
+      mockSelectIsCurrentSubscriptionVipEnabled.mockReturnValue(true);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectIsCurrentSubscriptionVipEnabled) return true;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        return undefined;
+      });
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      // Act
+      tapTitle(getByTestId as never, 5);
+
+      // Assert
+      expect(mockControllerMessengerCall).not.toHaveBeenCalled();
+    });
+
+    it('does not trigger when there is no subscription', () => {
+      // Arrange
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId) return null;
+        if (selector === selectIsCurrentSubscriptionVipEnabled)
+          return defaultSelectorValues.isVipEnabled;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        return undefined;
+      });
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      // Act
+      tapTitle(getByTestId as never, 5);
+
+      // Assert
+      expect(mockControllerMessengerCall).not.toHaveBeenCalled();
+    });
+
+    it('resets the tap counter after 3 seconds of inactivity', async () => {
+      // Arrange
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      // Act — 4 taps, then wait past the window, then 4 more
+      tapTitle(getByTestId as never, 4);
+      jest.advanceTimersByTime(3001);
+      tapTitle(getByTestId as never, 4);
+
+      // Assert — counter reset means we never reached 5 in a single window
+      expect(mockControllerMessengerCall).not.toHaveBeenCalled();
+    });
+
+    it('only triggers once per dashboard visit', async () => {
+      // Arrange
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      // Act — first 5 taps trigger; another 5 should be ignored
+      tapTitle(getByTestId as never, 5);
+      await waitFor(() => {
+        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
+      });
+      tapTitle(getByTestId as never, 5);
+
+      // Assert
+      expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
+    });
+
+    it('releases the once-per-visit lock when the call rejects so it can be retried', async () => {
+      // Arrange
+      mockControllerMessengerCall.mockRejectedValueOnce(new Error('network'));
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      // Act — first 5 taps fail; another 5 should be allowed
+      tapTitle(getByTestId as never, 5);
+      await waitFor(() => {
+        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
+      });
+      tapTitle(getByTestId as never, 5);
+
+      // Assert
+      await waitFor(() => {
+        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(2);
+      });
     });
   });
 });
