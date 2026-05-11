@@ -7318,6 +7318,78 @@ describe('RewardsController', () => {
         'VIP API failed',
       );
     });
+
+    it('flips the cached subscription vip flag to true when fresh dashboard is non-null', async () => {
+      const apiDashboard = createMockVIPDashboard();
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF',
+              accounts: [],
+              features: { vip: { enabled: false } },
+            },
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiDashboard);
+
+      await controller.getVIPDashboard(mockSubscriptionId);
+
+      expect(
+        controller.state.subscriptions[mockSubscriptionId].features.vip.enabled,
+      ).toBe(true);
+    });
+
+    it('does not modify subscriptions when the subscription is not in state', async () => {
+      const apiDashboard = createMockVIPDashboard();
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiDashboard);
+
+      await controller.getVIPDashboard(mockSubscriptionId);
+
+      expect(
+        controller.state.subscriptions[mockSubscriptionId],
+      ).toBeUndefined();
+    });
+
+    it('leaves the vip flag untouched when the API returns null (not VIP)', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF',
+              accounts: [],
+              features: { vip: { enabled: false } },
+            },
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(null);
+
+      await controller.getVIPDashboard(mockSubscriptionId);
+
+      expect(
+        controller.state.subscriptions[mockSubscriptionId].features.vip.enabled,
+      ).toBe(false);
+    });
   });
 
   describe('postBenefitImpression', () => {
