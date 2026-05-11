@@ -32,6 +32,11 @@ class TokensFullView {
    * Tap the back button to return to the homepage
    */
   async tapBackButton(): Promise<void> {
+    if (device.getPlatform() === 'android') {
+      await device.pressBack();
+      return;
+    }
+
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Tokens Full View back button',
     });
