@@ -56,7 +56,7 @@ export function useGameDetailsTabs({
     setActiveTab(tabIndex);
   }, []);
 
-  const showTabBar = hasPositions;
+  const showTabBar = enabled && hasPositions;
   const resolvedActiveTab = activeTab >= tabs.length ? 0 : activeTab;
 
   useEffect(() => {

@@ -74,7 +74,7 @@ describe('useGameDetailsTabs', () => {
       expect(result.current.enabled).toBe(false);
     });
 
-    it('returns showTabBar true when disabled sports details have positions', () => {
+    it('returns showTabBar false when disabled sports details have positions', () => {
       const { result } = renderHook(() =>
         useGameDetailsTabs({
           ...defaultParams,
@@ -82,7 +82,7 @@ describe('useGameDetailsTabs', () => {
         }),
       );
 
-      expect(result.current.showTabBar).toBe(true);
+      expect(result.current.showTabBar).toBe(false);
       expect(result.current.tabs).toEqual([
         { label: 'predict.tabs.positions', key: 'positions' },
       ]);
