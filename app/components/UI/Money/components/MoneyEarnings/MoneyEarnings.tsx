@@ -46,9 +46,10 @@ const ValueText = ({
   <Text
     variant={TextVariant.BodyMd}
     fontWeight={FontWeight.Medium}
+    color={TextColor.SuccessDefault}
     testID={testID}
   >
-    {children}
+    {`+${children}`}
   </Text>
 );
 

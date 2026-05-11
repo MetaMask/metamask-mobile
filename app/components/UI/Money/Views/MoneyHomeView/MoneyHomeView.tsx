@@ -37,6 +37,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
+import { getScenario } from '../../dev/scenarios';
 import Logger from '../../../../../util/Logger';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
@@ -50,10 +51,6 @@ const getMoneyHomeState = (transactionCount: number): MoneyHomeState => {
   if (transactionCount < 10) return 'milestone';
   return 'filled';
 };
-
-/** Placeholder until Money home actions are implemented */
-// eslint-disable-next-line no-alert
-const displayUnderConstructionAlert = () => alert('Under construction 🚧');
 
 const MoneyHomeView = () => {
   const navigation = useNavigation();
@@ -73,9 +70,17 @@ const MoneyHomeView = () => {
   const { initiateCustomConversion } = useMusdConversion();
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
-  const isCardholder = useSelector(selectIsCardholder);
+  const realIsCardholder = useSelector(selectIsCardholder);
   const geolocation = useSelector(getDetectedGeolocation);
-  const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
+  const realIsUS = geolocation?.toUpperCase().split('-')[0] === 'US';
+
+  // Apply DEV scenario overrides for the two selector-driven flags. Hook
+  // outputs (balance, APY, transactions, tokens) are mocked at the hook
+  // boundary in `dev/scenarios.ts`. Local-only — do NOT keep enabled in
+  // production builds.
+  const _devScenario = getScenario();
+  const isCardholder = _devScenario?.isCardholder ?? realIsCardholder;
+  const isUS = _devScenario?.isUS ?? realIsUS;
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
@@ -111,16 +116,6 @@ const MoneyHomeView = () => {
     if (!Number.isFinite(earnings)) return formattedZero;
     return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
-
-  // When the user has already deposited (non-zero Money balance), surface the
-  // current total balance in the Earn-on-crypto headline instead of the
-  // aggregate projection of unconverted holdings.
-  const potentialEarningsHeadline = useMemo(() => {
-    if (!totalFiatRaw || !totalFiatFormatted) return undefined;
-    const balance = new BigNumber(totalFiatRaw);
-    if (balance.isNaN() || balance.isLessThanOrEqualTo(0)) return undefined;
-    return totalFiatFormatted;
-  }, [totalFiatRaw, totalFiatFormatted]);
 
   const handleMenuPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -183,8 +178,6 @@ const MoneyHomeView = () => {
       source: TokenDetailsSource.MobileTokenListPage,
     });
   }, []);
-
-  const handleHeaderPress = displayUnderConstructionAlert;
 
   const handleTokenConvertPress = useCallback(
     async (token: AssetType) => {
@@ -315,7 +308,11 @@ const MoneyHomeView = () => {
             <MoneyActivityList
               transactions={allTransactions}
               moneyAddress={moneyAddress}
-              onViewAllPress={handleViewAllActivityPress}
+              onViewAllPress={
+                allTransactions.length < 5
+                  ? undefined
+                  : handleViewAllActivityPress
+              }
               onHeaderPress={handleActivityHeaderPress}
               onItemPress={handleActivityItemPress}
             />
@@ -327,7 +324,6 @@ const MoneyHomeView = () => {
             <MoneyPotentialEarnings
               tokens={conversionTokens}
               apy={apyPercent}
-              headlineFiat={potentialEarningsHeadline}
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}
@@ -339,7 +335,7 @@ const MoneyHomeView = () => {
         <MoneyMetaMaskCard
           mode={metamaskCardMode}
           onGetNowPress={handleGetNowPress}
-          onHeaderPress={handleHeaderPress}
+          onHeaderPress={handleGetNowPress}
           onLinkPress={handleLinkCardPress}
           onManagePress={handleManageCardPress}
           apy={apyPercent}

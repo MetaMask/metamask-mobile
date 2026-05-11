@@ -15,6 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import AppConstants from '../../../../../core/AppConstants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import styleSheet from './MoneyMoreSheet.styles';
@@ -46,6 +47,12 @@ const MoneyMoreSheet = () => {
     });
   }, [closeAndNavigate, navigation]);
 
+  const handleWhatYouGet = useCallback(() => {
+    closeAndNavigate(() => {
+      Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+    });
+  }, [closeAndNavigate]);
+
   const handleContactSupport = useCallback(() => {
     closeAndNavigate(() => {
       Linking.openURL(METAMASK_SUPPORT_URL);
@@ -58,6 +65,12 @@ const MoneyMoreSheet = () => {
       icon: IconName.Info,
       onPress: handleHowItWorks,
       testID: MoneyMoreSheetTestIds.HOW_IT_WORKS_OPTION,
+    },
+    {
+      label: strings('money.more_sheet.what_you_get'),
+      icon: IconName.Export,
+      onPress: handleWhatYouGet,
+      testID: MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION,
     },
     {
       label: strings('money.more_sheet.contact_support'),

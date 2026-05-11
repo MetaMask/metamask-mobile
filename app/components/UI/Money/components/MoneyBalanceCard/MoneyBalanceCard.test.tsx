@@ -212,6 +212,14 @@ describe('MoneyBalanceCard', () => {
       );
     });
 
+    it('renders the mUSD currency suffix next to the APY value', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
+        strings('money.apy_currency_suffix').trim(),
+      );
+    });
+
     it('falls back to $0.00 when totalFiatFormatted is undefined but totalFiatRaw is non-zero', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({

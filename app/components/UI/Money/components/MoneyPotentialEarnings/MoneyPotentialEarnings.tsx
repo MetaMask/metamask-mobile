@@ -3,16 +3,14 @@ import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   Button,
-  ButtonIcon,
-  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  Icon,
   IconColor,
   IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -51,16 +49,9 @@ interface MoneyPotentialEarningsProps {
   /**
    * APY expressed as a percentage (e.g. 3 for 3%) used together with
    * {@link PROJECTION_YEARS} to compute the projected earnings displayed
-   * alongside each token and in the headline.
+   * alongside each token and in the description.
    */
   apy: number | undefined;
-  /**
-   * Pre-formatted fiat string to render as the headline (e.g. the user's
-   * current Money balance). When provided, the headline shows this value
-   * instead of the aggregated projected earnings — used to surface the
-   * deposited balance once a user has any mUSD held.
-   */
-  headlineFiat?: string;
   onTokenPress?: (token: AssetType) => void;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
@@ -74,7 +65,6 @@ interface MoneyPotentialEarningsProps {
 const MoneyPotentialEarnings = ({
   tokens,
   apy,
-  headlineFiat,
   onTokenPress,
   onViewAllPress,
   onHeaderPress,
@@ -136,73 +126,56 @@ const MoneyPotentialEarnings = ({
           onPress={onHeaderPress}
         />
 
-        {headlineFiat && (
+        {isPositiveNumber(projectedAmount) &&
+        isPositiveNumber(totalAssetsFiat) ? (
           <Text
-            variant={TextVariant.HeadingMd}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.SuccessDefault}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Regular}
+            color={TextColor.TextAlternative}
             testID={MoneyPotentialEarningsTestIds.TEXT}
           >
-            {headlineFiat}
-          </Text>
-        )}
-
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.End}
-          twClassName="gap-2"
-        >
-          <Box twClassName="flex-1">
-            {!headlineFiat &&
-            isPositiveNumber(projectedAmount) &&
-            isPositiveNumber(totalAssetsFiat) ? (
+            {strings(
+              'money.potential_earnings.description_with_amounts_prefix',
+              {
+                total: moneyFormatFiat(
+                  new BigNumber(totalAssetsFiat),
+                  currentCurrency,
+                ),
+              },
+            )}
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.SuccessDefault}
+            >
+              {`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
+            </Text>
+            {strings(
+              'money.potential_earnings.description_with_amounts_suffix',
+            )}
+            {onInfoPress && (
               <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Regular}
-                color={TextColor.TextAlternative}
-                testID={MoneyPotentialEarningsTestIds.TEXT}
+                onPress={onInfoPress}
+                testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
               >
-                {strings(
-                  'money.potential_earnings.description_with_amounts_prefix',
-                  {
-                    total: moneyFormatFiat(
-                      new BigNumber(totalAssetsFiat),
-                      currentCurrency,
-                    ),
-                  },
-                )}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.SuccessDefault}
-                >
-                  {`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
-                </Text>
-                {strings(
-                  'money.potential_earnings.description_with_amounts_suffix',
-                )}
-              </Text>
-            ) : (
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Regular}
-                color={TextColor.TextAlternative}
-              >
-                {strings('money.potential_earnings.description')}
+                {' '}
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
+                />
               </Text>
             )}
-          </Box>
-          {onInfoPress && (
-            <ButtonIcon
-              iconName={IconName.Info}
-              iconProps={{ color: IconColor.IconAlternative }}
-              size={ButtonIconSize.Sm}
-              onPress={onInfoPress}
-              accessibilityLabel={strings('money.earn_crypto_info_sheet.title')}
-              testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
-            />
-          )}
-        </Box>
+          </Text>
+        ) : (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Regular}
+            color={TextColor.TextAlternative}
+          >
+            {strings('money.potential_earnings.description')}
+          </Text>
+        )}
       </Box>
 
       <>

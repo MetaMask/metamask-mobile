@@ -6,8 +6,8 @@ const styles = StyleSheet.create({
     height: 66,
   },
   linkCardImage: {
-    width: 152,
-    height: 96,
+    width: 111,
+    height: 70,
   },
   manageCardImage: {
     width: 88,

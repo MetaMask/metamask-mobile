@@ -104,7 +104,7 @@ const CheckBullet = ({ text, testID }: { text: string; testID: string }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="gap-1"
+    twClassName="self-start gap-1 rounded bg-muted px-1.5"
     testID={testID}
   >
     <Icon
@@ -167,6 +167,7 @@ const LinkContent = ({
       isFullWidth
       onPress={onLinkPress}
       testID={MoneyMetaMaskCardTestIds.LINK_BUTTON}
+      twClassName="mt-3"
     >
       {strings('money.metamask_card.link_card')}
     </Button>
