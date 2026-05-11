@@ -389,6 +389,8 @@ const MESSENGER_EXPOSED_METHODS = [
   'trackShareAction',
 ] as const;
 
+const ERC20_TRANSFER_FUNCTION_SELECTOR = '0xa9059cbb';
+
 /**
  * PredictController - Protocol-agnostic prediction markets trading controller
  *
@@ -2744,7 +2746,18 @@ export class PredictController extends BaseController<
       }
     | undefined
   > {
-    if (!this.state.withdrawTransaction) {
+    const activeWithdrawTransaction = this.state.withdrawTransaction;
+
+    if (!activeWithdrawTransaction) {
+      return;
+    }
+
+    if (
+      activeWithdrawTransaction.transactionId &&
+      request.transactionMeta.id !== activeWithdrawTransaction.transactionId
+    ) {
+      // MetaMask Pay creates a follow-up transaction after the original withdraw
+      // is signed. Only the active withdraw transaction should be signed here.
       return;
     }
 
@@ -2765,12 +2778,21 @@ export class PredictController extends BaseController<
 
     const signer = this.getSigner(request.transactionMeta.txParams.from);
 
-    const chainId = this.state.withdrawTransaction.chainId;
+    const chainId = activeWithdrawTransaction.chainId;
 
     const networkClientId = this.messenger.call(
       'NetworkController:findNetworkClientIdByChainId',
       numberToHex(chainId),
     );
+    const withdrawDataPrefix = withdrawTransaction.data?.slice(0, 10);
+
+    if (
+      withdrawDataPrefix?.toLowerCase() !== ERC20_TRANSFER_FUNCTION_SELECTOR
+    ) {
+      // signWithdraw expects the original ERC20 transfer calldata. Pay-created
+      // batches may already contain signed Safe calldata and should pass through.
+      return;
+    }
 
     // Invalidate query cache (to avoid nonce issues)
     await this.invalidateQueryCache(chainId);
@@ -2784,7 +2806,7 @@ export class PredictController extends BaseController<
       ...withdrawTransaction,
       from: request.transactionMeta.txParams.from,
       data: callData,
-      to: this.state.withdrawTransaction?.predictAddress as Hex,
+      to: activeWithdrawTransaction.predictAddress as Hex,
     };
 
     // Attempt to estimate gas for the updated transaction
@@ -2824,8 +2846,8 @@ export class PredictController extends BaseController<
     return {
       updateTransaction: (transaction: TransactionMeta) => {
         transaction.txParams.data = callData;
-        transaction.txParams.to = this.state.withdrawTransaction
-          ?.predictAddress as Hex;
+        transaction.txParams.to =
+          activeWithdrawTransaction.predictAddress as Hex;
         transaction.assetsFiatValues = {
           ...transaction.assetsFiatValues,
           receiving: String(amount),
