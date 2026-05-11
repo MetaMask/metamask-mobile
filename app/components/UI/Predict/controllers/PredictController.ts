@@ -2595,6 +2595,11 @@ export class PredictController extends BaseController<
           signer,
         });
 
+      const accountState = await provider.getAccountState({
+        ownerAddress: signer.address,
+      });
+      const isDepositWallet = accountState.walletType === 'deposit-wallet';
+
       this.update((state) => {
         state.withdrawTransaction = {
           chainId: hexToNumber(chainId),
@@ -2616,8 +2621,13 @@ export class PredictController extends BaseController<
         disableHook: true,
         disableSequential: true,
         requireApproval: true,
-        // Temporarily breaking abstraction, can instead be abstracted via provider.
-        gasFeeToken: MATIC_CONTRACTS_V2.collateral as Hex,
+        // Deposit wallet withdraws are gas-sponsored via the Polymarket bridge
+        // relayer (handled by TransactionPayPublishHook → PolymarketBridgeStrategy),
+        // so the TC gas-fee-token system must not gate publish.
+        ...(isDepositWallet
+          ? {}
+          : // Temporarily breaking abstraction, can instead be abstracted via provider.
+            { gasFeeToken: MATIC_CONTRACTS_V2.collateral as Hex }),
         transactions: [transaction],
       });
 
