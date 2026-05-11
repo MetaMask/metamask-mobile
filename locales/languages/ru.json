@@ -8391,15 +8391,6 @@
     "season_1": "Сезон 1",
     "musd": {
       "page_title": "mUSD",
-      "title": "Калькулятор бонусов mUSD",
-      "description": "Посмотрите, сколько вы могли бы заработать, конвертировав ваши стейблкоины в mUSD.",
-      "amount_label": "Сконвертированная сумма",
-      "estimated_bonus": "Расчетный годовой бонус: до 3%",
-      "initial_amount": "Начальная сумма",
-      "daily_bonus": "Ежедневный бонус, доступный для получения",
-      "annualized_bonus": "Годовой бонус",
-      "disclaimer": "Это лишь приблизительная оценка. Размер бонуса может измениться.",
-      "disclaimer_brief": "Бонус является приблизительным и может измениться.",
       "buy_button": "Купить mUSD",
       "swap_button": "Обменять на mUSD"
     },
@@ -8512,7 +8503,6 @@
       "empty": "У вас нет никаких позиций",
       "empty_description": "Начните зарабатывать вознаграждения, открыв позицию в токенизированных активах реального мира.",
       "empty_cta": "Открыть позицию",
-      "position_units": "{{units}} акции(-ий)",
       "positions_title": "Позиции",
       "activity_title": "Деятельность",
       "view_activity": "Смотреть активность",
@@ -8603,8 +8593,6 @@
       "label_pnl": "PnL",
       "label_volume": "Volume",
       "label_notional_volume": "Notional volume",
-      "label_margin": "Margin",
-      "label_margin_deployed": "Margin deployed",
       "pending": "Pending",
       "qualified": "Qualified",
       "open_position_cta": "Open Position",
@@ -8658,29 +8646,18 @@
       "retry_button": "Повтор",
       "refreshing": "Обновление..."
     },
-    "ondo_campaign_winning": {
-      "you_won": "Вы выиграли",
-      "rank_label": "{{place}} место",
-      "email_instructions": "Отправьте письмо со своим кодом на адрес ondocampaign@consensys.net, чтобы получить приз.",
-      "open_mail": "Открыть почту",
-      "skip_for_now": "Пока пропустить",
-      "mail_subject": "Получение приза кампании Ondo",
-      "mail_body": "Мой выигрышный код: {{code}}",
-      "winning_code": "Выигрышный код",
-      "close_a11y": "Закрыть"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "Вы выиграли",
-        "description": "Получите свой приз сегодня.",
-        "a11y": "Открыть детали победителя"
+        "title": "Вы выиграли!",
+        "description": "Подтвердите выигрышный код и получите приз сегодня.",
+        "a11y": "Подробнее"
       },
       "participant_pending": {
         "title": "Кампания завершена.",
         "description": "Мы определяем результаты. Загляните сюда позже."
       },
       "participant_finalized": {
-        "title": "Результаты кампании подведены",
+        "title": "Результаты кампании готовы.",
         "description": "В этот раз вы не выиграли. Проверьте таблицу лидеров, чтобы узнать свое место."
       },
       "winner_finalized": {
@@ -8688,17 +8665,28 @@
         "description": "Ваша награда уже в пути — мы скоро свяжемся с вами."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "Вы выиграли 💰",
-        "description": "Получите свой приз в кампании {{campaignName}}",
+        "description": "Получите приз из {{campaignName}} сегодня.",
         "cta": "Просмотр подробностей"
       },
-      "participant_no_winner": {
-        "title": "Результаты готовы. 🏅",
-        "description": "Посмотрите свой рейтинг в кампании {{campaignName}}",
+      "non_winner": {
+        "title": "Результаты готовы 🏅",
+        "description": "Посмотрите своё место в {{campaignName}}.",
         "cta": "Просмотр"
       }
+    },
+    "campaign_winning": {
+      "you_won": "Вы выиграли",
+      "rank_label": "{{place}} место",
+      "email_instructions": "Отправьте письмо со своим кодом на адрес {{email}}, чтобы получить приз.",
+      "open_mail": "Открыть почту",
+      "skip_for_now": "Пока пропустить",
+      "mail_subject": "{{campaignName}} – получение приза",
+      "mail_body": "Мой выигрышный код: {{code}}",
+      "winning_code": "Выигрышный код",
+      "close_a11y": "Закрыть"
     }
   },
   "time": {

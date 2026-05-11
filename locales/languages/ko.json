@@ -8391,15 +8391,6 @@
     "season_1": "시즌 1",
     "musd": {
       "page_title": "mUSD",
-      "title": "mUSD 보너스 계산기",
-      "description": "스테이블코인을 mUSD로 전환하면 얼마나 적립할 수 있는지 확인해 보세요.",
-      "amount_label": "전환 금액",
-      "estimated_bonus": "예상 연환산 보너스: 최대 3%",
-      "initial_amount": "초기 금액",
-      "daily_bonus": "매일 청구 가능 보너스",
-      "annualized_bonus": "연환산 보너스",
-      "disclaimer": "이는 추정치일 뿐입니다. 보너스는 변경될 수 있습니다.",
-      "disclaimer_brief": "보너스는 예상치이며 변경될 수 있습니다.",
       "buy_button": "mUSD 구매",
       "swap_button": "mUSD로 스왑"
     },
@@ -8512,7 +8503,6 @@
       "empty": "포지션이 없습니다",
       "empty_description": "토큰화된 실물 자산에서 포지션을 개설해 보상 적립을 시작하세요.",
       "empty_cta": "포지션 개설",
-      "position_units": "{{units}}주",
       "positions_title": "포지션",
       "activity_title": "활동",
       "view_activity": "활동 보기",
@@ -8603,8 +8593,6 @@
       "label_pnl": "PnL",
       "label_volume": "Volume",
       "label_notional_volume": "Notional volume",
-      "label_margin": "Margin",
-      "label_margin_deployed": "Margin deployed",
       "pending": "Pending",
       "qualified": "Qualified",
       "open_position_cta": "Open Position",
@@ -8658,29 +8646,18 @@
       "retry_button": "다시 시도",
       "refreshing": "새로 고침 중..."
     },
-    "ondo_campaign_winning": {
-      "you_won": "승리하셨습니다",
-      "rank_label": "{{place}} 장소",
-      "email_instructions": "상품을 받으려면 당첨 코드를 ondocampaign@consensys.net으로 이메일로 보내세요.",
-      "open_mail": "메일 열기",
-      "skip_for_now": "지금은 건너뛰기",
-      "mail_subject": "Ondo 캠페인 상품 청구",
-      "mail_body": "당첨 코드: {{code}}",
-      "winning_code": "당첨 코드",
-      "close_a11y": "닫기"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "승리하셨습니다",
-        "description": "오늘 상품을 청구하세요.",
-        "a11y": "당첨자 세부 정보 열기"
+        "title": "당첨되셨습니다!",
+        "description": "당첨 코드를 확인하고 오늘 상품을 청구하세요.",
+        "a11y": "세부정보 보기"
       },
       "participant_pending": {
         "title": "캠페인이 종료되었습니다.",
         "description": "결과를 확인 중입니다. 곧 다시 확인해 주세요."
       },
       "participant_finalized": {
-        "title": "캠페인 결과가 발표되었습니다",
+        "title": "캠페인 결과가 나왔습니다.",
         "description": "이번에는 당첨되지 않았습니다. 리더보드에서 순위를 확인해 보세요."
       },
       "winner_finalized": {
@@ -8688,17 +8665,28 @@
         "description": "보상이 지급될 예정입니다. 곧 연락드리겠습니다."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "승리하셨습니다 💰",
-        "description": "{{campaignName}} 상품을 청구하세요",
+        "description": "오늘 {{campaignName}}에서 상품을 청구하세요.",
         "cta": "세부 정보 보기"
       },
-      "participant_no_winner": {
-        "title": "결과가 발표되었습니다. 🏅",
-        "description": "{{campaignName}}에서 내 순위 보기",
+      "non_winner": {
+        "title": "결과가 나왔습니다 🏅",
+        "description": "{{campaignName}}에서 내 순위를 확인하세요.",
         "cta": "보기"
       }
+    },
+    "campaign_winning": {
+      "you_won": "승리하셨습니다",
+      "rank_label": "{{place}} 장소",
+      "email_instructions": "상품을 받으려면 당첨 코드를 {{email}}으로 이메일로 보내세요.",
+      "open_mail": "메일 열기",
+      "skip_for_now": "지금은 건너뛰기",
+      "mail_subject": "{{campaignName}} 상품 청구",
+      "mail_body": "당첨 코드: {{code}}",
+      "winning_code": "당첨 코드",
+      "close_a11y": "닫기"
     }
   },
   "time": {

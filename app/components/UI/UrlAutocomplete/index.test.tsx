@@ -143,7 +143,7 @@ jest.mock('../Bridge/hooks/useSwapBridgeNavigation', () => ({
 
 import React from 'react';
 import UrlAutocomplete, { UrlAutocompleteRef } from './';
-import { deleteFavoriteTestId } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/UrlAutocomplete.testIds';
+import { deleteFavoriteTestId } from './UrlAutocomplete.testIds';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,

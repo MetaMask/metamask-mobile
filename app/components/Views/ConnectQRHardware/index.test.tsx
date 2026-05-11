@@ -3,13 +3,9 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import ConnectQRHardware from './index';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
-import { QR_CONTINUE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
+import { ConnectQRHardwareSelectorsIDs } from './ConnectQRHardware.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import {
-  ACCOUNT_SELECTOR_FORGET_BUTTON,
-  ACCOUNT_SELECTOR_NEXT_BUTTON,
-  ACCOUNT_SELECTOR_PREVIOUS_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
+import { AccountSelectorSelectorsIDs } from '../../UI/HardwareWallet/AccountSelector/AccountSelector.testIds';
 import { QrKeyring, QrKeyringBridge } from '@metamask/eth-qr-keyring';
 import type { Hex } from '@metamask/utils';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
@@ -233,7 +229,7 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
 
     expect(button).toBeDefined();
 
@@ -256,14 +252,14 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
     expect(button).toBeDefined();
 
     await act(async () => {
       fireEvent.press(button);
     });
 
-    const nextButton = getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON);
+    const nextButton = getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON);
     expect(nextButton).toBeDefined();
     await act(async () => {
       fireEvent.press(nextButton);
@@ -284,20 +280,20 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
     expect(button).toBeDefined();
 
     await act(async () => {
       fireEvent.press(button);
     });
 
-    const nextButton = getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON);
+    const nextButton = getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON);
     expect(nextButton).toBeDefined();
     await act(async () => {
       fireEvent.press(nextButton);
     });
 
-    const prevButton = getByTestId(ACCOUNT_SELECTOR_PREVIOUS_BUTTON);
+    const prevButton = getByTestId(AccountSelectorSelectorsIDs.PREVIOUS_BUTTON);
     expect(prevButton).toBeDefined();
     await act(async () => {
       fireEvent.press(prevButton);
@@ -319,14 +315,14 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
     expect(button).toBeDefined();
 
     await act(async () => {
       fireEvent.press(button);
     });
 
-    const forgetButton = getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON);
+    const forgetButton = getByTestId(AccountSelectorSelectorsIDs.FORGET_BUTTON);
     expect(forgetButton).toBeDefined();
     await act(async () => {
       fireEvent.press(forgetButton);
@@ -348,7 +344,7 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
 
     await act(async () => {
       fireEvent.press(button);
@@ -368,7 +364,7 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
 
     await act(async () => {
       fireEvent.press(button);
@@ -404,13 +400,13 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
 
     await act(async () => {
       fireEvent.press(button);
     });
 
-    const forgetButton = getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON);
+    const forgetButton = getByTestId(AccountSelectorSelectorsIDs.FORGET_BUTTON);
 
     await act(async () => {
       fireEvent.press(forgetButton);
@@ -437,7 +433,7 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
 
     await act(async () => {
       fireEvent.press(button);

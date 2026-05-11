@@ -8391,15 +8391,6 @@
     "season_1": "Temporada 1",
     "musd": {
       "page_title": "mUSD",
-      "title": "Calculadora del bono en mUSD",
-      "description": "Descubre cuánto podrías ganar al convertir tus monedas estables a mUSD.",
-      "amount_label": "Monto convertido",
-      "estimated_bonus": "Bono anualizado estimado: hasta 3 %",
-      "initial_amount": "Monto inicial",
-      "daily_bonus": "Bono diario reclamable",
-      "annualized_bonus": "Bono anualizado",
-      "disclaimer": "Esto es solo una estimación. El bono está sujeto a cambios.",
-      "disclaimer_brief": "El bono es una estimación y puede variar.",
       "buy_button": "Comprar mUSD",
       "swap_button": "Canjear por mUSD"
     },
@@ -8512,7 +8503,6 @@
       "empty": "No tienes ninguna posición",
       "empty_description": "Comienza a ganar recompensas abriendo una posición en activos del mundo real tokenizados.",
       "empty_cta": "Abrir una posición",
-      "position_units": "{{units}} acciones",
       "positions_title": "Posiciones",
       "activity_title": "Actividad",
       "view_activity": "Ver actividad",
@@ -8603,8 +8593,6 @@
       "label_pnl": "PnL",
       "label_volume": "Volume",
       "label_notional_volume": "Notional volume",
-      "label_margin": "Margin",
-      "label_margin_deployed": "Margin deployed",
       "pending": "Pending",
       "qualified": "Qualified",
       "open_position_cta": "Open Position",
@@ -8658,29 +8646,18 @@
       "retry_button": "Reintentar",
       "refreshing": "Actualizando..."
     },
-    "ondo_campaign_winning": {
-      "you_won": "Tú ganas",
-      "rank_label": "{{place}} lugar",
-      "email_instructions": "Para reclamar tu premio, envía un correo electrónico a ondocampaign@consensys.net con tu código.",
-      "open_mail": "Abrir correo",
-      "skip_for_now": "Omitir por ahora",
-      "mail_subject": "Reclamación de premio de la campaña de Ondo",
-      "mail_body": "Mi código ganador: {{code}}",
-      "winning_code": "Código ganador",
-      "close_a11y": "Cerrar"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "Tú ganas",
-        "description": "Reclama tu premio hoy mismo.",
-        "a11y": "Abrir detalles del ganador"
+        "title": "¡Has ganado!",
+        "description": "Verifica tu código ganador y reclama tu premio hoy.",
+        "a11y": "Ver detalles"
       },
       "participant_pending": {
         "title": "La campaña terminó.",
         "description": "Estamos determinando los resultados. Vuelve a consultar pronto."
       },
       "participant_finalized": {
-        "title": "Los resultados de la campaña están en",
+        "title": "Ya hay resultados de la campaña.",
         "description": "Esta vez no has ganado. Consulta la clasificación para ver en qué posición has quedado."
       },
       "winner_finalized": {
@@ -8688,17 +8665,28 @@
         "description": "Tu recompensa está en camino; nos pondremos en contacto contigo en breve."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "Tú ganas 💰",
-        "description": "Reclama tu premio en la {{campaignName}}",
+        "description": "Reclama tu premio de la {{campaignName}} hoy.",
         "cta": "Ver detalles"
       },
-      "participant_no_winner": {
-        "title": "Ya tenemos los resultados. 🏅",
-        "description": "Consulta tu clasificación en {{campaignName}}",
+      "non_winner": {
+        "title": "Ya hay resultados 🏅",
+        "description": "Consulta tu posición en la {{campaignName}}.",
         "cta": "Ver"
       }
+    },
+    "campaign_winning": {
+      "you_won": "Tú ganas",
+      "rank_label": "{{place}} lugar",
+      "email_instructions": "Para reclamar tu premio, envía un correo electrónico a {{email}} con tu código.",
+      "open_mail": "Abrir correo",
+      "skip_for_now": "Omitir por ahora",
+      "mail_subject": "{{campaignName}} – reclamación de premio",
+      "mail_body": "Mi código ganador: {{code}}",
+      "winning_code": "Código ganador",
+      "close_a11y": "Cerrar"
     }
   },
   "time": {

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.75.1]
+
+### Fixed
+
+- Fixed Hyperliquid withdraw showing $0 and being blocked for users on Unified Account mode. (#29492)
+
 ## [7.75.0]
 
 ### Added
@@ -11365,7 +11371,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.75.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.75.1...HEAD
+[7.75.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.75.0...v7.75.1
 [7.75.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.74.3...v7.75.0
 [7.74.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.74.2...v7.74.3
 [7.74.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.74.1...v7.74.2

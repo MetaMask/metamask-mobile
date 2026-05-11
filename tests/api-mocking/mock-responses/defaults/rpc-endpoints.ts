@@ -51,5 +51,14 @@ export const DEFAULT_RPC_ENDPOINT_MOCKS: MockEventsObject = {
         result: '0x0',
       },
     },
+    {
+      urlEndpoint: 'https://testnet-rpc.monad.xyz/',
+      responseCode: 200,
+      response: {
+        jsonrpc: '2.0',
+        id: 1,
+        result: '0x0',
+      },
+    },
   ],
 };

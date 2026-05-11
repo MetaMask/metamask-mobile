@@ -8391,15 +8391,6 @@
     "season_1": "Saison 1",
     "musd": {
       "page_title": "mUSD",
-      "title": "mUSD-Bonus-Rechner",
-      "description": "Finden Sie heraus, wie viel Sie durch die Konvertierung Ihrer Stablecoins in mUSD verdienen können.",
-      "amount_label": "Konvertierter Betrag",
-      "estimated_bonus": "Geschätzter jährlicher Bonus: bis zu 3 %",
-      "initial_amount": "Anfangsbetrag",
-      "daily_bonus": "Täglich einforderbarer Bonus",
-      "annualized_bonus": "Jährlicher Bonus",
-      "disclaimer": "Dies ist nur eine Schätzung. Der Bonus kann sich noch ändern.",
-      "disclaimer_brief": "Der Bonus ist ein Schätzwert und kann sich ändern.",
       "buy_button": "mUSD kaufen",
       "swap_button": "Swap zu mUSD"
     },
@@ -8512,7 +8503,6 @@
       "empty": "Sie haben keine Positionen",
       "empty_description": "Sammeln Sie Belohnungen, indem Sie eine Position in tokenisierten realen Assets eröffnen.",
       "empty_cta": "Eine Position öffnen",
-      "position_units": "{{units}} Aktien",
       "positions_title": "Positionen",
       "activity_title": "Aktivität",
       "view_activity": "Aktivität anzeigen",
@@ -8603,8 +8593,6 @@
       "label_pnl": "PnL",
       "label_volume": "Volume",
       "label_notional_volume": "Notional volume",
-      "label_margin": "Margin",
-      "label_margin_deployed": "Margin deployed",
       "pending": "Pending",
       "qualified": "Qualified",
       "open_position_cta": "Open Position",
@@ -8658,29 +8646,18 @@
       "retry_button": "Erneut versuchen",
       "refreshing": "Aktualisierung ..."
     },
-    "ondo_campaign_winning": {
-      "you_won": "Sie haben gewonnen",
-      "rank_label": "{{place}} Ort",
-      "email_instructions": "Senden Sie eine E-Mail an ondocampaign@consensys.net mit Ihrem Code, um Ihren Preis zu erhalten.",
-      "open_mail": "E-Mail öffnen",
-      "skip_for_now": "Vorläufig überspringen",
-      "mail_subject": "Ondo-Kampagnenpreis einfordern",
-      "mail_body": "Mein Gewinncode: {{code}}",
-      "winning_code": "Gewinncode",
-      "close_a11y": "Schließen"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "Sie haben gewonnen",
-        "description": "Fordern Sie Ihren Preis noch heute ein.",
-        "a11y": "Gewinnerdetails öffnen"
+        "title": "Sie haben gewonnen!",
+        "description": "Überprüfen Sie Ihren Gewinncode und fordern Sie Ihren Preis noch heute ein.",
+        "a11y": "Details anzeigen"
       },
       "participant_pending": {
         "title": "Kampagne ist beendet.",
         "description": "Wir ermitteln gerade die Ergebnisse. Schauen Sie bald wieder vorbei."
       },
       "participant_finalized": {
-        "title": "Kampagnenergebnisse sind verfügbar",
+        "title": "Die Kampagnenergebnisse liegen vor.",
         "description": "Sie haben dieses Mal nicht gewonnen. Überprüfen Sie die Rangliste, um Ihre Platzierung einzusehen."
       },
       "winner_finalized": {
@@ -8688,17 +8665,28 @@
         "description": "Ihre Belohnung ist unterwegs – wir werden uns in Kürze bei Ihnen melden."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "Sie haben gewonnen 💰",
-        "description": "Fordern Sie Ihren Preis aus der {{campaignName}} ein",
+        "description": "Fordern Sie Ihren Preis aus der {{campaignName}} noch heute ein.",
         "cta": "Details anzeigen"
       },
-      "participant_no_winner": {
-        "title": "Die Ergebnisse sind verfügbar. 🏅",
-        "description": "Sehen Sie Ihre Platzierung in der {{campaignName}} ein",
+      "non_winner": {
+        "title": "Die Ergebnisse liegen vor 🏅",
+        "description": "Sehen Sie Ihre Platzierung in der {{campaignName}}.",
         "cta": "Ansehen"
       }
+    },
+    "campaign_winning": {
+      "you_won": "Sie haben gewonnen",
+      "rank_label": "{{place}} Ort",
+      "email_instructions": "Senden Sie eine E-Mail an {{email}} mit Ihrem Code, um Ihren Preis zu erhalten.",
+      "open_mail": "E-Mail öffnen",
+      "skip_for_now": "Vorläufig überspringen",
+      "mail_subject": "{{campaignName}} – Preis einfordern",
+      "mail_body": "Mein Gewinncode: {{code}}",
+      "winning_code": "Gewinncode",
+      "close_a11y": "Schließen"
     }
   },
   "time": {

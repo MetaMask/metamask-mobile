@@ -93,8 +93,8 @@ export interface ApplyBonusCodeDto {
  */
 export enum CampaignType {
   ONDO_HOLDING = 'ONDO_HOLDING',
-  SEASON_1 = 'SEASON_1',
   PERPS_TRADING = 'PERPS_TRADING',
+  SEASON_1 = 'SEASON_1',
 }
 
 /**
@@ -567,14 +567,31 @@ export type OndoGmCampaignDepositsDto = {
   totalUsdDeposited: string;
 };
 
-export type OndoGmCampaignParticipantOutcomeStatus = 'pending' | 'finalized';
+export type CampaignParticipantOutcomeStatus = 'pending' | 'finalized';
 
-export interface OndoGmCampaignParticipantOutcomeDto {
+export interface BaseCampaignParticipantOutcomeDto {
   subscriptionId: string;
-  outcomeStatus: OndoGmCampaignParticipantOutcomeStatus;
+  outcomeStatus: CampaignParticipantOutcomeStatus;
   winnerVerificationCode?: string | null;
+}
+
+/** @deprecated Use CampaignParticipantOutcomeStatus */
+export type OndoGmCampaignParticipantOutcomeStatus =
+  CampaignParticipantOutcomeStatus;
+
+export interface OndoGmCampaignParticipantOutcomeDto
+  extends BaseCampaignParticipantOutcomeDto {
   tierRank?: number;
   tier?: string;
+}
+
+/** @deprecated Use CampaignParticipantOutcomeStatus */
+export type PerpsTradingCampaignParticipantOutcomeStatus =
+  CampaignParticipantOutcomeStatus;
+
+export interface PerpsTradingCampaignParticipantOutcomeDto
+  extends BaseCampaignParticipantOutcomeDto {
+  rank?: number | null;
 }
 
 /**
@@ -708,7 +725,7 @@ export interface PerpsTradingCampaignLeaderboardEntry {
   referralCode: string;
   /** Signed USD PnL for the campaign window */
   pnl: number;
-  /** true when notional volume ≥ $25k AND margin deployed ≥ $1k */
+  /** true when notional volume ≥ $25k */
   qualified: boolean;
 }
 
@@ -732,8 +749,6 @@ export interface PerpsTradingCampaignLeaderboardPositionDto {
   pnl: number;
   /** Cumulative notional volume traded during the competition window (USD) */
   notionalVolume: number;
-  /** Cumulative initial margin deployed during the competition window (USD) */
-  marginDeployed: number;
   qualified: boolean;
   neighbors: PerpsTradingCampaignLeaderboardEntry[];
   computedAt: string;
@@ -766,7 +781,6 @@ export type PerpsTradingCampaignLeaderboardPositionFoundState = {
   rank: number;
   pnl: number;
   notionalVolume: number;
-  marginDeployed: number;
   qualified: boolean;
   neighbors: {
     rank: number;
