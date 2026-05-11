@@ -28,7 +28,7 @@ import { useNeedsGasFaucet } from './useNeedsGasFaucet';
 import {
   awaitTransactionConfirmed,
   type AwaitTransactionConfirmedMessenger,
-} from '../util/awaitTransactionConfirmed';
+} from '../../../../core/Engine/controllers/card-controller/utils/awaitTransactionConfirmed';
 
 /**
  * Custom error class for user-initiated cancellations

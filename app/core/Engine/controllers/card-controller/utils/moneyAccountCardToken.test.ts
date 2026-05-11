@@ -1,4 +1,7 @@
-import { FundingStatus, DelegationSettingsResponse } from '../types';
+import {
+  FundingStatus,
+  DelegationSettingsResponse,
+} from '../../../../../components/UI/Card/types';
 import {
   hasMoneyAccountCardRequirements,
   resolveMoneyAccountCardToken,

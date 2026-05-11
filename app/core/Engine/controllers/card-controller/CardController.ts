@@ -44,8 +44,8 @@ import { encodeErc20ApproveCalldata } from './utils/encodeErc20ApproveCalldata';
 import {
   awaitTransactionConfirmed,
   type AwaitTransactionConfirmedMessenger,
-} from '../../../../components/UI/Card/util/awaitTransactionConfirmed';
-import { resolveMoneyAccountCardToken } from '../../../../components/UI/Card/util/moneyAccountCardToken';
+} from './utils/awaitTransactionConfirmed';
+import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import TransactionTypes from '../../../../core/TransactionTypes';
