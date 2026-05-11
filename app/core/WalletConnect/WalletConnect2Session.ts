@@ -445,13 +445,13 @@ class WalletConnect2Session {
       );
 
       if (accounts.length === 0) {
-        const effectiveApprovedAccounts = getPermittedAccounts(this.channelId);
-        if (effectiveApprovedAccounts.length > 0) {
+        const approvedAccounts = getPermittedAccounts(this.channelId);
+        if (approvedAccounts.length > 0) {
           DevLogger.log(
             `WC2::updateSession found approved accounts`,
-            effectiveApprovedAccounts,
+            approvedAccounts,
           );
-          accounts = effectiveApprovedAccounts;
+          accounts = approvedAccounts;
         } else {
           const referencedAdapterNamespaces =
             proposalReferencedAdapterNamespaces({
