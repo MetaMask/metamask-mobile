@@ -556,7 +556,7 @@ describe('useCryptoUpDownChartData', () => {
       });
     });
 
-    it('freezes live data once the end date passes', () => {
+    it('records the update that freezes live data once the end date passes', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket({ endDate: '2026-01-01T00:00:05.000Z' });
       const chartRef = createMockChartRef();
@@ -592,7 +592,10 @@ describe('useCryptoUpDownChartData', () => {
       });
 
       expect(chartRef.current.appendPoint).not.toHaveBeenCalled();
-      expect(result.current.data).toEqual([{ time: 100, value: 50000 }]);
+      expect(result.current.data).toEqual([
+        { time: 100, value: 50000 },
+        { time: 110, value: 52000 },
+      ]);
     });
 
     it('keeps live data when the end date passes before the next live update', () => {

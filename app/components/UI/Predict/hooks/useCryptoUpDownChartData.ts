@@ -92,10 +92,15 @@ export const useCryptoUpDownChartData = (
   const marketResetPendingRef = useRef(false);
   const isCurrentMarket = prevMarketIdRef.current === market.id;
   if (!isCurrentMarket) {
+    const isNextMarketAlreadyExpired =
+      typeof liveEndDateMs === 'number' && Date.now() >= liveEndDateMs;
+
     prevMarketIdRef.current = market.id;
     marketResetPendingRef.current = true;
-    frozenRef.current = false;
-    frozenMarketIdRef.current = undefined;
+    frozenRef.current = isNextMarketAlreadyExpired;
+    frozenMarketIdRef.current = isNextMarketAlreadyExpired
+      ? market.id
+      : undefined;
     liveLoadingRef.current = true;
     stableHistoricalDataRef.current = EMPTY_DATA;
     fallbackStartPointRef.current = EMPTY_DATA;
@@ -107,7 +112,7 @@ export const useCryptoUpDownChartData = (
     }
 
     marketResetPendingRef.current = false;
-    setFrozenMarketId(undefined);
+    setFrozenMarketId(frozenMarketIdRef.current);
     setLiveLoading(true);
     setLiveValue(0);
     setLivePoints(EMPTY_DATA);
@@ -138,14 +143,9 @@ export const useCryptoUpDownChartData = (
       return;
     }
 
-    if (
+    const shouldFreezeAfterUpdate =
       typeof currentLiveEndDateMs === 'number' &&
-      Date.now() >= currentLiveEndDateMs
-    ) {
-      frozenRef.current = true;
-      frozenMarketIdRef.current = currentMarketId;
-      setFrozenMarketId(currentMarketId);
-    }
+      Date.now() >= currentLiveEndDateMs;
 
     if (frozenRef.current && frozenMarketIdRef.current === currentMarketId) {
       return;
@@ -166,6 +166,11 @@ export const useCryptoUpDownChartData = (
     if (liveLoadingRef.current) {
       liveLoadingRef.current = false;
       setLiveLoading(false);
+    }
+    if (shouldFreezeAfterUpdate) {
+      frozenRef.current = true;
+      frozenMarketIdRef.current = currentMarketId;
+      setFrozenMarketId(currentMarketId);
     }
   }, []);
 
