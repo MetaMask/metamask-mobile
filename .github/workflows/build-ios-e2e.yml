@@ -75,8 +75,12 @@ jobs:
 
     steps:
       # Get the source code from the repository
+      - name: Checkout repo (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - name: Checkout repo
         uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
 
       - name: Check force-builds override
         id: force-builds
