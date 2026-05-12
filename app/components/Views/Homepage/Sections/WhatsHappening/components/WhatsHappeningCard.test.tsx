@@ -29,9 +29,26 @@ jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock(
-  '../../../../../UI/Perps/components/PerpsTokenLogo',
-  () => 'PerpsTokenLogo',
+  '../../../../../Views/WhatsHappeningDetailView/components/RelatedAssetAvatar',
+  () => 'RelatedAssetAvatar',
 );
+
+jest.mock(
+  '../../../../../Views/WhatsHappeningDetailView/utils/getRelatedAssetImageSource',
+  () => ({
+    getRelatedAssetImageSource: jest.fn(() => undefined),
+  }),
+);
+
+jest.mock('@metamask/perps-controller', () => ({
+  getPerpsDisplaySymbol: jest.fn((symbol: string) => {
+    const colonIndex = symbol.indexOf(':');
+    if (colonIndex > 0 && colonIndex < symbol.length - 1) {
+      return symbol.substring(colonIndex + 1);
+    }
+    return symbol;
+  }),
+}));
 
 const mockRelatedAsset = {
   sourceAssetId: 'btc-mainnet',
@@ -137,6 +154,59 @@ describe('WhatsHappeningCard', () => {
       <WhatsHappeningCard item={item} cardIndex={0} source="homepage" />,
     );
     expect(screen.getByText('BTC +2')).toBeOnTheScreen();
+  });
+
+  it('strips xyz: prefix from symbol in the asset label', () => {
+    const brentAsset = {
+      sourceAssetId: 'brentoil',
+      symbol: 'xyz:BRENTOIL',
+      name: 'Brent Oil',
+      caip19: [],
+      hlPerpsMarket: ['xyz:BRENT'],
+    };
+    const item = { ...baseItem, relatedAssets: [brentAsset] };
+
+    renderWithProvider(
+      <WhatsHappeningCard item={item} cardIndex={0} source="homepage" />,
+    );
+
+    expect(screen.getByText('BRENTOIL')).toBeOnTheScreen();
+    expect(screen.queryByText('xyz:BRENTOIL')).toBeNull();
+  });
+
+  it('strips xyz: prefix from symbol in the "+N" label', () => {
+    const brentAsset = {
+      sourceAssetId: 'brentoil',
+      symbol: 'xyz:BRENTOIL',
+      name: 'Brent Oil',
+      caip19: [],
+      hlPerpsMarket: ['xyz:BRENT'],
+    };
+    const wtiAsset = {
+      sourceAssetId: 'wti',
+      symbol: 'xyz:WTI',
+      name: 'WTI Oil',
+      caip19: [],
+      hlPerpsMarket: ['xyz:WTI'],
+    };
+    const item = {
+      ...baseItem,
+      relatedAssets: [brentAsset, wtiAsset],
+    };
+
+    renderWithProvider(
+      <WhatsHappeningCard item={item} cardIndex={0} source="homepage" />,
+    );
+
+    expect(screen.getByText('BRENTOIL +1')).toBeOnTheScreen();
+    expect(screen.queryByText('xyz:BRENTOIL +1')).toBeNull();
+  });
+
+  it('does not alter symbols that have no xyz: prefix', () => {
+    renderWithProvider(
+      <WhatsHappeningCard item={baseItem} cardIndex={0} source="homepage" />,
+    );
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
   });
 
   it('does not render asset label when relatedAssets is empty', () => {
