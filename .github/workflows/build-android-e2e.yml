@@ -80,8 +80,13 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' }}
         run: |
           mkdir -p "$GRADLE_USER_HOME/init.d"
-          nsc cache gradle setup --init-gradle "$GRADLE_USER_HOME/init.d/namespace-cache.init.gradle"
-          echo "Gradle remote build cache configured at $GRADLE_USER_HOME/init.d/namespace-cache.init.gradle"
+          REF="${GITHUB_REF_NAME}"
+          PUSH=true
+          if [[ "$REF" != "main" && "$REF" != release/* && "$REF" != stable/* && "$REF" != "phase5/cache-and-artifacts" ]]; then
+            PUSH=false
+          fi
+          nsc cache gradle setup --push="$PUSH" --init-gradle "$GRADLE_USER_HOME/init.d/namespace-cache.init.gradle"
+          echo "Gradle remote build cache configured (push=$PUSH) at $GRADLE_USER_HOME/init.d/namespace-cache.init.gradle"
 
       - name: Report source fingerprint
         run: |
