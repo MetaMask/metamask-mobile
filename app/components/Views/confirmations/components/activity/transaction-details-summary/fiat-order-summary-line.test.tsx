@@ -25,8 +25,10 @@ const PARENT_TRANSACTION = {
   time: 1755719285723,
   txParams: { from: '0xabc' },
   metamaskPay: {
-    fiatOrderId: '/providers/transak/orders/order-123',
-    fiatProvider: 'transak',
+    fiat: {
+      orderId: '/providers/transak/orders/order-123',
+      provider: 'transak',
+    },
   },
 } as unknown as TransactionMeta;
 

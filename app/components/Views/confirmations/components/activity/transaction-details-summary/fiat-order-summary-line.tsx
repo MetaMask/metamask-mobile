@@ -15,7 +15,9 @@ export function FiatOrderSummaryLine({
   parentTransaction: TransactionMeta;
 }) {
   const navigation = useNavigation();
-  const { fiatOrderId, fiatProvider } = parentTransaction.metamaskPay ?? {};
+  const { fiat } = parentTransaction.metamaskPay ?? {};
+  const fiatOrderId = fiat?.orderId;
+  const fiatProvider = fiat?.provider;
   const walletAddress = parentTransaction.txParams.from;
 
   const { severity, statusText, cryptoSymbol, paymentMethodName } =
