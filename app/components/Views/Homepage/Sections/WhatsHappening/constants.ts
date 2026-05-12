@@ -3,6 +3,7 @@ export const MAX_ITEMS_DISPLAYED = 5;
 export const WhatsHappeningSource = {
   Homepage: 'homepage',
   Explore: 'explore',
+  Deeplink: 'deeplink',
   Unknown: 'unknown',
 } as const;
 
