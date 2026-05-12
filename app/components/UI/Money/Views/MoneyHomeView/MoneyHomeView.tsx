@@ -325,6 +325,7 @@ const MoneyHomeView = () => {
           onManagePress={handleCardPress}
           showMetalCard={isUS}
           cardBalance={cardBalance}
+          apy={apyPercent}
         />
         <Divider />
         {isMilestone && (

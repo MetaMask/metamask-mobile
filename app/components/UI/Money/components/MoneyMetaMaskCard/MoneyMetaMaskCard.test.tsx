@@ -99,11 +99,11 @@ describe('MoneyMetaMaskCard', () => {
   describe('link mode', () => {
     it('renders link subtitle instead of upsell subtitle', () => {
       const { getByText, queryByText } = render(
-        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
+        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} apy={4} />,
       );
 
       expect(
-        getByText(strings('money.metamask_card.link_subtitle')),
+        getByText(strings('money.metamask_card.link_subtitle', { apy: 4 })),
       ).toBeOnTheScreen();
       expect(
         queryByText(strings('money.metamask_card.subtitle')),
@@ -122,7 +122,7 @@ describe('MoneyMetaMaskCard', () => {
 
     it('renders 1% cashback and APY bullets for non-metal regions', () => {
       const { getByTestId, getByText, queryByText } = render(
-        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
+        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} apy={4} />,
       );
 
       expect(
@@ -142,6 +142,7 @@ describe('MoneyMetaMaskCard', () => {
           mode="link"
           onGetNowPress={jest.fn()}
           showMetalCard
+          apy={4}
         />,
       );
 

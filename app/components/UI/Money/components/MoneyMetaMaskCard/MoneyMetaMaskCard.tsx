@@ -48,6 +48,11 @@ interface MoneyMetaMaskCardProps {
   showMetalCard?: boolean;
   /** User's available card balance (manage mode only). */
   cardBalance?: string;
+  /**
+   * Live vault APY used to interpolate the link-mode subtitle and the APY
+   * bullet. Falls back to 0 when undefined so the copy stays grammatical.
+   */
+  apy?: number;
 }
 
 const CardRow = ({
@@ -123,9 +128,11 @@ const CheckBullet = ({ text, testID }: { text: string; testID: string }) => (
 const LinkContent = ({
   onLinkPress,
   showMetalCard,
+  apy,
 }: {
   onLinkPress: () => void;
   showMetalCard: boolean;
+  apy: number;
 }) => (
   <Box twClassName="gap-6">
     <Text
@@ -133,7 +140,7 @@ const LinkContent = ({
       color={TextColor.TextAlternative}
       testID={MoneyMetaMaskCardTestIds.LINK_SUBTITLE}
     >
-      {strings('money.metamask_card.link_subtitle')}
+      {strings('money.metamask_card.link_subtitle', { apy })}
     </Text>
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -154,7 +161,7 @@ const LinkContent = ({
           testID={MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK}
         />
         <CheckBullet
-          text={strings('money.metamask_card.link_bullet_apy')}
+          text={strings('money.metamask_card.link_bullet_apy', { apy })}
           testID={MoneyMetaMaskCardTestIds.LINK_BULLET_APY}
         />
       </Box>
@@ -278,6 +285,7 @@ const MoneyMetaMaskCard = ({
   onManagePress,
   showMetalCard = false,
   cardBalance,
+  apy,
 }: MoneyMetaMaskCardProps) => {
   const handleLinkPress = useCallback(() => onLinkPress?.(), [onLinkPress]);
   const handleManagePress = useCallback(
@@ -291,6 +299,7 @@ const MoneyMetaMaskCard = ({
       <LinkContent
         onLinkPress={handleLinkPress}
         showMetalCard={showMetalCard}
+        apy={apy ?? 0}
       />
     );
   } else if (mode === 'manage') {
