@@ -60,7 +60,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       address: preferredToken.address,
       chainId: preferredToken.chainId,
     });
-  }, [preferredToken, selectToken]);
+    navigation.goBack();
+  }, [navigation, preferredToken, selectToken]);
 
   const preferredTokenBalance = useMemo(
     () => formatFiat(new BigNumber(preferredToken?.balanceUsd ?? '0')),

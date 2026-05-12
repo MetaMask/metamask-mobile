@@ -58,6 +58,7 @@ describe('usePayWithCryptoSection', () => {
   const usePayWithPreferredTokenMock = jest.mocked(usePayWithPreferredToken);
   const usePayWithSelectedTokenMock = jest.mocked(usePayWithSelectedToken);
   const navigateMock = jest.fn();
+  const goBackMock = jest.fn();
   const selectTokenMock = jest.fn();
 
   beforeEach(() => {
@@ -65,6 +66,7 @@ describe('usePayWithCryptoSection', () => {
 
     useNavigationMock.mockReturnValue({
       navigate: navigateMock,
+      goBack: goBackMock,
     } as never);
     useParamsMock.mockReturnValue({});
     useFiatFormatterMock.mockReturnValue((value) => `$${value.toFixed(2)}`);
@@ -301,7 +303,7 @@ describe('usePayWithCryptoSection', () => {
     );
   });
 
-  it('selects the preferred token when its row is pressed', () => {
+  it('selects the preferred token and dismisses the sheet when its row is pressed', () => {
     const distinctSelectedToken = {
       ...TOKEN_MOCK,
       address: SELECTED_TOKEN_MOCK.address,
@@ -328,6 +330,21 @@ describe('usePayWithCryptoSection', () => {
       address: TOKEN_MOCK.address,
       chainId: TOKEN_MOCK.chainId,
     });
+    expect(goBackMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('dismisses the sheet when the already-selected preferred token row is pressed', () => {
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    act(() => {
+      result.current?.rows[0].onPress?.();
+    });
+
+    expect(selectTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_MOCK.address,
+      chainId: TOKEN_MOCK.chainId,
+    });
+    expect(goBackMock).toHaveBeenCalledTimes(1);
   });
 
   it('does not assign a tap handler to the user-selected token row', () => {
