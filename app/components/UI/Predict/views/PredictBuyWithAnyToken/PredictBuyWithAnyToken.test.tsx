@@ -24,6 +24,13 @@ let mockFakOrdersEnabled = false;
 let mockIsPreviewCalculating = false;
 let mockIsPlacingOrder = false;
 let mockErrorMessage: string | undefined;
+let mockErrorMessageSource:
+  | 'preview'
+  | 'below_minimum'
+  | 'insufficient_balance'
+  | 'blocking_pay_alert'
+  | 'order_error'
+  | undefined;
 let mockBuyErrorBanner: {
   variant: 'price_changed' | 'order_failed';
   title: string;
@@ -178,6 +185,7 @@ jest.mock('./hooks/usePredictBuyConditions', () => ({
 jest.mock('./hooks/usePredictBuyError', () => ({
   usePredictBuyError: () => ({
     errorMessage: mockErrorMessage,
+    errorMessageSource: mockErrorMessageSource,
     buyErrorBanner: mockBuyErrorBanner,
     isOrderNotFilled: false,
     resetOrderNotFilled: mockResetOrderNotFilled,
@@ -422,6 +430,7 @@ describe('PredictBuyWithAnyToken', () => {
     mockIsPreviewCalculating = false;
     mockIsPlacingOrder = false;
     mockErrorMessage = undefined;
+    mockErrorMessageSource = undefined;
     mockBuyErrorBanner = null;
     mockIsCurrentTokenInsufficient = false;
     mockHasAlternativeBalance = false;
@@ -813,10 +822,11 @@ describe('PredictBuyWithAnyToken', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('suppresses error text in Change Payment Method mode', () => {
+    it('suppresses insufficient balance helper text in Change Payment Method mode', () => {
       mockIsCurrentTokenInsufficient = true;
       mockHasAlternativeBalance = true;
       mockErrorMessage = 'Not enough funds';
+      mockErrorMessageSource = 'insufficient_balance';
 
       renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
 
@@ -825,16 +835,49 @@ describe('PredictBuyWithAnyToken', () => {
       );
     });
 
-    it('suppresses error text in Add Funds mode', () => {
+    it('suppresses insufficient balance helper text in Add Funds mode', () => {
       mockIsCurrentTokenInsufficient = true;
       mockHasAlternativeBalance = false;
       mockErrorMessage = 'Not enough funds';
+      mockErrorMessageSource = 'insufficient_balance';
 
       renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
 
       expect(screen.getByTestId('predict-buy-error')).toHaveTextContent(
         'no-error',
       );
+    });
+
+    it('keeps transaction pay alert text visible in Change Payment Method mode', () => {
+      mockIsCurrentTokenInsufficient = true;
+      mockHasAlternativeBalance = true;
+      mockErrorMessage = 'Add less or use a different token';
+      mockErrorMessageSource = 'blocking_pay_alert';
+
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(screen.getByTestId('predict-buy-error')).toHaveTextContent(
+        'Add less or use a different token',
+      );
+    });
+
+    it('keeps transaction pay alert text visible even when a sheet banner exists', () => {
+      mockErrorMessage = 'Add less or use a different token';
+      mockErrorMessageSource = 'blocking_pay_alert';
+      mockBuyErrorBanner = {
+        variant: 'order_failed',
+        title: 'Order failed',
+        description: 'Please retry',
+      };
+
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(screen.getByTestId('predict-buy-error')).toHaveTextContent(
+        'Add less or use a different token',
+      );
+      expect(
+        screen.getByTestId('predict-buy-preview-order-failed-banner'),
+      ).toBeOnTheScreen();
     });
   });
 });

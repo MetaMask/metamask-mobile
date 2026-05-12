@@ -1,6 +1,9 @@
 import { BigNumber } from 'bignumber.js';
 import { useEffect, useMemo, useState } from 'react';
-import { useTransactionPayTotals } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import {
+  useTransactionPayQuotes,
+  useTransactionPayTotals,
+} from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
@@ -51,14 +54,13 @@ export const usePredictBuyInfo = ({
   );
 
   const computedDepositFee = useMemo(() => {
-    if (isPredictBalanceSelected || !payTotals?.fees || hasBlockingPayAlerts)
-      return 0;
+    if (isPredictBalanceSelected || !payTotals?.fees) return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
     return new BigNumber(provider?.usd ?? 0)
       .plus(sourceNetwork?.estimate?.usd ?? 0)
       .plus(targetNetwork?.usd ?? 0)
       .toNumber();
-  }, [isPredictBalanceSelected, payTotals?.fees, hasBlockingPayAlerts]);
+  }, [isPredictBalanceSelected, payTotals?.fees]);
 
   useEffect(() => {
     if (computedDepositFee > 0) {

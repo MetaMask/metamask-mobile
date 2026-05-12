@@ -199,6 +199,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
 
   const {
     errorMessage,
+    errorMessageSource,
     buyErrorBanner,
     isOrderNotFilled,
     resetOrderNotFilled,
@@ -356,6 +357,13 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       : isBannerActive
         ? !preview
         : !canPlaceBet;
+  const shouldSuppressInlineError =
+    (isChangePaymentMode || isAddFundsMode) &&
+    errorMessageSource === 'insufficient_balance';
+  const shouldRenderInlineError =
+    !isSheetMode ||
+    !buyErrorBanner ||
+    errorMessageSource === 'blocking_pay_alert';
 
   return (
     <Wrapper {...wrapperProps}>
@@ -425,11 +433,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           </Box>
         </ScrollView>
       )}
-      {!(isSheetMode && buyErrorBanner) && (
+      {shouldRenderInlineError && (
         <PredictBuyError
-          errorMessage={
-            isChangePaymentMode || isAddFundsMode ? undefined : errorMessage
-          }
+          errorMessage={shouldSuppressInlineError ? undefined : errorMessage}
         />
       )}
       {!isSheetMode && (

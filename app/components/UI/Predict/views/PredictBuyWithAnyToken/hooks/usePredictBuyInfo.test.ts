@@ -25,6 +25,7 @@ jest.mock('../../../hooks/usePredictPaymentToken', () => ({
 jest.mock(
   '../../../../../Views/confirmations/hooks/pay/useTransactionPayData',
   () => ({
+    useTransactionPayQuotes: () => [],
     useTransactionPayTotals: () => mockPayTotals,
   }),
 );
@@ -173,7 +174,7 @@ describe('usePredictBuyInfo', () => {
       expect(result.current.depositFee).toBe(2.0);
     });
 
-    it('returns 0 when there is an insufficient pay token balance alert', () => {
+    it('includes depositFee in total when there is an insufficient pay token balance alert', () => {
       mockIsPredictBalanceSelected = false;
       mockPayTotals = {
         fees: {
@@ -188,7 +189,9 @@ describe('usePredictBuyInfo', () => {
 
       const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
 
-      expect(result.current.depositFee).toBe(0);
+      expect(result.current.hasBlockingPayAlerts).toBe(true);
+      expect(result.current.depositFee).toBe(5);
+      expect(result.current.total).toBe(110);
     });
 
     it('keeps the last accepted deposit fee while confirming', () => {
