@@ -123,6 +123,13 @@ export const awaitTransactionConfirmed = async (
   // The `await waitPromise` below will still throw.
   waitPromise.catch(() => undefined);
 
+  // A promise that only ever *rejects* — mirrors waitPromise's rejections so
+  // we can race it against submitResult.result without conflating a successful
+  // confirmation with the hash acquisition step.
+  const abortPromise = new Promise<never>((_, reject) => {
+    waitPromise.catch(reject);
+  });
+
   const confirmedHandlerRef: { current?: TransactionConfirmedHandler } = {};
   const failedHandlerRef: { current?: TransactionFailedHandler } = {};
 
@@ -213,13 +220,20 @@ export const awaitTransactionConfirmed = async (
 
   let txHash: string;
   try {
-    txHash = await submitResult.result;
+    txHash = await Promise.race([submitResult.result, abortPromise]);
   } catch (error) {
     cleanup();
     throw error;
   }
 
-  await waitPromise;
+  if (!state.settled) {
+    try {
+      await waitPromise;
+    } catch (error) {
+      cleanup();
+      throw error;
+    }
+  }
 
   if (state.failureReason) throw state.failureReason;
   if (!state.confirmedMeta) {

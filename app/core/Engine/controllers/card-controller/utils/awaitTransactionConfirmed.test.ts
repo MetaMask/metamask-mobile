@@ -252,11 +252,31 @@ describe('awaitTransactionConfirmed', () => {
     expect(unsubscribe).toHaveBeenCalledTimes(2);
   });
 
+  it('rejects with timeout when resultPromise never settles', async () => {
+    const { messenger } = buildMockMessenger();
+
+    // resultPromise intentionally never resolves (node unreachable scenario).
+    const submit = jest.fn().mockResolvedValue({
+      result: new Promise<string>(() => undefined),
+      transactionMeta: buildMeta({ id: 'tx-hang' }),
+    });
+
+    const promise = awaitTransactionConfirmed({
+      messenger,
+      submit,
+      timeoutMs: 50,
+    });
+
+    await Promise.resolve();
+    await Promise.resolve();
+    jest.advanceTimersByTime(50);
+
+    await expect(promise).rejects.toBeInstanceOf(
+      TransactionConfirmationTimeoutError,
+    );
+  });
+
   it('does not produce an unhandled rejection when timeout races with awaiting result', async () => {
-    // Bug: if timeout fires while `await submitResult.result` is pending,
-    // `waitPromise` would be rejected with no handler yet, producing an
-    // unhandled-rejection crash. The `.catch(() => undefined)` guard on
-    // `waitPromise` must suppress this.
     const { messenger } = buildMockMessenger();
 
     let releaseResult: (hash: string) => void = () => undefined;

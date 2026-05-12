@@ -19,7 +19,7 @@ interface SupportedToken {
 
 interface BuildTokenListParams {
   delegationSettings: DelegationSettingsResponse | null;
-  getSupportedTokensByChainId?: (chainId: CaipChainId) => SupportedToken[];
+  getSupportedTokensByChainId: (chainId: CaipChainId) => SupportedToken[];
 }
 
 function getCaipChainId(

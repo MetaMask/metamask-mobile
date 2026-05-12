@@ -17,6 +17,7 @@ describe('buildTokenList', () => {
     it('returns empty array when delegationSettings is null', () => {
       const result = buildDelegationTokenList({
         delegationSettings: null,
+        getSupportedTokensByChainId: () => [],
       });
 
       expect(result).toEqual([]);
@@ -29,6 +30,7 @@ describe('buildTokenList', () => {
           count: 0,
           _links: { self: '' },
         } as unknown as DelegationSettingsResponse,
+        getSupportedTokensByChainId: () => [],
       });
 
       expect(result).toEqual([]);
@@ -106,6 +108,7 @@ describe('buildTokenList', () => {
 
       const result = buildDelegationTokenList({
         delegationSettings,
+        getSupportedTokensByChainId: () => [],
       });
 
       expect(result).toHaveLength(0);
@@ -127,6 +130,7 @@ describe('buildTokenList', () => {
 
       const result = buildDelegationTokenList({
         delegationSettings,
+        getSupportedTokensByChainId: () => [],
       });
 
       expect(result).toHaveLength(1);
@@ -175,6 +179,7 @@ describe('buildTokenList', () => {
 
       const result = buildDelegationTokenList({
         delegationSettings,
+        getSupportedTokensByChainId: () => [],
       });
 
       expect(result[0].stagingTokenAddress).toBe('0xStagingUSDC');
@@ -195,6 +200,7 @@ describe('buildTokenList', () => {
 
       const result = buildDelegationTokenList({
         delegationSettings,
+        getSupportedTokensByChainId: () => [],
       });
 
       expect(result[0].stagingTokenAddress).toBeUndefined();
@@ -224,6 +230,7 @@ describe('buildTokenList', () => {
 
       const result = buildDelegationTokenList({
         delegationSettings,
+        getSupportedTokensByChainId: () => [],
       });
 
       expect(result).toHaveLength(2);

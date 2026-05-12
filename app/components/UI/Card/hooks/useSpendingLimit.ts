@@ -328,7 +328,7 @@ const useSpendingLimit = ({
         ? notEnabledTokens
         : buildDelegationTokenList({
             delegationSettings,
-            getSupportedTokensByChainId: getSdkTokens,
+            getSupportedTokensByChainId: getSdkTokens ?? (() => []),
           });
 
     if (tokensToSearch.length > 0) {
