@@ -18,6 +18,7 @@ import handleDeepLinkModalDisplay from './handleDeepLinkModalDisplay';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import { capitalize } from '../../../../util/general';
 import handleRampUrl from './handleRampUrl';
+import handleRampReturnUrl from './handleRampReturnUrl';
 import { navigateToHomeUrl } from './handleHomeUrl';
 import { handleSwapUrl } from './handleSwapUrl';
 import handleBrowserUrl from './handleBrowserUrl';
@@ -93,6 +94,7 @@ const SUPPORTED_ACTIONS = {
   SHIELD: ACTIONS.SHIELD,
   EARN_MUSD: ACTIONS.EARN_MUSD,
   NFT: ACTIONS.NFT,
+  ON_RAMP: ACTIONS.ON_RAMP,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -127,6 +129,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION,
   SUPPORTED_ACTIONS.SHIELD,
   SUPPORTED_ACTIONS.EARN_MUSD,
+  SUPPORTED_ACTIONS.ON_RAMP,
 ];
 
 /**
@@ -522,6 +525,10 @@ async function handleUniversalLink({
         rampPath: actionBasedRampPath,
         rampType,
       });
+      break;
+    }
+    case SUPPORTED_ACTIONS.ON_RAMP: {
+      handleRampReturnUrl({ rampReturnPath: actionBasedRampPath });
       break;
     }
     case SUPPORTED_ACTIONS.HOME:

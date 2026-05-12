@@ -584,6 +584,7 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.TRANSACTION;
     case ACTIONS.BUY:
     case ACTIONS.BUY_CRYPTO:
+    case ACTIONS.ON_RAMP:
       return DeepLinkRoute.BUY;
     case ACTIONS.SELL:
     case ACTIONS.SELL_CRYPTO:

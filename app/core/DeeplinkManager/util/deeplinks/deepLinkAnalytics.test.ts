@@ -421,6 +421,7 @@ describe('deepLinkAnalytics', () => {
     it.each([
       [ACTIONS.BUY, DeepLinkRoute.BUY],
       [ACTIONS.BUY_CRYPTO, DeepLinkRoute.BUY],
+      [ACTIONS.ON_RAMP, DeepLinkRoute.BUY],
     ] as const)('maps buy action %s to BUY route', (action, expectedRoute) => {
       // Arrange & Act
       const result = mapSupportedActionToRoute(action);

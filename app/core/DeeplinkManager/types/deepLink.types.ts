@@ -139,6 +139,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.CARD_HOME,
   ACTIONS.SHIELD,
   ACTIONS.NFT,
+  ACTIONS.ON_RAMP,
 ] as const satisfies readonly ACTIONS[];
 
 export type SupportedAction = (typeof SUPPORTED_ACTIONS)[number];

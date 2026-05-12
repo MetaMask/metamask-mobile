@@ -12,6 +12,5 @@ export type WhatsHappeningSourceValue =
 
 export const WhatsHappeningInteractionType = {
   SourceClick: 'source_click',
-  BuyPressed: 'buy_pressed',
   TradePressed: 'trade_pressed',
 } as const;

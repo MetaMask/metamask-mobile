@@ -5,14 +5,17 @@ import {
   encapsulatedAction,
 } from '../framework';
 import PerpsMarketDetailsView from '../page-objects/Perps/PerpsMarketDetailsView';
+import PerpsHomeView from '../page-objects/Perps/PerpsHomeView';
+import PerpsMarketListView from '../page-objects/Perps/PerpsMarketListView';
 import PerpsOrderView from '../page-objects/Perps/PerpsOrderView';
+import WalletView from '../page-objects/wallet/WalletView';
 
 /**
  * Checks if the position is open by checking if the close button is visible.
  * @returns {Promise<boolean>} True if the position is open, false otherwise.
  */
 export const isPositionOpen = async (timeout = 5000): Promise<boolean> => {
-  let isPositionOpen = false;
+  let positionOpen = false;
   await encapsulatedAction({
     detox: async () => {
       try {
@@ -21,9 +24,9 @@ export const isPositionOpen = async (timeout = 5000): Promise<boolean> => {
           timeout,
           description: 'Close position button',
         });
-        isPositionOpen = true;
+        positionOpen = true;
       } catch {
-        isPositionOpen = false;
+        positionOpen = false;
       }
     },
     appium: async () => {
@@ -31,14 +34,14 @@ export const isPositionOpen = async (timeout = 5000): Promise<boolean> => {
         const closeEl = await asPlaywrightElement(
           PerpsMarketDetailsView.closeButton,
         );
-        isPositionOpen = await closeEl.isVisible();
+        positionOpen = await closeEl.isVisible();
       } catch {
         // Element lookup timed out — position is not open
-        isPositionOpen = false;
+        positionOpen = false;
       }
     },
   });
-  return isPositionOpen;
+  return positionOpen;
 };
 
 export const waitForPositionOpen = async (
@@ -102,4 +105,25 @@ export const waitForOrderScreenVisible = async (
     await new Promise((resolve) => setTimeout(resolve, interval));
   }
   throw new Error(`Order screen not visible after ${timeout}ms`);
+};
+
+export type PerpsPositionDirection = 'long' | 'short';
+
+export const openPosition = async (
+  symbol: string,
+  direction: PerpsPositionDirection,
+): Promise<void> => {
+  await WalletView.scrollAndTapPerpsSection();
+  await PerpsHomeView.tapExploreCryptoIfVisible();
+
+  await PerpsMarketListView.selectMarket(symbol);
+  if (direction === 'long') {
+    await PerpsMarketDetailsView.tapLongButton();
+  } else {
+    await PerpsMarketDetailsView.tapShortButton();
+  }
+
+  await PerpsOrderView.tapPlaceOrderButton();
+  await PerpsMarketDetailsView.waitForScreenReady();
+  await PerpsMarketDetailsView.expectClosePositionButtonVisible();
 };
