@@ -330,17 +330,7 @@ jobs:
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=4096"
           cp android/gradle.properties.github android/gradle.properties
-          MAX_RETRIES=3
-          ATTEMPT=1
-          until yarn build:android:${{ inputs.build_type }}:e2e; do
-            if [ $ATTEMPT -ge $MAX_RETRIES ]; then
-              echo "❌ Build failed after $MAX_RETRIES attempts"
-              exit 1
-            fi
-            echo "⚠️ Build attempt $ATTEMPT failed, retrying in 60s (attempt $((ATTEMPT+1))/$MAX_RETRIES)..."
-            sleep 60
-            ATTEMPT=$((ATTEMPT + 1))
-          done
+          yarn build:android:${{ inputs.build_type }}:e2e
         shell: bash
         env:
           PLATFORM: android
