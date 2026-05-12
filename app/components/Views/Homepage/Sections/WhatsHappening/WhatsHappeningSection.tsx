@@ -88,7 +88,8 @@ const WhatsHappeningSection = forwardRef<
   useSectionPerformance({
     sectionId: HomeSectionNames.WHATS_HAPPENING,
     contentReady: willRender || feedSettledWithNoItems,
-    isEmpty: items.length === 0,
+    isEmpty: items.length === 0 && !hasError,
+    contentStateForTrace: hasError ? 'error' : undefined,
     isLoading,
     enabled: isEnabled,
   });

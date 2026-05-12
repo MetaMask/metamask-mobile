@@ -222,9 +222,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     useSectionPerformance({
       sectionId: analyticsName,
       contentReady:
-        showTokensError ||
-        (!showTokensError &&
-          (isZeroBalanceAccount || displayTokenKeys.length > 0)),
+        showTokensError || isZeroBalanceAccount || displayTokenKeys.length > 0,
       isEmpty: isZeroBalanceAccount || showTokensError,
       contentStateForTrace: showTokensError ? 'error' : undefined,
       isLoading:

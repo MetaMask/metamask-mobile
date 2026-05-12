@@ -463,10 +463,14 @@ const PredictionsSectionDefault = forwardRef<
       isPredictEnabled &&
         (hasError ||
           (inPositionsLayout
-            ? !isLoadingPositions && (!showTrendingAbove || !isLoadingMarkets)
+            ? !isLoadingPositions && (hasPositions || !isLoadingMarkets)
             : !isLoadingMarkets)),
     );
-    const willRender = isPredictEnabled && !isLoading && !isEmpty && !hasError;
+    const willRender =
+      isPredictEnabled &&
+      !hasError &&
+      !isLoading &&
+      (hasAnyPositions || markets.length > 0);
     const itemCount = hasPositions
       ? positions.length
       : hasClaimablePositions
