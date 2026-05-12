@@ -16,6 +16,7 @@ import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/Trend
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { usePerpsFeed, type PerpsFeedItem } from '../feeds/perps/usePerpsFeed';
+import type { SortOptionId } from '@metamask/perps-controller';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsTileRowItem from '../feeds/perps/PerpsTileRowItem';
 import PerpsMarketTileCardSkeleton from '../../Homepage/Sections/Perpetuals/components/PerpsMarketTileCardSkeleton';
@@ -34,7 +35,7 @@ import { trackExploreInteracted } from '../search/analytics';
 
 interface CryptoPerpsBlockProps {
   refresh: TabProps['refresh'];
-  onViewAll: () => void;
+  onViewAll: (sortOptionId: SortOptionId) => void;
 }
 
 const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
@@ -53,7 +54,7 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
     <Box>
       <SectionHeader
         title={strings('trending.crypto_perps_section')}
-        onViewAll={onViewAll}
+        onViewAll={() => onViewAll(perps.defaultSortOptionId)}
         testID="section-header-view-all-crypto_perps"
         tabName="Crypto"
         sectionName="perps_crypto"
@@ -79,7 +80,7 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
         )}
         keyExtractor={(item) => item.market.symbol}
         Skeleton={PerpsMarketTileCardSkeleton}
-        onViewMore={onViewAll}
+        onViewMore={() => onViewAll(perps.defaultSortOptionId)}
         testID="explore-crypto_perps-carousel"
         viewMoreTestID="crypto_perps-view-more-card"
       />
@@ -181,8 +182,8 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         <PerpsSectionProvider>
           <CryptoPerpsBlock
             refresh={refresh}
-            onViewAll={() =>
-              navigateToPerpsMarketList(perpsNavigation, 'crypto')
+            onViewAll={(sortOptionId) =>
+              navigateToPerpsMarketList(perpsNavigation, 'crypto', sortOptionId)
             }
           />
         </PerpsSectionProvider>

@@ -69,10 +69,14 @@ jest.mock('../../../../UI/Perps/Views/PerpsHomeView/PerpsHomeView', () => {
   };
 });
 
+const mockPredictFeedProps: { current: Record<string, unknown> | null } = {
+  current: null,
+};
 jest.mock('../../../../UI/Predict/views/PredictFeed', () => {
   const { View } = jest.requireActual('react-native');
   const ReactLib = jest.requireActual('react');
-  return function MockPredictFeed() {
+  return function MockPredictFeed(props: Record<string, unknown>) {
+    mockPredictFeedProps.current = props;
     return ReactLib.createElement(View, { testID: 'predict-feed' });
   };
 });
@@ -209,6 +213,43 @@ describe('HomepageDiscoveryTabs', () => {
 
     it('renders without throwing when walletHeaderOffset is 0', () => {
       expect(() => renderComponent({ walletHeaderOffset: 0 })).not.toThrow();
+    });
+  });
+
+  describe('PredictFeed wallet header forwarding', () => {
+    beforeEach(() => {
+      mockPredictFeedProps.current = null;
+    });
+
+    it('forwards walletHeaderTranslateY and walletHeaderHeight to PredictFeed', async () => {
+      const walletHeaderTranslateY = { value: 0 } as unknown;
+      renderComponent({
+        walletHeaderTranslateY,
+        walletHeaderHeight: 120,
+      });
+      await pressTab('Predictions');
+
+      expect(mockPredictFeedProps.current).not.toBeNull();
+      expect(mockPredictFeedProps.current?.walletHeaderTranslateY).toBe(
+        walletHeaderTranslateY,
+      );
+      expect(mockPredictFeedProps.current?.walletHeaderHeight).toBe(120);
+    });
+
+    it('passes onHeaderHiddenChange to PredictFeed so discovery icons collapse', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+
+      expect(typeof mockPredictFeedProps.current?.onHeaderHiddenChange).toBe(
+        'function',
+      );
+    });
+
+    it('passes hideHeader=true to PredictFeed', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+
+      expect(mockPredictFeedProps.current?.hideHeader).toBe(true);
     });
   });
 
