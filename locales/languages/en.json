@@ -6972,6 +6972,10 @@
   "confirm": {
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "pay_with_bottom_sheet": {
+      "title": "Pay with",
+      "last_used": "Last used"
+    },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
       "terms_of_use": "Terms of Use",
