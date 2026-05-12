@@ -23,10 +23,12 @@ import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useViewportTracking } from '../../../../../UI/MarketInsights/hooks/useViewportTracking';
 import { formatRelativeTime } from '../../../../../UI/MarketInsights/utils/marketInsightsFormatting';
 import { getWhatsHappeningEventProps } from '../eventProperties';
+import type { WhatsHappeningSourceValue } from '../constants';
 
 interface WhatsHappeningCardProps {
   item: WhatsHappeningItem;
   cardIndex: number;
+  source: WhatsHappeningSourceValue;
   onPress?: (item: WhatsHappeningItem) => void;
 }
 
@@ -35,6 +37,7 @@ const MAX_VISIBLE_ASSET_ICONS = 3;
 const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   item,
   cardIndex,
+  source,
   onPress,
 }) => {
   const tw = useTailwind();
@@ -52,10 +55,10 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
       createEventBuilder(
         MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
       )
-        .addProperties(getWhatsHappeningEventProps(item, cardIndex))
+        .addProperties(getWhatsHappeningEventProps(item, cardIndex, source))
         .build(),
     );
-  }, [trackEvent, createEventBuilder, item, cardIndex]);
+  }, [trackEvent, createEventBuilder, item, cardIndex, source]);
 
   const { ref: cardRef, onLayout: onVisibilityLayout } =
     useViewportTracking(handleVisible);
