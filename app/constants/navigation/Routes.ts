@@ -387,6 +387,7 @@ const Routes = {
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
   CONFIRMATION_PAY_WITH_MODAL: 'ConfirmationPayWithModal',
+  CONFIRMATION_PAY_WITH_BOTTOM_SHEET: 'ConfirmationPayWithBottomSheet',
   CONFIRMATION_PAY_WITH_NETWORK_MODAL: 'ConfirmationPayWithNetworkModal',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
@@ -436,6 +437,7 @@ const Routes = {
       APY_INFO_SHEET: 'MoneyApyInfoSheet',
       EARNINGS_INFO_SHEET: 'MoneyEarningsInfoSheet',
       MONEY_BALANCE_INFO_SHEET: 'MoneyBalanceInfoSheet',
+      EARN_CRYPTO_INFO_SHEET: 'MoneyEarnCryptoInfoSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {

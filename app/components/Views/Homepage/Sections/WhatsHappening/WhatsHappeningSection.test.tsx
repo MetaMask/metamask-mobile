@@ -3,6 +3,12 @@ import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import WhatsHappeningSection from './WhatsHappeningSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import {
+  WhatsHappeningInteractionType,
+  WhatsHappeningSource,
+  WhatsHappeningView,
+} from './constants';
 
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -195,5 +201,54 @@ describe('WhatsHappeningSection', () => {
       initialIndex: 1,
       source: 'homepage',
     });
+  });
+
+  it('tracks WHATS_HAPPENING_INTERACTED pan event when carousel swipes to a new card', () => {
+    const secondItem = { ...mockItem, id: 'trend-1', title: 'Second trend' };
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem, secondItem],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+    const carousel = screen.getByTestId('homepage-whats-happening-carousel');
+    // CARD_WIDTH = 280, GAP = 12 → offset for index 1 = 292
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 292, y: 0 } },
+    });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+        properties: expect.objectContaining({
+          interaction_type: WhatsHappeningInteractionType.Pan,
+          view: WhatsHappeningView.Carousel,
+          trend_id: secondItem.id,
+          card_index: 1,
+          source: WhatsHappeningSource.Homepage,
+        }),
+      }),
+    );
+  });
+
+  it('does not track pan event when momentum scroll resolves to the same card index', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+    const carousel = screen.getByTestId('homepage-whats-happening-carousel');
+
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 0, y: 0 } },
+    });
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+    );
   });
 });
