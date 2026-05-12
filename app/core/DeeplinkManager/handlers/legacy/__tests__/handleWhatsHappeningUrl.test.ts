@@ -21,7 +21,7 @@ describe('handleWhatsHappeningUrl', () => {
     jest.clearAllMocks();
   });
 
-  it('navigates to WhatsHappeningDetailView with index 0 when index is missing', () => {
+  it('navigates to WhatsHappeningDetailView with index 0', () => {
     handleWhatsHappeningUrl({ actionPath: '' });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
@@ -30,17 +30,17 @@ describe('handleWhatsHappeningUrl', () => {
     });
   });
 
-  it('navigates to WhatsHappeningDetailView with the supplied index', () => {
+  it('ignores index query params and still navigates to index 0', () => {
     handleWhatsHappeningUrl({ actionPath: '?index=2' });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
-      initialIndex: 2,
+      initialIndex: 0,
       source: WhatsHappeningSource.Deeplink,
     });
   });
 
   it.each(['?index=-1', '?index=1.5', '?index=abc', '?index=5'])(
-    'defaults to index 0 for invalid index %s',
+    'ignores invalid index query param %s',
     (actionPath) => {
       handleWhatsHappeningUrl({ actionPath });
 

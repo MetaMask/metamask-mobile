@@ -531,7 +531,7 @@ describe('deepLinkAnalytics', () => {
 
     it('extract whats happening route', () => {
       const result = extractRouteFromUrl(
-        'https://link.metamask.io/whats-happening?index=2',
+        'https://link.metamask.io/whats-happening',
       );
       expect(result).toBe(DeepLinkRoute.WHATS_HAPPENING);
     });

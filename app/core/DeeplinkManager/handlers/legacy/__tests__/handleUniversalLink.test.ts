@@ -837,13 +837,12 @@ describe('handleUniversalLink', () => {
 
   describe('ACTIONS.WHATS_HAPPENING', () => {
     it('calls _handleWhatsHappening without showing interstitial', async () => {
-      const whatsHappeningUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WHATS_HAPPENING}?index=2`;
+      const whatsHappeningUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WHATS_HAPPENING}`;
       const whatsHappeningUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         href: whatsHappeningUrl,
         pathname: `/${ACTIONS.WHATS_HAPPENING}`,
-        search: '?index=2',
       };
 
       await handleUniversalLink({
@@ -857,7 +856,7 @@ describe('handleUniversalLink', () => {
 
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
       expect(handleWhatsHappeningUrl).toHaveBeenCalledWith({
-        actionPath: '?index=2',
+        actionPath: '',
       });
       expect(handled).toHaveBeenCalled();
     });

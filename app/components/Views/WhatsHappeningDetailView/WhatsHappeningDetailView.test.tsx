@@ -395,7 +395,9 @@ describe('WhatsHappeningDetailView', () => {
   });
 
   it('scrolls to initialIndex once content is wide enough', () => {
-    mockUseRoute.mockReturnValue({ params: { initialIndex: 1 } });
+    mockUseRoute.mockReturnValue({
+      params: { initialIndex: 1, source: 'homepage' },
+    });
     mockUseWhatsHappening.mockReturnValue({
       items: [mockItem, { ...mockItem, id: 'trend-1' }],
       isLoading: false,
@@ -410,5 +412,32 @@ describe('WhatsHappeningDetailView', () => {
     expect(() =>
       fireEvent(carousel, 'contentSizeChange', 700, 600),
     ).not.toThrow();
+  });
+
+  it('clamps an out-of-bounds initialIndex to the first loaded card', () => {
+    mockUseRoute.mockReturnValue({
+      params: { initialIndex: 3, source: 'deeplink' },
+    });
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem, { ...mockItem, id: 'trend-1' }],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+
+    renderWithProvider(<WhatsHappeningDetailView />);
+
+    expect(screen.getByTestId('page-indicator-dot-active')).toBeOnTheScreen();
+    expect(screen.getAllByTestId('page-indicator-dot')).toHaveLength(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
+        properties: expect.objectContaining({
+          trend_id: mockItem.id,
+          card_index: 0,
+          source: 'deeplink',
+        }),
+      }),
+    );
   });
 });

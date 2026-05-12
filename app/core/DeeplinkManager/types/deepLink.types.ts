@@ -64,9 +64,6 @@ export interface DeeplinkUrlParams {
   // Home-specific parameters
   previewToken?: string;
 
-  // Whats Happening-specific parameters
-  index?: string;
-
   // Note: All properties are explicitly defined above
 }
 
