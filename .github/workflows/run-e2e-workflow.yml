@@ -100,8 +100,13 @@ jobs:
       YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
 
     steps:
+      - name: Checkout (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+
       - name: Checkout
         uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
 
       - name: Restore .metamask folder
         uses: actions/cache@v4
