@@ -11,6 +11,7 @@ import {
   HardwareWalletAdapterOptions,
 } from '../types';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
+import { CAMERA_PERMISSION_STATUS } from '../../../constants/permissions';
 
 /**
  * Adapter for QR hardware wallets.
@@ -182,7 +183,7 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
    */
   async isTransportAvailable(): Promise<boolean> {
     try {
-      return Camera.getCameraPermissionStatus() === 'granted';
+      return Camera.getCameraPermissionStatus() === CAMERA_PERMISSION_STATUS.granted;
     } catch (error) {
       DevLogger.log(
         '[QRWalletAdapter] Error checking transport availability:',
@@ -250,7 +251,7 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
       const status = Camera.getCameraPermissionStatus();
       DevLogger.log('[QRWalletAdapter] Camera permission status:', status);
 
-      if (status === 'granted') {
+      if (status === CAMERA_PERMISSION_STATUS.granted) {
         return true;
       }
 
@@ -260,7 +261,7 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
         newStatus,
       );
 
-      if (newStatus === 'granted') {
+      if (newStatus === CAMERA_PERMISSION_STATUS.granted) {
         return true;
       }
 

@@ -1,11 +1,15 @@
 import type { QRHardwareScanError } from '../../../core/HardwareWallet/errors';
 
 /**
- * Checks whether a QR scan error has already been forwarded to the hardware wallet error flow.
+ * Returns `true` when two {@link QRHardwareScanError} instances carry the same message and
+ * metadata, meaning they represent the same underlying scan failure.
  *
- * The scanner can receive repeated frames for the same invalid QR code while the camera remains
- * active. Comparing the user-facing message plus QR-specific metadata lets callers suppress
- * duplicate callbacks without hiding distinct scan failures.
+ * The QR camera emits a continuous frame stream. While pointed at an invalid code the decoder
+ * produces the same error repeatedly — this function lets callers forward the error callback only
+ * once, avoiding duplicate decoder resets and analytics events.
+ *
+ * @param previousError - The last error that was forwarded, or `null` if none yet.
+ * @param currentError - The newly received scan error to compare.
  */
 export function isSameScanError(
   previousError: QRHardwareScanError | null,

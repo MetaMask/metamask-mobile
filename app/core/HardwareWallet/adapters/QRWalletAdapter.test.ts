@@ -1,6 +1,7 @@
 import { QRWalletAdapter } from './QRWalletAdapter';
 import { HardwareWalletType, DeviceEvent } from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapterOptions } from '../types';
+import { CAMERA_PERMISSION_STATUS } from '../../../constants/permissions';
 
 const mockGetCameraPermissionStatus = jest.fn();
 const mockRequestCameraPermission = jest.fn();
@@ -20,8 +21,8 @@ describe('QRWalletAdapter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetCameraPermissionStatus.mockReturnValue('granted');
-    mockRequestCameraPermission.mockResolvedValue('granted');
+    mockGetCameraPermissionStatus.mockReturnValue(CAMERA_PERMISSION_STATUS.granted);
+    mockRequestCameraPermission.mockResolvedValue(CAMERA_PERMISSION_STATUS.granted);
 
     onDisconnect = jest.fn();
     onDeviceEvent = jest.fn();
@@ -143,8 +144,8 @@ describe('QRWalletAdapter', () => {
     });
 
     it('emits ConnectionFailed when camera permission is denied', async () => {
-      mockGetCameraPermissionStatus.mockReturnValueOnce('denied');
-      mockRequestCameraPermission.mockResolvedValueOnce('denied');
+      mockGetCameraPermissionStatus.mockReturnValueOnce(CAMERA_PERMISSION_STATUS.denied);
+      mockRequestCameraPermission.mockResolvedValueOnce(CAMERA_PERMISSION_STATUS.denied);
 
       const result = await adapter.ensureDeviceReady('qr-account-address');
 
@@ -162,8 +163,8 @@ describe('QRWalletAdapter', () => {
     });
 
     it('emits ConnectionFailed when camera permission prompt is denied', async () => {
-      mockGetCameraPermissionStatus.mockReturnValueOnce('not-determined');
-      mockRequestCameraPermission.mockResolvedValueOnce('denied');
+      mockGetCameraPermissionStatus.mockReturnValueOnce(CAMERA_PERMISSION_STATUS.notDetermined);
+      mockRequestCameraPermission.mockResolvedValueOnce(CAMERA_PERMISSION_STATUS.denied);
 
       const result = await adapter.ensureDeviceReady('qr-account-address');
 
@@ -254,8 +255,8 @@ describe('QRWalletAdapter', () => {
 
   describe('ensurePermissions', () => {
     it('checks and requests camera permission when needed', async () => {
-      mockGetCameraPermissionStatus.mockReturnValueOnce('not-determined');
-      mockRequestCameraPermission.mockResolvedValueOnce('granted');
+      mockGetCameraPermissionStatus.mockReturnValueOnce(CAMERA_PERMISSION_STATUS.notDetermined);
+      mockRequestCameraPermission.mockResolvedValueOnce(CAMERA_PERMISSION_STATUS.granted);
 
       const result = await adapter.ensurePermissions();
 
@@ -265,8 +266,8 @@ describe('QRWalletAdapter', () => {
     });
 
     it('emits ConnectionFailed when the permission prompt is denied', async () => {
-      mockGetCameraPermissionStatus.mockReturnValueOnce('not-determined');
-      mockRequestCameraPermission.mockResolvedValueOnce('denied');
+      mockGetCameraPermissionStatus.mockReturnValueOnce(CAMERA_PERMISSION_STATUS.notDetermined);
+      mockRequestCameraPermission.mockResolvedValueOnce(CAMERA_PERMISSION_STATUS.denied);
 
       const result = await adapter.ensurePermissions();
 
@@ -293,8 +294,8 @@ describe('QRWalletAdapter', () => {
     });
 
     it('returns false when camera permission is not determined', async () => {
-      mockGetCameraPermissionStatus.mockReturnValueOnce('not-determined');
-      mockRequestCameraPermission.mockResolvedValueOnce('granted');
+      mockGetCameraPermissionStatus.mockReturnValueOnce(CAMERA_PERMISSION_STATUS.notDetermined);
+      mockRequestCameraPermission.mockResolvedValueOnce(CAMERA_PERMISSION_STATUS.granted);
 
       const result = await adapter.isTransportAvailable();
 
@@ -305,7 +306,7 @@ describe('QRWalletAdapter', () => {
     });
 
     it('returns false when camera permission is denied', async () => {
-      mockGetCameraPermissionStatus.mockReturnValueOnce('denied');
+      mockGetCameraPermissionStatus.mockReturnValueOnce(CAMERA_PERMISSION_STATUS.denied);
 
       const result = await adapter.isTransportAvailable();
 
@@ -316,8 +317,8 @@ describe('QRWalletAdapter', () => {
     });
 
     it('does not request camera permission when transport is checked', async () => {
-      mockGetCameraPermissionStatus.mockReturnValueOnce('not-determined');
-      mockRequestCameraPermission.mockResolvedValueOnce('denied');
+      mockGetCameraPermissionStatus.mockReturnValueOnce(CAMERA_PERMISSION_STATUS.notDetermined);
+      mockRequestCameraPermission.mockResolvedValueOnce(CAMERA_PERMISSION_STATUS.denied);
 
       const result = await adapter.isTransportAvailable();
 
