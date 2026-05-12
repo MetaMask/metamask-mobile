@@ -41,7 +41,7 @@ const useSpendingLimitData = (): UseSpendingLimitDataReturn => {
                 symbol?: string;
                 name?: string;
               }[]
-          : undefined,
+          : () => [],
       }),
     [sdk, delegationSettings],
   );
