@@ -137,7 +137,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
 
             {/* Title */}
             <Text
-              variant={TextVariant.HeadingLg}
+              variant={TextVariant.HeadingMd}
               fontWeight={FontWeight.Bold}
               color={TextColor.TextDefault}
             >

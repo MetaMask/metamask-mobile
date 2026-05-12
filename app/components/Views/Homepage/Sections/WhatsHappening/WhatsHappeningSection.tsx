@@ -4,7 +4,13 @@ import React, {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -27,6 +33,8 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 
 const CARD_WIDTH = 280;
 const GAP = 12;
@@ -56,8 +64,10 @@ const WhatsHappeningSection = forwardRef<
   WhatsHappeningSectionProps
 >(({ sectionIndex, totalSectionsLoaded, source }, ref) => {
   const sectionViewRef = useRef<View>(null);
+  const currentIndexRef = useRef<number>(0);
   const tw = useTailwind();
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const isEnabled = useSelector(selectWhatsHappeningEnabled);
   const title = strings('homepage.sections.whats_happening');
 
@@ -113,6 +123,22 @@ const WhatsHappeningSection = forwardRef<
     [navigateToDetail],
   );
 
+  const handleMomentumScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offsetX = event.nativeEvent.contentOffset.x;
+      const index = Math.round(offsetX / (CARD_WIDTH + GAP));
+      if (index !== currentIndexRef.current) {
+        currentIndexRef.current = index;
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION)
+            .addProperties({ interaction_type: 'pan' })
+            .build(),
+        );
+      }
+    },
+    [trackEvent, createEventBuilder],
+  );
+
   if (!isEnabled) {
     return null;
   }
@@ -156,6 +182,7 @@ const WhatsHappeningSection = forwardRef<
         contentContainerStyle={tw.style('px-4 gap-3')}
         snapToOffsets={SNAP_OFFSETS}
         decelerationRate="fast"
+        onMomentumScrollEnd={handleMomentumScrollEnd}
         testID="homepage-whats-happening-carousel"
       >
         {isLoading ? (

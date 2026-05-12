@@ -196,6 +196,11 @@ const WhatsHappeningDetailView = () => {
               )
               .build(),
           );
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION)
+              .addProperties({ interaction_type: 'pan' })
+              .build(),
+          );
         }
         previousIndexRef.current = index;
       }

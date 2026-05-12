@@ -312,6 +312,57 @@ describe('WhatsHappeningDetailView', () => {
     expect(mockCreateEventBuilder).not.toHaveBeenCalled();
   });
 
+  it('tracks MARKET_INSIGHTS_INTERACTION pan event when swiping to a new card', () => {
+    const secondItem = {
+      ...mockItem,
+      id: 'trend-1',
+      title: 'Second trend',
+      category: 'social' as const,
+      impact: 'negative' as const,
+    };
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem, secondItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: SNAP_INTERVAL_FOR_TEST, y: 0 } },
+    });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({ interaction_type: 'pan' }),
+      }),
+    );
+  });
+
+  it('does not track pan event when momentum scroll resolves to the same card index', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 0, y: 0 } },
+    });
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+    );
+  });
+
   it('tracks Whats Happening Closed with the visible card when back is pressed', () => {
     mockUseWhatsHappening.mockReturnValue({
       items: [mockItem],
