@@ -32,6 +32,11 @@ jest.mock('../../../core/Engine', () => ({
 const ACCOUNT_WALLET_ID = 'entropy:wallet-id-1' as AccountWalletId;
 const ACCOUNT_GROUP_ID = 'entropy:wallet-id-1/1' as AccountGroupId;
 
+const AVALANCHE_MAINNET_DISPLAY_NAME = 'Avalanche Mainnet';
+const MEGAETH_MAINNET_DISPLAY_NAME = 'MegaETH Mainnet';
+const MONAD_MAINNET_DISPLAY_NAME = 'Monad Mainnet';
+const ZKSYNC_ERA_DISPLAY_NAME = 'ZKsync Era';
+
 const mockEthEoaAccount = {
   ...createMockInternalAccount(
     '0x4fec2622fb662e892dd0e5060b91fa49ddcfdcb5',
@@ -140,14 +145,14 @@ describe('AccountSelector', () => {
       MAINNET_DISPLAY_NAME,
       LINEA_MAINNET_DISPLAY_NAME,
       ARBITRUM_DISPLAY_NAME,
-      'Avalanche Mainnet',
+      AVALANCHE_MAINNET_DISPLAY_NAME,
       BASE_DISPLAY_NAME,
       BNB_DISPLAY_NAME,
-      'MegaETH Mainnet',
-      'Monad Mainnet',
+      MEGAETH_MAINNET_DISPLAY_NAME,
+      MONAD_MAINNET_DISPLAY_NAME,
       OPTIMISM_DISPLAY_NAME,
       POLYGON_DISPLAY_NAME,
-      'ZKsync Era',
+      ZKSYNC_ERA_DISPLAY_NAME,
     ]);
     expect(networkNames).not.toContain('Solana');
   });
