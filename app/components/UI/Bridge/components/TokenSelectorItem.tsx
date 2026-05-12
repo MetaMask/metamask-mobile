@@ -345,7 +345,12 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const tokenAvatar = (
     <AvatarToken
       name={token.symbol}
-      imageSource={getTokenImageSource(token.symbol, token.image)}
+      imageSource={getTokenImageSource(
+        token.symbol,
+        token.image,
+        token.address,
+        token.chainId,
+      )}
       size={AvatarSize.Lg}
       testID={
         isNative ? `network-logo-${token.symbol}` : `token-logo-${token.symbol}`
@@ -385,38 +390,10 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                 />
               }
             >
-              <AvatarToken
-                name={token.symbol}
-                imageSource={getTokenImageSource(
-                  token.symbol,
-                  token.image,
-                  token.address,
-                  token.chainId,
-                )}
-                size={AvatarSize.Lg}
-                testID={
-                  isNative
-                    ? `network-logo-${token.symbol}`
-                    : `token-logo-${token.symbol}`
-                }
-              />
+              {tokenAvatar}
             </BadgeWrapper>
           ) : (
-            <AvatarToken
-              name={token.symbol}
-              imageSource={getTokenImageSource(
-                token.symbol,
-                token.image,
-                token.address,
-                token.chainId,
-              )}
-              size={AvatarSize.Lg}
-              testID={
-                isNative
-                  ? `network-logo-${token.symbol}`
-                  : `token-logo-${token.symbol}`
-              }
-            />
+            tokenAvatar
           )}
 
           {/* Token symbol/name on the left, balances on the right (extension layout pattern) */}
