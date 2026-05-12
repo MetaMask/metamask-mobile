@@ -825,6 +825,54 @@ describe('WebSocketManager', () => {
       );
     });
 
+    it('does not unsubscribe from RTDS while another crypto subscription remains', () => {
+      const manager = WebSocketManager.getInstance();
+      const btcCallback = jest.fn();
+      const ethCallback = jest.fn();
+
+      const unsubscribeBtc = manager.subscribeToCryptoPrices(
+        ['btcusdt'],
+        btcCallback,
+      );
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      manager.subscribeToCryptoPrices(['ethusdt'], ethCallback);
+      rtdsInstance.send.mockClear();
+
+      unsubscribeBtc();
+
+      expect(rtdsInstance.send).not.toHaveBeenCalledWith(
+        JSON.stringify({
+          action: 'unsubscribe',
+          subscriptions: [
+            {
+              topic: 'crypto_prices',
+              type: 'update',
+            },
+          ],
+        }),
+      );
+      expect(manager.getConnectionStatus().cryptoPriceSubscriptionCount).toBe(
+        1,
+      );
+
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000000,
+        payload: { symbol: 'ethusdt', timestamp: 1700000000, value: 3500 },
+      });
+      jest.advanceTimersByTime(16);
+
+      expect(btcCallback).not.toHaveBeenCalled();
+      expect(ethCallback).toHaveBeenCalledWith({
+        symbol: 'ethusdt',
+        price: 3500,
+        timestamp: 1700000000,
+      });
+    });
+
     it('disconnects when all subscribers unsubscribe', () => {
       const manager = WebSocketManager.getInstance();
       const callback1 = jest.fn();

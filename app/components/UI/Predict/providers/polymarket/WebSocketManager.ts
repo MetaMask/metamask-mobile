@@ -347,11 +347,11 @@ export class WebSocketManager {
         _callbacks.delete(callback);
         if (_callbacks.size === 0) {
           this.cryptoPriceSubscriptions.delete(subscriptionKey);
-          this.sendRtdsUnsubscribe();
         }
       }
 
       if (this.cryptoPriceSubscriptions.size === 0) {
+        this.sendRtdsUnsubscribe();
         this.disconnectRtds();
       }
     };
