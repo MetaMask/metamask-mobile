@@ -19,10 +19,13 @@ import {
   PredictSearchSelectorsIDs,
   PredictBalanceSelectorsIDs,
   PredictBalanceSelectorsText,
+  PredictFeedSelectorsIDs,
+  getPredictMarketListSelector,
   getPredictSearchSelector,
 } from '../../Predict.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MOCK_PREDICT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
+import { PREDICT_OFFLINE_TEST_IDS } from '../../components/PredictOffline/PredictOffline.testIds';
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const CANCEL_TEXT = 'Cancel';
@@ -187,6 +190,44 @@ describe('PredictFeed', () => {
     });
   });
 
+  describe('market feed error recovery', () => {
+    it('shows the offline state without market cards when all feed fetch retries fail', async () => {
+      const getMarketsSpy = jest.spyOn(
+        Engine.context.PredictController,
+        'getMarkets',
+      );
+      getMarketsSpy.mockRejectedValue(new Error('Network error'));
+
+      const { findByTestId, queryByTestId } = renderPredictFeedView();
+
+      fireEvent(await findByTestId(PredictFeedSelectorsIDs.HEADER), 'layout', {
+        nativeEvent: { layout: { height: 160 } },
+      });
+      fireEvent(
+        await findByTestId(PredictFeedSelectorsIDs.TAB_BAR_CONTAINER),
+        'layout',
+        {
+          nativeEvent: { layout: { height: 48 } },
+        },
+      );
+
+      expect(
+        await findByTestId(
+          PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
+          {},
+          { timeout: 10000 },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          getPredictMarketListSelector.marketCardByCategory('trending', 2),
+        ),
+      ).not.toBeOnTheScreen();
+
+      getMarketsSpy.mockRestore();
+    });
+  });
+
   describe('back navigation', () => {
     it('navigates to the wallet when the user presses back from the root feed', async () => {
       const { getByTestId, findByTestId } = renderPredictFeedViewWithRoutes({
@@ -287,7 +328,7 @@ describe('PredictFeed', () => {
       // findByTestId waits until the error state appears after all retries exhaust.
       expect(
         await findByTestId(
-          PredictSearchSelectorsIDs.ERROR_STATE,
+          PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
           {},
           { timeout: 10000 },
         ),
@@ -310,7 +351,7 @@ describe('PredictFeed', () => {
       await findByPlaceholderText(SEARCH_PLACEHOLDER);
 
       await findByTestId(
-        PredictSearchSelectorsIDs.ERROR_STATE,
+        PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
         {},
         { timeout: 10000 },
       );
