@@ -6645,7 +6645,12 @@
       "link_subtitle": "Spend your Money balance and earn.",
       "link_bullet_cashback": "Up to 3% mUSD back",
       "link_bullet_apy": "Up to {{apy}}% APY",
-      "link_card": "Link card"
+      "link_card": "Link card",
+      "link_pending_title": "Linking card",
+      "link_pending_description": "Approving spending limit…",
+      "link_success_title": "Card linked successfully",
+      "link_success_description": "You can now spend while you earn",
+      "link_error": "Couldn't link card"
     },
     "what_you_get": {
       "title": "What you get",
