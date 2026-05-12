@@ -121,10 +121,9 @@ describe('activity selectors', () => {
         ],
       });
 
-      expect(selectLocalTransactions(state).map((tx) => tx.id)).toStrictEqual([
-        'newer',
-        'older',
-      ]);
+      expect(
+        selectLocalTransactions(state).map((tx) => (tx as { id: string }).id),
+      ).toStrictEqual(['newer', 'older']);
     });
 
     it('treats missing time as zero when sorting', () => {
@@ -144,10 +143,9 @@ describe('activity selectors', () => {
         ],
       });
 
-      expect(selectLocalTransactions(state).map((tx) => tx.id)).toStrictEqual([
-        'with-time',
-        'no-time',
-      ]);
+      expect(
+        selectLocalTransactions(state).map((tx) => (tx as { id: string }).id),
+      ).toStrictEqual(['with-time', 'no-time']);
     });
 
     it('excludes transactions whose from address does not match the active account', () => {
@@ -204,10 +202,9 @@ describe('activity selectors', () => {
         ],
       });
 
-      expect(selectLocalTransactions(state).map((tx) => tx.id)).toStrictEqual([
-        'smart',
-        'ctrl',
-      ]);
+      expect(
+        selectLocalTransactions(state).map((tx) => (tx as { id: string }).id),
+      ).toStrictEqual(['smart', 'ctrl']);
     });
 
     it('dedupes two controller transactions that share chain, from, and nonce', () => {
