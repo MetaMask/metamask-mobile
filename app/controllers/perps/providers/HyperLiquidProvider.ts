@@ -6,7 +6,6 @@ import type {
 } from '@nktkas/hyperliquid';
 import { v4 as uuidv4 } from 'uuid';
 
-import { DevLogger } from '../../../core/SDKConnect/utils/DevLogger';
 import type { CandlePeriod } from '../constants/chartConfig';
 import {
   PERPS_EVENT_PROPERTY,
@@ -129,7 +128,7 @@ import {
   addSpotBalanceToAccountState,
   aggregateAccountStates,
 } from '../utils/accountUtils';
-import { ensureError } from '../utils/errorUtils';
+import { ensureError, isKeyringLockedError } from '../utils/errorUtils';
 import {
   adaptAccountStateFromSDK,
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
@@ -816,7 +815,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       completeInFlight();
     } catch (error) {
       // If keyring is locked, don't cache so it retries when unlocked
-      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+      if (isKeyringLockedError(error)) {
         this.#deps.debugLogger.log(
           '[ensureUnifiedAccountEnabled] Keyring locked, will retry later',
         );
@@ -877,19 +876,6 @@ export class HyperLiquidProvider implements PerpsProvider {
       });
 
       completeInFlight();
-
-      if (
-        error instanceof Error &&
-        (error as { cause?: unknown }).cause instanceof Error &&
-        (error as { cause: Error }).cause.message ===
-          PERPS_ERROR_CODES.KEYRING_LOCKED
-      ) {
-        const reproToken = (globalThis as { tat3176ReproToken?: string })
-          .tat3176ReproToken;
-        DevLogger.log(
-          `[PR-local] BUG_MARKER:${reproToken ? ` ${reproToken}` : ''} wrapped KEYRING_LOCKED reached generic Sentry logger`,
-        );
-      }
 
       this.#deps.logger.error(
         ensureError(error, 'HyperLiquidProvider.ensureUnifiedAccountEnabled'),
@@ -2665,7 +2651,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       completeInFlight();
     } catch (error) {
       // If keyring is locked, don't cache so it retries when unlocked
-      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+      if (isKeyringLockedError(error)) {
         this.#deps.debugLogger.log(
           '[ensureBuilderFeeApproval] Keyring locked, will retry later',
         );
@@ -8483,7 +8469,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       completeInFlight();
     } catch (error) {
       // If keyring is locked, don't cache so it retries when unlocked
-      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+      if (isKeyringLockedError(error)) {
         this.#deps.debugLogger.log(
           '[ensureReferralSet] Keyring locked, will retry later',
         );
