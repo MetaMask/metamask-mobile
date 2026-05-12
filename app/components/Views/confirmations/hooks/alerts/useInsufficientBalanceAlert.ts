@@ -20,6 +20,7 @@ const IGNORE_TYPES = [
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsWithdraw,
   TransactionType.predictWithdraw,
+  TransactionType.moneyAccountWithdraw,
 ];
 
 export const useInsufficientBalanceAlert = ({

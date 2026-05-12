@@ -31,10 +31,10 @@ import {
 import { usePerpsWithdrawConfirmation } from '../../../../../../components/UI/Perps/hooks/usePerpsWithdrawConfirmation';
 
 const POLYGON_USDCE_ADDRESS =
-  '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex;
+  '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359' as Hex;
 
 // Update as needed.
-const PROXY_ADDRESS = '0x13032833b30f3388208cda38971fdc839936b042' as Hex;
+const PROXY_ADDRESS = '0xB0dA5965D43369968574D399dBe6374683773a65' as Hex;
 
 export function ConfirmationsDeveloperOptions() {
   const isMoneyAccountDepositEnabled = useSelector(
@@ -185,7 +185,7 @@ function useAddTransactionBatch() {
 
   const { networkClientId } =
     useSelector((state: RootState) =>
-      selectDefaultEndpointByChainId(state, CHAIN_IDS.MAINNET),
+      selectDefaultEndpointByChainId(state, CHAIN_IDS.POLYGON),
     ) ?? {};
 
   const transferData = generateTransferData('transfer', {
@@ -216,13 +216,6 @@ function useAddTransactionBatch() {
         disableHook: true,
         disableSequential: true,
         transactions: [
-          {
-            params: {
-              to: PROXY_ADDRESS,
-              data: '0x',
-              value: '0x1',
-            },
-          },
           {
             params: {
               to: POLYGON_USDCE_ADDRESS,

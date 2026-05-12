@@ -7055,6 +7055,9 @@
       "musd_conversion": {
         "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
       },
+      "money_account_withdraw": {
+        "transaction_fee": "MetaMask will swap your mUSD for your desired token. Swap providers may charge a fee, but MetaMask won't."
+      },
       "title": {
         "transaction_fee": "Fees"
       },
