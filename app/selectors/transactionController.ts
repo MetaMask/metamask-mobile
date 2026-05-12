@@ -173,6 +173,47 @@ export const selectLastWithdrawTokenByType = createSelector(
   },
 );
 
+export const selectLastUsedPaymentMethod = createSelector(
+  selectNonReplacedTransactions,
+  (_state: RootState, transactionType?: string) => transactionType,
+  (
+    _state: RootState,
+    _transactionType?: string,
+    currentTransactionId?: string,
+  ) => currentTransactionId,
+  (
+    transactions,
+    transactionType,
+    currentTransactionId,
+  ): MetaMaskPayToken | undefined => {
+    if (!transactionType) {
+      return undefined;
+    }
+
+    const latestTransaction = [...transactions]
+      .reverse()
+      .find(
+        (transaction) =>
+          transaction.id !== currentTransactionId &&
+          matchesTransactionType(transaction, transactionType) &&
+          transaction.metamaskPay?.tokenAddress &&
+          transaction.metamaskPay?.chainId,
+      );
+
+    const tokenAddress = latestTransaction?.metamaskPay?.tokenAddress;
+    const chainId = latestTransaction?.metamaskPay?.chainId;
+
+    if (!tokenAddress || !chainId) {
+      return undefined;
+    }
+
+    return {
+      address: tokenAddress,
+      chainId,
+    };
+  },
+);
+
 export const selectSortedEVMTransactionsForSelectedAccountGroup =
   createDeepEqualSelector(
     [

@@ -3,6 +3,7 @@ import { RootState } from '../components/UI/BasicFunctionality/BasicFunctionalit
 import { TransactionType } from '@metamask/transaction-controller';
 import {
   selectTransactions,
+  selectLastUsedPaymentMethod,
   selectLastWithdrawTokenByType,
   selectLocalTransactions,
   selectNonReplacedTransactions,
@@ -550,6 +551,272 @@ describe('TransactionController Selectors', () => {
       );
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectLastUsedPaymentMethod', () => {
+    it('returns the token from the latest non-replaced transaction matching the type, ignoring the current transaction', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'older',
+                  metamaskPay: {
+                    chainId: '0x1',
+                    tokenAddress: '0xolder',
+                  },
+                  time: 100,
+                  type: TransactionType.perpsDeposit,
+                },
+                {
+                  id: 'latest',
+                  metamaskPay: {
+                    chainId: '0x89',
+                    tokenAddress: '0xlatest',
+                  },
+                  time: 200,
+                  type: TransactionType.perpsDeposit,
+                },
+              ],
+            },
+          },
+        },
+        pendingSmartTransactions: [],
+      } as unknown as RootState;
+
+      const result = selectLastUsedPaymentMethod(
+        state,
+        TransactionType.perpsDeposit,
+        'unrelated-current-tx-id',
+      );
+
+      expect(result).toStrictEqual({
+        address: '0xlatest',
+        chainId: '0x89',
+      });
+    });
+
+    it('returns undefined when transactionType is not provided', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'tx',
+                  metamaskPay: {
+                    chainId: '0x1',
+                    tokenAddress: '0xabc',
+                  },
+                  time: 100,
+                  type: TransactionType.perpsDeposit,
+                },
+              ],
+            },
+          },
+        },
+        pendingSmartTransactions: [],
+      } as unknown as RootState;
+
+      const result = selectLastUsedPaymentMethod(state, undefined);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('skips transactions of a different type', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'perps',
+                  metamaskPay: {
+                    chainId: '0x1',
+                    tokenAddress: '0xperps',
+                  },
+                  time: 200,
+                  type: TransactionType.perpsDeposit,
+                },
+                {
+                  id: 'predict',
+                  metamaskPay: {
+                    chainId: '0x89',
+                    tokenAddress: '0xpredict',
+                  },
+                  time: 100,
+                  type: TransactionType.predictDeposit,
+                },
+              ],
+            },
+          },
+        },
+        pendingSmartTransactions: [],
+      } as unknown as RootState;
+
+      const result = selectLastUsedPaymentMethod(
+        state,
+        TransactionType.predictDeposit,
+      );
+
+      expect(result).toStrictEqual({
+        address: '0xpredict',
+        chainId: '0x89',
+      });
+    });
+
+    it('returns undefined when no matching transaction has metamaskPay metadata', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'tx',
+                  time: 200,
+                  type: TransactionType.perpsDeposit,
+                },
+              ],
+            },
+          },
+        },
+        pendingSmartTransactions: [],
+      } as unknown as RootState;
+
+      const result = selectLastUsedPaymentMethod(
+        state,
+        TransactionType.perpsDeposit,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when the matching transaction has no tokenAddress', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'tx',
+                  metamaskPay: {
+                    chainId: '0x1',
+                  },
+                  time: 200,
+                  type: TransactionType.perpsDeposit,
+                },
+              ],
+            },
+          },
+        },
+        pendingSmartTransactions: [],
+      } as unknown as RootState;
+
+      const result = selectLastUsedPaymentMethod(
+        state,
+        TransactionType.perpsDeposit,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when the transactions list is empty', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [],
+            },
+          },
+        },
+        pendingSmartTransactions: [],
+      } as unknown as RootState;
+
+      const result = selectLastUsedPaymentMethod(
+        state,
+        TransactionType.perpsDeposit,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('matches the type via nestedTransactions when metamaskPay is set on the batch parent', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'batch',
+                  metamaskPay: {
+                    chainId: '0x89',
+                    tokenAddress: '0xnested',
+                  },
+                  nestedTransactions: [{ type: TransactionType.perpsDeposit }],
+                  time: 200,
+                  type: TransactionType.batch,
+                },
+              ],
+            },
+          },
+        },
+        pendingSmartTransactions: [],
+      } as unknown as RootState;
+
+      const result = selectLastUsedPaymentMethod(
+        state,
+        TransactionType.perpsDeposit,
+      );
+
+      expect(result).toStrictEqual({
+        address: '0xnested',
+        chainId: '0x89',
+      });
+    });
+
+    it('skips the current transaction so an in-progress selection is not surfaced as last used', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'previous',
+                  metamaskPay: {
+                    chainId: '0x1',
+                    tokenAddress: '0xprevious',
+                  },
+                  time: 100,
+                  type: TransactionType.perpsDeposit,
+                },
+                {
+                  id: 'current',
+                  metamaskPay: {
+                    chainId: '0x89',
+                    tokenAddress: '0xcurrent',
+                  },
+                  time: 200,
+                  type: TransactionType.perpsDeposit,
+                },
+              ],
+            },
+          },
+        },
+        pendingSmartTransactions: [],
+      } as unknown as RootState;
+
+      const result = selectLastUsedPaymentMethod(
+        state,
+        TransactionType.perpsDeposit,
+        'current',
+      );
+
+      expect(result).toStrictEqual({
+        address: '0xprevious',
+        chainId: '0x1',
+      });
     });
   });
 
