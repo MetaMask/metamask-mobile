@@ -51,8 +51,8 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
         )}
         <Text
           style={tw`min-w-0 shrink text-[14px] font-medium text-default`}
-          numberOfLines={numberOfLines}
-          ellipsizeMode={ellipsizeMode}
+          numberOfLines={numberOfLines ?? 1}
+          ellipsizeMode={ellipsizeMode ?? 'tail'}
         >
           {label}
         </Text>
