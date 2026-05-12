@@ -338,7 +338,6 @@ const MoneyHomeView = () => {
           onHeaderPress={handleGetNowPress}
           onLinkPress={handleLinkCardPress}
           onManagePress={handleManageCardPress}
-          apy={apyPercent}
           showMetalCard={isUS}
           cardBalance={cardBalance}
         />

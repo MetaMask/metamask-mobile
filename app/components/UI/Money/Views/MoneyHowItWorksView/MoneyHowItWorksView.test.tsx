@@ -36,7 +36,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'money.how_it_works_page.header_title': 'Money',
       'money.how_it_works_page.section_title': 'How it works',
       'money.how_it_works_page.description_1':
-        'Your Money account earns 4% APY (variable) automatically. Funds go into a curated DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.',
+        'Deposit mUSD into your Money account and earn up to 4% APY (variable) automatically. Funds go into a DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.',
       'money.how_it_works_page.description_2':
         'Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.',
       'money.how_it_works_page.faq_title': 'Frequently asked questions',

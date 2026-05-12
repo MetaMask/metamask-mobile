@@ -7,7 +7,6 @@ import {
   type BottomSheetRef,
   FontWeight,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -47,7 +46,6 @@ const MoneyEarnCryptoInfoSheet = () => {
       <View style={styles.content}>
         <Text
           variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
           testID={MoneyEarnCryptoInfoSheetTestIds.BODY}
         >
           {strings('money.earn_crypto_info_sheet.body')}

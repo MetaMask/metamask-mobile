@@ -168,14 +168,14 @@ const MoneyBalanceCard = () => {
             />
           ) : (
             <Text
-              variant={TextVariant.BodyXs}
+              variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               color={TextColor.SuccessDefault}
               testID={MoneyBalanceCardTestIds.APY_TAG}
             >
               {strings('money.apy_label', { percentage: apyPercent ?? 0 })}
               <Text
-                variant={TextVariant.BodyXs}
+                variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
               >

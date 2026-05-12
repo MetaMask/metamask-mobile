@@ -171,9 +171,31 @@ describe('MoneyPotentialEarnings', () => {
     expect(queryByText('EXT')).not.toBeOnTheScreen();
   });
 
-  it('renders the View all button whenever the section has any tokens', () => {
+  it('hides the View all button when fewer than six tokens are eligible', () => {
+    const { queryByTestId } = render(
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL]}
+      />,
+    );
+
+    expect(
+      queryByTestId(MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the View all button when six or more tokens are eligible', () => {
+    const extra = makeToken({
+      name: 'Extra',
+      symbol: 'EXT',
+      address: '0x0000000000000000000000000000000000000004',
+      fiat: { balance: 100 },
+    });
     const { getByTestId } = render(
-      <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} />,
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
+      />,
     );
 
     expect(
@@ -182,11 +204,17 @@ describe('MoneyPotentialEarnings', () => {
   });
 
   it('calls onViewAllPress when View all is pressed', () => {
+    const extra = makeToken({
+      name: 'Extra',
+      symbol: 'EXT',
+      address: '0x0000000000000000000000000000000000000004',
+      fiat: { balance: 100 },
+    });
     const onViewAll = jest.fn();
     const { getByTestId } = render(
       <MoneyPotentialEarnings
         apy={4}
-        tokens={[MOCK_USDC]}
+        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
         onViewAllPress={onViewAll}
       />,
     );

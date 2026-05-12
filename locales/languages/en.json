@@ -6587,7 +6587,7 @@
     "balance_card": {
       "label": "Money balance",
       "add": "Add",
-      "info_sheet_title": "Money Home",
+      "info_sheet_title": "Money balance",
       "info_sheet_body": "Your dollar-backed mUSD balance that's always available to spend, send, or trade anytime. We don't calculate this into your total account balance.\n\nWithdrawals process immediately, subject to standard network confirmation times on the relevant blockchain. If liquidity is tight, there may be temporary delays."
     },
     "potential_earnings": {
@@ -6610,8 +6610,8 @@
       "get_now": "Get now",
       "link_title": "Link MetaMask Card",
       "link_subtitle": "Spend your Money balance and earn on purchases. Plus, up to 4% APY on your balance.",
-      "link_bullet_cashback": "Get 1% mUSD back",
-      "link_bullet_apy": "Earn up to {{apy}}% APY",
+      "link_bullet_cashback": "Get {{percentage}}% mUSD back",
+      "link_bullet_apy": "Earn up to 4% APY",
       "link_card": "Link card",
       "manage_card": "Manage",
       "avail_balance": "Avail. balance"
@@ -6712,7 +6712,7 @@
     "how_it_works_page": {
       "header_title": "Money",
       "section_title": "How it works",
-      "description_1": "Your Money account earns 4% APY (variable) automatically. Funds go into a curated DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
+      "description_1": "Deposit mUSD into your Money account and earn up to 4% APY (variable) automatically. Funds go into a DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
       "description_2": "Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.",
       "faq_title": "Frequently asked questions",
       "faq_placeholder_answer": "Coming soon.",

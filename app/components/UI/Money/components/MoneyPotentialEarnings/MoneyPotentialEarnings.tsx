@@ -163,6 +163,7 @@ const MoneyPotentialEarnings = ({
                   name={IconName.Info}
                   size={IconSize.Sm}
                   color={IconColor.IconAlternative}
+                  style={{ transform: [{ translateY: 3 }] }}
                 />
               </Text>
             )}
@@ -189,17 +190,19 @@ const MoneyPotentialEarnings = ({
           />
         ))}
 
-        <Box twClassName="px-4 py-3">
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={onViewAllPress}
-            testID={MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON}
-          >
-            {strings('money.potential_earnings.view_all')}
-          </Button>
-        </Box>
+        {eligibleTokens.length > MAX_TOKENS && (
+          <Box twClassName="px-4 py-3">
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={onViewAllPress}
+              testID={MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON}
+            >
+              {strings('money.potential_earnings.view_all')}
+            </Button>
+          </Box>
+        )}
       </>
     </Box>
   );

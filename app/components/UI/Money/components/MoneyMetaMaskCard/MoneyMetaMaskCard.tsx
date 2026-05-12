@@ -40,8 +40,6 @@ interface MoneyMetaMaskCardProps {
   onLinkPress?: () => void;
   /** Called when the "Manage" button is pressed (manage mode only). */
   onManagePress?: () => void;
-  /** Current APY value displayed in the link mode bullet. */
-  apy?: number;
   /**
    * Whether to render the Metal card row in upsell mode. Defaults to `false`
    * because the Metal card is currently only available to US users; the parent
@@ -124,14 +122,14 @@ const CheckBullet = ({ text, testID }: { text: string; testID: string }) => (
 
 const LinkContent = ({
   onLinkPress,
-  apy,
+  showMetalCard,
 }: {
   onLinkPress: () => void;
-  apy?: number;
+  showMetalCard: boolean;
 }) => (
-  <Box twClassName="gap-3">
+  <Box twClassName="gap-6">
     <Text
-      variant={TextVariant.BodySm}
+      variant={TextVariant.BodyMd}
       color={TextColor.TextAlternative}
       testID={MoneyMetaMaskCardTestIds.LINK_SUBTITLE}
     >
@@ -144,19 +142,19 @@ const LinkContent = ({
       testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
     >
       <Image
-        source={mmCardMetal}
+        source={showMetalCard ? mmCardMetal : mmCardRegular}
         style={styles.linkCardImage}
         testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
       />
       <Box twClassName="gap-2 flex-1 justify-center">
         <CheckBullet
-          text={strings('money.metamask_card.link_bullet_cashback')}
+          text={strings('money.metamask_card.link_bullet_cashback', {
+            percentage: showMetalCard ? '3' : '1',
+          })}
           testID={MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK}
         />
         <CheckBullet
-          text={strings('money.metamask_card.link_bullet_apy', {
-            apy: apy ?? 4,
-          })}
+          text={strings('money.metamask_card.link_bullet_apy')}
           testID={MoneyMetaMaskCardTestIds.LINK_BULLET_APY}
         />
       </Box>
@@ -278,7 +276,6 @@ const MoneyMetaMaskCard = ({
   onHeaderPress,
   onLinkPress,
   onManagePress,
-  apy,
   showMetalCard = false,
   cardBalance,
 }: MoneyMetaMaskCardProps) => {
@@ -290,7 +287,12 @@ const MoneyMetaMaskCard = ({
 
   let content: React.ReactNode = null;
   if (mode === 'link') {
-    content = <LinkContent onLinkPress={handleLinkPress} apy={apy} />;
+    content = (
+      <LinkContent
+        onLinkPress={handleLinkPress}
+        showMetalCard={showMetalCard}
+      />
+    );
   } else if (mode === 'manage') {
     content = (
       <ManageContent

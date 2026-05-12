@@ -120,9 +120,9 @@ describe('MoneyMetaMaskCard', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders cashback and APY bullets', () => {
-      const { getByTestId, getByText } = render(
-        <MoneyMetaMaskCard mode="link" apy={4} onGetNowPress={jest.fn()} />,
+    it('renders 1% cashback and APY bullets for non-metal regions', () => {
+      const { getByTestId, getByText, queryByText } = render(
+        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
       );
 
       expect(
@@ -133,6 +133,27 @@ describe('MoneyMetaMaskCard', () => {
       ).toBeOnTheScreen();
       expect(getByText('Get 1% mUSD back')).toBeOnTheScreen();
       expect(getByText('Earn up to 4% APY')).toBeOnTheScreen();
+      expect(queryByText('Get 3% mUSD back')).not.toBeOnTheScreen();
+    });
+
+    it('renders 3% cashback and APY bullets when showMetalCard is true', () => {
+      const { getByTestId, getByText, queryByText } = render(
+        <MoneyMetaMaskCard
+          mode="link"
+          onGetNowPress={jest.fn()}
+          showMetalCard
+        />,
+      );
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
+      ).toBeOnTheScreen();
+      expect(getByText('Get 3% mUSD back')).toBeOnTheScreen();
+      expect(getByText('Earn up to 4% APY')).toBeOnTheScreen();
+      expect(queryByText('Get 1% mUSD back')).not.toBeOnTheScreen();
     });
 
     it('renders "Link card" button', () => {
@@ -203,7 +224,6 @@ describe('MoneyMetaMaskCard', () => {
       onGetNowPress: jest.fn(),
       onManagePress: jest.fn(),
       cardBalance: '$2,342.86',
-      apy: 4,
     };
 
     beforeEach(() => {
