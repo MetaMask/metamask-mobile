@@ -213,13 +213,14 @@ describe('WhatsHappeningSection', () => {
       nativeEvent: { contentOffset: { x: 292, y: 0 } },
     });
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
         properties: expect.objectContaining({
           interaction_type: 'pan',
+          view: 'carousel',
           trend_id: secondItem.id,
           card_index: 1,
           source: 'homepage',
@@ -242,7 +243,7 @@ describe('WhatsHappeningSection', () => {
       nativeEvent: { contentOffset: { x: 0, y: 0 } },
     });
     expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
     );
   });
 });

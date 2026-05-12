@@ -29,6 +29,7 @@ import {
   MAX_ITEMS_DISPLAYED,
   WhatsHappeningInteractionType,
   WhatsHappeningSource,
+  WhatsHappeningView,
   type WhatsHappeningSourceValue,
 } from '../Homepage/Sections/WhatsHappening/constants';
 import { getWhatsHappeningEventProps } from '../Homepage/Sections/WhatsHappening/eventProperties';
@@ -198,12 +199,11 @@ const WhatsHappeningDetailView = () => {
               .build(),
           );
           trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
-            )
+            createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTED)
               .addProperties({
                 ...getWhatsHappeningEventProps(newItem, index, source),
                 interaction_type: WhatsHappeningInteractionType.Pan,
+                view: WhatsHappeningView.Expanded,
               })
               .build(),
           );

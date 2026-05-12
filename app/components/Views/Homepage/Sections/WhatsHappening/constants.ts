@@ -9,6 +9,11 @@ export const WhatsHappeningSource = {
 export type WhatsHappeningSourceValue =
   (typeof WhatsHappeningSource)[keyof typeof WhatsHappeningSource];
 
+export const WhatsHappeningView = {
+  Carousel: 'carousel',
+  Expanded: 'expanded',
+} as const;
+
 export const WhatsHappeningInteractionType = {
   SourceClick: 'source_click',
   BuyPressed: 'buy_pressed',

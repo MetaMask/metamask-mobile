@@ -25,6 +25,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   MAX_ITEMS_DISPLAYED,
   WhatsHappeningInteractionType,
+  WhatsHappeningView,
   type WhatsHappeningSourceValue,
 } from './constants';
 import { useWhatsHappening } from './hooks';
@@ -134,12 +135,11 @@ const WhatsHappeningSection = forwardRef<
         const item = items[index];
         if (item) {
           trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
-            )
+            createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTED)
               .addProperties({
                 ...getWhatsHappeningEventProps(item, index, source),
                 interaction_type: WhatsHappeningInteractionType.Pan,
+                view: WhatsHappeningView.Carousel,
               })
               .build(),
           );
