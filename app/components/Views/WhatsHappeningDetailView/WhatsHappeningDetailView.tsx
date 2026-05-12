@@ -24,10 +24,12 @@ import type { Article } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../Homepage/Sections/WhatsHappening/types';
 import { strings } from '../../../../locales/i18n';
 import { useWhatsHappening } from '../Homepage/Sections/WhatsHappening/hooks';
-import { WhatsHappeningCardSkeleton } from '../Homepage/Sections/WhatsHappening/components';
+import WhatsHappeningExpandedCardSkeleton from './components/WhatsHappeningExpandedCardSkeleton';
 import {
   MAX_ITEMS_DISPLAYED,
+  WhatsHappeningInteractionType,
   WhatsHappeningSource,
+  WhatsHappeningView,
   type WhatsHappeningSourceValue,
 } from '../Homepage/Sections/WhatsHappening/constants';
 import { getWhatsHappeningEventProps } from '../Homepage/Sections/WhatsHappening/eventProperties';
@@ -196,6 +198,15 @@ const WhatsHappeningDetailView = () => {
               )
               .build(),
           );
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTED)
+              .addProperties({
+                ...getWhatsHappeningEventProps(newItem, index, source),
+                interaction_type: WhatsHappeningInteractionType.Pan,
+                view: WhatsHappeningView.Expanded,
+              })
+              .build(),
+          );
         }
         previousIndexRef.current = index;
       }
@@ -236,7 +247,10 @@ const WhatsHappeningDetailView = () => {
               testID="whats-happening-detail-skeleton"
             >
               {SKELETON_KEYS.map((key) => (
-                <WhatsHappeningCardSkeleton key={key} />
+                <WhatsHappeningExpandedCardSkeleton
+                  key={key}
+                  cardWidth={CARD_WIDTH}
+                />
               ))}
             </ScrollView>
           ) : hasError ? (

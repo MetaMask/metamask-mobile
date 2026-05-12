@@ -361,15 +361,16 @@ export interface ICardProvider {
     tokens: CardAuthTokens,
   ): Promise<void>;
   getFundingConfig?(tokens: CardAuthTokens): Promise<CardFundingConfig>;
-
-  /**
-   * Fetches a short-lived delegation session (nonce + JWT) before SIWE + on-chain approve.
-   */
   fetchDelegationChallenge?(
     params: { network: string; address: string; faucet?: boolean },
     tokens: CardAuthTokens,
   ): Promise<DelegationChallengeResponse>;
-
+  generateCardDelegationSignatureMessage?(params: {
+    network: string;
+    address: string;
+    nonce: string;
+    caipChainId?: string;
+  }): string;
   approveFunding?(
     params: FundingApprovalParams,
     tokens: CardAuthTokens,
