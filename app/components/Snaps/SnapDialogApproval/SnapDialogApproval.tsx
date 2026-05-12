@@ -70,7 +70,7 @@ const SnapDialogApproval = () => {
     setIsDismissed(true);
     await Engine.acceptPendingApproval(
       approvalRequest.id,
-      false as unknown as Record<string, Json>,
+      null as unknown as Record<string, Json>,
     );
     await Engine.context.SnapInterfaceController.deleteInterface(
       approvalRequest.id,
