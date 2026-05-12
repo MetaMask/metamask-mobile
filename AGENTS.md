@@ -242,7 +242,7 @@ Harness entrypoints:
 Compliance check command:
 
 ```bash
-bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged
+bash scripts/check-ab-testing-compliance.sh --staged
 ```
 
 If no files are staged, the checker automatically falls back to changed working-tree files.
