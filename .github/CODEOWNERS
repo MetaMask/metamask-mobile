@@ -85,14 +85,25 @@ app/core/Engine/messengers/card-controller-messenger       @MetaMask/card
 app/selectors/cardController.ts                            @MetaMask/card
 
 # Confirmation Team
-app/components/Views/confirmations                          @MetaMask/confirmations
-app/components/Views/confirmations/external/staking          @MetaMask/confirmations @MetaMask/earn
-app/core/Engine/controllers/approval-controller             @MetaMask/confirmations
-app/core/Engine/controllers/gas-fee-controller              @MetaMask/confirmations
-app/core/Engine/controllers/signature-controller            @MetaMask/confirmations
-app/core/Engine/controllers/transaction-controller          @MetaMask/confirmations
-app/core/Analytics/events/confirmations                     @MetaMask/confirmations
-app/selectors/featureFlagController/confirmations/          @MetaMask/confirmations
+app/components/Views/confirmations                              @MetaMask/confirmations
+app/components/Views/confirmations/external/staking             @MetaMask/confirmations @MetaMask/earn
+app/core/Analytics/events/confirmations                         @MetaMask/confirmations
+app/core/Engine/controllers/approval-controller                 @MetaMask/confirmations
+app/core/Engine/controllers/gas-fee-controller                  @MetaMask/confirmations
+app/core/Engine/controllers/signature-controller                @MetaMask/confirmations
+app/core/Engine/controllers/transaction-controller              @MetaMask/confirmations
+app/core/Engine/controllers/transaction-pay-controller          @MetaMask/confirmations
+app/core/Engine/messengers/approval-controller-messenger        @MetaMask/confirmations
+app/core/Engine/messengers/gas-fee-controller-messenger         @MetaMask/confirmations
+app/core/Engine/messengers/signature-controller-messenger       @MetaMask/confirmations
+app/core/Engine/messengers/transaction-controller-messenger     @MetaMask/confirmations
+app/core/Engine/messengers/transaction-pay-controller-messenger @MetaMask/confirmations
+app/selectors/approvalController.*                              @MetaMask/confirmations
+app/selectors/featureFlagController/confirmations/              @MetaMask/confirmations
+app/selectors/gasFeeController.*                                @MetaMask/confirmations
+app/selectors/signatureController.*                             @MetaMask/confirmations
+app/selectors/transactionController.*                           @MetaMask/confirmations
+app/selectors/transactionPayController.*                        @MetaMask/confirmations
 
 # Wallet integrations Team
 app/actions/sdk/                                            @MetaMask/wallet-integrations
@@ -158,7 +169,12 @@ app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/core-plat
 app/components/UI/Stake              @MetaMask/earn
 app/core/Engine/controllers/earn-controller @MetaMask/earn
 app/core/Engine/messengers/earn-controller-messenger @MetaMask/earn
+app/core/Engine/controllers/chomp-api-service-init*                    @MetaMask/earn
+app/core/Engine/controllers/money-account-upgrade-controller-init*     @MetaMask/earn
+app/core/Engine/messengers/chomp-api-service-messenger*                @MetaMask/earn
+app/core/Engine/messengers/money-account-upgrade-controller-messenger* @MetaMask/earn
 app/selectors/earnController         @MetaMask/earn
+app/selectors/featureFlagController/chompApi/ @MetaMask/earn
 **/Earn/**                           @MetaMask/earn
 **/earn/**                           @MetaMask/earn
 **/Money/**                          @MetaMask/earn
@@ -358,6 +374,7 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/run-performance-e2e.yml                       @MetaMask/qa
 .github/workflows/run-performance-e2e-experimental.yml          @MetaMask/qa
 .github/workflows/run-performance-e2e-release.yml               @MetaMask/qa
+.github/workflows/run-system-tests.yml                          @MetaMask/qa
 .github/scripts/e2e-*.mjs                                       @MetaMask/qa
 .github/scripts/collect-qa-stats.mjs                            @MetaMask/qa
 .github/scripts/generate-regression-slack-summary.mjs           @MetaMask/qa

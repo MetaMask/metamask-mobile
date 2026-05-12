@@ -277,8 +277,11 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         await TestDApp.tapOpenNetworkPicker();
         await TestDApp.tapNetworkByName(POLYGON);
 
-        // Verify the permission request UI
-        const expectedText = `Use your enabled networks Requesting for ${POLYGON} Mainnet`;
+        // Verify the permission request UI.
+        // The button auto-aggregates two text children ("Use your enabled
+        // networks" + "Requesting for <network> Mainnet") into one a11y label.
+        // iOS UIAccessibility joins those with ", " (RN 0.81 behavior change).
+        const expectedText = `Use your enabled networks, Requesting for ${POLYGON} Mainnet`;
         await Assertions.expectElementToHaveLabel(
           ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
           expectedText,

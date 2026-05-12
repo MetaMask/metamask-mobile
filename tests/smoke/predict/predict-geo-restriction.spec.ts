@@ -22,6 +22,9 @@ import {
   POLYMARKET_GEO_BLOCKED_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import PredictAddFunds from '../../page-objects/Predict/PredictAddFunds';
+import { getEventsPayloads } from '../../helpers/analytics/helpers';
+import SoftAssert from '../../framework/SoftAssert';
+import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants';
 import {
   geoBlockedPredictActionExpectations,
   geoBlockedCashoutExpectations,
@@ -119,7 +122,9 @@ describe(
           await WalletView.scrollAndTapPredictionsPosition(
             'Spurs vs. Pelicans',
           );
-          await PredictDetailsPage.tapCashOutButton();
+          await PredictDetailsPage.tapGameCashOutButton(
+            SPURS_PELICANS_POSITION_ID,
+          );
 
           await PredictUnavailableView.expectVisible();
           await PredictUnavailableView.tapGotIt();

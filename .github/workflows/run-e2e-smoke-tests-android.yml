@@ -13,6 +13,11 @@ on:
         required: false
         type: string
         default: ''
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
 
 permissions:
   contents: read
@@ -33,6 +38,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 2
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   stake-android-smoke:
@@ -49,6 +55,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   perps-android-smoke:
@@ -65,6 +72,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   wallet-platform-android-smoke:
@@ -81,6 +89,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 3
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   identity-android-smoke:
@@ -97,6 +106,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 2
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   accounts-android-smoke:
@@ -113,6 +123,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   network-abstraction-android-smoke:
@@ -129,6 +140,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 2
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   network-expansion-android-smoke:
@@ -145,6 +157,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 2
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   confirmations-android-smoke:
@@ -161,6 +174,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 4
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   prediction-market-android-smoke:
@@ -177,6 +191,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   money-android-smoke:
@@ -193,6 +208,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   multichain-api-android-smoke:
@@ -209,6 +225,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   seedless-onboarding-android-smoke:
@@ -225,6 +242,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   browser-android-smoke:
@@ -241,6 +259,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   snaps-android-smoke:
@@ -257,11 +276,12 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 4
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   report-android-smoke-tests:
     name: Report Android Smoke Tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
     needs:
       - swap-android-smoke

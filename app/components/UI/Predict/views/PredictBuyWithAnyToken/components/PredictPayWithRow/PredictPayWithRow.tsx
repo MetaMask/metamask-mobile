@@ -27,7 +27,7 @@ import {
   TokenIconVariant,
 } from '../../../../../../Views/confirmations/components/token-icon';
 import { isHardwareAccount } from '../../../../../../../util/address';
-import { POLYGON_USDCE } from '../../../../../../Views/confirmations/constants/predict';
+import { POLYGON_PUSD } from '../../../../../../Views/confirmations/constants/predict';
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
 import { PREDICT_BALANCE_CHAIN_ID } from '../../../../constants/transactions';
 import { usePredictDefaultPaymentToken } from '../../hooks/usePredictDefaultPaymentToken';
@@ -74,7 +74,7 @@ export function PredictPayWithRow({
     ? 'Predict balance'
     : (selectedPaymentToken?.symbol ?? payToken?.symbol ?? '');
   const tokenIconAddress = showPredictBalance
-    ? POLYGON_USDCE.address
+    ? POLYGON_PUSD.address
     : (payToken?.address as Hex | undefined);
   const tokenIconChainId = showPredictBalance
     ? PREDICT_BALANCE_CHAIN_ID

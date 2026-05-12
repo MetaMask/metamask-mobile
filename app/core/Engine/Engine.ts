@@ -9,7 +9,10 @@ import {
   NativeEventSubscription,
 } from 'react-native';
 ///: END:ONLY_INCLUDE_IF
-import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
+import {
+  CodefiTokenPricesServiceV2,
+  TokenListService,
+} from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
 import {
   KeyringController,
@@ -158,7 +161,6 @@ import { TransactionPayControllerInit } from './controllers/transaction-pay-cont
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
 import { tokensControllerInit } from './controllers/tokens-controller-init';
-import { tokenListControllerInit } from './controllers/token-list-controller-init';
 import { tokenDetectionControllerInit } from './controllers/token-detection-controller-init';
 import { tokenBalancesControllerInit } from './controllers/token-balances-controller-init';
 import { tokenRatesControllerInit } from './controllers/token-rates-controller-init';
@@ -195,6 +197,8 @@ import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
+import { chompApiServiceInit } from './controllers/chomp-api-service-init';
+import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -272,6 +276,12 @@ export class Engine {
   >;
 
   /**
+   * Shared token list service. Stored so destroyEngineInstance can call
+   * destroy() to abort in-flight requests and clear the TanStack Query cache.
+   */
+  private tokenListService: TokenListService;
+
+  /**
    * Creates a CoreController instance
    */
   constructor(
@@ -285,6 +295,8 @@ export class Engine {
     this.controllerMessenger = getRootExtendedMessenger();
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
+    const tokenListService = new TokenListService();
+    this.tokenListService = tokenListService;
 
     const initRequest = {
       getState: () => store.getState(),
@@ -296,6 +308,7 @@ export class Engine {
       initialKeyringState: keyringState,
       qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
+      tokenListService,
     };
     const { messengerClientsByName } = initMessengerClients({
       initFunctions: {
@@ -338,7 +351,6 @@ export class Engine {
         MultichainNetworkController: multichainNetworkControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
         TokenRatesController: tokenRatesControllerInit,
-        TokenListController: tokenListControllerInit,
         TokenDetectionController: tokenDetectionControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
@@ -399,6 +411,8 @@ export class Engine {
         CardController: cardControllerInit,
         ComplianceService: complianceServiceInit,
         ComplianceController: complianceControllerInit,
+        ChompApiService: chompApiServiceInit,
+        MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -474,7 +488,6 @@ export class Engine {
     const tokenBalancesController =
       messengerClientsByName.TokenBalancesController;
     const tokenRatesController = messengerClientsByName.TokenRatesController;
-    const tokenListController = messengerClientsByName.TokenListController;
     const tokenDetectionController =
       messengerClientsByName.TokenDetectionController;
     const tokenSearchDiscoveryDataController =
@@ -556,7 +569,6 @@ export class Engine {
       AssetsController: messengerClientsByName.AssetsController,
       NftController: nftController,
       TokensController: tokensController,
-      TokenListController: tokenListController,
       TokenDetectionController: tokenDetectionController,
       NftDetectionController: nftDetectionController,
       CurrencyRateController: currencyRateController,
@@ -631,6 +643,9 @@ export class Engine {
       ClientController: clientController,
       ComplianceService: complianceService,
       ComplianceController: complianceController,
+      ChompApiService: messengerClientsByName.ChompApiService,
+      MoneyAccountUpgradeController:
+        messengerClientsByName.MoneyAccountUpgradeController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1214,6 +1229,7 @@ export class Engine {
         controller.destroy();
       }
     });
+    this.tokenListService.destroy();
     this.removeAllListeners();
     await this.resetState();
 
@@ -1392,7 +1408,6 @@ export default {
       SignatureController,
       SmartTransactionsController,
       TokenBalancesController,
-      TokenListController,
       TokenRatesController,
       TokensController,
       TokenSearchDiscoveryDataController,
@@ -1422,6 +1437,7 @@ export default {
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController,
       MoneyAccountController,
+      MoneyAccountUpgradeController,
     } = instance.context;
 
     return {
@@ -1464,7 +1480,6 @@ export default {
       SignatureController: SignatureController.state,
       SmartTransactionsController: SmartTransactionsController.state,
       TokenBalancesController: TokenBalancesController.state,
-      TokenListController: TokenListController.state,
       TokenRatesController: TokenRatesController.state,
       TokensController: TokensController.state,
       TokenSearchDiscoveryDataController:
@@ -1497,6 +1512,7 @@ export default {
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
+      MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
     };
   },
 
