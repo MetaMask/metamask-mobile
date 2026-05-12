@@ -145,7 +145,7 @@ const QRInfo = () => {
         onScanError={onScanError}
         onQRHardwareScanError={onQRHardwareScanError}
         onModalHideComplete={handleScannerModalHide}
-        hideModal={() => setScannerVisible(false)}
+        hideModal={hideScanner}
       />
     </View>
   );
