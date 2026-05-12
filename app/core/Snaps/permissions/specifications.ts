@@ -23,13 +23,11 @@ import {
   KeyringControllerGetStateAction,
   KeyringControllerUnlockEvent,
   KeyringControllerWithKeyringAction,
-  KeyringMetadata,
   KeyringTypes,
 } from '@metamask/keyring-controller';
 import { MaybeUpdateState, TestOrigin } from '@metamask/phishing-controller';
 import { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
 import { ApprovalControllerAddRequestAction } from '@metamask/approval-controller';
-import Logger from '../../../util/Logger';
 import { HasPermission } from '@metamask/permission-controller';
 import { hmacSha512 } from '@metamask/native-utils';
 import { pbkdf2 } from '../../Encryptor';
@@ -58,8 +56,7 @@ export type SnapPermissionSpecificationsActions =
   | SnapInterfaceControllerUpdateInterfaceAction
   | KeyringControllerGetStateAction
   | HasPermission
-  | SnapInterfaceControllerSetInterfaceDisplayedAction
-  | ApprovalControllerAddRequestAction;
+  | SnapInterfaceControllerSetInterfaceDisplayedAction;
 
 export type SnapPermissionSpecificationsEvents = KeyringControllerUnlockEvent;
 
