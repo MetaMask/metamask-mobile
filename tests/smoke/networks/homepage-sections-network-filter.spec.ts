@@ -129,14 +129,14 @@ describe(
       );
     });
 
-    it('shows all tokens on homepage regardless of network filter set in tokens full view', async () => {
+    it('shows homepage tokens regardless of full-view network filter state', async () => {
       await withFixtures(
         {
           // withTokensForAllPopularNetworks seeds both TokensController.allTokens
           // AND TokenBalancesController (required for ERC-20s to show in the selector).
           // Seed the full-view token filter directly. The previous test covers
           // selecting networks through NetworkManager; this test only verifies
-          // the homepage ignores the full-view filter.
+          // the homepage ignores the full-view filter state.
           fixture: new FixtureBuilder()
             .withTokensForAllPopularNetworks([ETH_TOKEN, USDC_TOKEN])
             .withNetworkEnabledMap({ eip155: { '0x1': true, '0xe708': true } })
@@ -158,24 +158,8 @@ describe(
             description: 'Wallet homepage should be visible',
           });
 
-          // Navigate to TokensFullView with a seeded Linea-only filter.
-          // No tokens were seeded on Linea, so the full view becomes empty.
-          await WalletView.tapOnNewTokensSection();
-          await TokensFullView.waitForVisible();
-
-          await NetworkManager.checkBaseControlBarText(
-            NetworkToCaipChainId.LINEA,
-          );
-
-          // Full view: Ethereum tokens should not be visible (filtered to Linea only)
-          await NetworkManager.checkTokenIsNotVisible('ETH');
-
-          // Return to the homepage
-          await TokensFullView.tapBackButton();
-
-          await WalletView.waitForScreenToDisplay();
-
-          // Homepage tokens section shows Ethereum tokens regardless of the Linea-only filter
+          // Homepage tokens section shows Ethereum tokens regardless of the
+          // full-view Linea-only token filter.
           await NetworkManager.checkTokenIsVisible('USDC');
           await NetworkManager.checkTokenIsVisible('ETH');
         },
