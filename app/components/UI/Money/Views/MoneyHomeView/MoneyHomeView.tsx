@@ -240,9 +240,10 @@ const MoneyHomeView = () => {
     metamaskCardMode = 'upsell';
   }
 
-  // No selector yet for the user's card balance — pass undefined for now.
-  // `ManageContent` handles `undefined` gracefully via its `subtitle` check.
-  const cardBalance: string | undefined = undefined;
+  // No selector yet for the user's card balance — fall back to a locale-
+  // formatted zero so the manage row always shows a value rather than a
+  // blank slot under "Avail. balance".
+  const cardBalance: string = formattedZero;
 
   return (
     <Box
