@@ -5969,6 +5969,52 @@ describe('HyperLiquidProvider', () => {
       expect(result.orderId).toBeDefined();
     });
 
+    it('leaves builder fee cache empty when wrapped KEYRING_LOCKED is thrown', async () => {
+      const wrappedKeyringLockedError = Object.assign(
+        new Error('Failed to sign typed data with viem wallet'),
+        { cause: new Error('KEYRING_LOCKED') },
+      );
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          maxBuilderFee: jest.fn().mockResolvedValue(0),
+          referral: jest.fn().mockResolvedValue({
+            referrerState: {
+              stage: 'not_ready',
+              data: null,
+            },
+          }),
+        }),
+      );
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          approveBuilderFee: jest
+            .fn()
+            .mockRejectedValue(wrappedKeyringLockedError),
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(true);
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setBuilderFee,
+      ).not.toHaveBeenCalled();
+      expect(mockCompleteInFlight).toHaveBeenCalled();
+    });
+
     it('handles referral code setup failure (non-blocking)', async () => {
       // Mock builder fee already approved
       mockClientService.getInfoClient = jest
@@ -6317,40 +6363,6 @@ describe('HyperLiquidProvider', () => {
           .setBuilderFee,
       ).not.toHaveBeenCalled();
       // Assert - in-flight lock should be released
-      expect(mockCompleteInFlight).toHaveBeenCalled();
-    });
-
-    it('skips cache when a wrapped KEYRING_LOCKED error is thrown', async () => {
-      // Arrange
-      const wrappedKeyringLockedError = Object.assign(
-        new Error('Failed to sign typed data with viem wallet'),
-        { cause: new Error('KEYRING_LOCKED') },
-      );
-      const mockCompleteInFlight = jest.fn();
-      (
-        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
-      ).setInFlight.mockReturnValue(mockCompleteInFlight);
-      mockClientService.getInfoClient = jest.fn().mockReturnValue(
-        createMockInfoClient({
-          maxBuilderFee: jest.fn().mockResolvedValue(0),
-        }),
-      );
-      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
-        createMockExchangeClient({
-          approveBuilderFee: jest
-            .fn()
-            .mockRejectedValue(wrappedKeyringLockedError),
-        }),
-      );
-
-      // Act
-      await testableProvider.ensureBuilderFeeApproval();
-
-      // Assert
-      expect(
-        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
-          .setBuilderFee,
-      ).not.toHaveBeenCalled();
       expect(mockCompleteInFlight).toHaveBeenCalled();
     });
   });
