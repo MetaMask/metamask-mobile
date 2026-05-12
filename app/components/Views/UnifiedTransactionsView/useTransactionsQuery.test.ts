@@ -3,6 +3,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { apiClient } from '../../../core/apiClient';
 import { selectEvmAddress } from '../../../selectors/accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectEvmEnabledCaipNetworks } from '../../../selectors/networkEnablementController';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { MINUTE } from '../../../constants/time';
@@ -28,6 +29,13 @@ jest.mock('../../../selectors/accountsController', () => ({
   selectEvmAddress: jest.fn(),
 }));
 
+jest.mock(
+  '../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroupEvmInternalAccount: jest.fn(),
+  }),
+);
+
 jest.mock('../../../selectors/networkEnablementController', () => ({
   selectEvmEnabledCaipNetworks: jest.fn(),
 }));
@@ -37,6 +45,7 @@ jest.mock('../../../selectors/transactionController', () => ({
 }));
 
 const ADDRESS_MOCK = '0x1234567890123456789012345678901234567890';
+const GROUP_EVM_ADDRESS_MOCK = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 const NETWORKS_MOCK = ['eip155:1', 'eip155:137'];
 const QUERY_OPTIONS_MOCK = {
   queryKey: ['transactions'],
@@ -53,12 +62,17 @@ describe('useTransactionsQuery', () => {
 
   function setupSelectors({
     evmAddress = ADDRESS_MOCK,
+    groupEvmAccount = null as { address: string } | null,
     networks = NETWORKS_MOCK,
   }: {
     evmAddress?: string;
+    groupEvmAccount?: { address: string } | null;
     networks?: string[];
   } = {}) {
     useSelectorMock.mockImplementation((selector) => {
+      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
+        return groupEvmAccount;
+      }
       if (selector === selectEvmAddress) {
         return evmAddress;
       }
@@ -111,7 +125,7 @@ describe('useTransactionsQuery', () => {
   });
 
   it('disables the query and sends no account addresses when there is no EVM address', () => {
-    setupSelectors({ evmAddress: '' });
+    setupSelectors({ evmAddress: '', groupEvmAccount: null });
 
     renderHook(() => useTransactionsQuery());
 
@@ -123,11 +137,60 @@ describe('useTransactionsQuery', () => {
     );
   });
 
+  it('uses account group EVM address when globally selected account has no EVM address', () => {
+    setupSelectors({
+      evmAddress: '',
+      groupEvmAccount: { address: GROUP_EVM_ADDRESS_MOCK },
+    });
+
+    renderHook(() => useTransactionsQuery());
+
+    expect(getQueryOptionsMock).toHaveBeenCalledWith({
+      accountAddresses: [`eip155:0:${GROUP_EVM_ADDRESS_MOCK}`],
+      networks: NETWORKS_MOCK,
+      includeTxMetadata: true,
+    });
+    expect(useInfiniteQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
+  });
+
   it('disables the query when there are no enabled networks', () => {
     setupSelectors({ networks: [] });
 
     renderHook(() => useTransactionsQuery());
 
+    expect(useInfiniteQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('prefers the account group EVM address over the global EVM address when both are set', () => {
+    setupSelectors({
+      evmAddress: ADDRESS_MOCK,
+      groupEvmAccount: { address: GROUP_EVM_ADDRESS_MOCK },
+    });
+
+    renderHook(() => useTransactionsQuery());
+
+    expect(getQueryOptionsMock).toHaveBeenCalledWith({
+      accountAddresses: [`eip155:0:${GROUP_EVM_ADDRESS_MOCK}`],
+      networks: NETWORKS_MOCK,
+      includeTxMetadata: true,
+    });
+  });
+
+  it('does not use global EVM address when group account has an empty string address', () => {
+    setupSelectors({
+      evmAddress: ADDRESS_MOCK,
+      groupEvmAccount: { address: '' },
+    });
+
+    renderHook(() => useTransactionsQuery());
+
+    expect(getQueryOptionsMock).toHaveBeenCalledWith(
+      expect.objectContaining({ accountAddresses: [] }),
+    );
     expect(useInfiniteQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
     );
