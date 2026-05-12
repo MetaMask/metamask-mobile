@@ -106,24 +106,6 @@ export const selectIgnoreTokens = createSelector(
   ) => allIgnoredTokens?.[chainId]?.[selectedAddress as Hex],
 );
 
-/**
- * @deprecated
- * This selector accesses deprecated AssetsController state directly.
- */
-export const selectDetectedTokens = createSelector(
-  selectTokensControllerState,
-  selectEvmChainId,
-  selectSelectedInternalAccountAddress,
-  (
-    tokensControllerState: TokensControllerState,
-    chainId: Hex,
-    selectedAddress: string | undefined,
-  ) =>
-    tokensControllerState?.allDetectedTokens?.[chainId]?.[
-      selectedAddress as Hex
-    ],
-);
-
 export { getTokensControllerAllTokens as selectAllTokens };
 
 export const getChainIdsToPoll = createDeepEqualSelector(
@@ -157,60 +139,6 @@ export const selectAllTokensFlat = createSelector(
       const tokensArray = Object.values(tokensByAccount).flat();
       return acc.concat(...tokensArray);
     }, []);
-  },
-);
-
-/**
- * @deprecated
- * This selector accesses deprecated AssetsController state directly.
- */
-export const selectAllDetectedTokensForSelectedAddress = createSelector(
-  selectTokensControllerState,
-  selectSelectedInternalAccountAddress,
-  (tokensControllerState, selectedAddress) => {
-    // Updated return type to specify the structure more clearly
-    if (!selectedAddress) {
-      return {} as { [chainId: Hex]: Token[] }; // Specify return type
-    }
-
-    return Object.entries(
-      tokensControllerState?.allDetectedTokens || {},
-    ).reduce<{
-      [chainId: string]: Token[];
-    }>((acc, [chainId, chainTokens]) => {
-      const tokensForAddress = chainTokens[selectedAddress] || [];
-      if (tokensForAddress.length > 0) {
-        acc[chainId] = tokensForAddress.map((token: Token) => ({
-          ...token,
-          chainId,
-        }));
-      }
-      return acc;
-    }, {});
-  },
-);
-
-export const selectAllDetectedTokensFlat = createSelector(
-  selectAllDetectedTokensForSelectedAddress,
-  (detectedTokensByChain: { [chainId: string]: Token[] }) => {
-    if (Object.keys(detectedTokensByChain).length === 0) {
-      return [];
-    }
-
-    const flattenedTokens: (Token & { chainId: Hex })[] = [];
-
-    for (const [chainId, addressTokens] of Object.entries(
-      detectedTokensByChain,
-    )) {
-      for (const token of addressTokens) {
-        flattenedTokens.push({
-          ...token,
-          chainId: chainId as Hex,
-        });
-      }
-    }
-
-    return flattenedTokens;
   },
 );
 

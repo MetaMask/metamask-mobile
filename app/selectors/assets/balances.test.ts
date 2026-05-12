@@ -187,7 +187,6 @@ const makeState = (overrides: Record<string, unknown> = {}) => ({
           },
         },
         allIgnoredTokens: {},
-        allDetectedTokens: {},
       },
       CurrencyRateController: {
         currentCurrency: 'usd',
@@ -326,8 +325,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
             },
             TokensController: {
               allTokens: {},
-              allIgnoredTokens: {},
-              allDetectedTokens: {},
+              allIgnoredTokenens: {},
             },
             CurrencyRateController: {
               currentCurrency: 'usd',

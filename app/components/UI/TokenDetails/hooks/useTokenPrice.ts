@@ -73,9 +73,8 @@ export const useTokenPrice = ({
     : token.address;
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
-    asset: token,
-    address: token.address as Hex,
-    chainId,
+    address: token.address,
+    chainId: token.chainId as Hex,
     timePeriod,
     vsCurrency: currentCurrency,
   });

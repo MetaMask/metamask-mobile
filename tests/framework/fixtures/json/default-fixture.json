@@ -563,7 +563,6 @@
           "marketData": {}
         },
         "TokensController": {
-          "allDetectedTokens": {},
           "allIgnoredTokens": {},
           "allTokens": {}
         },

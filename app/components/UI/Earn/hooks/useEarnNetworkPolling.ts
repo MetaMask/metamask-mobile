@@ -55,9 +55,6 @@ export const useEarnNetworkPolling = () => {
     EVM_SCOPE,
   );
   const useTokenDetection = useSelector(selectUseTokenDetection);
-  const tokensState = useSelector(
-    (state: RootState) => state.engine?.backgroundState?.TokensController,
-  );
   const [lendingChainIds, setLendingChainIds] = useState<Hex[]>([]);
 
   useTokenBalancesPolling({ chainIds: lendingChainIds });
@@ -77,56 +74,6 @@ export const useEarnNetworkPolling = () => {
 
     setLendingChainIds(validChainIds);
   }, [setLendingChainIds]);
-
-  // Import tokens from all lending chains
-  useEffect(() => {
-    const importLendingTokens = async () => {
-      if (!selectedAccount?.address || !useTokenDetection) return;
-
-      const { TokensController } = Engine.context;
-      const allDetectedTokens = tokensState?.allDetectedTokens || {};
-
-      for (const chainId of LENDING_CHAIN_IDS) {
-        const chainDetectedTokens =
-          allDetectedTokens[chainId]?.[selectedAccount.address];
-        if (
-          chainDetectedTokens &&
-          Object.keys(chainDetectedTokens).length > 0
-        ) {
-          const tokensToImport = Object.values(chainDetectedTokens).map(
-            (token: Token) => ({
-              address: token.address,
-              symbol: token.symbol,
-              decimals: token.decimals,
-              image: token.image,
-              name: token.name,
-              isERC721: false,
-            }),
-          );
-
-          const networkClientId =
-            Engine.context.NetworkController.findNetworkClientIdByChainId(
-              chainId,
-            );
-
-          if (networkClientId && tokensToImport.length > 0) {
-            await TokensController.addTokens(tokensToImport, networkClientId);
-          }
-        }
-      }
-    };
-
-    Engine.context.TokenDetectionController.detectTokens({
-      chainIds: LENDING_CHAIN_IDS,
-      selectedAddress: selectedAccount?.address as Hex,
-    })
-      .then(importLendingTokens)
-      .catch(console.error);
-  }, [
-    tokensState?.allDetectedTokens,
-    selectedAccount?.address,
-    useTokenDetection,
-  ]);
 
   return null;
 };
