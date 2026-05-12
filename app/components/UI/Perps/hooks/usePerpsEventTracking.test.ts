@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -13,11 +14,10 @@ describe('usePerpsEventTracking', () => {
     jest.clearAllMocks();
     jest.spyOn(Date, 'now').mockReturnValue(1234567890);
 
-    const eventBuilder = {
+    mockCreateEventBuilder.mockImplementation(() => ({
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn().mockReturnValue({ type: 'mock-event' }),
-    };
-    mockCreateEventBuilder.mockReturnValue(eventBuilder);
+    }));
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
@@ -65,6 +65,39 @@ describe('usePerpsEventTracking', () => {
       expect(eventBuilder.addProperties).toHaveBeenCalledWith({
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         ...customProps,
+      });
+    });
+
+    it('tracks ASSET_VIEWED when PERPS_SCREEN_VIEWED is tracked', () => {
+      const { result } = renderHook(() => usePerpsEventTracking());
+      const customProps = { screen_type: 'home' };
+
+      act(() => {
+        result.current.track(
+          MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          customProps,
+        );
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+      expect(mockCreateEventBuilder.mock.calls[0][0]).toBe(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+      );
+      expect(mockCreateEventBuilder.mock.calls[1][0]).toBe(
+        MetaMetricsEvents.ASSET_VIEWED,
+      );
+
+      const perpsBuilder = mockCreateEventBuilder.mock.results[0].value;
+      const assetBuilder = mockCreateEventBuilder.mock.results[1].value;
+      expect(perpsBuilder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
+        ...customProps,
+      });
+      expect(assetBuilder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
+        screen_type: 'home',
+        trade_type: 'Perps',
+        implementation_type: 'native',
       });
     });
   });

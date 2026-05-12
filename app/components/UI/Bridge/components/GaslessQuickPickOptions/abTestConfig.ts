@@ -30,5 +30,5 @@ export const NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapp
   {
     flagKey: NUMPAD_QUICK_ACTIONS_AB_KEY,
     validVariants: Object.values(NumpadQuickActionsVariant),
-    eventNames: [EVENT_NAME.SWAP_PAGE_VIEWED],
+    eventNames: [EVENT_NAME.SWAP_PAGE_VIEWED, EVENT_NAME.ASSET_VIEWED],
   };

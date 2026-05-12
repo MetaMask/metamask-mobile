@@ -1,4 +1,7 @@
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  MetaMetricsEvents,
+  mergeAssetViewedProperties,
+} from '../../../../core/Analytics';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
@@ -292,5 +295,20 @@ export class PredictAnalytics {
     }
 
     analytics.trackEvent(eventBuilder.build());
+
+    if (configKey === 'feedViewed') {
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.ASSET_VIEWED,
+        )
+          .addProperties(
+            mergeAssetViewedProperties(
+              'Predict',
+              analyticsProperties as Record<string, unknown>,
+            ),
+          )
+          .build(),
+      );
+    }
   }
 }

@@ -47,6 +47,31 @@ describe('enrichWithABTests', () => {
     ]);
   });
 
+  it('injects the same swap AB assignments for ASSET_VIEWED as for Unified SwapBridge Page Viewed', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder('ASSET_VIEWED')
+      .addProperties({
+        trade_type: 'Swaps',
+        implementation_type: 'native',
+      })
+      .build();
+
+    const result = enrichWithABTests(event, {
+      swapsSWAPS4135AbtestNumpadQuickAmounts: { name: 'treatment' },
+      swapsSWAPS4242AbtestTokenSelectorBalanceLayout: 'control',
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(
+        'swapsSWAPS4135AbtestNumpadQuickAmounts',
+        'treatment',
+      ),
+      createActiveABTestAssignment(
+        'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
+        'control',
+      ),
+    ]);
+  });
+
   it('does nothing when the event is not allowlisted', () => {
     const event = AnalyticsEventBuilder.createEventBuilder('Unrelated Event')
       .addProperties({

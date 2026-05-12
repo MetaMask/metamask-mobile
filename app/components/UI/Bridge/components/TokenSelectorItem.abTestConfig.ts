@@ -32,5 +32,5 @@ export const TOKEN_SELECTOR_BALANCE_LAYOUT_AB_TEST_ANALYTICS_MAPPING: ABTestAnal
   {
     flagKey: TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
     validVariants: Object.values(TokenSelectorBalanceLayoutVariant),
-    eventNames: [EVENT_NAME.SWAP_PAGE_VIEWED],
+    eventNames: [EVENT_NAME.SWAP_PAGE_VIEWED, EVENT_NAME.ASSET_VIEWED],
   };

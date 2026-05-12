@@ -409,6 +409,8 @@ enum EVENT_NAME {
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
   SWAP_PAGE_VIEWED = 'Unified SwapBridge Page Viewed',
+  /** Unified funnel: Predict / Perps / Swaps screen views (alongside legacy events). */
+  ASSET_VIEWED = 'ASSET_VIEWED',
 
   // Earn
   EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',
@@ -1614,6 +1616,7 @@ const events = {
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
+  ASSET_VIEWED: generateOpt(EVENT_NAME.ASSET_VIEWED),
 
   // RPC Failover
   RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),

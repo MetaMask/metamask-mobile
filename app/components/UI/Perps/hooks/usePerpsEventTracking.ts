@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useMemo } from 'react';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  MetaMetricsEvents,
+  mergeAssetViewedProperties,
+} from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller';
 
@@ -63,6 +66,14 @@ export const usePerpsEventTracking = (options?: EventTrackingOptions) => {
         ...properties,
       };
       trackEvent(createEventBuilder(eventName).addProperties(props).build());
+
+      if (eventName === MetaMetricsEvents.PERPS_SCREEN_VIEWED) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
+            .addProperties(mergeAssetViewedProperties('Perps', props))
+            .build(),
+        );
+      }
     },
     [trackEvent, createEventBuilder],
   );
