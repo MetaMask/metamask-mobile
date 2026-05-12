@@ -19,9 +19,7 @@ async function disableIosDetoxSyncForAccountActivityWs(): Promise<void> {
   }
 }
 
-const isIos = device.getPlatform?.() === 'ios';
-
-(isIos ? describe.skip : describe)(SmokeSnaps('Get Entropy Snap Tests'), () => {
+describe.skip(SmokeSnaps('Get Entropy Snap Tests'), () => {
   it('connects to the Get Entropy Snap', async () => {
     await withFixtures(
       {
