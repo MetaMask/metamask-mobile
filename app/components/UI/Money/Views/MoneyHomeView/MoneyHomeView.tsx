@@ -75,8 +75,7 @@ const MoneyHomeView = () => {
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
-  const { isCardAuthenticated, hasMoneyAccountRequirements, linkInBackground } =
-    useMoneyAccountCardLinkage();
+  const { canLink, linkInBackground } = useMoneyAccountCardLinkage();
   const geolocation = useSelector(getDetectedGeolocation);
   const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
 
@@ -138,20 +137,14 @@ const MoneyHomeView = () => {
   }, [navigation]);
 
   const handleLinkCardPress = useCallback(async () => {
-    if (isCardholder && isCardAuthenticated && hasMoneyAccountRequirements) {
+    if (isCardholder && canLink) {
       await linkInBackground();
       return;
     }
     navigation.navigate(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
     });
-  }, [
-    isCardholder,
-    isCardAuthenticated,
-    hasMoneyAccountRequirements,
-    linkInBackground,
-    navigation,
-  ]);
+  }, [isCardholder, canLink, linkInBackground, navigation]);
 
   const handleGetNowPress = useCallback(() => {
     navigation.navigate(Routes.CARD.ROOT);

@@ -643,7 +643,7 @@ describe('MoneyHomeView', () => {
       expect(mockLinkInBackground).not.toHaveBeenCalled();
     });
 
-    describe('fully ready for inline linking', () => {
+    describe('fully ready for inline linking (canLink=true)', () => {
       beforeEach(() => {
         mockUseMoneyAccountCardLinkage.mockReturnValue({
           hasMoneyAccountRequirements: true,
@@ -683,6 +683,30 @@ describe('MoneyHomeView', () => {
         expect(mockNavigate).not.toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
         });
+      });
+    });
+
+    it('navigates to Card home (does NOT call linkInBackground) when prerequisites are met but Monad USDC token is missing (canLink=false)', () => {
+      mockUseMoneyAccountCardLinkage.mockReturnValue({
+        hasMoneyAccountRequirements: true,
+        isCardAuthenticated: true,
+        primaryMoneyAccount: { address: '0xabc' },
+        moneyAccountCardToken: null,
+        canLink: false,
+        status: 'idle',
+        isLinking: false,
+        error: null,
+        linkInBackground: mockLinkInBackground,
+        reset: jest.fn(),
+      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
+
+      expect(mockLinkInBackground).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
       });
     });
   });
