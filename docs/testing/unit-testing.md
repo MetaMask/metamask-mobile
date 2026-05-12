@@ -1,9 +1,3 @@
----
-description: Project Guidelines for Unit Testing
-globs: *.test.*
-alwaysApply: false
----
-
 Reference: [MetaMask Unit Testing Guidelines](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md)
 
 # Unit Testing Guidelines
@@ -185,12 +179,13 @@ testID={`network-option-${network.chainId}`}
 External snapshot files (`.snap`) have three critical problems:
 
 1. **Invisible in review** — The diff lives in a separate `.snap` file that reviewers routinely rubber-stamp. Regressions hide there.
-2. **No code ownership** — `CODEOWNERS` explicitly assigns `**/*.snap` to *nobody*, meaning no team is accountable for snapshot correctness.
+2. **No code ownership** — `CODEOWNERS` explicitly assigns `**/*.snap` to _nobody_, meaning no team is accountable for snapshot correctness.
 3. **Brittle by design** — Any style tweak, whitespace change, or unrelated refactor regenerates the snapshot and silently passes CI.
 
 ### Why `toMatchInlineSnapshot()` Is Allowed
 
 The snapshot string lives directly in the test file, so:
+
 - It appears in the PR diff alongside the code that produces it
 - The file's code owner is responsible for reviewing it
 - Reviewers can see exactly what changed and why
@@ -221,13 +216,12 @@ expect(result.name).toBe('Ethereum Mainnet');
 ### Migrating Existing `toMatchSnapshot()` Calls
 
 When you encounter an existing `toMatchSnapshot()` call:
+
 1. **Prefer replacing it** with explicit `expect` assertions targeting the specific values that matter.
 2. If the full serialized output is genuinely meaningful, convert to `toMatchInlineSnapshot()`.
 3. Delete the corresponding `.snap` file entry once migrated.
 
 Do **not** leave `toMatchSnapshot()` in place when modifying a test file — migrate it as part of your change.
-
----
 
 ## Assertions - PREFER toBeOnTheScreen
 
