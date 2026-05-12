@@ -1,4 +1,5 @@
 import {
+  RestrictedMethodMessenger,
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
@@ -149,6 +150,6 @@ export const getSnapPermissionSpecifications = (
       },
       ///: END:ONLY_INCLUDE_IF
     },
-    messenger,
+    messenger as RestrictedMethodMessenger,
   ),
 });
