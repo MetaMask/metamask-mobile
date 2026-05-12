@@ -10,8 +10,8 @@ import { devApiEnv } from '../../../devApiEnv';
 // Maps mobile's `devApiEnv` ('prod') onto the notification SDK's `ENV` ('prd').
 const NOTIFICATION_ENV_BY_DEV_API_ENV: Record<
   ReturnType<typeof devApiEnv>,
-  'dev' | 'uat' | 'prd'
-> = { dev: 'dev', uat: 'uat', prod: 'prd' };
+  'dev' | 'prd'
+> = { dev: 'dev', prod: 'prd' };
 
 export const createNotificationServicesController = (props: {
   messenger: NotificationServicesControllerMessenger;

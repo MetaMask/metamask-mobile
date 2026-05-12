@@ -9,7 +9,7 @@ import { devApiEnv } from '../../devApiEnv';
 
 /**
  * The environment MUST match the one used by `AuthenticationController`: a
- * PRD-issued JWT cannot be validated against dev/uat user-storage APIs and
+ * PRD-issued JWT cannot be validated against dev user-storage APIs and
  * vice versa. Both read from the same `devApiEnv` source so they always agree.
  */
 export function getAuthenticatedUserStorageEnvironment(): Environment {

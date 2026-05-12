@@ -3,7 +3,7 @@ import { Env } from '@metamask/profile-sync-controller/sdk';
 /**
  * Build-time switch that selects which backend env mobile talks to.
  *
- * Set `MM_DEV_API_ENV=dev` (or `uat`) in `.js.env` to point the auth
+ * Set `MM_DEV_API_ENV=dev` in `.js.env` to point the auth
  * controller and every downstream JWT-consuming service at non-prod
  * backends. Defaults to prod when unset or unrecognized.
  *
@@ -12,7 +12,7 @@ import { Env } from '@metamask/profile-sync-controller/sdk';
  * source independently.
  */
 
-export type DevApiEnv = 'dev' | 'uat' | 'prod';
+export type DevApiEnv = 'dev' | 'prod';
 
 /**
  * Read at call time (not module load) so tests can set/unset
@@ -20,14 +20,13 @@ export type DevApiEnv = 'dev' | 'uat' | 'prod';
  */
 export const devApiEnv = (): DevApiEnv => {
   const raw = (process.env.MM_DEV_API_ENV ?? '').toLowerCase();
-  return raw === 'dev' ? 'dev' : raw === 'uat' ? 'uat' : 'prod';
+  return raw === 'dev' ? 'dev' : 'prod';
 };
 
 export const isDevApiEnv = (): boolean => devApiEnv() !== 'prod';
 
 const AUTH_ENV_BY_DEV_API_ENV: Record<DevApiEnv, Env> = {
   dev: Env.DEV,
-  uat: Env.UAT,
   prod: Env.PRD,
 };
 
