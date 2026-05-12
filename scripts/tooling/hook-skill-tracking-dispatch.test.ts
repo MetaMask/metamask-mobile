@@ -35,7 +35,7 @@ function runDispatcher(
     });
     return { stdout, stderr: '', status: 0 };
   } catch (err) {
-    const e = err as NodeJS.ErrnoError & {
+    const e = err as NodeJS.ErrnoException & {
       stdout?: string;
       stderr?: string;
       status?: number;
