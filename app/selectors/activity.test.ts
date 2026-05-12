@@ -50,15 +50,6 @@ describe('activity selectors', () => {
             TransactionController: {
               transactions: [
                 {
-                  id: 'parent',
-                  chainId: '0x1',
-                  time: 1,
-                  txParams: {
-                    from: activeEvmAddress,
-                    nonce: '0x1',
-                  },
-                },
-                {
                   id: 'child',
                   chainId: '0x1',
                   time: 2,
@@ -66,7 +57,16 @@ describe('activity selectors', () => {
                     from: activeEvmAddress,
                     nonce: '0x2',
                   },
-                  requiredTransactionIds: ['parent'],
+                },
+                {
+                  id: 'parent',
+                  chainId: '0x1',
+                  time: 1,
+                  txParams: {
+                    from: activeEvmAddress,
+                    nonce: '0x1',
+                  },
+                  requiredTransactionIds: ['child'],
                 },
               ],
             },
