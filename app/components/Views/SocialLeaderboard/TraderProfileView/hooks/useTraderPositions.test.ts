@@ -366,7 +366,8 @@ describe('useTraderPositions', () => {
     });
 
     it('logs and rethrows when refetch fails', async () => {
-      const refetchOpen = jest.fn().mockRejectedValue(new Error('boom'));
+      const error = new Error('boom');
+      const refetchOpen = jest.fn().mockRejectedValue(error);
       const refetchClosed = jest.fn().mockResolvedValue(undefined);
       mockUseQuery
         .mockReturnValueOnce(makeQueryResult({ refetch: refetchOpen }))
@@ -377,7 +378,62 @@ describe('useTraderPositions', () => {
       await expect(result.current.refetch()).rejects.toThrow('boom');
 
       expect(Logger.error).toHaveBeenCalledWith(
-        expect.any(Error),
+        error,
+        'useTraderPositions: refetch failed',
+      );
+    });
+
+    it('waits for both per-query refetch functions before rethrowing a failure', async () => {
+      const error = new Error('open failed');
+      let resolveClosed!: () => void;
+      const closedPromise = new Promise<void>((resolve) => {
+        resolveClosed = resolve;
+      });
+      const refetchOpen = jest.fn().mockRejectedValue(error);
+      const refetchClosed = jest.fn().mockReturnValue(closedPromise);
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult({ refetch: refetchOpen }))
+        .mockReturnValueOnce(makeQueryResult({ refetch: refetchClosed }));
+
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      const refetchPromise = result.current.refetch();
+      await Promise.resolve();
+
+      expect(refetchOpen).toHaveBeenCalledTimes(1);
+      expect(refetchClosed).toHaveBeenCalledTimes(1);
+      expect(Logger.error).not.toHaveBeenCalled();
+
+      resolveClosed();
+
+      await expect(refetchPromise).rejects.toThrow('open failed');
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'useTraderPositions: refetch failed',
+      );
+    });
+
+    it('logs each failed per-query refetch before rethrowing the first failure', async () => {
+      const openError = new Error('open failed');
+      const closedError = new Error('closed failed');
+      const refetchOpen = jest.fn().mockRejectedValue(openError);
+      const refetchClosed = jest.fn().mockRejectedValue(closedError);
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult({ refetch: refetchOpen }))
+        .mockReturnValueOnce(makeQueryResult({ refetch: refetchClosed }));
+
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      await expect(result.current.refetch()).rejects.toThrow('open failed');
+
+      expect(Logger.error).toHaveBeenNthCalledWith(
+        1,
+        openError,
+        'useTraderPositions: refetch failed',
+      );
+      expect(Logger.error).toHaveBeenNthCalledWith(
+        2,
+        closedError,
         'useTraderPositions: refetch failed',
       );
     });

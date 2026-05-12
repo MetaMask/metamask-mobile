@@ -100,11 +100,17 @@ export const useTraderPositions = (
   const combinedError = openError ?? closedError;
 
   const refetch = useCallback(async () => {
-    try {
-      await Promise.all([refetchOpen(), refetchClosed()]);
-    } catch (err) {
-      Logger.error(err as Error, 'useTraderPositions: refetch failed');
-      throw err;
+    const results = await Promise.allSettled([refetchOpen(), refetchClosed()]);
+    const failures = results.filter(
+      (result): result is PromiseRejectedResult =>
+        result.status === 'rejected',
+    );
+
+    if (failures.length > 0) {
+      failures.forEach(({ reason }) => {
+        Logger.error(reason as Error, 'useTraderPositions: refetch failed');
+      });
+      throw failures[0].reason;
     }
   }, [refetchOpen, refetchClosed]);
 
