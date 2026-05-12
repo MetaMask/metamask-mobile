@@ -175,6 +175,20 @@ const MoneyPotentialEarnings = ({
             color={TextColor.TextAlternative}
           >
             {strings('money.potential_earnings.description')}
+            {onInfoPress && (
+              <Text
+                onPress={onInfoPress}
+                testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
+              >
+                {' '}
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
+                  style={{ transform: [{ translateY: 3 }] }}
+                />
+              </Text>
+            )}
           </Text>
         )}
       </Box>

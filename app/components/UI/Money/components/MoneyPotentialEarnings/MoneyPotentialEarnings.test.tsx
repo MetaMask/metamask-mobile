@@ -292,6 +292,21 @@ describe('MoneyPotentialEarnings', () => {
     expect(onInfoPress).toHaveBeenCalledTimes(1);
   });
 
+  it('renders the info button in the fallback description when apy is undefined', () => {
+    const onInfoPress = jest.fn();
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apy={undefined}
+        tokens={[MOCK_USDC]}
+        onInfoPress={onInfoPress}
+      />,
+    );
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON));
+
+    expect(onInfoPress).toHaveBeenCalledTimes(1);
+  });
+
   it('hides the projected amount when apy is undefined', () => {
     const { queryByTestId } = render(
       <MoneyPotentialEarnings apy={undefined} tokens={[MOCK_USDC]} />,
