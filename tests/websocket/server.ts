@@ -2,6 +2,7 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import { createLogger, LogLevel } from '../framework/logger.ts';
 import { Resource, ServerStatus } from '../framework/types.ts';
+import PortManager, { ResourceType } from '../framework/PortManager.ts';
 
 const logger = createLogger({
   name: 'WebSocketServer',
@@ -93,6 +94,8 @@ class LocalWebSocketServer implements Resource {
     if (!this.server) {
       logger.debug(`[${this.name}] WebSocket server is not running`);
       this.status = ServerStatus.STOPPED;
+      // Ensure stale single-resource allocations do not carry over after timeout paths.
+      PortManager.getInstance().releasePort(ResourceType.ACCOUNT_ACTIVITY_WS);
       return;
     }
 
@@ -149,6 +152,7 @@ class LocalWebSocketServer implements Resource {
     });
     this.server = null;
     this.status = ServerStatus.STOPPED;
+    PortManager.getInstance().releasePort(ResourceType.ACCOUNT_ACTIVITY_WS);
   }
 
   /**
