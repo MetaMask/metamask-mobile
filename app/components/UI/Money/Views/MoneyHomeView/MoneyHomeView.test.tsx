@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHomeView from './MoneyHomeView';
@@ -24,6 +24,7 @@ import { strings } from '../../../../../../locales/i18n';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
+import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
@@ -96,6 +97,10 @@ jest.mock('../../../../../selectors/cardController', () => ({
   selectIsCardholder: jest.fn(),
 }));
 
+jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
+  useMoneyAccountCardLinkage: jest.fn(),
+}));
+
 jest.mock('../../../../../reducers/fiatOrders', () => ({
   ...jest.requireActual('../../../../../reducers/fiatOrders'),
   getDetectedGeolocation: jest.fn(),
@@ -103,6 +108,8 @@ jest.mock('../../../../../reducers/fiatOrders', () => ({
 
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 const mockGetDetectedGeolocation = jest.mocked(getDetectedGeolocation);
+const mockUseMoneyAccountCardLinkage = jest.mocked(useMoneyAccountCardLinkage);
+const mockLinkInBackground = jest.fn();
 
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
@@ -172,6 +179,20 @@ describe('MoneyHomeView', () => {
 
     mockSelectIsCardholder.mockReturnValue(false);
     mockGetDetectedGeolocation.mockReturnValue('US');
+
+    mockLinkInBackground.mockReset().mockResolvedValue(true);
+    mockUseMoneyAccountCardLinkage.mockReturnValue({
+      hasMoneyAccountRequirements: false,
+      isCardAuthenticated: false,
+      primaryMoneyAccount: undefined,
+      moneyAccountCardToken: null,
+      canLink: false,
+      status: 'idle',
+      isLinking: false,
+      error: null,
+      linkInBackground: mockLinkInBackground,
+      reset: jest.fn(),
+    } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
 
     mockUseMoneyAccountBalance.mockReturnValue({
       totalFiatFormatted: '$3.00',
@@ -600,11 +621,90 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
-    it('navigates to Card home when onboarding CTA is tapped by cardholder', () => {
+    it('navigates to Card home when onboarding CTA is tapped by cardholder without Money account readiness', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
 
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+      });
+      expect(mockLinkInBackground).not.toHaveBeenCalled();
+    });
+
+    it('navigates to Card home when the MetaMaskCard link button is tapped by cardholder without Money account readiness', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+      });
+      expect(mockLinkInBackground).not.toHaveBeenCalled();
+    });
+
+    describe('fully ready for inline linking (canLink=true)', () => {
+      beforeEach(() => {
+        mockUseMoneyAccountCardLinkage.mockReturnValue({
+          hasMoneyAccountRequirements: true,
+          isCardAuthenticated: true,
+          primaryMoneyAccount: { address: '0xabc' },
+          moneyAccountCardToken: { symbol: 'USDC' },
+          canLink: true,
+          status: 'idle',
+          isLinking: false,
+          error: null,
+          linkInBackground: mockLinkInBackground,
+          reset: jest.fn(),
+        } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
+      });
+
+      it('calls linkInBackground and does NOT navigate when onboarding CTA is tapped', async () => {
+        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+        await act(async () => {
+          fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
+        });
+
+        expect(mockLinkInBackground).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).not.toHaveBeenCalledWith(Routes.CARD.ROOT, {
+          screen: Routes.CARD.HOME,
+        });
+      });
+
+      it('calls linkInBackground and does NOT navigate when MetaMaskCard link button is tapped', async () => {
+        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+        await act(async () => {
+          fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON));
+        });
+
+        expect(mockLinkInBackground).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).not.toHaveBeenCalledWith(Routes.CARD.ROOT, {
+          screen: Routes.CARD.HOME,
+        });
+      });
+    });
+
+    it('navigates to Card home (does NOT call linkInBackground) when prerequisites are met but Monad USDC token is missing (canLink=false)', () => {
+      mockUseMoneyAccountCardLinkage.mockReturnValue({
+        hasMoneyAccountRequirements: true,
+        isCardAuthenticated: true,
+        primaryMoneyAccount: { address: '0xabc' },
+        moneyAccountCardToken: null,
+        canLink: false,
+        status: 'idle',
+        isLinking: false,
+        error: null,
+        linkInBackground: mockLinkInBackground,
+        reset: jest.fn(),
+      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
+
+      expect(mockLinkInBackground).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
       });
