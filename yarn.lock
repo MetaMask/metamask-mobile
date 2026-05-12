@@ -39975,13 +39975,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-ble-plx@npm:3.4.0":
-  version: 3.4.0
-  resolution: "react-native-ble-plx@npm:3.4.0"
+"react-native-ble-plx@npm:^3.5.1":
+  version: 3.5.1
+  resolution: "react-native-ble-plx@npm:3.5.1"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/13d5c846a92b9c7badf561e4028337a7d2fad0d2ad6b5e11071146ed98e2a433b30bd6c7ec488fc75dbb7083037ecb9620773edac0398ce8da5f14d0da78f1f9
+  checksum: 10/e7c6c7d88e8ac0c743e8111bc9dee28ede0adb935332175f25947250df05775c0f783fe88e7674a41747572233751a69807c242f90f304835f5f7a33a4851184
   languageName: node
   linkType: hard
 

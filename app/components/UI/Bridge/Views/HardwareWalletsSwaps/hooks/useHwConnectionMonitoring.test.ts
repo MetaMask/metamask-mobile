@@ -50,6 +50,38 @@ function createReadyState() {
   return { status: ConnectionStatus.Ready, deviceId: 'test-device' };
 }
 
+function renderAndTransitionToWaiting(
+  badConnectionState: ReturnType<
+    typeof createDisconnectedState | typeof createErrorState
+  >,
+  hasActiveSigning = true,
+) {
+  const readyState = createReadyState();
+
+  mockUseHardwareWallet.mockReturnValue({
+    connectionState: readyState,
+  } as any);
+
+  const { rerender } = renderHook(
+    ({ currentStatus }) =>
+      useHwConnectionMonitoring({
+        isEnabled: true,
+        currentStatus,
+        hasActiveSigning,
+      }),
+    { initialProps: { currentStatus: HardwareWalletsSwapsStatus.Idle } },
+  );
+
+  rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
+
+  mockUseHardwareWallet.mockReturnValue({
+    connectionState: badConnectionState,
+  } as any);
+  rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
+
+  return { rerender };
+}
+
 describe('useHwConnectionMonitoring', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -62,19 +94,56 @@ describe('useHwConnectionMonitoring', () => {
     (isUserCancellation as jest.Mock).mockReturnValue(false);
   });
 
-  it('dispatches DEVICE_DISCONNECTED when connection status is Disconnected', () => {
+  it('dispatches DEVICE_DISCONNECTED when connection state changes to Disconnected during signing', () => {
+    renderAndTransitionToWaiting(createDisconnectedState());
+
+    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
+      type: 'DEVICE_DISCONNECTED',
+    });
+  });
+
+  it('ignores Disconnected readiness handoff before signing starts', () => {
+    renderAndTransitionToWaiting(createDisconnectedState(), false);
+
+    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+  });
+
+  it('dispatches DEVICE_DISCONNECTED again after progress re-enters Waiting', () => {
+    const readyState = createReadyState();
+    mockUseHardwareWallet.mockReturnValue({
+      connectionState: readyState,
+    } as any);
+
+    const { rerender } = renderHook(
+      ({ currentStatus }) =>
+        useHwConnectionMonitoring({
+          isEnabled: true,
+          currentStatus,
+          hasActiveSigning: true,
+        }),
+      { initialProps: { currentStatus: HardwareWalletsSwapsStatus.Idle } },
+    );
+
+    rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
     mockUseHardwareWallet.mockReturnValue({
       connectionState: createDisconnectedState(),
     } as any);
+    rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
+    rerender({ currentStatus: HardwareWalletsSwapsStatus.Disconnected });
+    mockUseHardwareWallet.mockReturnValue({
+      connectionState: readyState,
+    } as any);
+    rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
+    mockUseHardwareWallet.mockReturnValue({
+      connectionState: createDisconnectedState(),
+    } as any);
+    rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
 
-    renderHook(() =>
-      useHwConnectionMonitoring({
-        isEnabled: true,
-        currentStatus: HardwareWalletsSwapsStatus.Waiting,
-      }),
-    );
-
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
+    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(2);
+    expect(updateHardwareWalletsSwaps).toHaveBeenNthCalledWith(1, {
+      type: 'DEVICE_DISCONNECTED',
+    });
+    expect(updateHardwareWalletsSwaps).toHaveBeenNthCalledWith(2, {
       type: 'DEVICE_DISCONNECTED',
     });
   });
@@ -85,20 +154,22 @@ describe('useHwConnectionMonitoring', () => {
       makeParsedError(ErrorCode.ConnectionClosed),
     );
 
-    mockUseHardwareWallet.mockReturnValue({
-      connectionState: createErrorState(error),
-    } as any);
-
-    renderHook(() =>
-      useHwConnectionMonitoring({
-        isEnabled: true,
-        currentStatus: HardwareWalletsSwapsStatus.Waiting,
-      }),
-    );
+    renderAndTransitionToWaiting(createErrorState(error));
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
       type: 'DEVICE_DISCONNECTED',
     });
+  });
+
+  it('ignores ConnectionClosed error code before signing starts', () => {
+    const error = new Error('connection closed');
+    (parseErrorByType as jest.Mock).mockReturnValue(
+      makeParsedError(ErrorCode.ConnectionClosed),
+    );
+
+    renderAndTransitionToWaiting(createErrorState(error), false);
+
+    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
   it('dispatches DEVICE_DISCONNECTED for DeviceDisconnected error code', () => {
@@ -107,16 +178,7 @@ describe('useHwConnectionMonitoring', () => {
       makeParsedError(ErrorCode.DeviceDisconnected),
     );
 
-    mockUseHardwareWallet.mockReturnValue({
-      connectionState: createErrorState(error),
-    } as any);
-
-    renderHook(() =>
-      useHwConnectionMonitoring({
-        isEnabled: true,
-        currentStatus: HardwareWalletsSwapsStatus.Waiting,
-      }),
-    );
+    renderAndTransitionToWaiting(createErrorState(error));
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
       type: 'DEVICE_DISCONNECTED',
@@ -130,43 +192,23 @@ describe('useHwConnectionMonitoring', () => {
     );
     (isUserCancellation as jest.Mock).mockReturnValue(true);
 
-    mockUseHardwareWallet.mockReturnValue({
-      connectionState: createErrorState(error),
-    } as any);
-
-    renderHook(() =>
-      useHwConnectionMonitoring({
-        isEnabled: true,
-        currentStatus: HardwareWalletsSwapsStatus.Waiting,
-      }),
-    );
+    renderAndTransitionToWaiting(createErrorState(error));
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
       type: 'REJECTED',
     });
   });
 
-  it('dispatches TRANSACTION_FAILED for other errors', () => {
-    const error = new Error('some error');
+  it('does not dispatch transaction failure for recoverable connection errors', () => {
+    const error = new Error('Bluetooth is turned off');
     (parseErrorByType as jest.Mock).mockReturnValue(
       makeParsedError(ErrorCode.Unknown),
     );
     (isUserCancellation as jest.Mock).mockReturnValue(false);
 
-    mockUseHardwareWallet.mockReturnValue({
-      connectionState: createErrorState(error),
-    } as any);
+    renderAndTransitionToWaiting(createErrorState(error));
 
-    renderHook(() =>
-      useHwConnectionMonitoring({
-        isEnabled: true,
-        currentStatus: HardwareWalletsSwapsStatus.Waiting,
-      }),
-    );
-
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-      type: 'TRANSACTION_FAILED',
-    });
+    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
   it('does not dispatch when isEnabled is false', () => {
@@ -178,6 +220,7 @@ describe('useHwConnectionMonitoring', () => {
       useHwConnectionMonitoring({
         isEnabled: false,
         currentStatus: HardwareWalletsSwapsStatus.Waiting,
+        hasActiveSigning: true,
       }),
     );
 
@@ -193,34 +236,26 @@ describe('useHwConnectionMonitoring', () => {
       useHwConnectionMonitoring({
         isEnabled: true,
         currentStatus: HardwareWalletsSwapsStatus.Submitted,
+        hasActiveSigning: true,
       }),
     );
 
     expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
-  it('deduplicates same error', () => {
-    const error = new Error('some error');
+  it('does not repeatedly dispatch for ignored recoverable connection errors', () => {
+    const error = new Error('Bluetooth is turned off');
     (parseErrorByType as jest.Mock).mockReturnValue(
       makeParsedError(ErrorCode.Unknown),
     );
 
-    mockUseHardwareWallet.mockReturnValue({
-      connectionState: createErrorState(error),
-    } as any);
+    const { rerender } = renderAndTransitionToWaiting(createErrorState(error));
 
-    const { rerender } = renderHook(() =>
-      useHwConnectionMonitoring({
-        isEnabled: true,
-        currentStatus: HardwareWalletsSwapsStatus.Waiting,
-      }),
-    );
+    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+    rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
 
-    rerender(undefined as any);
-
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
   it('does not dispatch for non-error, non-disconnected states', () => {
@@ -232,6 +267,7 @@ describe('useHwConnectionMonitoring', () => {
       useHwConnectionMonitoring({
         isEnabled: true,
         currentStatus: HardwareWalletsSwapsStatus.Waiting,
+        hasActiveSigning: false,
       }),
     );
 
@@ -247,10 +283,49 @@ describe('useHwConnectionMonitoring', () => {
       useHwConnectionMonitoring({
         isEnabled: true,
         currentStatus: HardwareWalletsSwapsStatus.Waiting,
+        hasActiveSigning: true,
       }),
     );
 
     expect(result.current.isDisconnectedRef).toEqual({ current: false });
     expect(result.current.resetHandledError).toBeInstanceOf(Function);
+  });
+
+  it('ignores pre-existing Disconnected state when first entering Waiting', () => {
+    mockUseHardwareWallet.mockReturnValue({
+      connectionState: createDisconnectedState(),
+    } as any);
+
+    renderHook(() =>
+      useHwConnectionMonitoring({
+        isEnabled: true,
+        currentStatus: HardwareWalletsSwapsStatus.Waiting,
+        hasActiveSigning: false,
+      }),
+    );
+
+    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+  });
+
+  it('ignores pre-existing ErrorState when first entering Waiting', () => {
+    const error = new Error('stale error');
+    (parseErrorByType as jest.Mock).mockReturnValue(
+      makeParsedError(ErrorCode.Unknown),
+    );
+    (isUserCancellation as jest.Mock).mockReturnValue(false);
+
+    mockUseHardwareWallet.mockReturnValue({
+      connectionState: createErrorState(error),
+    } as any);
+
+    renderHook(() =>
+      useHwConnectionMonitoring({
+        isEnabled: true,
+        currentStatus: HardwareWalletsSwapsStatus.Waiting,
+        hasActiveSigning: false,
+      }),
+    );
+
+    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 });

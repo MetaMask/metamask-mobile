@@ -17,7 +17,7 @@ describe('useHwConfirmationMonitoring', () => {
     jest.clearAllMocks();
   });
 
-  it('dispatches REJECTED when confirmation tx ID goes from defined to undefined while waiting', () => {
+  it('does not dispatch REJECTED when confirmation tx ID clears between signing steps', () => {
     const { rerender } = renderHook(
       ({ confirmationTxId }: { confirmationTxId?: string }) =>
         useHwConfirmationMonitoring({
@@ -33,9 +33,7 @@ describe('useHwConfirmationMonitoring', () => {
 
     rerender({ confirmationTxId: undefined });
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-      type: 'REJECTED',
-    });
+    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
   it('does not dispatch when isEnabled is false', () => {

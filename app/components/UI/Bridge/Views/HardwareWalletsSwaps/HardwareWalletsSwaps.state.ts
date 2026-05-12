@@ -22,6 +22,7 @@ export type HardwareWalletsSwapsStepStatus =
 export interface HardwareWalletsSwapsStep {
   kind: HardwareWalletsSwapsStepKind;
   status: HardwareWalletsSwapsStepStatus;
+  address?: string;
 }
 
 export interface HardwareWalletsSwapsState {
@@ -33,7 +34,14 @@ export interface HardwareWalletsSwapsState {
 }
 
 export type HardwareWalletsSwapsEvent =
-  | { type: 'START'; payload: { totalSteps: number } }
+  | {
+      type: 'START';
+      payload: {
+        totalSteps: number;
+        spenderAddress?: string;
+        recipientAddress?: string;
+      };
+    }
   | {
       type: 'SIGNING' | 'SIGNED';
       payload: { stepKind: HardwareWalletsSwapsStepKind };
@@ -55,14 +63,20 @@ export const initialHardwareWalletsSwapsState: HardwareWalletsSwapsState = {
   disconnectedStep: null,
 };
 
-function buildSteps(totalSteps: number): HardwareWalletsSwapsStep[] {
+function buildSteps(
+  totalSteps: number,
+  spenderAddress?: string,
+  recipientAddress?: string,
+): HardwareWalletsSwapsStep[] {
   const hasApproval = totalSteps > 1;
   return Array.from({ length: totalSteps }, (_, index) => ({
     kind:
       hasApproval && index === 0
         ? HardwareWalletsSwapsStepKind.Approval
         : HardwareWalletsSwapsStepKind.Transaction,
-    status: 'waiting',
+    status: 'waiting' as HardwareWalletsSwapsStepStatus,
+    address:
+      hasApproval && index === 0 ? spenderAddress : recipientAddress,
   }));
 }
 
@@ -100,7 +114,11 @@ export function hardwareWalletsSwapsReducer(
         status: HardwareWalletsSwapsStatus.Waiting,
         currentStep: 1,
         totalSteps,
-        steps: buildSteps(totalSteps),
+        steps: buildSteps(
+          totalSteps,
+          event.payload.spenderAddress,
+          event.payload.recipientAddress,
+        ),
         disconnectedStep: null,
       };
     }
@@ -161,7 +179,8 @@ export function hardwareWalletsSwapsReducer(
     case 'TRANSACTION_FAILED':
       if (
         state.status === HardwareWalletsSwapsStatus.Rejected ||
-        state.status === HardwareWalletsSwapsStatus.Submitted
+        state.status === HardwareWalletsSwapsStatus.Submitted ||
+        state.status === HardwareWalletsSwapsStatus.Disconnected
       ) {
         return state;
       }
@@ -170,14 +189,28 @@ export function hardwareWalletsSwapsReducer(
         status: HardwareWalletsSwapsStatus.Failed,
       };
     case 'RETRY': {
-      const restoredStep = state.disconnectedStep ?? state.currentStep;
+      if (state.status === HardwareWalletsSwapsStatus.Disconnected) {
+        const restoredStep = state.disconnectedStep ?? state.currentStep;
+        return {
+          ...state,
+          status: HardwareWalletsSwapsStatus.Waiting,
+          currentStep: restoredStep,
+          steps: state.steps.map((step, index) =>
+            index + 1 === restoredStep
+              ? { ...step, status: 'waiting' as HardwareWalletsSwapsStepStatus }
+              : step,
+          ),
+          disconnectedStep: null,
+        };
+      }
       return {
         ...state,
         status: HardwareWalletsSwapsStatus.Waiting,
-        currentStep: restoredStep,
-        steps: state.steps.map((step, index) =>
-          index + 1 === restoredStep ? { ...step, status: 'waiting' } : step,
-        ),
+        currentStep: 1,
+        steps: state.steps.map((step) => ({
+          ...step,
+          status: 'waiting' as HardwareWalletsSwapsStepStatus,
+        })),
         disconnectedStep: null,
       };
     }

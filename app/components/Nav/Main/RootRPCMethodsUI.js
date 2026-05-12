@@ -26,7 +26,6 @@ import {
   executeHardwareWalletOperation,
 } from '../../../core/HardwareWallet';
 import {
-  getDeviceIdForAddress,
   getHardwareWalletTypeForAddress,
 } from '../../../core/HardwareWallet/helpers';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
@@ -128,70 +127,6 @@ const RootRPCMethodsUI = (props) => {
     );
   }, []);
 
-  const autoSignWithBridgeProgress = useCallback(
-    async (transactionMeta) => {
-      const stepKind = getProgressStepKind(transactionMeta.type);
-      const from = transactionMeta.txParams.from;
-
-      setPendingOperationAddress(from);
-
-      try {
-        const deviceId = await getDeviceIdForAddress(from);
-        const isReady = await ensureDeviceReady(deviceId);
-
-        if (!isReady) {
-          dispatch(
-            updateHardwareWalletsSwaps({
-              type: 'REJECTED',
-              payload: { stepKind },
-            }),
-          );
-          rejectPendingTransaction(transactionMeta.id);
-          return;
-        }
-
-        dispatch(
-          updateHardwareWalletsSwaps({
-            type: 'SIGNING',
-            payload: { stepKind },
-          }),
-        );
-        await Engine.context.ApprovalController.acceptRequest(
-          transactionMeta.id,
-          undefined,
-          {
-            waitForResult: true,
-          },
-        );
-        dispatch(
-          updateHardwareWalletsSwaps({
-            type: 'SIGNED',
-            payload: { stepKind },
-          }),
-        );
-      } catch (error) {
-        dispatch(
-          updateHardwareWalletsSwaps({
-            type: 'REJECTED',
-            payload: { stepKind },
-          }),
-        );
-        handleAutoSignError(error);
-        rejectPendingTransaction(transactionMeta.id);
-      } finally {
-        setPendingOperationAddress(null);
-      }
-    },
-    [
-      dispatch,
-      ensureDeviceReady,
-      getProgressStepKind,
-      handleAutoSignError,
-      rejectPendingTransaction,
-      setPendingOperationAddress,
-    ],
-  );
-
   const autoSign = useCallback(
     async (transactionMeta) => {
       try {
@@ -209,7 +144,9 @@ const RootRPCMethodsUI = (props) => {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         const isBridgeProgressActive =
-          hardwareWalletsSwaps.status === HardwareWalletsSwapsStatus.Waiting;
+          hardwareWalletsSwaps.status === HardwareWalletsSwapsStatus.Waiting ||
+          hardwareWalletsSwaps.status ===
+            HardwareWalletsSwapsStatus.Disconnected;
 
         if (walletType === HardwareWalletType.Qr) {
           props.navigation.navigate(
@@ -242,7 +179,9 @@ const RootRPCMethodsUI = (props) => {
         }
 
         if (isBridgeProgressActive) {
-          await autoSignWithBridgeProgress(transactionMeta);
+          // useHwBatchSignTracker already handles auto-accepting the
+          // approval request and dispatching SIGNING/SIGNED/REJECTED
+          // events to the HardwareWalletsSwaps state machine.
           return;
         }
 
@@ -285,7 +224,6 @@ const RootRPCMethodsUI = (props) => {
       dispatch,
       getProgressStepKind,
       rejectPendingTransaction,
-      autoSignWithBridgeProgress,
       hardwareWalletsSwapsStatusRef,
     ],
   );

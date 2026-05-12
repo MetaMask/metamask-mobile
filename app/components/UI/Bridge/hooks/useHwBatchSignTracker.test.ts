@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
-import { act, renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
   TransactionStatus,
   TransactionType,
@@ -9,6 +9,7 @@ import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge
 import { HardwareWalletsSwapsStepKind } from '../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
 
 jest.mock('../../../../core/Engine', () => ({
+  rejectPendingApproval: jest.fn(),
   controllerMessenger: {
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
@@ -16,6 +17,15 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     TransactionController: {
       abortTransactionSigning: jest.fn(),
+      state: {
+        transactions: [],
+      },
+    },
+    ApprovalController: {
+      acceptRequest: jest.fn().mockResolvedValue(undefined),
+      state: {
+        pendingApprovals: {},
+      },
     },
   },
 }));
@@ -29,12 +39,29 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+jest.mock('../../../../core/HardwareWallet', () => ({
+  executeHardwareWalletOperation: jest.fn(async ({ execute }) => {
+    await execute();
+    return true;
+  }),
+  useHardwareWallet: () => ({
+    ensureDeviceReady: jest.fn().mockResolvedValue(true),
+    setPendingOperationAddress: jest.fn(),
+    showAwaitingConfirmation: jest.fn(),
+    hideAwaitingConfirmation: jest.fn(),
+    showHardwareWalletError: jest.fn(),
+  }),
+}));
+
 import Engine from '../../../../core/Engine';
+import { executeHardwareWalletOperation } from '../../../../core/HardwareWallet';
 
 const mockSubscribe = Engine.controllerMessenger.subscribe as jest.Mock;
 const mockUnsubscribe = Engine.controllerMessenger.unsubscribe as jest.Mock;
 const mockAbortTransactionSigning = Engine.context.TransactionController
   .abortTransactionSigning as jest.Mock;
+const mockExecuteHardwareWalletOperation =
+  executeHardwareWalletOperation as jest.Mock;
 
 const FROM_ADDRESS = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B';
 
@@ -91,6 +118,10 @@ describe('useHwBatchSignTracker', () => {
       'TransactionController:transactionFailed',
       expect.any(Function),
     );
+    expect(mockSubscribe).toHaveBeenCalledWith(
+      'ApprovalController:stateChange',
+      expect.any(Function),
+    );
   });
 
   it('unsubscribes on cleanup', () => {
@@ -100,7 +131,18 @@ describe('useHwBatchSignTracker', () => {
 
     unmount();
 
-    expect(mockUnsubscribe).toHaveBeenCalledTimes(3);
+    expect(mockUnsubscribe).toHaveBeenCalledTimes(4);
+  });
+
+  it('does not resubscribe when only hardware wallet callback identities change', () => {
+    const { rerender } = renderHook(() =>
+      useHwBatchSignTracker({ fromAddress: FROM_ADDRESS, isEnabled: true }),
+    );
+
+    rerender({});
+
+    expect(mockSubscribe).toHaveBeenCalledTimes(4);
+    expect(mockUnsubscribe).not.toHaveBeenCalled();
   });
 
   it('dispatches SIGNING when approval tx is approved', () => {
@@ -548,6 +590,240 @@ describe('useHwBatchSignTracker', () => {
       });
 
       expect(result.current.confirmationTxId).toBeUndefined();
+    });
+  });
+
+  describe('approval acceptance', () => {
+    it('accepts pending approval requests for matching bridge transactions', async () => {
+      const txId = 'tx-approval-001';
+      (
+        Engine.context.TransactionController.state as any
+      ).transactions = [
+        {
+          id: txId,
+          type: TransactionType.bridgeApproval,
+          txParams: { from: FROM_ADDRESS },
+        },
+      ];
+      (
+        Engine.context.ApprovalController.state as any
+      ).pendingApprovals = {
+        [txId]: { id: txId, type: 'transaction' },
+      };
+
+      renderHook(() =>
+        useHwBatchSignTracker({ fromAddress: FROM_ADDRESS, isEnabled: true }),
+      );
+
+      const handler = mockSubscribe.mock.calls.find(
+        ([event]: [string]) =>
+          event === 'ApprovalController:stateChange',
+      )?.[1];
+
+      await act(async () => {
+        await handler!();
+      });
+
+      expect(Engine.context.ApprovalController.acceptRequest).toHaveBeenCalledWith(
+        txId,
+        undefined,
+        { waitForResult: true },
+      );
+    });
+
+    it('does not accept non-transaction approval requests', async () => {
+      (
+        Engine.context.ApprovalController.state as any
+      ).pendingApprovals = {
+        'sig-001': { id: 'sig-001', type: 'personal_sign' },
+      };
+
+      renderHook(() =>
+        useHwBatchSignTracker({ fromAddress: FROM_ADDRESS, isEnabled: true }),
+      );
+
+      const handler = mockSubscribe.mock.calls.find(
+        ([event]: [string]) =>
+          event === 'ApprovalController:stateChange',
+      )?.[1];
+
+      await act(async () => {
+        await handler!();
+      });
+
+      expect(Engine.context.ApprovalController.acceptRequest).not.toHaveBeenCalled();
+    });
+
+    it('does not accept the same approval request twice', async () => {
+      const txId = 'tx-dup-001';
+      (
+        Engine.context.TransactionController.state as any
+      ).transactions = [
+        {
+          id: txId,
+          type: TransactionType.bridge,
+          txParams: { from: FROM_ADDRESS },
+        },
+      ];
+      (
+        Engine.context.ApprovalController.state as any
+      ).pendingApprovals = {
+        [txId]: { id: txId, type: 'transaction' },
+      };
+
+      renderHook(() =>
+        useHwBatchSignTracker({ fromAddress: FROM_ADDRESS, isEnabled: true }),
+      );
+
+      const handler = mockSubscribe.mock.calls.find(
+        ([event]: [string]) =>
+          event === 'ApprovalController:stateChange',
+      )?.[1];
+
+      await act(async () => {
+        await handler!();
+        await handler!();
+      });
+
+      expect(Engine.context.ApprovalController.acceptRequest).toHaveBeenCalledTimes(1);
+    });
+
+    it('accepts pending transaction_batch approval requests through the hardware wallet operation flow', async () => {
+      const batchId = 'batch-approval-001';
+      (
+        Engine.context.ApprovalController.state as any
+      ).pendingApprovals = {
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      };
+
+      renderHook(() =>
+        useHwBatchSignTracker({ fromAddress: FROM_ADDRESS, isEnabled: true }),
+      );
+
+      const handler = mockSubscribe.mock.calls.find(
+        ([event]: [string]) =>
+          event === 'ApprovalController:stateChange',
+      )?.[1];
+
+      await act(async () => {
+        await handler!();
+      });
+
+      expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: FROM_ADDRESS,
+          operationType: 'transaction',
+          execute: expect.any(Function),
+        }),
+      );
+      expect(Engine.context.ApprovalController.acceptRequest).toHaveBeenCalledWith(
+        batchId,
+        undefined,
+        { waitForResult: true },
+      );
+    });
+
+    it('clears transaction_batch dedupe and dispatches failed when hardware operation rejects', async () => {
+      const batchId = 'batch-approval-rejected-001';
+      mockExecuteHardwareWalletOperation.mockImplementationOnce(
+        async ({ onRejected }) => {
+          await onRejected?.();
+          return false;
+        },
+      );
+      (
+        Engine.context.ApprovalController.state as any
+      ).pendingApprovals = {
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      };
+
+      renderHook(() =>
+        useHwBatchSignTracker({ fromAddress: FROM_ADDRESS, isEnabled: true }),
+      );
+
+      const handler = mockSubscribe.mock.calls.find(
+        ([event]: [string]) =>
+          event === 'ApprovalController:stateChange',
+      )?.[1];
+
+      await act(async () => {
+        await handler!();
+        await handler!();
+      });
+
+      await waitFor(() => {
+        expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
+          type: 'TRANSACTION_FAILED',
+        });
+        expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('ignores late transaction_batch rejection after a transaction in the batch signs', async () => {
+      const batchId = 'batch-late-rejection-001';
+      const txId = 'tx-late-rejection-001';
+      let rejectHardwareOperation: (() => void) | undefined;
+      mockExecuteHardwareWalletOperation.mockImplementationOnce(
+        async ({ execute, onRejected }) => {
+          rejectHardwareOperation = onRejected;
+          await execute();
+          return false;
+        },
+      );
+      (
+        Engine.context.ApprovalController.state as any
+      ).pendingApprovals = {
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      };
+
+      renderHook(() =>
+        useHwBatchSignTracker({ fromAddress: FROM_ADDRESS, isEnabled: true }),
+      );
+
+      const approvalHandler = mockSubscribe.mock.calls.find(
+        ([event]: [string]) =>
+          event === 'ApprovalController:stateChange',
+      )?.[1];
+      const statusHandler = mockSubscribe.mock.calls.find(
+        ([event]: [string]) =>
+          event === 'TransactionController:transactionStatusUpdated',
+      )?.[1];
+
+      await act(async () => {
+        statusHandler!({
+          transactionMeta: {
+            ...makeTransactionMeta(
+              TransactionType.bridgeApproval,
+              TransactionStatus.approved,
+              FROM_ADDRESS,
+              batchId,
+            ),
+            id: txId,
+          },
+        });
+        await approvalHandler!();
+        statusHandler!({
+          transactionMeta: {
+            ...makeTransactionMeta(
+              TransactionType.bridgeApproval,
+              TransactionStatus.signed,
+              FROM_ADDRESS,
+              batchId,
+            ),
+            id: txId,
+          },
+        });
+      });
+      (updateHardwareWalletsSwaps as unknown as jest.Mock).mockClear();
+
+      await act(async () => {
+        rejectHardwareOperation?.();
+      });
+
+      expect(Engine.rejectPendingApproval).not.toHaveBeenCalled();
+      expect(updateHardwareWalletsSwaps).not.toHaveBeenCalledWith({
+        type: 'TRANSACTION_FAILED',
+      });
     });
   });
 });

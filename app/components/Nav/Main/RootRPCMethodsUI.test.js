@@ -208,7 +208,7 @@ describe('RootRPCMethodsUI', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('suppresses the global awaiting confirmation sheet during active Bridge progress', async () => {
+    it('delegates to useHwBatchSignTracker during active Bridge progress', async () => {
       mockBridgeState = {
         hardwareWalletsSwaps: {
           status: HardwareWalletsSwapsStatus.Waiting,
@@ -235,23 +235,49 @@ describe('RootRPCMethodsUI', () => {
         txParams: { from: LEDGER_ADDRESS },
       });
 
+      // autoSign should return early — useHwBatchSignTracker handles
+      // approval acceptance and state machine updates.
       expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
       expect(mockShowAwaitingConfirmation).not.toHaveBeenCalled();
+      expect(mockEnsureDeviceReady).not.toHaveBeenCalled();
       expect(
         Engine.context.ApprovalController.acceptRequest,
-      ).toHaveBeenCalledWith('tx-ledger-progress', undefined, {
-        waitForResult: true,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('delegates to useHwBatchSignTracker while Bridge progress is reconnecting', async () => {
+      mockBridgeState = {
+        hardwareWalletsSwaps: {
+          status: HardwareWalletsSwapsStatus.Disconnected,
+          currentStep: 1,
+          totalSteps: 1,
+          steps: [],
+        },
+      };
+
+      const mockNavigate = jest.fn();
+      render(<RootRPCMethodsUI navigation={{ navigate: mockNavigate }} />);
+
+      const subscribeCall = controllerMessenger.subscribe.mock.calls[0];
+      const handleUnapprovedTransaction = subscribeCall[1];
+      handleUnapprovedTransaction({
+        id: 'tx-ledger-reconnecting',
+        type: 'swap',
+        txParams: { from: LEDGER_ADDRESS },
       });
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          payload: expect.objectContaining({ type: 'SIGNING' }),
-        }),
-      );
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          payload: expect.objectContaining({ type: 'SIGNED' }),
-        }),
-      );
+
+      await capturedAutoSign({
+        id: 'tx-ledger-reconnecting',
+        type: 'swap',
+        txParams: { from: LEDGER_ADDRESS },
+      });
+
+      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+      expect(mockShowAwaitingConfirmation).not.toHaveBeenCalled();
+      expect(mockEnsureDeviceReady).not.toHaveBeenCalled();
+      expect(
+        Engine.context.ApprovalController.acceptRequest,
+      ).not.toHaveBeenCalled();
     });
 
     it('still routes QR auto-sign through the QR signing modal', async () => {

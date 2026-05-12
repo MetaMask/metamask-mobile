@@ -10,24 +10,44 @@ import { HardwareWalletsSwapsStatus } from '../HardwareWalletsSwaps.state';
 interface UseHwConnectionMonitoringOptions {
   isEnabled: boolean;
   currentStatus: HardwareWalletsSwapsStatus;
+  hasActiveSigning: boolean;
 }
 
 export function useHwConnectionMonitoring({
   isEnabled,
   currentStatus,
+  hasActiveSigning,
 }: UseHwConnectionMonitoringOptions) {
   const dispatch = useDispatch();
   const { connectionState } = useHardwareWallet();
   const handledErrorRef = useRef<unknown>(null);
   const isDisconnectedRef = useRef(false);
+  const baselineStateRef = useRef<typeof connectionState | null>(null);
+  const prevWaitingRef = useRef(false);
 
   useEffect(() => {
+    const isWaiting = currentStatus === HardwareWalletsSwapsStatus.Waiting;
+
+    if (isWaiting && !prevWaitingRef.current) {
+      baselineStateRef.current = connectionState;
+      handledErrorRef.current = null;
+      isDisconnectedRef.current = false;
+    }
+    prevWaitingRef.current = isWaiting;
+
     if (!isEnabled) return;
-    if (currentStatus !== HardwareWalletsSwapsStatus.Waiting) {
+    if (!isWaiting) {
+      return;
+    }
+
+    if (connectionState === baselineStateRef.current) {
       return;
     }
 
     if (connectionState.status === ConnectionStatus.Disconnected) {
+      if (!hasActiveSigning) {
+        return;
+      }
       if (handledErrorRef.current === 'disconnected') return;
       handledErrorRef.current = 'disconnected';
       isDisconnectedRef.current = true;
@@ -50,24 +70,28 @@ export function useHwConnectionMonitoring({
       parsedError.code === ErrorCode.ConnectionClosed ||
       parsedError.code === ErrorCode.DeviceDisconnected
     ) {
+      if (!hasActiveSigning) {
+        return;
+      }
       isDisconnectedRef.current = true;
       dispatch(updateHardwareWalletsSwaps({ type: 'DEVICE_DISCONNECTED' }));
       return;
     }
 
-    dispatch(
-      updateHardwareWalletsSwaps({
-        type:
-          error && isUserCancellation(error)
-            ? 'REJECTED'
-            : 'TRANSACTION_FAILED',
-      }),
-    );
-  }, [connectionState, currentStatus, isEnabled, dispatch]);
+    if (error && isUserCancellation(error)) {
+      dispatch(
+        updateHardwareWalletsSwaps({
+          type: 'REJECTED',
+        }),
+      );
+      return;
+    }
+  }, [connectionState, currentStatus, hasActiveSigning, isEnabled, dispatch]);
 
   const resetHandledError = useCallback(() => {
     handledErrorRef.current = null;
     isDisconnectedRef.current = false;
+    baselineStateRef.current = null;
   }, []);
 
   return { isDisconnectedRef, resetHandledError };

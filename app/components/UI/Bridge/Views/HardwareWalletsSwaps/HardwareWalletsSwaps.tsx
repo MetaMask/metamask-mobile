@@ -29,7 +29,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ActivityIndicator } from 'react-native';
+import { useTheme } from '../../../../../util/theme';
 import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 
 import Routes from '../../../../../constants/navigation/Routes';
@@ -62,9 +63,12 @@ import { IconName as ToastIconName } from '../../../../../component-library/comp
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { useHwBatchSignTracker } from '../../hooks/useHwBatchSignTracker';
 
+import { useHwConnectionMonitoring } from './hooks/useHwConnectionMonitoring';
+import { useHwQrState } from './hooks/useHwQrState';
+import { useHwConfirmationMonitoring } from './hooks/useHwConfirmationMonitoring';
+
 const HARDWARE_WALLET_RIVE_ARTBOARD = 'Generic';
 const HARDWARE_WALLET_RIVE_STATE_MACHINE = 'wallet_states';
-
 const styles = StyleSheet.create({
   riveAnimation: {
     height: 112,
@@ -99,18 +103,38 @@ function getStepDescription(step: HardwareWalletsSwapsStep) {
   }
 
   if (step.kind === HardwareWalletsSwapsStepKind.Approval) {
-    return strings('bridge.hardware_wallet_progress.spender');
+    return (
+      step.address ??
+      strings('bridge.hardware_wallet_progress.spender')
+    );
   }
 
-  return strings('bridge.hardware_wallet_progress.recipient');
+  return (
+    step.address ??
+    strings('bridge.hardware_wallet_progress.recipient')
+  );
 }
 
-function getStepIcon(step: HardwareWalletsSwapsStep, index: number) {
+interface StepIconResult {
+  name: typeof IconName.Check | typeof IconName.Close | undefined;
+  color:
+    | typeof IconColor.SuccessDefault
+    | typeof IconColor.ErrorDefault
+    | undefined;
+  label: string | undefined;
+  isSigning: boolean;
+}
+
+function getStepIcon(
+  step: HardwareWalletsSwapsStep,
+  index: number,
+): StepIconResult {
   if (step.status === 'signed') {
     return {
       name: IconName.Check,
       color: IconColor.SuccessDefault,
       label: undefined,
+      isSigning: false,
     };
   }
 
@@ -119,14 +143,16 @@ function getStepIcon(step: HardwareWalletsSwapsStep, index: number) {
       name: IconName.Close,
       color: IconColor.ErrorDefault,
       label: undefined,
+      isSigning: false,
     };
   }
 
   if (step.status === 'signing') {
     return {
-      name: IconName.Loading,
-      color: IconColor.PrimaryDefault,
+      name: undefined,
+      color: undefined,
       label: undefined,
+      isSigning: true,
     };
   }
 
@@ -134,6 +160,7 @@ function getStepIcon(step: HardwareWalletsSwapsStep, index: number) {
     name: undefined,
     color: undefined,
     label: `${index + 1}`,
+    isSigning: false,
   };
 }
 
@@ -177,6 +204,7 @@ function StepRow({ step, index }: StepRowProps) {
   const icon = getStepIcon(step, index);
   const titleColor =
     step.status === 'rejected' ? TextColor.ErrorDefault : TextColor.TextDefault;
+  const { colors } = useTheme();
 
   return (
     <Box
@@ -192,7 +220,9 @@ function StepRow({ step, index }: StepRowProps) {
         backgroundColor={BoxBackgroundColor.BackgroundMuted}
         twClassName="h-8 w-8 rounded-full"
       >
-        {icon.name ? (
+        {icon.isSigning ? (
+          <ActivityIndicator size="small" color={colors.primary.default} />
+        ) : icon.name ? (
           <Icon name={icon.name} color={icon.color} size={IconSize.Md} />
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
@@ -220,17 +250,41 @@ export function HardwareWalletsSwaps() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
+  const { colors } = useTheme();
   const riveRef = useRef<RiveRef>(null);
   const [isRivePlaying, setIsRivePlaying] = useState(false);
   const progress = useSelector(selectHardwareWalletsSwaps);
+  const progressRef = useRef(progress);
+  progressRef.current = progress;
   const walletAddress = useSelector(selectSourceWalletAddress);
-  const { cancelCurrentBatch } = useHwBatchSignTracker({
+  const { cancelCurrentBatch, confirmationTxId } = useHwBatchSignTracker({
     fromAddress: walletAddress ?? undefined,
     isEnabled: Boolean(walletAddress),
   });
+
+  useHwConnectionMonitoring({
+    isEnabled: Boolean(walletAddress),
+    currentStatus: progress.status,
+    hasActiveSigning: Boolean(confirmationTxId),
+  });
+
+  useHwQrState({
+    isEnabled: Boolean(walletAddress),
+    currentStatus: progress.status,
+  });
+
+  useHwConfirmationMonitoring({
+    isEnabled: Boolean(walletAddress),
+    currentStatus: progress.status,
+    confirmationTxId,
+    isDeviceDisconnected:
+      progress.status === HardwareWalletsSwapsStatus.Disconnected,
+  });
+
   const { submitBridgeTx } = useSubmitBridgeTx();
   const toastRef = useContext(ToastContext)?.toastRef;
   const hasAutoNavigatedRef = useRef(false);
+  const hasInitialSubmissionRef = useRef(false);
 
   const animationTrigger = useMemo(
     () => getHardwareWalletRiveTrigger(progress),
@@ -272,7 +326,79 @@ export function HardwareWalletsSwaps() {
     return () => clearTimeout(timer);
   }, [progress.status, navigation, dispatch, toastRef]);
 
+  const submitWithDeviceReady = useCallback(async () => {
+    const cachedParams = getBridgeSubmissionCache();
+    if (!cachedParams) {
+      dispatch(updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }));
+      return;
+    }
+    if (!walletAddress) {
+      dispatch(updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }));
+      return;
+    }
+    try {
+      await submitBridgeTx(cachedParams);
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'HardwareWalletsSwaps: submission failed',
+      );
+      const currentProgress = progressRef.current;
+      const isTerminal =
+        currentProgress.status === HardwareWalletsSwapsStatus.Rejected ||
+        currentProgress.status === HardwareWalletsSwapsStatus.Submitted ||
+        currentProgress.status === HardwareWalletsSwapsStatus.Failed;
+      if (!isTerminal) {
+        dispatch(updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }));
+      }
+    }
+  }, [dispatch, submitBridgeTx, walletAddress]);
+
+  useEffect(() => {
+    if (progress.status !== HardwareWalletsSwapsStatus.Waiting) return;
+    if (hasInitialSubmissionRef.current) {
+      return;
+    }
+    if (!getBridgeSubmissionCache()) {
+      dispatch(updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }));
+      return;
+    }
+
+    hasInitialSubmissionRef.current = true;
+    submitWithDeviceReady();
+  }, [progress.currentStep, progress.status, dispatch, submitWithDeviceReady]);
+
+  const isSigning = useMemo(() => {
+    if (
+      progress.status !== HardwareWalletsSwapsStatus.Waiting &&
+      progress.status !== HardwareWalletsSwapsStatus.Submitted
+    ) {
+      return false;
+    }
+    const activeStep = progress.steps[progress.currentStep - 1];
+    return activeStep?.status === 'signing';
+  }, [progress.currentStep, progress.status, progress.steps]);
+
+  const signingTitleParts = useMemo(() => {
+    const full = strings('bridge.hardware_wallet_progress.confirm_title', {
+      current: '',
+      total: '',
+    });
+    const idx = full.indexOf(' (/');
+    if (idx >= 0) {
+      return {
+        prefix: full.slice(0, idx),
+        suffix: '',
+      };
+    }
+    return { prefix: full, suffix: '' };
+  }, []);
+
   const title = useMemo(() => {
+    if (isSigning) {
+      return null;
+    }
+
     if (progress.status === HardwareWalletsSwapsStatus.Submitted) {
       return strings('bridge.hardware_wallet_progress.submitted_title');
     }
@@ -293,7 +419,7 @@ export function HardwareWalletsSwaps() {
       current: progress.currentStep || 1,
       total: progress.totalSteps || 1,
     });
-  }, [progress.currentStep, progress.status, progress.totalSteps]);
+  }, [isSigning, progress.currentStep, progress.status, progress.totalSteps]);
 
   const handleCancel = useCallback(() => {
     clearBridgeSubmissionCache();
@@ -304,19 +430,13 @@ export function HardwareWalletsSwaps() {
   const handleTryAgain = useCallback(async () => {
     cancelCurrentBatch();
     dispatch(updateHardwareWalletsSwaps({ type: 'RETRY' }));
-    const cachedParams = getBridgeSubmissionCache();
-    if (cachedParams) {
-      try {
-        await submitBridgeTx(cachedParams);
-      } catch {
-        // The tracker in useBridgeConfirm dispatches REJECTED/TRANSACTION_FAILED
-      }
-    }
-  }, [dispatch, submitBridgeTx, cancelCurrentBatch]);
+    await submitWithDeviceReady();
+  }, [dispatch, cancelCurrentBatch, submitWithDeviceReady]);
 
   const handleReconnect = useCallback(async () => {
     dispatch(updateHardwareWalletsSwaps({ type: 'RETRY' }));
-  }, [dispatch]);
+    await submitWithDeviceReady();
+  }, [dispatch, submitWithDeviceReady]);
 
   const handleDone = useCallback(() => {
     clearBridgeSubmissionCache();
@@ -377,13 +497,31 @@ export function HardwareWalletsSwaps() {
           />
         </Box>
 
-        <Text
-          testID={HardwareWalletsSwapsSelectorsIDs.TITLE}
-          variant={TextVariant.HeadingLg}
-          twClassName="mb-8"
-        >
-          {title}
-        </Text>
+        {isSigning ? (
+          <Box
+            testID={HardwareWalletsSwapsSelectorsIDs.TITLE}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+            twClassName="mb-8"
+          >
+            <Text variant={TextVariant.HeadingLg}>
+              {signingTitleParts.prefix} (
+            </Text>
+            <ActivityIndicator size="small" color={colors.primary.default} />
+            <Text variant={TextVariant.HeadingLg}>
+              /{progress.totalSteps || 1})
+            </Text>
+          </Box>
+        ) : (
+          <Text
+            testID={HardwareWalletsSwapsSelectorsIDs.TITLE}
+            variant={TextVariant.HeadingLg}
+            twClassName="mb-8"
+          >
+            {title}
+          </Text>
+        )}
 
         <Box gap={5}>
           {progress.steps.map((step, index) => (

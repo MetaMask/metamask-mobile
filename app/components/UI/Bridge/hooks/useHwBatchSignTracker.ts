@@ -6,6 +6,10 @@ import {
 } from '@metamask/transaction-controller';
 import { useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import {
+  executeHardwareWalletOperation,
+  useHardwareWallet,
+} from '../../../../core/HardwareWallet';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 import { HardwareWalletsSwapsStepKind } from '../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
 
@@ -49,13 +53,36 @@ export function useHwBatchSignTracker({
   isEnabled,
 }: UseHwBatchSignTrackerOptions) {
   const dispatch = useDispatch();
+  const {
+    ensureDeviceReady,
+    setPendingOperationAddress,
+    showAwaitingConfirmation,
+    hideAwaitingConfirmation,
+    showHardwareWalletError,
+  } = useHardwareWallet();
   const dispatchRef = useRef(dispatch);
   dispatchRef.current = dispatch;
+  const hardwareWalletOperationRef = useRef({
+    ensureDeviceReady,
+    setPendingOperationAddress,
+    showAwaitingConfirmation,
+    hideAwaitingConfirmation,
+    showHardwareWalletError,
+  });
+  hardwareWalletOperationRef.current = {
+    ensureDeviceReady,
+    setPendingOperationAddress,
+    showAwaitingConfirmation,
+    hideAwaitingConfirmation,
+    showHardwareWalletError,
+  };
 
   const currentBatchIdRef = useRef<string | null | undefined>(undefined);
   const seenBatchIdsRef = useRef<Set<string>>(new Set());
+  const signedBatchIdsRef = useRef<Set<string>>(new Set());
   const trackedTxIdsRef = useRef<Set<string>>(new Set());
   const pendingAbortTxIdsRef = useRef<Set<string>>(new Set());
+  const acceptedApprovalIdsRef = useRef<Set<string>>(new Set());
   const [confirmationTxId, setConfirmationTxId] = useState<
     string | undefined
   >();
@@ -72,6 +99,7 @@ export function useHwBatchSignTracker({
   const cancelCurrentBatch = useCallback(async () => {
     const txIds = [...trackedTxIdsRef.current];
     trackedTxIdsRef.current = new Set();
+    signedBatchIdsRef.current = new Set();
     currentBatchIdRef.current = null;
     setConfirmationTxId(undefined);
 
@@ -100,6 +128,85 @@ export function useHwBatchSignTracker({
     const targetFrom = fromAddress.toLowerCase();
     const handledTxIds = new Set<string>();
 
+    const acceptRequestWithHardwareWalletOperation = (
+      requestId: string,
+      dispatchFailureOnReject = false,
+    ) => {
+      const hardwareWalletOperation = hardwareWalletOperationRef.current;
+      let hasHandledRejection = false;
+      const handleApprovalRejection = (): void => {
+        if (hasHandledRejection) return;
+        hasHandledRejection = true;
+        const isLateSignedBatchRejection =
+          dispatchFailureOnReject &&
+          currentBatchIdRef.current === requestId &&
+          signedBatchIdsRef.current.has(requestId);
+        if (isLateSignedBatchRejection) {
+          return;
+        }
+        acceptedApprovalIdsRef.current.delete(requestId);
+        Engine.rejectPendingApproval(
+          requestId,
+          new Error('User rejected the transaction'),
+          { ignoreMissing: true, logErrors: false },
+        );
+        if (dispatchFailureOnReject) {
+          dispatchRef.current(
+            updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }),
+          );
+        }
+      };
+
+      executeHardwareWalletOperation({
+        address: fromAddress,
+        operationType: 'transaction',
+        ensureDeviceReady: hardwareWalletOperation.ensureDeviceReady,
+        setPendingOperationAddress:
+          hardwareWalletOperation.setPendingOperationAddress,
+        showAwaitingConfirmation:
+          hardwareWalletOperation.showAwaitingConfirmation,
+        hideAwaitingConfirmation: hardwareWalletOperation.hideAwaitingConfirmation,
+        showHardwareWalletError: hardwareWalletOperation.showHardwareWalletError,
+        execute: async () => {
+          await Engine.context.ApprovalController.acceptRequest(
+            requestId,
+            undefined,
+            {
+              waitForResult: true,
+            },
+          );
+        },
+        onRejected: handleApprovalRejection,
+      })
+        .catch(() => {
+          handleApprovalRejection();
+        });
+    };
+
+    const acceptPendingApprovals = async () => {
+      const { ApprovalController } = Engine.context;
+      const pendingApprovals = ApprovalController.state.pendingApprovals ?? {};
+
+      for (const [requestId, request] of Object.entries(pendingApprovals)) {
+        if (acceptedApprovalIdsRef.current.has(requestId)) {
+          continue;
+        }
+
+        if (request.type === 'transaction') {
+          const txMeta = Engine.context.TransactionController.state.transactions.find(
+            (tx: TransactionMeta) => tx.id === requestId,
+          );
+          if (txMeta && matchesTx(txMeta, targetFrom)) {
+            acceptedApprovalIdsRef.current.add(requestId);
+            acceptRequestWithHardwareWalletOperation(requestId);
+          }
+        } else if (request.type === 'transaction_batch') {
+          acceptedApprovalIdsRef.current.add(requestId);
+          acceptRequestWithHardwareWalletOperation(requestId, true);
+        }
+      }
+    };
+
     const handleStatusUpdated = ({
       transactionMeta,
     }: {
@@ -126,7 +233,12 @@ export function useHwBatchSignTracker({
           }),
         );
       } else if (status === TransactionStatus.signed) {
-        if (!isFromCurrentBatch(transactionMeta)) return;
+        if (!isFromCurrentBatch(transactionMeta)) {
+          return;
+        }
+        if (transactionMeta.batchId) {
+          signedBatchIdsRef.current.add(transactionMeta.batchId);
+        }
         dispatchRef.current(
           updateHardwareWalletsSwaps({
             type: 'SIGNED',
@@ -148,7 +260,9 @@ export function useHwBatchSignTracker({
     }) => {
       if (!matchesTx(transactionMeta, targetFrom)) return;
       if (handledTxIds.has(transactionMeta.id)) return;
-      if (!isFromCurrentBatch(transactionMeta)) return;
+      if (!isFromCurrentBatch(transactionMeta)) {
+        return;
+      }
 
       const stepKind = getStepKind(transactionMeta.type as TransactionType);
       dispatchRef.current(
@@ -171,7 +285,9 @@ export function useHwBatchSignTracker({
     }) => {
       if (!matchesTx(transactionMeta, targetFrom)) return;
       if (handledTxIds.has(transactionMeta.id)) return;
-      if (!isFromCurrentBatch(transactionMeta)) return;
+      if (!isFromCurrentBatch(transactionMeta)) {
+        return;
+      }
 
       dispatchRef.current(
         updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }),
@@ -195,6 +311,10 @@ export function useHwBatchSignTracker({
       'TransactionController:transactionFailed',
       handleFailed,
     );
+    Engine.controllerMessenger.subscribe(
+      'ApprovalController:stateChange',
+      acceptPendingApprovals,
+    );
 
     return () => {
       Engine.controllerMessenger.unsubscribe(
@@ -208,6 +328,10 @@ export function useHwBatchSignTracker({
       Engine.controllerMessenger.unsubscribe(
         'TransactionController:transactionFailed',
         handleFailed,
+      );
+      Engine.controllerMessenger.unsubscribe(
+        'ApprovalController:stateChange',
+        acceptPendingApprovals,
       );
     };
   }, [fromAddress, isEnabled, isFromCurrentBatch]);

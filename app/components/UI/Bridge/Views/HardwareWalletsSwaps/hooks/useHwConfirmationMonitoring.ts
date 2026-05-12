@@ -23,17 +23,11 @@ export function useHwConfirmationMonitoring({
     if (!isEnabled) return;
     if (currentStatus !== HardwareWalletsSwapsStatus.Waiting) return;
 
-    const previousId = previousTxIdRef.current;
     previousTxIdRef.current = confirmationTxId;
-
-    if (previousId && !confirmationTxId && !isDeviceDisconnected) {
-      dispatch(updateHardwareWalletsSwaps({ type: 'REJECTED' }));
-    }
   }, [
     isEnabled,
     currentStatus,
     confirmationTxId,
-    isDeviceDisconnected,
     dispatch,
   ]);
 

@@ -10,7 +10,6 @@ import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
 } from './useHardwareWalletStateManager';
-import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 interface UseDeviceConnectionFlowOptions {
   refs: HardwareWalletRefs;
@@ -77,13 +76,6 @@ export const useDeviceConnectionFlow = ({
         return existing;
       }
 
-      DevLogger.log(
-        '[HardwareWallet] Creating adapter for:',
-        targetType,
-        '(existing was:',
-        existing?.walletType,
-        ')',
-      );
       // eslint-disable-next-line no-empty-function
       existing?.disconnect().catch(() => {});
       const adapter = createAdapterWithCallbacks(targetType);
@@ -103,9 +95,6 @@ export const useDeviceConnectionFlow = ({
         pendingReadyResolveRef.current = resolve;
 
         connectionSuccessCallbackRef.current = () => {
-          DevLogger.log(
-            '[HardwareWallet] Success callback - resolving with true',
-          );
           if (pendingReadyResolveRef.current === resolve) {
             pendingReadyResolveRef.current = null;
             resolve(true);
@@ -146,10 +135,6 @@ export const useDeviceConnectionFlow = ({
             deviceId: targetDeviceId,
           });
         }
-      } else {
-        DevLogger.log(
-          '[HardwareWallet] Device not ready — adapter event already handled state transition',
-        );
       }
       return isReady;
     },
@@ -174,23 +159,15 @@ export const useDeviceConnectionFlow = ({
         await adapter.connect(targetDeviceId);
 
         if (!pendingReadyResolveRef.current) {
-          DevLogger.log(
-            '[HardwareWallet] Connect completed but flow was cancelled — ignoring',
-          );
           return;
         }
 
         setters.setDeviceId(targetDeviceId);
         lastDeviceIdRef.current = targetDeviceId;
 
-        DevLogger.log(
-          '[HardwareWallet] Connect succeeded, continuing readiness check...',
-        );
-
         try {
           await tryEnsureReady(adapter, targetDeviceId);
         } catch (error) {
-          DevLogger.log('[HardwareWallet] Readiness check failed:', error);
           handleError(error);
         }
       } catch (error) {
@@ -204,17 +181,9 @@ export const useDeviceConnectionFlow = ({
 
   const ensureDeviceReady = useCallback(
     async (targetDeviceId?: string | null): Promise<boolean> => {
-      DevLogger.log(
-        '[HardwareWallet] ensureDeviceReady called with deviceId:',
-        targetDeviceId,
-      );
-
       onFlowStart?.();
 
       if (pendingReadyResolveRef.current) {
-        DevLogger.log(
-          '[HardwareWallet] Cancelling previous pending readiness check',
-        );
         const resolvePending = pendingReadyResolveRef.current;
         if (resolvePending) {
           pendingReadyResolveRef.current = null;
@@ -256,9 +225,6 @@ export const useDeviceConnectionFlow = ({
           // For wallets that don't require device discovery (e.g., QR),
           // we can skip device selection and go straight to connecting
           if (!adapter.requiresDeviceDiscovery) {
-            DevLogger.log(
-              '[HardwareWallet] No device ID but discovery not required - checking readiness',
-            );
             updateConnectionState({ status: ConnectionStatus.Connecting });
 
             (async () => {
@@ -267,10 +233,6 @@ export const useDeviceConnectionFlow = ({
                 // Use a default device ID for wallets without real device IDs
                 await tryEnsureReady(adapter, 'default');
               } catch (error) {
-                DevLogger.log(
-                  '[HardwareWallet] ensureDeviceReady error:',
-                  error,
-                );
                 handleError(error);
               } finally {
                 refs.abortControllerRef.current = null;
@@ -279,14 +241,9 @@ export const useDeviceConnectionFlow = ({
             return;
           }
 
-          DevLogger.log(
-            '[HardwareWallet] No device ID - starting device selection',
-          );
           updateConnectionState({ status: ConnectionStatus.Scanning });
           return;
         }
-
-        DevLogger.log('[HardwareWallet] Have device ID, checking readiness...');
 
         updateConnectionState({ status: ConnectionStatus.Connecting });
 
@@ -295,7 +252,6 @@ export const useDeviceConnectionFlow = ({
             refs.abortControllerRef.current = new AbortController();
             await tryEnsureReady(adapter, targetDeviceId);
           } catch (error) {
-            DevLogger.log('[HardwareWallet] ensureDeviceReady error:', error);
             handleError(error);
           } finally {
             refs.abortControllerRef.current = null;
