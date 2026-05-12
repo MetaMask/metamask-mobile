@@ -470,6 +470,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         } else if (urDecoder.isSuccess()) {
           const ur = urDecoder.resultUR();
           if (expectedURTypes.includes(ur.type)) {
+            scanErrorActiveRef.current = false;
             lastForwardedScanErrorRef.current = null;
             onScanSuccess(ur);
             setProgress(0);
