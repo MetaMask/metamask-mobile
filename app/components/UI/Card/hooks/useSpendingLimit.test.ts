@@ -102,6 +102,12 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+const mockLinkInteractive = jest.fn();
+const mockUseMoneyAccountCardLinkage = jest.fn();
+jest.mock('./useMoneyAccountCardLinkage', () => ({
+  useMoneyAccountCardLinkage: () => mockUseMoneyAccountCardLinkage(),
+}));
+
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -191,6 +197,14 @@ describe('useSpendingLimit', () => {
     jest.useFakeTimers();
 
     mockFetchCardHomeData.mockResolvedValue(undefined);
+
+    // Default: wallet mode behaviour — linkage hook is a no-op token-less
+    // value. Each MA-mode test that exercises linkage overrides these.
+    mockLinkInteractive.mockResolvedValue(true);
+    mockUseMoneyAccountCardLinkage.mockReturnValue({
+      linkInteractive: mockLinkInteractive,
+      moneyAccountCardToken: null,
+    });
 
     // Setup navigation mock
     mockNavigation = {
@@ -1529,6 +1543,226 @@ describe('useSpendingLimit', () => {
       );
 
       expect(result.current.isLoading).toBe(false);
+    });
+  });
+
+  describe('Money Account mode (source: "moneyAccount")', () => {
+    const MA_TOKEN = createMockToken({
+      address: '0xmonadUsdc',
+      symbol: 'USDC',
+      caipChainId: 'eip155:11297108099' as `${string}:${string}`,
+      fundingStatus: FundingStatus.NotEnabled,
+    });
+
+    const setMaLinkage = (overrides = {}) => {
+      mockUseMoneyAccountCardLinkage.mockReturnValue({
+        linkInteractive: mockLinkInteractive,
+        moneyAccountCardToken: MA_TOKEN,
+        ...overrides,
+      });
+    };
+
+    it('returns the locked Monad USDC token as selectedToken regardless of internal state', () => {
+      setMaLinkage();
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ source: 'moneyAccount', flow: 'enable' }),
+        ),
+      );
+
+      expect(result.current.selectedToken).toBe(MA_TOKEN);
+    });
+
+    it('setSelectedToken is a noop in MA mode', () => {
+      setMaLinkage();
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ source: 'moneyAccount', flow: 'enable' }),
+        ),
+      );
+
+      act(() => {
+        result.current.setSelectedToken(createMockToken({ symbol: 'ETH' }));
+      });
+
+      expect(result.current.selectedToken).toBe(MA_TOKEN);
+    });
+
+    it('handleAccountSelect is a noop in MA mode', () => {
+      setMaLinkage();
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ source: 'moneyAccount', flow: 'enable' }),
+        ),
+      );
+
+      act(() => {
+        result.current.handleAccountSelect();
+      });
+
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('handleOtherSelect is a noop in MA mode', () => {
+      setMaLinkage();
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ source: 'moneyAccount', flow: 'enable' }),
+        ),
+      );
+
+      act(() => {
+        result.current.handleOtherSelect();
+      });
+
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('submit dispatches linkInteractive with the validated delegationAmount and does NOT call submitDelegation', async () => {
+      setMaLinkage();
+      mockLinkInteractive.mockResolvedValue(true);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ source: 'moneyAccount', flow: 'enable' }),
+        ),
+      );
+
+      await act(async () => {
+        await result.current.submit();
+      });
+
+      expect(mockLinkInteractive).toHaveBeenCalledTimes(1);
+      expect(mockLinkInteractive).toHaveBeenCalledWith({
+        amount: BAANX_MAX_LIMIT,
+      });
+      expect(mockSubmitDelegation).not.toHaveBeenCalled();
+    });
+
+    it('submit dispatches linkInteractive with the custom limit when limitType=restricted', async () => {
+      setMaLinkage();
+      mockLinkInteractive.mockResolvedValue(true);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ source: 'moneyAccount', flow: 'enable' }),
+        ),
+      );
+
+      act(() => {
+        result.current.setLimitType('restricted');
+        result.current.setCustomLimit('250');
+      });
+
+      await act(async () => {
+        await result.current.submit();
+      });
+
+      expect(mockLinkInteractive).toHaveBeenCalledWith({ amount: '250' });
+    });
+
+    it('does NOT show its own success/error toasts in MA mode (hook owns them)', async () => {
+      setMaLinkage();
+      mockLinkInteractive.mockResolvedValue(true);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ source: 'moneyAccount', flow: 'enable' }),
+        ),
+      );
+
+      await act(async () => {
+        await result.current.submit();
+      });
+
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('does NOT show its own error toast when linkInteractive returns false (hook owns the failure toast)', async () => {
+      setMaLinkage();
+      mockLinkInteractive.mockResolvedValue(false);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ source: 'moneyAccount', flow: 'enable' }),
+        ),
+      );
+
+      await act(async () => {
+        await result.current.submit();
+      });
+
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('navigates back via goBack on success when not in onboarding flow', async () => {
+      setMaLinkage();
+      mockLinkInteractive.mockResolvedValue(true);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ source: 'moneyAccount', flow: 'enable' }),
+        ),
+      );
+
+      await act(async () => {
+        await result.current.submit();
+      });
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      expect(mockNavigation.goBack).toHaveBeenCalled();
+    });
+
+    it('replaces stack with CARD.HOME on success when in onboarding flow', async () => {
+      setMaLinkage();
+      mockLinkInteractive.mockResolvedValue(true);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ source: 'moneyAccount', flow: 'onboarding' }),
+        ),
+      );
+
+      await act(async () => {
+        await result.current.submit();
+      });
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      expect(StackActions.replace).toHaveBeenCalledWith(Routes.CARD.HOME);
+      expect(mockNavigation.dispatch).toHaveBeenCalled();
+    });
+
+    it('isValid is false when MA mode and no token is resolved', () => {
+      setMaLinkage({ moneyAccountCardToken: null });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ source: 'moneyAccount', flow: 'enable' }),
+        ),
+      );
+
+      expect(result.current.isValid).toBe(false);
+    });
+
+    it('isValid is true in MA onboarding flow with a resolved token (no wallet selectedToken required)', () => {
+      setMaLinkage();
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ source: 'moneyAccount', flow: 'onboarding' }),
+        ),
+      );
+
+      expect(result.current.isValid).toBe(true);
     });
   });
 });

@@ -52,6 +52,11 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { CardActions, CardScreens } from '../util/metrics';
+import { useMoneyAccountCardLinkage } from './useMoneyAccountCardLinkage';
+import {
+  MONEY_ACCOUNT_CARD_SOURCE,
+  type CardSpendingLimitSource,
+} from '../util/moneyAccountCardRouteParams';
 
 export type LimitType = 'full' | 'restricted';
 
@@ -62,6 +67,15 @@ export interface UseSpendingLimitParams {
   allTokens: CardFundingToken[];
   delegationSettings: DelegationSettingsResponse | null;
   routeParams?: Record<string, unknown>;
+  /**
+   * Entry context. Defaults to `'wallet'`. When `'moneyAccount'`, the screen
+   * runs in MA mode: the account is locked to the primary Money Account, the
+   * token is locked to Monad USDC, and submit dispatches the Money Account ↔
+   * Card linkage flow (`useMoneyAccountCardLinkage.linkInteractive`) instead
+   * of the wallet delegation flow. Toast UX is owned by the linkage hook in
+   * MA mode; this hook does not show its own success/error toasts.
+   */
+  source?: CardSpendingLimitSource;
 }
 
 export interface UseSpendingLimitReturn {
@@ -126,12 +140,19 @@ const useSpendingLimit = ({
   allTokens,
   delegationSettings,
   routeParams,
+  source,
 }: UseSpendingLimitParams): UseSpendingLimitReturn => {
   const navigation = useNavigation();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { sdk } = useCardSDK();
+
+  const isMoneyAccountMode = source === MONEY_ACCOUNT_CARD_SOURCE;
+  // Always called to keep hooks order stable. In wallet mode the hook is a
+  // cheap selector subscription — its action methods are simply never invoked.
+  const { linkInteractive, moneyAccountCardToken } =
+    useMoneyAccountCardLinkage();
 
   const initialLimitState = initialToken
     ? deriveLimitStateFromToken(initialToken)
@@ -412,22 +433,32 @@ const useSpendingLimit = ({
 
   // Validation
   const isValid = useMemo(() => {
-    if (isOnboardingFlow && !selectedToken) return false;
+    if (isMoneyAccountMode && !moneyAccountCardToken) return false;
+    if (isOnboardingFlow && !selectedToken && !isMoneyAccountMode) return false;
     if (limitType === 'restricted') {
       const num = parseFloat(customLimit);
       return customLimit !== '' && !isNaN(num) && num >= 0;
     }
     return true;
-  }, [isOnboardingFlow, selectedToken, limitType, customLimit]);
+  }, [
+    isOnboardingFlow,
+    selectedToken,
+    limitType,
+    customLimit,
+    isMoneyAccountMode,
+    moneyAccountCardToken,
+  ]);
 
   // Handlers
   const handleAccountSelect = useCallback(() => {
+    if (isMoneyAccountMode) return;
     navigation.navigate(
       ...createAccountSelectorNavDetails({ disableAddAccountButton: true }),
     );
-  }, [navigation]);
+  }, [navigation, isMoneyAccountMode]);
 
   const handleOtherSelect = useCallback(() => {
+    if (isMoneyAccountMode) return;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({ action: CardActions.OTHER_TOKEN_BUTTON })
@@ -447,7 +478,14 @@ const useSpendingLimit = ({
         callerParams: restParams as Record<string, unknown>,
       }),
     );
-  }, [navigation, selectedToken, trackEvent, createEventBuilder, routeParams]);
+  }, [
+    navigation,
+    selectedToken,
+    trackEvent,
+    createEventBuilder,
+    routeParams,
+    isMoneyAccountMode,
+  ]);
 
   const handleLimitSelect = useCallback(() => {
     navigation.navigate(
@@ -508,6 +546,25 @@ const useSpendingLimit = ({
         .addProperties({ action: CardActions.ENABLE_TOKEN_CONFIRM_BUTTON })
         .build(),
     );
+
+    // Money Account mode: dispatch the MA linkage flow. Toasts are owned by
+    // `useMoneyAccountCardLinkage` (pending / success / error / cancel). The
+    // wallet branch below — including the 3s delay before `fetchCardHomeData`
+    // — is intentionally preserved and untouched.
+    if (isMoneyAccountMode) {
+      setIsProcessing(true);
+      const ok = await linkInteractive({ amount: delegationAmount });
+      setIsProcessing(false);
+      if (!ok) return;
+      setTimeout(() => {
+        if (isOnboardingFlow) {
+          navigateToCardHome();
+        } else {
+          navigation.goBack();
+        }
+      }, 0);
+      return;
+    }
 
     if (!sdk) {
       Logger.error(
@@ -583,6 +640,8 @@ const useSpendingLimit = ({
     navigation,
     trackEvent,
     createEventBuilder,
+    isMoneyAccountMode,
+    linkInteractive,
   ]);
 
   const cancel = useCallback(() => {
@@ -612,15 +671,30 @@ const useSpendingLimit = ({
     navigateToCardHome();
   }, [trackEvent, createEventBuilder, isLoading, navigateToCardHome]);
 
+  // In MA mode the token is locked to the resolved Monad USDC token from
+  // delegation settings — internal `selectedToken` state is bypassed entirely
+  // for what the screen renders, and `setSelectedToken` becomes a noop.
+  const effectiveSelectedToken = isMoneyAccountMode
+    ? moneyAccountCardToken
+    : selectedToken;
+
+  const lockedSetSelectedToken = useCallback(
+    (token: CardFundingToken | null) => {
+      if (isMoneyAccountMode) return;
+      setSelectedToken(token);
+    },
+    [isMoneyAccountMode],
+  );
+
   return {
     // State
-    selectedToken,
+    selectedToken: effectiveSelectedToken,
     limitType,
     customLimit,
     isLoading,
 
     // Handlers
-    setSelectedToken,
+    setSelectedToken: lockedSetSelectedToken,
     handleAccountSelect,
     handleOtherSelect,
     handleLimitSelect,

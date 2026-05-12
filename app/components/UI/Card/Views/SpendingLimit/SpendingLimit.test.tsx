@@ -993,4 +993,54 @@ describe('SpendingLimit Component', () => {
       expect(screen.getByText('Cancel')).toBeOnTheScreen();
     });
   });
+
+  describe('Money Account mode (source: "moneyAccount")', () => {
+    const maRoute: MockRoute = {
+      params: {
+        flow: 'enable',
+        // The screen forwards `source` to the hook unchanged; cast covers
+        // the local MockRoute type which does not yet include it.
+        ...({ source: 'moneyAccount' } as Record<string, unknown>),
+      },
+    };
+
+    it('disables the account row in MA mode', () => {
+      render(maRoute);
+
+      const accountRow = screen.getByTestId('account-row');
+      // Disabled TouchableOpacity ignores press events.
+      fireEvent.press(accountRow);
+      expect(mockHandleAccountSelect).not.toHaveBeenCalled();
+    });
+
+    it('disables the token row in MA mode', () => {
+      render(maRoute);
+
+      const tokenRow = screen.getByTestId('token-row');
+      fireEvent.press(tokenRow);
+      expect(mockHandleOtherSelect).not.toHaveBeenCalled();
+    });
+
+    it('keeps the spending limit row interactive in MA mode (user still picks the amount)', () => {
+      render(maRoute);
+
+      fireEvent.press(screen.getByTestId('spending-limit-row'));
+      expect(mockHandleLimitSelect).toHaveBeenCalled();
+    });
+
+    it('passes source="moneyAccount" through to useSpendingLimit', () => {
+      render(maRoute);
+
+      expect(mockUseSpendingLimit).toHaveBeenCalledWith(
+        expect.objectContaining({ source: 'moneyAccount' }),
+      );
+    });
+
+    it('does not pass source when omitted (defaults to wallet behaviour)', () => {
+      render({ params: { flow: 'manage' } });
+
+      const lastCallArgs = mockUseSpendingLimit.mock.calls.at(-1)?.[0];
+      expect(lastCallArgs?.source).toBeUndefined();
+    });
+  });
 });

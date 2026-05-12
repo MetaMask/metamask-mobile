@@ -27,6 +27,7 @@ import {
   hasMoneyAccountCardRequirements,
   resolveMoneyAccountCardToken,
 } from '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
+import useMoneyAccountBalance from '../../Money/hooks/useMoneyAccountBalance';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { CardFundingToken } from '../types';
 import { UserCancelledError } from './useCardDelegation';
@@ -44,12 +45,14 @@ export interface UseMoneyAccountCardLinkageReturn {
   primaryMoneyAccount: MoneyAccount | undefined;
   moneyAccountCardToken: CardFundingToken | null;
   canLink: boolean;
+  isFunded: boolean;
 
   status: LinkageStatus;
   isLinking: boolean;
   error: Error | null;
 
   linkInBackground: () => Promise<boolean>;
+  linkInteractive: (params: { amount: string }) => Promise<boolean>;
   reset: () => void;
 }
 
@@ -73,6 +76,7 @@ export const useMoneyAccountCardLinkage =
     );
     const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
     const delegationSettings = useSelector(selectCardDelegationSettings);
+    const { totalFiatRaw } = useMoneyAccountBalance();
 
     const [status, setStatus] = useState<LinkageStatus>('idle');
     const [error, setError] = useState<Error | null>(null);
@@ -91,6 +95,14 @@ export const useMoneyAccountCardLinkage =
     const canLink = Boolean(
       hasRequirements && isCardAuthenticated && moneyAccountCardToken,
     );
+
+    // Strict `> 0` derivation. Any non-zero balance counts as funded; a
+    // dust/threshold refinement is intentionally deferred (see plan risks).
+    const isFunded = useMemo(() => {
+      if (!totalFiatRaw) return false;
+      const parsed = Number(totalFiatRaw);
+      return Number.isFinite(parsed) && parsed > 0;
+    }, [totalFiatRaw]);
 
     const showPendingToast = useCallback(() => {
       toastRef?.current?.showToast({
@@ -152,46 +164,65 @@ export const useMoneyAccountCardLinkage =
       });
     }, [theme.colors.error.default, theme.colors.error.muted, toastRef]);
 
-    const linkInBackground = useCallback(async (): Promise<boolean> => {
-      if (!canLink || !primaryMoneyAccount?.address) {
-        showErrorToast();
-        return false;
-      }
-
-      setStatus('pending');
-      setError(null);
-      showPendingToast();
-
-      try {
-        await Engine.context.CardController.linkMoneyAccountCard({
-          moneyAccountAddress: primaryMoneyAccount.address,
-          delegationAmountHuman: BAANX_MAX_LIMIT,
-        });
-        setStatus('success');
-        showSuccessToast();
-        return true;
-      } catch (caught) {
-        const linkageError =
-          caught instanceof Error ? caught : new Error(String(caught));
-
-        if (linkageError instanceof UserCancelledError) {
-          setStatus('cancelled');
+    /**
+     * Shared linkage runner. Both `linkInBackground` and `linkInteractive`
+     * differ only in the amount passed to the controller (and the call
+     * sites' UX framing); everything else — guard, status transitions, toast
+     * surface, error/cancel handling — is identical.
+     */
+    const runLinkage = useCallback(
+      async (delegationAmountHuman: string): Promise<boolean> => {
+        if (!canLink || !primaryMoneyAccount?.address) {
+          showErrorToast();
           return false;
         }
 
-        Logger.error(linkageError, 'useMoneyAccountCardLinkage failed');
-        setError(linkageError);
-        setStatus('error');
-        showErrorToast();
-        return false;
-      }
-    }, [
-      canLink,
-      primaryMoneyAccount?.address,
-      showErrorToast,
-      showPendingToast,
-      showSuccessToast,
-    ]);
+        setStatus('pending');
+        setError(null);
+        showPendingToast();
+
+        try {
+          await Engine.context.CardController.linkMoneyAccountCard({
+            moneyAccountAddress: primaryMoneyAccount.address,
+            delegationAmountHuman,
+          });
+          setStatus('success');
+          showSuccessToast();
+          return true;
+        } catch (caught) {
+          const linkageError =
+            caught instanceof Error ? caught : new Error(String(caught));
+
+          if (linkageError instanceof UserCancelledError) {
+            setStatus('cancelled');
+            return false;
+          }
+
+          Logger.error(linkageError, 'useMoneyAccountCardLinkage failed');
+          setError(linkageError);
+          setStatus('error');
+          showErrorToast();
+          return false;
+        }
+      },
+      [
+        canLink,
+        primaryMoneyAccount?.address,
+        showErrorToast,
+        showPendingToast,
+        showSuccessToast,
+      ],
+    );
+
+    const linkInBackground = useCallback(
+      (): Promise<boolean> => runLinkage(BAANX_MAX_LIMIT),
+      [runLinkage],
+    );
+
+    const linkInteractive = useCallback(
+      ({ amount }: { amount: string }): Promise<boolean> => runLinkage(amount),
+      [runLinkage],
+    );
 
     const reset = useCallback(() => {
       setStatus('idle');
@@ -204,12 +235,14 @@ export const useMoneyAccountCardLinkage =
       primaryMoneyAccount,
       moneyAccountCardToken,
       canLink,
+      isFunded,
 
       status,
       isLinking: status === 'pending',
       error,
 
       linkInBackground,
+      linkInteractive,
       reset,
     };
   };

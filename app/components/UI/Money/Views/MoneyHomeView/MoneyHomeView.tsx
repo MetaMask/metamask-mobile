@@ -37,6 +37,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import { MONEY_ACCOUNT_CARD_SOURCE } from '../../../Card/util/moneyAccountCardRouteParams';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { AssetType } from '../../../../Views/confirmations/types/token';
@@ -75,7 +76,7 @@ const MoneyHomeView = () => {
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
-  const { canLink, linkInBackground } = useMoneyAccountCardLinkage();
+  const { canLink, isFunded, linkInBackground } = useMoneyAccountCardLinkage();
   const geolocation = useSelector(getDetectedGeolocation);
   const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
 
@@ -136,15 +137,33 @@ const MoneyHomeView = () => {
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation]);
 
+  /**
+   * Funded / unfunded router for the Money Account → Card linkage flow.
+   *
+   * - Cardholder + canLink + funded → silent in-place link via the B2 hook.
+   * - Cardholder + canLink + NOT funded → SpendingLimit screen in MA mode,
+   * where the account is locked to the primary MA and the token is locked
+   * to Monad USDC. The user picks an amount; submit dispatches the same
+   * linkage flow.
+   * - Otherwise (not cardholder, missing requirements, missing token, etc.)
+   * → existing CARD.HOME nav. B4/B5 will refine this fall-through with
+   * login / onboarding completion-intent plumbing.
+   */
   const handleLinkCardPress = useCallback(async () => {
     if (isCardholder && canLink) {
-      await linkInBackground();
+      if (isFunded) {
+        await linkInBackground();
+        return;
+      }
+      navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+        source: MONEY_ACCOUNT_CARD_SOURCE,
+      });
       return;
     }
     navigation.navigate(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
     });
-  }, [isCardholder, canLink, linkInBackground, navigation]);
+  }, [isCardholder, canLink, isFunded, linkInBackground, navigation]);
 
   const handleGetNowPress = useCallback(() => {
     navigation.navigate(Routes.CARD.ROOT);

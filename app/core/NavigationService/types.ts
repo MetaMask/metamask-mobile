@@ -660,7 +660,7 @@ export interface RootStackParamList extends ParamListBase {
   CardHome: undefined;
   CardWelcome: undefined;
   CardAuthentication: { showAuthPrompt?: boolean } | undefined;
-  CardSpendingLimit: undefined;
+  CardSpendingLimit: { source?: 'wallet' | 'moneyAccount' } | undefined;
   ChooseYourCard: undefined;
   ReviewOrder: undefined;
   OrderCompleted:

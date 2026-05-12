@@ -40,10 +40,19 @@ import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { LINEA_CAIP_CHAIN_ID } from '../../util/buildTokenList';
+import {
+  MONEY_ACCOUNT_CARD_SOURCE,
+  type CardSpendingLimitSource,
+} from '../../util/moneyAccountCardRouteParams';
 
 interface SpendingLimitRouteParams {
   flow?: 'manage' | 'enable' | 'onboarding';
   selectedToken?: CardFundingToken;
+  /**
+   * Entry context. `'moneyAccount'` locks the account row + token row to
+   * the primary Money Account and Monad USDC; defaults to `'wallet'`.
+   */
+  source?: CardSpendingLimitSource;
 }
 
 interface SpendingLimitProps {
@@ -70,6 +79,8 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
   const flow = route?.params?.flow || 'manage';
   const isOnboardingFlow = flow === 'onboarding';
   const selectedTokenFromRoute = route?.params?.selectedToken;
+  const source = route?.params?.source;
+  const isMoneyAccountMode = source === MONEY_ACCOUNT_CARD_SOURCE;
 
   // Read card data from state (not navigation params)
   const {
@@ -124,6 +135,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     allTokens,
     delegationSettings,
     routeParams: route?.params as Record<string, unknown> | undefined,
+    source,
   });
 
   const isLoadingRef = useRef(isLoading);
@@ -263,6 +275,8 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
             onPress={handleAccountSelect}
             activeOpacity={0.7}
             testID="account-row"
+            disabled={isMoneyAccountMode}
+            accessibilityState={{ disabled: isMoneyAccountMode }}
           >
             <Box twClassName="flex-row items-center p-4">
               <Text
@@ -285,12 +299,14 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
                   >
                     {accountGroupName ?? selectedAccount.metadata.name}
                   </Text>
-                  <Icon
-                    name={IconName.ArrowDown}
-                    size={IconSize.Md}
-                    color={IconColor.IconDefault}
-                    style={tw.style('self-center shrink-0')}
-                  />
+                  {!isMoneyAccountMode && (
+                    <Icon
+                      name={IconName.ArrowDown}
+                      size={IconSize.Md}
+                      color={IconColor.IconDefault}
+                      style={tw.style('self-center shrink-0')}
+                    />
+                  )}
                 </Box>
               )}
             </Box>
@@ -301,6 +317,8 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
             onPress={handleOtherSelect}
             activeOpacity={0.7}
             testID="token-row"
+            disabled={isMoneyAccountMode}
+            accessibilityState={{ disabled: isMoneyAccountMode }}
           >
             <Box twClassName="flex-row items-center p-4">
               <Text
@@ -339,12 +357,14 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
                 >
                   {tokenLabel}
                 </Text>
-                <Icon
-                  name={IconName.ArrowDown}
-                  size={IconSize.Md}
-                  color={IconColor.IconDefault}
-                  style={tw.style('self-center shrink-0')}
-                />
+                {!isMoneyAccountMode && (
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Md}
+                    color={IconColor.IconDefault}
+                    style={tw.style('self-center shrink-0')}
+                  />
+                )}
               </Box>
             </Box>
           </TouchableOpacity>

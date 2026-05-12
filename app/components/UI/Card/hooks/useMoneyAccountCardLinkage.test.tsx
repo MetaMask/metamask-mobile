@@ -71,6 +71,12 @@ jest.mock('../../../../util/theme', () => {
   };
 });
 
+const mockUseMoneyAccountBalance = jest.fn();
+jest.mock('../../Money/hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: () => mockUseMoneyAccountBalance(),
+}));
+
 const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockResolveMoneyAccountCardToken =
   resolveMoneyAccountCardToken as jest.Mock;
@@ -139,6 +145,7 @@ describe('useMoneyAccountCardLinkage', () => {
     mockToastRef = { current: { showToast: mockShowToast } };
 
     mockResolveMoneyAccountCardToken.mockReturnValue(MOCK_TOKEN);
+    mockUseMoneyAccountBalance.mockReturnValue({ totalFiatRaw: '0' });
     applySelectorMocks(buildSelectors());
   });
 
@@ -183,6 +190,32 @@ describe('useMoneyAccountCardLinkage', () => {
       mockResolveMoneyAccountCardToken.mockReturnValueOnce(null);
       const { result } = renderLinkageHook();
       expect(result.current.canLink).toBe(false);
+    });
+  });
+
+  describe('isFunded derivation', () => {
+    it('returns false when totalFiatRaw is undefined', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({ totalFiatRaw: undefined });
+      const { result } = renderLinkageHook();
+      expect(result.current.isFunded).toBe(false);
+    });
+
+    it("returns false when totalFiatRaw is '0'", () => {
+      mockUseMoneyAccountBalance.mockReturnValue({ totalFiatRaw: '0' });
+      const { result } = renderLinkageHook();
+      expect(result.current.isFunded).toBe(false);
+    });
+
+    it('returns true for any positive balance', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({ totalFiatRaw: '10' });
+      const { result } = renderLinkageHook();
+      expect(result.current.isFunded).toBe(true);
+    });
+
+    it('returns false when totalFiatRaw is not a finite number', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({ totalFiatRaw: 'NaN' });
+      const { result } = renderLinkageHook();
+      expect(result.current.isFunded).toBe(false);
     });
   });
 
@@ -310,6 +343,101 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
         labelOptions: [{ label: "Couldn't link card", isBold: true }],
       });
+    });
+  });
+
+  describe('linkInteractive', () => {
+    it('transitions idle -> pending -> success and forwards the validated amount to the controller', async () => {
+      mockLinkMoneyAccountCard.mockResolvedValueOnce(undefined);
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.linkInteractive({ amount: '250' });
+      });
+
+      expect(returned).toBe(true);
+      expect(result.current.status).toBe('success');
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledTimes(1);
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledWith({
+        moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+        delegationAmountHuman: '250',
+      });
+    });
+
+    it('shows the same Predict-style pending + success toast pattern as linkInBackground', async () => {
+      mockLinkMoneyAccountCard.mockResolvedValueOnce(undefined);
+      const { result } = renderLinkageHook();
+
+      await act(async () => {
+        await result.current.linkInteractive({ amount: '100' });
+      });
+
+      expect(mockShowToast.mock.calls[0]?.[0]).toMatchObject({
+        hasNoTimeout: true,
+        labelOptions: [
+          { label: 'Linking card', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Approving spending limit…', isBold: false },
+        ],
+      });
+      expect(mockShowToast.mock.calls[1]?.[0]).toMatchObject({
+        labelOptions: [
+          { label: 'Card linked successfully', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'You can now spend while you earn', isBold: false },
+        ],
+      });
+    });
+
+    it('sets status=error and shows error toast on generic reject', async () => {
+      mockLinkMoneyAccountCard.mockRejectedValueOnce(new Error('boom'));
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.linkInteractive({ amount: '100' });
+      });
+
+      expect(returned).toBe(false);
+      expect(result.current.status).toBe('error');
+      expect(result.current.error?.message).toBe('boom');
+      expect(mockShowToast.mock.calls.at(-1)?.[0]).toMatchObject({
+        labelOptions: [{ label: "Couldn't link card", isBold: true }],
+      });
+    });
+
+    it('sets status=cancelled and shows NO error toast on UserCancelledError', async () => {
+      const { UserCancelledError } = jest.requireMock('./useCardDelegation');
+      mockLinkMoneyAccountCard.mockRejectedValueOnce(
+        new UserCancelledError('User denied'),
+      );
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.linkInteractive({ amount: '100' });
+      });
+
+      expect(returned).toBe(false);
+      expect(result.current.status).toBe('cancelled');
+      expect(mockShowToast.mock.calls.at(-1)?.[0]).toMatchObject({
+        hasNoTimeout: true,
+      });
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('fails closed when canLink is false: no controller call, returns false', async () => {
+      applySelectorMocks(buildSelectors({ isCardAuthenticated: false }));
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.linkInteractive({ amount: '100' });
+      });
+
+      expect(returned).toBe(false);
+      expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
     });
   });
 
