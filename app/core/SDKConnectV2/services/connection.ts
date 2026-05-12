@@ -5,6 +5,7 @@ import {
 import {
   IKeyManager,
   SessionStore,
+  type Session,
   WebSocketTransport,
 } from '@metamask/mobile-wallet-protocol-core';
 import { KVStore } from '../store/kv-store';
@@ -39,11 +40,15 @@ const REJECTION_MESSAGE_PATTERNS: readonly string[] = [
   'user rejected',
 ];
 
-type HydraTokenMessagePayload = {
+interface HydraTokenMessagePayload {
   type: 'auth-token';
   token: string;
   scope?: string;
-};
+}
+
+interface WalletClientSessionView {
+  session: Session | null;
+}
 
 const isRejectionMessage = (message: unknown): boolean => {
   if (typeof message !== 'string') return false;
@@ -134,16 +139,17 @@ export class Connection {
 
       // If the payload includes an id, its a JSON-RPC response, otherwise its a notification
       if ('data' in payload && 'id' in payload.data) {
-        const responseData = payload.data;
+        const jsonRpcResponseData = payload.data;
         // Check if the response is an error (JSON-RPC error responses have an 'error' property)
         const isError =
-          'error' in responseData && responseData.error !== undefined;
+          'error' in jsonRpcResponseData &&
+          jsonRpcResponseData.error !== undefined;
 
         if (isError) {
-          const errCode = responseData.error.code as number;
+          const errCode = jsonRpcResponseData.error.code as number;
           const errMessage =
-            (responseData.error as Record<string, unknown>).message ??
-            (responseData.error as Record<string, unknown>).reason;
+            (jsonRpcResponseData.error as Record<string, unknown>).message ??
+            (jsonRpcResponseData.error as Record<string, unknown>).reason;
 
           logger.warn('RPC error response', {
             connectionId: this.id,
@@ -202,6 +208,10 @@ export class Connection {
     await this.client.connect({ sessionRequest });
   }
 
+  public getSessionChannel(): string | undefined {
+    return (this.client as unknown as WalletClientSessionView).session?.channel;
+  }
+
   public async sendHydraToken(
     hydraToken: string,
     hydraScope: string,
@@ -216,8 +226,10 @@ export class Connection {
       hydraScope,
       hydraTokenLength: hydraToken.length,
     });
+    // eslint-disable-next-line no-console
     console.log('[MWP CLI OTP] sending Hydra token to CLI', payload);
     const res = await this.client.sendResponse(payload);
+    // eslint-disable-next-line no-console
     console.log('[MWP CLI OTP] sendResponse result', res);
   }
 

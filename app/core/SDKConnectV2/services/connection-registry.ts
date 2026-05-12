@@ -61,8 +61,9 @@ export const MAX_CONNECTIONS = 20;
 const CLI_OTP_MAX_ATTEMPTS = 3;
 const CLI_OTP_SUBSCRIBE_TIMEOUT_MS = 15000;
 const CLI_OTP_RESPONSE_TIMEOUT_MS = 15000;
+const BACKEND_AUTH_POC_TTL_MS = 5 * 60 * 1000;
 
-type CliOtpResultMessage = {
+interface CliOtpResultMessage {
   type: 'cli-otp-result';
   payload: {
     ok: boolean;
@@ -70,13 +71,23 @@ type CliOtpResultMessage = {
     terminal?: boolean;
     remainingAttempts?: number;
   };
-};
+}
 
-type CliOtpTransportContext = {
+interface CliOtpTransportContext {
   responseChannel: string;
   keyPair: ReturnType<IKeyManager['generateKeyPair']>;
   transport: WebSocketTransport;
-};
+}
+
+interface BackendAuthPocInfo {
+  relayUrl: string;
+  sessionId: string;
+  sessionChannel: string;
+  cliPublicKeyB64: string;
+  authRequestId: string;
+  nonce: string;
+  expiresAt: number;
+}
 
 const withTimeout = async <T>(
   promise: Promise<T>,
@@ -319,6 +330,8 @@ export class ConnectionRegistry {
       await this.evictIfAtCapacity();
 
       connInfo = this.toConnectionInfo(connReq);
+      // eslint-disable-next-line no-console
+      console.log('xxxxx connInfo', connInfo);
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
         connInfo,
@@ -330,7 +343,11 @@ export class ConnectionRegistry {
 
       if (requiresCliOtp) {
         const hydraToken = await this.getCliHydraToken();
-        await conn.sendHydraToken(hydraToken, 'test');
+        this.logBackendAuthPocInfo(connReq, conn, hydraToken);
+
+        // PoC only: keep the mobile side quiet so backend-published auth-token
+        // messages are easy to identify on the CLI.
+        // await conn.sendHydraToken(hydraToken, 'test');
       }
 
       this.connections.set(conn.id, conn);
@@ -452,6 +469,62 @@ export class ConnectionRegistry {
     );
   }
 
+  private logBackendAuthPocInfo(
+    connReq: ConnectionRequest,
+    conn: Connection,
+    hydraToken: string,
+  ): void {
+    const sessionChannel = conn.getSessionChannel();
+
+    if (!sessionChannel) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[MWP BACKEND AUTH POC] Unable to export PoC info: session channel is unavailable.',
+      );
+      return;
+    }
+
+    const pocInfo: BackendAuthPocInfo = {
+      relayUrl: this.RELAY_URL,
+      sessionId: connReq.sessionRequest.id,
+      sessionChannel,
+      cliPublicKeyB64: connReq.sessionRequest.publicKeyB64,
+      authRequestId: `${connReq.sessionRequest.id}:${Date.now()}`,
+      nonce: this.createBackendAuthPocNonce(),
+      expiresAt: Date.now() + BACKEND_AUTH_POC_TTL_MS,
+    };
+
+    // eslint-disable-next-line no-console
+    console.log(
+      '[MWP BACKEND AUTH POC] Paste into MWP_BACKEND_AUTH_POC in scripts/sdk-connect-v2/mwp-auth-token-publish-poc.js',
+      JSON.stringify(pocInfo, null, 2),
+    );
+    // eslint-disable-next-line no-console
+    console.log(
+      '[MWP BACKEND AUTH POC] Paste into HYDRA_TOKEN in scripts/sdk-connect-v2/mwp-auth-token-publish-poc.js',
+      hydraToken,
+    );
+  }
+
+  private createBackendAuthPocNonce(): string {
+    const bytes = new Uint8Array(16);
+    const crypto = (
+      globalThis as unknown as {
+        crypto?: { getRandomValues?: (array: Uint8Array) => Uint8Array };
+      }
+    ).crypto;
+
+    if (crypto?.getRandomValues) {
+      crypto.getRandomValues(bytes);
+    } else {
+      for (let index = 0; index < bytes.length; index++) {
+        bytes[index] = Math.floor(Math.random() * 256);
+      }
+    }
+
+    return Buffer.from(bytes).toString('base64');
+  }
+
   private async verifyCliOtp(connReq: ConnectionRequest): Promise<void> {
     let errorMessage: string | undefined;
     const otpContext = await this.createCliOtpTransport(connReq);
@@ -462,6 +535,10 @@ export class ConnectionRegistry {
           connReq.metadata.dapp.name,
           errorMessage,
         );
+
+        if (otp === null) {
+          throw new Error('CLI OTP verification cancelled.');
+        }
 
         const trimmedOtp = otp.trim();
 
@@ -525,6 +602,7 @@ export class ConnectionRegistry {
     const { responseChannel, keyPair, transport } = otpContext;
     const responsePromise = new Promise<CliOtpResultMessage['payload']>(
       (resolve, reject) => {
+        const timeoutRef: { current?: ReturnType<typeof setTimeout> } = {};
         const onMessage = async ({
           channel,
           data,
@@ -541,8 +619,9 @@ export class ConnectionRegistry {
             );
             const response = JSON.parse(decrypted) as CliOtpResultMessage;
 
-            clearTimeout(timeoutId);
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
             transport.off('message', onMessage);
+            // eslint-disable-next-line no-console
             console.log('[MWP CLI OTP] decrypted OTP result from CLI', {
               response,
             });
@@ -552,8 +631,9 @@ export class ConnectionRegistry {
                 : { ok: false },
             );
           } catch (error) {
-            clearTimeout(timeoutId);
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
             transport.off('message', onMessage);
+            // eslint-disable-next-line no-console
             console.error(
               '[MWP CLI OTP] failed to decrypt or parse OTP result from CLI',
               {
@@ -565,8 +645,9 @@ export class ConnectionRegistry {
           }
         };
 
-        const timeoutId = setTimeout(() => {
+        timeoutRef.current = setTimeout(() => {
           transport.off('message', onMessage);
+          // eslint-disable-next-line no-console
           console.error(
             '[MWP CLI OTP] timed out waiting for CLI OTP response',
             {
@@ -603,6 +684,7 @@ export class ConnectionRegistry {
     const hydraToken =
       await Engine.context.AuthenticationController.getBearerToken();
 
+    // eslint-disable-next-line no-console
     console.log('[MWP CLI OTP] Hydra token', hydraToken);
 
     return hydraToken;
