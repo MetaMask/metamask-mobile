@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,10 +25,10 @@ import { useStyles } from '../../../../../component-library/hooks';
 import {
   useMusdConversionTokens,
   STABLECOIN_SYMBOLS,
-  tokenFiatValue,
 } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import Logger from '../../../../../util/Logger';
@@ -37,10 +37,6 @@ import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
 import PotentialEarningsTokenRow from '../../components/MoneyPotentialEarnings/PotentialEarningsTokenRow';
 import { isPositiveNumber } from '../../utils/number';
-import {
-  calculateProjectedEarnings,
-  PROJECTION_YEARS,
-} from '../../utils/projections';
 import styleSheet from './MoneyPotentialEarningsView.styles';
 import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.testIds';
 
@@ -55,30 +51,8 @@ const MoneyPotentialEarningsView = () => {
   const { apyPercent } = useMoneyAccountBalance();
   const apyPercentForProjection = apyPercent ?? 0;
 
-  const eligibleTokens = useMemo(
-    () => (tokens ?? []).filter((token) => tokenFiatValue(token) > 0),
-    [tokens],
-  );
-
-  const totalAssetsFiat = useMemo(
-    () => eligibleTokens.reduce((sum, token) => sum + tokenFiatValue(token), 0),
-    [eligibleTokens],
-  );
-
-  const projectedAmount = useMemo(
-    () =>
-      eligibleTokens.reduce(
-        (sum, token) =>
-          sum +
-          calculateProjectedEarnings(
-            tokenFiatValue(token),
-            apyPercentForProjection,
-            PROJECTION_YEARS,
-          ),
-        0,
-      ),
-    [eligibleTokens, apyPercentForProjection],
-  );
+  const { eligibleTokens, totalAssetsFiat, projectedAmount } =
+    useProjectedEarnings(tokens, apyPercent);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();

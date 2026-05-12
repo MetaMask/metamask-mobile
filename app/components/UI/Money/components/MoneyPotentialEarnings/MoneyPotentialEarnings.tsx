@@ -27,10 +27,7 @@ import {
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';
 import PotentialEarningsTokenRow from './PotentialEarningsTokenRow';
-import {
-  calculateProjectedEarnings,
-  PROJECTION_YEARS,
-} from '../../utils/projections';
+import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
 
 /** Number of years the projected earnings are simulated over. */
 const MAX_TOKENS = 5;
@@ -47,8 +44,8 @@ export const hasConvertibleTokensWithBalance = (tokens: AssetType[]) =>
 interface MoneyPotentialEarningsProps {
   tokens: AssetType[];
   /**
-   * APY expressed as a percentage (e.g. 3 for 3%) used together with
-   * {@link PROJECTION_YEARS} to compute the projected earnings displayed
+   * APY expressed as a percentage (e.g. 3 for 3%) used together with the
+   * shared projection horizon to compute the projected earnings displayed
    * alongside each token and in the description.
    */
   apy: number | undefined;
@@ -74,38 +71,18 @@ const MoneyPotentialEarnings = ({
   const apyPercent = apy ?? 0;
 
   // Tokens arrive pre-sorted (stablecoins first, then fiat desc) from
-  // useMusdConversionTokens; strip zero-balance entries defensively — the
-  // feature flag threshold may be set to 0 in some environments.
-  const eligibleTokens = useMemo(
-    () => tokens.filter((token) => tokenFiatValue(token) > 0),
-    [tokens],
-  );
-  const visibleTokens = useMemo(
-    () => eligibleTokens.slice(0, MAX_TOKENS),
-    [eligibleTokens],
-  );
-
+  // useMusdConversionTokens; the hook strips zero-balance entries
+  // defensively, since the feature flag threshold may be set to 0 in some
+  // environments.
+  //
   // Sum across every eligible token (not just the five we render). The "View
   // all" affordance tells users there are more rows than shown, so the
   // headline is intentionally the full projection — clipping the headline to
   // the visible five would contradict that affordance.
-  const projectedAmount = useMemo(
-    () =>
-      eligibleTokens.reduce(
-        (sum, token) =>
-          sum +
-          calculateProjectedEarnings(
-            tokenFiatValue(token),
-            apyPercent,
-            PROJECTION_YEARS,
-          ),
-        0,
-      ),
-    [eligibleTokens, apyPercent],
-  );
-
-  const totalAssetsFiat = useMemo(
-    () => eligibleTokens.reduce((sum, token) => sum + tokenFiatValue(token), 0),
+  const { eligibleTokens, totalAssetsFiat, projectedAmount } =
+    useProjectedEarnings(tokens, apyPercent);
+  const visibleTokens = useMemo(
+    () => eligibleTokens.slice(0, MAX_TOKENS),
     [eligibleTokens],
   );
 
