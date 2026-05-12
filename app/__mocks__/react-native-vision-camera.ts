@@ -73,4 +73,11 @@ const useCodeScanner = jest.fn((config) => {
   };
 });
 
+// Static methods on Camera - using Object.assign to avoid TypeScript issues
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(Object as any).assign(Camera, {
+  getCameraPermissionStatus: jest.fn(() => 'granted'),
+  requestCameraPermission: jest.fn().mockResolvedValue('granted'),
+});
+
 export { Camera, useCameraDevice, useCameraPermission, useCodeScanner };

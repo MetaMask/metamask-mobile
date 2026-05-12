@@ -1,8 +1,20 @@
 import { Mockttp } from 'mockttp';
 import { AnvilManager } from '../../../seeder/anvil-manager';
 import { LocalNode } from '../../../framework';
-import { getEventsPayloads } from '../../../helpers/analytics/helpers';
+import {
+  EventPayload,
+  getEventsPayloads,
+} from '../../../helpers/analytics/helpers';
 
+/**
+ * Validates the transaction hash in the Transaction Finalized Event.
+ * Important Note: This is intentionally kept as a legacy validation as we want to have more control over the transaction hash validation.
+ * Makes the test fail if the txHash is not matching with the latest transaction on the local node.
+ * @param localNodes - The local nodes to use for the test.
+ * @param mockServer - The mock server to use for the test.
+ * @returns void
+ * @throws Error if the transaction hash is not matching with the latest transaction on the local node.
+ */
 export const validateTransactionHashInTransactionFinalizedEvent = async (
   localNodes?: LocalNode[],
   mockServer?: Mockttp,
@@ -26,10 +38,20 @@ export const validateTransactionHashInTransactionFinalizedEvent = async (
     );
   }
 
-  const events = await getEventsPayloads(mockServer);
-  const transactionFinalizedEvent = events.find(
-    (event) => event.event === 'Transaction Finalized',
-  );
+  // The transaction finalized event may not be sent immediately, so we safely retry up to 5 times.
+  const MAX_ATTEMPTS = 5;
+  const delay = 1000;
+  let transactionFinalizedEvent: EventPayload | undefined;
+  for (let i = 0; i < MAX_ATTEMPTS; i++) {
+    const events = await getEventsPayloads(mockServer);
+    transactionFinalizedEvent = events.find(
+      (event) => event.event === 'Transaction Finalized',
+    );
+    if (transactionFinalizedEvent) {
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
 
   if (!transactionFinalizedEvent) {
     throw new Error(

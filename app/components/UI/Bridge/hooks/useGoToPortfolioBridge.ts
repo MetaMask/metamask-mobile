@@ -9,7 +9,7 @@ import { selectEvmChainId } from '../../../../selectors/networkController';
 import type { BrowserTab } from '../../Tokens/types';
 import type { BrowserParams } from '../../../Views/Browser/Browser.types';
 import { getDecimalChainId } from '../../../../util/networks';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { isBridgeUrl } from '../../../../util/url';
 import { useBuildPortfolioUrl } from '../../../hooks/useBuildPortfolioUrl';
 
@@ -24,7 +24,7 @@ export default function useGoToPortfolioBridge(location: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
   const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   return (address?: string) => {
     const existingBridgeTab = browserTabs.find((tab: BrowserTab) =>
@@ -62,6 +62,10 @@ export default function useGoToPortfolioBridge(location: string) {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BRIDGE_LINK_CLICKED)
         .addProperties({
+          // action and name are legacy properties from the generateOpt definition
+          // that AnalyticsEventBuilder does not carry over automatically
+          action: 'Bridge',
+          name: 'Bridge',
           bridgeUrl: AppConstants.BRIDGE.URL,
           location,
           chain_id_source: getDecimalChainId(chainId),

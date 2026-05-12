@@ -7,6 +7,7 @@ import DisplayNFTMediaSettings from '.';
 import { NFT_DISPLAY_MEDIA_MODE_SECTION } from './index.constants';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { strings } from '../../../../../locales/i18n';
 
 let mockSetDisplayNftMedia: jest.Mock;
 let mockSetUseNftDetection: jest.Mock;
@@ -60,10 +61,12 @@ describe('DisplayNFTMediaSettings', () => {
   };
 
   it('render matches snapshot', () => {
-    const tree = renderWithProvider(<DisplayNFTMediaSettings />, {
+    const { getByText } = renderWithProvider(<DisplayNFTMediaSettings />, {
       state: initialState,
     });
-    expect(tree).toMatchSnapshot();
+    expect(
+      getByText(strings('app_settings.display_nft_media')),
+    ).toBeOnTheScreen();
   });
 
   describe('Display NFT Media', () => {

@@ -33,11 +33,11 @@ import { BannerAlertSeverity } from '../../../component-library/components/Banne
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import {
-  MetaMetricsEvents,
-  withMetricsAwareness,
-} from '../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import AppConstants from '../../../core/AppConstants';
+import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { useSelector } from 'react-redux';
 import { isTest } from '../../../util/test/utils';
 import Button, {
@@ -404,7 +404,6 @@ class ErrorBoundary extends Component {
     ]),
     view: PropTypes.string.isRequired,
     navigation: PropTypes.object,
-    metrics: PropTypes.object,
     useOnboardingErrorHandling: PropTypes.bool,
   };
 
@@ -413,11 +412,10 @@ class ErrorBoundary extends Component {
   }
 
   generateErrorReport = (error, errorInfo = '') => {
-    const {
-      view,
-      metrics: { trackEvent, createEventBuilder },
-    } = this.props;
-    const analyticsParams = { error: error?.toString(), boundary: view };
+    const analyticsParams = {
+      error: error?.toString(),
+      boundary: this.props.view,
+    };
     // Organize stack trace
     const stackList = (errorInfo.split('\n') || []).map((stack) =>
       stack.trim(),
@@ -425,8 +423,10 @@ class ErrorBoundary extends Component {
     // Limit to 5 levels
     analyticsParams.stack = stackList.slice(1, 5).join(', ');
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.ERROR_SCREEN_VIEWED)
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.ERROR_SCREEN_VIEWED,
+      )
         .addProperties(analyticsParams)
         .build(),
     );
@@ -473,7 +473,7 @@ class ErrorBoundary extends Component {
   };
 
   openTicket = () => {
-    const url = 'https://support.metamask.io';
+    const url = METAMASK_SUPPORT_URL;
     Linking.openURL(url);
   };
 
@@ -519,4 +519,4 @@ class ErrorBoundary extends Component {
 
 ErrorBoundary.contextType = ThemeContext;
 
-export default withMetricsAwareness(ErrorBoundary);
+export default ErrorBoundary;

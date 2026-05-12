@@ -62,6 +62,7 @@ import {
   setupAccountActivityMocks,
   resetAccountActivityMockState,
 } from '../../websocket/account-activity-mocks';
+import { mockSwapPopularTokens } from '../../helpers/swap/swap-mocks';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -471,9 +472,8 @@ export const createMockAPIServer = async (
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
 
-  // Feature Flags
-  // testSpecificMock can override this if needed
-  await setupRemoteFeatureFlagsMock(mockServer);
+  // Feature Flags — use lower priority so testSpecificMock overrides take precedence
+  await setupRemoteFeatureFlagsMock(mockServer, {}, 998);
 
   const endpoints = await mockServer.getMockedEndpoints();
   logger.debug(`Mocked endpoints: ${endpoints.length}`);
@@ -517,6 +517,7 @@ export async function withFixtures(
     skipReactNativeReload = false,
     useCommandQueueServer = false,
     analyticsExpectations,
+    shouldPrefetchSwapTokens = true,
   } = options;
 
   // Clean up any stale port forwarding from previous failed tests
@@ -681,15 +682,23 @@ export async function withFixtures(
       mockServerInstance &&
       shouldRunAnalyticsExpectations(analyticsExpectations)
     ) {
+      logger.debug('Running analytics expectations');
       try {
         await runAnalyticsExpectations(
           mockServerInstance.server,
           analyticsExpectations,
         );
+        logger.debug('Analytics expectations completed');
       } catch (analyticsError) {
         logger.error('Error in analyticsExpectations:', analyticsError);
         cleanupErrors.push(analyticsError as Error);
+        logger.error('Analytics expectations failed');
       }
+    }
+
+    if (mockServerInstance && shouldPrefetchSwapTokens) {
+      logger.debug('Mocking swap popular tokens fetch');
+      await mockSwapPopularTokens(mockServerInstance.server);
     }
 
     // Enter drain mode AFTER endTestfn / analyticsExpectations so analytics events are still captured,

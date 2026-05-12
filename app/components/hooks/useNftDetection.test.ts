@@ -3,7 +3,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNftDetection } from './useNftDetection';
 import Engine from '../../core/Engine';
 import { endTrace, trace } from '../../util/trace';
-import { MetaMetricsEvents, useMetrics } from './useMetrics';
+import { MetaMetricsEvents } from '../../core/Analytics';
+import { useAnalytics } from './useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../util/test/analyticsMock';
 import { useNftDetectionChainIds } from './useNftDetectionChainIds';
 import { prepareNftDetectionEvents } from '../../util/assets';
 import { getDecimalChainId } from '../../util/networks';
@@ -31,8 +33,8 @@ jest.mock('../../util/trace', () => ({
   },
 }));
 
-jest.mock('./useMetrics', () => ({
-  useMetrics: jest.fn(),
+jest.mock('./useAnalytics/useAnalytics');
+jest.mock('../../core/Analytics', () => ({
   MetaMetricsEvents: {
     COLLECTIBLE_ADDED: 'Collectible Added',
   },
@@ -73,7 +75,7 @@ describe('useNftDetection', () => {
   const mockUseDispatch = useDispatch as jest.MockedFunction<
     typeof useDispatch
   >;
-  const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+  const mockUseAnalytics = jest.mocked(useAnalytics);
   const mockUseNftDetectionChainIds =
     useNftDetectionChainIds as jest.MockedFunction<
       typeof useNftDetectionChainIds
@@ -134,7 +136,6 @@ describe('useNftDetection', () => {
     // Setup useSelector mock
     mockUseSelector.mockReturnValue(mockSelectedAddress);
 
-    // Setup useMetrics mock
     mockAddProperties.mockReturnThis();
     mockBuild.mockReturnValue({ event: 'test-event', properties: {} });
     mockCreateEventBuilder.mockReturnValue({
@@ -142,19 +143,12 @@ describe('useNftDetection', () => {
       build: mockBuild,
     });
 
-    mockUseMetrics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-      isEnabled: jest.fn(),
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      getMetaMetricsId: jest.fn(),
-    });
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     // Setup useNftDetectionChainIds mock
     mockUseNftDetectionChainIds.mockReturnValue(mockChainIds);

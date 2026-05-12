@@ -61,19 +61,39 @@ const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 
 const CAMPAIGN_ID = 'campaign-123';
 const MOCK_LEADERBOARD: CampaignLeaderboardDto = {
-  campaign_id: CAMPAIGN_ID,
-  computed_at: '2024-03-20T12:00:00.000Z',
+  campaignId: CAMPAIGN_ID,
+  computedAt: '2024-03-20T12:00:00.000Z',
   tiers: {
     STARTER: {
       entries: [
-        { rank: 1, referral_code: 'ABC123', rate_of_return: 0.15 },
-        { rank: 2, referral_code: 'DEF456', rate_of_return: 0.1 },
+        {
+          rank: 1,
+          referralCode: 'ABC123',
+          rateOfReturn: 0.15,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 2,
+          referralCode: 'DEF456',
+          rateOfReturn: 0.1,
+          qualifiedDays: 10,
+          qualified: true,
+        },
       ],
-      total_participants: 50,
+      totalParticipants: 50,
     },
     MID: {
-      entries: [{ rank: 1, referral_code: 'GHI789', rate_of_return: 0.2 }],
-      total_participants: 30,
+      entries: [
+        {
+          rank: 1,
+          referralCode: 'GHI789',
+          rateOfReturn: 0.2,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+      ],
+      totalParticipants: 30,
     },
   },
 };
@@ -184,7 +204,6 @@ describe('useGetOndoLeaderboard', () => {
     const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
 
     expect(result.current.leaderboard).toEqual(MOCK_LEADERBOARD);
-    expect(result.current.tierNames).toEqual(['STARTER', 'MID']);
     expect(result.current.selectedTier).toBe('STARTER');
     expect(result.current.computedAt).toBe('2024-03-20T12:00:00.000Z');
   });
@@ -237,7 +256,7 @@ describe('useGetOndoLeaderboard', () => {
     );
   });
 
-  it('setSelectedTier does not dispatch action when tier is invalid', () => {
+  it('setSelectedTier dispatches action for any tier name', () => {
     setupSelectors({
       leaderboard: MOCK_LEADERBOARD,
       isLoading: false,
@@ -250,11 +269,11 @@ describe('useGetOndoLeaderboard', () => {
     mockDispatch.mockClear();
 
     act(() => {
-      result.current.setSelectedTier('INVALID');
+      result.current.setSelectedTier('UPPER');
     });
 
-    expect(mockDispatch).not.toHaveBeenCalledWith(
-      setOndoCampaignLeaderboardSelectedTier('INVALID'),
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setOndoCampaignLeaderboardSelectedTier('UPPER'),
     );
   });
 
@@ -280,7 +299,7 @@ describe('useGetOndoLeaderboard', () => {
     );
   });
 
-  it('does not apply defaultTier when it is not in tierNames', async () => {
+  it('applies defaultTier even when not in leaderboard tiers', async () => {
     setupSelectors({
       leaderboard: MOCK_LEADERBOARD,
       isLoading: false,
@@ -288,7 +307,6 @@ describe('useGetOndoLeaderboard', () => {
       tierNames: ['STARTER', 'MID'],
       selectedTier: null,
     });
-    mockDispatch.mockClear();
 
     renderHook(() =>
       useGetOndoLeaderboard(CAMPAIGN_ID, { defaultTier: 'UPPER' }),
@@ -298,7 +316,7 @@ describe('useGetOndoLeaderboard', () => {
       await Promise.resolve();
     });
 
-    expect(mockDispatch).not.toHaveBeenCalledWith(
+    expect(mockDispatch).toHaveBeenCalledWith(
       setOndoCampaignLeaderboardSelectedTier('UPPER'),
     );
   });
@@ -350,5 +368,66 @@ describe('useGetOndoLeaderboard', () => {
     const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
 
     expect(result.current.hasError).toBe(true);
+  });
+
+  it('returns isLeaderboardNotYetComputed as false initially', () => {
+    const { result } = renderHook(() => useGetOndoLeaderboard(undefined));
+
+    expect(result.current.isLeaderboardNotYetComputed).toBe(false);
+  });
+
+  it('returns isLeaderboardNotYetComputed as false after successful fetch', async () => {
+    mockCall.mockResolvedValueOnce(MOCK_LEADERBOARD as never);
+
+    const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.isLeaderboardNotYetComputed).toBe(false);
+  });
+
+  it('returns isLeaderboardNotYetComputed as true on 404 error', async () => {
+    mockCall.mockRejectedValueOnce(
+      new Error('Get campaign leaderboard failed: 404') as never,
+    );
+
+    const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.isLeaderboardNotYetComputed).toBe(true);
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      setOndoCampaignLeaderboardError(true),
+    );
+  });
+
+  it('dispatches setOndoCampaignLeaderboardError(true) on non-404 error', async () => {
+    mockCall.mockRejectedValueOnce(new Error('Server error') as never);
+
+    renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setOndoCampaignLeaderboardError(true),
+    );
+  });
+
+  it('returns isLeaderboardNotYetComputed as false when error is not a 404', async () => {
+    mockCall.mockRejectedValueOnce(new Error('Server error') as never);
+
+    const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.isLeaderboardNotYetComputed).toBe(false);
   });
 });

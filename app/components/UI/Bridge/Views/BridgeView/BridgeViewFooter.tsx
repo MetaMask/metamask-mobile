@@ -11,7 +11,7 @@ import {
   selectIsSolanaSourced,
 } from '../../../../../core/redux/slices/bridge';
 import { strings } from '../../../../../../locales/i18n';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
@@ -31,13 +31,19 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds.ts';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
   location: MetaMetricsSwapsEventSource;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
-export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
+export const BridgeViewFooter = ({
+  latestSourceBalance,
+  location,
+  transactionActiveAbTests,
+}: Props) => {
   const { styles } = useStyles(createStyles);
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -49,9 +55,7 @@ export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
 
   const { activeQuote, isLoading, blockaidError, needsNewQuote } =
-    useBridgeQuoteData({
-      latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
-    });
+    useBridgeQuoteDataContext();
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
@@ -70,6 +74,7 @@ export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
         <SwapsConfirmButton
           location={location}
           latestSourceBalance={latestSourceBalance}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
       </Box>
     );
@@ -111,10 +116,10 @@ export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
             description={blockaidError}
           />
         )}
-
         <SwapsConfirmButton
           location={location}
           latestSourceBalance={latestSourceBalance}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
         <Box
           flexDirection={FlexDirection.Row}

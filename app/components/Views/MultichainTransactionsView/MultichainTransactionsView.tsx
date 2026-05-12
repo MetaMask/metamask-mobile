@@ -6,8 +6,9 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
@@ -28,6 +29,8 @@ import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
+import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
+import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
 
 interface MultichainTransactionsViewProps {
   /**
@@ -41,7 +44,7 @@ interface MultichainTransactionsViewProps {
   /**
    * Override navigation instance
    */
-  navigation?: NavigationProp<Record<string, object | undefined>>;
+  navigation?: AppNavigationProp;
   /**
    * Override selected address
    */
@@ -103,6 +106,19 @@ const MultichainTransactionsView = ({
     [transactions, nonEvmTransactions],
   );
 
+  const { maliciousTokenKeys } = useMultichainActivityMaliciousTokenKeys(
+    txList ?? [],
+  );
+
+  const visibleMultichainTransactions = useMemo(
+    () =>
+      filterMultichainTransactionsExcludingMaliciousTokenActivity(
+        txList ?? [],
+        maliciousTokenKeys,
+      ),
+    [txList, maliciousTokenKeys],
+  );
+
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -133,7 +149,7 @@ const MultichainTransactionsView = ({
   const footer = (
     <MultichainTransactionsFooter
       url={url}
-      hasTransactions={(txList?.length ?? 0) > 0}
+      hasTransactions={(visibleMultichainTransactions?.length ?? 0) > 0}
       showDisclaimer={showDisclaimer}
       showExplorerLink={!isBitcoinNetwork}
       onViewMore={() => {
@@ -180,7 +196,7 @@ const MultichainTransactionsView = ({
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlashList
-              data={txList}
+              data={visibleMultichainTransactions}
               renderItem={renderTransactionItem}
               keyExtractor={(item) => item.id}
               ListHeaderComponent={header}

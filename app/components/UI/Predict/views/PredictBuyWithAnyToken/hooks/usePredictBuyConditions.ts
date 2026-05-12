@@ -1,47 +1,78 @@
-import { useMemo } from 'react';
-import { MINIMUM_BET } from '../../../constants/transactions';
-import { ActiveOrderState, OrderPreview } from '../../../types';
-import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
-import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
+import { BigNumber } from 'bignumber.js';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
   useTransactionPayQuotes,
-  useTransactionPayRequiredTokens,
-  useTransactionPayTotals,
 } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
-import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import { useTransactionPayAvailableTokens } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayAvailableTokens';
+import { MINIMUM_BET } from '../../../constants/transactions';
+import { usePredictBalance } from '../../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../../hooks/usePredictDeposit';
+import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import { OrderPreview } from '../../../types';
+import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
 
 interface UsePredictBuyConditionsParams {
   currentValue: number;
   preview?: OrderPreview | null;
   isPreviewCalculating: boolean;
-  isPlaceOrderLoading: boolean;
   isUserInputChange: boolean;
   isConfirming: boolean;
+  totalPayForPredictBalance: number;
+  isInputFocused: boolean;
+  hasBlockingPayAlerts: boolean;
 }
 
 export const usePredictBuyConditions = ({
   preview,
   currentValue,
   isPreviewCalculating,
-  isPlaceOrderLoading,
   isUserInputChange,
   isConfirming,
+  totalPayForPredictBalance,
+  isInputFocused,
+  hasBlockingPayAlerts,
 }: UsePredictBuyConditionsParams) => {
-  const { isBalanceLoading } = usePredictBuyAvailableBalance();
-  const { activeOrder } = usePredictActiveOrder();
-  const payTotals = useTransactionPayTotals();
+  const { isBalanceLoading, availableBalance } =
+    usePredictBuyAvailableBalance();
   const isPayTotalsLoading = useIsTransactionPayLoading();
   const isPayQuoteLoading = useIsTransactionPayQuoteLoading();
   const quotes = useTransactionPayQuotes();
-  const requiredTokens = useTransactionPayRequiredTokens();
-  const { isPredictBalanceSelected, selectedPaymentToken } =
-    usePredictPaymentToken();
   const { isDepositPending } = usePredictDeposit();
+  const {
+    isPredictBalanceSelected,
+    selectedPaymentToken,
+    resetSelectedPaymentToken,
+  } = usePredictPaymentToken();
+  const { data: predictBalance = 0 } = usePredictBalance();
+  const { availableTokens } = useTransactionPayAvailableTokens();
 
-  const shouldWaitForPayFees = !isPredictBalanceSelected;
+  const shouldWaitForPayFees = !isPredictBalanceSelected && currentValue > 0;
+
+  // Becomes true once the controller's quote loading cycle (`isPayQuoteLoading`)
+  // has been observed as active for the current settling cycle. We use the raw
+  // controller flag (not the combined `isPayFeesLoading` which also includes
+  // `isTransactionDataUpdating`) so that transaction-data update cycles don't
+  // falsely mark a loading cycle as "seen" — which would cause a premature
+  // settling exit (Bug 3).
+  const hasSeenLoadingRef = useRef(false);
+
+  // Tracks the address of the last ERC20 token for which a full quote-loading
+  // cycle has completed. Compared synchronously each render to derive
+  // `isPaySystemSettling` — true from the very first render after the token
+  // identity changes, with no one-frame gap (Bug 1).
+  const [lastSettledTokenAddress, setLastSettledTokenAddress] = useState<
+    string | null
+  >(null);
+
+  // Synchronous derivation: true from the very first render after the selected
+  // token changes. No effects needed to flip a boolean flag, so there is no
+  // one-frame window where the CTA flashes incorrectly (Bug 1 fixed).
+  const isPaySystemSettling =
+    !isPredictBalanceSelected &&
+    selectedPaymentToken !== null &&
+    selectedPaymentToken?.address !== lastSettledTokenAddress;
 
   const isBalancePulsing = useMemo(
     () => isDepositPending && isPredictBalanceSelected,
@@ -53,102 +84,163 @@ export const usePredictBuyConditions = ({
     [currentValue],
   );
 
+  const maxBetAmount = useMemo(() => {
+    const feeRate = (preview?.fees?.totalFeePercentage ?? 0) / 100;
+    return Math.max(
+      0,
+      Math.floor((availableBalance / (1 + feeRate)) * 100) / 100,
+    );
+  }, [availableBalance, preview?.fees?.totalFeePercentage]);
+
+  const isInsufficientBalance = useMemo(
+    () =>
+      isPredictBalanceSelected &&
+      !isConfirming &&
+      currentValue > 0 &&
+      currentValue > maxBetAmount,
+    [isConfirming, isPredictBalanceSelected, currentValue, maxBetAmount],
+  );
+
   const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
 
-  const isDepositing = useMemo(
-    () => activeOrder?.state === ActiveOrderState.DEPOSITING,
-    [activeOrder],
+  // Active loading: quotes are being fetched for the current ERC20 token.
+  const isPayFeesLoading = useMemo(
+    () => shouldWaitForPayFees && (isPayTotalsLoading || isPayQuoteLoading),
+    [shouldWaitForPayFees, isPayTotalsLoading, isPayQuoteLoading],
   );
 
-  const isPlacingOrder = useMemo(
-    () =>
-      activeOrder?.state === ActiveOrderState.PLACING_ORDER ||
-      isPlaceOrderLoading ||
-      isDepositing,
-    [activeOrder?.state, isPlaceOrderLoading, isDepositing],
-  );
+  // Effect 1 — track when the controller starts a real quote-loading cycle.
+  // Uses `isPayQuoteLoading` (raw controller flag) rather than `isPayFeesLoading`
+  // so that `isTransactionDataUpdating` cycles (from `updateTokenAmount`) do not
+  // falsely set hasSeenLoadingRef. That false-positive caused a premature
+  // settling exit when isTransactionDataUpdating briefly cycled true→false
+  // BEFORE the controller started loading, resulting in the CTA flash (Bug 3).
+  useEffect(() => {
+    if (isPaySystemSettling && isPayQuoteLoading) {
+      hasSeenLoadingRef.current = true;
+    }
+  }, [isPaySystemSettling, isPayQuoteLoading]);
 
-  const isRedirecting = useMemo(
-    () => activeOrder?.state === ActiveOrderState.REDIRECTING,
-    [activeOrder],
-  );
-
-  // Workaround: TransactionPayController sets paymentToken and isLoading in
-  // separate state updates, causing a render with stale totals + loading=false.
-  // Compare quote source token with selected token to bridge the gap.
-  const isQuotesStale = useMemo(() => {
+  // Effect 2 — mark the current token as settled. Two exit paths:
+  //
+  // Path A (early, quotes present): controller finished AND quotes already
+  // arrived in Redux. Exit immediately without waiting for isTransactionDataUpdating
+  // to clear. At this point isPayFeesLoading is still true (isTransactionDataUpdating
+  // still active), so isCurrentTokenInsufficient stays blocked even though
+  // isPaySystemSettling just went false — no flash (Bug 4 fixed).
+  //
+  // Path B (late, no quotes): wait for the full isPayFeesLoading cycle (including
+  // isTransactionDataUpdating) to complete. Covers real "no-liquidity" cases where
+  // quotes never arrive — settling eventually exits and "Change Payment Method"
+  // correctly appears.
+  //
+  // Requiring hasSeenLoadingRef prevents exiting during the pre-loading gap
+  // (the window where isPayFeesLoading is momentarily false before the controller
+  // dispatches isLoading = true, and when currentValue = 0 at token-selection time
+  // so no loading cycle starts until the user types an amount — Bug 2 fixed).
+  useEffect(() => {
     if (
-      !shouldWaitForPayFees ||
-      isPredictBalanceSelected ||
-      !selectedPaymentToken
+      !isPaySystemSettling ||
+      !hasSeenLoadingRef.current ||
+      isPayQuoteLoading
     ) {
-      return false;
+      return;
     }
-    if (!quotes && !payTotals) {
-      return false;
+    const quotesPresent = (quotes?.length ?? 0) > 0;
+    if (quotesPresent || !isPayFeesLoading) {
+      hasSeenLoadingRef.current = false;
+      setLastSettledTokenAddress(selectedPaymentToken?.address ?? null);
     }
-    if (!quotes?.length) {
-      const isPaymentTokenRequired = requiredTokens?.some(
-        (token) =>
-          token.address.toLowerCase() ===
-            selectedPaymentToken.address?.toLowerCase() &&
-          token.chainId.toLowerCase() ===
-            selectedPaymentToken.chainId?.toLowerCase(),
-      );
-      return !isPaymentTokenRequired;
-    }
-    const request = quotes[0]?.request;
-    if (!request) {
-      return false;
-    }
-    return (
-      request.sourceTokenAddress?.toLowerCase() !==
-        selectedPaymentToken.address?.toLowerCase() ||
-      request.sourceChainId?.toLowerCase() !==
-        selectedPaymentToken.chainId?.toLowerCase()
-    );
   }, [
-    shouldWaitForPayFees,
-    isPredictBalanceSelected,
-    selectedPaymentToken,
+    isPaySystemSettling,
+    isPayQuoteLoading,
+    isPayFeesLoading,
     quotes,
-    payTotals,
-    requiredTokens,
+    selectedPaymentToken,
   ]);
 
-  const isPayFeesLoading = useMemo(
+  // Effect 3 — reset when switching back to Predict balance so that returning
+  // to any ERC20 always requires a fresh settling cycle (quotes may need
+  // re-fetching).
+  useEffect(() => {
+    if (isPredictBalanceSelected) {
+      hasSeenLoadingRef.current = false;
+      setLastSettledTokenAddress(null);
+    }
+  }, [isPredictBalanceSelected]);
+
+  // Only surface token-insufficiency once the pay system has fully settled,
+  // the amount is above the minimum bet (a below-minimum amount should surface
+  // the minimum-bet error, not a payment CTA), and the amount is non-zero.
+  const isCurrentTokenInsufficient = useMemo(
     () =>
-      isRedirecting ||
-      (shouldWaitForPayFees &&
-        (isPayTotalsLoading || isPayQuoteLoading || isQuotesStale)),
+      currentValue > 0 &&
+      !isBelowMinimum &&
+      !isPaySystemSettling &&
+      !isPayFeesLoading &&
+      (isInsufficientBalance || hasBlockingPayAlerts),
     [
-      isRedirecting,
-      shouldWaitForPayFees,
-      isPayTotalsLoading,
-      isPayQuoteLoading,
-      isQuotesStale,
+      currentValue,
+      isBelowMinimum,
+      isPaySystemSettling,
+      isPayFeesLoading,
+      isInsufficientBalance,
+      hasBlockingPayAlerts,
     ],
   );
 
+  const hasAlternativeBalance = useMemo(() => {
+    if (currentValue <= 0) return false;
+
+    const hasAlternativeERC20 = availableTokens.some(
+      (token) =>
+        !token.isSelected &&
+        !token.disabled &&
+        new BigNumber(token.fiat?.balance ?? 0).gte(currentValue),
+    );
+
+    if (isPredictBalanceSelected) {
+      return hasAlternativeERC20;
+    }
+
+    // Apply the same fee adjustment to predictBalance that maxBetAmount uses for
+    // the selected ERC20, so we only suggest Predict balance as an alternative
+    // when it can actually cover the bet after fees.
+    const feeRate = (preview?.fees?.totalFeePercentage ?? 0) / 100;
+    const predictMaxBetAmount = Math.max(
+      0,
+      Math.floor((predictBalance / (1 + feeRate)) * 100) / 100,
+    );
+    return predictMaxBetAmount >= currentValue || hasAlternativeERC20;
+  }, [
+    availableTokens,
+    currentValue,
+    isPredictBalanceSelected,
+    predictBalance,
+    preview?.fees?.totalFeePercentage,
+  ]);
+
   const canPlaceBet = useMemo(
     () =>
+      !isPaySystemSettling &&
       !isConfirming &&
       !isBelowMinimum &&
+      !isInsufficientBalance &&
       !!preview &&
-      !isPlaceOrderLoading &&
       !isRateLimited &&
       !isBalanceLoading &&
-      !isRedirecting &&
-      !isPayFeesLoading,
+      !isPayFeesLoading &&
+      !hasBlockingPayAlerts,
     [
+      isPaySystemSettling,
       isConfirming,
       isBelowMinimum,
+      isInsufficientBalance,
       preview,
-      isPlaceOrderLoading,
       isRateLimited,
       isBalanceLoading,
-      isRedirecting,
       isPayFeesLoading,
+      hasBlockingPayAlerts,
     ],
   );
 
@@ -157,13 +249,34 @@ export const usePredictBuyConditions = ({
     [isPreviewCalculating, isUserInputChange],
   );
 
+  useEffect(() => {
+    if (
+      !isPredictBalanceSelected &&
+      !isInputFocused &&
+      totalPayForPredictBalance > 0 &&
+      predictBalance >= totalPayForPredictBalance
+    ) {
+      resetSelectedPaymentToken();
+    }
+  }, [
+    isInputFocused,
+    isPredictBalanceSelected,
+    predictBalance,
+    resetSelectedPaymentToken,
+    totalPayForPredictBalance,
+  ]);
+
   return {
     isBelowMinimum,
+    isInsufficientBalance,
+    isCurrentTokenInsufficient,
+    hasAlternativeBalance,
+    maxBetAmount,
     isRateLimited,
-    isPlacingOrder,
     canPlaceBet,
     isUserChangeTriggeringCalculation,
     isPayFeesLoading,
     isBalancePulsing,
+    isPaySystemSettling,
   };
 };

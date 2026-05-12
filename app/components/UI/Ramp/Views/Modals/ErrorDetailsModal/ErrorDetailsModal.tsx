@@ -4,23 +4,21 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { useNavigation, type ParamListBase } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   Text,
   TextVariant,
   TextColor,
   Button,
   ButtonVariant,
   ButtonBaseSize,
-} from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
-import Icon, {
+  Icon,
   IconName,
   IconSize,
   IconColor,
-} from '../../../../../../component-library/components/Icons/Icon';
-import { useStyles } from '../../../../../../component-library/hooks';
+} from '@metamask/design-system-react-native';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import { useStyles } from '../../../../../hooks/useStyles';
 import {
   createNavigationDetails,
   useParams,
@@ -93,7 +91,7 @@ function ErrorDetailsModal() {
   }, [navigation, amount]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderCompactStandard
         onClose={handleClose}
         closeButtonProps={{ testID: 'error-details-close-button' }}
@@ -102,7 +100,7 @@ function ErrorDetailsModal() {
           <Icon
             name={IconName.Danger}
             size={IconSize.Md}
-            color={IconColor.Error}
+            color={IconColor.ErrorDefault}
           />
           <Text variant={TextVariant.HeadingMd}>
             {strings('deposit.errors.error_details_title')}

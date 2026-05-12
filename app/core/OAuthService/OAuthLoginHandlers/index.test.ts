@@ -1,5 +1,9 @@
 import { Platform } from 'react-native';
-import { AuthConnection, HandleFlowParams } from '../OAuthInterface';
+import {
+  AuthConnection,
+  HandleFlowParams,
+  LoginHandlerCodeResult,
+} from '../OAuthInterface';
 import { createLoginHandler } from './index';
 import { OAuthError, OAuthErrorType } from '../error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
@@ -10,15 +14,18 @@ const mockExpoAuthSessionPromptAsync = jest.fn().mockResolvedValue({
     code: 'googleCode',
   },
 });
+const mockDeviceIsIos = jest.fn();
+const mockComparePlatformVersionTo = jest.fn();
+const mockGetIosGoogleConfig = jest.fn();
 
 jest.mock('./constants', () => ({
   AuthServerUrl: 'https://auth.example.com',
   AppRedirectUri: 'https://app.example.com',
-  IosGID: 'mock-ios-google-client-id',
-  IosGoogleRedirectUri: 'mock-ios-google-redirect-uri',
-  AndroidGoogleWebGID: 'mock-android-google-client-id',
+  GoogleWebGID: 'mock-android-google-client-id',
+  GoogleRedirectUri: 'https://link.metamask.io/oauth-redirect',
   AppleWebClientId: 'mock-android-apple-client-id',
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
+  getIosGoogleConfig: (...args: unknown[]) => mockGetIosGoogleConfig(...args),
 }));
 
 jest.mock('expo-auth-session', () => ({
@@ -30,6 +37,12 @@ jest.mock('expo-auth-session', () => ({
   }),
   CodeChallengeMethod: jest.fn(),
   ResponseType: jest.fn(),
+  Prompt: {
+    SelectAccount: 'select_account',
+    Login: 'login',
+    Consent: 'consent',
+    None: 'none',
+  },
 }));
 
 const mockSignInAsync = jest.fn().mockResolvedValue({
@@ -62,9 +75,24 @@ jest.mock('@metamask/react-native-acm', () => ({
   signInWithGoogle: () => mockSignInWithGoogle(),
 }));
 
+jest.mock('../../../util/device', () => ({
+  __esModule: true,
+  default: {
+    isIos: (...args: unknown[]) => mockDeviceIsIos(...args),
+    comparePlatformVersionTo: (...args: unknown[]) =>
+      mockComparePlatformVersionTo(...args),
+  },
+}));
+
 describe('OAuth login handlers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockDeviceIsIos.mockReturnValue(false);
+    mockComparePlatformVersionTo.mockReturnValue(0);
+    mockGetIosGoogleConfig.mockReturnValue({
+      clientId: 'mock-android-google-client-id',
+      redirectUri: 'https://link.metamask.io/oauth-redirect',
+    });
   });
 
   for (const os of ['ios', 'android']) {
@@ -292,6 +320,12 @@ describe('OAuth login handlers', () => {
     describe('iOS Google handler', () => {
       beforeEach(() => {
         jest.clearAllMocks();
+        mockDeviceIsIos.mockReturnValue(true);
+        mockComparePlatformVersionTo.mockReturnValue(0);
+        mockGetIosGoogleConfig.mockReturnValue({
+          clientId: 'mock-ios-google-client-id',
+          redirectUri: 'mock-ios-google-redirect-uri',
+        });
       });
 
       it('throw UserCancelled error when user cancels', async () => {
@@ -353,6 +387,57 @@ describe('OAuth login handlers', () => {
         const handler = createLoginHandler('ios', AuthConnection.Google);
 
         await expect(handler.login()).rejects.toThrow('Network error');
+      });
+
+      it('uses the legacy iOS Google config returned by the shared config helper', async () => {
+        mockGetIosGoogleConfig.mockReturnValue({
+          clientId: 'mock-ios-google-client-id',
+          redirectUri: 'mock-ios-google-redirect-uri',
+        });
+        mockExpoAuthSessionPromptAsync.mockResolvedValue({
+          type: 'success',
+          params: {
+            code: 'test-auth-code',
+          },
+        });
+
+        const handler = createLoginHandler('ios', AuthConnection.Google);
+        const result = await handler.login();
+
+        expect(result?.authConnection).toBe(AuthConnection.Google);
+        expect((result as LoginHandlerCodeResult)?.code).toBe('test-auth-code');
+        expect((result as LoginHandlerCodeResult)?.clientId).toBe(
+          'mock-ios-google-client-id',
+        );
+        expect((result as LoginHandlerCodeResult)?.redirectUri).toBe(
+          'mock-ios-google-redirect-uri',
+        );
+        expect(mockGetIosGoogleConfig).toHaveBeenCalledTimes(1);
+        expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
+      });
+
+      it('uses the web Google config returned by the shared config helper', async () => {
+        mockGetIosGoogleConfig.mockReturnValue({
+          clientId: 'mock-android-google-client-id',
+          redirectUri: 'https://link.metamask.io/oauth-redirect',
+        });
+        mockExpoAuthSessionPromptAsync.mockResolvedValue({
+          type: 'success',
+          params: {
+            code: 'test-auth-code',
+          },
+        });
+
+        const handler = createLoginHandler('ios', AuthConnection.Google);
+
+        await expect(handler.login()).resolves.toMatchObject({
+          authConnection: AuthConnection.Google,
+          code: 'test-auth-code',
+          clientId: 'mock-android-google-client-id',
+          redirectUri: 'https://link.metamask.io/oauth-redirect',
+        });
+        expect(mockGetIosGoogleConfig).toHaveBeenCalledTimes(1);
+        expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
       });
     });
 

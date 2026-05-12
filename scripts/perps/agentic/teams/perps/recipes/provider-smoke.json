@@ -1,0 +1,59 @@
+{
+  "title": "Provider smoke — verify active provider and branch on testnet mode",
+  "description": "Demonstrates switch branching: checks testnet state, branches to enable it if needed, then verifies providers are registered.",
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked", "perps.feature_enabled"],
+      "entry": "check-testnet",
+      "nodes": {
+        "check-testnet": {
+          "action": "eval_sync",
+          "expression": "JSON.stringify({isTestnet: Engine.context.PerpsController.state.isTestnet})",
+          "assert": { "operator": "not_null" },
+          "save_as": "testnetState",
+          "next": "decide-testnet"
+        },
+        "decide-testnet": {
+          "action": "switch",
+          "description": "Branch based on current testnet mode",
+          "cases": [
+            {
+              "label": "already testnet",
+              "when": { "operator": "eq", "field": "vars.testnetState.isTestnet", "value": true },
+              "next": "verify-providers"
+            }
+          ],
+          "default": "enable-testnet"
+        },
+        "enable-testnet": {
+          "action": "toggle_testnet",
+          "enabled": true,
+          "next": "wait-testnet"
+        },
+        "wait-testnet": {
+          "action": "wait_for",
+          "expression": "JSON.stringify({isTestnet: Engine.context.PerpsController.state.isTestnet})",
+          "assert": { "operator": "eq", "field": "isTestnet", "value": true },
+          "timeout_ms": 5000,
+          "next": "verify-providers"
+        },
+        "verify-providers": {
+          "action": "eval_ref",
+          "ref": "providers",
+          "assert": { "operator": "not_null" },
+          "next": "verify-markets"
+        },
+        "verify-markets": {
+          "action": "eval_ref",
+          "ref": "markets",
+          "assert": { "operator": "length_gt", "value": 0 },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
+        }
+      }
+    }
+  }
+}

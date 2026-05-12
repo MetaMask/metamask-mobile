@@ -4,7 +4,7 @@ import { View, Text } from 'react-native';
 import PerpsHomeSection from './PerpsHomeSection';
 import { PerpsHomeSectionTestIds } from './PerpsHomeSection.testIds';
 
-import { TextColor } from '../../../../../component-library/components/Texts/Text';
+import { TextColor } from '@metamask/design-system-react-native';
 
 describe('PerpsHomeSection', () => {
   const mockSkeleton = () => <View testID="skeleton-loader" />;
@@ -177,7 +177,7 @@ describe('PerpsHomeSection', () => {
     });
 
     it('header is not pressable when onActionPress not provided', () => {
-      const { getByText } = render(
+      const { queryByTestId, getByText } = render(
         <PerpsHomeSection
           title="Test Section"
           isLoading={false}
@@ -188,8 +188,9 @@ describe('PerpsHomeSection', () => {
         </PerpsHomeSection>,
       );
 
-      // Header should render but not be pressable
-      expect(getByText('Test Section')).toBeTruthy();
+      getByText('Test Section');
+      // Action button must be absent when no onActionPress is provided
+      expect(queryByTestId(PerpsHomeSectionTestIds.ACTION_BUTTON)).toBeNull();
     });
 
     it('hides action icon when loading', () => {
@@ -445,7 +446,7 @@ describe('PerpsHomeSection', () => {
         <PerpsHomeSection
           title="Test Section"
           subtitle="+$50.00 (5.0%) Unrealized P&L"
-          subtitleColor={TextColor.Success}
+          subtitleColor={TextColor.SuccessDefault}
           isLoading={false}
           isEmpty={false}
           renderSkeleton={mockSkeleton}
@@ -481,7 +482,7 @@ describe('PerpsHomeSection', () => {
         <PerpsHomeSection
           title="Positions"
           subtitle="-$18.47 (2.1%)"
-          subtitleColor={TextColor.Error}
+          subtitleColor={TextColor.ErrorDefault}
           isLoading={false}
           isEmpty={false}
           onActionPress={mockOnActionPress}
@@ -504,7 +505,7 @@ describe('PerpsHomeSection', () => {
         <PerpsHomeSection
           title="Positions"
           subtitle="-$18.47 (2.1%)"
-          subtitleColor={TextColor.Error}
+          subtitleColor={TextColor.ErrorDefault}
           subtitleSuffix="Unrealized PnL"
           subtitleTestID="test-subtitle"
           isLoading={false}

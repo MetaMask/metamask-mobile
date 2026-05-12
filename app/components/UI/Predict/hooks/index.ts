@@ -1,3 +1,6 @@
+export { useCryptoTargetPrice } from './useCryptoTargetPrice';
+export type { UseCryptoTargetPriceParams } from './useCryptoTargetPrice';
+
 export {
   useLiveGameUpdates,
   type UseLiveGameUpdatesOptions,
@@ -11,12 +14,6 @@ export {
 } from './useLiveMarketPrices';
 
 export {
-  usePredictLivePositions,
-  type UseLivePositionsOptions,
-  type UseLivePositionsResult,
-} from './usePredictLivePositions';
-
-export {
   usePredictTabs,
   type FeedTab,
   type UsePredictTabsResult,
@@ -26,3 +23,5 @@ export {
   usePredictSearch,
   type UsePredictSearchResult,
 } from './usePredictSearch';
+
+export { usePredictCashOut } from './usePredictCashOut';

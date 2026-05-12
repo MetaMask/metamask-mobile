@@ -1,70 +1,70 @@
 import { createProjectLogger } from '@metamask/utils';
 import type {
   ControllerMessenger,
-  ControllerByName,
+  MessengerClientsByName,
   ControllerMessengerCallback,
-  ControllerName,
-  ControllersToInitialize,
-  InitModularizedControllersFunction,
-  ControllerInitRequest,
-  ControllerInitFunction,
+  MessengerClientName,
+  MessengerClientsToInitialize,
+  InitMessengerClientsFunction,
+  MessengerClientInitRequest,
+  MessengerClientInitFunction,
 } from '../types';
-import { CONTROLLER_MESSENGERS } from '../messengers';
+import { MESSENGER_FACTORIES } from '../messengers';
 
-const log = createProjectLogger('controller-init');
+const log = createProjectLogger('messenger-client-init');
 
-type BaseControllerInitRequest = ControllerInitRequest<
+type BaseMessengerClientInitRequest = MessengerClientInitRequest<
   ControllerMessenger,
   ControllerMessenger | void
 >;
 
-type InitFunction<Name extends ControllersToInitialize> =
-  ControllerInitFunction<
-    ControllerByName[Name],
-    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
-    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
+type InitFunction<Name extends MessengerClientsToInitialize> =
+  MessengerClientInitFunction<
+    MessengerClientsByName[Name],
+    ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getMessenger']>,
+    ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getInitMessenger']>
   >;
 
 /**
- * Initializes the controllers in the engine in a modular way.
+ * Initializes the messenger clients in the engine in a modular way.
  *
  * @param options - Options bag.
  * @param options.baseControllerMessenger - Unrestricted base controller messenger.
- * @param options.controllerInitFunctions - Map of init functions keyed by controller name.
- * @param options.existingControllersByName - All required controllers that have already been initialized.
+ * @param options.initFunctions - Map of init functions keyed by messenger client name.
  * @param options.getGlobalChainId - Get settled chain id in the engine.
  * @param options.getState - Get the root state of the engine.
- * @param options.persistedState - The full persisted state for all controllers.
- * @returns The initialized controllers and associated data.
+ * @param options.persistedState - The full persisted state for all messenger clients.
+ * @returns The initialized messenger clients and associated data.
  */
-export const initModularizedControllers: InitModularizedControllersFunction = ({
+export const initMessengerClients: InitMessengerClientsFunction = ({
   baseControllerMessenger,
-  controllerInitFunctions,
-  existingControllersByName,
+  initFunctions,
   ...initRequest
 }) => {
-  log('Initializing controllers', Object.keys(controllerInitFunctions).length);
+  log('Initializing messenger clients', Object.keys(initFunctions).length);
 
-  // Used by other controllers to get dependent controllers
-  const getController = <Name extends ControllerName>(
+  let partialMessengerClientsByName: Partial<MessengerClientsByName> = {};
+
+  // Used by other messenger clients to get dependent messenger clients
+  const getMessengerClient = <Name extends MessengerClientName>(
     name: Name,
-  ): ControllerByName[Name] =>
-    getControllerOrThrow({
-      controller: existingControllersByName?.[name],
+  ): MessengerClientsByName[Name] =>
+    getMessengerClientOrThrow({
+      controller: partialMessengerClientsByName?.[name],
       name,
     });
 
-  for (const [key, controllerInitFunction] of Object.entries(
-    controllerInitFunctions,
+  for (const [key, messengerClientInitFunction] of Object.entries(
+    initFunctions,
   )) {
-    const controllerName = key as ControllersToInitialize;
+    const messengerClientName = key as MessengerClientsToInitialize;
 
-    const initFunction = controllerInitFunction as InitFunction<
-      typeof controllerName
+    const initFunction = messengerClientInitFunction as InitFunction<
+      typeof messengerClientName
     >;
 
-    // Get the messenger for the controller
-    const messengerCallbacks = CONTROLLER_MESSENGERS[controllerName];
+    // Get the messenger for the messenger client
+    const messengerCallbacks = MESSENGER_FACTORIES[messengerClientName];
 
     const controllerMessengerCallback =
       messengerCallbacks.getMessenger as ControllerMessengerCallback;
@@ -78,48 +78,51 @@ export const initModularizedControllers: InitModularizedControllersFunction = ({
 
     const initMessenger = initMessengerCallback?.(baseControllerMessenger);
 
-    const finalInitRequest: BaseControllerInitRequest = {
+    const finalInitRequest: BaseMessengerClientInitRequest = {
       controllerMessenger,
-      getController,
+      getMessengerClient,
       initMessenger,
       ...initRequest,
     };
 
-    // Initialize the controller
+    // Initialize the messenger client
     const { controller } = initFunction(finalInitRequest);
 
-    // Add the controller to the existing controllers by name
-    existingControllersByName = {
-      ...existingControllersByName,
-      [controllerName]: controller,
+    // Add the messenger client to the map
+    partialMessengerClientsByName = {
+      ...partialMessengerClientsByName,
+      [messengerClientName]: controller,
     };
 
-    log('Initialized controller', controllerName);
+    log('Initialized messenger client', messengerClientName);
   }
 
   return {
-    controllersByName: existingControllersByName as ControllerByName,
+    messengerClientsByName:
+      partialMessengerClientsByName as MessengerClientsByName,
   };
 };
 
 /**
- * Gets a controller from the existing controllers by name.
- * Throws an error if the controller is not found.
+ * Gets a messenger client from the existing messenger clients by name.
+ * Throws an error if the messenger client is not found.
  *
- * @param options - Options containing the controller and name.
- * @param options.controller - The controller to get.
- * @param options.name - The name of the controller.
- * @returns The controller.
+ * @param options - Options containing the messenger client and name.
+ * @param options.controller - The messenger client to get.
+ * @param options.name - The name of the messenger client.
+ * @returns The messenger client.
  */
-export function getControllerOrThrow<Name extends ControllerName>({
+export function getMessengerClientOrThrow<Name extends MessengerClientName>({
   controller,
   name,
 }: {
-  controller: Partial<ControllerByName>[Name];
+  controller: Partial<MessengerClientsByName>[Name];
   name: Name;
-}): ControllerByName[Name] {
+}): MessengerClientsByName[Name] {
   if (!controller) {
-    throw new Error(`Controller requested before it was initialized: ${name}`);
+    throw new Error(
+      `Messenger client requested before it was initialized: ${name}`,
+    );
   }
 
   return controller;

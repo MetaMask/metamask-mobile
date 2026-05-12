@@ -1,6 +1,7 @@
 import { ImageSourcePropType } from 'react-native';
 import AppConstants from '../AppConstants';
 import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
+import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
 import { DappClient } from './dapp-sdk-types';
 
 const getDefaultBridgeParams = (clientInfo: DappClient) => ({
@@ -38,9 +39,11 @@ const getDefaultBridgeParams = (clientInfo: DappClient) => ({
       isWalletConnect: false,
       analytics: {
         isRemoteConn: true,
+        transport: TransportType.SOCKET_RELAY,
         platform:
           clientInfo.originatorInfo.platform ??
           AppConstants.MM_SDK.UNKNOWN_PARAM,
+        remote_session_id: clientInfo.originatorInfo?.anonId ?? '',
       },
     }),
   isMainFrame: true,

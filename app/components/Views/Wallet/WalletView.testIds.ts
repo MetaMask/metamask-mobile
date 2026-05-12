@@ -87,9 +87,12 @@ export const WalletViewSelectorsIDs = {
   WALLET_BRIDGE_BUTTON: 'wallet-bridge-button',
   WALLET_SEND_BUTTON: 'wallet-send-button',
   WALLET_RECEIVE_BUTTON: 'wallet-receive-button',
+  /** Inner wallet top cluster (balance + actions); used for post-onboarding curtain layout measurement. */
+  WALLET_TOP_CLUSTER_INNER: 'wallet-top-cluster-inner',
   BALANCE_EMPTY_STATE_CONTAINER: 'account-group-balance-empty-state',
   BALANCE_EMPTY_STATE_ACTION_BUTTON:
     'account-group-balance-empty-state-action-button',
+  WALLET_ACTIVITY_BUTTON: 'wallet-activity-button',
   WALLET_HEADER_ROOT: 'wallet-header-root',
   WALLET_SAFE_AREA: 'wallet-safe-area',
   WALLET_SCROLL_VIEW: 'wallet-scroll-view',

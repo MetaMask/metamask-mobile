@@ -13,14 +13,6 @@ import { Linking } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 
-// Mock Linking
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(() => Promise.resolve()),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  getInitialURL: jest.fn(() => Promise.resolve(null)),
-}));
-
 jest.mock('react-native-modal', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const { View } = require('react-native');
@@ -49,27 +41,39 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
   },
 }));
 
-// Mock Linking
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(() => Promise.resolve()),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  getInitialURL: jest.fn(() => Promise.resolve(null)),
-}));
-
 // Mock PerpsStreamManager
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     prices: {
       subscribeToSymbols: jest.fn(() => jest.fn()),
       subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
     },
-    positions: { subscribe: jest.fn(() => jest.fn()) },
-    orders: { subscribe: jest.fn(() => jest.fn()) },
-    fills: { subscribe: jest.fn(() => jest.fn()) },
-    account: { subscribe: jest.fn(() => jest.fn()) },
-    marketData: { subscribe: jest.fn(() => jest.fn()), getMarkets: jest.fn() },
-    oiCaps: { subscribe: jest.fn(() => jest.fn()) },
+    positions: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    orders: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    fills: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    account: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    marketData: {
+      subscribe: jest.fn(() => jest.fn()),
+      getMarkets: jest.fn(),
+      getSnapshot: jest.fn(() => null),
+    },
+    oiCaps: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
   })),
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
@@ -408,11 +412,28 @@ const mockUseMarketInsights = jest.fn(
 jest.mock('../../../MarketInsights', () => ({
   useMarketInsights: (assetId: string | null | undefined, isEnabled: boolean) =>
     mockUseMarketInsights(assetId, isEnabled),
+  MarketInsightsDisclaimerBottomSheet: ({
+    onClose,
+  }: {
+    onClose: () => void;
+  }) => {
+    const { View } = jest.requireActual('react-native');
+    return (
+      <View
+        testID="mock-market-insights-disclaimer-bottom-sheet"
+        onTouchEnd={onClose}
+      />
+    );
+  },
   MarketInsightsEntryCard: ({ onPress }: { onPress: () => void }) => {
     const { TouchableOpacity } = jest.requireActual('react-native');
     return (
       <TouchableOpacity testID="market-insights-entry-card" onPress={onPress} />
     );
+  },
+  MarketInsightsEntryCardSkeleton: () => {
+    const { View } = jest.requireActual('react-native');
+    return <View testID="market-insights-entry-card-skeleton" />;
   },
   selectMarketInsightsEnabled: jest.fn(),
 }));
@@ -433,6 +454,15 @@ jest.mock('../../hooks/useIsPriceDeviatedAboveThreshold', () => ({
     isDeviatedAboveThreshold: false,
     isLoading: false,
   })),
+}));
+
+jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
+  usePerpsNetworkManagement: () => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+    enableArbitrumNetwork: jest.fn(),
+    getArbitrumChainId: jest.fn(),
+    currentNetwork: 'mainnet',
+  }),
 }));
 
 jest.mock('../../hooks', () => ({
@@ -469,15 +499,18 @@ jest.mock('../../hooks', () => ({
     isClosing: false,
   })),
   usePerpsMarkets: () => mockUsePerpsMarketsImpl(),
+  usePerpsMarketData: jest.fn(() => ({
+    marketData: null,
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  })),
   usePerpsTrading: jest.fn(() => ({
     placeOrder: jest.fn(),
     cancelOrder: jest.fn(),
     getAccountState: jest.fn(),
     depositWithConfirmation: mockDepositWithConfirmation,
     withdrawWithConfirmation: jest.fn(),
-  })),
-  usePerpsNetworkManagement: jest.fn(() => ({
-    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
   })),
   usePerpsNavigation: jest.fn(() => ({
     navigateToHome: mockNavigateToHome,
@@ -698,6 +731,19 @@ jest.mock('../../hooks/useStopLossPrompt', () => ({
   })),
 }));
 
+const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
+  action(),
+);
+
+jest.mock('../../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: mockComplianceGate,
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
+  }),
+}));
+
 const initialState = {
   engine: {
     backgroundState,
@@ -709,7 +755,8 @@ describe('PerpsMarketDetailsView', () => {
   beforeEach(() => {
     mockUsePerpsAccount.mockReturnValue({
       account: {
-        availableBalance: '1000.00',
+        spendableBalance: '1000.00',
+        withdrawableBalance: '1000.00',
         marginUsed: '0.00',
         unrealizedPnl: '0.00',
         returnOnEquity: '0.00',
@@ -720,7 +767,8 @@ describe('PerpsMarketDetailsView', () => {
 
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
-        availableBalance: '1000',
+        spendableBalance: '1000',
+        withdrawableBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -794,6 +842,9 @@ describe('PerpsMarketDetailsView', () => {
   // Clean up mocks after each test
   afterEach(() => {
     jest.clearAllMocks();
+    mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
+      action(),
+    );
     mockRefreshOrders.mockClear();
     mockRefreshMarketStats.mockClear();
     mockNavigate.mockClear();
@@ -943,7 +994,8 @@ describe('PerpsMarketDetailsView', () => {
       });
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          availableBalance: '0.00',
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -954,7 +1006,8 @@ describe('PerpsMarketDetailsView', () => {
 
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -990,7 +1043,8 @@ describe('PerpsMarketDetailsView', () => {
       mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          availableBalance: '0.00',
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1000,7 +1054,8 @@ describe('PerpsMarketDetailsView', () => {
       });
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1027,11 +1082,55 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeNull();
     });
 
+    it('shows add funds CTA when total balance is funded but spendable balance has no direct order path', () => {
+      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
+      mockUsePerpsAccount.mockReturnValue({
+        account: {
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0.00',
+          totalBalance: '100.00',
+        },
+        isInitialLoading: false,
+      });
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '0',
+          withdrawableBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '100',
+        },
+        isInitialLoading: false,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+      ).toBeNull();
+    });
+
     it('calls navigateToConfirmation and depositWithConfirmation when add funds is pressed', async () => {
       mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          availableBalance: '0.00',
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1041,7 +1140,8 @@ describe('PerpsMarketDetailsView', () => {
       });
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1067,17 +1167,20 @@ describe('PerpsMarketDetailsView', () => {
         fireEvent.press(addFundsButton);
       });
 
-      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-        stack: 'Perps',
+      await waitFor(() => {
+        expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+          stack: 'Perps',
+        });
+        expect(mockDepositWithConfirmation).toHaveBeenCalled();
       });
-      expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
 
     it('handles depositWithConfirmation rejection without throwing', async () => {
       mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          availableBalance: '0.00',
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1087,7 +1190,8 @@ describe('PerpsMarketDetailsView', () => {
       });
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1121,7 +1225,8 @@ describe('PerpsMarketDetailsView', () => {
       // Override with non-zero balance and existing position
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          availableBalance: '1000.00',
+          spendableBalance: '1000.00',
+          withdrawableBalance: '1000.00',
           marginUsed: '500.00',
           unrealizedPnl: '50.00',
           returnOnEquity: '3.33',
@@ -1221,7 +1326,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Trigger the refresh
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Note: Candle data now uses WebSocket streaming (usePerpsLiveCandles)
@@ -1256,7 +1361,7 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Assert - Candle data uses WebSocket streaming, no manual refresh needed
@@ -1307,7 +1412,7 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Assert - All data now updates via WebSocket, no manual refresh needed
@@ -1345,7 +1450,7 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Assert - Candle data now uses WebSocket streaming (no manual refresh)
@@ -1374,7 +1479,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Trigger the refresh
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Note: Candle data now uses WebSocket streaming (no manual refresh needed)
@@ -1411,7 +1516,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Trigger the refresh - should complete without errors
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Refresh control should exist and be functional
@@ -1455,6 +1560,63 @@ describe('PerpsMarketDetailsView', () => {
         asset: 'BTC',
         source: 'perp_asset_screen',
       });
+    });
+
+    it('passes marketData defaults to order screen when available', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const { usePerpsMarketData } = jest.requireMock('../../hooks');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
+      });
+
+      usePerpsMarketData.mockReturnValue({
+        marketData: { szDecimals: 4, maxLeverage: 50 },
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      try {
+        const { getByTestId } = renderWithProvider(
+          <PerpsConnectionProvider>
+            <PerpsMarketDetailsView />
+          </PerpsConnectionProvider>,
+          {
+            state: initialState,
+          },
+        );
+
+        const longButton = getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+        );
+        await act(async () => {
+          fireEvent.press(longButton);
+        });
+
+        expect(mockNavigateToOrder).toHaveBeenCalledTimes(1);
+        expect(mockNavigateToOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            direction: 'long',
+            asset: 'BTC',
+            source: 'perp_asset_screen',
+            defaultSzDecimals: 4,
+            defaultMaxLeverage: 50,
+          }),
+        );
+      } finally {
+        usePerpsMarketData.mockReturnValue({
+          marketData: null,
+          isLoading: false,
+          error: null,
+          refetch: jest.fn(),
+        });
+      }
     });
 
     it('navigates to short order screen when short button is pressed and user is eligible', async () => {
@@ -1926,6 +2088,129 @@ describe('PerpsMarketDetailsView', () => {
       fireEvent.press(setStopLossBannerButton);
 
       expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
+    });
+
+    it('returns failure when TPSL onConfirm runs after position is cleared', async () => {
+      mockNavigate.mockClear();
+
+      const existingPosition = {
+        symbol: 'BTC',
+        size: '0.5',
+        entryPrice: '50000',
+        leverage: { value: 10, type: 'isolated' as const },
+        marginUsed: '5000',
+        unrealizedPnl: '100',
+        returnOnEquity: '0.02',
+        liquidationPrice: '45000',
+      };
+
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition,
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      const viewTree = (
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>
+      );
+
+      const { getByTestId, rerender } = renderWithProvider(viewTree, {
+        state: initialState,
+      });
+
+      fireEvent.press(getByTestId('perps-position-card-auto-close-button'));
+
+      const tpslNavigateCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'PerpsTPSL',
+      );
+      expect(tpslNavigateCall).toBeTruthy();
+      const onConfirm = (
+        tpslNavigateCall as [
+          string,
+          { onConfirm: (...args: unknown[]) => Promise<{ success: boolean }> },
+        ]
+      )[1].onConfirm;
+
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: false,
+        isLoading: false,
+        error: null,
+        existingPosition: null,
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      rerender(viewTree);
+
+      await act(async () => {
+        const result = await onConfirm(undefined, undefined, undefined);
+        expect(result).toEqual({ success: false });
+      });
+    });
+
+    it('does not navigate when compliance gate blocks long press', async () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+        );
+      });
+
+      expect(mockNavigateToOrder).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate when compliance gate blocks short press', async () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+        );
+      });
+
+      expect(mockNavigateToOrder).not.toHaveBeenCalled();
     });
   });
 
@@ -3422,6 +3707,58 @@ describe('PerpsMarketDetailsView', () => {
           }),
         }),
       );
+    });
+
+    it('shows skeleton when loading and no report is available', () => {
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: true,
+        error: null,
+        timeAgo: '',
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId('market-insights-entry-card-skeleton'),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('market-insights-entry-card')).toBeNull();
+    });
+
+    it('hides skeleton and shows card when report is available', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(getByTestId('market-insights-entry-card')).toBeOnTheScreen();
+      expect(queryByTestId('market-insights-entry-card-skeleton')).toBeNull();
+    });
+
+    it('hides market insights section entirely when not loading and no report', () => {
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: false,
+        error: null,
+        timeAgo: '',
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(queryByTestId('market-insights-entry-card')).toBeNull();
+      expect(queryByTestId('market-insights-entry-card-skeleton')).toBeNull();
     });
   });
 });

@@ -1,13 +1,15 @@
-import { SnapController } from '@metamask/snaps-controllers';
-import { ControllerInitRequest } from '../../types';
+import {
+  SnapController,
+  SnapControllerMessenger,
+} from '@metamask/snaps-controllers';
+import { MessengerClientInitRequest } from '../../types';
 import {
   getSnapControllerInitMessenger,
   getSnapControllerMessenger,
   SnapControllerInitMessenger,
-  SnapControllerMessenger,
 } from '../../messengers/snaps';
 import { snapControllerInit } from './snap-controller-init';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import {
   KeyringControllerLockEvent,
@@ -32,15 +34,22 @@ jest.mock('.../../../../store', () => ({
     .mockReturnValue({ toPromise: jest.fn().mockResolvedValue(undefined) }),
 }));
 
+jest.mock('../../../../util/test/utils', () => ({
+  isTest: false,
+}));
+
 function getInitRequestMock(
   baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   }),
 ): jest.Mocked<
-  ControllerInitRequest<SnapControllerMessenger, SnapControllerInitMessenger>
+  MessengerClientInitRequest<
+    SnapControllerMessenger,
+    SnapControllerInitMessenger
+  >
 > {
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getSnapControllerMessenger(baseMessenger),
     initMessenger: getSnapControllerInitMessenger(baseMessenger),
   };
@@ -179,7 +188,7 @@ describe('SnapControllerInit', () => {
       } as unknown as SnapControllerInitMessenger;
 
       const requestMock = {
-        ...buildControllerInitRequestMock(baseMessenger),
+        ...buildMessengerClientInitRequestMock(baseMessenger),
         controllerMessenger: getSnapControllerMessenger(baseMessenger),
         initMessenger: mockInitMessenger,
       };
@@ -219,7 +228,7 @@ describe('SnapControllerInit', () => {
       } as unknown as SnapControllerInitMessenger;
 
       const requestMock = {
-        ...buildControllerInitRequestMock(baseMessenger),
+        ...buildMessengerClientInitRequestMock(baseMessenger),
         controllerMessenger: getSnapControllerMessenger(baseMessenger),
         initMessenger: mockInitMessenger,
       };

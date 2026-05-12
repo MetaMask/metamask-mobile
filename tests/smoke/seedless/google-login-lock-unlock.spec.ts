@@ -5,7 +5,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
 import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
-import { SmokeWalletPlatform } from '../../tags';
+import { SmokeSeedlessOnboarding } from '../../tags';
 import {
   completeGoogleNewUserOnboarding,
   lockApp,
@@ -14,7 +14,7 @@ import {
   FIXTURE_PASSWORD,
 } from './utils';
 
-describe(SmokeWalletPlatform('Google Login - Lock and Unlock'), () => {
+describe(SmokeSeedlessOnboarding('Google Login - Lock and Unlock'), () => {
   beforeAll(async () => {
     jest.setTimeout(300000);
   });

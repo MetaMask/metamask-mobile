@@ -1,12 +1,10 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PredictSportTeamLogo from './PredictSportTeamLogo';
-import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 
 describe('PredictSportTeamLogo', () => {
   const defaultProps = {
     uri: 'https://example.com/logo.png',
-    color: TEST_HEX_COLORS.TEAM_SEA,
     testID: 'team-logo',
   };
 
@@ -118,57 +116,6 @@ describe('PredictSportTeamLogo', () => {
   });
 
   describe('edge cases', () => {
-    it('renders logo with hex color including alpha channel', () => {
-      const colorWithAlpha = TEST_HEX_COLORS.TEAM_SEA_ALPHA;
-
-      const { getByTestId } = render(
-        <PredictSportTeamLogo {...defaultProps} color={colorWithAlpha} />,
-      );
-
-      const container = getByTestId('team-logo');
-      expect(container.props.style).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            backgroundColor: colorWithAlpha,
-          }),
-        ]),
-      );
-    });
-
-    it('renders logo with short hex color format', () => {
-      const shortHexColor = TEST_HEX_COLORS.WHITE_SHORT;
-
-      const { getByTestId } = render(
-        <PredictSportTeamLogo {...defaultProps} color={shortHexColor} />,
-      );
-
-      const container = getByTestId('team-logo');
-      expect(container.props.style).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            backgroundColor: shortHexColor,
-          }),
-        ]),
-      );
-    });
-
-    it('renders logo with RGB color format', () => {
-      const rgbColor = 'rgb(0, 34, 68)';
-
-      const { getByTestId } = render(
-        <PredictSportTeamLogo {...defaultProps} color={rgbColor} />,
-      );
-
-      const container = getByTestId('team-logo');
-      expect(container.props.style).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            backgroundColor: rgbColor,
-          }),
-        ]),
-      );
-    });
-
     it('hides image when onError is triggered', () => {
       const { getByTestId, queryByTestId } = render(
         <PredictSportTeamLogo {...defaultProps} />,

@@ -1,4 +1,30 @@
-import { formatRateOfReturn, formatComputedAt } from './OndoLeaderboard.utils';
+import {
+  buildLeaderboardUserPosition,
+  formatRateOfReturn,
+  formatTierDisplayName,
+  getCampaignTierNames,
+  getTierMinNetDeposit,
+} from './OndoLeaderboard.utils';
+import type { CampaignLeaderboardPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string, params?: Record<string, string>) => {
+    const t: Record<string, string> = {
+      'rewards.ondo_campaign_leaderboard.tier_starter': 'Bronze',
+      'rewards.ondo_campaign_leaderboard.tier_mid': 'Silver',
+      'rewards.ondo_campaign_leaderboard.tier_upper': 'Platinum',
+      'rewards.perps_trading_campaign.last_updated': 'Last updated: {{time}}',
+    };
+    let template = t[key] ?? key;
+    if (params) {
+      for (const [paramKey, value] of Object.entries(params)) {
+        template = template.split(`{{${paramKey}}}`).join(value);
+      }
+    }
+    return template;
+  },
+  default: { locale: 'en-US' },
+}));
 
 describe('OndoLeaderboard.utils', () => {
   describe('formatRateOfReturn', () => {
@@ -27,37 +53,127 @@ describe('OndoLeaderboard.utils', () => {
     });
   });
 
-  describe('formatComputedAt', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-      jest.setSystemTime(new Date('2024-03-20T12:00:00.000Z'));
+  describe('formatTierDisplayName', () => {
+    it('maps STARTER to Bronze', () => {
+      expect(formatTierDisplayName('STARTER')).toBe('Bronze');
     });
 
-    afterEach(() => {
-      jest.useRealTimers();
+    it('maps MID to Silver', () => {
+      expect(formatTierDisplayName('MID')).toBe('Silver');
     });
 
-    it('returns empty string for null', () => {
-      expect(formatComputedAt(null)).toBe('');
+    it('maps UPPER to Platinum', () => {
+      expect(formatTierDisplayName('UPPER')).toBe('Platinum');
     });
 
-    it('returns empty string for empty string', () => {
-      expect(formatComputedAt('')).toBe('');
+    it('handles lowercase input', () => {
+      expect(formatTierDisplayName('starter')).toBe('Bronze');
     });
 
-    it('returns a non-empty string for a valid ISO timestamp', () => {
-      const result = formatComputedAt('2024-03-20T12:00:00.000Z');
-      expect(result).toBeTruthy();
-      expect(typeof result).toBe('string');
+    it('handles mixed-case input', () => {
+      expect(formatTierDisplayName('Mid')).toBe('Silver');
     });
 
-    it('returns empty string for an unparseable value', () => {
-      // new Date('not-a-date').toLocaleTimeString() returns 'Invalid Date',
-      // but our function catches and returns '' only on thrown errors.
-      // For invalid dates, toLocaleTimeString may return 'Invalid Date' without throwing.
-      // We only assert it does not throw and returns a string.
-      const result = formatComputedAt('not-a-date');
-      expect(typeof result).toBe('string');
+    it('returns the raw key for an unknown tier', () => {
+      expect(formatTierDisplayName('UNKNOWN')).toBe('UNKNOWN');
+    });
+  });
+
+  describe('getCampaignTierNames', () => {
+    it('returns empty array for null', () => {
+      expect(getCampaignTierNames(null)).toEqual([]);
+    });
+
+    it('returns empty array for undefined', () => {
+      expect(getCampaignTierNames(undefined)).toEqual([]);
+    });
+
+    it('returns empty array when details is null', () => {
+      expect(getCampaignTierNames({ details: null })).toEqual([]);
+    });
+
+    it('returns empty array when tiers is undefined', () => {
+      expect(getCampaignTierNames({ details: {} })).toEqual([]);
+    });
+
+    it('returns empty array for empty tiers', () => {
+      expect(getCampaignTierNames({ details: { tiers: [] } })).toEqual([]);
+    });
+
+    it('returns tier names for a campaign with tiers', () => {
+      const campaign = {
+        details: {
+          tiers: [
+            { name: 'STARTER', minNetDeposit: 500 },
+            { name: 'MID', minNetDeposit: 1000 },
+          ],
+        },
+      };
+      expect(getCampaignTierNames(campaign)).toEqual(['STARTER', 'MID']);
+    });
+  });
+
+  describe('buildLeaderboardUserPosition', () => {
+    const position: CampaignLeaderboardPositionDto = {
+      projectedTier: 'MID',
+      rank: 3,
+      totalInTier: 50,
+      rateOfReturn: 0.12,
+      currentUsdValue: 15000,
+      totalUsdDeposited: 12000,
+      netDeposit: 11000,
+      qualifiedDays: 14,
+      qualified: true,
+      neighbors: [
+        {
+          rank: 2,
+          referralCode: 'ABCDEF',
+          rateOfReturn: 0.13,
+          qualifiedDays: 14,
+          qualified: true,
+        },
+      ],
+      computedAt: '2024-03-20T12:00:00.000Z',
+    };
+
+    it('returns null for null input', () => {
+      expect(buildLeaderboardUserPosition(null)).toBeNull();
+    });
+
+    it('returns projectedTier, rank, and neighbors for a valid position', () => {
+      expect(buildLeaderboardUserPosition(position)).toEqual({
+        projectedTier: 'MID',
+        rank: 3,
+        neighbors: position.neighbors,
+      });
+    });
+
+    it('passes the neighbors array through unchanged', () => {
+      const result = buildLeaderboardUserPosition(position);
+      expect(result?.neighbors).toBe(position.neighbors);
+    });
+  });
+
+  describe('getTierMinNetDeposit', () => {
+    const tiers = [
+      { name: 'STARTER', minNetDeposit: 500 },
+      { name: 'MID', minNetDeposit: 1000 },
+    ];
+
+    it('returns minNetDeposit for a matching tier', () => {
+      expect(getTierMinNetDeposit(tiers, 'STARTER')).toBe(500);
+    });
+
+    it('is case-insensitive', () => {
+      expect(getTierMinNetDeposit(tiers, 'mid')).toBe(1000);
+    });
+
+    it('returns null for an unknown tier', () => {
+      expect(getTierMinNetDeposit(tiers, 'UPPER')).toBeNull();
+    });
+
+    it('returns null when tiers is undefined', () => {
+      expect(getTierMinNetDeposit(undefined, 'STARTER')).toBeNull();
     });
   });
 });

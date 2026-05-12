@@ -51,7 +51,7 @@ function UnsupportedRegionModal() {
   const handleNavigateToBuy = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
       // @ts-expect-error navigation prop mismatch
-      navigation.dangerouslyGetParent()?.pop();
+      navigation.getParent()?.pop();
       goToAggregator();
     });
   }, [navigation, goToAggregator]);

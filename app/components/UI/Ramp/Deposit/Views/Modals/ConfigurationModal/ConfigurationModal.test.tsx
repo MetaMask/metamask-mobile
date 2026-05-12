@@ -1,5 +1,6 @@
 import React from 'react';
 import { Linking } from 'react-native';
+import { IconColor } from '../../../../../../../component-library/components/Icons/Icon';
 import ConfigurationModal from './ConfigurationModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
@@ -119,12 +120,14 @@ describe('ConfigurationModal', () => {
     });
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(ConfigurationModal);
-    expect(toJSON()).toMatchSnapshot();
+  it('renders configuration options', () => {
+    const { getByText } = renderWithProvider(ConfigurationModal);
+    expect(getByText('View order history')).toBeOnTheScreen();
+    expect(getByText('More ways to buy')).toBeOnTheScreen();
+    expect(getByText('Contact support')).toBeOnTheScreen();
   });
 
-  it('should navigate to order history when view order history is pressed', () => {
+  it('navigates to order history when view order history is pressed', () => {
     const { getByText } = renderWithProvider(ConfigurationModal);
     const viewOrderHistoryButton = getByText('View order history');
     fireEvent.press(viewOrderHistoryButton);
@@ -143,7 +146,7 @@ describe('ConfigurationModal', () => {
     expect(mockGoToAggregator).toHaveBeenCalledWith();
   });
 
-  it('should open support URL when contact support is pressed', () => {
+  it('opens support URL when contact support is pressed', () => {
     const { getByText } = renderWithProvider(ConfigurationModal);
     const contactSupportButton = getByText('Contact support');
     fireEvent.press(contactSupportButton);
@@ -176,12 +179,12 @@ describe('ConfigurationModal', () => {
       });
     });
 
-    it('should display logout option', () => {
+    it('displays logout option', () => {
       const { getByText } = renderWithProvider(ConfigurationModal);
       expect(getByText('Log out of Transak')).toBeTruthy();
     });
 
-    it('should clear auth token and show success toast when logout is successful', async () => {
+    it('clears auth token and shows success toast when logout is successful', async () => {
       mockClearAuthToken.mockResolvedValue(undefined);
       const { getByText } = renderWithProvider(ConfigurationModal);
       const logoutButton = getByText('Log out of Transak');
@@ -194,13 +197,13 @@ describe('ConfigurationModal', () => {
           variant: 'Icon',
           labelOptions: [{ label: 'Successfully logged out' }],
           iconName: 'CheckBold',
-          iconColor: 'Success',
+          iconColor: IconColor.Success,
           hasNoTimeout: false,
         });
       });
     });
 
-    it('should show error toast when logout fails', async () => {
+    it('shows error toast when logout fails', async () => {
       const mockError = new Error('Logout failed');
       mockClearAuthToken.mockRejectedValue(mockError);
       const { getByText } = renderWithProvider(ConfigurationModal);
@@ -215,7 +218,7 @@ describe('ConfigurationModal', () => {
           variant: 'Icon',
           labelOptions: [{ label: 'Error logging out' }],
           iconName: 'CircleX',
-          iconColor: 'Error',
+          iconColor: IconColor.Error,
           hasNoTimeout: false,
         });
       });
@@ -223,9 +226,9 @@ describe('ConfigurationModal', () => {
   });
 
   describe('when user is not authenticated', () => {
-    it('should not display logout option', () => {
+    it('does not display logout option', () => {
       const { queryByText } = renderWithProvider(ConfigurationModal);
-      expect(queryByText('Log out')).toBeNull();
+      expect(queryByText('Log out')).not.toBeOnTheScreen();
     });
   });
 });

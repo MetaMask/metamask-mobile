@@ -1,4 +1,7 @@
-import { LoginViewSelectors } from '../../../app/components/Views/Login/LoginView.testIds';
+import {
+  LoginViewSelectors,
+  LoginViewSelectorText,
+} from '../../../app/components/Views/Login/LoginView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { PlaywrightAssertions } from '../../framework';
@@ -10,11 +13,16 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
-import { OnboardingSelectorText } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
 
 class LoginView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(LoginViewSelectors.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(LoginViewSelectors.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(LoginViewSelectors.CONTAINER, {
+          exact: true,
+        }),
+    });
   }
 
   get passwordInput(): EncapsulatedElementType {
@@ -26,7 +34,7 @@ class LoginView {
         Matchers.getElementByLabel(LoginViewSelectors.PASSWORD_INPUT),
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementByCatchAll(
+          PlaywrightMatchers.getElementByAccessibilityId(
             LoginViewSelectors.PASSWORD_INPUT,
           ),
         ios: () =>
@@ -50,7 +58,7 @@ class LoginView {
       detox: () => Matchers.getElementByID(LoginViewSelectors.LOGIN_BUTTON_ID),
       appium: () =>
         PlaywrightMatchers.getElementByText(
-          OnboardingSelectorText.UNLOCK_BUTTON,
+          LoginViewSelectorText.UNLOCK_BUTTON,
         ),
     });
   }

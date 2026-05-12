@@ -1,11 +1,11 @@
 import { dataTestIds } from '@metamask/test-dapp-solana';
-import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
 import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Browser from './BrowserView';
 import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
+import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 
 /**
  * Get a test element by data-testid
@@ -75,7 +75,7 @@ class SolanaTestDApp {
   async navigateToSolanaTestDApp(): Promise<void> {
     await Browser.tapUrlInputBox();
 
-    await Browser.navigateToURL(getTestDappLocalUrl());
+    await Browser.navigateToURL(getDappUrl(0));
 
     await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
       .toBeVisible()
@@ -91,7 +91,7 @@ class SolanaTestDApp {
    */
   async tapButton(webElement: WebElement): Promise<void> {
     await Gestures.scrollToWebViewPort(webElement);
-    await Gestures.tap(webElement);
+    await Gestures.waitAndTap(webElement);
   }
 
   getHeader() {

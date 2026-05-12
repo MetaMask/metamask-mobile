@@ -12,34 +12,29 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { analytics } from '../../../../util/analytics/analytics';
 
 jest.mock('../../../../core/Analytics');
 
-const mockWithAnalyticsCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn(),
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: {
+    identify: jest.fn(),
+    trackEvent: jest.fn(),
+  },
 }));
 
-jest.mock(
-  '../../../../components/hooks/useAnalytics/withAnalyticsAwareness',
-  () => ({
-    withAnalyticsAwareness:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (Component: React.ComponentType<any>) =>
-        (props: Record<string, unknown>) => (
-          <Component
-            {...props}
-            analytics={{
-              isEnabled: jest.fn().mockReturnValue(true),
-              enable: jest.fn(),
-              addTraitsToUser: jest.fn(),
-              createEventBuilder: mockWithAnalyticsCreateEventBuilder,
-              trackEvent: jest.fn(),
-            }}
-          />
-        ),
-  }),
-);
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({ name: 'CURRENCY_CHANGED' });
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+});
+
+jest.mock('../../../../util/analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
+    createEventBuilder: (...args: unknown[]) => mockCreateEventBuilder(...args),
+  },
+}));
 jest.mock(
   '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount',
   () => ({
@@ -89,8 +84,8 @@ describe('GeneralSettings', () => {
   });
 
   it('should render correctly', () => {
-    const { toJSON } = renderComponent();
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = renderComponent();
+    expect(getByText('General')).toBeOnTheScreen();
   });
 
   it('renders header with correct title', () => {
@@ -107,19 +102,6 @@ describe('GeneralSettings', () => {
   });
 });
 
-const mockUpdateAddProperties = jest.fn().mockReturnThis();
-const mockUpdateBuild = jest.fn().mockReturnValue({ name: 'CURRENCY_CHANGED' });
-const mockUpdateCreateEventBuilder = jest.fn().mockReturnValue({
-  addProperties: mockUpdateAddProperties,
-  build: mockUpdateBuild,
-});
-
-const mockAnalytics = {
-  addTraitsToUser: jest.fn(),
-  trackEvent: jest.fn(),
-  createEventBuilder: mockUpdateCreateEventBuilder,
-};
-
 describe('updateUserTraitsWithCurrentCurrency', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -128,9 +110,9 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
   it('adds selected currency trait', () => {
     const mockCurrency = 'USD';
 
-    updateUserTraitsWithCurrentCurrency(mockCurrency, mockAnalytics);
+    updateUserTraitsWithCurrentCurrency(mockCurrency);
 
-    expect(mockAnalytics.addTraitsToUser).toHaveBeenCalledWith({
+    expect(analytics.identify).toHaveBeenCalledWith({
       [UserProfileProperty.CURRENT_CURRENCY]: mockCurrency,
     });
   });
@@ -138,23 +120,23 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
   it('tracks currency changed event', () => {
     const mockCurrency = 'USD';
 
-    updateUserTraitsWithCurrentCurrency(mockCurrency, mockAnalytics);
+    updateUserTraitsWithCurrentCurrency(mockCurrency);
 
-    expect(mockUpdateCreateEventBuilder).toHaveBeenCalledWith(
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.CURRENCY_CHANGED,
     );
-    expect(mockUpdateAddProperties).toHaveBeenCalledWith({
+    expect(mockAddProperties).toHaveBeenCalledWith({
       [UserProfileProperty.CURRENT_CURRENCY]: mockCurrency,
       location: 'app_settings',
     });
-    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(mockUpdateBuild());
+    expect(analytics.trackEvent).toHaveBeenCalledWith(mockBuild());
   });
 
   it('does not throw errors when a valid currency is passed', () => {
     const mockCurrency = 'USD';
 
     expect(() => {
-      updateUserTraitsWithCurrentCurrency(mockCurrency, mockAnalytics);
+      updateUserTraitsWithCurrentCurrency(mockCurrency);
     }).not.toThrow();
   });
 });
@@ -167,18 +149,18 @@ describe('updateUserTraitsWithCurrencyType', () => {
   it('adds the primary currency preference', () => {
     const primaryCurrency = 'fiat';
 
-    updateUserTraitsWithCurrencyType(primaryCurrency, mockAnalytics);
+    updateUserTraitsWithCurrencyType(primaryCurrency);
 
-    expect(mockAnalytics.addTraitsToUser).toHaveBeenCalledWith({
+    expect(analytics.identify).toHaveBeenCalledWith({
       [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency,
     });
   });
 
-  it('does not throw errors if analytics object is properly passed', () => {
+  it('does not throw errors', () => {
     const primaryCurrency = 'fiat';
 
     expect(() => {
-      updateUserTraitsWithCurrencyType(primaryCurrency, mockAnalytics);
+      updateUserTraitsWithCurrencyType(primaryCurrency);
     }).not.toThrow();
   });
 });

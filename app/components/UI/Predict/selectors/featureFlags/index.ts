@@ -1,15 +1,17 @@
 import { createSelector } from 'reselect';
-import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
+import {
+  selectLocalOverrides,
+  selectRawFeatureFlags,
+  selectRemoteFeatureFlags,
+} from '../../../../../selectors/featureFlagController';
 import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
-import { PredictFeatureFlags, PredictHotTabFlag } from '../../types/flags';
-import {
-  DEFAULT_FEE_COLLECTION_FLAG,
-  DEFAULT_HOT_TAB_FLAG,
-} from '../../constants/flags';
+import { PredictHotTabFlag } from '../../types/flags';
+import { DEFAULT_HOT_TAB_FLAG } from '../../constants/flags';
 import { unwrapRemoteFeatureFlag } from '../../utils/flags';
+import { resolvePredictFeatureFlags } from '../../utils/resolvePredictFeatureFlags';
 
 /**
  * Selector for Predict trading feature enablement
@@ -113,56 +115,64 @@ export const selectPredictHotTabFlag = createSelector(
   },
 );
 
-/**
- * Selector for Predict fee collection config flag
- */
-export const selectPredictFeeCollectionFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const flag = unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
-      remoteFeatureFlags?.predictFeeCollection,
-    );
-
-    if (!flag) {
-      return DEFAULT_FEE_COLLECTION_FLAG;
-    }
-
-    return flag;
-  },
+export const selectPredictFeatureFlags = createSelector(
+  selectRawFeatureFlags,
+  selectLocalOverrides,
+  (remoteFeatureFlags, localOverrides) =>
+    resolvePredictFeatureFlags({ remoteFeatureFlags, localOverrides }),
 );
 
-/**
- * Selector for Predict FAK (Fill-And-Kill) orders enablement
- *
- * Uses version-gated feature flag `predictFakOrders` from remote config.
- * Falls back to `false` if remote flag is unavailable or invalid.
- *
- * @returns {boolean} True if FAK orders are enabled and version requirement is met
- */
+export const selectExtendedSportsMarketsLeagues = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.extendedSportsMarketsLeagues,
+);
+
+export const selectPredictFeeCollectionFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.feeCollection,
+);
+
 export const selectPredictFakOrdersEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.fakOrdersEnabled,
+);
+
+export const selectPredictWithAnyTokenEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictWithAnyTokenEnabled,
+);
+
+export const selectPredictUpDownEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictUpDownEnabled,
+);
+
+export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>
     validatedVersionGatedFeatureFlag(
       unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-        remoteFeatureFlags?.predictFakOrders,
+        remoteFeatureFlags?.predictTabFeaturedCarousel,
       ),
     ) ?? false,
 );
 
 /**
- * Selector for Predict Pay With Any Token enablement
+ * Selector for Predict BottomSheet enablement
  *
- * Uses version-gated feature flag `predictPayWithAnyToken` from remote config.
+ * Uses version-gated feature flag `predictBottomSheet` from remote config.
+ * When enabled, buy/sell previews render inside a BottomSheet overlay
+ * instead of navigating to full-screen pages.
  * Falls back to `false` if remote flag is unavailable or invalid.
  *
- * @returns {boolean} True if Pay With Any Token is enabled and version requirement is met
+ * @returns {boolean} True if BottomSheet mode is enabled
  */
-export const selectPredictWithAnyTokenEnabledFlag = createSelector(
+export const selectPredictBottomSheetEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>
     validatedVersionGatedFeatureFlag(
       unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-        remoteFeatureFlags?.predictWithAnyToken,
+        remoteFeatureFlags?.predictBottomSheet,
       ),
     ) ?? false,
 );

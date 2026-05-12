@@ -3,6 +3,7 @@
 > **⚠️ ESSENTIAL:** Read [E2E Testing Overview](../../docs/readme/e2e-testing.md) for complete setup guide
 
 - [E2E Framework Structure](#e2e-framework-structure)
+- [Playwright: local emulator `buildPath` and app install](PLAYWRIGHT_LOCAL_EMULATOR.md)
 - [E2E Testing Best Practices](#e2e-testing-best-practices)
 - [E2E Test Examples and Patterns](#e2e-test-examples-and-patterns)
 - [E2E Testing Anti-Patterns (AVOID THESE)](#e2e-testing-anti-patterns-avoid-these)
@@ -18,6 +19,8 @@
 - **Selectors (`tests/selectors/`)**: Element selectors organized by feature
 - **Fixtures (`tests/framework/fixtures/`)**: Test data and state management
 - **API Mocking (`tests/api-mocking/`)**: Comprehensive API mocking system
+- **WebSocket Mocking (`tests/websocket/`)**: Local WebSocket server for mocking real-time connections ([docs](WEBSOCKET_MOCKING.md))
+- **Playwright local emulator (Appium)**: When using `EmulatorProvider`, `use.app.buildPath` vs no path controls install vs pre-installed app — [PLAYWRIGHT_LOCAL_EMULATOR.md](PLAYWRIGHT_LOCAL_EMULATOR.md)
 
 **Core E2E Framework Classes:**
 
@@ -116,7 +119,7 @@ await Gestures.tap(loadingButton, {
 - **Element State**: Configure visibility, enabled, and stability checking appropriately
 - **Debugging**: Check test output for unmocked API requests and framework warnings
 - **Performance**: Use `checkStability: false` by default, enable only for animated elements
-- Check `.cursor/rules/e2e-testing-guidelines.mdc` for comprehensive testing guidelines
+- Check [`docs/testing/e2e-testing.md`](../../docs/testing/e2e-testing.md) for comprehensive testing guidelines
 
 **Basic E2E Test Structure:**
 

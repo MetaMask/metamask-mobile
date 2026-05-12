@@ -15,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect, useSelector } from 'react-redux';
+import { connect } from 'react-redux';
 import {
   KeyboardAwareScrollView,
   KeyboardProvider,
@@ -45,6 +45,7 @@ import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
+import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import {
   Box,
   BoxAlignItems,
@@ -96,7 +97,6 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import { selectImportSrpWordSuggestionEnabledFlag } from '../../../selectors/featureFlagController/importSrpWordSuggestion';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -136,11 +136,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const srpInputGridRef = useRef(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const [currentInputWord, setCurrentInputWord] = useState('');
-
-  // Feature flag for SRP word suggestions
-  const isSrpWordSuggestionsEnabled = useSelector(
-    selectImportSrpWordSuggestionEnabledFlag,
-  );
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
@@ -468,7 +463,7 @@ const ImportFromSecretRecoveryPhrase = ({
         track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
           wallet_setup_type: 'import',
           new_wallet: false,
-          account_type: 'imported',
+          account_type: AccountType.Imported,
         });
 
         fetchAccountsWithActivity();
@@ -568,7 +563,7 @@ const ImportFromSecretRecoveryPhrase = ({
     navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+        url: RESET_PASSWORD_GUIDE_URL,
         title: 'support.metamask.io',
       },
     });
@@ -845,21 +840,19 @@ const ImportFromSecretRecoveryPhrase = ({
           </Button>
         </Box>
       )}
-      {isSrpWordSuggestionsEnabled &&
-        currentStep === 0 &&
-        isKeyboardVisible && (
-          <KeyboardStickyView
-            offset={{ closed: 0, opened: 0 }}
-            style={tw.style('absolute bottom-0 left-0 right-0')}
-          >
-            <SrpWordSuggestions
-              currentInputWord={currentInputWord}
-              onSuggestionSelect={(word) => {
-                srpInputGridRef.current?.handleSuggestionSelect(word);
-              }}
-            />
-          </KeyboardStickyView>
-        )}
+      {currentStep === 0 && isKeyboardVisible && (
+        <KeyboardStickyView
+          offset={{ closed: 0, opened: 0 }}
+          style={tw.style('absolute bottom-0 left-0 right-0')}
+        >
+          <SrpWordSuggestions
+            currentInputWord={currentInputWord}
+            onSuggestionSelect={(word) => {
+              srpInputGridRef.current?.handleSuggestionSelect(word);
+            }}
+          />
+        </KeyboardStickyView>
+      )}
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );

@@ -1,5 +1,5 @@
 import { WebSocketService } from '@metamask/snaps-controllers';
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import { WebSocketServiceMessenger } from '../../messengers/snaps';
 
 /**
@@ -9,7 +9,7 @@ import { WebSocketServiceMessenger } from '../../messengers/snaps';
  * @param request.controllerMessenger - The messenger to use for the service.
  * @returns The initialized service.
  */
-export const WebSocketServiceInit: ControllerInitFunction<
+export const WebSocketServiceInit: MessengerClientInitFunction<
   WebSocketService,
   WebSocketServiceMessenger
 > = ({ controllerMessenger }) => {

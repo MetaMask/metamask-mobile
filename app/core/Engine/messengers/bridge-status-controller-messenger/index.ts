@@ -36,13 +36,14 @@ export function getBridgeStatusControllerMessenger(
       'GasFeeController:getState',
       'SnapController:handleRequest',
       'TransactionController:getState',
-      'RemoteFeatureFlagController:getState',
       'AuthenticationController:getBearerToken',
+      'RemoteFeatureFlagController:getState',
+      'TransactionController:addTransaction',
+      'TransactionController:updateTransaction',
+      'TransactionController:estimateGasFee',
+      'TransactionController:isAtomicBatchSupported',
     ],
-    events: [
-      'TransactionController:transactionConfirmed',
-      'TransactionController:transactionFailed',
-    ],
+    events: ['TransactionController:transactionStatusUpdated'],
     messenger,
   });
   return messenger;

@@ -5,8 +5,7 @@ import {
   isNonEvmChainId,
   formatChainIdToHex,
 } from '@metamask/bridge-controller';
-import { BridgeToken } from '../types';
-import { PopularToken } from './usePopularTokens';
+import type { BridgeToken, IncludeAsset, PopularToken } from '../types';
 import { BalancesByAssetId } from './useBalancesByAssetId';
 
 /**
@@ -14,9 +13,9 @@ import { BalancesByAssetId } from './useBalancesByAssetId';
  * based on whether the chain is EVM or non-EVM
  */
 const convertAPITokensToBridgeTokens = (
-  apiTokens: PopularToken[],
+  apiTokens?: (PopularToken | IncludeAsset)[] | null,
 ): (BridgeToken & { assetId: CaipAssetType })[] =>
-  apiTokens.map((token) => {
+  (Array.isArray(apiTokens) ? apiTokens : []).map((token) => {
     const { assetReference, chainId, assetNamespace } = parseCaipAssetType(
       token.assetId,
     );
@@ -57,7 +56,7 @@ const convertAPITokensToBridgeTokens = (
  * @returns Tokens with merged balance information
  */
 export const useTokensWithBalances = (
-  apiTokens: PopularToken[],
+  apiTokens: (PopularToken | IncludeAsset)[] | null | undefined,
   balancesByAssetId: BalancesByAssetId,
 ): BridgeToken[] =>
   useMemo(() => {

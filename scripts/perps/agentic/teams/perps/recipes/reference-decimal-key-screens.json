@@ -1,0 +1,638 @@
+{
+  "title": "Reference decimal key screens",
+  "description": "Canonical reusable value-extraction recipe for perps decimal formatting across the main mobile key screens. Uses tracked generic flows for setup/trade state and keeps screen-specific extraction inline here instead of adding more one-off committed flows.",
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked", "perps.feature_enabled"],
+      "setup": [
+        {
+          "id": "setup-account",
+          "action": "call",
+          "ref": "perps/select-account",
+          "params": {
+            "address": "0x8dc623e964475d4d669da601fd15ea9125469003"
+          }
+        },
+        {
+          "id": "setup-testnet",
+          "action": "call",
+          "ref": "perps/setup-testnet"
+        },
+        {
+          "id": "setup-clear-eth",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});if(!p){return JSON.stringify({cleared:true});}return Engine.context.PerpsController.closePosition({symbol:'ETH'}).then(function(){return JSON.stringify({cleared:true});});})",
+          "assert": {
+            "operator": "eq",
+            "field": "cleared",
+            "value": true
+          }
+        },
+        {
+          "id": "setup-wait-no-eth",
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});return JSON.stringify({found:!!p});})",
+          "assert": {
+            "operator": "eq",
+            "field": "found",
+            "value": false
+          },
+          "timeout_ms": 10000
+        }
+      ],
+      "entry": "btc-market-nav",
+      "nodes": {
+        "btc-market-nav": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "BTC",
+              "name": "BTC",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "btc-market-wait"
+        },
+        "btc-market-wait": {
+          "action": "wait_for",
+          "route": "PerpsMarketDetails",
+          "next": "btc-market-extract"
+        },
+        "btc-market-extract": {
+          "action": "eval_sync",
+          "expression": "(function(){ function flat(v,out){ if(v===null||v===undefined)return; if(typeof v==='string'||typeof v==='number'){ var s=String(v).trim(); if(s) out.push(s); return; } if(Array.isArray(v)){ for(var i=0;i<v.length;i++) flat(v[i],out); return; } if(v&&v.props&&v.props.children!==undefined){ flat(v.props.children,out); } } function find(testId){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; if(!hook||!hook.renderers||!hook.getFiberRoots)return null; var found=null; function walk(f){ if(!f||found)return; var p=f.memoizedProps; if(p&&p.testID===testId){ found=f; return; } walk(f.child); walk(f.sibling); } var it=hook.renderers.entries(); var step=it.next(); while(!step.done){ var roots=hook.getFiberRoots(step.value[0]); if(roots){ roots.forEach(function(r){ if(!found&&r.current) walk(r.current); }); } if(found) break; step=it.next(); } return found; } function collect(root){ var out=[]; function walk(f){ if(!f)return; var p=f.memoizedProps; if(p&&p.children!==undefined) flat(p.children,out); walk(f.child); walk(f.sibling); } walk(root); return out; } function firstMatch(arr,re){ for(var i=0;i<arr.length;i++){ if(re.test(arr[i])) return arr[i]; } return null; } var header=collect(find('perps-market-header')); return JSON.stringify({symbol:'BTC',screen:'market_detail',price:firstMatch(header,/^\\$/),change:firstMatch(header,/%$/)}); })()",
+          "assert": {
+            "operator": "not_null",
+            "field": "price"
+          },
+          "save_as": "btc_market",
+          "next": "btc-order-mode"
+        },
+        "btc-order-mode": {
+          "action": "eval_sync",
+          "expression": "(function(){ function ids(){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; var out=[]; if(!hook||!hook.renderers||!hook.getFiberRoots) return out; function walk(f){ if(!f)return; var p=f.memoizedProps; if(p&&p.testID) out.push(String(p.testID)); walk(f.child); walk(f.sibling); } var it=hook.renderers.entries(); var step=it.next(); while(!step.done){ var roots=hook.getFiberRoots(step.value[0]); if(roots){ roots.forEach(function(r){ if(r.current) walk(r.current); }); } step=it.next(); } return Array.from(new Set(out)); } var all=ids(); return JSON.stringify({hasLong:all.indexOf('perps-market-details-long-button')!==-1,hasModify:all.indexOf('perps-market-details-modify-button')!==-1}); })()",
+          "assert": {
+            "operator": "not_null",
+            "field": "hasLong"
+          },
+          "save_as": "btc_order_mode",
+          "next": "btc-order-mode-branch"
+        },
+        "btc-order-mode-branch": {
+          "action": "switch",
+          "cases": [
+            {
+              "when": {
+                "field": "vars.btc_order_mode.hasLong",
+                "operator": "truthy"
+              },
+              "next": "btc-order-open"
+            },
+            {
+              "when": {
+                "field": "vars.btc_order_mode.hasModify",
+                "operator": "truthy"
+              },
+              "next": "btc-order-open-modify"
+            }
+          ],
+          "default": "btc-order-open"
+        },
+        "btc-order-open": {
+          "action": "press",
+          "test_id": "perps-market-details-long-button",
+          "next": "btc-order-wait"
+        },
+        "btc-order-open-modify": {
+          "action": "press",
+          "test_id": "perps-market-details-modify-button",
+          "next": "btc-order-wait-modify-sheet"
+        },
+        "btc-order-wait-modify-sheet": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-modify-action-sheet-add_to_position",
+          "next": "btc-order-select-add-to-position"
+        },
+        "btc-order-select-add-to-position": {
+          "action": "press",
+          "test_id": "perps-market-details-modify-action-sheet-add_to_position",
+          "next": "btc-order-wait"
+        },
+        "btc-order-wait": {
+          "action": "wait_for",
+          "route": "RedesignedConfirmations",
+          "next": "btc-order-amount"
+        },
+        "btc-order-amount": {
+          "action": "press",
+          "test_id": "perps-amount-display-touchable",
+          "next": "btc-order-keypad"
+        },
+        "btc-order-keypad": {
+          "action": "wait_for",
+          "test_id": "keypad-delete-button",
+          "next": "btc-order-clear"
+        },
+        "btc-order-clear": {
+          "action": "clear_keypad",
+          "count": 8,
+          "next": "btc-order-type"
+        },
+        "btc-order-type": {
+          "action": "type_keypad",
+          "value": "11",
+          "next": "btc-order-done"
+        },
+        "btc-order-done": {
+          "action": "press",
+          "test_id": "perps-order-view-keypad-done",
+          "next": "btc-order-extract"
+        },
+        "btc-order-extract": {
+          "action": "eval_sync",
+          "expression": "(function(){ function flat(v,out){ if(v===null||v===undefined)return; if(typeof v==='string'||typeof v==='number'){ var s=String(v).trim(); if(s) out.push(s); return; } if(Array.isArray(v)){ for(var i=0;i<v.length;i++) flat(v[i],out); return; } if(v&&v.props&&v.props.children!==undefined){ flat(v.props.children,out); } } function find(testId){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; if(!hook||!hook.renderers||!hook.getFiberRoots)return null; var found=null; function walk(f){ if(!f||found)return; var p=f.memoizedProps; if(p&&p.testID===testId){ found=f; return; } walk(f.child); walk(f.sibling); } var it=hook.renderers.entries(); var step=it.next(); while(!step.done){ var roots=hook.getFiberRoots(step.value[0]); if(roots){ roots.forEach(function(r){ if(!found&&r.current) walk(r.current); }); } if(found) break; step=it.next(); } return found; } function collect(root){ var out=[]; function walk(f){ if(!f)return; var p=f.memoizedProps; if(p&&p.children!==undefined) flat(p.children,out); walk(f.child); walk(f.sibling); } walk(root); return out; } function collectAll(){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; var out=[]; if(!hook||!hook.renderers||!hook.getFiberRoots) return out; function walk(f){ if(!f)return; var p=f.memoizedProps; if(p&&p.children!==undefined) flat(p.children,out); walk(f.child); walk(f.sibling); } var it=hook.renderers.entries(); var step=it.next(); while(!step.done){ var roots=hook.getFiberRoots(step.value[0]); if(roots){ roots.forEach(function(r){ if(r.current) walk(r.current); }); } step=it.next(); } return out; } function firstAfter(arr,label,re){ var idx=arr.indexOf(label); if(idx===-1)return null; for(var i=idx+1;i<arr.length;i++){ if(re.test(arr[i])) return arr[i]; } return null; } function firstMatch(arr,re){ for(var i=0;i<arr.length;i++){ if(re.test(arr[i])) return arr[i]; } return null; } var header=collect(find('perps-order-header')); var all=collectAll(); return JSON.stringify({symbol:'BTC',screen:'order_entry',price:firstMatch(header,/^\\$\\d/),change:firstMatch(header,/%$/),margin:firstAfter(all,'Margin',/^\\$|^-/),liquidationPrice:firstAfter(all,'Liquidation price',/^\\$|^-/),fees:firstAfter(all,'Fees',/^\\$|^-/)}); })()",
+          "assert": {
+            "operator": "not_null",
+            "field": "price"
+          },
+          "save_as": "btc_order",
+          "next": "eth-market-nav"
+        },
+        "eth-market-nav": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "ETH",
+              "name": "ETH",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "eth-market-wait"
+        },
+        "eth-market-wait": {
+          "action": "wait_for",
+          "route": "PerpsMarketDetails",
+          "next": "eth-market-extract"
+        },
+        "eth-market-extract": {
+          "action": "eval_sync",
+          "expression": "(function(){ function flat(v,out){ if(v===null||v===undefined)return; if(typeof v==='string'||typeof v==='number'){ var s=String(v).trim(); if(s) out.push(s); return; } if(Array.isArray(v)){ for(var i=0;i<v.length;i++) flat(v[i],out); return; } if(v&&v.props&&v.props.children!==undefined){ flat(v.props.children,out); } } function find(testId){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; if(!hook||!hook.renderers||!hook.getFiberRoots)return null; var found=null; function walk(f){ if(!f||found)return; var p=f.memoizedProps; if(p&&p.testID===testId){ found=f; return; } walk(f.child); walk(f.sibling); } var it=hook.renderers.entries(); var step=it.next(); while(!step.done){ var roots=hook.getFiberRoots(step.value[0]); if(roots){ roots.forEach(function(r){ if(!found&&r.current) walk(r.current); }); } if(found) break; step=it.next(); } return found; } function collect(root){ var out=[]; function walk(f){ if(!f)return; var p=f.memoizedProps; if(p&&p.children!==undefined) flat(p.children,out); walk(f.child); walk(f.sibling); } walk(root); return out; } function firstMatch(arr,re){ for(var i=0;i<arr.length;i++){ if(re.test(arr[i])) return arr[i]; } return null; } var header=collect(find('perps-market-header')); return JSON.stringify({symbol:'ETH',screen:'market_detail',price:firstMatch(header,/^\\$/),change:firstMatch(header,/%$/)}); })()",
+          "assert": {
+            "operator": "not_null",
+            "field": "price"
+          },
+          "save_as": "eth_market",
+          "next": "eth-order-mode"
+        },
+        "eth-order-mode": {
+          "action": "eval_sync",
+          "expression": "(function(){ function ids(){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; var out=[]; if(!hook||!hook.renderers||!hook.getFiberRoots) return out; function walk(f){ if(!f)return; var p=f.memoizedProps; if(p&&p.testID) out.push(String(p.testID)); walk(f.child); walk(f.sibling); } var it=hook.renderers.entries(); var step=it.next(); while(!step.done){ var roots=hook.getFiberRoots(step.value[0]); if(roots){ roots.forEach(function(r){ if(r.current) walk(r.current); }); } step=it.next(); } return Array.from(new Set(out)); } var all=ids(); return JSON.stringify({hasLong:all.indexOf('perps-market-details-long-button')!==-1,hasModify:all.indexOf('perps-market-details-modify-button')!==-1}); })()",
+          "assert": {
+            "operator": "not_null",
+            "field": "hasLong"
+          },
+          "save_as": "eth_order_mode",
+          "next": "eth-order-mode-branch"
+        },
+        "eth-order-mode-branch": {
+          "action": "switch",
+          "cases": [
+            {
+              "when": {
+                "field": "vars.eth_order_mode.hasLong",
+                "operator": "truthy"
+              },
+              "next": "eth-order-open"
+            },
+            {
+              "when": {
+                "field": "vars.eth_order_mode.hasModify",
+                "operator": "truthy"
+              },
+              "next": "eth-order-open-modify"
+            }
+          ],
+          "default": "eth-order-open"
+        },
+        "eth-order-open": {
+          "action": "press",
+          "test_id": "perps-market-details-long-button",
+          "next": "eth-order-wait"
+        },
+        "eth-order-open-modify": {
+          "action": "press",
+          "test_id": "perps-market-details-modify-button",
+          "next": "eth-order-wait-modify-sheet"
+        },
+        "eth-order-wait-modify-sheet": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-modify-action-sheet-add_to_position",
+          "next": "eth-order-select-add-to-position"
+        },
+        "eth-order-select-add-to-position": {
+          "action": "press",
+          "test_id": "perps-market-details-modify-action-sheet-add_to_position",
+          "next": "eth-order-wait"
+        },
+        "eth-order-wait": {
+          "action": "wait_for",
+          "route": "RedesignedConfirmations",
+          "next": "eth-order-amount"
+        },
+        "eth-order-amount": {
+          "action": "press",
+          "test_id": "perps-amount-display-touchable",
+          "next": "eth-order-keypad"
+        },
+        "eth-order-keypad": {
+          "action": "wait_for",
+          "test_id": "keypad-delete-button",
+          "next": "eth-order-clear"
+        },
+        "eth-order-clear": {
+          "action": "clear_keypad",
+          "count": 8,
+          "next": "eth-order-type"
+        },
+        "eth-order-type": {
+          "action": "type_keypad",
+          "value": "11",
+          "next": "eth-order-done"
+        },
+        "eth-order-done": {
+          "action": "press",
+          "test_id": "perps-order-view-keypad-done",
+          "next": "eth-order-extract"
+        },
+        "eth-order-extract": {
+          "action": "eval_sync",
+          "expression": "(function(){ function flat(v,out){ if(v===null||v===undefined)return; if(typeof v==='string'||typeof v==='number'){ var s=String(v).trim(); if(s) out.push(s); return; } if(Array.isArray(v)){ for(var i=0;i<v.length;i++) flat(v[i],out); return; } if(v&&v.props&&v.props.children!==undefined){ flat(v.props.children,out); } } function find(testId){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; if(!hook||!hook.renderers||!hook.getFiberRoots)return null; var found=null; function walk(f){ if(!f||found)return; var p=f.memoizedProps; if(p&&p.testID===testId){ found=f; return; } walk(f.child); walk(f.sibling); } var it=hook.renderers.entries(); var step=it.next(); while(!step.done){ var roots=hook.getFiberRoots(step.value[0]); if(roots){ roots.forEach(function(r){ if(!found&&r.current) walk(r.current); }); } if(found) break; step=it.next(); } return found; } function collect(root){ var out=[]; function walk(f){ if(!f)return; var p=f.memoizedProps; if(p&&p.children!==undefined) flat(p.children,out); walk(f.child); walk(f.sibling); } walk(root); return out; } function collectAll(){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; var out=[]; if(!hook||!hook.renderers||!hook.getFiberRoots) return out; function walk(f){ if(!f)return; var p=f.memoizedProps; if(p&&p.children!==undefined) flat(p.children,out); walk(f.child); walk(f.sibling); } var it=hook.renderers.entries(); var step=it.next(); while(!step.done){ var roots=hook.getFiberRoots(step.value[0]); if(roots){ roots.forEach(function(r){ if(r.current) walk(r.current); }); } step=it.next(); } return out; } function firstAfter(arr,label,re){ var idx=arr.indexOf(label); if(idx===-1)return null; for(var i=idx+1;i<arr.length;i++){ if(re.test(arr[i])) return arr[i]; } return null; } function firstMatch(arr,re){ for(var i=0;i<arr.length;i++){ if(re.test(arr[i])) return arr[i]; } return null; } var header=collect(find('perps-order-header')); var all=collectAll(); return JSON.stringify({symbol:'ETH',screen:'order_entry',price:firstMatch(header,/^\\$\\d/),change:firstMatch(header,/%$/),margin:firstAfter(all,'Margin',/^\\$|^-/),liquidationPrice:firstAfter(all,'Liquidation price',/^\\$|^-/),fees:firstAfter(all,'Fees',/^\\$|^-/)}); })()",
+          "assert": {
+            "operator": "not_null",
+            "field": "price"
+          },
+          "save_as": "eth_order",
+          "next": "sol-market-nav"
+        },
+        "sol-market-nav": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "SOL",
+              "name": "SOL",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "sol-market-wait"
+        },
+        "sol-market-wait": {
+          "action": "wait_for",
+          "route": "PerpsMarketDetails",
+          "next": "sol-market-extract"
+        },
+        "sol-market-extract": {
+          "action": "eval_sync",
+          "expression": "(function(){ function flat(v,out){ if(v===null||v===undefined)return; if(typeof v==='string'||typeof v==='number'){ var s=String(v).trim(); if(s) out.push(s); return; } if(Array.isArray(v)){ for(var i=0;i<v.length;i++) flat(v[i],out); return; } if(v&&v.props&&v.props.children!==undefined){ flat(v.props.children,out); } } function find(testId){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; if(!hook||!hook.renderers||!hook.getFiberRoots)return null; var found=null; function walk(f){ if(!f||found)return; var p=f.memoizedProps; if(p&&p.testID===testId){ found=f; return; } walk(f.child); walk(f.sibling); } var it=hook.renderers.entries(); var step=it.next(); while(!step.done){ var roots=hook.getFiberRoots(step.value[0]); if(roots){ roots.forEach(function(r){ if(!found&&r.current) walk(r.current); }); } if(found) break; step=it.next(); } return found; } function collect(root){ var out=[]; function walk(f){ if(!f)return; var p=f.memoizedProps; if(p&&p.children!==undefined) flat(p.children,out); walk(f.child); walk(f.sibling); } walk(root); return out; } function firstMatch(arr,re){ for(var i=0;i<arr.length;i++){ if(re.test(arr[i])) return arr[i]; } return null; } var header=collect(find('perps-market-header')); return JSON.stringify({symbol:'SOL',screen:'market_detail',price:firstMatch(header,/^\\$/),change:firstMatch(header,/%$/)}); })()",
+          "assert": {
+            "operator": "not_null",
+            "field": "price"
+          },
+          "save_as": "sol_market",
+          "next": "fart-market-nav"
+        },
+        "fart-market-nav": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "FARTCOIN",
+              "name": "FARTCOIN",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "fart-market-wait"
+        },
+        "fart-market-wait": {
+          "action": "wait_for",
+          "route": "PerpsMarketDetails",
+          "next": "fart-market-extract"
+        },
+        "fart-market-extract": {
+          "action": "eval_sync",
+          "expression": "(function(){ function flat(v,out){ if(v===null||v===undefined)return; if(typeof v==='string'||typeof v==='number'){ var s=String(v).trim(); if(s) out.push(s); return; } if(Array.isArray(v)){ for(var i=0;i<v.length;i++) flat(v[i],out); return; } if(v&&v.props&&v.props.children!==undefined){ flat(v.props.children,out); } } function find(testId){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; if(!hook||!hook.renderers||!hook.getFiberRoots)return null; var found=null; function walk(f){ if(!f||found)return; var p=f.memoizedProps; if(p&&p.testID===testId){ found=f; return; } walk(f.child); walk(f.sibling); } var it=hook.renderers.entries(); var step=it.next(); while(!step.done){ var roots=hook.getFiberRoots(step.value[0]); if(roots){ roots.forEach(function(r){ if(!found&&r.current) walk(r.current); }); } if(found) break; step=it.next(); } return found; } function collect(root){ var out=[]; function walk(f){ if(!f)return; var p=f.memoizedProps; if(p&&p.children!==undefined) flat(p.children,out); walk(f.child); walk(f.sibling); } walk(root); return out; } function firstMatch(arr,re){ for(var i=0;i<arr.length;i++){ if(re.test(arr[i])) return arr[i]; } return null; } var header=collect(find('perps-market-header')); return JSON.stringify({symbol:'FARTCOIN',screen:'market_detail',price:firstMatch(header,/^\\$/),change:firstMatch(header,/%$/)}); })()",
+          "assert": {
+            "operator": "not_null",
+            "field": "price"
+          },
+          "save_as": "fartcoin_market",
+          "next": "pump-market-nav"
+        },
+        "pump-market-nav": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "PUMP",
+              "name": "PUMP",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "pump-market-wait"
+        },
+        "pump-market-wait": {
+          "action": "wait_for",
+          "route": "PerpsMarketDetails",
+          "next": "pump-market-extract"
+        },
+        "pump-market-extract": {
+          "action": "eval_sync",
+          "expression": "(function(){ function flat(v,out){ if(v===null||v===undefined)return; if(typeof v==='string'||typeof v==='number'){ var s=String(v).trim(); if(s) out.push(s); return; } if(Array.isArray(v)){ for(var i=0;i<v.length;i++) flat(v[i],out); return; } if(v&&v.props&&v.props.children!==undefined){ flat(v.props.children,out); } } function find(testId){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; if(!hook||!hook.renderers||!hook.getFiberRoots)return null; var found=null; function walk(f){ if(!f||found)return; var p=f.memoizedProps; if(p&&p.testID===testId){ found=f; return; } walk(f.child); walk(f.sibling); } var it=hook.renderers.entries(); var step=it.next(); while(!step.done){ var roots=hook.getFiberRoots(step.value[0]); if(roots){ roots.forEach(function(r){ if(!found&&r.current) walk(r.current); }); } if(found) break; step=it.next(); } return found; } function collect(root){ var out=[]; function walk(f){ if(!f)return; var p=f.memoizedProps; if(p&&p.children!==undefined) flat(p.children,out); walk(f.child); walk(f.sibling); } walk(root); return out; } function firstMatch(arr,re){ for(var i=0;i<arr.length;i++){ if(re.test(arr[i])) return arr[i]; } return null; } var header=collect(find('perps-market-header')); return JSON.stringify({symbol:'PUMP',screen:'market_detail',price:firstMatch(header,/^\\$/),change:firstMatch(header,/%$/)}); })()",
+          "assert": {
+            "operator": "not_null",
+            "field": "price"
+          },
+          "save_as": "pump_market",
+          "next": "check-eth-position"
+        },
+        "check-eth-position": {
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});return JSON.stringify({found:!!p});})",
+          "assert": {
+            "operator": "not_null",
+            "field": "found"
+          },
+          "save_as": "eth_position_present",
+          "next": "branch-eth-position"
+        },
+        "branch-eth-position": {
+          "action": "switch",
+          "cases": [
+            {
+              "when": {
+                "field": "vars.eth_position_present.found",
+                "operator": "truthy"
+              },
+              "next": "eth-position-nav"
+            }
+          ],
+          "default": "open-eth-position"
+        },
+        "open-eth-position": {
+          "action": "call",
+          "ref": "perps/trade-open-market",
+          "params": {
+            "symbol": "ETH",
+            "side": "long",
+            "usdAmount": "11",
+            "leverage": "2"
+          },
+          "next": "wait-eth-position"
+        },
+        "wait-eth-position": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});return JSON.stringify({found:!!p});})",
+          "assert": {
+            "operator": "eq",
+            "field": "found",
+            "value": true
+          },
+          "timeout_ms": 10000,
+          "next": "eth-position-nav"
+        },
+        "eth-position-nav": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "ETH",
+              "name": "ETH",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "eth-position-wait"
+        },
+        "eth-position-wait": {
+          "action": "wait_for",
+          "route": "PerpsMarketDetails",
+          "next": "eth-position-extract"
+        },
+        "eth-position-extract": {
+          "action": "eval_sync",
+          "expression": "(function(){ function flat(v,out){ if(v===null||v===undefined)return; if(typeof v==='string'||typeof v==='number'){ var s=String(v).trim(); if(s) out.push(s); return; } if(Array.isArray(v)){ for(var i=0;i<v.length;i++) flat(v[i],out); return; } if(v&&v.props&&v.props.children!==undefined){ flat(v.props.children,out); } } function collectAll(){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; var out=[]; if(!hook||!hook.renderers||!hook.getFiberRoots) return out; function walk(f){ if(!f)return; var p=f.memoizedProps; if(p&&p.children!==undefined) flat(p.children,out); walk(f.child); walk(f.sibling); } var it=hook.renderers.entries(); var step=it.next(); while(!step.done){ var roots=hook.getFiberRoots(step.value[0]); if(roots){ roots.forEach(function(r){ if(r.current) walk(r.current); }); } step=it.next(); } return out; } function firstAfter(arr,label,re){ var idx=arr.indexOf(label); if(idx===-1)return null; for(var i=idx+1;i<arr.length;i++){ if(re.test(arr[i])) return arr[i]; } return null; } var all=collectAll(); return JSON.stringify({symbol:'ETH',screen:'position_detail',size:firstAfter(all,'Size',/^\\$|^[0-9.]/),margin:firstAfter(all,'Margin',/^\\$|^[0-9.]/),entry:firstAfter(all,'Entry price',/^\\$|^[0-9.]/),liquidationPrice:firstAfter(all,'Liquidation price',/^\\$|^[0-9.]/),funding:firstAfter(all,'Funding payments',/^\\$|^-\\$|^[0-9.]/)}); })()",
+          "assert": {
+            "operator": "not_null",
+            "field": "entry"
+          },
+          "save_as": "eth_position",
+          "next": "eth-reverse-open-menu"
+        },
+        "eth-reverse-open-menu": {
+          "action": "press",
+          "test_id": "perps-market-details-modify-button",
+          "next": "eth-reverse-wait-menu"
+        },
+        "eth-reverse-wait-menu": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-modify-action-sheet-flip_position",
+          "next": "eth-reverse-open"
+        },
+        "eth-reverse-open": {
+          "action": "press",
+          "test_id": "perps-market-details-modify-action-sheet-flip_position",
+          "next": "eth-reverse-wait"
+        },
+        "eth-reverse-wait": {
+          "action": "wait_for",
+          "test_id": "perps-flip-position-cancel-button",
+          "next": "eth-reverse-extract"
+        },
+        "eth-reverse-extract": {
+          "action": "eval_sync",
+          "expression": "(function(){ function t(id){var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; if(!hook||!hook.renderers||!hook.getFiberRoots)return null; var found=null; function walk(f){ if(!f||found)return; var p=f.memoizedProps; if(p&&p.testID===id){ found=f; return; } walk(f.child); walk(f.sibling); } var it=hook.renderers.entries(); var step=it.next(); while(!step.done){ var roots=hook.getFiberRoots(step.value[0]); if(roots){ roots.forEach(function(r){ if(!found&&r.current) walk(r.current); }); } if(found) break; step=it.next(); } if(!found||!found.memoizedProps) return null; var c=found.memoizedProps.children; if(Array.isArray(c)) return c.join('').trim()||null; return String(c||'').trim()||null; } return JSON.stringify({symbol:'ETH',screen:'reverse_modal',estSize:t('perps-flip-position-est-size-value'),fees:t('perps-flip-position-fees-value')}); })()",
+          "assert": {
+            "operator": "not_null",
+            "field": "estSize"
+          },
+          "save_as": "eth_reverse",
+          "next": "eth-reverse-close"
+        },
+        "eth-reverse-close": {
+          "action": "press",
+          "test_id": "perps-flip-position-cancel-button",
+          "next": "eth-margin-nav"
+        },
+        "eth-margin-nav": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "ETH",
+              "name": "ETH",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "eth-margin-open"
+        },
+        "eth-margin-open": {
+          "action": "wait_for",
+          "test_id": "position-card-margin-chevron",
+          "next": "eth-margin-press"
+        },
+        "eth-margin-press": {
+          "action": "press",
+          "test_id": "position-card-margin-chevron",
+          "next": "eth-margin-reduce"
+        },
+        "eth-margin-reduce": {
+          "action": "wait_for",
+          "test_id": "perps-adjust-margin-reduce-btn",
+          "next": "eth-margin-reduce-press"
+        },
+        "eth-margin-reduce-press": {
+          "action": "press",
+          "test_id": "perps-adjust-margin-reduce-btn",
+          "next": "eth-margin-view"
+        },
+        "eth-margin-view": {
+          "action": "wait_for",
+          "route": "PerpsAdjustMargin",
+          "next": "eth-margin-extract"
+        },
+        "eth-margin-extract": {
+          "action": "eval_sync",
+          "expression": "(function(){ function flat(v,out){ if(v===null||v===undefined)return; if(typeof v==='string'||typeof v==='number'){ var s=String(v).trim(); if(s) out.push(s); return; } if(Array.isArray(v)){ for(var i=0;i<v.length;i++) flat(v[i],out); return; } if(v&&v.props&&v.props.children!==undefined){ flat(v.props.children,out); } } function collectAll(){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; var out=[]; if(!hook||!hook.renderers||!hook.getFiberRoots) return out; function walk(f){ if(!f)return; var p=f.memoizedProps; if(p&&p.children!==undefined) flat(p.children,out); walk(f.child); walk(f.sibling); } var it=hook.renderers.entries(); var step=it.next(); while(!step.done){ var roots=hook.getFiberRoots(step.value[0]); if(roots){ roots.forEach(function(r){ if(r.current) walk(r.current); }); } step=it.next(); } return out; } function firstAfter(arr,label,re){ var idx=arr.indexOf(label); if(idx===-1)return null; for(var i=idx+1;i<arr.length;i++){ if(re.test(arr[i])) return arr[i]; } return null; } var all=collectAll(); return JSON.stringify({symbol:'ETH',screen:'remove_margin',available:firstAfter(all,'Margin available to remove',/^\\$|^[0-9.]/),liquidationPrice:firstAfter(all,'Liquidation price',/^\\$|^[0-9.]/),liquidationDistance:firstAfter(all,'Liquidation distance',/^[0-9.]+%/)}); })()",
+          "assert": {
+            "operator": "not_null",
+            "field": "liquidationPrice"
+          },
+          "save_as": "eth_remove_margin",
+          "next": "eth-close-nav"
+        },
+        "eth-close-nav": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "ETH",
+              "name": "ETH",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "eth-close-open"
+        },
+        "eth-close-open": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-close-button",
+          "next": "eth-close-press"
+        },
+        "eth-close-press": {
+          "action": "press",
+          "test_id": "perps-market-details-close-button",
+          "next": "eth-close-view"
+        },
+        "eth-close-view": {
+          "action": "wait_for",
+          "route": "PerpsClosePosition",
+          "next": "eth-close-extract"
+        },
+        "eth-close-extract": {
+          "action": "eval_sync",
+          "expression": "(function(){var a=globalThis.__AGENTIC__; return JSON.stringify({symbol:'ETH',screen:'close_position',closeAmount:a?a.getTextByTestId('perps-amount-display-amount'):null,margin:a?a.getTextByTestId('close-position-margin-value'):null,fees:a?a.getTextByTestId('close-position-fees-value'):null,receive:a?a.getTextByTestId('close-position-receive-value'):null}); })()",
+          "assert": {
+            "operator": "not_null",
+            "field": "closeAmount"
+          },
+          "save_as": "eth_close",
+          "next": "withdraw-nav"
+        },
+        "withdraw-nav": {
+          "action": "navigate",
+          "target": "PerpsWithdraw",
+          "next": "withdraw-wait"
+        },
+        "withdraw-wait": {
+          "action": "wait_for",
+          "route": "PerpsWithdraw",
+          "next": "withdraw-press-25"
+        },
+        "withdraw-press-25": {
+          "action": "eval_sync",
+          "expression": "JSON.stringify(globalThis.__AGENTIC__?.pressText('25%',{maxTexts:4}))",
+          "assert": {
+            "operator": "eq",
+            "field": "ok",
+            "value": true
+          },
+          "next": "withdraw-settle"
+        },
+        "withdraw-settle": {
+          "action": "wait",
+          "ms": 500,
+          "next": "withdraw-extract"
+        },
+        "withdraw-extract": {
+          "action": "eval_sync",
+          "expression": "(function(){var a=globalThis.__AGENTIC__; return JSON.stringify({screen:'withdraw',preset10:'10%',preset25:'25%',preset50:'50%',fee:a?a.getTextByTestId('perps-withdraw-fee-value'):null,time:a?a.getTextByTestId('perps-withdraw-time-value'):null,receive:a?a.getTextByTestId('perps-withdraw-receive-value'):null}); })()",
+          "assert": {
+            "operator": "not_null",
+            "field": "fee"
+          },
+          "save_as": "withdraw",
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass",
+          "message": "Captured reusable mobile decimal/value reference data across key perps screens."
+        }
+      },
+      "teardown": [
+        {
+          "id": "teardown-close-eth",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='ETH'});if(!p){return JSON.stringify({cleared:true});}return Engine.context.PerpsController.closePosition({symbol:'ETH'}).then(function(){return JSON.stringify({cleared:true});});})",
+          "assert": {
+            "operator": "eq",
+            "field": "cleared",
+            "value": true
+          }
+        }
+      ]
+    }
+  }
+}

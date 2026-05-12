@@ -1,4 +1,3 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React from 'react';
 import {
   Image,
@@ -6,6 +5,7 @@ import {
   TextStyle,
   useColorScheme,
 } from 'react-native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { Transaction } from '@metamask/keyring-api';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { useTheme } from '../../../util/theme';
@@ -27,6 +27,7 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { getNetworkImageSource } from '../../../util/networks';
 import { parseCaipAssetType } from '@metamask/utils';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -46,7 +47,7 @@ const MultichainBridgeTransactionListItem = ({
 }: {
   transaction: Transaction;
   bridgeHistoryItem: BridgeHistoryItem;
-  navigation: NavigationProp<ParamListBase>;
+  navigation: AppNavigationProp;
   index?: number;
   location?: TransactionDetailLocation;
   showDestinationPerspective?: boolean;
@@ -102,10 +103,13 @@ const MultichainBridgeTransactionListItem = ({
     const networkImageSource = getNetworkImageSource({ chainId });
     return (
       <BadgeWrapper
+        badgePosition={{ bottom: -4, right: -4 }}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
             imageSource={networkImageSource}
+            isScaled={false}
+            size={AvatarSize.Xs}
           />
         }
       >

@@ -21,7 +21,7 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { selectDismissedBanners } from '../../../selectors/banner';
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
@@ -170,7 +170,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     carouselScaleY,
   });
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const hasBalance = useSelector(selectAddressHasTokenBalances);
   const dispatch = useDispatch();
   const { navigate } = useNavigation();

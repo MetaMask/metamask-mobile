@@ -1,0 +1,43 @@
+# Braze SDK 19.1.0 ships with Kotlin 2.1-era code, but this MetaMask compiles
+# with Kotlin 1.9.x. We pin Kotlin stdlib/serialization in android/build.gradle
+# to fix the metadata incompatibility, but that downgrade exposes a second issue:
+# the 7-arg ReactModuleInfo constructor (with `hasConstants`) used in Kotlin 1.9
+# differs from the 6-arg variant the Braze source calls. Without this patch the
+# build fails with:
+#   "None of the following functions can be called with the arguments supplied:
+#    public constructor ReactModuleInfo(...hasConstants...) / (...without...)"
+# This patch adds the missing `hasConstants = true` argument.
+#
+# Braze lists Robolectric, JUnit, and androidx.test as debugImplementation. That leaks them
+# into every consumer's debug runtime; Robolectric pulls espresso-idling-resource 3.7.x and
+# breaks Detox (UiControllerImpl.eventInjector). Braze still compiles src/debug/kotlin into
+# the debug variant, so those deps must stay on the compile classpath: use debugCompileOnly
+# (compile-only for the library; not published to consumers' runtime classpaths).
+diff --git a/android/build.gradle b/android/build.gradle
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -69,8 +69,8 @@ dependencies {
+   testImplementation "org.mockito:mockito-inline:5.2.0"
+   testImplementation("org.jetbrains.kotlin:kotlin-reflect")
+ 
+-  debugImplementation 'androidx.test:core-ktx:1.7.0'
+-  debugImplementation "junit:junit:4.13.2"
+-  debugImplementation "org.robolectric:robolectric:4.16"
++  debugCompileOnly 'androidx.test:core-ktx:1.7.0'
++  debugCompileOnly "junit:junit:4.13.2"
++  debugCompileOnly "org.robolectric:robolectric:4.16"
+ 
+   def wrapper_braze_sdk_version = "41.1.1"
+diff --git a/android/src/main/java/com/braze/reactbridge/BrazeReactBridgePackage.kt b/android/src/main/java/com/braze/reactbridge/BrazeReactBridgePackage.kt
+--- a/android/src/main/java/com/braze/reactbridge/BrazeReactBridgePackage.kt
++++ b/android/src/main/java/com/braze/reactbridge/BrazeReactBridgePackage.kt
+@@ -25,8 +25,9 @@
+             moduleInfos[BrazeReactBridgeImpl.NAME] = ReactModuleInfo(
+                 name = BrazeReactBridgeImpl.NAME,
+                 className = BrazeReactBridgeImpl.NAME,
+                 canOverrideExistingModule = false,
+                 needsEagerInit = false,
++                hasConstants = true,
+                 isCxxModule = false,
+                 isTurboModule = true
+             )

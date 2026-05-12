@@ -12,8 +12,8 @@ const FILE_SOURCES: Array<{ key: string; file: string; exportName: string }> = [
   { key: 'BITCOIN_REWARDS_FLAG_NAME', file: REWARDS_FILE, exportName: 'BITCOIN_REWARDS_FLAG_NAME' },
   { key: 'TRON_REWARDS_FLAG_NAME', file: REWARDS_FILE, exportName: 'TRON_REWARDS_FLAG_NAME' },
   { key: 'SNAPSHOTS_REWARDS_FLAG_NAME', file: REWARDS_FILE, exportName: 'SNAPSHOTS_REWARDS_FLAG_NAME' },
+  { key: 'TOKEN_LIST_SECURITY_BADGES_FLAG_KEY', file: sel('tokenListSecurityBadges'), exportName: 'TOKEN_LIST_SECURITY_BADGES_FLAG_KEY' },
   { key: 'MISSING_ENROLLED_ACCOUNTS_FLAG_NAME', file: REWARDS_FILE, exportName: 'MISSING_ENROLLED_ACCOUNTS_FLAG_NAME' },
-  { key: 'ACCOUNT_MENU_FLAG_KEY', file: sel('accountMenu'), exportName: 'ACCOUNT_MENU_FLAG_KEY' },
   { key: 'NETWORK_MANAGEMENT_FLAG_KEY', file: sel('networkManagement'), exportName: 'NETWORK_MANAGEMENT_FLAG_KEY' },
   // FEATURE_FLAG_NAME is omitted (non-unique across rwa / gasFeesSponsored); per-file fallback handles it.
   { key: 'OTA_UPDATES_FLAG_NAME', file: sel('otaUpdates'), exportName: 'OTA_UPDATES_FLAG_NAME' },

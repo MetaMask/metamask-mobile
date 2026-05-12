@@ -21,8 +21,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useNavigation } from '@react-navigation/native';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
-import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
-
 /** URI for the perps balance token icon, shared with PerpsPayRow and pay-with modal. */
 const resolvedPerpsIcon = Image.resolveAssetSource(perpsPayTokenIcon);
 export const PERPS_BALANCE_ICON_URI = resolvedPerpsIcon?.uri ?? '';
@@ -53,16 +51,12 @@ export function usePerpsBalanceTokenFilter(): (
   ]);
 
   const { onReject: handleReject } = useApprovalRequest();
-  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
 
   const navigation = useNavigation();
 
   const handlePerpsDepositPress = useCallback(() => {
-    ensureArbitrumNetworkExists()
-      .then(() => {
-        handleReject();
-        return depositWithConfirmation();
-      })
+    handleReject();
+    depositWithConfirmation()
       .then(() => {
         navigation.navigate(
           Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -74,12 +68,7 @@ export function usePerpsBalanceTokenFilter(): (
       .catch(() => {
         // Deposit flow handles errors (e.g. user rejection or missing network).
       });
-  }, [
-    navigation,
-    depositWithConfirmation,
-    handleReject,
-    ensureArbitrumNetworkExists,
-  ]);
+  }, [navigation, depositWithConfirmation, handleReject]);
 
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();
@@ -94,9 +83,9 @@ export function usePerpsBalanceTokenFilter(): (
         return tokens;
       }
 
-      const availableBalance = perpsAccount?.availableBalance || '0';
+      const spendableBalance = perpsAccount?.spendableBalance || '0';
       const balanceInSelectedCurrency = formatFiat(
-        new BigNumber(availableBalance),
+        new BigNumber(spendableBalance),
       );
 
       const perpsBalanceName = strings('perps.adjust_margin.perps_balance');
@@ -145,7 +134,7 @@ export function usePerpsBalanceTokenFilter(): (
       formatFiat,
       onPerpsPaymentTokenChange,
       isPerpsBalanceSelected,
-      perpsAccount?.availableBalance,
+      perpsAccount?.spendableBalance,
       transactionMeta,
     ],
   );

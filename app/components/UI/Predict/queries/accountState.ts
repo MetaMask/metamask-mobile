@@ -91,7 +91,7 @@ export const predictAccountStateKeys = {
 };
 
 export const predictAccountStateOptions = () =>
-  queryOptions({
+  queryOptions<AccountState, Error>({
     queryKey: predictAccountStateKeys.all(),
     queryFn: async (): Promise<AccountState> => {
       await ensurePolygonNetwork();

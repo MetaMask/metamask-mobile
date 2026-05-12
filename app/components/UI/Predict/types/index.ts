@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
 import { Hex } from '@metamask/utils';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 export enum Side {
   BUY = 'BUY',
@@ -11,10 +12,10 @@ export type PredictOrderType = 'FOK' | 'FAK';
 
 export enum ActiveOrderState {
   PREVIEW = 'preview',
+  PAY_WITH_ANY_TOKEN = 'pay_with_any_token',
   DEPOSITING = 'depositing',
   PLACING_ORDER = 'placing_order',
-  REDIRECTING = 'redirecting',
-  PAY_WITH_ANY_TOKEN = 'pay_with_any_token',
+  SUCCESS = 'success',
 }
 
 export enum PredictPriceHistoryInterval {
@@ -110,14 +111,27 @@ export type PredictMarket = {
   category: PredictCategory;
   tags: string[];
   outcomes: PredictOutcome[];
+  outcomeGroups?: PredictOutcomeGroup[];
   liquidity: number;
   volume: number;
   game?: PredictMarketGame;
+  series?: PredictSeries;
+  childMarketIds?: string[];
 };
 
 export type PredictSeries = {
+  id: string;
+  slug: string;
+  title: string;
   recurrence: string;
 };
+
+export interface GetSeriesParams {
+  seriesId: string;
+  endDateMin: string; // ISO 8601
+  endDateMax: string; // ISO 8601
+  limit?: number; // Default: 50
+}
 
 export type PredictCategory =
   | 'trending'
@@ -129,7 +143,48 @@ export type PredictCategory =
   | 'hot';
 
 // Sports league types
-export type PredictSportsLeague = 'nfl' | 'nba';
+export type PredictSportsLeague =
+  | 'nfl'
+  | 'nba'
+  | 'ucl'
+  | 'fif'
+  | 'lal'
+  | 'uef'
+  | 'bra2'
+  | 'tur'
+  | 'col1'
+  | 'mls'
+  | 'mex'
+  | 'bun'
+  | 'chi'
+  | 'epl'
+  | 'cze1'
+  | 'j1100'
+  | 'j2100'
+  | 'fl1'
+  | 'nor'
+  | 'aus'
+  | 'den'
+  | 'sea'
+  | 'kor'
+  | 'ere'
+  | 'spl'
+  | 'bra'
+  | 'por'
+  | 'chi1'
+  | 'per1'
+  | 'lib'
+  | 'cdr'
+  | 'sud'
+  | 'egy1'
+  | 'uel'
+  | 'rou1'
+  | 'col'
+  | 'bol1'
+  | 'itc'
+  | 'dfb'
+  | 'cde'
+  | 'fifwc';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -141,7 +196,7 @@ export type PredictSportTeam = {
   logo: string;
   abbreviation: string; // e.g., "SEA", "DEN"
   color: string; // Team primary color (hex)
-  alias: string; // Team alias (e.g., "Seahawks")
+  alias?: string; // Team alias (e.g., "Seahawks")
 };
 
 // Parsed score data
@@ -164,6 +219,10 @@ export type PredictGamePeriod =
   | 'OT' // Overtime
   | 'FT' // Final
   | 'VFT' // Verified fulltime (when closed=true)
+  | '1H' // First Half (soccer)
+  | '2H' // Second Half (soccer)
+  | 'ET' // Extra Time (soccer)
+  | 'PK' // Penalties (soccer)
   | (string & {}); // Escape hatch for future sports with different period formats
 
 // Game data attached to market
@@ -198,6 +257,18 @@ export interface PriceUpdate {
   bestAsk: number;
 }
 
+export interface CryptoPriceUpdate {
+  symbol: string;
+  price: number;
+  timestamp: number;
+}
+
+export type PredictOutcomeGroup = {
+  key: string;
+  outcomes: PredictOutcome[];
+  subgroups?: PredictOutcomeGroup[];
+};
+
 export type PredictOutcome = {
   id: string;
   providerId: string;
@@ -208,9 +279,13 @@ export type PredictOutcome = {
   status: 'open' | 'closed' | 'resolved';
   tokens: PredictOutcomeToken[];
   volume: number;
+  liquidity?: number;
   groupItemTitle: string;
+  groupItemThreshold?: number;
   negRisk?: boolean;
   tickSize?: string;
+  sportsMarketType?: string;
+  line?: number;
   resolvedBy?: string;
   resolutionStatus?: string;
 };
@@ -218,6 +293,7 @@ export type PredictOutcome = {
 export type PredictOutcomeToken = {
   id: string;
   title: string;
+  shortTitle?: string;
   price: number;
 };
 
@@ -297,6 +373,13 @@ export interface GetPriceHistoryParams {
   interval?: PredictPriceHistoryInterval;
   startTs?: number;
   endTs?: number;
+}
+
+export interface GetCryptoTargetPriceParams {
+  symbol: string;
+  eventStartTime: string;
+  variant: string;
+  endDate: string;
 }
 
 /**
@@ -493,6 +576,9 @@ export type OrderResult = Result<{
 
 export interface PlaceOrderParams {
   preview: OrderPreview;
+  address?: string;
+  transactionId?: string;
+  activeAbTests?: TransactionActiveAbTestEntry[];
   analyticsProperties?: {
     marketId?: string;
     marketTitle?: string;
@@ -526,10 +612,12 @@ export interface PreviewOrderParams {
   positionId?: string;
 }
 
+export type PredictWalletType = 'safe' | 'deposit-wallet';
+
 export interface AccountState {
   address: Hex;
   isDeployed: boolean;
-  hasAllowances: boolean;
+  walletType: PredictWalletType;
 }
 
 export interface GeoBlockResponse {
@@ -540,16 +628,19 @@ export interface GeoBlockResponse {
 export interface ConnectionStatus {
   sportsConnected: boolean;
   marketConnected: boolean;
+  rtdsConnected: boolean;
 }
 
 export type GameUpdateCallback = (update: GameUpdate) => void;
 export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
+export type CryptoPriceUpdateCallback = (update: CryptoPriceUpdate) => void;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareDepositParams {}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface GetAccountStateParams {}
+export interface GetAccountStateParams {
+  forceRefresh?: boolean;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareWithdrawParams {}

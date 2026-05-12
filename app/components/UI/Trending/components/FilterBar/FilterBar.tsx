@@ -15,10 +15,10 @@ export interface FilterButtonProps {
   disabled?: boolean;
   numberOfLines?: number;
   ellipsizeMode?: 'tail' | 'head' | 'middle' | 'clip';
-  /** Extra horizontal padding (px-3) vs default (p-2) */
-  wide?: boolean;
   /** Optional Tailwind class overrides for layout in custom contexts */
   twClassName?: string;
+  /** Optional icon name to show before the label (e.g., for sort direction indicators) */
+  iconName?: IconName;
 }
 
 export const FilterButton: React.FC<FilterButtonProps> = ({
@@ -28,8 +28,8 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
   disabled = false,
   numberOfLines,
   ellipsizeMode,
-  wide = false,
   twClassName,
+  iconName,
 }) => {
   const tw = useTailwind();
 
@@ -38,8 +38,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
       testID={testID}
       onPress={onPress}
       style={tw.style(
-        'min-w-0 shrink items-center rounded-lg bg-muted',
-        wide ? 'py-2 px-3' : 'p-2',
+        'min-w-0 shrink items-center rounded-xl bg-muted py-2 px-3',
         disabled && 'opacity-50',
         twClassName,
       )}
@@ -47,10 +46,13 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
       disabled={disabled}
     >
       <View style={tw`flex-row items-center justify-center gap-1`}>
+        {iconName && (
+          <Icon name={iconName} color={IconColor.Default} size={IconSize.Sm} />
+        )}
         <Text
-          style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}
-          numberOfLines={numberOfLines}
-          ellipsizeMode={ellipsizeMode}
+          style={tw`min-w-0 shrink text-[14px] font-medium text-default`}
+          numberOfLines={numberOfLines ?? 1}
+          ellipsizeMode={ellipsizeMode ?? 'tail'}
         >
           {label}
         </Text>
@@ -68,6 +70,8 @@ export interface FilterBarProps {
   priceChangeButtonText: string;
   onPriceChangePress: () => void;
   isPriceChangeDisabled?: boolean;
+  /** Optional icon name for the price change button */
+  priceChangeIconName?: IconName;
 
   networkName: string;
   onNetworkPress: () => void;
@@ -85,6 +89,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   priceChangeButtonText,
   onPriceChangePress,
   isPriceChangeDisabled = false,
+  priceChangeIconName,
   networkName,
   onNetworkPress,
   extraFilters,
@@ -92,14 +97,14 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const tw = useTailwind();
 
   return (
-    <View style={tw`flex-grow-0 p-4`}>
+    <View style={tw`flex-grow-0 px-4 pb-4`}>
       <View style={tw`flex-row items-center justify-between`}>
         <FilterButton
           testID="price-change-button"
           label={priceChangeButtonText}
           onPress={onPriceChangePress}
           disabled={isPriceChangeDisabled}
-          wide
+          iconName={priceChangeIconName}
         />
         <View style={tw`ml-2 min-w-0 shrink flex-row items-center gap-2`}>
           <FilterButton

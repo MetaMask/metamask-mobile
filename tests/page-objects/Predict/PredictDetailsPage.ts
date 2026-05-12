@@ -14,6 +14,14 @@ import {
   PredictMarketDetailsSelectorsIDs,
   PredictMarketDetailsSelectorsText,
 } from '../../../app/components/UI/Predict/Predict.testIds';
+import { PREDICT_PICK_ITEM_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictPicks/PredictPickItem.testIds';
+import {
+  PREDICT_GAME_DETAILS_FOOTER,
+  PREDICT_GAME_DETAILS_FOOTER_TEST_IDS,
+} from '../../../app/components/UI/Predict/components/PredictGameDetailsFooter/PredictGameDetailsFooter.testIds';
+import { PREDICT_ACTION_BUTTONS_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictActionButtons/PredictActionButtons.testIds';
+import { PREDICT_BET_BUTTONS_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictActionButtons/PredictBetButtons.testIds';
+
 class PredictDetailsPage {
   get container(): EncapsulatedElementType {
     return encapsulated({
@@ -34,8 +42,9 @@ class PredictDetailsPage {
           PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementByText(
-          PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT,
+        PlaywrightMatchers.getElementById(
+          PredictMarketDetailsSelectorsIDs.POSITIONS_TAB,
+          { exact: true },
         ),
     });
   }
@@ -47,8 +56,9 @@ class PredictDetailsPage {
           PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementByText(
-          PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT,
+        PlaywrightMatchers.getElementById(
+          PredictMarketDetailsSelectorsIDs.ABOUT_TAB,
+          { exact: true },
         ),
     });
   }
@@ -60,12 +70,14 @@ class PredictDetailsPage {
           PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementByText(
-          PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT,
+        PlaywrightMatchers.getElementById(
+          PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB,
+          { exact: true },
         ),
     });
   }
-
+  //TODO: Add the correct TESTID on the component for the about tab content
+  // This was migrated from the old screen-objects/PredictDetailsScreen.js file
   get aboutTabContent(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -80,6 +92,8 @@ class PredictDetailsPage {
     });
   }
 
+  //TODO: Add the correct TESTID on the component for the outcomes tab content
+  // This was migrated from the old screen-objects/PredictDetailsScreen.js file
   get outcomesTabContent(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -201,6 +215,14 @@ class PredictDetailsPage {
     });
   }
 
+  get gameBetYesButton(): EncapsulatedElementType {
+    const testID = `${PREDICT_GAME_DETAILS_FOOTER}${PREDICT_GAME_DETAILS_FOOTER_TEST_IDS.ACTION_BUTTONS}${PREDICT_ACTION_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON}${PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON_YES}`;
+    return encapsulated({
+      detox: () => Matchers.getElementByID(testID),
+      appium: () => PlaywrightMatchers.getElementById(testID, { exact: true }),
+    });
+  }
+
   async waitForScreenToDisplay(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.container, {
       description: 'Predict market details screen',
@@ -239,9 +261,29 @@ class PredictDetailsPage {
     });
   }
 
+  getGameCashOutButton(positionId: string): EncapsulatedElementType {
+    const testID = `${PREDICT_PICK_ITEM_TEST_IDS.PREDICT_PICKS_CASH_OUT_BUTTON}-${positionId}`;
+    return encapsulated({
+      detox: () => Matchers.getElementByID(testID),
+      appium: () => PlaywrightMatchers.getElementById(testID, { exact: true }),
+    });
+  }
+
+  async tapGameCashOutButton(positionId: string): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.getGameCashOutButton(positionId), {
+      description: 'Game details cash out button',
+    });
+  }
+
   async tapOpenPositionValue(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.getOpenPositionValueButton(), {
       description: 'Celtics outcome button',
+    });
+  }
+
+  async tapGameBetYesButton(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.gameBetYesButton, {
+      description: 'Game bet yes button',
     });
   }
 

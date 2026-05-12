@@ -41,8 +41,11 @@ const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
 ];
 
 export enum ConfirmationLoader {

@@ -15,31 +15,14 @@ import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
 import PredictSportWinner from '../PredictSportWinner/PredictSportWinner';
 import { PredictMarketGame } from '../../types';
 import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
+import { isDrawCapableLeague } from '../../constants/sports';
+import { parseScore } from '../../utils/gameParser';
 import { PREDICT_SPORT_SCOREBOARD_TEST_IDS } from './PredictSportScoreboard.testIds';
 
 export interface PredictSportScoreboardProps {
   game: PredictMarketGame;
   testID?: string;
 }
-
-/**
- * Parses score string "away-home" (e.g., "21-14") into { away, home } numbers.
- */
-const parseScoreString = (
-  scoreString: string | null | undefined,
-): { away: number; home: number } | null => {
-  if (!scoreString) return null;
-
-  const parts = scoreString.split('-');
-  if (parts.length !== 2) return null;
-
-  const away = parseInt(parts[0], 10);
-  const home = parseInt(parts[1], 10);
-
-  if (isNaN(away) || isNaN(home)) return null;
-
-  return { away, home };
-};
 
 /**
  * Formats startTime to { date: "Sat, Jan 17", time: "2:30 PM" }.
@@ -91,7 +74,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
 
   const mergedData = useMemo(() => {
     const liveScore = gameUpdate?.score
-      ? parseScoreString(gameUpdate.score)
+      ? parseScore(gameUpdate.score, game.league)
       : null;
 
     return {
@@ -108,6 +91,8 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
     () => formatGameDateTime(game.startTime, I18n.locale),
     [game.startTime],
   );
+
+  const isHomeFirst = isDrawCapableLeague(game.league);
 
   const period = mergedData.period;
 
@@ -147,6 +132,41 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
     mergedData.awayScore !== undefined &&
     mergedData.homeScore !== undefined &&
     mergedData.homeScore > mergedData.awayScore;
+
+  const leftTeam = isHomeFirst ? game.homeTeam : game.awayTeam;
+  const rightTeam = isHomeFirst ? game.awayTeam : game.homeTeam;
+  const leftScore = isHomeFirst ? mergedData.homeScore : mergedData.awayScore;
+  const rightScore = isHomeFirst ? mergedData.awayScore : mergedData.homeScore;
+  const leftWon = isHomeFirst ? homeWon : awayWon;
+  const rightWon = isHomeFirst ? awayWon : homeWon;
+  const leftHasPossession = isHomeFirst ? homeHasPossession : awayHasPossession;
+  const rightHasPossession = isHomeFirst
+    ? awayHasPossession
+    : homeHasPossession;
+
+  const leftTestIds = isHomeFirst
+    ? {
+        icon: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_ICON,
+        possession: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_POSSESSION,
+        winner: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_WINNER,
+      }
+    : {
+        icon: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_ICON,
+        possession: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_POSSESSION,
+        winner: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_WINNER,
+      };
+
+  const rightTestIds = isHomeFirst
+    ? {
+        icon: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_ICON,
+        possession: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_POSSESSION,
+        winner: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_WINNER,
+      }
+    : {
+        icon: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_ICON,
+        possession: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_POSSESSION,
+        winner: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_WINNER,
+      };
 
   const renderCenterContent = () => {
     if (isPreGame) {
@@ -197,7 +217,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             variant={TextVariant.DisplayMd}
             twClassName="text-default leading-none"
           >
-            {mergedData.awayScore ?? 0}
+            {leftScore ?? 0}
           </Text>
 
           <Box twClassName="items-center">
@@ -214,7 +234,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             variant={TextVariant.DisplayMd}
             twClassName="text-default leading-none"
           >
-            {mergedData.homeScore ?? 0}
+            {rightScore ?? 0}
           </Text>
         </Box>
       );
@@ -236,16 +256,15 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
       >
         {config.TeamIcon ? (
           <config.TeamIcon
-            color={game.awayTeam.color}
+            color={leftTeam.color}
             size={TEAM_ICON_SIZE}
-            testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_ICON}`}
+            testID={`${testID}${leftTestIds.icon}`}
           />
         ) : (
           <PredictSportTeamLogo
-            uri={game.awayTeam.logo}
-            color={game.awayTeam.color}
+            uri={leftTeam.logo}
             size={TEAM_ICON_SIZE}
-            testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_ICON}`}
+            testID={`${testID}${leftTestIds.icon}`}
           />
         )}
 
@@ -253,17 +272,16 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
 
         {config.TeamIcon ? (
           <config.TeamIcon
-            color={game.homeTeam.color}
+            color={rightTeam.color}
             size={TEAM_ICON_SIZE}
             flipped
-            testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_ICON}`}
+            testID={`${testID}${rightTestIds.icon}`}
           />
         ) : (
           <PredictSportTeamLogo
-            uri={game.homeTeam.logo}
-            color={game.homeTeam.color}
+            uri={rightTeam.logo}
             size={TEAM_ICON_SIZE}
-            testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_ICON}`}
+            testID={`${testID}${rightTestIds.icon}`}
           />
         )}
       </Box>
@@ -283,22 +301,22 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
               fontWeight={FontWeight.Medium}
               twClassName="text-alternative text-center"
             >
-              {game.awayTeam.abbreviation.toUpperCase()}
+              {leftTeam.abbreviation.toUpperCase()}
             </Text>
           </Box>
-          {config.PossessionIcon && awayHasPossession && (
+          {config.PossessionIcon && leftHasPossession && (
             <Box twClassName="ml-1">
               <config.PossessionIcon
                 size={POSSESSION_ICON_SIZE}
-                testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_POSSESSION}`}
+                testID={`${testID}${leftTestIds.possession}`}
               />
             </Box>
           )}
-          {awayWon && (
+          {leftWon && (
             <Box twClassName="ml-1">
               <PredictSportWinner
                 size={POSSESSION_ICON_SIZE}
-                testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_WINNER}`}
+                testID={`${testID}${leftTestIds.winner}`}
               />
             </Box>
           )}
@@ -308,19 +326,19 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
         >
-          {config.PossessionIcon && homeHasPossession && (
+          {config.PossessionIcon && rightHasPossession && (
             <Box twClassName="mr-1">
               <config.PossessionIcon
                 size={POSSESSION_ICON_SIZE}
-                testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_POSSESSION}`}
+                testID={`${testID}${rightTestIds.possession}`}
               />
             </Box>
           )}
-          {homeWon && (
+          {rightWon && (
             <Box twClassName="mr-1">
               <PredictSportWinner
                 size={POSSESSION_ICON_SIZE}
-                testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_WINNER}`}
+                testID={`${testID}${rightTestIds.winner}`}
               />
             </Box>
           )}
@@ -330,7 +348,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
               fontWeight={FontWeight.Medium}
               twClassName="text-alternative text-center"
             >
-              {game.homeTeam.abbreviation.toUpperCase()}
+              {rightTeam.abbreviation.toUpperCase()}
             </Text>
           </Box>
         </Box>

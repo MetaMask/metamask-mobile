@@ -23,6 +23,13 @@ describeForPlatforms('Wallet', () => {
             RewardsController: {
               activeAccount: null,
             },
+            PreferencesController: {
+              tokenSortConfig: {
+                key: 'tokenFiatAmount',
+                order: 'dsc',
+                sortCallback: 'stringNumeric',
+              },
+            },
           },
         },
       } as unknown as Record<string, unknown>,
@@ -38,40 +45,12 @@ describeForPlatforms('Wallet', () => {
       getByTestId(WalletViewSelectorsIDs.WALLET_CONTAINER),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT, {
+        includeHiddenElements: true,
+      }),
     ).toBeOnTheScreen();
     expect(
       getByTestId(WalletViewSelectorsIDs.WALLET_SEND_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
-  it('navigates to QR tab when scan button is pressed', async () => {
-    const { getByTestId, findByTestId } = renderWalletViewWithRoutes({
-      extraRoutes: [
-        { name: Routes.QR_TAB_SWITCHER },
-        { name: Routes.SETTINGS_VIEW },
-      ],
-      overrides: {
-        settings: {
-          basicFunctionalityEnabled: true,
-        },
-        engine: {
-          backgroundState: {
-            MultichainNetworkController: {
-              isEvmSelected: true,
-            },
-            RewardsController: {
-              activeAccount: null,
-            },
-          },
-        },
-      } as unknown as Record<string, unknown>,
-    });
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.WALLET_SCAN_BUTTON));
-
-    expect(
-      await findByTestId(`route-${Routes.QR_TAB_SWITCHER}`),
     ).toBeOnTheScreen();
   });
 
@@ -92,6 +71,13 @@ describeForPlatforms('Wallet', () => {
             },
             RewardsController: {
               activeAccount: null,
+            },
+            PreferencesController: {
+              tokenSortConfig: {
+                key: 'tokenFiatAmount',
+                order: 'dsc',
+                sortCallback: 'stringNumeric',
+              },
             },
           },
         },
@@ -119,6 +105,13 @@ describeForPlatforms('Wallet', () => {
           },
           RewardsController: {
             activeAccount: null,
+          },
+          PreferencesController: {
+            tokenSortConfig: {
+              key: 'tokenFiatAmount',
+              order: 'dsc',
+              sortCallback: 'stringNumeric',
+            },
           },
         },
       },

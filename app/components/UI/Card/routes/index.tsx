@@ -14,9 +14,9 @@ import ChooseYourCard from '../Views/ChooseYourCard/ChooseYourCard';
 import ReviewOrder from '../Views/ReviewOrder/ReviewOrder';
 import OnboardingNavigator from './OnboardingNavigator';
 import {
-  selectIsAuthenticatedCard,
+  selectIsCardAuthenticated,
   selectIsCardholder,
-} from '../../../../core/redux/slices/card';
+} from '../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
 import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
@@ -29,6 +29,7 @@ import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
 import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
 import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
+import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
 import {
@@ -36,15 +37,10 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
+import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
-
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: { backgroundColor: colors.transparent },
-  animationEnabled: false,
-};
 
 export const headerStyle = StyleSheet.create({
   icon: { marginHorizontal: 16 },
@@ -140,7 +136,7 @@ export const cardChooseYourCardNavigationOptions = ({
 };
 
 const MainRoutes = () => {
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const isCardholder = useSelector(selectIsCardholder);
 
   const initialRouteName = useMemo(
@@ -150,7 +146,7 @@ const MainRoutes = () => {
   );
 
   return (
-    <Stack.Navigator initialRouteName={initialRouteName} headerMode="screen">
+    <Stack.Navigator initialRouteName={initialRouteName}>
       <Stack.Screen
         name={Routes.CARD.HOME}
         component={CardHome}
@@ -202,8 +198,7 @@ const MainRoutes = () => {
 
 const CardModalsRoutes = () => (
   <ModalsStack.Navigator
-    mode="modal"
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
   >
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.ADD_FUNDS}
@@ -241,11 +236,18 @@ const CardModalsRoutes = () => (
       name={Routes.CARD.MODALS.SPENDING_LIMIT_OPTIONS}
       component={SpendingLimitOptionsSheet}
     />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.WAITLIST_FORM}
+      component={WaitlistFormModal}
+    />
   </ModalsStack.Navigator>
 );
 
 const CardRoutes = () => (
-  <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="none">
+  <Stack.Navigator
+    initialRouteName={Routes.CARD.HOME}
+    screenOptions={{ headerShown: false }}
+  >
     <Stack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
     <Stack.Screen
       name={Routes.CARD.MODALS.ID}

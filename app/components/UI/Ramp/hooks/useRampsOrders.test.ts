@@ -84,8 +84,8 @@ const createMockStore = (orders: RampsOrder[] = []) =>
                   },
                 },
               },
-              selectedAccountGroup: RAMP_HOOKS_TEST_GROUP_ID,
             },
+            selectedAccountGroup: RAMP_HOOKS_TEST_GROUP_ID,
           },
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {

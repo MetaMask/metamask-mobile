@@ -5,100 +5,19 @@ import PerpsTooltipView from './PerpsTooltipView';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
 
+jest.mock(
+  'react-native-safe-area-context',
+  () => jest.requireActual('react-native-safe-area-context/jest/mock').default,
+);
+
 // Mock @react-navigation/native
+const mockGoBack = jest.fn();
 const mockUseRoute = useRoute as jest.Mock;
 jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
+  useNavigation: jest.fn(() => ({ goBack: mockGoBack })),
   RouteProp: jest.fn(),
 }));
-
-// Mock BottomSheet components
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    const { forwardRef, useImperativeHandle } = jest.requireActual('react');
-    const MockBottomSheet = forwardRef(
-      (
-        props: {
-          children: React.ReactNode;
-          shouldNavigateBack?: boolean;
-          onClose?: () => void;
-        },
-        ref: React.Ref<{
-          onOpenBottomSheet: () => void;
-          onCloseBottomSheet: () => void;
-        }>,
-      ) => {
-        useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: jest.fn(),
-          onCloseBottomSheet: jest.fn(() => {
-            if (props.onClose) {
-              props.onClose();
-            }
-          }),
-        }));
-
-        return <View testID="bottom-sheet">{props.children}</View>;
-      },
-    );
-
-    return {
-      __esModule: true,
-      default: MockBottomSheet,
-    };
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { View, Text } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({ children }: { children: React.ReactNode }) => (
-        <View testID="bottom-sheet-header">
-          <Text>{children}</Text>
-        </View>
-      ),
-    };
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetFooter',
-  () => {
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        buttonPropsArray,
-      }: {
-        buttonPropsArray?: {
-          label: string;
-          onPress: () => void;
-          variant?: string;
-          size?: string;
-        }[];
-      }) => (
-        <View testID="bottom-sheet-footer">
-          {buttonPropsArray?.map((buttonProps) => (
-            <TouchableOpacity
-              key={buttonProps.label}
-              testID="got-it-button"
-              onPress={buttonProps.onPress}
-            >
-              <Text>{buttonProps.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      ),
-      ButtonsAlignment: {
-        Horizontal: 'Horizontal',
-      },
-    };
-  },
-);
 
 // Mock Text component
 jest.mock('../../../../../component-library/components/Texts/Text', () => {
@@ -118,16 +37,6 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
     },
   };
 });
-
-// Mock Button enums
-jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
-  ButtonSize: {
-    Lg: 'Lg',
-  },
-  ButtonVariants: {
-    Primary: 'Primary',
-  },
-}));
 
 // Mock strings
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -234,11 +143,17 @@ describe('PerpsTooltipView', () => {
     it('renders correctly with valid contentKey', () => {
       render(<PerpsTooltipView />);
 
-      expect(screen.getByTestId('bottom-sheet')).toBeOnTheScreen();
-      expect(screen.getByTestId('bottom-sheet-header')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-tooltip-bottom-sheet'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-tooltip-bottom-sheet-header'),
+      ).toBeOnTheScreen();
       // Content should be rendered (either with testID for custom renderers or as text for default)
       expect(screen.getByText('Content for leverage')).toBeOnTheScreen();
-      expect(screen.getByTestId('bottom-sheet-footer')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-tooltip-bottom-sheet-footer'),
+      ).toBeOnTheScreen();
       expect(screen.getByText('Got it')).toBeOnTheScreen();
     });
 
@@ -345,7 +260,9 @@ describe('PerpsTooltipView', () => {
 
       render(<PerpsTooltipView />);
 
-      expect(screen.getByTestId('bottom-sheet-header')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-tooltip-bottom-sheet-header'),
+      ).toBeOnTheScreen();
       expect(screen.getByText('leverage')).toBeOnTheScreen();
     });
 
@@ -359,7 +276,9 @@ describe('PerpsTooltipView', () => {
       render(<PerpsTooltipView />);
 
       // Should not render the default header
-      expect(screen.queryByTestId('bottom-sheet-header')).toBeNull();
+      expect(
+        screen.queryByTestId('perps-tooltip-bottom-sheet-header'),
+      ).toBeNull();
       expect(screen.getByText('Market Hours Content')).toBeOnTheScreen();
     });
 
@@ -373,7 +292,9 @@ describe('PerpsTooltipView', () => {
       render(<PerpsTooltipView />);
 
       // Should not render the default header
-      expect(screen.queryByTestId('bottom-sheet-header')).toBeNull();
+      expect(
+        screen.queryByTestId('perps-tooltip-bottom-sheet-header'),
+      ).toBeNull();
       expect(screen.getByText('After Hours Trading Content')).toBeOnTheScreen();
     });
   });
@@ -382,19 +303,22 @@ describe('PerpsTooltipView', () => {
     it('renders footer with Got it button', () => {
       render(<PerpsTooltipView />);
 
-      expect(screen.getByTestId('bottom-sheet-footer')).toBeOnTheScreen();
-      expect(screen.getByTestId('got-it-button')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-tooltip-bottom-sheet-footer'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-tooltip-bottom-sheet-footer-got-it-button'),
+      ).toBeOnTheScreen();
       expect(screen.getByText('Got it')).toBeOnTheScreen();
     });
 
     it('calls onCloseBottomSheet when Got it button is pressed', () => {
       render(<PerpsTooltipView />);
 
-      const gotItButton = screen.getByTestId('got-it-button');
+      const gotItButton = screen.getByText('Got it');
 
       fireEvent.press(gotItButton);
 
-      // The BottomSheet mock handles navigation back internally
       // We verify the component handles the press without errors
       expect(gotItButton).toBeOnTheScreen();
     });

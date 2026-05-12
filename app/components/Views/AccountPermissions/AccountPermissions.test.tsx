@@ -230,19 +230,6 @@ jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
 jest.mock('../../hooks/useAccounts', () => {
   const useAccountsMock = jest.fn(() => ({
     evmAccounts: MOCK_USE_ACCOUNTS_RETURN,
@@ -344,19 +331,22 @@ describe('AccountPermissions', () => {
     mockRemovePermittedAccounts.mockReset();
   });
 
-  it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+  it('displays the connected site hostname in the heading', () => {
+    const { getByText, getByTestId } = renderWithProvider(
       <AccountPermissions
         route={{
           params: {
-            hostInfo: { metadata: { origin: 'test' } },
+            hostInfo: { metadata: { origin: 'example.com' } },
           },
         }}
       />,
       { state: mockInitialState() },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByTestId(ConnectedAccountsSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(getByText('example.com')).toBeOnTheScreen();
   });
 
   it('should handle manage permissions button press and navigate to permissions summary', () => {

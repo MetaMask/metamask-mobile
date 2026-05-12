@@ -9,6 +9,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { isHardwareAccount } from '../../../../../util/address';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 import { hasTransactionType } from '../../utils/transaction';
@@ -21,6 +22,9 @@ import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfi
 const log = createProjectLogger('transaction-confirm');
 
 export const GO_BACK_TYPES = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
+  TransactionType.perpsWithdraw,
   TransactionType.predictClaim,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
@@ -45,8 +49,13 @@ export function useTransactionConfirm() {
 
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
 
+  const isHardwareWallet = isHardwareAccount(
+    transactionMetadata?.txParams?.from ?? '',
+  );
+
   const waitForResult =
-    !isSmartTransaction && !quotes?.length && !selectedGasFeeToken;
+    isHardwareWallet ||
+    (!isSmartTransaction && !quotes?.length && !selectedGasFeeToken);
 
   const handleSmartTransaction = useCallback(
     (updatedMetadata: TransactionMeta) => {
@@ -63,24 +72,8 @@ export function useTransactionConfirm() {
       updatedMetadata.txParams.maxFeePerGas = selectedGasFeeToken.maxFeePerGas;
       updatedMetadata.txParams.maxPriorityFeePerGas =
         selectedGasFeeToken.maxPriorityFeePerGas;
-
-      // If the gasless flow is not supported (e.g. stx is disabled by the user,
-      // or 7702 is not supported in the chain), we override the
-      // `isGasFeeSponsored` flag to `false` so the transaction meta object in
-      // state has the correct value for the transaction details on the activity
-      // list to not show as sponsored. One limitation on the activity list will
-      // be that pre-populated transactions on fresh installs will not show as
-      // sponsored even if they were because this is not easily observable onchain
-      // for all cases.
-      updatedMetadata.isGasFeeSponsored =
-        isGaslessSupported && transactionMetadata?.isGasFeeSponsored;
     },
-    [
-      selectedGasFeeToken,
-      isGasFeeTokenIgnoredIfBalance,
-      isGaslessSupported,
-      transactionMetadata?.isGasFeeSponsored,
-    ],
+    [selectedGasFeeToken, isGasFeeTokenIgnoredIfBalance],
   );
 
   const handleGasless7702 = useCallback(
@@ -90,30 +83,34 @@ export function useTransactionConfirm() {
       }
 
       updatedMetadata.isExternalSign = true;
-      updatedMetadata.isGasFeeSponsored =
-        isGaslessSupported && transactionMetadata?.isGasFeeSponsored;
     },
-    [
-      isGasFeeTokenIgnoredIfBalance,
-      isGaslessSupported,
-      selectedGasFeeToken,
-      transactionMetadata?.isGasFeeSponsored,
-    ],
+    [isGasFeeTokenIgnoredIfBalance, selectedGasFeeToken],
   );
 
   const onConfirm = useCallback(
-    async (options?: { onError?: (error: unknown) => void }) => {
+    async (options?: {
+      onError?: (error: unknown) => void;
+      waitForResult?: boolean;
+    }) => {
       if (!transactionMetadata) {
         return;
       }
 
       const updatedMetadata = cloneDeep(transactionMetadata);
 
+      // Ensure the persisted `isGasFeeSponsored` flag reflects whether gasless
+      // is actually supported (e.g. HW wallets don't support gasless, so the
+      // flag must be cleared so the activity list does not show "Paid by MetaMask").
+      updatedMetadata.isGasFeeSponsored =
+        isGaslessSupported && transactionMetadata?.isGasFeeSponsored;
+
       if (isGaslessSupportedSTX) {
         handleSmartTransaction(updatedMetadata);
-      } else if (selectedGasFeeToken) {
+      } else if (selectedGasFeeToken && !isHardwareWallet) {
         handleGasless7702(updatedMetadata);
       }
+
+      const effectiveWaitForResult = options?.waitForResult ?? waitForResult;
 
       try {
         await onRequestConfirm(
@@ -121,7 +118,7 @@ export function useTransactionConfirm() {
             deleteAfterResult: true,
             // Intentionally not hiding errors so we can log
             handleErrors: false,
-            waitForResult,
+            waitForResult: effectiveWaitForResult,
           },
           { txMeta: updatedMetadata },
         );
@@ -155,6 +152,7 @@ export function useTransactionConfirm() {
       handleGasless7702,
       handleSmartTransaction,
       isFullScreenConfirmation,
+      isGaslessSupported,
       isGaslessSupportedSTX,
       navigation,
       musdConversionNavigateOnConfirm,
@@ -164,6 +162,7 @@ export function useTransactionConfirm() {
       tryEnableEvmNetwork,
       type,
       waitForResult,
+      isHardwareWallet,
     ],
   );
 

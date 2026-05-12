@@ -12,7 +12,6 @@ import {
 describe('BannerAlert', () => {
   it('should render BannerAlert', () => {
     const wrapper = render(<BannerAlert {...SAMPLE_BANNERALERT_PROPS} />);
-    expect(wrapper).toMatchSnapshot();
     expect(wrapper.queryByTestId(BANNERALERT_TEST_ID)).not.toBe(null);
   });
 });

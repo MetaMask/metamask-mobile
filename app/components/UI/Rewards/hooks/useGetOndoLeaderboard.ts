@@ -1,11 +1,10 @@
-import { useMemo, useEffect, useCallback, useRef } from 'react';
+import { useMemo, useEffect, useCallback, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
   selectOndoCampaignLeaderboard,
   selectOndoCampaignLeaderboardLoading,
   selectOndoCampaignLeaderboardError,
-  selectOndoCampaignLeaderboardTierNames,
   selectOndoCampaignLeaderboardSelectedTier,
 } from '../../../../reducers/rewards/selectors';
 import {
@@ -31,8 +30,8 @@ export interface UseGetOndoLeaderboardResult {
   isLoading: boolean;
   /** Whether there was an error fetching the leaderboard */
   hasError: boolean;
-  /** List of available tier names (e.g., ['STARTER', 'MID', 'UPPER']) */
-  tierNames: string[];
+  /** Whether the leaderboard hasn't been computed yet by the backend (404) */
+  isLeaderboardNotYetComputed: boolean;
   /** Currently selected tier name */
   selectedTier: string | null;
   /** Leaderboard data for the currently selected tier */
@@ -63,7 +62,8 @@ export const useGetOndoLeaderboard = (
   const leaderboard = useSelector(selectOndoCampaignLeaderboard);
   const isLoading = useSelector(selectOndoCampaignLeaderboardLoading);
   const hasError = useSelector(selectOndoCampaignLeaderboardError);
-  const tierNames = useSelector(selectOndoCampaignLeaderboardTierNames);
+  const [isLeaderboardNotYetComputed, setIsLeaderboardNotYetComputed] =
+    useState(false);
   const selectedTier = useSelector(selectOndoCampaignLeaderboardSelectedTier);
 
   // Track if we've already applied the defaultTier to avoid overriding user selection
@@ -73,19 +73,28 @@ export const useGetOndoLeaderboard = (
     if (!campaignId) {
       dispatch(setOndoCampaignLeaderboardLoading(false));
       dispatch(setOndoCampaignLeaderboardError(false));
+      setIsLeaderboardNotYetComputed(false);
       return;
     }
 
     try {
       dispatch(setOndoCampaignLeaderboardLoading(true));
       dispatch(setOndoCampaignLeaderboardError(false));
+      setIsLeaderboardNotYetComputed(false);
       const result = await Engine.controllerMessenger.call(
         'RewardsController:getOndoCampaignLeaderboard',
         campaignId,
       );
       dispatch(setOndoCampaignLeaderboard(result));
-    } catch {
-      dispatch(setOndoCampaignLeaderboardError(true));
+    } catch (error) {
+      const is404 =
+        error instanceof Error &&
+        error.message.includes('Get campaign leaderboard failed: 404');
+      if (is404) {
+        setIsLeaderboardNotYetComputed(true);
+      } else {
+        dispatch(setOndoCampaignLeaderboardError(true));
+      }
     } finally {
       dispatch(setOndoCampaignLeaderboardLoading(false));
     }
@@ -98,23 +107,17 @@ export const useGetOndoLeaderboard = (
   // Update selected tier when defaultTier becomes available (e.g., after position loads)
   // Only apply once - don't override subsequent user selections
   useEffect(() => {
-    if (
-      !hasAppliedDefaultTier.current &&
-      defaultTier &&
-      tierNames.includes(defaultTier)
-    ) {
+    if (!hasAppliedDefaultTier.current && defaultTier) {
       hasAppliedDefaultTier.current = true;
       dispatch(setOndoCampaignLeaderboardSelectedTier(defaultTier));
     }
-  }, [defaultTier, tierNames, dispatch]);
+  }, [defaultTier, dispatch]);
 
   const setSelectedTier = useCallback(
     (tier: string) => {
-      if (tierNames.includes(tier)) {
-        dispatch(setOndoCampaignLeaderboardSelectedTier(tier));
-      }
+      dispatch(setOndoCampaignLeaderboardSelectedTier(tier));
     },
-    [tierNames, dispatch],
+    [dispatch],
   );
 
   const selectedTierData = useMemo(
@@ -126,10 +129,10 @@ export const useGetOndoLeaderboard = (
     leaderboard,
     isLoading,
     hasError,
-    tierNames,
+    isLeaderboardNotYetComputed,
     selectedTier,
     selectedTierData,
-    computedAt: leaderboard?.computed_at ?? null,
+    computedAt: leaderboard?.computedAt ?? null,
     setSelectedTier,
     refetch: fetchLeaderboard,
   };

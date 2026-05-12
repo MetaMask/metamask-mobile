@@ -1,22 +1,26 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, TouchableOpacity, RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import styleSheet from '../../Deposit/Views/BankDetails/BankDetails.styles';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useStyles } from '../../../../../component-library/hooks';
+import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../Navbar';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
+  Icon,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+  IconColor,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import BankDetailRow from '../../Deposit/components/BankDetailRow';
 import {
@@ -25,10 +29,6 @@ import {
   normalizeProviderCode,
 } from '@metamask/ramps-controller';
 import { useTheme } from '../../../../../util/theme';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 import PrivacySection from '../../Deposit/components/PrivacySection';
 import useAnalytics from '../../hooks/useAnalytics';
 
@@ -201,19 +201,17 @@ const V2BankDetails = () => {
     order?.paymentMethod?.shortName ??
     '';
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        {
-          title: strings('deposit.bank_details.navbar_title', {
-            paymentMethod: paymentMethodShortName,
-          }),
-        },
-        theme,
-      ),
-    );
-  }, [navigation, theme, paymentMethodShortName]);
+  const headerTitle = useMemo(
+    () =>
+      strings('deposit.bank_details.navbar_title', {
+        paymentMethod: paymentMethodShortName,
+      }),
+    [paymentMethodShortName],
+  );
+
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const handleBankTransferSent = useCallback(async () => {
     setCancelOrderError(null);
@@ -313,27 +311,39 @@ const V2BankDetails = () => {
 
   return (
     <ScreenLayout>
-      <ScrollView
-        testID={BANK_DETAILS_TEST_IDS.REFRESH_CONTROL_SCROLLVIEW}
-        refreshControl={
-          <RefreshControl
-            colors={[colors.primary.default]}
-            tintColor={colors.icon.default}
-            refreshing={isRefreshing}
-            onRefresh={handleOnRefresh}
-          />
-        }
-      >
-        <ScreenLayout.Body>
+      <ScreenLayout.Body>
+        <HeaderCompactStandard
+          title={headerTitle}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
+        <ScrollView
+          testID={BANK_DETAILS_TEST_IDS.REFRESH_CONTROL_SCROLLVIEW}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={isRefreshing}
+              onRefresh={handleOnRefresh}
+            />
+          }
+        >
           <ScreenLayout.Content style={styles.content}>
             <View style={styles.mainSection}>
-              <Text variant={TextVariant.HeadingMD}>
+              <Text variant={TextVariant.HeadingMd}>
                 {strings('deposit.bank_details.main_title')}
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings('deposit.bank_details.main_content_1')}
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings('deposit.bank_details.main_content_2')}
               </Text>
             </View>
@@ -420,7 +430,10 @@ const V2BankDetails = () => {
                   style={styles.showBankInfoButton}
                   onPress={toggleBankInfo}
                 >
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.PrimaryDefault}
+                  >
                     {showBankInfo
                       ? strings('deposit.bank_details.hide_bank_info')
                       : strings('deposit.bank_details.show_bank_info')}
@@ -428,7 +441,7 @@ const V2BankDetails = () => {
                   <Icon
                     name={showBankInfo ? IconName.ArrowUp : IconName.ArrowDown}
                     size={IconSize.Sm}
-                    color={theme.colors.primary.default}
+                    color={IconColor.PrimaryDefault}
                   />
                 </TouchableOpacity>
               </View>
@@ -436,25 +449,28 @@ const V2BankDetails = () => {
               <Loader size="large" color={theme.colors.primary.default} />
             )}
           </ScreenLayout.Content>
-        </ScreenLayout.Body>
-      </ScrollView>
+        </ScrollView>
+      </ScreenLayout.Body>
 
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <View style={styles.bottomContainer}>
             {confirmPaymentError ? (
-              <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
                 {confirmPaymentError}
               </Text>
             ) : null}
             {cancelOrderError ? (
-              <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
                 {strings('deposit.bank_details.cancel_order_error')}
               </Text>
             ) : null}
 
             <PrivacySection>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+              >
                 {strings('deposit.bank_details.info_banner_text', {
                   accountHolderName: accountName,
                 })}
@@ -464,24 +480,26 @@ const V2BankDetails = () => {
             <View style={styles.buttonContainer}>
               <Button
                 style={styles.button}
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 onPress={handleCancelOrder}
-                label={strings('deposit.order_processing.cancel_order_button')}
                 size={ButtonSize.Lg}
-                loading={isLoadingCancelOrder}
-                disabled={isLoadingConfirmPayment || isLoadingCancelOrder}
-              />
+                isLoading={isLoadingCancelOrder}
+                isDisabled={isLoadingConfirmPayment || isLoadingCancelOrder}
+              >
+                {strings('deposit.order_processing.cancel_order_button')}
+              </Button>
 
               <Button
                 style={styles.button}
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 onPress={handleBankTransferSent}
                 testID={BANK_DETAILS_TEST_IDS.MAIN_ACTION_BUTTON}
-                label={strings('deposit.bank_details.button')}
                 size={ButtonSize.Lg}
-                disabled={isLoadingCancelOrder || isLoadingConfirmPayment}
-                loading={isLoadingConfirmPayment}
-              />
+                isDisabled={isLoadingCancelOrder || isLoadingConfirmPayment}
+                isLoading={isLoadingConfirmPayment}
+              >
+                {strings('deposit.bank_details.button')}
+              </Button>
             </View>
           </View>
         </ScreenLayout.Content>

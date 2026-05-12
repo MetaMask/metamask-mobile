@@ -1,3 +1,23 @@
+// Device Matrix
+
+export interface DeviceMatrixEntry {
+  name: string;
+  os_version: string;
+  category: 'high' | 'medium' | 'low';
+  description: string;
+}
+
+export interface DeviceMatrix {
+  android_devices: DeviceMatrixEntry[];
+  ios_devices: DeviceMatrixEntry[];
+  device_categories: Record<string, string>;
+  os_coverage: {
+    android: string[];
+    ios: string[];
+  };
+  notes: Record<string, string>;
+}
+
 // Gestures
 
 import { LanguageAndLocale } from 'detox/detox';
@@ -14,6 +34,12 @@ import CommandQueueServer from './fixtures/CommandQueueServer.ts';
 /*
  * WDIO PLAYWRIGHT TESTS
  */
+export enum ProviderName {
+  EMULATOR = 'emulator',
+  SIMULATOR = 'simulator',
+  BROWSERSTACK = 'browserstack',
+}
+
 export enum Platform {
   ANDROID = 'android',
   IOS = 'ios',
@@ -24,22 +50,41 @@ export enum DeviceOrientation {
   LANDSCAPE = 'landscape',
 }
 
+/**
+ * Local emulator / simulator profile for WebDriver.
+ *
+ * **Android:** `name` is usually the AVD name (as returned by
+ * `adb -s <serial> emu avd name`, e.g. `Pixel_5_Pro_API_34`). Omitted
+ * `udid` is resolved to an adb serial such as `emulator-5554` at setup time.
+ * You may set `udid` directly to that serial; if both are set, a mismatch
+ * with the AVD name is warned.
+ *
+ * **iOS:** `name` is the simulator name/identifier used with `xcrun simctl`
+ * (e.g. booted device name or UDID, depending on your environment).
+ */
 export interface EmulatorConfig {
-  provider: 'emulator';
+  provider: ProviderName;
   name?: string;
   osVersion?: string;
-  packageName?: string;
-  launchableActivity?: string;
   udid?: string;
   orientation?: DeviceOrientation;
 }
 
 export interface BrowserStackConfig {
-  provider: 'browserstack';
+  provider: ProviderName;
   name: string;
   osVersion: string;
   orientation?: DeviceOrientation;
   enableCameraImageInjection?: boolean;
+  selfHeal?: boolean;
+  otherApps?: string[];
+}
+
+export interface AppConfig {
+  appId?: string;
+  packageName?: string;
+  launchableActivity?: string;
+  buildPath?: string;
 }
 
 export type DeviceConfig = EmulatorConfig | BrowserStackConfig;
@@ -54,10 +99,9 @@ export interface TimeoutOptions {
 export interface WebDriverConfig {
   platform: Platform;
   device: DeviceConfig;
-  buildPath: string;
   appBundleId: string;
-  launchableActivity: string;
   expectTimeout: number;
+  app: AppConfig;
 }
 /**
  * END OF WDIO PLAYWRIIGHT
@@ -95,6 +139,7 @@ export interface LongPressOptions extends GestureOptions {
 
 export interface MatcherOptions {
   exact?: boolean;
+  lastElement?: boolean;
 }
 
 /**
@@ -417,4 +462,5 @@ export interface WithFixturesOptions {
   skipReactNativeReload?: boolean;
   useCommandQueueServer?: boolean;
   analyticsExpectations?: AnalyticsExpectations;
+  shouldPrefetchSwapTokens?: boolean;
 }

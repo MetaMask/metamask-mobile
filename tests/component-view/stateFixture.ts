@@ -111,22 +111,29 @@ export function buildNormalizedAccountTree(
   const GROUP_ID = 'entropy:wallet1/0';
   const WALLETS_KEY = 'entropy:wallet1';
   return {
-    selectedAccountGroup: GROUP_ID,
-    wallets: {
-      [WALLETS_KEY]: {
-        id: WALLETS_KEY,
-        type: 'Entropy',
-        metadata: { name: 'Wallet 1', entropy: { id: 'wallet1' } },
-        groups: {
-          [GROUP_ID]: {
-            id: GROUP_ID,
-            type: 'MultipleAccount',
-            metadata: { name: 'Group 1', pinned: false, hidden: false },
-            accounts: selectedAccountId ? [selectedAccountId] : [],
+    accountTree: {
+      wallets: {
+        [WALLETS_KEY]: {
+          id: WALLETS_KEY,
+          type: 'Entropy',
+          metadata: { name: 'Wallet 1', entropy: { id: 'wallet1' } },
+          groups: {
+            [GROUP_ID]: {
+              id: GROUP_ID,
+              type: 'MultipleAccount',
+              metadata: {
+                name: 'Group 1',
+                pinned: false,
+                hidden: false,
+                lastSelected: 0,
+              },
+              accounts: selectedAccountId ? [selectedAccountId] : [],
+            },
           },
         },
       },
     },
+    selectedAccountGroup: GROUP_ID,
   };
 }
 
@@ -316,6 +323,8 @@ export function createStateFixture(): StateFixtureBuilder {
                 isInPolling: false,
                 quotesRefreshCount: 0,
                 quoteFetchError: null,
+                tokenWarnings: [],
+                quoteStreamComplete: null,
               },
             },
           },
@@ -449,6 +458,8 @@ export function createStateFixture(): StateFixtureBuilder {
                 isInPolling: false,
                 quotesLastFetched: 0,
                 quotes: [],
+                tokenWarnings: [],
+                quoteStreamComplete: null,
               },
             },
           },
@@ -738,7 +749,7 @@ export function createStateFixture(): StateFixtureBuilder {
               ...bg,
               AccountTreeController: {
                 ...((bg as PlainObject)?.AccountTreeController as PlainObject),
-                accountTree: normalizedAccountTree,
+                ...normalizedAccountTree,
               },
             },
           },

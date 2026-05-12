@@ -20,8 +20,8 @@ describe('NetworksFilterBar', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly when networkFilter is null', () => {
-    const { toJSON, getByText } = render(
+  it('renders the All networks button when networkFilter is null', () => {
+    const { getByText } = render(
       <NetworksFilterBar
         networks={networks}
         networkFilter={null}
@@ -30,17 +30,16 @@ describe('NetworksFilterBar', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('All networks')).toBeOnTheScreen();
 
-    const allNetworksButton = getByText('All networks');
-    fireEvent.press(allNetworksButton);
+    fireEvent.press(getByText('All networks'));
 
     expect(mockSetNetworkFilter).toHaveBeenCalledWith(networks);
     expect(mockSetIsEditingNetworkFilter).toHaveBeenCalledWith(true);
   });
 
-  it('renders correctly when networkFilter is the same as uniqueNetworks', () => {
-    const { toJSON, getByText } = render(
+  it('renders the All networks button when networkFilter equals all networks', () => {
+    const { getByText } = render(
       <NetworksFilterBar
         networks={networks}
         networkFilter={networks}
@@ -49,18 +48,17 @@ describe('NetworksFilterBar', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('All networks')).toBeOnTheScreen();
 
-    const allNetworksButton = getByText('All networks');
-    fireEvent.press(allNetworksButton);
+    fireEvent.press(getByText('All networks'));
 
     expect(mockSetNetworkFilter).toHaveBeenCalledWith(networks);
     expect(mockSetIsEditingNetworkFilter).toHaveBeenCalledWith(true);
   });
 
-  it('renders correctly when networkFilter is a subset of uniqueNetworks and removes selection', () => {
+  it('renders individual network buttons with See all when networkFilter is a subset and removes selection', () => {
     const subsetNetworkFilter: CaipChainId[] = ['eip155:1', 'eip155:59144'];
-    const { toJSON, getByText } = render(
+    const { getByText } = render(
       <NetworksFilterBar
         networks={networks}
         networkFilter={subsetNetworkFilter}
@@ -69,10 +67,10 @@ describe('NetworksFilterBar', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('See all')).toBeOnTheScreen();
+    expect(getByText('Ethereum')).toBeOnTheScreen();
 
-    const ethereumButton = getByText('Ethereum');
-    fireEvent.press(ethereumButton);
+    fireEvent.press(getByText('Ethereum'));
 
     expect(mockSetNetworkFilter).toHaveBeenCalled();
     const setterFunction = mockSetNetworkFilter.mock.calls[0][0];

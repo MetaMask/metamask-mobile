@@ -40,6 +40,7 @@ const createMockAccountGroupWithInternalAccounts = (
     name,
     pinned: false,
     hidden: false,
+    lastSelected: 0,
   },
   accounts: [createMockInternalAccount(accountId, name, address)],
 });

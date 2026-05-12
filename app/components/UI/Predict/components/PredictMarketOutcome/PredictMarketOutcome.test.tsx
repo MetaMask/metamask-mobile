@@ -29,10 +29,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
-    initializeActiveOrder: jest.fn(),
     activeOrder: null,
-    updateActiveOrder: jest.fn(),
-    clearActiveOrder: jest.fn(),
   }),
 }));
 
@@ -46,6 +43,14 @@ jest.mock('../../hooks/usePredictBalance', () => ({
 const mockUsePredictEligibility = jest.fn();
 jest.mock('../../hooks/usePredictEligibility', () => ({
   usePredictEligibility: () => mockUsePredictEligibility(),
+}));
+
+const mockOpenBuySheet = jest.fn();
+jest.mock('../../contexts', () => ({
+  usePredictPreviewSheet: () => ({
+    openBuySheet: mockOpenBuySheet,
+    openSellSheet: jest.fn(),
+  }),
 }));
 
 const mockOutcome: PredictOutcome = {
@@ -148,7 +153,7 @@ describe('PredictMarketOutcome', () => {
     const noButton = getByText(/35¢/);
 
     fireEvent.press(yesButton);
-    expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+    expect(mockOpenBuySheet).toHaveBeenCalledWith({
       market: mockMarket,
       outcome: mockOutcome,
       outcomeToken: mockOutcome.tokens[0],
@@ -156,7 +161,7 @@ describe('PredictMarketOutcome', () => {
     });
 
     fireEvent.press(noButton);
-    expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+    expect(mockOpenBuySheet).toHaveBeenCalledWith({
       market: mockMarket,
       outcome: mockOutcome,
       outcomeToken: mockOutcome.tokens[1],
@@ -626,7 +631,7 @@ describe('PredictMarketOutcome', () => {
 
       fireEvent.press(yesButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith({
         market: mockMarket,
         outcome: outcomeWithLongLabels,
         outcomeToken: outcomeWithLongLabels.tokens[0],
@@ -635,7 +640,7 @@ describe('PredictMarketOutcome', () => {
 
       fireEvent.press(noButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith({
         market: mockMarket,
         outcome: outcomeWithLongLabels,
         outcomeToken: outcomeWithLongLabels.tokens[1],

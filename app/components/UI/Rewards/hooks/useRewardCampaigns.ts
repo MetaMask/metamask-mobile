@@ -51,6 +51,8 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
   const hasLoaded = useSelector(selectCampaignsHasLoaded);
   const dispatch = useDispatch();
   const isLoadingRef = useRef(false);
+  const hasLoadedRef = useRef(hasLoaded);
+  hasLoadedRef.current = hasLoaded;
 
   const fetchCampaigns = useCallback(async (): Promise<void> => {
     if (!subscriptionId) {
@@ -66,14 +68,14 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
 
     try {
       isLoadingRef.current = true;
-      dispatch(setCampaignsLoading(true));
+      if (!hasLoadedRef.current) {
+        dispatch(setCampaignsLoading(true));
+      }
       dispatch(setCampaignsError(false));
-
       const campaignsData = await Engine.controllerMessenger.call(
         'RewardsController:getCampaigns',
         subscriptionId,
       );
-
       dispatch(setCampaigns(campaignsData));
     } catch {
       dispatch(setCampaignsError(true));

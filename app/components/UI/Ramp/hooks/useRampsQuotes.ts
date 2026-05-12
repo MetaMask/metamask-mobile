@@ -67,14 +67,14 @@ export function useRampsQuotes(
     if (!queryEnabled) {
       return 'idle';
     }
-    if (quotesQuery.isPending) {
+    if (quotesQuery.isLoading) {
       return 'loading';
     }
     if (quotesQuery.isError) {
       return 'error';
     }
     return 'success';
-  }, [queryEnabled, quotesQuery.isError, quotesQuery.isPending]);
+  }, [queryEnabled, quotesQuery.isError, quotesQuery.isLoading]);
 
   return {
     getQuotes,

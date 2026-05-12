@@ -30,18 +30,27 @@ jest.mock('../../../selectors/networkController', () => ({
   })),
 }));
 
+interface AssetOptionsRouteParams {
+  address: string;
+  isNativeCurrency: boolean;
+  chainId: string;
+  asset: TokenI;
+}
+
+let mockRouteParams: AssetOptionsRouteParams;
+
 // Mock dependencies
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(),
-}));
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: jest.fn(),
+    useRoute: () => ({ params: mockRouteParams }),
+  };
+});
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
-}));
-
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(() => ({ bottom: 10 })),
-  useSafeAreaFrame: jest.fn(() => ({ width: 390, height: 844 })),
 }));
 
 // Mock InteractionManager.runAfterInteractions to execute callbacks immediately
@@ -167,10 +176,6 @@ jest.mock('../../../selectors/networkController', () => ({
   selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
 }));
 
-jest.mock('../../../selectors/tokenListController', () => ({
-  selectTokenList: jest.fn(() => ({})),
-}));
-
 jest.mock('../../../selectors/assets/assets-list', () => ({
   selectAssetsBySelectedAccountGroup: jest.fn(() => ({})),
 }));
@@ -219,6 +224,9 @@ jest.mock('../../UI/Tokens/util', () => ({
 
 const mockAsset = {
   address: '0x750e4C4984a9e0f12978eA6742Bc1c5D248f40ed',
+  symbol: 'TEST',
+  name: 'Test Token',
+  balance: '0',
   balanceFiat: '$11.89',
   chainId: '0x89',
   decimals: 6,
@@ -226,6 +234,7 @@ const mockAsset = {
     'https://static.cx.metamask.io/api/v1/tokenIcons/137/0x750e4c4984a9e0f12978ea6742bc1c5d248f40ed.png',
   isETH: false,
   isNative: false,
+  logo: '',
 };
 
 describe('AssetOptions Component', () => {
@@ -238,6 +247,13 @@ describe('AssetOptions Component', () => {
   beforeEach(() => {
     // Get reference to the mocked function
     mockRemoveNonEvmToken = removeNonEvmToken as jest.Mock;
+
+    mockRouteParams = {
+      address: '0x123',
+      chainId: '0x1',
+      isNativeCurrency: false,
+      asset: mockAsset as unknown as TokenI,
+    };
 
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     mockIsNonEvmChainId.mockReturnValue(false);
@@ -266,8 +282,6 @@ describe('AssetOptions Component', () => {
         };
       if (selector.name === 'selectEvmChainId') return '1';
       if (selector.name === 'selectProviderConfig') return {};
-      if (selector.name === 'selectTokenList')
-        return { '0x123': { symbol: 'ABC' } };
       if (selector.name === 'selectIsAllNetworks') return false;
       if (selector.name === 'selectIsPopularNetwork') return false;
       return {};
@@ -306,18 +320,7 @@ describe('AssetOptions Component', () => {
   });
 
   it('renders correctly and displays options', () => {
-    const { getByText } = render(
-      <AssetOptions
-        route={{
-          params: {
-            address: '0x123',
-            chainId: '0x1',
-            isNativeCurrency: false,
-            asset: mockAsset as unknown as TokenI,
-          },
-        }}
-      />,
-    );
+    const { getByText } = render(<AssetOptions />);
 
     expect(getByText('View on Portfolio')).toBeTruthy();
     expect(getByText('View on block explorer')).toBeTruthy();
@@ -326,18 +329,7 @@ describe('AssetOptions Component', () => {
   });
 
   it('when reborn is unavailable, handles "View on Block Explorer" press with navigation to SimpleWebView', async () => {
-    const { getByText } = render(
-      <AssetOptions
-        route={{
-          params: {
-            address: '0x123',
-            chainId: '0x1',
-            isNativeCurrency: false,
-            asset: mockAsset as unknown as TokenI,
-          },
-        }}
-      />,
-    );
+    const { getByText } = render(<AssetOptions />);
 
     (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(false);
 
@@ -355,18 +347,7 @@ describe('AssetOptions Component', () => {
   });
 
   it('when reborn is available, handles "View on Block Explorer" press with navigation to reborn', async () => {
-    const { getByText } = render(
-      <AssetOptions
-        route={{
-          params: {
-            address: '0x123',
-            chainId: '0x1',
-            isNativeCurrency: false,
-            asset: mockAsset as unknown as TokenI,
-          },
-        }}
-      />,
-    );
+    const { getByText } = render(<AssetOptions />);
 
     (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
 
@@ -380,18 +361,7 @@ describe('AssetOptions Component', () => {
   });
 
   it('handles "Remove Token" press', () => {
-    const { getByText } = render(
-      <AssetOptions
-        route={{
-          params: {
-            address: '0x123',
-            chainId: '0x1',
-            isNativeCurrency: false,
-            asset: mockAsset as unknown as TokenI,
-          },
-        }}
-      />,
-    );
+    const { getByText } = render(<AssetOptions />);
 
     fireEvent.press(getByText('Remove token'));
     jest.runAllTimers();
@@ -402,15 +372,7 @@ describe('AssetOptions Component', () => {
   });
 
   it('handles "Token Details" press', () => {
-    const mockParams = {
-      params: {
-        address: '0x123',
-        chainId: '0x1',
-        isNativeCurrency: false,
-        asset: mockAsset as unknown as TokenI,
-      },
-    };
-    const { getByText } = render(<AssetOptions route={mockParams} />);
+    const { getByText } = render(<AssetOptions />);
 
     fireEvent.press(getByText('Token details'));
     jest.runAllTimers();
@@ -431,18 +393,7 @@ describe('AssetOptions Component', () => {
     });
 
     it('renders portfolio option for EVM tokens', () => {
-      const { getByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: '0x123',
-              chainId: '0x1',
-              isNativeCurrency: false,
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
-      );
+      const { getByText } = render(<AssetOptions />);
 
       expect(getByText('View on Portfolio')).toBeTruthy();
     });
@@ -586,18 +537,14 @@ describe('AssetOptions Component', () => {
         mockIsNonEvmChainId.mockReturnValue(isNonEvm);
         (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
 
-        const { getByText } = render(
-          <AssetOptions
-            route={{
-              params: {
-                address,
-                chainId,
-                isNativeCurrency,
-                asset: mockAsset as unknown as TokenI,
-              },
-            }}
-          />,
-        );
+        mockRouteParams = {
+          address,
+          chainId,
+          isNativeCurrency,
+          asset: mockAsset as unknown as TokenI,
+        };
+
+        const { getByText } = render(<AssetOptions />);
 
         fireEvent.press(getByText('View on block explorer'));
         jest.runAllTimers();
@@ -611,18 +558,14 @@ describe('AssetOptions Component', () => {
     it('hides Remove token option for wrapped SOL (native token)', () => {
       mockIsNonEvmChainId.mockReturnValue(true);
 
-      const { queryByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: nonEvmChains.solana.wrappedNativeAddress,
-              chainId: nonEvmChains.solana.chainId,
-              isNativeCurrency: false,
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
-      );
+      mockRouteParams = {
+        address: nonEvmChains.solana.wrappedNativeAddress,
+        chainId: nonEvmChains.solana.chainId,
+        isNativeCurrency: false,
+        asset: mockAsset as unknown as TokenI,
+      };
+
+      const { queryByText } = render(<AssetOptions />);
 
       expect(queryByText('Remove token')).not.toBeOnTheScreen();
     });
@@ -641,22 +584,17 @@ describe('AssetOptions Component', () => {
             ],
           };
         if (selector.name === 'selectEvmChainId') return '0x1';
-        if (selector.name === 'selectTokenList') return {};
         return {};
       });
 
-      const { queryByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: musdAddress,
-              chainId: '0x1',
-              isNativeCurrency: false,
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
-      );
+      mockRouteParams = {
+        address: musdAddress,
+        chainId: '0x1',
+        isNativeCurrency: false,
+        asset: mockAsset as unknown as TokenI,
+      };
+
+      const { queryByText } = render(<AssetOptions />);
 
       expect(queryByText('Remove token')).not.toBeOnTheScreen();
     });
@@ -707,24 +645,19 @@ describe('AssetOptions Component', () => {
             ],
           };
         if (selector.name === 'selectEvmChainId') return '1';
-        if (selector.name === 'selectTokenList') return {};
         if (selector.name === 'selectIsAllNetworks') return false;
         if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
       });
 
-      const { getByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: mockNonEvmTokenAddress,
-              chainId: mockNonEvmChainId,
-              isNativeCurrency: false,
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
-      );
+      mockRouteParams = {
+        address: mockNonEvmTokenAddress,
+        chainId: mockNonEvmChainId,
+        isNativeCurrency: false,
+        asset: mockAsset as unknown as TokenI,
+      };
+
+      const { getByText } = render(<AssetOptions />);
 
       fireEvent.press(getByText('Remove token'));
       jest.runAllTimers();
@@ -782,25 +715,12 @@ describe('AssetOptions Component', () => {
             ],
           };
         if (selector.name === 'selectEvmChainId') return '0x1';
-        if (selector.name === 'selectTokenList')
-          return { '0x123': { symbol: 'TEST' } };
         if (selector.name === 'selectIsAllNetworks') return false;
         if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
       });
 
-      const { getByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: '0x123',
-              chainId: '0x1',
-              isNativeCurrency: false,
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
-      );
+      const { getByText } = render(<AssetOptions />);
 
       fireEvent.press(getByText('Remove token'));
       jest.runAllTimers();
@@ -862,7 +782,6 @@ describe('AssetOptions Component', () => {
             ],
           };
         if (selector.name === 'selectEvmChainId') return '1';
-        if (selector.name === 'selectTokenList') return {};
         if (selector.name === 'selectIsAllNetworks') return false;
         if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
@@ -870,18 +789,14 @@ describe('AssetOptions Component', () => {
 
       const mockLoggerLog = jest.spyOn(Logger, 'log');
 
-      const { getByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: mockNonEvmTokenAddress,
-              chainId: mockNonEvmChainId,
-              isNativeCurrency: false,
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
-      );
+      mockRouteParams = {
+        address: mockNonEvmTokenAddress,
+        chainId: mockNonEvmChainId,
+        isNativeCurrency: false,
+        asset: mockAsset as unknown as TokenI,
+      };
+
+      const { getByText } = render(<AssetOptions />);
 
       fireEvent.press(getByText('Remove token'));
       jest.runAllTimers();
@@ -929,8 +844,6 @@ describe('AssetOptions Component', () => {
             ],
           };
         if (selector.name === 'selectEvmChainId') return '0x1';
-        if (selector.name === 'selectTokenList')
-          return { '0x123': { symbol: 'TEST' } };
         if (selector.name === 'selectIsAllNetworks') return false;
         if (selector.name === 'selectIsPopularNetwork') return false;
         return {};
@@ -938,18 +851,7 @@ describe('AssetOptions Component', () => {
 
       const mockLoggerLog = jest.spyOn(Logger, 'log');
 
-      const { getByText } = render(
-        <AssetOptions
-          route={{
-            params: {
-              address: '0x123',
-              chainId: '0x1',
-              isNativeCurrency: false,
-              asset: mockAsset as unknown as TokenI,
-            },
-          }}
-        />,
-      );
+      const { getByText } = render(<AssetOptions />);
 
       fireEvent.press(getByText('Remove token'));
       jest.runAllTimers();

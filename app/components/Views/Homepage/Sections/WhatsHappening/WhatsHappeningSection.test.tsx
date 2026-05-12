@@ -3,8 +3,21 @@ import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import WhatsHappeningSection from './WhatsHappeningSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import {
+  WhatsHappeningInteractionType,
+  WhatsHappeningSource,
+  WhatsHappeningView,
+} from './constants';
 
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn((eventName: string) => ({
+  addProperties: jest.fn((properties: Record<string, unknown>) => ({
+    build: jest.fn(() => ({ category: eventName, properties })),
+  })),
+  build: jest.fn(() => ({ category: eventName })),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -30,6 +43,13 @@ jest.mock('./hooks', () => ({
   })),
 }));
 
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 const mockUseWhatsHappening = jest.requireMock('./hooks').useWhatsHappening;
 const mockSelectWhatsHappeningEnabled = jest.requireMock(
   '../../../../../selectors/featureFlagController/whatsHappening',
@@ -46,7 +66,11 @@ const mockItem = {
   articles: [],
 };
 
-const defaultProps = { sectionIndex: 1, totalSectionsLoaded: 3 };
+const defaultProps = {
+  sectionIndex: 1,
+  totalSectionsLoaded: 3,
+  source: 'homepage' as const,
+};
 
 describe('WhatsHappeningSection', () => {
   beforeEach(() => {
@@ -138,10 +162,10 @@ describe('WhatsHappeningSection', () => {
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(mockItem.title));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.WHATS_HAPPENING_DETAIL,
-      expect.objectContaining({ initialIndex: 0 }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
+      initialIndex: 0,
+      source: 'homepage',
+    });
   });
 
   it('navigates to detail view at index 0 when ViewMore card is pressed', () => {
@@ -153,10 +177,10 @@ describe('WhatsHappeningSection', () => {
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(/view more/i));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.WHATS_HAPPENING_DETAIL,
-      expect.objectContaining({ initialIndex: 0 }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
+      initialIndex: 0,
+      source: 'homepage',
+    });
   });
 
   it('navigates with correct index when second card is pressed', () => {
@@ -173,9 +197,58 @@ describe('WhatsHappeningSection', () => {
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(secondItem.title));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.WHATS_HAPPENING_DETAIL,
-      expect.objectContaining({ initialIndex: 1 }),
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
+      initialIndex: 1,
+      source: 'homepage',
+    });
+  });
+
+  it('tracks WHATS_HAPPENING_INTERACTED pan event when carousel swipes to a new card', () => {
+    const secondItem = { ...mockItem, id: 'trend-1', title: 'Second trend' };
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem, secondItem],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+    const carousel = screen.getByTestId('homepage-whats-happening-carousel');
+    // CARD_WIDTH = 280, GAP = 12 → offset for index 1 = 292
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 292, y: 0 } },
+    });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+        properties: expect.objectContaining({
+          interaction_type: WhatsHappeningInteractionType.Pan,
+          view: WhatsHappeningView.Carousel,
+          trend_id: secondItem.id,
+          card_index: 1,
+          source: WhatsHappeningSource.Homepage,
+        }),
+      }),
+    );
+  });
+
+  it('does not track pan event when momentum scroll resolves to the same card index', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+    const carousel = screen.getByTestId('homepage-whats-happening-carousel');
+
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 0, y: 0 } },
+    });
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
     );
   });
 });

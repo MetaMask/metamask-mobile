@@ -9,7 +9,8 @@ import FixtureBuilder, {
 } from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
-import { SmokeTrade } from '../../tags';
+import NetworkManager from '../../page-objects/wallet/NetworkManager';
+import { SmokeStake } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import StakeView from '../../page-objects/Stake/StakeView';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
@@ -17,7 +18,7 @@ import { AnvilManager } from '../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 
-describe(SmokeTrade('Stake from Actions'), (): void => {
+describe(SmokeStake('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const AMOUNT_TO_STAKE: string = '1';
 
@@ -131,23 +132,34 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
       },
       async () => {
         await loginToApp();
+        // Earn and stake flows keep recurring native timers; with sync on, Detox waits for
+        // idle indefinitely after opening stake. Keep sync off through confirm, then re-enable
+        // for Activity (FlashList row text is unreliable with sync disabled on iOS).
         await device.disableSynchronization();
-        await Assertions.expectElementToBeVisible(WalletView.earnButton, {
-          timeout: 45000,
-          description:
-            'Earn button should be visible after balance loads from mocked API',
-        });
-        await WalletView.tapOnEarnButton();
-        await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
-        await StakeView.enterAmount(AMOUNT_TO_STAKE);
-        await StakeView.tapReviewWithRetry(30000);
-        await Assertions.expectElementToBeVisible(StakeView.confirmButton, {
-          timeout: 30000,
-        });
-        await StakeView.tapConfirm(30000);
+        try {
+          await Assertions.expectElementToBeVisible(WalletView.earnButton, {
+            timeout: 45000,
+            description:
+              'Earn button should be visible after balance loads from mocked API',
+          });
+          await WalletView.tapOnEarnButton();
+          await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
+          await StakeView.enterAmount(AMOUNT_TO_STAKE);
+          await StakeView.tapReviewWithRetry(30000);
+          await Assertions.expectElementToBeVisible(StakeView.confirmButton, {
+            timeout: 30000,
+          });
+          await StakeView.tapConfirm(30000);
+        } finally {
+          await device.enableSynchronization();
+        }
 
         await Assertions.expectElementToBeVisible(
           ActivitiesView.stakeDepositedLabel,
+          {
+            description: 'Staking deposit activity row title',
+            timeout: 120000,
+          },
         );
         await Assertions.expectElementToHaveText(
           ActivitiesView.transactionStatus(FIRST_ROW),
@@ -158,11 +170,12 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
         // Go back to Home tab
         await TabBarComponent.tapHome();
 
-        // Open network picker and select Localhost
-        await WalletView.tapTokenNetworkFilter();
+        // Navigate to TokensFullView and filter by Localhost
+        await NetworkManager.navigateToTokensFullView();
+        await NetworkManager.openNetworkManager();
         await NetworkListModal.changeNetworkTo('Localhost');
 
-        // Verify staked asset in wallet
+        // Verify staked asset in wallet (now in TokensFullView)
         await Assertions.expectTextDisplayed('Staked Ethereum');
         await Assertions.expectTextDisplayed('1 ETH');
         await Assertions.expectTextDisplayed('$4,291.85');

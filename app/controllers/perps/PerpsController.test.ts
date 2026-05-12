@@ -28,6 +28,15 @@ import {
   resolveMyxAuthConfig,
 } from './PerpsController';
 import type { PerpsControllerState } from './PerpsController';
+import {
+  PERPS_CONSTANTS,
+  PERPS_DISK_CACHE_MARKETS,
+  PERPS_DISK_CACHE_USER_DATA,
+} from './constants/perpsConfig';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from './constants/eventNames';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
@@ -38,6 +47,7 @@ import type {
   PerpsProviderType,
   SubscribeAccountParams,
 } from './types';
+import { PerpsAnalyticsEvent } from './types';
 
 jest.mock('./providers/HyperLiquidProvider');
 jest.mock('./providers/MYXProvider');
@@ -428,7 +438,8 @@ describe('PerpsController', () => {
     // Add default mock return values for all provider methods
     mockProvider.getPositions.mockResolvedValue([]);
     mockProvider.getAccountState.mockResolvedValue({
-      availableBalance: '10000',
+      spendableBalance: '10000',
+      withdrawableBalance: '10000',
       totalBalance: '10000',
       marginUsed: '0',
       unrealizedPnl: '0',
@@ -1058,7 +1069,8 @@ describe('PerpsController', () => {
   describe('getAccountState', () => {
     it('gets account state successfully', async () => {
       const mockAccountState = {
-        availableBalance: '1000',
+        spendableBalance: '1000',
+        withdrawableBalance: '1000',
         marginUsed: '500',
         unrealizedPnl: '100',
         returnOnEquity: '20.0',
@@ -2120,7 +2132,8 @@ describe('PerpsController', () => {
       controller.subscribeToAccount({ callback: originalCallback });
 
       const accountState = {
-        availableBalance: '5000',
+        spendableBalance: '5000',
+        withdrawableBalance: '5000',
         totalBalance: '5000',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -3314,12 +3327,14 @@ describe('PerpsController', () => {
       expect(withdrawal.success).toBe(true);
     });
 
-    it('updates withdrawal status to failed', () => {
+    it('removes withdrawal request when status is failed', () => {
       controller.updateWithdrawalStatus(mockWithdrawalId, 'failed');
 
-      const withdrawal = controller.state.withdrawalRequests[0];
-      expect(withdrawal.status).toBe('failed');
-      expect(withdrawal.success).toBe(false);
+      expect(
+        controller.state.withdrawalRequests.some(
+          (w) => w.id === mockWithdrawalId,
+        ),
+      ).toBe(false);
     });
 
     it('clears withdrawal progress when status completed', () => {
@@ -3354,6 +3369,11 @@ describe('PerpsController', () => {
 
       expect(controller.state.withdrawalProgress.progress).toBe(0);
       expect(controller.state.withdrawalProgress.activeWithdrawalId).toBeNull();
+      expect(
+        controller.state.withdrawalRequests.some(
+          (w) => w.id === mockWithdrawalId,
+        ),
+      ).toBe(false);
     });
 
     it('finds withdrawal by ID', () => {
@@ -3423,6 +3443,95 @@ describe('PerpsController', () => {
       expect(withdrawal.status).toBe('completed');
       expect(withdrawal.txHash).toBeUndefined();
       expect(withdrawal.success).toBe(true);
+    });
+  });
+
+  describe('completeWithdrawalFromHistory', () => {
+    const pendingId = 'withdrawal-fifo-1';
+    const txHash = '0xfifoabc';
+    const completedPayload = {
+      txHash,
+      amount: '25',
+      timestamp: 1_700_000_000_000,
+      asset: 'USDC',
+    };
+
+    beforeEach(() => {
+      markControllerAsInitialized();
+      controller.testUpdate((state) => {
+        state.withdrawalRequests = [
+          {
+            id: pendingId,
+            timestamp: Date.now(),
+            amount: '25',
+            asset: 'USDC',
+            accountAddress: '0x1234567890123456789012345678901234567890',
+            success: false,
+            status: 'pending',
+            source: 'hyperliquid',
+          },
+        ];
+        state.withdrawInProgress = true;
+        state.lastCompletedWithdrawalTimestamp = 1_699_000_000_000;
+        state.lastCompletedWithdrawalTxHashes = ['0xexisting'];
+        state.lastUpdateTimestamp = 99_999;
+      });
+    });
+
+    it('does not mutate FIFO guards or emit analytics when withdrawal id is unknown', () => {
+      const snapshot = {
+        withdrawalRequests: [...controller.state.withdrawalRequests],
+        lastCompletedWithdrawalTimestamp:
+          controller.state.lastCompletedWithdrawalTimestamp,
+        lastCompletedWithdrawalTxHashes: [
+          ...controller.state.lastCompletedWithdrawalTxHashes,
+        ],
+        withdrawInProgress: controller.state.withdrawInProgress,
+        lastUpdateTimestamp: controller.state.lastUpdateTimestamp,
+      };
+
+      controller.completeWithdrawalFromHistory('unknown-withdrawal-id', {
+        ...completedPayload,
+        txHash: '0xstale',
+      });
+
+      expect(controller.state.withdrawalRequests).toEqual(
+        snapshot.withdrawalRequests,
+      );
+      expect(controller.state.lastCompletedWithdrawalTimestamp).toBe(
+        snapshot.lastCompletedWithdrawalTimestamp,
+      );
+      expect(controller.state.lastCompletedWithdrawalTxHashes).toEqual(
+        snapshot.lastCompletedWithdrawalTxHashes,
+      );
+      expect(controller.state.withdrawInProgress).toBe(
+        snapshot.withdrawInProgress,
+      );
+      expect(controller.state.lastUpdateTimestamp).toBe(
+        snapshot.lastUpdateTimestamp,
+      );
+      expect(mockInfrastructure.metrics.trackPerpsEvent).not.toHaveBeenCalled();
+    });
+
+    it('removes the request, updates FIFO guards, and tracks completion when id matches', () => {
+      controller.completeWithdrawalFromHistory(pendingId, completedPayload);
+
+      expect(controller.state.withdrawalRequests).toHaveLength(0);
+      expect(controller.state.lastCompletedWithdrawalTimestamp).toBe(
+        completedPayload.timestamp,
+      );
+      expect(controller.state.lastCompletedWithdrawalTxHashes).toEqual([
+        '0xexisting',
+        txHash,
+      ]);
+      expect(controller.state.withdrawInProgress).toBe(false);
+      expect(mockInfrastructure.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.WithdrawalTransaction,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.COMPLETED,
+          [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]: 25,
+        }),
+      );
     });
   });
 
@@ -4238,7 +4347,8 @@ describe('PerpsController', () => {
       // Complete AccountState mock with all required fields
       const createMockAccountState = (overrides = {}) => ({
         totalBalance: '50000',
-        availableBalance: '45000',
+        spendableBalance: '45000',
+        withdrawableBalance: '45000',
         marginUsed: '5000',
         unrealizedPnl: '1000',
         returnOnEquity: '20',
@@ -4279,7 +4389,8 @@ describe('PerpsController', () => {
         // Arrange - no activeProviderInstance set (pre-initialization)
         const mockAccountState = createMockAccountState({
           totalBalance: '25000',
-          availableBalance: '20000',
+          spendableBalance: '20000',
+          withdrawableBalance: '20000',
         });
         const tempMockProvider = createMockHyperLiquidProvider();
         tempMockProvider.getAccountState.mockResolvedValue(mockAccountState);
@@ -5017,6 +5128,343 @@ describe('PerpsController', () => {
     it('stopMarketDataPreload is safe to call when not started', () => {
       expect(() => controller.stopMarketDataPreload()).not.toThrow();
     });
+
+    it('hydrates market data from disk at construction time', () => {
+      const diskMarkets = {
+        providerNetworkKey: 'hyperliquid:mainnet',
+        data: [
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            price: '50000',
+            change24h: '+100',
+            change24hPercent: '+0.2%',
+            maxLeverage: '50x',
+            volume: '$1B',
+          },
+        ],
+        timestamp: Date.now(),
+      };
+      const infra = createMockInfrastructure();
+      (infra.diskCache.getItemSync as jest.Mock).mockImplementation(
+        (key: string) => {
+          if (key === PERPS_DISK_CACHE_MARKETS) {
+            return JSON.stringify(diskMarkets);
+          }
+          return null;
+        },
+      );
+
+      const ctrl = new TestablePerpsController({
+        messenger: createMockMessenger(),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: infra,
+      });
+
+      const cached =
+        ctrl.state.cachedMarketDataByProvider['hyperliquid:mainnet'];
+      expect(cached).not.toBeNull();
+      expect(cached?.data).toHaveLength(1);
+      expect(cached?.data[0].symbol).toBe('BTC');
+      // Prices are stripped to placeholder values
+      expect(cached?.data[0].price).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
+      expect(cached?.data[0].change24h).toBe(
+        PERPS_CONSTANTS.FallbackDataDisplay,
+      );
+      expect(cached?.data[0].change24hPercent).toBe(
+        PERPS_CONSTANTS.FallbackPercentageDisplay,
+      );
+      expect(ctrl.getCachedMarketDataForActiveProvider()).toBeNull();
+      expect(
+        ctrl.getCachedMarketDataForActiveProvider({ skipTTL: true }),
+      ).toHaveLength(1);
+    });
+
+    it('hydrates multi-provider market data from disk before providers register', () => {
+      const timestamp = Date.now();
+      const diskMarkets = {
+        entries: [
+          {
+            providerNetworkKey: 'hyperliquid:mainnet',
+            data: [
+              {
+                symbol: 'BTC',
+                name: 'Bitcoin',
+                price: '50000',
+                change24h: '+100',
+                change24hPercent: '+0.2%',
+                maxLeverage: '50x',
+                volume: '$1B',
+              },
+            ],
+            timestamp,
+          },
+          {
+            providerNetworkKey: 'myx:mainnet',
+            data: [
+              {
+                symbol: 'ETH',
+                name: 'Ethereum',
+                price: '3000',
+                change24h: '+50',
+                change24hPercent: '+1.2%',
+                maxLeverage: '25x',
+                volume: '$500M',
+              },
+            ],
+            timestamp,
+          },
+        ],
+      };
+      const infra = createMockInfrastructure();
+      (infra.diskCache.getItemSync as jest.Mock).mockImplementation(
+        (key: string) => {
+          if (key === PERPS_DISK_CACHE_MARKETS) {
+            return JSON.stringify(diskMarkets);
+          }
+          return null;
+        },
+      );
+
+      const ctrl = new TestablePerpsController({
+        messenger: createMockMessenger(),
+        state: {
+          ...getDefaultPerpsControllerState(),
+          activeProvider: 'aggregated',
+        },
+        clientConfig: {
+          providerCredentials: {
+            myx: {
+              enabled: true,
+            },
+          },
+        } as never,
+        infrastructure: infra,
+      });
+
+      const aggregated = ctrl.getCachedMarketDataForActiveProvider({
+        skipTTL: true,
+      });
+      expect(aggregated).toHaveLength(2);
+      expect(aggregated?.map((market) => market.symbol)).toEqual([
+        'BTC',
+        'ETH',
+      ]);
+    });
+
+    it('hydrates aggregated user data from disk before providers register', () => {
+      const timestamp = Date.now();
+      const diskUserData = {
+        entries: [
+          {
+            providerNetworkKey: 'hyperliquid:mainnet',
+            address: '0x1234567890abcdef1234567890abcdef12345678',
+            positions: [createMockPosition({ symbol: 'BTC', size: '1.0' })],
+            orders: [],
+            accountState: {
+              totalBalance: '5000',
+              spendableBalance: '4000',
+              withdrawableBalance: '4000',
+              marginUsed: '1000',
+              unrealizedPnl: '0',
+              returnOnEquity: '0',
+              providerId: 'hyperliquid',
+            },
+            timestamp,
+          },
+          {
+            providerNetworkKey: 'myx:mainnet',
+            address: '0x1234567890abcdef1234567890abcdef12345678',
+            positions: [createMockPosition({ symbol: 'MYX', size: '2.0' })],
+            orders: [],
+            accountState: null,
+            timestamp,
+          },
+        ],
+      };
+      const infra = createMockInfrastructure();
+      (infra.diskCache.getItemSync as jest.Mock).mockImplementation(
+        (key: string) => {
+          if (key === PERPS_DISK_CACHE_USER_DATA) {
+            return JSON.stringify(diskUserData);
+          }
+          return null;
+        },
+      );
+
+      const ctrl = new TestablePerpsController({
+        messenger: createMockMessenger(),
+        state: {
+          ...getDefaultPerpsControllerState(),
+          activeProvider: 'aggregated',
+        },
+        clientConfig: {
+          providerCredentials: {
+            myx: {
+              enabled: true,
+            },
+          },
+        } as never,
+        infrastructure: infra,
+      });
+
+      const aggregated = ctrl.getCachedUserDataForActiveProvider({
+        skipTTL: true,
+      });
+      expect(aggregated?.positions).toHaveLength(2);
+      expect(aggregated?.accountState?.providerId).toBe('hyperliquid');
+    });
+
+    it('hydrates user data from disk at construction time', () => {
+      const diskUserData = {
+        providerNetworkKey: 'hyperliquid:mainnet',
+        address: '0x1234567890123456789012345678901234567890',
+        positions: [{ symbol: 'ETH', size: '2.0', entryPrice: '3000' }],
+        orders: [],
+        accountState: {
+          totalBalance: '5000',
+          spendableBalance: '4000',
+          withdrawableBalance: '4000',
+          marginUsed: '1000',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+        },
+        timestamp: Date.now(),
+      };
+      const infra = createMockInfrastructure();
+      (infra.diskCache.getItemSync as jest.Mock).mockImplementation(
+        (key: string) => {
+          if (key === PERPS_DISK_CACHE_USER_DATA) {
+            return JSON.stringify(diskUserData);
+          }
+          return null;
+        },
+      );
+
+      const ctrl = new TestablePerpsController({
+        messenger: createMockMessenger(),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: infra,
+      });
+
+      const cached = ctrl.state.cachedUserDataByProvider['hyperliquid:mainnet'];
+      expect(cached).not.toBeNull();
+      expect(cached?.positions).toHaveLength(1);
+      expect(cached?.positions[0].symbol).toBe('ETH');
+      expect(cached?.address).toBe(
+        '0x1234567890123456789012345678901234567890',
+      );
+    });
+
+    it('hydrates user data from disk even when address differs (filtered at read time)', () => {
+      const diskUserData = {
+        providerNetworkKey: 'hyperliquid:mainnet',
+        address: '0xDEADBEEF00000000000000000000000000000000',
+        positions: [{ symbol: 'ETH', size: '2.0' }],
+        orders: [],
+        accountState: null,
+        timestamp: Date.now(),
+      };
+      const infra = createMockInfrastructure();
+      (infra.diskCache.getItemSync as jest.Mock).mockImplementation(
+        (key: string) => {
+          if (key === PERPS_DISK_CACHE_USER_DATA) {
+            return JSON.stringify(diskUserData);
+          }
+          return null;
+        },
+      );
+
+      const ctrl = new TestablePerpsController({
+        messenger: createMockMessenger(),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: infra,
+      });
+
+      // Sync hydration populates cache unconditionally — address
+      // validation happens in getCachedUserDataForActiveProvider at read time
+      const cached = ctrl.state.cachedUserDataByProvider['hyperliquid:mainnet'];
+      expect(cached).not.toBeNull();
+      expect(cached?.address).toBe(
+        '0xDEADBEEF00000000000000000000000000000000',
+      );
+
+      // But getCachedUserDataForActiveProvider filters it out (address mismatch)
+      const read = ctrl.getCachedUserDataForActiveProvider({
+        skipTTL: true,
+      });
+      expect(read).toBeNull();
+    });
+
+    it('does not overwrite fresher in-memory state from older disk data', () => {
+      const freshTimestamp = Date.now();
+      const diskMarkets = {
+        providerNetworkKey: 'hyperliquid:mainnet',
+        data: [{ symbol: 'BTC', name: 'Bitcoin', price: '50000' }],
+        timestamp: freshTimestamp - 60_000, // older than initial state
+      };
+      const infra = createMockInfrastructure();
+      (infra.diskCache.getItemSync as jest.Mock).mockImplementation(
+        (key: string) => {
+          if (key === PERPS_DISK_CACHE_MARKETS) {
+            return JSON.stringify(diskMarkets);
+          }
+          return null;
+        },
+      );
+
+      // Construct with fresher in-memory data already present
+      const ctrl = new TestablePerpsController({
+        messenger: createMockMessenger(),
+        state: {
+          ...getDefaultPerpsControllerState(),
+          cachedMarketDataByProvider: {
+            'hyperliquid:mainnet': {
+              data: [{ symbol: 'ETH', name: 'Ethereum', price: '3000' } as any],
+              timestamp: freshTimestamp,
+            },
+          },
+        },
+        infrastructure: infra,
+      });
+
+      const cached =
+        ctrl.state.cachedMarketDataByProvider['hyperliquid:mainnet'];
+      expect(cached?.data[0].symbol).toBe('ETH');
+      expect(cached?.timestamp).toBe(freshTimestamp);
+    });
+
+    it('handles corrupt disk JSON gracefully at construction', () => {
+      const infra = createMockInfrastructure();
+      (infra.diskCache.getItemSync as jest.Mock).mockReturnValue(
+        'not valid json{{{',
+      );
+
+      const ctrl = new TestablePerpsController({
+        messenger: createMockMessenger(),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: infra,
+      });
+
+      expect(
+        ctrl.state.cachedMarketDataByProvider['hyperliquid:mainnet'],
+      ).toBeUndefined();
+    });
+
+    it('falls back gracefully when getItemSync is undefined', () => {
+      const infra = createMockInfrastructure();
+      (infra.diskCache as any).getItemSync = undefined;
+
+      const ctrl = new TestablePerpsController({
+        messenger: createMockMessenger(),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: infra,
+      });
+
+      expect(
+        ctrl.state.cachedMarketDataByProvider['hyperliquid:mainnet'],
+      ).toBeUndefined();
+    });
   });
 
   describe('performMarketDataPreload', () => {
@@ -5052,6 +5500,41 @@ describe('PerpsController', () => {
         controller.state.cachedMarketDataByProvider['hyperliquid:mainnet'];
       expect(entry?.data).toEqual(mockData);
       expect(entry?.timestamp).toBeGreaterThan(0);
+    });
+
+    it('persists preloaded market data to disk', async () => {
+      const mockData = [
+        {
+          symbol: 'BTC',
+          name: 'BTC',
+          price: '50000',
+          maxLeverage: '50x',
+          change24h: '+100',
+          change24hPercent: '+0.2%',
+          volume: '$1B',
+        },
+      ];
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.getMarketDataWithPrices.mockResolvedValue(mockData);
+
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      expect(mockInfrastructure.diskCache.setItem).toHaveBeenCalledWith(
+        PERPS_DISK_CACHE_MARKETS,
+        expect.any(String),
+      );
+
+      const persistedPayload = JSON.parse(
+        (mockInfrastructure.diskCache.setItem as jest.Mock).mock.calls.find(
+          ([key]) => key === PERPS_DISK_CACHE_MARKETS,
+        )?.[1] as string,
+      );
+
+      expect(persistedPayload.providerNetworkKey).toBe('hyperliquid:mainnet');
+      expect(persistedPayload.data).toEqual(mockData);
+      expect(persistedPayload.timestamp).toBeGreaterThan(0);
     });
 
     it('respects 30s debounce guard', async () => {
@@ -5188,7 +5671,8 @@ describe('PerpsController', () => {
       preloadMockProvider = createMockHyperLiquidProvider();
       preloadMockProvider.getPositions.mockResolvedValue([]);
       preloadMockProvider.getAccountState.mockResolvedValue({
-        availableBalance: '10000',
+        spendableBalance: '10000',
+        withdrawableBalance: '10000',
         totalBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -5230,7 +5714,8 @@ describe('PerpsController', () => {
       ];
       const mockAccountState: AccountState = {
         totalBalance: '50000',
-        availableBalance: '45000',
+        spendableBalance: '45000',
+        withdrawableBalance: '45000',
         marginUsed: '5000',
         unrealizedPnl: '1000',
         returnOnEquity: '20',
@@ -5269,6 +5754,76 @@ describe('PerpsController', () => {
       expect(entry.orders).toEqual(mockOrders);
       expect(entry.accountState).toEqual(mockAccountState);
       expect(entry.timestamp).toBeGreaterThan(0);
+    });
+
+    it('persists preloaded user data to disk', async () => {
+      const mockPositions = [createMockPosition()];
+      const mockOrders = [
+        {
+          orderId: 'o1',
+          symbol: 'BTC',
+          side: 'buy' as const,
+          orderType: 'limit' as const,
+          size: '0.1',
+          originalSize: '0.1',
+          filledSize: '0',
+          remainingSize: '0.1',
+          price: '50000',
+          status: 'open' as const,
+          timestamp: Date.now(),
+        },
+      ];
+      const mockAccountState: AccountState = {
+        totalBalance: '50000',
+        spendableBalance: '45000',
+        withdrawableBalance: '45000',
+        marginUsed: '5000',
+        unrealizedPnl: '1000',
+        returnOnEquity: '20',
+      };
+
+      preloadController.testMarkInitialized();
+      preloadController.testSetProviders(
+        new Map([['hyperliquid', preloadMockProvider]]),
+      );
+      preloadMockProvider.getPositions.mockResolvedValue(mockPositions);
+      preloadMockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      preloadMockProvider.getAccountState.mockResolvedValue(mockAccountState);
+      preloadMockProvider.getMarketDataWithPrices.mockResolvedValue([
+        {
+          symbol: 'BTC',
+          name: 'BTC',
+          price: '50000',
+          maxLeverage: '50x',
+          change24h: '+100',
+          change24hPercent: '+0.2%',
+          volume: '$1B',
+        },
+      ]);
+      preloadMockProvider.getWebSocketConnectionState.mockReturnValue(
+        WSState.Disconnected,
+      );
+
+      preloadController.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(500);
+
+      expect(preloadInfrastructure.diskCache.setItem).toHaveBeenCalledWith(
+        PERPS_DISK_CACHE_USER_DATA,
+        expect.any(String),
+      );
+
+      const persistedPayload = JSON.parse(
+        (preloadInfrastructure.diskCache.setItem as jest.Mock).mock.calls.find(
+          ([key]) => key === PERPS_DISK_CACHE_USER_DATA,
+        )?.[1] as string,
+      );
+
+      expect(persistedPayload.providerNetworkKey).toBe('hyperliquid:mainnet');
+      expect(persistedPayload.address).toBe(mockEvmAccount.address);
+      expect(persistedPayload.positions).toEqual(mockPositions);
+      expect(persistedPayload.orders).toEqual(mockOrders);
+      expect(persistedPayload.accountState).toEqual(mockAccountState);
+      expect(persistedPayload.timestamp).toBeGreaterThan(0);
     });
 
     it('skips when WebSocket is connected', async () => {
@@ -5326,7 +5881,8 @@ describe('PerpsController', () => {
       preloadMockProvider.getPositions.mockResolvedValue([]);
       preloadMockProvider.getOpenOrders.mockResolvedValue([]);
       preloadMockProvider.getAccountState.mockResolvedValue({
-        availableBalance: '100',
+        spendableBalance: '100',
+        withdrawableBalance: '100',
         totalBalance: '100',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -5487,6 +6043,25 @@ describe('PerpsController', () => {
       expect(result).toBeNull();
     });
 
+    it('returns expired data when skipTTL is true', () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      controller.testUpdate((state) => {
+        state.activeProvider = 'hyperliquid';
+        state.cachedMarketDataByProvider['hyperliquid:mainnet'] = {
+          data: [{ symbol: 'BTC', name: 'BTC', price: '50000' } as any],
+          timestamp: Date.now() - 999_999_999, // very old
+        };
+      });
+
+      const result = controller.getCachedMarketDataForActiveProvider({
+        skipTTL: true,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result?.[0].symbol).toBe('BTC');
+    });
+
     it('assembles data from multiple providers in aggregated mode', () => {
       const mockMYXProvider = createMockHyperLiquidProvider();
       markControllerAsInitialized();
@@ -5604,7 +6179,8 @@ describe('PerpsController', () => {
           orders: [],
           accountState: {
             totalBalance: '50000',
-            availableBalance: '45000',
+            spendableBalance: '45000',
+            withdrawableBalance: '45000',
             marginUsed: '5000',
             unrealizedPnl: '1000',
             returnOnEquity: '20',
@@ -5640,7 +6216,8 @@ describe('PerpsController', () => {
           orders: [],
           accountState: {
             totalBalance: '50000',
-            availableBalance: '45000',
+            spendableBalance: '45000',
+            withdrawableBalance: '45000',
             marginUsed: '5000',
             unrealizedPnl: '1000',
             returnOnEquity: '20',
@@ -5680,6 +6257,31 @@ describe('PerpsController', () => {
       const result = controller.getCachedUserDataForActiveProvider();
 
       expect(result).toBeNull();
+    });
+
+    it('returns stale data when skipTTL is true', () => {
+      const mockPosition = createMockPosition({ symbol: 'BTC', size: '1.0' });
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      controller.testUpdate((state) => {
+        state.activeProvider = 'hyperliquid';
+        state.cachedUserDataByProvider['hyperliquid:mainnet'] = {
+          positions: [mockPosition],
+          orders: [],
+          accountState: null,
+          timestamp: Date.now() - 999_999_999, // very old
+          address: mockAddress,
+        };
+      });
+
+      const withoutSkip = controller.getCachedUserDataForActiveProvider();
+      const withSkip = controller.getCachedUserDataForActiveProvider({
+        skipTTL: true,
+      });
+
+      expect(withoutSkip).toBeNull();
+      expect(withSkip).not.toBeNull();
+      expect(withSkip?.positions).toHaveLength(1);
     });
   });
 

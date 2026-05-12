@@ -4,7 +4,6 @@
 
 import { ParamListBase } from '@react-navigation/native';
 import {
-  OrderPreview,
   PredictActivityItem,
   PredictCategory,
   PredictMarket,
@@ -13,6 +12,7 @@ import {
   PredictPosition,
 } from '.';
 import { PredictEventValues } from '../constants/eventNames';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.CAROUSEL
@@ -27,7 +27,8 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON
   | typeof PredictEventValues.ENTRY_POINT.BACKGROUND
   | typeof PredictEventValues.ENTRY_POINT.TRENDING_SEARCH
-  | typeof PredictEventValues.ENTRY_POINT.TRENDING;
+  | typeof PredictEventValues.ENTRY_POINT.TRENDING
+  | typeof PredictEventValues.ENTRY_POINT.HOME_SECTION;
 
 /** Predict market list parameters */
 export interface PredictMarketListParams {
@@ -43,11 +44,18 @@ export interface PredictMarketDetailsParams {
   title?: string;
   image?: string;
   isGame?: boolean;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 /** Predict activity detail parameters */
 export interface PredictActivityDetailParams {
   activity: PredictActivityItem;
+}
+
+/** Predict add funds modal parameters */
+export interface PredictAddFundsModalParams {
+  /** When true, deposit() is called immediately on mount — skipping the explanation UI. */
+  autoDeposit?: boolean;
 }
 
 /** Predict buy preview parameters */
@@ -56,11 +64,7 @@ export interface PredictBuyPreviewParams {
   outcome: PredictOutcome;
   outcomeToken: PredictOutcomeToken;
   entryPoint?: PredictEntryPoint;
-  batchId?: string;
-  animationEnabled?: boolean;
-  isConfirmation?: boolean;
-  isConfirming?: boolean;
-  preview?: OrderPreview;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 /** Predict sell preview parameters */
@@ -71,6 +75,27 @@ export interface PredictSellPreviewParams {
   entryPoint?: PredictEntryPoint;
 }
 
+/** Props for rendering PredictBuyPreview inside a BottomSheet */
+export interface PredictBuyPreviewContentProps extends PredictBuyPreviewParams {
+  onClose: () => void;
+}
+
+/** Props for rendering PredictSellPreview inside a BottomSheet */
+export interface PredictSellPreviewContentProps
+  extends PredictSellPreviewParams {
+  onClose: () => void;
+}
+
+/** Discriminated union props for PredictBuyPreview / PredictBuyWithAnyToken */
+export type PredictBuyPreviewProps =
+  | ({ mode: 'sheet' } & PredictBuyPreviewContentProps)
+  | { mode?: never };
+
+/** Discriminated union props for PredictSellPreview */
+export type PredictSellPreviewProps =
+  | ({ mode: 'sheet' } & PredictSellPreviewContentProps)
+  | { mode?: never };
+
 export interface PredictNavigationParamList extends ParamListBase {
   Predict: undefined;
   PredictMarketList: PredictMarketListParams;
@@ -78,4 +103,5 @@ export interface PredictNavigationParamList extends ParamListBase {
   PredictSellPreview: PredictSellPreviewParams;
   PredictBuyPreview: PredictBuyPreviewParams;
   PredictActivityDetail: PredictActivityDetailParams;
+  PredictAddFundsSheet: PredictAddFundsModalParams;
 }

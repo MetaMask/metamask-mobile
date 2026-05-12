@@ -33,4 +33,9 @@ export interface ServiceProvider {
    * Cleanup resources (optional)
    */
   cleanup?(): Promise<void>;
+
+  /**
+   * Returns a recording URL for the given session (optional, provider-specific)
+   */
+  getRecordingUrl?(sessionId: string): Promise<string | null>;
 }

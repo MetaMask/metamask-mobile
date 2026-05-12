@@ -9,6 +9,8 @@ import {
   confirmationFeatureFlags,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
+  POLYMARKET_ACTIVITY_MOCKS,
+  POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS,
   POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS,
   POLYMARKET_POLYGON_RELAY_POLLING_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
@@ -16,6 +18,7 @@ import {
   POLYMARKET_USDC_BALANCE_MOCKS,
   POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
@@ -36,6 +39,9 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     carouselBanners: false,
   }); // we need to mock the confirmations redesign Feature flag
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Sets up all RPC mocks needed for withdraw flow
+  // Keep this smoke test on the legacy Safe withdraw path.
+  await POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS(mockServer);
+  await POLYMARKET_ACTIVITY_MOCKS(mockServer);
   await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer); // needed to load the withdraw/deposit/claim screen
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings for claim flow
   await POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS(mockServer);
@@ -47,6 +53,21 @@ describe(SmokePredictions('Predictions Withdraw'), () => {
       {
         fixture: new FixtureBuilder()
           .withPolygon()
+          // Polygon bridged USDC must be in TokenController so confirmation's
+          // useUpdateTokenAmount gets decimals=6. Otherwise decimals fall back to 18 and
+          // "5" USDC is encoded as 5e18 raw — Predict signWithdraw then throws
+          // "Decoded USDC amount is invalid or too large".
+          .withTokens(
+            [
+              {
+                address: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+                decimals: 6,
+                name: 'USD Coin (PoS)',
+                symbol: 'USDC.e',
+              },
+            ],
+            CHAIN_IDS.POLYGON,
+          )
           // STX + sendBundle on Polygon would skip Delegation7702PublishHook and use the
           // smart-transaction publish path (not covered by POLYMARKET_TRANSACTION_SENTINEL_MOCKS).
           .withDisabledSmartTransactions()
@@ -56,6 +77,7 @@ describe(SmokePredictions('Predictions Withdraw'), () => {
       },
       async () => {
         await loginToApp();
+        await device.disableSynchronization();
 
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapPredictButton();

@@ -6,20 +6,27 @@ import {
   Text,
   TextColor,
   TextVariant,
-  BoxFlexDirection,
-  BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../util/theme';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../../component-library/components/Texts/SensitiveText';
+import {
+  TextVariant as ComponentTextVariant,
+  TextColor as ComponentTextColor,
+} from '../../../../../../component-library/components/Texts/Text/Text.types';
 import {
   formatPercentage,
   formatPrice,
 } from '../../../../../UI/Predict/utils/format';
 import type { PredictPosition } from '../../../../../UI/Predict/types';
+import { strings } from '../../../../../../../locales/i18n';
 
 interface PredictPositionRowProps {
   position: PredictPosition;
   onPress: (position: PredictPosition) => void;
+  privacyMode: boolean;
 }
 
 /**
@@ -32,6 +39,7 @@ interface PredictPositionRowProps {
 export const PredictPositionRow = ({
   position,
   onPress,
+  privacyMode,
 }: PredictPositionRowProps) => {
   const tw = useTailwind();
 
@@ -39,56 +47,66 @@ export const PredictPositionRow = ({
     onPress(position);
   }, [onPress, position]);
 
+  const { title, outcome, initialValue, size, currentValue, percentPnl } =
+    position;
+
   return (
     <TouchableOpacity
       onPress={handlePress}
       accessibilityRole="button"
-      accessibilityLabel={`${position.title} - ${position.outcome}`}
+      accessibilityLabel={`${title} - ${outcome}`}
+      style={tw.style('flex-row items-start px-4 py-3 gap-4')}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Start}
-        paddingHorizontal={4}
-        paddingVertical={3}
-        gap={4}
-      >
-        {position.icon ? (
-          <Image
-            source={{ uri: position.icon }}
-            style={tw.style('w-10 h-10 rounded-lg mt-1')}
-          />
-        ) : (
-          <Box twClassName="w-10 h-10 rounded-lg mt-1 bg-background-alternative" />
-        )}
-        <Box style={tw.style('flex-1')} gap={0}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {position.title}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            numberOfLines={1}
-          >
-            {formatPrice(position.initialValue, { maximumDecimals: 2 })} on{' '}
-            {position.outcome} to win{' '}
-            {formatPrice(position.size, { maximumDecimals: 2 })}
-          </Text>
-        </Box>
-        <Box twClassName="items-end" gap={0}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {formatPrice(position.currentValue, { maximumDecimals: 2 })}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={
-              position.percentPnl >= 0
-                ? TextColor.SuccessDefault
-                : TextColor.ErrorDefault
-            }
-          >
-            {formatPercentage(position.percentPnl)}
-          </Text>
-        </Box>
+      {position.icon ? (
+        <Image
+          source={{ uri: position.icon }}
+          style={tw.style('w-10 h-10 rounded-lg mt-1')}
+        />
+      ) : (
+        <Box twClassName="w-10 h-10 rounded-lg mt-1 bg-background-alternative" />
+      )}
+      <Box style={tw.style('flex-1')} gap={0}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+          {title}
+        </Text>
+        <SensitiveText
+          variant={ComponentTextVariant.BodySMMedium}
+          color={ComponentTextColor.Alternative}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Long}
+          numberOfLines={1}
+        >
+          {strings('predict.position_info', {
+            initialValue: formatPrice(initialValue, {
+              maximumDecimals: 2,
+            }),
+            outcome,
+            shares: formatPrice(size, {
+              maximumDecimals: 2,
+            }),
+          })}
+        </SensitiveText>
+      </Box>
+      <Box twClassName="items-end" gap={0}>
+        <SensitiveText
+          variant={ComponentTextVariant.BodyMDMedium}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Short}
+        >
+          {formatPrice(currentValue, { maximumDecimals: 2 })}
+        </SensitiveText>
+        <SensitiveText
+          variant={ComponentTextVariant.BodySMMedium}
+          color={
+            percentPnl >= 0
+              ? ComponentTextColor.Success
+              : ComponentTextColor.Error
+          }
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Short}
+        >
+          {formatPercentage(percentPnl)}
+        </SensitiveText>
       </Box>
     </TouchableOpacity>
   );

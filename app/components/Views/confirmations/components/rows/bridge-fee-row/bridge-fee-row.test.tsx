@@ -106,7 +106,13 @@ describe('BridgeFeeRow', () => {
     expect(queryByTestId('metamask-fee-row-skeleton')).toBeNull();
   });
 
-  it('does not render tooltip if no quotes', async () => {
+  it('renders fee from totals when there are no quotes', () => {
+    useTransactionPayQuotesMock.mockReturnValue([]);
+    const { getByText } = render();
+    expect(getByText('$1.23')).toBeOnTheScreen();
+  });
+
+  it('does not render tooltip when there are no quotes', () => {
     useTransactionPayQuotesMock.mockReturnValue([]);
     const { queryByTestId } = render();
     expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
@@ -140,6 +146,26 @@ describe('BridgeFeeRow', () => {
     const { getByText } = render();
 
     expect(getByText('$1.23')).toBeOnTheScreen();
+  });
+
+  it('renders tooltip for perps withdraw', async () => {
+    const { getByTestId } = render({
+      type: TransactionType.perpsWithdraw,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+    });
+
+    expect(getByTestId('info-row-tooltip-open-btn')).toBeDefined();
+  });
+
+  it('renders fee for perps withdraw', () => {
+    const { getByText } = render({
+      type: TransactionType.perpsWithdraw,
+    });
+
+    expect(getByText('$1.23')).toBeDefined();
   });
 
   it('renders metamask fee in tooltip', async () => {

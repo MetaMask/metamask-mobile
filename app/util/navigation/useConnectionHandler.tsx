@@ -1,8 +1,6 @@
 import { useRef, useCallback } from 'react';
-import {
-  useMetrics,
-  MetaMetricsEvents,
-} from '../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../core/Analytics';
+import { useAnalytics } from '../../components/hooks/useAnalytics/useAnalytics';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -10,7 +8,7 @@ export const useConnectionHandler = (navigation: any) => {
   const connectedRef = useRef(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const connectionChangeHandler = useCallback(
     (state: { isConnected: boolean } | null) => {

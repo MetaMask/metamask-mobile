@@ -42,7 +42,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   const chartWidthRef = useRef<number>(0);
   const primaryDataLengthRef = useRef<number>(0);
 
-  const seriesToRender = useMemo(() => data.slice(0, 2), [data]);
+  const seriesToRender = data;
   const nonEmptySeries = useMemo(
     () => seriesToRender.filter((series) => series.data.length > 0),
     [seriesToRender],

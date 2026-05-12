@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import {
   selectBridgeControllerState,
   selectBridgeQuotes,
+  selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { useEffect, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
@@ -10,6 +11,7 @@ import {
   QuoteWarning,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
+import { useTokenBalanceInUsd } from '../useTokenBalanceInUsd';
 
 /**
  * Hook for publishing the QuotesReceived event.
@@ -17,6 +19,7 @@ import {
  */
 export const useBridgeQuoteEvents = ({
   hasInsufficientBalance,
+  hasInsufficientNativeReserveError,
   hasNoQuotesAvailable,
   hasInsufficientGas,
   hasTxAlert,
@@ -24,6 +27,7 @@ export const useBridgeQuoteEvents = ({
   isPriceImpactWarningVisible,
 }: {
   hasInsufficientBalance: boolean;
+  hasInsufficientNativeReserveError: boolean;
   hasNoQuotesAvailable: boolean;
   hasInsufficientGas: boolean;
   hasTxAlert: boolean;
@@ -36,6 +40,9 @@ export const useBridgeQuoteEvents = ({
   const { activeQuote, recommendedQuote, isLoading } =
     useSelector(selectBridgeQuotes);
 
+  const sourceToken = useSelector(selectSourceToken);
+  const fromTokenBalanceInUsd = useTokenBalanceInUsd(sourceToken ?? undefined);
+
   const warnings = useMemo(() => {
     const latestWarnings: QuoteWarning[] = [];
 
@@ -43,6 +50,9 @@ export const useBridgeQuoteEvents = ({
     hasInsufficientGas &&
       latestWarnings.push('insufficient_gas_for_selected_quote');
     hasInsufficientBalance && latestWarnings.push('insufficient_balance');
+    hasInsufficientNativeReserveError &&
+      // @ts-expect-error - 'insufficient_native_reserve' is a valid QuoteWarning
+      latestWarnings.push('insufficient_native_reserve');
     hasTxAlert && latestWarnings.push('tx_alert');
     isPriceImpactWarningVisible && latestWarnings.push('price_impact');
 
@@ -51,6 +61,7 @@ export const useBridgeQuoteEvents = ({
     hasNoQuotesAvailable,
     hasInsufficientGas,
     hasInsufficientBalance,
+    hasInsufficientNativeReserveError,
     hasTxAlert,
     isPriceImpactWarningVisible,
   ]);
@@ -65,6 +76,7 @@ export const useBridgeQuoteEvents = ({
           warnings,
           !isSubmitDisabled,
           recommendedQuote,
+          fromTokenBalanceInUsd,
         ),
       );
     }

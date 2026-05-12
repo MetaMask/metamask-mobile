@@ -24,6 +24,7 @@ import {
   setPrimaryCurrency,
   setAvatarAccountType,
   setHideZeroBalanceTokens,
+  setHapticsEnabled,
 } from '../../../../actions/settings';
 import PickComponent from '../../PickComponent';
 import AvatarAccount, {
@@ -31,7 +32,8 @@ import AvatarAccount, {
 } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { withAnalyticsAwareness } from '../../../../components/hooks/useAnalytics/withAnalyticsAwareness';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import Text, {
   TextVariant,
@@ -40,6 +42,8 @@ import Text, {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { colors as staticColors } from '../../../../styles/common';
+import { enablePushNotifications } from '../../../../actions/notification/helpers';
+import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
 
 const diameter = 40;
 const spacing = 8;
@@ -58,13 +62,12 @@ const infuraCurrencyOptions = sortedCurrencies.map(
   }),
 );
 
-export const updateUserTraitsWithCurrentCurrency = (currency, analytics) => {
+export const updateUserTraitsWithCurrentCurrency = (currency) => {
   // track event and add selected currency to user profile for analytics
   const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
-  analytics.addTraitsToUser(traits);
+  analytics.identify(traits);
   analytics.trackEvent(
-    analytics
-      .createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
+    AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
       .addProperties({
         ...traits,
         location: 'app_settings',
@@ -73,13 +76,10 @@ export const updateUserTraitsWithCurrentCurrency = (currency, analytics) => {
   );
 };
 
-export const updateUserTraitsWithCurrencyType = (
-  primaryCurrency,
-  analytics,
-) => {
+export const updateUserTraitsWithCurrencyType = (primaryCurrency) => {
   // track event and add primary currency preference (fiat/crypto) to user profile for analytics
   const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
-  analytics.addTraitsToUser(traits);
+  analytics.identify(traits);
 };
 
 const createStyles = (colors) =>
@@ -211,9 +211,17 @@ class Settings extends PureComponent {
      */
     // appTheme: PropTypes.string,
     /**
-     * Analytics injected by withAnalyticsAwareness HOC
+     * Whether push notifications are currently enabled
      */
-    analytics: PropTypes.object,
+    isPushNotificationsEnabled: PropTypes.bool,
+    /**
+     * Whether haptics are currently enabled
+     */
+    hapticsEnabled: PropTypes.bool,
+    /**
+     * Called to toggle haptics
+     */
+    setHapticsEnabled: PropTypes.func,
   };
 
   state = {
@@ -224,13 +232,20 @@ class Settings extends PureComponent {
   selectCurrency = async (currency) => {
     const { CurrencyRateController } = Engine.context;
     CurrencyRateController.setCurrentCurrency(currency);
-    updateUserTraitsWithCurrentCurrency(currency, this.props.analytics);
+    updateUserTraitsWithCurrentCurrency(currency);
   };
 
   selectLanguage = (language) => {
     if (language === this.state.currentLanguage) return;
     setLocale(language);
     this.setState({ currentLanguage: language });
+
+    if (this.props.isPushNotificationsEnabled) {
+      enablePushNotifications().catch(() => {
+        // Best-effort: token will be refreshed on next app launch
+      });
+    }
+
     setTimeout(() => this.props.navigation.navigate('Home'), 100);
   };
 
@@ -241,11 +256,15 @@ class Settings extends PureComponent {
   selectPrimaryCurrency = (primaryCurrency) => {
     this.props.setPrimaryCurrency(primaryCurrency);
 
-    updateUserTraitsWithCurrencyType(primaryCurrency, this.props.analytics);
+    updateUserTraitsWithCurrencyType(primaryCurrency);
   };
 
   toggleHideZeroBalanceTokens = (toggleHideZeroBalanceTokens) => {
     this.props.setHideZeroBalanceTokens(toggleHideZeroBalanceTokens);
+  };
+
+  toggleHapticsEnabled = (hapticsEnabled) => {
+    this.props.setHapticsEnabled(hapticsEnabled);
   };
 
   componentDidMount = () => {
@@ -311,6 +330,7 @@ class Settings extends PureComponent {
       setAvatarAccountType,
       selectedAddress,
       hideZeroBalanceTokens,
+      hapticsEnabled,
       navigation,
     } = this.props;
     const themeTokens = this.context || mockTheme;
@@ -452,6 +472,33 @@ class Settings extends PureComponent {
               </Text>
             </View>
             <View style={styles.setting}>
+              <View style={styles.titleContainer}>
+                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                  {strings('app_settings.haptic_feedback_title')}
+                </Text>
+                <View style={styles.toggle}>
+                  <Switch
+                    value={hapticsEnabled}
+                    onValueChange={this.toggleHapticsEnabled}
+                    trackColor={{
+                      true: colors.primary.default,
+                      false: colors.border.muted,
+                    }}
+                    thumbColor={themeTokens.brandColors.white}
+                    style={styles.switch}
+                    ios_backgroundColor={colors.border.muted}
+                  />
+                </View>
+              </View>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.haptic_feedback_desc')}
+              </Text>
+            </View>
+            <View style={styles.setting}>
               <Text variant={TextVariant.BodyLGMedium}>
                 {strings('app_settings.accounts_identicon_title')}
               </Text>
@@ -554,6 +601,8 @@ const mapStateToProps = (state) => ({
   avatarAccountType: state.settings.avatarAccountType,
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
+  hapticsEnabled: state.settings.hapticsEnabled !== false,
+  isPushNotificationsEnabled: selectIsMetaMaskPushNotificationsEnabled(state),
   // appTheme: state.user.appTheme,
 });
 
@@ -565,9 +614,8 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setAvatarAccountType(avatarAccountType)),
   setHideZeroBalanceTokens: (hideZeroBalanceTokens) =>
     dispatch(setHideZeroBalanceTokens(hideZeroBalanceTokens)),
+  setHapticsEnabled: (hapticsEnabled) =>
+    dispatch(setHapticsEnabled(hapticsEnabled)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withAnalyticsAwareness(Settings));
+export default connect(mapStateToProps, mapDispatchToProps)(Settings);

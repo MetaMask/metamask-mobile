@@ -26,8 +26,8 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import {
   resetOnboardingState,
   selectContactVerificationId,
-  selectUserCardLocation,
 } from '../../../../../core/redux/slices/card';
+import { selectCardUserLocation } from '../../../../../selectors/cardController';
 import { useDispatch, useSelector } from 'react-redux';
 import { CardError, Region } from '../../types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -48,7 +48,7 @@ const SetPhoneNumber = () => {
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { signUpRegions, userCountry, getRegionByCode } = useRegions();
-  const userCardLocation = useSelector(selectUserCardLocation);
+  const userCardLocation = useSelector(selectCardUserLocation);
   const { countryKey } = useParams<{ countryKey?: string }>();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberError, setIsPhoneNumberError] = useState(false);

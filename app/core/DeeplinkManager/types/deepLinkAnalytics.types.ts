@@ -51,10 +51,12 @@ export enum DeepLinkRoute {
   PREDICT = 'predict',
   SHIELD = 'shield',
   TRENDING = 'trending',
-  ENABLE_CARD_BUTTON = 'enable-card-button',
+  SOCIAL_LEADERBOARD = 'social-leaderboard',
+  SOCIAL_TRADER_POSITION = 'social-trader-position',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
   NFT = 'nft',
+  MMC_MWP = 'mmc-mwp',
   INVALID = 'invalid',
 }
 

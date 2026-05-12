@@ -14,6 +14,7 @@ import {
   findMatchingPostEvent,
   processPostRequestBody,
   setupAccountsV2SupportedNetworksMock,
+  setupAccountsV4TransactionsMock,
 } from './helpers/mockHelpers.ts';
 import { getLocalHost } from '../framework/fixtures/FixtureUtils.ts';
 import PortManager, { ResourceType } from '../framework/PortManager.ts';
@@ -28,6 +29,39 @@ const logger = createLogger({
   name: 'MockServer',
   level: LogLevel.INFO,
 });
+
+// ---------------------------------------------------------------------------
+// Patch mockttp's matchesAll so aborted requests don't become unhandled
+// rejections.
+//
+// findMatchingRule() starts ALL rules matching concurrently (.map) but awaits
+// them one-by-one. When the first match succeeds it returns, abandoning the
+// rest. If any of those reject (streamToBuffer → Error('Aborted') from a
+// client disconnect), they become unhandled rejections that Jest turns into
+// test failures.
+//
+// This patch catches only Error('Aborted') and returns false ("no match").
+// All other errors propagate normally.
+// ---------------------------------------------------------------------------
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mockttpMatchers = require('mockttp/dist/rules/matchers');
+  const originalMatchesAll = mockttpMatchers.matchesAll;
+  mockttpMatchers.matchesAll = async function (
+    ...args: Parameters<typeof originalMatchesAll>
+  ) {
+    try {
+      return await originalMatchesAll.apply(this, args);
+    } catch (e) {
+      if (e instanceof Error && e.message === 'Aborted') {
+        return false;
+      }
+      throw e;
+    }
+  };
+} catch (e) {
+  logger.warn('Failed to patch mockttp matchesAll:', e);
+}
 
 /**
  * Safely reads request body text, catching abort errors.
@@ -265,6 +299,7 @@ export default class MockServerE2E implements Resource {
     }
 
     await setupAccountsV2SupportedNetworksMock(this._server);
+    await setupAccountsV4TransactionsMock(this._server);
 
     await this._server
       .forAnyRequest()

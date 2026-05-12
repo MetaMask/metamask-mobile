@@ -3,13 +3,13 @@
 buildscript {
 
 	ext {
-		buildToolsVersion = "35.0.0"
+		buildToolsVersion = "36.0.0"
 		minSdkVersion = project.hasProperty('minSdkVersion') ? project.getProperty('minSdkVersion') : 24
-		compileSdkVersion = 35
-		targetSdkVersion = 35
-		ndkVersion = "26.1.10909125"
+		compileSdkVersion = 36
+		targetSdkVersion = 36
+		ndkVersion = "27.1.12297006"
 		bitriseNdkPath = "/usr/local/share/android-sdk/ndk-bundle"
-		kotlin_version = "1.9.25"
+		kotlin_version = "2.1.20"
 		kotlinVersion = "$kotlin_version"
 		supportLibVersion = "28.0.0"
 	}
@@ -27,15 +27,60 @@ buildscript {
 	}
 	allprojects {
     repositories {
-        maven {
-          url("$rootDir/../node_modules/detox/Detox-android")
-        }
 		        // Notifee repository
         maven {
             url(new File(['node', '--print', "require.resolve('@notifee/react-native/package.json')"].execute(null, rootDir).text.trim(), '../android/libs'))
         }
         maven { url "https://jitpack.io" }
+        maven { url "file://${rootDir}/libs" }
 				maven { url "https://cdn.veriff.me/android/" }
     }
+	}
+}
+
+// Force all subprojects to use the root NDK version so library build.gradle files that
+// hardcode an older ndkVersion (e.g. @metamask/native-utils) don't trigger a failed download.
+subprojects { subproject ->
+	subproject.afterEvaluate {
+		if (subproject.extensions.findByName('android') != null) {
+			subproject.android.ndkVersion = rootProject.ext.ndkVersion
+		}
+	}
+}
+
+// Pin the Kotlin stdlib that ends up in the APK to the same version as the
+// project compiler (kotlin_version, defined above). The compiler was bumped to
+// 2.1.20 alongside the RN 0.81 upgrade, so the previous 1.9.25 pin is now a
+// downgrade — code compiled against the 2.1 stdlib (e.g. expo-modules-core,
+// expo-file-system, expo-updates, expo-dev-launcher) imports `kotlin.time.*`
+// APIs that don't exist in 1.9.x and hits NoClassDefFoundError at runtime.
+//
+// We apply the force on:
+//   - Braze modules : Braze 41.x transitively pulls a Kotlin 2.1-era stdlib;
+//                     keep an explicit pin so its compile/runtime classpath
+//                     stays aligned with the rest of the project.
+//   - :app          : Braze declares its SDK dependency with `api` scope,
+//                     so without a pin the "highest version wins" strategy
+//                     could promote stdlib past the project compiler version
+//                     and break .kt files in the app module.
+// Other subprojects (react-native, expo, firebase, etc.) are left untouched.
+//
+// kotlinx-serialization is no longer force-pinned: the original pin existed
+// only because the 1.9 compiler couldn't read 2.1 serialization metadata.
+// With the 2.1.20 compiler that constraint is gone, so we let Gradle resolve
+// to whatever Braze and other consumers actually need.
+def brazeKotlinStdlibVersion = kotlin_version
+subprojects { subproject ->
+	subproject.afterEvaluate {
+		def name = subproject.name.toLowerCase()
+		if (name != 'app' && !name.contains('braze')) return
+
+		subproject.configurations.configureEach { configuration ->
+			configuration.resolutionStrategy {
+				force "org.jetbrains.kotlin:kotlin-stdlib:${brazeKotlinStdlibVersion}"
+				force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${brazeKotlinStdlibVersion}"
+				force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${brazeKotlinStdlibVersion}"
+			}
+		}
 	}
 }

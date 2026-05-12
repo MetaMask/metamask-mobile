@@ -14,7 +14,6 @@ export enum PROTOCOLS {
 
 export enum ACTIONS {
   RAMP = 'ramp',
-  ENABLE_CARD_BUTTON = 'enable-card-button',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
   CARD_KYC_NOTIFICATION = 'card-kyc-notification',
@@ -47,8 +46,11 @@ export enum ACTIONS {
   PREDICT = 'predict',
   ONBOARDING = 'onboarding',
   TRENDING = 'trending',
+  SOCIAL_LEADERBOARD = 'social-leaderboard',
+  SOCIAL_TRADER_POSITION = 'social-trader-position',
   EARN_MUSD = 'earn-musd',
   NFT = 'nft',
+  ON_RAMP = 'on-ramp',
 }
 
 export const PREFIXES = {
@@ -77,12 +79,14 @@ export const PREFIXES = {
   [ACTIONS.PREDICT]: '',
   [ACTIONS.ONBOARDING]: '',
   [ACTIONS.SHIELD]: '',
-  [ACTIONS.ENABLE_CARD_BUTTON]: '',
   [ACTIONS.CARD_ONBOARDING]: '',
   [ACTIONS.CARD_HOME]: '',
   [ACTIONS.CARD_KYC_NOTIFICATION]: '',
   [ACTIONS.TRENDING]: '',
+  [ACTIONS.SOCIAL_LEADERBOARD]: '',
+  [ACTIONS.SOCIAL_TRADER_POSITION]: '',
   [ACTIONS.EARN_MUSD]: '',
   [ACTIONS.NFT]: '',
+  [ACTIONS.ON_RAMP]: '',
   METAMASK: 'metamask://',
 };

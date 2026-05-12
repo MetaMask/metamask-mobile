@@ -4,14 +4,12 @@ import {
   ImageSourcePropType,
   View,
   TouchableOpacity,
-  Platform,
   StyleProp,
   TextStyle,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { getAssetTestId } from '../../../../../tests/selectors/Wallet/WalletView.selectors';
 import TagBase, {
   TagSeverity,
   TagShape,
@@ -34,7 +32,7 @@ import { AlignItems, FlexDirection, JustifyContent } from '../../Box/box.types';
 import StockBadge from '../../shared/StockBadge';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
-import { BridgeToken } from '../types';
+import { BridgeToken, SecurityDataType } from '../types';
 import { RootState } from '../../../../reducers';
 import { fontStyles } from '../../../../styles/common';
 import {
@@ -54,6 +52,13 @@ import {
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
   TokenSelectorBalanceLayoutVariant,
 } from './TokenSelectorItem.abTestConfig';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
+import { getBridgeTokenSecurityConfig } from '../utils/tokenSecurityUtils';
 
 const createStyles = ({
   theme,
@@ -67,13 +72,14 @@ const createStyles = ({
       flex: 1,
       flexShrink: 1,
       minWidth: 0,
-      marginLeft: 8,
+      marginLeft: 12,
     },
     container: {
       backgroundColor: vars.isSelected
         ? theme.colors.primary.muted
         : theme.colors.background.default,
       paddingVertical: 4,
+      minHeight: 72,
       paddingLeft: 16,
       paddingRight: 10,
     },
@@ -89,7 +95,7 @@ const createStyles = ({
     itemWrapper: {
       flex: 1,
       flexDirection: 'row',
-      paddingVertical: 10,
+      paddingVertical: 12,
       alignItems: 'flex-start',
     },
     tokenMainInfo: {
@@ -98,6 +104,20 @@ const createStyles = ({
       flexShrink: 1,
       minWidth: 0,
       marginRight: 8,
+    },
+    tokenSymbolRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexShrink: 1,
+      minWidth: 0,
+    },
+    tokenSymbol: {
+      flexShrink: 1,
+      minWidth: 0,
+    },
+    verifiedIcon: {
+      marginLeft: 4,
+      flexShrink: 0,
     },
     rightValue: {
       flexShrink: 0,
@@ -147,6 +167,17 @@ interface TokenSelectorItemProps {
 const isLoadingBalance = (balance?: string) =>
   balance === TOKEN_BALANCE_LOADING ||
   balance === TOKEN_BALANCE_LOADING_UPPERCASE;
+
+export const getSecurityTag = (securityType: SecurityDataType | undefined) => {
+  if (
+    securityType === SecurityDataType.Warning ||
+    securityType === SecurityDataType.Spam ||
+    securityType === SecurityDataType.Malicious
+  ) {
+    return getBridgeTokenSecurityConfig(securityType);
+  }
+  return null;
+};
 
 const FiatBalanceView = ({
   balance,
@@ -278,13 +309,15 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     textColor: TextColor.Default,
   };
   const bottomRowBalanceTextStyle = {
-    textVariant: TextVariant.BodyMD,
+    textVariant: TextVariant.BodySM,
     textColor: TextColor.Alternative,
   };
 
   const label = token.accountType
     ? ACCOUNT_TYPE_LABELS[token.accountType]
     : undefined;
+
+  const securityTag = getSecurityTag(token.securityData?.type);
 
   return (
     <Box
@@ -298,10 +331,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
         key={token.address}
         onPress={() => onPress(token)}
         style={styles.itemWrapper}
-        {...generateTestId(
-          Platform,
-          getAssetTestId(`${token.chainId}-${token.symbol}`),
-        )}
+        testID={getAssetTestId(`${token.chainId}-${token.symbol}`)}
       >
         <Box
           flexDirection={FlexDirection.Row}
@@ -322,8 +352,13 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           >
             <AvatarToken
               name={token.symbol}
-              imageSource={getTokenImageSource(token.symbol, token.image)}
-              size={AvatarSize.Md}
+              imageSource={getTokenImageSource(
+                token.symbol,
+                token.image,
+                token.address,
+                token.chainId,
+              )}
+              size={AvatarSize.Lg}
               testID={
                 isNative
                   ? `network-logo-${token.symbol}`
@@ -344,13 +379,42 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
               justifyContent={JustifyContent.spaceBetween}
             >
               <Box style={styles.tokenMainInfo} gap={4}>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {token.symbol}
-                </Text>
+                <Box style={styles.tokenSymbolRow}>
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    style={styles.tokenSymbol}
+                  >
+                    {token.symbol}
+                  </Text>
+                  {token.isVerified && (
+                    <Icon
+                      testID={`token-verified-icon-${token.symbol}`}
+                      name={IconName.VerifiedFilled}
+                      size={IconSize.Sm}
+                      color={IconColor.InfoDefault}
+                      style={styles.verifiedIcon}
+                    />
+                  )}
+                  {securityTag && (
+                    <TagBase
+                      shape={TagShape.Pill}
+                      severity={securityTag.severity}
+                      startAccessory={
+                        <Icon
+                          name={securityTag.iconName}
+                          size={IconSize.Sm}
+                          color={securityTag.iconColor}
+                        />
+                      }
+                      textProps={{ variant: TextVariant.BodySM }}
+                      style={styles.verifiedIcon}
+                    >
+                      {securityTag.label}
+                    </TagBase>
+                  )}
+                </Box>
                 {label && <Tag label={label} />}
                 {showNoFeeBadge && (
                   <TagBase

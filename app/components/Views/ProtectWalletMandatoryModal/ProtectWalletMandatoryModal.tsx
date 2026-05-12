@@ -6,7 +6,8 @@ import { useTheme } from '../../../util/theme';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import createStyles from './ProtectWalletMandatoryModal.styles';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
   selectPasswordSet,
   selectSeedphraseBackedUp,
@@ -29,7 +30,7 @@ const ProtectWalletMandatoryModal = () => {
 
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const metrics = useMetrics();
+  const metrics = useAnalytics();
 
   const hasAnyTokenBalance = useSelector(selectHasAnyBalance);
   const allTokens = useSelector(selectAllTokens);
@@ -39,12 +40,12 @@ const ProtectWalletMandatoryModal = () => {
     selectSeedlessOnboardingLoginFlow,
   );
 
-  const { navigate, dangerouslyGetState } = useNavigation();
+  const { navigate, getState } = useNavigation();
 
   const passwordSet = useSelector(selectPasswordSet);
   const seedphraseBackedUp = useSelector(selectSeedphraseBackedUp);
   useEffect(() => {
-    const route = findRouteNameFromNavigatorState(dangerouslyGetState().routes);
+    const route = findRouteNameFromNavigatorState(getState()?.routes ?? []);
     if (isSeedlessOnboardingLoginFlow) {
       setShowProtectWalletModal(false);
       return;
@@ -95,7 +96,7 @@ const ProtectWalletMandatoryModal = () => {
     metrics,
     passwordSet,
     seedphraseBackedUp,
-    dangerouslyGetState,
+    getState,
     hasAnyTokenBalance,
     allTokens,
     nfts,

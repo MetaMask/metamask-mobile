@@ -25,8 +25,8 @@ import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { toFormattedAddress } from '../../../../util/address';
 import Routes from '../../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 export const getSwapBridgeTxActivityTitle = (
   bridgeTxHistoryItem: BridgeHistoryItem,
@@ -140,12 +140,15 @@ export const decodeSwapsTx = (args: {
 
   const sourceTokenSymbol = quote.srcAsset?.symbol;
   const destTokenSymbol = quote.destAsset?.symbol;
-  const rawSourceAmount = parseFloat(
-    ethers.utils.formatUnits(
-      bridgeTxHistoryItem.quote.srcTokenAmount,
-      quote.srcAsset.decimals,
-    ),
-  );
+  const rawSourceAmount =
+    quote.gasSponsored && bridgeTxHistoryItem.pricingData?.amountSent
+      ? parseFloat(bridgeTxHistoryItem.pricingData.amountSent)
+      : parseFloat(
+          ethers.utils.formatUnits(
+            bridgeTxHistoryItem.quote.srcTokenAmount,
+            quote.srcAsset.decimals,
+          ),
+        );
   const sourceAmountSent = formatAmountWithThreshold(rawSourceAmount, 5);
 
   const renderTo = tx.txParams.to;
@@ -240,7 +243,7 @@ export const handleUnifiedSwapsTxHistoryItemClick = ({
   multiChainTx,
   bridgeTxHistoryItem,
 }: {
-  navigation: ReturnType<typeof useNavigation>;
+  navigation: AppNavigationProp;
   evmTxMeta?: TransactionMeta;
   multiChainTx?: Transaction;
   bridgeTxHistoryItem?: BridgeHistoryItem;

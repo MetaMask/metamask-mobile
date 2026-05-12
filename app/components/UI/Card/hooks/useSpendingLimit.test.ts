@@ -9,13 +9,12 @@ import { SolScope } from '@metamask/keyring-api';
 import useSpendingLimit, { UseSpendingLimitParams } from './useSpendingLimit';
 import { useCardDelegation } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
-import { AllowanceState, CardTokenAllowance } from '../types';
+import { FundingStatus, CardFundingToken } from '../types';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { LINEA_CAIP_CHAIN_ID } from '../util/buildTokenList';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import Logger from '../../../../util/Logger';
-import { cardQueries } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
@@ -32,9 +31,17 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
-const mockInvalidateQueries = jest.fn();
-jest.mock('@tanstack/react-query', () => ({
-  useQueryClient: jest.fn(),
+const mockFetchCardHomeData = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      CardController: {
+        fetchCardHomeData: (...args: unknown[]) =>
+          mockFetchCardHomeData(...args),
+      },
+    },
+  },
 }));
 
 // Create the mock class inside the factory to avoid hoisting issues
@@ -124,15 +131,15 @@ const mockUseSelector = useSelector as jest.Mock;
 
 // Helper functions
 const createMockToken = (
-  overrides: Partial<CardTokenAllowance> = {},
-): CardTokenAllowance => ({
+  overrides: Partial<CardFundingToken> = {},
+): CardFundingToken => ({
   address: '0x1234567890123456789012345678901234567890',
   caipChainId: LINEA_CAIP_CHAIN_ID,
   decimals: 18,
   symbol: 'USDC',
   name: 'USD Coin',
-  allowanceState: AllowanceState.Enabled,
-  allowance: '1000',
+  fundingStatus: FundingStatus.Enabled,
+  spendableBalance: '1000',
   walletAddress: '0xwallet1',
   delegationContract: '0xdelegation123',
   ...overrides,
@@ -183,14 +190,7 @@ describe('useSpendingLimit', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
-    mockInvalidateQueries.mockResolvedValue(undefined);
-    (
-      jest.requireMock('@tanstack/react-query') as {
-        useQueryClient: jest.Mock;
-      }
-    ).useQueryClient.mockReturnValue({
-      invalidateQueries: mockInvalidateQueries,
-    });
+    mockFetchCardHomeData.mockResolvedValue(undefined);
 
     // Setup navigation mock
     mockNavigation = {
@@ -269,7 +269,9 @@ describe('useSpendingLimit', () => {
       {},
     ] as never);
 
-    // Default selected account
+    // Default selected account (all useSelector calls use this by default;
+    // selectEvmNetworkConfigurationsByChainId call gets an object whose keys
+    // are not real chain IDs, but useTokensWithBalance is mocked so it doesn't matter)
     mockUseSelector.mockReturnValue({
       id: 'account-1',
       address: '0xaccount1',
@@ -302,6 +304,65 @@ describe('useSpendingLimit', () => {
       expect(result.current.selectedToken).toEqual(initialToken);
     });
 
+    it('initializes restricted limit from limited initialToken originalSpendingCap', () => {
+      const initialToken = createMockToken({
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '250',
+        originalSpendingCap: '500',
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ initialToken })),
+      );
+
+      expect(result.current.limitType).toBe('restricted');
+      expect(result.current.customLimit).toBe('500');
+    });
+
+    it('initializes restricted limit from limited priorityToken originalSpendingCap', () => {
+      const priorityToken = createMockToken({
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '300',
+        originalSpendingCap: '750',
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ priorityToken })),
+      );
+
+      expect(result.current.selectedToken).toEqual(priorityToken);
+      expect(result.current.limitType).toBe('restricted');
+      expect(result.current.customLimit).toBe('750');
+    });
+
+    it('falls back to spendingCap for limited tokens without originalSpendingCap', () => {
+      const initialToken = createMockToken({
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '275',
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ initialToken })),
+      );
+
+      expect(result.current.limitType).toBe('restricted');
+      expect(result.current.customLimit).toBe('275');
+    });
+
+    it.each([FundingStatus.Enabled, FundingStatus.NotEnabled])(
+      'initializes %s token as full limit with empty custom limit',
+      (fundingStatus) => {
+        const initialToken = createMockToken({ fundingStatus });
+
+        const { result } = renderHook(() =>
+          useSpendingLimit(createDefaultParams({ initialToken })),
+        );
+
+        expect(result.current.limitType).toBe('full');
+        expect(result.current.customLimit).toBe('');
+      },
+    );
+
     it('initializes with priorityToken when no initialToken', () => {
       const priorityToken = createMockToken({ symbol: 'USDC' });
       const { result } = renderHook(() =>
@@ -329,17 +390,17 @@ describe('useSpendingLimit', () => {
       const usdcToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
       const musdToken = createMockToken({
         symbol: 'mUSD',
         address: '0xmusd',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
       const enabledToken = createMockToken({
         symbol: 'DAI',
         address: '0xdai',
-        allowanceState: AllowanceState.Enabled,
+        fundingStatus: FundingStatus.Enabled,
       });
 
       (useTokensWithBalance as jest.Mock).mockReturnValue([
@@ -363,12 +424,12 @@ describe('useSpendingLimit', () => {
       const enabledToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
-        allowanceState: AllowanceState.Enabled,
+        fundingStatus: FundingStatus.Enabled,
       });
       const notEnabledToken = createMockToken({
         symbol: 'mUSD',
         address: '0xmusd',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
 
       (useTokensWithBalance as jest.Mock).mockReturnValue([
@@ -390,12 +451,12 @@ describe('useSpendingLimit', () => {
         symbol: 'mUSD',
         address: '0xmusd',
         caipChainId: LINEA_CAIP_CHAIN_ID,
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
       const usdcToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
 
       (useTokensWithBalance as jest.Mock).mockReturnValue([]);
@@ -413,7 +474,7 @@ describe('useSpendingLimit', () => {
       const usdcToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
 
       (useTokensWithBalance as jest.Mock).mockReturnValue([]);
@@ -428,7 +489,7 @@ describe('useSpendingLimit', () => {
     it('uses initialToken when provided, bypassing balance logic', () => {
       const initialToken = createMockToken({
         symbol: 'USDC',
-        allowanceState: AllowanceState.Enabled,
+        fundingStatus: FundingStatus.Enabled,
       });
 
       const { result } = renderHook(() =>
@@ -604,12 +665,12 @@ describe('useSpendingLimit', () => {
       const usdcToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
       const musdToken = createMockToken({
         symbol: 'mUSD',
         address: '0xmusd',
-        allowanceState: AllowanceState.NotEnabled,
+        fundingStatus: FundingStatus.NotEnabled,
       });
 
       // USDC has highest balance → becomes selectedToken by default
@@ -710,7 +771,7 @@ describe('useSpendingLimit', () => {
       });
     });
 
-    it('clears cache after successful submission', async () => {
+    it('refreshes card home data after successful submission', async () => {
       const initialToken = createMockToken();
       const { result } = renderHook(() =>
         useSpendingLimit(createDefaultParams({ initialToken })),
@@ -722,9 +783,7 @@ describe('useSpendingLimit', () => {
         await submitPromise;
       });
 
-      expect(mockInvalidateQueries).toHaveBeenCalledWith({
-        queryKey: cardQueries.dashboard.keys.externalWalletDetails(),
-      });
+      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
     });
 
     it('shows success toast for non-onboarding flow', async () => {
@@ -961,6 +1020,128 @@ describe('useSpendingLimit', () => {
         expect.objectContaining({ flow: 'onboarding' }),
       );
     });
+
+    it('includes musd_linea_balance from walletTokens', () => {
+      const musdToken = {
+        address: '0xmusd',
+        symbol: 'mUSD',
+        chainId: LINEA_CAIP_CHAIN_ID,
+        tokenFiatAmount: 450,
+      };
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([musdToken]) // walletTokens (card)
+        .mockReturnValueOnce([]); // allWalletTokens
+
+      renderHook(() => useSpendingLimit(createDefaultParams()));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ musd_linea_balance: 450 }),
+      );
+    });
+
+    it('emits musd_linea_balance of 0 when mUSD not in wallet', () => {
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([]) // walletTokens — no mUSD
+        .mockReturnValueOnce([]);
+
+      renderHook(() => useSpendingLimit(createDefaultParams()));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ musd_linea_balance: 0 }),
+      );
+    });
+
+    it('includes top_card_chain_asset for highest-balance card token', () => {
+      const lowToken = {
+        address: '0xlow',
+        symbol: 'USDC',
+        chainId: LINEA_CAIP_CHAIN_ID,
+        tokenFiatAmount: 50,
+      };
+      const highToken = {
+        address: '0xhigh',
+        symbol: 'mUSD',
+        chainId: LINEA_CAIP_CHAIN_ID,
+        tokenFiatAmount: 500,
+      };
+      // allTokens must include the same addresses so cardSupportedKeys accepts them
+      const allTokens = [
+        createMockToken({ address: '0xlow', symbol: 'USDC' }),
+        createMockToken({ address: '0xhigh', symbol: 'mUSD' }),
+      ];
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([lowToken, highToken]) // walletTokens (card)
+        .mockReturnValueOnce([]);
+
+      renderHook(() => useSpendingLimit(createDefaultParams({ allTokens })));
+
+      // LINEA_CAIP_CHAIN_ID maps to 'linea' in caipChainIdToNetwork
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ top_card_chain_asset: 'linea:musd' }),
+      );
+    });
+
+    it('emits null for top_card_chain_asset when no card tokens have balance', () => {
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([]) // walletTokens — empty
+        .mockReturnValueOnce([]);
+
+      renderHook(() => useSpendingLimit(createDefaultParams()));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ top_card_chain_asset: null }),
+      );
+    });
+
+    it('emits null for top_card_chain_asset when wallet token is not in card-supported allTokens', () => {
+      // Native SOL has an address but is not in allTokens (card does not support it).
+      // allTokens contains only an unrelated USDC token so allTokens.length > 0,
+      // which lets the effect fire while still excluding nativeSol from the result.
+      const nativeSol = {
+        address: 'So11111111111111111111111111111111111111112',
+        symbol: 'SOL',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        tokenFiatAmount: 1200,
+      };
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([nativeSol]) // walletTokens
+        .mockReturnValueOnce([nativeSol]);
+
+      // allTokens has a card-supported token (USDC on Linea) but NOT nativeSol
+      renderHook(() => useSpendingLimit(createDefaultParams()));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ top_card_chain_asset: null }),
+      );
+    });
+
+    it('includes top_wallet_chain_asset from all-wallet tokens', () => {
+      const cardToken = {
+        address: '0xcard',
+        symbol: 'mUSD',
+        chainId: LINEA_CAIP_CHAIN_ID,
+        tokenFiatAmount: 100,
+      };
+      const walletToken = {
+        address: '0xwallet',
+        symbol: 'ETH',
+        chainId: '0x1', // Ethereum mainnet — not a card chain
+        tokenFiatAmount: 9000,
+      };
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([cardToken]) // walletTokens (card)
+        .mockReturnValueOnce([walletToken]); // allWalletTokens
+
+      renderHook(() => useSpendingLimit(createDefaultParams()));
+
+      // 0x1 → eip155:1, not in caipChainIdToNetwork → strips namespace → '1:eth'
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          top_wallet_chain_asset: '1:eth',
+          top_wallet_asset_balance: 9000,
+        }),
+      );
+    });
   });
 
   describe('Returned Token from AssetSelectionBottomSheet', () => {
@@ -996,6 +1177,40 @@ describe('useSpendingLimit', () => {
         returnedSelectedToken: undefined,
         selectedToken: undefined,
       });
+    });
+
+    it('sets restricted limit from returned limited token', () => {
+      const returnedToken = createMockToken({
+        symbol: 'ETH',
+        fundingStatus: FundingStatus.Limited,
+        spendingCap: '125',
+        originalSpendingCap: '425',
+      });
+
+      let focusCallback: (() => void) | null = null;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        if (!focusCallback) {
+          focusCallback = callback;
+        }
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({
+            routeParams: { returnedSelectedToken: returnedToken },
+          }),
+        ),
+      );
+
+      act(() => {
+        if (focusCallback) {
+          focusCallback();
+        }
+      });
+
+      expect(result.current.selectedToken).toEqual(returnedToken);
+      expect(result.current.limitType).toBe('restricted');
+      expect(result.current.customLimit).toBe('425');
     });
 
     it('does not overwrite user selection when allTokens loads after returning from bottom sheet', () => {
@@ -1268,7 +1483,7 @@ describe('useSpendingLimit', () => {
       const { result } = renderHook(() =>
         useSpendingLimit(
           createDefaultParams({
-            routeParams: { returnedSelectedToken: createMockToken() },
+            routeParams: {},
           }),
         ),
       );

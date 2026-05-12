@@ -13,13 +13,14 @@ import { strings } from '../../../../../../../../locales/i18n';
 
 interface PredictBuyBottomContentProps {
   isInputFocused: boolean;
-  errorMessage?: string;
+
+  hideBorder?: boolean;
   children: React.ReactNode;
 }
 
 const PredictBuyBottomContent = ({
   isInputFocused,
-  errorMessage,
+  hideBorder = false,
   children,
 }: PredictBuyBottomContentProps) => {
   const tw = useTailwind();
@@ -31,31 +32,22 @@ const PredictBuyBottomContent = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Column}
-      twClassName="border-t border-muted px-4 pb-0"
+      twClassName={`px-4 pb-0${hideBorder ? '' : ' border-t border-muted'}`}
     >
       <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
-        {errorMessage && (
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            style={tw.style('text-center px-2 pt-4')}
-          >
-            {errorMessage}
-          </Text>
-        )}
         <Box twClassName="w-full">{children}</Box>
-        <Box twClassName="text-center items-center flex-row gap-1 justify-center">
+        <Box twClassName="text-center items-center justify-center px-1">
           <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-            {strings('predict.consent_sheet.disclaimer')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyXs}
-            style={tw.style('text-info-default')}
-            onPress={() => {
-              Linking.openURL('https://polymarket.com/tos');
-            }}
-          >
-            {strings('predict.consent_sheet.learn_more')}
+            {strings('predict.consent_sheet.disclaimer')}{' '}
+            <Text
+              variant={TextVariant.BodyXs}
+              style={tw.style('text-info-default')}
+              onPress={() => {
+                Linking.openURL('https://polymarket.com/tos');
+              }}
+            >
+              {strings('predict.consent_sheet.learn_more')}
+            </Text>
           </Text>
         </Box>
       </Box>

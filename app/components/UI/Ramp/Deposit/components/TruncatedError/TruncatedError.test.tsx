@@ -17,18 +17,18 @@ describe('TruncatedError', () => {
   });
 
   describe('Basic rendering', () => {
-    it('renders correctly and matches snapshot', () => {
-      const { toJSON } = render(
+    it('renders the error text', () => {
+      const { getByText } = render(
         <TruncatedError error="This is a test error message" />,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('This is a test error message')).toBeOnTheScreen();
     });
 
     it('renders with custom maxLines prop', () => {
-      const { toJSON } = render(
+      const { getByText } = render(
         <TruncatedError error="This is a test error message" maxLines={3} />,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('This is a test error message')).toBeOnTheScreen();
     });
   });
 
@@ -37,7 +37,7 @@ describe('TruncatedError', () => {
       const shortError = 'Short error';
       const { queryByText } = render(<TruncatedError error={shortError} />);
 
-      expect(queryByText('See more')).toBeNull();
+      expect(queryByText('See more')).not.toBeOnTheScreen();
     });
 
     it('displays the full error text when not truncated', () => {
@@ -67,7 +67,7 @@ describe('TruncatedError', () => {
           ],
         },
       };
-      const { queryByText, getByText, toJSON } = render(
+      const { queryByText, getByText } = render(
         <TruncatedError error={longError} maxLines={2} />,
       );
       const textComponent = getByText(longError);
@@ -75,8 +75,7 @@ describe('TruncatedError', () => {
         fireEvent(textComponent, 'onTextLayout', mockEvent);
       });
 
-      expect(toJSON()).toMatchSnapshot();
-      expect(queryByText('See more')).toBeDefined();
+      expect(queryByText('See more')).toBeOnTheScreen();
     });
   });
 
