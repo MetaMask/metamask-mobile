@@ -15,6 +15,10 @@ export const useCashNavigation = () => {
   const hasSeenEducation = useSelector(selectMusdConversionEducationSeen);
 
   const navigateToCash = useCallback(() => {
+    // TODO: Replace hardcoded navigation to MoneyOnboardingView after testing.
+    navigation.navigate(Routes.MONEY.ONBOARDING);
+    return;
+
     const destination: MusdNavigationTarget = isMoneyHomeEnabled
       ? { screen: Routes.MONEY.ROOT, params: { screen: Routes.MONEY.HOME } }
       : { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW };

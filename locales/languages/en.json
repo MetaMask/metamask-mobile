@@ -6605,6 +6605,17 @@
       "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
       "link_card_cta": "Link card"
     },
+    "rive_onboarding": {
+      "step1_title": "Money accounts are here",
+      "step1_body": "Earn up to {{percentage}}% APY on your balance, available across your entire wallet.",
+      "step2_title": "Earn automatically",
+      "step2_body": "Move stablecoins with no exchange fees. Funds start earning right away.",
+      "step3_title": "Spend anywhere",
+      "step3_body": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask card.",
+      "step4_title": "Trade and earn in one place",
+      "step4_body": "Use your Money balance to trade across MetaMask while still earning yield.",
+      "continue": "Continue"
+    },
     "action": {
       "add": "Add",
       "transfer": "Transfer",

@@ -74,6 +74,10 @@ const MoneyBalanceCard = () => {
   }
 
   const handleCardPress = useCallback(() => {
+    // TODO: Replace hardcoded navigation to MoneyOnboardingView after testing.
+    navigation.navigate(Routes.MONEY.ONBOARDING);
+    return;
+
     navigation.navigate(Routes.MONEY.ROOT, {
       screen: Routes.MONEY.HOME,
     });
