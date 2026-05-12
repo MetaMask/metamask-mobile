@@ -56,20 +56,22 @@ export function renderScreenWithRoutes(
     () => <Text testID={`route-${routeName}`}>{routeName}</Text>;
 
   const stackTree = (
-    <Stack.Navigator>
-      <Stack.Screen
-        name={options.name}
-        component={Component}
-        initialParams={initialParams}
-      />
-      {extraRoutes.map(({ name, Component: Extra }) => (
+    <QueryClientProvider client={testQueryClient}>
+      <Stack.Navigator>
         <Stack.Screen
-          key={name}
-          name={name}
-          component={Extra ?? DefaultRouteProbe(name)}
+          name={options.name}
+          component={Component}
+          initialParams={initialParams}
         />
-      ))}
-    </Stack.Navigator>
+        {extraRoutes.map(({ name, Component: Extra }) => (
+          <Stack.Screen
+            key={name}
+            name={name}
+            component={Extra ?? DefaultRouteProbe(name)}
+          />
+        ))}
+      </Stack.Navigator>
+    </QueryClientProvider>
   );
 
   return renderWithProvider(stackTree, providerValues);
