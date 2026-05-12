@@ -8,25 +8,70 @@ import type { Hex } from '@metamask/utils';
 
 import {
   deriveDepositWalletAddress,
-  executeDepositWalletBatch,
-  getDepositWalletRelayerTransactionId,
-  waitForDepositWalletTransaction,
+  executeDepositWalletBatchAndWaitForCompletion,
 } from '../../../../components/UI/Predict/providers/polymarket/depositWallet';
+import type { Signer } from '../../../../components/UI/Predict/providers/types';
 import type { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
 
 const WALLET_BUSY_RETRY_ATTEMPTS = 5;
 const WALLET_BUSY_RETRY_DELAY_MS = 3000;
 const WALLET_BUSY_ERROR_MARKER = 'wallet action';
 
-function isWalletBusyError(error: unknown): boolean {
-  if (!(error instanceof Error)) {
-    return false;
-  }
-  return error.message.toLowerCase().includes(WALLET_BUSY_ERROR_MARKER);
+export function createPolymarketCallbacks(
+  initMessenger: TransactionPayControllerInitMessenger,
+): PolymarketCallbacks {
+  return {
+    getDepositWalletAddress: ({ eoa }) => getDepositWalletAddress(eoa),
+
+    submitDepositWalletBatch: ({ eoa, depositWallet, calls }) =>
+      submitDepositWalletBatch(initMessenger, { eoa, depositWallet, calls }),
+  };
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+async function getDepositWalletAddress(eoa: Hex): Promise<Hex> {
+  return deriveDepositWalletAddress(eoa) as Hex;
+}
+
+async function submitDepositWalletBatch(
+  initMessenger: TransactionPayControllerInitMessenger,
+  {
+    eoa,
+    depositWallet,
+    calls,
+  }: {
+    eoa: Hex;
+    depositWallet: Hex;
+    calls: { target: Hex; data: Hex; value: string }[];
+  },
+): Promise<{ sourceHash: Hex }> {
+  return withWalletBusyRetry(async () => {
+    const sourceHash = await executeDepositWalletBatchAndWaitForCompletion({
+      signer: createSigner(initMessenger, eoa),
+      walletAddress: depositWallet,
+      calls,
+    });
+    return { sourceHash };
+  });
+}
+
+function createSigner(
+  initMessenger: TransactionPayControllerInitMessenger,
+  address: Hex,
+): Signer {
+  return {
+    address,
+    signTypedMessage: (
+      params: TypedMessageParams,
+      version: SignTypedDataVersion,
+    ) =>
+      initMessenger.call(
+        'KeyringController:signTypedMessage',
+        params,
+        version,
+      ),
+    signPersonalMessage: (params: PersonalMessageParams) =>
+      initMessenger.call('KeyringController:signPersonalMessage', params),
+  };
 }
 
 async function withWalletBusyRetry<T>(action: () => Promise<T>): Promise<T> {
@@ -48,51 +93,13 @@ async function withWalletBusyRetry<T>(action: () => Promise<T>): Promise<T> {
   throw lastError;
 }
 
-export function createPolymarketCallbacks(
-  initMessenger: TransactionPayControllerInitMessenger,
-): PolymarketCallbacks {
-  return {
-    getDepositWalletAddress: async ({ eoa }) =>
-      deriveDepositWalletAddress(eoa) as Hex,
+function isWalletBusyError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  return error.message.toLowerCase().includes(WALLET_BUSY_ERROR_MARKER);
+}
 
-    submitDepositWalletBatch: async ({ eoa, depositWallet, calls }) =>
-      withWalletBusyRetry(async () => {
-        const signer = {
-          address: eoa,
-          signTypedMessage: (
-            params: TypedMessageParams,
-            version: SignTypedDataVersion,
-          ) =>
-            initMessenger.call(
-              'KeyringController:signTypedMessage',
-              params,
-              version,
-            ),
-          signPersonalMessage: (params: PersonalMessageParams) =>
-            initMessenger.call(
-              'KeyringController:signPersonalMessage',
-              params,
-            ),
-        };
-
-        const response = await executeDepositWalletBatch({
-          signer,
-          walletAddress: depositWallet,
-          calls,
-        });
-
-        const transactionID = getDepositWalletRelayerTransactionId(response);
-        if (!transactionID) {
-          throw new Error(
-            'Polymarket deposit wallet batch response missing transactionID',
-          );
-        }
-
-        const sourceHash = await waitForDepositWalletTransaction({
-          transactionID,
-        });
-
-        return { sourceHash };
-      }),
-  };
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
