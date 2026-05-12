@@ -142,7 +142,7 @@ const SIMULATION_GAS_STATION_MOCK = {
 };
 
 // Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778589879443169
-describe.skip(
+describe(
   SmokeConfirmations('Send native asset Gas Station using EIP-7702'),
   () => {
     beforeAll(async () => {
@@ -291,10 +291,6 @@ describe.skip(
           await SendView.pressContinueButton();
           await SendView.inputRecipientAddress(RECIPIENT_ADDRESS_MOCK);
           await SendView.pressReviewButton();
-
-          await new Promise((resolve) => setTimeout(resolve, 10000));
-          await new Promise((resolve) => setTimeout(resolve, 10000));
-          await new Promise((resolve) => setTimeout(resolve, 10000));
 
           await Assertions.expectElementToBeVisible(
             RowComponents.NetworkFeeGasFeeTokenArrow,
