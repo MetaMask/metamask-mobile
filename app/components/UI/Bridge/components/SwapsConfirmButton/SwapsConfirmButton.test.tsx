@@ -24,7 +24,7 @@ import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
-import { SecurityDataType } from '../../hooks/usePopularTokens';
+import { SecurityDataType } from '../../types';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 
 // Mock the account-tree-controller file that imports the problematic module
