@@ -208,7 +208,7 @@ describe('MoneyBalanceCard', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
-        strings('money.apy_label', { percentage: 4 }),
+        /4% APY/,
       );
     });
 
@@ -216,7 +216,7 @@ describe('MoneyBalanceCard', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
-        strings('money.apy_currency_suffix').trim(),
+        /• mUSD/,
       );
     });
 
@@ -349,7 +349,7 @@ describe('MoneyBalanceCard', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
-        strings('money.apy_label', { percentage: 0 }),
+        /0% APY/,
       );
     });
   });
