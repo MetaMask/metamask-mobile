@@ -214,18 +214,20 @@ const ManageRow = ({
     >
       <Image source={imageSource} style={styles.manageCardImage} />
       <Box twClassName="gap-1 flex-1">
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {title}
-        </Text>
-        {subtitle ? (
-          <Text
-            variant={TextVariant.HeadingSm}
-            fontWeight={FontWeight.Bold}
-            testID={subtitleTestID}
-          >
-            {subtitle}
+        <Box>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {title}
           </Text>
-        ) : null}
+          {subtitle ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              testID={subtitleTestID}
+            >
+              {subtitle}
+            </Text>
+          ) : null}
+        </Box>
         <Tag severity={TagSeverity.Success}>
           {strings('money.metamask_card.cashback', {
             percentage: cashbackPercentage,

@@ -133,17 +133,14 @@ const MoneyPotentialEarnings = ({
             {onInfoPress && (
               <>
                 {' '}
-                <Text
-                  onPress={onInfoPress}
+                <Icon
                   testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
                   style={{ transform: [{ translateY: 3 }] }}
-                >
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
-                </Text>
+                  onPress={onInfoPress}
+                />
               </>
             )}
           </Text>
@@ -157,17 +154,14 @@ const MoneyPotentialEarnings = ({
             {onInfoPress && (
               <>
                 {' '}
-                <Text
-                  onPress={onInfoPress}
+                <Icon
                   testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
+                  onPress={onInfoPress}
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
                   style={{ transform: [{ translateY: 3 }] }}
-                >
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
-                </Text>
+                />
               </>
             )}
           </Text>
