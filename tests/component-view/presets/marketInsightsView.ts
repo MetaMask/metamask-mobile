@@ -8,16 +8,24 @@ import { initialStateBridge } from './bridge';
  * market insights and ramps V2 flags (version gate 0.0.0 for unit/view runs).
  */
 export const initialStateMarketInsightsView = () =>
-  initialStateBridge({ deterministicFiat: true }).withRemoteFeatureFlags({
-    aiSocialMarketAnalysisEnabled: {
-      enabled: true,
-      minimumVersion: '0.0.0',
-    },
-    rampsUnifiedBuyV2: {
-      enabled: true,
-      minimumVersion: '0.0.0',
-    },
-  } as unknown as Record<string, unknown>);
+  initialStateBridge({ deterministicFiat: true })
+    .withRemoteFeatureFlags({
+      aiSocialMarketAnalysisEnabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+      rampsUnifiedBuyV2: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    } as unknown as Record<string, unknown>)
+    .withPreferences({
+      tokenSortConfig: {
+        key: 'tokenFiatAmount',
+        order: 'dsc',
+        sortCallback: 'stringNumeric',
+      },
+    });
 
 /**
  * Ensures `goToBuy` does not open eligibility/error modals (unified routing).

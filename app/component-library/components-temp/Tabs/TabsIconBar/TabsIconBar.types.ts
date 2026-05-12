@@ -60,4 +60,11 @@ export interface TabsIconBarProps extends BoxComponentProps {
    * Requires useNativeDriver: false on the driving animation.
    */
   collapseAnim?: Animated.Value;
+  /**
+   * Optional height offset (in px) used when `collapseAnim` reaches its fully-collapsed
+   * state (value 1). Instead of shrinking the row to 0, the row shrinks BY this many px —
+   * use this to reclaim the icon area while keeping labels visible. Defaults to the full
+   * row height (full collapse).
+   */
+  collapseHeightOffset?: number;
 }

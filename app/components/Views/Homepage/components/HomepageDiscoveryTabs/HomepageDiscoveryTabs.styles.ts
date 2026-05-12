@@ -16,6 +16,10 @@ const styleSheet = (_params: { theme: Theme }) =>
     gradientFill: {
       flex: 1,
     },
+    portfolioScrollContent: {
+      paddingTop: 14,
+      gap: 16,
+    },
   });
 
 export default styleSheet;
