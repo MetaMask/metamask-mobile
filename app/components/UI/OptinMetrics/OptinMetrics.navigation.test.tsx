@@ -12,6 +12,13 @@ import { analytics } from '../../../util/analytics/analytics';
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
+jest.mock('../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
+
 const mockOptinMetricsTestOnboardingSlice = {
   events: [] as unknown[],
   accountType: undefined as string | undefined,
@@ -181,6 +188,32 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
   describe('when basic usage data is checked and eligibility returns false', () => {
     it('calls navigation reset to HomeNav instead of navigating to questionnaire', async () => {
       mockGetShouldShow.mockResolvedValue(false);
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.anything(),
+        );
+        expect(mockReset).toHaveBeenCalledWith(
+          expect.objectContaining({
+            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          }),
+        );
+      });
+    });
+  });
+
+  describe('when basic usage data is checked and eligibility throws', () => {
+    it('falls back to resetting navigation so onboarding is not blocked', async () => {
+      mockGetShouldShow.mockRejectedValue(new Error('eligibility failed'));
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 

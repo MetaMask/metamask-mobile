@@ -61,6 +61,7 @@ import {
 } from '@react-navigation/native';
 import type { RootState } from '../../../reducers';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
+import Logger from '../../../util/Logger';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -235,7 +236,19 @@ const OptinMetrics = () => {
     }
     dispatch(clearOnboardingEvents());
 
-    if (isBasicUsageChecked && (await getShouldShowQuestionnaire())) {
+    let shouldShowInterestQuestionnaire = false;
+    if (isBasicUsageChecked) {
+      try {
+        shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
+      } catch (error) {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          'OptinMetrics: interest questionnaire eligibility check failed',
+        );
+      }
+    }
+
+    if (isBasicUsageChecked && shouldShowInterestQuestionnaire) {
       navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
         onComplete: continueNavigation,
         ...(accountType && { accountType }),
