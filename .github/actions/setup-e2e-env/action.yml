@@ -91,6 +91,17 @@ inputs:
     description: 'Runner provider forwarded from the caller workflow chain. When set to "namespace", toolchain-install steps short-circuit if the pinned version is already on the image. Default "current" preserves byte-identical behaviour on existing GitHub-hosted / Cirrus runners.'
     required: false
     default: 'current'
+  js-retry-timeout-minutes:
+    description: >-
+      Per-attempt timeout (minutes) for Corepack and yarn install retry steps.
+      Namespace E2E matrix jobs often need more headroom (INFRA-3596).
+    required: false
+    default: '15'
+  pod-install-timeout-minutes:
+    description: >-
+      Per-attempt timeout (minutes) for the CocoaPods install retry step (iOS only).
+    required: false
+    default: '15'
 
 runs:
   using: 'composite'
@@ -289,7 +300,7 @@ runs:
       id: corepack
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
       with:
-        timeout_minutes: 15
+        timeout_minutes: ${{ fromJSON(inputs.js-retry-timeout-minutes) }}
         max_attempts: 3
         retry_wait_seconds: 30
         command: ${{ steps.get-corepack-command.outputs.COREPACK_COMMAND }}
@@ -309,7 +320,7 @@ runs:
       id: yarn-install
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
       with:
-        timeout_minutes: 15
+        timeout_minutes: ${{ fromJSON(inputs.js-retry-timeout-minutes) }}
         max_attempts: 3
         retry_wait_seconds: 30
         on_retry_command: echo "⚠️ yarn install failed — likely a transient network issue on the self-hosted runner. Retrying..."
@@ -413,7 +424,7 @@ runs:
       if: ${{ inputs.platform == 'ios'}}
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
       with:
-        timeout_minutes: 15
+        timeout_minutes: ${{ fromJSON(inputs.pod-install-timeout-minutes) }}
         max_attempts: 3
         retry_wait_seconds: 60
         on_retry_command: |
