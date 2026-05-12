@@ -149,4 +149,17 @@ describe('MoneyHowItWorksView', () => {
     const { queryByText } = renderWithProvider(<MoneyHowItWorksView />);
     expect(queryByText('Sounds good')).toBeNull();
   });
+
+  it('toggles a FAQ item when the question row is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHowItWorksView />);
+
+    const firstFaq = getByTestId(MoneyHowItWorksViewTestIds.FAQ_ITEM(1));
+
+    // Press once to expand, again to collapse — both branches of handlePress
+    // (prev=false → 180deg, prev=true → 0deg) execute without throwing.
+    fireEvent.press(firstFaq);
+    fireEvent.press(firstFaq);
+
+    expect(firstFaq).toBeOnTheScreen();
+  });
 });

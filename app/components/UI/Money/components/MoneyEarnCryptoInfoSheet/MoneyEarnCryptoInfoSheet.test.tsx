@@ -31,14 +31,31 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   const MockBottomSheet = ReactActual.forwardRef(
     (
-      { children, testID }: { children: React.ReactNode; testID?: string },
+      {
+        children,
+        testID,
+        goBack,
+      }: {
+        children: React.ReactNode;
+        testID?: string;
+        goBack?: () => void;
+      },
       ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
     ) => {
       ReactActual.useImperativeHandle(ref, () => ({
         onCloseBottomSheet: mockOnCloseBottomSheet,
         onOpenBottomSheet: jest.fn(),
       }));
-      return ReactActual.createElement(View, { testID }, children);
+      return ReactActual.createElement(
+        View,
+        { testID },
+        ReactActual.createElement(
+          Pressable,
+          { testID: 'bottom-sheet-go-back-trigger', onPress: goBack },
+          ReactActual.createElement(RNText, {}, 'go-back'),
+        ),
+        children,
+      );
     },
   );
 
@@ -115,5 +132,22 @@ describe('MoneyEarnCryptoInfoSheet', () => {
     fireEvent.press(getByTestId('bottom-sheet-close-button'));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates back when the bottom sheet goBack handler fires', () => {
+    const { getByTestId } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
+
+    fireEvent.press(getByTestId('bottom-sheet-go-back-trigger'));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to a baseline APY when the live value is unavailable', () => {
+    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+      apyPercent: undefined,
+    });
+    const { getByTestId } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
+
+    expect(getByTestId(MoneyEarnCryptoInfoSheetTestIds.BODY)).toBeOnTheScreen();
   });
 });

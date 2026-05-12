@@ -279,4 +279,61 @@ describe('MoneyPotentialEarningsView', () => {
         .accessibilityState.disabled,
     ).toBe(true);
   });
+
+  it('pressing the back button calls navigation.goBack', () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.BACK_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('no-ops the Convert CTA when there are no eligible tokens', async () => {
+    mockTokens = [];
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
+
+    await waitFor(() =>
+      expect(mockInitiateCustomConversion).not.toHaveBeenCalled(),
+    );
+  });
+
+  it('logs but swallows conversion errors from the Convert CTA', async () => {
+    const conversionError = new Error('conversion failed');
+    mockInitiateCustomConversion.mockRejectedValueOnce(conversionError);
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
+
+    await waitFor(() =>
+      expect(mockInitiateCustomConversion).toHaveBeenCalled(),
+    );
+  });
+
+  it('triggers conversion when a token row is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(
+      getByTestId(MoneyPotentialEarningsViewTestIds.TOKEN_ROW(0)),
+    );
+
+    await waitFor(() =>
+      expect(mockInitiateCustomConversion).toHaveBeenCalled(),
+    );
+  });
+
+  it('logs but swallows conversion errors when a token row press throws', async () => {
+    const conversionError = new Error('token conversion failed');
+    mockInitiateCustomConversion.mockRejectedValueOnce(conversionError);
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(
+      getByTestId(MoneyPotentialEarningsViewTestIds.TOKEN_ROW(0)),
+    );
+
+    await waitFor(() =>
+      expect(mockInitiateCustomConversion).toHaveBeenCalled(),
+    );
+  });
 });

@@ -123,6 +123,7 @@ const MoneyPotentialEarningsView = () => {
           iconName={IconName.ArrowLeft}
           size={ButtonIconSize.Md}
           onPress={handleBackPress}
+          testID={MoneyPotentialEarningsViewTestIds.BACK_BUTTON}
         />
         <ButtonIcon
           iconName={IconName.Info}
@@ -181,13 +182,14 @@ const MoneyPotentialEarningsView = () => {
           )}
         </Box>
 
-        {eligibleTokens.map((token) => (
+        {eligibleTokens.map((token, index) => (
           <PotentialEarningsTokenRow
             key={`${token.address}-${token.chainId}`}
             token={token}
             hasSubsidizedFee={STABLECOIN_SYMBOLS.has(token.symbol)}
             apyPercent={apyPercentForProjection}
             onPress={handleTokenPress(token)}
+            testID={MoneyPotentialEarningsViewTestIds.TOKEN_ROW(index)}
           />
         ))}
       </ScrollView>
