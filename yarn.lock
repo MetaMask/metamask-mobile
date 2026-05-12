@@ -35709,8 +35709,6 @@ __metadata:
       optional: true
     "@img/sharp-linux-x64":
       optional: true
-    better-sqlite3:
-      built: true
   languageName: unknown
   linkType: soft
 
