@@ -931,9 +931,12 @@ export class CardController extends BaseController<
   }): Promise<void> {
     const { moneyAccountAddress, delegationAmountHuman } = params;
 
-    const fromAddress = safeToChecksumAddress(moneyAccountAddress);
-
-    if (!fromAddress) {
+    let fromAddress: string;
+    try {
+      const checksummed = safeToChecksumAddress(moneyAccountAddress);
+      if (!checksummed) throw new Error();
+      fromAddress = checksummed;
+    } catch {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
         'Invalid Money account address',

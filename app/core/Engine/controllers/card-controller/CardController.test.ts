@@ -2057,7 +2057,7 @@ describe('CardController — data pass-throughs', () => {
           moneyAccountAddress: 'not-an-address',
           delegationAmountHuman: '2199023255551',
         }),
-      ).rejects.toThrow('Invalid hex address.');
+      ).rejects.toThrow('Invalid Money account address');
     });
 
     it('fails closed on a missing delegation amount', async () => {
