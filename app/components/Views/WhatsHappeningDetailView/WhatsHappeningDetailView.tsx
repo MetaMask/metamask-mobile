@@ -197,8 +197,13 @@ const WhatsHappeningDetailView = () => {
               .build(),
           );
           trackEvent(
-            createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION)
-              .addProperties({ interaction_type: 'pan' })
+            createEventBuilder(
+              MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
+            )
+              .addProperties({
+                ...getWhatsHappeningEventProps(newItem, index, source),
+                interaction_type: 'pan',
+              })
               .build(),
           );
         }

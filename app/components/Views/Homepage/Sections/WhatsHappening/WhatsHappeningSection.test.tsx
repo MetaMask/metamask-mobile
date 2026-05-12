@@ -198,7 +198,7 @@ describe('WhatsHappeningSection', () => {
     });
   });
 
-  it('tracks MARKET_INSIGHTS_INTERACTION pan event when carousel swipes to a new card', () => {
+  it('tracks WHATS_HAPPENING_DETAILS_INTERACTED pan event when carousel swipes to a new card', () => {
     const secondItem = { ...mockItem, id: 'trend-1', title: 'Second trend' };
     mockUseWhatsHappening.mockReturnValue({
       items: [mockItem, secondItem],
@@ -213,12 +213,17 @@ describe('WhatsHappeningSection', () => {
       nativeEvent: { contentOffset: { x: 292, y: 0 } },
     });
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
-        properties: expect.objectContaining({ interaction_type: 'pan' }),
+        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
+        properties: expect.objectContaining({
+          interaction_type: 'pan',
+          trend_id: secondItem.id,
+          card_index: 1,
+          source: 'homepage',
+        }),
       }),
     );
   });
@@ -237,7 +242,7 @@ describe('WhatsHappeningSection', () => {
       nativeEvent: { contentOffset: { x: 0, y: 0 } },
     });
     expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
-      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
     );
   });
 });

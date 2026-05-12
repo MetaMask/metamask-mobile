@@ -35,6 +35,7 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import { getWhatsHappeningEventProps } from './eventProperties';
 
 const CARD_WIDTH = 280;
 const GAP = 12;
@@ -129,14 +130,22 @@ const WhatsHappeningSection = forwardRef<
       const index = Math.round(offsetX / (CARD_WIDTH + GAP));
       if (index !== currentIndexRef.current) {
         currentIndexRef.current = index;
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION)
-            .addProperties({ interaction_type: 'pan' })
-            .build(),
-        );
+        const item = items[index];
+        if (item) {
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
+            )
+              .addProperties({
+                ...getWhatsHappeningEventProps(item, index, source),
+                interaction_type: 'pan',
+              })
+              .build(),
+          );
+        }
       }
     },
-    [trackEvent, createEventBuilder],
+    [trackEvent, createEventBuilder, items, source],
   );
 
   if (!isEnabled) {
