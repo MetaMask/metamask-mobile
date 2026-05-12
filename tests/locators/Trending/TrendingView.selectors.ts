@@ -5,9 +5,10 @@ export const TrendingViewSelectorsIDs = {
   SEARCH_BUTTON: 'explore-view-search-button',
   BROWSER_BUTTON: 'trending-view-browser-button',
   SEARCH_INPUT: 'explore-view-search-input',
+  SEARCH_TEXT_INPUT: 'explore-view-search-text-input',
   SEARCH_CANCEL_BUTTON: 'explore-search-cancel-button',
   TOKEN_ROW_ITEM_PREFIX: 'trending-token-row-item-',
-  PERPS_ROW_ITEM_PREFIX: 'perps-market-row-item-',
+  PERPS_ROW_ITEM_PREFIX: 'perps-market-tile-card-',
   PREDICTIONS_ROW_ITEM_PREFIX: 'predict-market-row-item-',
   SITE_ROW_ITEM_PREFIX: 'site-row-item-',
   SEARCH_FOOTER_SEARCH_LINK: 'trending-search-footer-search-link',
@@ -21,7 +22,7 @@ export const TrendingViewSelectorsIDs = {
 export const TrendingViewSelectorsText = {
   // Section titles - must match the actual localized strings from sections.config.tsx
   SECTION_PREDICTIONS: 'Predictions',
-  SECTION_TOKENS: 'Trending tokens',
+  SECTION_TOKENS: 'Trending',
   SECTION_STOCKS: 'Stocks',
   SECTION_PERPS: 'Perps',
   SECTION_SITES: 'Sites',

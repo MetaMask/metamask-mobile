@@ -1,14 +1,20 @@
 name: Android E2E Regression Tests
 
 on:
-  schedule:
-    - cron: '0 */3 * * *' # Every 3 hours
   workflow_dispatch:
     inputs:
       notify_on_pass:
         description: 'Send Slack notification even when all tests pass'
         type: boolean
         default: false
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: true
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
 
 permissions:
   contents: read
@@ -26,7 +32,7 @@ jobs:
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
-      keystore_target: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-confirmations-android:
@@ -43,6 +49,7 @@ jobs:
       test_suite_tag: 'RegressionConfirmations'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-trade-android:
@@ -59,6 +66,7 @@ jobs:
       test_suite_tag: 'RegressionTrade'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-wallet-platform-android:
@@ -75,6 +83,7 @@ jobs:
       test_suite_tag: 'RegressionWalletPlatform'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-accounts-android:
@@ -91,6 +100,7 @@ jobs:
       test_suite_tag: 'RegressionAccounts'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-network-abstraction-android:
@@ -107,6 +117,7 @@ jobs:
       test_suite_tag: 'RegressionNetworkAbstractions'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-network-expansion-android:
@@ -123,6 +134,7 @@ jobs:
       test_suite_tag: 'RegressionNetworkExpansion'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-assets-android:
@@ -139,6 +151,7 @@ jobs:
       test_suite_tag: 'RegressionAssets'
       split_number: ${{ matrix.split }}
       total_splits: 2
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-ux-android:
@@ -155,11 +168,12 @@ jobs:
       test_suite_tag: 'RegressionWalletUX'
       split_number: ${{ matrix.split }}
       total_splits: 1
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   report-android-regression-tests:
     name: Report Android Regression Tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: always()
     needs:
       - build-android-apks

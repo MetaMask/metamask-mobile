@@ -9,11 +9,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -95,12 +95,13 @@ const ClearCookiesSection = () => {
         <View style={styles.accessory}>
           <Button
             size={ButtonSize.Lg}
-            variant={ButtonVariants.Secondary}
-            width={ButtonWidthTypes.Full}
-            label={strings('app_settings.clear_browser_cookies_desc')}
+            variant={ButtonVariant.Secondary}
+            isFullWidth
             onPress={toggleClearCookiesModal}
             isDisabled={!hasCookies}
-          />
+          >
+            {strings('app_settings.clear_browser_cookies_desc')}
+          </Button>
         </View>
       </View>
       <ActionModal

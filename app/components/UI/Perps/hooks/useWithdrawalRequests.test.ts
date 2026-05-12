@@ -134,7 +134,6 @@ describe('useWithdrawalRequests', () => {
         backgroundState: {
           AccountTreeController: {
             accountTree: {
-              selectedAccountGroup: 'keyring:wallet1/1',
               wallets: {
                 'keyring:wallet1': {
                   id: 'keyring:wallet1',
@@ -150,6 +149,7 @@ describe('useWithdrawalRequests', () => {
                 },
               },
             },
+            selectedAccountGroup: 'keyring:wallet1/1',
           },
           AccountsController: {
             internalAccounts: {

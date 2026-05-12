@@ -10,6 +10,7 @@ import {
 } from '../../../types';
 
 const mockDispatch = jest.fn();
+const mockNavigate = jest.fn();
 const mockOnConfirmActionsReject = jest.fn();
 const mockOnApprovalConfirm = jest.fn();
 const mockUnsubscribe = jest.fn();
@@ -62,6 +63,7 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     dispatch: mockDispatch,
+    navigate: mockNavigate,
     addListener: mockAddListener,
   }),
 }));
@@ -88,12 +90,21 @@ jest.mock('../../../../../Views/confirmations/hooks/useConfirmActions', () => ({
 }));
 
 const mockClearActiveOrderTransactionId = jest.fn();
+const mockRejectRequest = jest.fn();
+const mockTransactions: { id: string; status: string }[] = [];
 
 jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     activeOrder: mockActiveOrder,
     clearActiveOrderTransactionId: (...args: unknown[]) =>
       mockClearActiveOrderTransactionId(...args),
+  }),
+}));
+
+const mockResetSelectedPaymentToken = jest.fn();
+jest.mock('../../../hooks/usePredictPaymentToken', () => ({
+  usePredictPaymentToken: () => ({
+    resetSelectedPaymentToken: mockResetSelectedPaymentToken,
   }),
 }));
 
@@ -104,12 +115,16 @@ jest.mock('../../../hooks/usePredictTrading', () => ({
   }),
 }));
 
+const mockTrackBetslipDismissed = jest.fn();
+
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     PredictController: {
       onOrderCancelled: (...args: unknown[]) => mockOnOrderCancelled(...args),
       trackPredictOrderEvent: (...args: unknown[]) =>
         mockTrackPredictOrderEvent(...args),
+      trackBetslipDismissed: (...args: unknown[]) =>
+        mockTrackBetslipDismissed(...args),
       initPayWithAnyToken: (...args: unknown[]) =>
         mockInitPayWithAnyToken(...args),
       setSelectedPaymentToken: (...args: unknown[]) =>
@@ -118,6 +133,16 @@ jest.mock('../../../../../../core/Engine', () => ({
         mockOnPlaceOrderSuccess(...args),
       clearActiveOrderTransactionId: (...args: unknown[]) =>
         mockClearActiveOrderTransactionId(...args),
+    },
+    ApprovalController: {
+      rejectRequest: (...args: unknown[]) => mockRejectRequest(...args),
+    },
+    TransactionController: {
+      state: {
+        get transactions() {
+          return mockTransactions;
+        },
+      },
     },
   },
 }));
@@ -152,6 +177,7 @@ describe('usePredictBuyActions', () => {
     mockTransitionEndCallbacks.length = 0;
     mockBeforeRemoveCallbacks.length = 0;
     mockAddListener.mockImplementation(createAddListenerMock());
+    mockTransactions.length = 0;
   });
 
   describe('mount effect', () => {
@@ -285,6 +311,7 @@ describe('usePredictBuyActions', () => {
 
     it('calls approval confirm when the order is paying with any token', async () => {
       mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
+      mockApprovalRequest = { id: 'approval-tx-123' };
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
@@ -360,20 +387,22 @@ describe('usePredictBuyActions', () => {
       );
     });
 
-    it('passes undefined transactionId when approvalRequest is undefined', async () => {
+    it('attempts re-init and does not call placeOrder when approvalRequest is missing', async () => {
       mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
       mockApprovalRequest = undefined;
       const { result } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
       );
 
+      mockInitPayWithAnyToken.mockClear();
+
       await act(async () => {
         await result.current.handleConfirm();
       });
 
-      expect(mockPlaceOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ transactionId: undefined }),
-      );
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
+      expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
     });
   });
 
@@ -464,6 +493,34 @@ describe('usePredictBuyActions', () => {
     );
   });
 
+  describe('depositing effect', () => {
+    it('pops the screen when handleConfirm was called before DEPOSITING', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
+      rerender(createDefaultParams());
+
+      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
+    });
+
+    it('does not navigate when handleConfirm was not called before DEPOSITING', () => {
+      mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'POP' }),
+      );
+    });
+  });
+
   describe('success effect', () => {
     it('calls onPlaceOrderSuccess when state is SUCCESS', () => {
       mockActiveOrder = { state: ActiveOrderState.SUCCESS };
@@ -495,6 +552,204 @@ describe('usePredictBuyActions', () => {
       rerender(createDefaultParams());
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
+    });
+
+    it('does not pop when DEPOSITING transition already replaced the screen', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
+      rerender(createDefaultParams());
+
+      mockDispatch.mockClear();
+
+      mockActiveOrder = { state: ActiveOrderState.SUCCESS };
+      rerender(createDefaultParams());
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
+    });
+  });
+
+  describe('pending transaction rejection', () => {
+    it('rejects unapproved transactions before calling initPayWithAnyToken', () => {
+      mockTransactions.push(
+        { id: 'tx-1', status: 'unapproved' },
+        { id: 'tx-2', status: 'unapproved' },
+      );
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockRejectRequest).toHaveBeenCalledTimes(2);
+      expect(mockRejectRequest).toHaveBeenCalledWith('tx-1', expect.anything());
+      expect(mockRejectRequest).toHaveBeenCalledWith('tx-2', expect.anything());
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not reject already approved transactions', () => {
+      mockTransactions.push(
+        { id: 'tx-1', status: 'confirmed' },
+        { id: 'tx-2', status: 'unapproved' },
+      );
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockRejectRequest).toHaveBeenCalledTimes(1);
+      expect(mockRejectRequest).toHaveBeenCalledWith('tx-2', expect.anything());
+    });
+
+    it('proceeds with initPayWithAnyToken even if rejection throws', () => {
+      mockTransactions.push({ id: 'tx-1', status: 'unapproved' });
+      mockRejectRequest.mockImplementation(() => {
+        throw new Error('Already resolved');
+      });
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not reject transactions when pay with any token is disabled', () => {
+      mockPayWithAnyTokenEnabled = false;
+      mockTransactions.push({ id: 'tx-1', status: 'unapproved' });
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockRejectRequest).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('isSheetMode', () => {
+    it('calls initPayWithAnyToken on mount without transitionEnd when isSheetMode is true', () => {
+      const params = {
+        ...createDefaultParams(),
+        isSheetMode: true,
+        onClose: jest.fn(),
+      };
+      renderHook(() => usePredictBuyActions(params));
+
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
+      expect(mockAddListener).not.toHaveBeenCalledWith(
+        'transitionEnd',
+        expect.any(Function),
+      );
+    });
+
+    it('calls onClose instead of StackActions.pop on SUCCESS when isSheetMode is true', async () => {
+      const mockOnClose = jest.fn();
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const params = {
+        ...createDefaultParams(),
+        isSheetMode: true,
+        onClose: mockOnClose,
+      };
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyActions(params),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.SUCCESS };
+      rerender(params);
+
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
+    });
+
+    it('runs cleanup on unmount instead of beforeRemove when isSheetMode is true', () => {
+      const params = {
+        ...createDefaultParams(),
+        isSheetMode: true,
+        onClose: jest.fn(),
+      };
+      const { unmount } = renderHook(() => usePredictBuyActions(params));
+
+      expect(mockAddListener).not.toHaveBeenCalledWith(
+        'beforeRemove',
+        expect.any(Function),
+      );
+
+      unmount();
+
+      expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
+      expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
+    });
+
+    it('runs cleanup on unmount even when order is in flight (DEPOSITING)', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const mockOnClose = jest.fn();
+      const params = {
+        ...createDefaultParams(),
+        isSheetMode: true,
+        onClose: mockOnClose,
+      };
+      const { result, rerender, unmount } = renderHook(() =>
+        usePredictBuyActions(params),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
+      rerender(params);
+
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+
+      mockOnConfirmActionsReject.mockClear();
+      mockClearActiveOrderTransactionId.mockClear();
+
+      unmount();
+
+      expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
+      expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
+    });
+
+    it('falls back to StackActions.pop when isSheetMode is false (default)', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const params = createDefaultParams();
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyActions(params),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.SUCCESS };
+      rerender(params);
+
+      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
+    });
+
+    it('calls onClose instead of StackActions.pop on DEPOSITING when isSheetMode is true', async () => {
+      const mockOnClose = jest.fn();
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const params = {
+        ...createDefaultParams(),
+        isSheetMode: true,
+        onClose: mockOnClose,
+      };
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyActions(params),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
+      rerender(params);
+
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
     });
   });
 });

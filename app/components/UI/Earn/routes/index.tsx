@@ -4,28 +4,20 @@ import Routes from '../../../../constants/navigation/Routes';
 import EarnLendingDepositConfirmationView from '../../Earn/Views/EarnLendingDepositConfirmationView';
 import EarnLendingWithdrawalConfirmationView from '../Views/EarnLendingWithdrawalConfirmationView';
 import EarnMusdConversionEducationView from '../Views/EarnMusdConversionEducationView';
-import MusdQuickConvertView from '../Views/MusdQuickConvertView';
 import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
+import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
-
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
 
 const EarnScreenStack = () => {
   const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
 
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ presentation: 'transparentModal' }}>
       <Stack.Screen
         name={Routes.EARN.LENDING_DEPOSIT_CONFIRMATION}
         component={EarnLendingDepositConfirmationView}
@@ -44,17 +36,16 @@ const EarnScreenStack = () => {
         component={EarnMusdConversionEducationView}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name={Routes.EARN.MUSD.QUICK_CONVERT}
-        component={MusdQuickConvertView}
-      />
     </Stack.Navigator>
   );
 };
 
 const EarnModalStack = () => (
   <ModalStack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
+    }}
   >
     <ModalStack.Screen
       name={Routes.EARN.MODALS.LENDING_MAX_WITHDRAWAL}

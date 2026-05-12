@@ -16,17 +16,10 @@ import EarnTokenList from '../../Earn/components/EarnTokenList';
 import EarnInputView from '../../Earn/Views/EarnInputView/EarnInputView';
 import EarnWithdrawInputView from '../../Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
+import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
-
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
@@ -70,7 +63,10 @@ const StakeScreenStack = () => {
 const StakeModalStack = () => (
   <StakeSDKProvider>
     <ModalStack.Navigator
-      screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+      screenOptions={{
+        ...clearStackNavigatorOptions,
+        presentation: 'transparentModal',
+      }}
     >
       <ModalStack.Screen
         name={Routes.STAKING.MODALS.LEARN_MORE}

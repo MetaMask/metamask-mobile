@@ -35,6 +35,7 @@ const ENV_VARS_TO_VERIFY = [
   'SECURITY_ALERTS_API_URL',
   'DECODING_API_URL',
   'AUTH_SERVICE_URL',
+  'SOCIAL_API_URL',
   'REWARDS_API_URL',
   'BAANX_API_URL',
   'RAMPS_ENVIRONMENT',
@@ -83,7 +84,7 @@ const SECRETS_TO_VERIFY = [
 // Expected code fencing features per build type
 const EXPECTED_CODE_FENCING = {
   main: [
-    'preinstalled-snaps',
+    'snaps',
     'keyring-snaps',
     'multi-srp',
     'solana',
@@ -92,8 +93,7 @@ const EXPECTED_CODE_FENCING = {
   ],
   flask: [
     'flask',
-    'preinstalled-snaps',
-    'external-snaps',
+    'snaps',
     'keyring-snaps',
     'multi-srp',
     'solana',

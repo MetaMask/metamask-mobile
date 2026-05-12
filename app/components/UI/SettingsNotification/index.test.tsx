@@ -1,23 +1,30 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { Text } from 'react-native';
+import { render } from '@testing-library/react-native';
 import SettingsNotification from './';
 
 describe('SettingsNotification', () => {
-  it('should render correctly as warning', () => {
-    const wrapper = shallow(
+  it('renders children in warning variant', () => {
+    const { getByTestId } = render(
       <SettingsNotification isWarning>
-        {'this is a warning'}
+        <Text testID="settings-notification-label">this is a warning</Text>
       </SettingsNotification>,
     );
-    expect(wrapper).toMatchSnapshot();
+
+    expect(getByTestId('settings-notification-label').props.children).toBe(
+      'this is a warning',
+    );
   });
 
-  it('should render correctly as notification', () => {
-    const wrapper = shallow(
+  it('renders children in notification variant', () => {
+    const { getByTestId } = render(
       <SettingsNotification isWarning isNotification>
-        {'this is a notification'}
+        <Text testID="settings-notification-label">this is a notification</Text>
       </SettingsNotification>,
     );
-    expect(wrapper).toMatchSnapshot();
+
+    expect(getByTestId('settings-notification-label').props.children).toBe(
+      'this is a notification',
+    );
   });
 });

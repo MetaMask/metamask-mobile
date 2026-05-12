@@ -5,6 +5,13 @@ import WhatsHappeningSection from './WhatsHappeningSection';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn((eventName: string) => ({
+  addProperties: jest.fn((properties: Record<string, unknown>) => ({
+    build: jest.fn(() => ({ category: eventName, properties })),
+  })),
+  build: jest.fn(() => ({ category: eventName })),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -30,6 +37,13 @@ jest.mock('./hooks', () => ({
   })),
 }));
 
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 const mockUseWhatsHappening = jest.requireMock('./hooks').useWhatsHappening;
 const mockSelectWhatsHappeningEnabled = jest.requireMock(
   '../../../../../selectors/featureFlagController/whatsHappening',
@@ -46,7 +60,11 @@ const mockItem = {
   articles: [],
 };
 
-const defaultProps = { sectionIndex: 1, totalSectionsLoaded: 3 };
+const defaultProps = {
+  sectionIndex: 1,
+  totalSectionsLoaded: 3,
+  source: 'homepage' as const,
+};
 
 describe('WhatsHappeningSection', () => {
   beforeEach(() => {
@@ -138,10 +156,10 @@ describe('WhatsHappeningSection', () => {
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(mockItem.title));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.WHATS_HAPPENING_DETAIL,
-      expect.objectContaining({ items: [mockItem], initialIndex: 0 }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
+      initialIndex: 0,
+      source: 'homepage',
+    });
   });
 
   it('navigates to detail view at index 0 when ViewMore card is pressed', () => {
@@ -153,10 +171,10 @@ describe('WhatsHappeningSection', () => {
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(/view more/i));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.WHATS_HAPPENING_DETAIL,
-      expect.objectContaining({ items: [mockItem], initialIndex: 0 }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
+      initialIndex: 0,
+      source: 'homepage',
+    });
   });
 
   it('navigates with correct index when second card is pressed', () => {
@@ -173,12 +191,9 @@ describe('WhatsHappeningSection', () => {
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(secondItem.title));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.WHATS_HAPPENING_DETAIL,
-      expect.objectContaining({
-        items: [mockItem, secondItem],
-        initialIndex: 1,
-      }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
+      initialIndex: 1,
+      source: 'homepage',
+    });
   });
 });

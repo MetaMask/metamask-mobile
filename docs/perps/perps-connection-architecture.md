@@ -228,7 +228,7 @@ The Perps system preloads market data and user data in the background before the
 
 ### How It Works
 
-1. **`startMarketDataPreload()`** is called from the Wallet tab (or other entry points) to fetch market data via REST and cache it in the controller state
+1. **`startMarketDataPreload()`** is started by `PerpsAlwaysOnProvider` at the wallet root to fetch market data via REST and cache it in the controller state
 2. **`performUserDataPreload()`** is called after market data preload completes, fetching positions, open orders, and account state via lightweight standalone REST calls
 3. **`MarketDataChannel`** in the stream manager reads cached market data on mount, providing instant market data to subscribers
 4. **`OrderStreamChannel`**, **`PositionStreamChannel`**, and **`AccountStreamChannel`** read cached user data on `connect()`, providing instant display before WebSocket data arrives

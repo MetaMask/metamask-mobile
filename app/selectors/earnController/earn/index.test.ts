@@ -59,6 +59,12 @@ jest.mock('../../../components/UI/Earn/selectors/featureFlags', () => ({
   prioritizeFlagsByEnv: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: () => () =>
+    jest.requireActual('../../../util/test/accountsControllerTestUtils')
+      .internalAccount2,
+}));
+
 const MOCK_ROOT_STATE_WITH_EARN_CONTROLLER = mockEarnControllerRootState();
 const MOCK_RATE = {
   price: 0.99,
@@ -733,8 +739,8 @@ describe('Earn Controller Selectors', () => {
           AccountTreeController: {
             accountTree: {
               wallets: {},
-              selectedAccountGroup: null,
             },
+            selectedAccountGroup: null,
           },
           MultichainNetworkController: {
             isEvmSelected: true,

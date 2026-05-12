@@ -3,7 +3,7 @@ import {
   type NetworkEnablementControllerMessenger,
   NetworkEnablementControllerState,
 } from '@metamask/network-enablement-controller';
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
 
 /**
  * Initialize the NetworkEnablementController.
@@ -11,7 +11,7 @@ import type { ControllerInitFunction } from '../../types';
  * @param request - The request object.
  * @returns The NetworkEnablementController.
  */
-export const networkEnablementControllerInit: ControllerInitFunction<
+export const networkEnablementControllerInit: MessengerClientInitFunction<
   NetworkEnablementController,
   NetworkEnablementControllerMessenger
 > = (request) => {

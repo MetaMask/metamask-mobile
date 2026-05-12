@@ -1,0 +1,181 @@
+{
+  "title": "App Lifecycle — validate data survives background, long background, and restart",
+  "description": "Reference recipe demonstrating three lifecycle stress levels: short background (within WS grace period), long background (exceeds grace period, forces full WS reconnection), and full app restart. Use as a template for PR recipes that need lifecycle validation.",
+  "inputs": {
+    "symbol": {
+      "type": "string",
+      "default": "BTC",
+      "description": "Market symbol to verify price recovery"
+    },
+    "short_background_ms": {
+      "type": "number",
+      "default": 5000,
+      "description": "Short background duration — within WS grace period (cache preserved)"
+    },
+    "long_background_ms": {
+      "type": "number",
+      "default": 30000,
+      "description": "Long background duration — exceeds WS grace period (forces full reconnection)"
+    },
+    "test_short_background": {
+      "type": "boolean",
+      "default": true,
+      "description": "Test short background/foreground cycle"
+    },
+    "test_long_background": {
+      "type": "boolean",
+      "default": true,
+      "description": "Test long background that triggers WS reconnection"
+    },
+    "test_restart": {
+      "type": "boolean",
+      "default": false,
+      "description": "Test full app restart (slower, needs ~20s boot + possible unlock)"
+    }
+  },
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked", "perps.feature_enabled"],
+      "entry": "nav-market-list",
+      "nodes": {
+        "nav-market-list": {
+          "action": "navigate",
+          "target": "PerpsTrendingView",
+          "next": "wait-markets"
+        },
+        "wait-markets": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){return JSON.stringify({count:ms.length})})",
+          "assert": { "operator": "gt", "field": "count", "value": 0 },
+          "next": "baseline-price"
+        },
+        "baseline-price": {
+          "action": "eval_async",
+          "description": "Baseline — confirm markets and price data loaded",
+          "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){var m=ms.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!m,price:m?m.price:'0'})})",
+          "assert": { "operator": "neq", "field": "price", "value": "0" },
+          "next": "short-background"
+        },
+
+        "short-background": {
+          "action": "app_background",
+          "description": "Short background — within WS grace period, cache should be preserved",
+          "when": { "operator": "eq", "field": "inputs.test_short_background", "value": true },
+          "duration_ms": "{{short_background_ms}}",
+          "next": "short-foreground"
+        },
+        "short-foreground": {
+          "action": "app_foreground",
+          "when": { "operator": "eq", "field": "inputs.test_short_background", "value": true },
+          "next": "wait-post-short"
+        },
+        "wait-post-short": {
+          "action": "wait_for",
+          "when": { "operator": "eq", "field": "inputs.test_short_background", "value": true },
+          "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){return JSON.stringify({count:ms.length})})",
+          "assert": { "operator": "gt", "field": "count", "value": 0 },
+          "timeout_ms": 15000,
+          "next": "verify-post-short"
+        },
+        "verify-post-short": {
+          "action": "eval_async",
+          "description": "Confirm markets + price survive short background",
+          "when": { "operator": "eq", "field": "inputs.test_short_background", "value": true },
+          "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){var m=ms.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!m,price:m?m.price:'0'})})",
+          "assert": { "operator": "neq", "field": "price", "value": "0" },
+          "next": "long-background"
+        },
+
+        "long-background": {
+          "action": "app_background",
+          "description": "Long background — exceeds WS grace period, forces full reconnection",
+          "when": { "operator": "eq", "field": "inputs.test_long_background", "value": true },
+          "duration_ms": "{{long_background_ms}}",
+          "next": "long-foreground"
+        },
+        "long-foreground": {
+          "action": "app_foreground",
+          "when": { "operator": "eq", "field": "inputs.test_long_background", "value": true },
+          "next": "wait-post-long"
+        },
+        "wait-post-long": {
+          "action": "wait_for",
+          "when": { "operator": "eq", "field": "inputs.test_long_background", "value": true },
+          "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){return JSON.stringify({count:ms.length})})",
+          "assert": { "operator": "gt", "field": "count", "value": 0 },
+          "timeout_ms": 30000,
+          "next": "verify-post-long"
+        },
+        "verify-post-long": {
+          "action": "eval_async",
+          "description": "Confirm markets + DEXs recover after full WS reconnection",
+          "when": { "operator": "eq", "field": "inputs.test_long_background", "value": true },
+          "expression": "(function(){return Promise.all([Engine.context.PerpsController.getMarketDataWithPrices(),Engine.context.PerpsController.getAvailableDexs()]).then(function(r){var m=r[0].find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({markets:r[0].length,dexs:r[1].length,price:m?m.price:'0'})})})()",
+          "assert": { "operator": "neq", "field": "price", "value": "0" },
+          "next": "restart-app"
+        },
+
+        "restart-app": {
+          "action": "app_restart",
+          "when": { "operator": "eq", "field": "inputs.test_restart", "value": true },
+          "boot_wait_ms": 20000,
+          "next": "detect-post-restart"
+        },
+        "detect-post-restart": {
+          "action": "eval_sync",
+          "description": "Detect login vs wallet after restart",
+          "when": { "operator": "eq", "field": "inputs.test_restart", "value": true },
+          "expression": "(function(){try{var r=globalThis.__AGENTIC__.getRoute();return JSON.stringify({route:r.name})}catch(e){return JSON.stringify({route:'unknown'})}})()",
+          "next": "check-needs-unlock"
+        },
+        "check-needs-unlock": {
+          "action": "switch",
+          "when": { "operator": "eq", "field": "inputs.test_restart", "value": true },
+          "cases": [
+            {
+              "label": "needs-login",
+              "when": { "operator": "eq", "field": "nodes.detect-post-restart.result.route", "value": "Login" },
+              "next": "enter-password"
+            }
+          ],
+          "default": "nav-after-restart"
+        },
+        "enter-password": {
+          "action": "set_input",
+          "test_id": "login-password-input",
+          "value": "qwerasdf",
+          "next": "press-login"
+        },
+        "press-login": {
+          "action": "press",
+          "test_id": "log-in-button",
+          "next": "nav-after-restart"
+        },
+        "nav-after-restart": {
+          "action": "navigate",
+          "when": { "operator": "eq", "field": "inputs.test_restart", "value": true },
+          "target": "PerpsTrendingView",
+          "next": "wait-post-restart"
+        },
+        "wait-post-restart": {
+          "action": "wait_for",
+          "when": { "operator": "eq", "field": "inputs.test_restart", "value": true },
+          "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){return JSON.stringify({count:ms.length})})",
+          "assert": { "operator": "gt", "field": "count", "value": 0 },
+          "timeout_ms": 30000,
+          "next": "verify-post-restart"
+        },
+        "verify-post-restart": {
+          "action": "eval_async",
+          "description": "Confirm markets reload cleanly after full restart",
+          "when": { "operator": "eq", "field": "inputs.test_restart", "value": true },
+          "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){var m=ms.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!m,price:m?m.price:'0'})})",
+          "assert": { "operator": "neq", "field": "price", "value": "0" },
+          "next": "done"
+        },
+
+        "done": { "action": "end", "status": "pass" }
+      }
+    }
+  }
+}

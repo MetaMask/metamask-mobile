@@ -11,10 +11,9 @@ export const BUTTON_TEST_ID = 'button-menu-select-test-id';
 export const BUTTON_TEXT_TEST_ID = 'button-text-select-test-id';
 
 // Sample consts
-export const SAMPLE_LISTITEMMULTISELECT_PROPS: ListItemMultiSelectButtonProps =
-  {
-    isSelected: false,
-    isDisabled: false,
-    buttonIcon: IconName.Arrow2Right,
-    ...SAMPLE_LISTITEM_PROPS,
-  };
+export const SAMPLE_LISTITEMMULTISELECT_PROPS = {
+  isSelected: false,
+  isDisabled: false,
+  buttonIcon: IconName.Arrow2Right,
+  ...SAMPLE_LISTITEM_PROPS,
+} as unknown as Partial<ListItemMultiSelectButtonProps>;

@@ -23,8 +23,12 @@ class TrendingView {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.BROWSER_BUTTON);
   }
 
-  get searchInput(): DetoxElement {
+  get searchInputContainer(): DetoxElement {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_INPUT);
+  }
+
+  get searchInput(): DetoxElement {
+    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_TEXT_INPUT);
   }
 
   get searchCancelButton(): DetoxElement {
@@ -142,7 +146,7 @@ class TrendingView {
    */
   private getSectionId(sectionTitle: string): string {
     const sectionIdMap: Record<string, string> = {
-      'Trending tokens': 'tokens',
+      Trending: 'tokens',
       Stocks: 'stocks',
       Sites: 'sites',
       Predictions: 'predictions',
@@ -205,9 +209,9 @@ class TrendingView {
       `section-header-view-all-${id}`,
     );
 
-    // Trending tokens is at the top of the feed; scroll up to find it.
-    // All other sections (stocks, perps, predictions, sites) are below.
-    const direction = sectionTitle === 'Trending tokens' ? 'up' : 'down';
+    // Predictions is at the top of the feed; scroll up to find it.
+    // All other sections (tokens, perps, stocks, sites) are below.
+    const direction = sectionTitle === 'Predictions' ? 'up' : 'down';
 
     // Use generic scroll method
     await this.scrollToElementInFeed(

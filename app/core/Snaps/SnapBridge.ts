@@ -51,8 +51,9 @@ import {
   makeMethodMiddlewareMaker,
   UNSUPPORTED_RPC_METHODS,
 } from '../RPCMethods/utils';
-import { MultichainRouter } from '@metamask/snaps-controllers';
+import { MultichainRoutingService } from '@metamask/snaps-controllers';
 import { asLegacyMiddleware } from '@metamask/json-rpc-engine/v2';
+import { sortMultichainAccountsByLastSelected } from '../Permissions';
 
 /**
  * Type definition for the GetRPCMethodMiddleware function.
@@ -289,23 +290,27 @@ export default class SnapBridge {
         ),
         getNonEvmSupportedMethods: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
-          'MultichainRouter:getSupportedMethods',
+          'MultichainRoutingService:getSupportedMethods',
         ),
         isNonEvmScopeSupported: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
-          'MultichainRouter:isSupportedScope',
+          'MultichainRoutingService:isSupportedScope',
         ),
         handleNonEvmRequestForOrigin: (
-          params: Parameters<MultichainRouter['handleRequest']>[0],
+          params: Parameters<MultichainRoutingService['handleRequest']>[0],
         ) =>
-          Engine.controllerMessenger.call('MultichainRouter:handleRequest', {
-            ...params,
-            origin: this.#snapId,
-          }),
+          Engine.controllerMessenger.call(
+            'MultichainRoutingService:handleRequest',
+            {
+              ...params,
+              origin: this.#snapId,
+            },
+          ),
         getNonEvmAccountAddresses: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
-          'MultichainRouter:getSupportedAccounts',
+          'MultichainRoutingService:getSupportedAccounts',
         ),
+        sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
         trackSessionCreatedEvent: undefined,
       }),
     );

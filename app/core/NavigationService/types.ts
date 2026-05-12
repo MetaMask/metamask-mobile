@@ -3,6 +3,7 @@ import type {
   NavigationProp,
   NavigationState,
 } from '@react-navigation/native';
+import type { Position } from '@metamask/social-controllers';
 
 // ============================================================================
 // Import types from their source files
@@ -41,6 +42,7 @@ import type { AccountConnectParams } from '../../components/Views/AccountConnect
 import type { ShowTokenIdSheetParams } from '../../components/Views/ShowTokenIdSheet/ShowTokenIdSheet.types';
 import type { ShowIpfsGatewaySheetParams } from '../../components/Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet.types';
 import type { SuccessErrorSheetParams } from '../../components/Views/SuccessErrorSheet/interface';
+import type { OnboardingSheetParams } from '../../components/Views/OnboardingSheet';
 
 // Modal params
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/types';
@@ -148,6 +150,10 @@ import type {
   AddAccountParams,
   AmbiguousAddressParams,
 } from '../../components/Views/AccountActions/AccountActions.types';
+import type {
+  OnboardingOAuthRehydrateParams,
+  RehydrateParams,
+} from '../../components/Views/OAuthRehydration/OAuthRehydration.types';
 
 // Multichain accounts params
 import type {
@@ -196,6 +202,9 @@ import type {
   SnapSettingsParams,
 } from '../../components/Views/Modals/Modals.types';
 
+// Rewards params
+import { BenefitFullViewRouteParams } from '../../components/UI/Rewards/Views/BenefitFullView.types.ts';
+
 // Webview params
 import type {
   WebviewParams,
@@ -213,7 +222,29 @@ export interface NestedNavigationParams {
   [key: string]: unknown;
 }
 
-import { SectionId } from '../../components/Views/TrendingView/sections.config';
+import type { SearchFeedId } from '../../components/Views/TrendingView/search/useExploreSearch';
+
+type TraderPositionViewParams =
+  | {
+      traderId: string;
+      tokenSymbol: string;
+      /** Fast path: passed from TraderProfileView row-tap. No fetch fires. */
+      position: Position;
+      positionId?: string;
+      /** Optional — fetched via useTraderProfile when absent. */
+      traderName?: string;
+      /** Optional — fetched via useTraderProfile when absent. */
+      traderImageUrl?: string;
+    }
+  | {
+      /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
+      positionId: string;
+      traderId: string;
+      tokenSymbol?: never;
+      traderName?: never;
+      traderImageUrl?: never;
+      position?: never;
+    };
 
 /**
  * Flattened param list for React Navigation compatibility.
@@ -250,6 +281,7 @@ export interface RootStackParamList extends ParamListBase {
   SendTransaction: undefined;
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
+  RampHeadlessPlayground: undefined;
   RampAmountInput:
     | (SimpleRampBuildQuoteParams & { nativeFlowError?: string })
     | undefined;
@@ -316,10 +348,10 @@ export interface RootStackParamList extends ParamListBase {
   WhatsHappeningDetailView:
     | { items: WhatsHappeningItem[]; initialIndex: number }
     | undefined;
-  SitesFullView: undefined;
+  SitesFullView: { mode?: 'favorites' } | undefined;
   ExploreSearch: undefined;
   ExploreSectionResultsFullView: {
-    sectionId: SectionId;
+    feedId: SearchFeedId;
     title: string;
     searchQuery: string;
     data: unknown[];
@@ -330,6 +362,8 @@ export interface RootStackParamList extends ParamListBase {
   RewardsOnboarding2: undefined;
   RewardsOnboarding3: undefined;
   RewardsOnboarding4: undefined;
+  BenefitFullView: BenefitFullViewRouteParams;
+  BenefitsFullView: undefined;
 
   // Modal routes
   DeleteWalletModal: undefined;
@@ -381,14 +415,9 @@ export interface RootStackParamList extends ParamListBase {
   ChoosePassword: ChoosePasswordRouteParams | undefined;
   OptinMetrics: OptinMetricsRouteParams | undefined;
   SocialLoginSuccessExistingUser: undefined;
-  Rehydrate:
-    | {
-        previous_screen?: string;
-        oauthLoginSuccess?: boolean;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onboardingTraceCtx?: any;
-      }
-    | undefined;
+  /** OAuth unlock screen nested in OnboardingNav (see Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE). */
+  OnboardingOAuthRehydrate: OnboardingOAuthRehydrateParams | undefined;
+  Rehydrate: RehydrateParams | undefined;
 
   // Send flow routes
   SendTo: SendFlowParams | undefined;
@@ -440,7 +469,7 @@ export interface RootStackParamList extends ParamListBase {
   NetworkManager: undefined;
   ChangeInSimulationModal: undefined;
   SelectSRP: SelectSRPParams | undefined;
-  OnboardingSheet: undefined;
+  OnboardingSheet: OnboardingSheetParams | undefined;
   SeedphraseModal: SeedphraseModalParams | undefined;
   SkipAccountSecurityModal: undefined;
   SuccessErrorSheet: SuccessErrorSheetParams | undefined;
@@ -477,6 +506,7 @@ export interface RootStackParamList extends ParamListBase {
   NftFullView: undefined;
   TokensFullView: undefined;
   CashTokensFullView: undefined;
+  MoneyScreens: undefined;
   TrendingTokensFullView: undefined;
   RWATokensFullView: undefined;
 
@@ -547,6 +577,11 @@ export interface RootStackParamList extends ParamListBase {
   PredictAddFundsSheet: undefined;
   PredictGTMModal: undefined;
 
+  // Social Leaderboard routes
+  TopTradersView: undefined;
+  TraderProfileView: { traderId: string; traderName: string; rank?: number };
+  TraderPositionView: TraderPositionViewParams;
+
   // Misc routes
   LockScreen: undefined;
   ConfirmationRequestModal: undefined;
@@ -604,7 +639,7 @@ export interface RootStackParamList extends ParamListBase {
   MultichainAddressList: MultichainAddressListParams | undefined;
   MultichainPrivateKeyList: PrivateKeyListParams | undefined;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   // Snaps routes
   SnapsSettingsList: undefined;
   SnapSettings: SnapSettingsParams | undefined;
@@ -622,14 +657,10 @@ export interface RootStackParamList extends ParamListBase {
 
   // Card routes
   CardScreens: undefined;
-  CardMainRoutes: undefined;
   CardHome: undefined;
   CardWelcome: undefined;
-  CardAuthentication: undefined;
-  CardNotification: undefined;
+  CardAuthentication: { showAuthPrompt?: boolean } | undefined;
   CardSpendingLimit: undefined;
-  CardChangeAsset: undefined;
-  VerifyingRegistration: undefined;
   ChooseYourCard: undefined;
   ReviewOrder: undefined;
   OrderCompleted:
@@ -648,7 +679,6 @@ export interface RootStackParamList extends ParamListBase {
   CardOnboardingVerifyingVeriffKYC: undefined;
   CardOnboardingPersonalDetails: undefined;
   CardOnboardingPhysicalAddress: undefined;
-  CardOnboardingMailingAddress: undefined;
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingKYCPending: undefined;

@@ -16,7 +16,7 @@ import { MMM_ORIGIN } from '../../../../constants/confirmations';
 import InfoSection from '../../../UI/info-row/info-section';
 import InfoRow from '../../../UI/info-row/info-row';
 import Address from '../../../UI/info-row/info-value/address';
-import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import NetworkRow from '../network-row';
 import styleSheet from './network-and-origin-row.styles';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';

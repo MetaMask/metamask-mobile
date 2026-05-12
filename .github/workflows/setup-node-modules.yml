@@ -58,6 +58,11 @@ on:
         required: false
         type: number
         default: 1
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
     outputs:
       artifact-name:
         description: 'The actual artifact name used'
@@ -71,7 +76,7 @@ jobs:
   setup:
     name: Setup Node Modules ${{ inputs.platform && format('({0})', inputs.platform) || '' }}
     # Platform-specific runner to match consumer (build needs same OS for native deps/symlinks)
-    runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || (inputs.platform == 'android' && 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' || 'ubuntu-latest') }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-build' || (inputs.platform == 'android' && 'namespace-profile-metamask-android-build' || 'namespace-profile-metamask-ci-linux')) || (inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || (inputs.platform == 'android' && 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' || 'ubuntu-latest')) }}
     permissions:
       contents: read
       id-token: write
@@ -85,12 +90,22 @@ jobs:
           fetch-depth: ${{ inputs.fetch-depth }}
           submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+
       # iOS: Only Node + Ruby needed (setup runs gem/bundle install, no pods/Xcode). Full iOS env is in build job.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: ${{ inputs.platform == 'android' && 'yarn' || (inputs.platform == 'ios' && 'yarn') || '' }}
+          cache: ${{ inputs.runner_provider == 'namespace' && '' || (inputs.platform == 'android' && 'yarn' || (inputs.platform == 'ios' && 'yarn') || '') }}
 
       - name: Setup Ruby (iOS)
         if: inputs.platform == 'ios'
@@ -126,14 +141,14 @@ jobs:
 
       - name: Restore .metamask folder
         id: restore-metamask
-        if: inputs.platform != ''
+        if: ${{ inputs.runner_provider != 'namespace' && inputs.platform != '' }}
         uses: actions/cache@v4
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Install Foundry if cache missed
-        if: inputs.platform != '' && steps.restore-metamask.outputs.cache-hit != 'true'
+        if: ${{ inputs.platform != '' && (inputs.runner_provider == 'namespace' || steps.restore-metamask.outputs.cache-hit != 'true') }}
         run: yarn install:foundryup
 
       - name: Setup project

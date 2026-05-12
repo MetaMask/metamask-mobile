@@ -12,7 +12,7 @@
     }
   },
   "validate": {
-    "runtime": {
+    "workflow": {
       "pre_conditions": [
         "wallet.unlocked",
         {
@@ -20,19 +20,19 @@
           "symbol": "{{symbol}}"
         }
       ],
-      "steps": [
-        {
-          "id": "assert-position-exists",
+      "entry": "assert-position-exists",
+      "nodes": {
+        "assert-position-exists": {
           "action": "eval_async",
           "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!p})})",
           "assert": {
             "operator": "eq",
             "field": "found",
             "value": true
-          }
+          },
+          "next": "nav-market-detail"
         },
-        {
-          "id": "nav-market-detail",
+        "nav-market-detail": {
           "action": "navigate",
           "target": "PerpsMarketDetails",
           "params": {
@@ -45,39 +45,44 @@
               "volume": "0",
               "maxLeverage": "100"
             }
-          }
+          },
+          "next": "wait-render"
         },
-        {
-          "id": "wait-render",
+        "wait-render": {
           "action": "wait_for",
-          "test_id": "perps-market-details-close-button"
+          "test_id": "perps-market-details-close-button",
+          "next": "press-close"
         },
-        {
-          "id": "press-close",
+        "press-close": {
           "action": "press",
-          "test_id": "perps-market-details-close-button"
+          "test_id": "perps-market-details-close-button",
+          "next": "wait-close-screen"
         },
-        {
-          "id": "wait-close-screen",
+        "wait-close-screen": {
           "action": "wait_for",
-          "route": "PerpsClosePosition"
+          "route": "PerpsClosePosition",
+          "next": "press-confirm-close"
         },
-        {
-          "id": "press-confirm-close",
+        "press-confirm-close": {
           "action": "press",
-          "test_id": "close-position-confirm-button"
+          "test_id": "close-position-confirm-button",
+          "next": "wait-position-closed"
         },
-        {
-          "id": "wait-position-closed",
+        "wait-position-closed": {
           "action": "wait_for",
           "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!p})})",
           "assert": {
             "operator": "eq",
             "field": "found",
             "value": false
-          }
+          },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
         }
-      ]
+      }
     }
   }
 }

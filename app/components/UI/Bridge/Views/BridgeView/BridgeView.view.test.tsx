@@ -18,7 +18,10 @@ import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/Bridge
 import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
-import { RequestStatus } from '@metamask/bridge-controller';
+import {
+  RequestStatus,
+  QuoteStreamCompleteReason,
+} from '@metamask/bridge-controller';
 import {
   DEFAULT_BRIDGE,
   ETH_SOURCE,
@@ -198,10 +201,10 @@ describeForPlatforms('BridgeView', () => {
   });
 
   describe('Gasless swap', () => {
-    it('shows error banner when gasless swap quote fetch fails and dismisses it on close', async () => {
+    it('shows error banner when gasless swap quote fetch fails', async () => {
       const now = Date.now();
 
-      const { findByText, queryByText, getByTestId } = defaultBridgeWithTokens({
+      const { findByText } = defaultBridgeWithTokens({
         engine: {
           backgroundState: {
             BridgeController: {
@@ -209,7 +212,11 @@ describeForPlatforms('BridgeView', () => {
               recommendedQuote: null,
               quotesLastFetched: now,
               quotesLoadingStatus: RequestStatus.FETCHED,
-              quoteFetchError: 'GaslessSwapSubmissionFailed',
+              quoteStreamComplete: {
+                hasQuotes: false,
+                quoteCount: 0,
+                reason: QuoteStreamCompleteReason.RETRY,
+              },
             },
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
@@ -220,18 +227,9 @@ describeForPlatforms('BridgeView', () => {
         },
       } as unknown as Record<string, unknown>);
 
-      // Error banner appears after the gasless swap quote fetch failure
       expect(
-        await findByText(strings('bridge.error_banner_description')),
+        await findByText(strings('bridge.quote_stream_complete_retry')),
       ).toBeOnTheScreen();
-
-      // User dismisses the error banner
-      fireEvent.press(getByTestId(CommonSelectorsIDs.BANNER_CLOSE_BUTTON_ICON));
-
-      // Banner is gone after dismissal
-      expect(
-        queryByText(strings('bridge.error_banner_description')),
-      ).not.toBeOnTheScreen();
     });
   });
 

@@ -16,15 +16,11 @@ export const rampsPaymentMethodsKeys = {
   all: () => ['ramps', 'paymentMethods'] as const,
   detail: ({
     regionCode,
-    fiat,
-    assetId,
     providerId,
-  }: PaymentMethodsQueryParams) =>
+  }: Pick<PaymentMethodsQueryParams, 'regionCode' | 'providerId'>) =>
     [
       ...rampsPaymentMethodsKeys.all(),
       regionCode.trim().toLowerCase(),
-      fiat.trim().toLowerCase(),
-      assetId,
       providerId,
     ] as const,
 };
@@ -45,5 +41,5 @@ export const rampsPaymentMethodsOptions = (params: PaymentMethodsQueryParams) =>
 
       return response.payments;
     },
-    staleTime: 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });

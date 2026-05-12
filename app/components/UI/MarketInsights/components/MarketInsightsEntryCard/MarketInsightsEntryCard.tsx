@@ -29,7 +29,6 @@ import { useViewportTracking } from '../../hooks/useViewportTracking';
 import { AnimatedGradientBorder } from './AnimatedGradientBorder';
 import { VISIBILITY_THRESHOLD } from './AnimatedGradientBorder.constants';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
-import MarketInsightsDisclaimerBottomSheet from './MarketInsightsDisclaimerBottomSheet';
 import SlidingTextCarousel from './SlidingTextCarousel';
 import {
   CHROME_GRADIENT_HEAD,
@@ -131,6 +130,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   report,
   timeAgo,
   onPress,
+  onDisclaimerPress,
   caip19Id,
   testID,
 }) => {
@@ -143,15 +143,6 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   } | null>(null);
 
   const [borderAnimationKey, setBorderAnimationKey] = useState(0);
-  const [isDisclaimerVisible, setIsDisclaimerVisible] = useState(false);
-
-  const handleOpenDisclaimer = useCallback(() => {
-    setIsDisclaimerVisible(true);
-  }, []);
-
-  const handleCloseDisclaimer = useCallback(() => {
-    setIsDisclaimerVisible(false);
-  }, []);
 
   // Derive a stable key from actual text content so the memo doesn't bust
   // when the parent passes a new report object with identical data.
@@ -277,6 +268,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
+                twClassName="shrink"
               >
                 {strings('market_insights.card_footer_disclaimer')}
                 {' • '}
@@ -284,7 +276,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
               </Text>
               <Pressable
                 testID="market-insights-info-button"
-                onPress={handleOpenDisclaimer}
+                onPress={onDisclaimerPress}
                 hitSlop={8}
               >
                 <Icon
@@ -297,10 +289,6 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
           </Box>
         </View>
       </TouchableOpacity>
-      <MarketInsightsDisclaimerBottomSheet
-        isVisible={isDisclaimerVisible}
-        onClose={handleCloseDisclaimer}
-      />
     </>
   );
 };

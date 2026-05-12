@@ -1,9 +1,9 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useGetCampaignParticipantStatus } from './useGetCampaignParticipantStatus';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignParticipantStatusById } from '../../../../reducers/rewards/selectors';
+import { selectCampaignParticipantStatus } from '../../../../reducers/rewards/selectors';
 import { setCampaignParticipantStatus } from '../../../../reducers/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import type { CampaignParticipantStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -26,7 +26,7 @@ jest.mock('../../../../selectors/rewards', () => ({
 }));
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
-  selectCampaignParticipantStatusById: jest.fn(),
+  selectCampaignParticipantStatus: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/rewards', () => ({
@@ -44,14 +44,22 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 const mockSetCampaignParticipantStatus =
   setCampaignParticipantStatus as unknown as jest.MockedFunction<
-    (payload: { campaignId: string; status: CampaignParticipantStatusDto }) => {
+    (payload: {
+      subscriptionId: string;
+      campaignId: string;
+      status: CampaignParticipantStatusDto;
+    }) => {
       type: string;
-      payload: { campaignId: string; status: CampaignParticipantStatusDto };
+      payload: {
+        subscriptionId: string;
+        campaignId: string;
+        status: CampaignParticipantStatusDto;
+      };
     }
   >;
-const mockSelectCampaignParticipantStatusById =
-  selectCampaignParticipantStatusById as jest.MockedFunction<
-    typeof selectCampaignParticipantStatusById
+const mockSelectCampaignParticipantStatus =
+  selectCampaignParticipantStatus as jest.MockedFunction<
+    typeof selectCampaignParticipantStatus
   >;
 
 const SUB_ID = 'sub-123';
@@ -66,7 +74,7 @@ function setupSelectors(
   participantStatus: CampaignParticipantStatusDto | null = null,
 ) {
   mockParticipantStatusSelector.mockReturnValue(participantStatus);
-  mockSelectCampaignParticipantStatusById.mockReturnValue(
+  mockSelectCampaignParticipantStatus.mockReturnValue(
     mockParticipantStatusSelector,
   );
 
@@ -103,11 +111,12 @@ describe('useGetCampaignParticipantStatus', () => {
     setupSelectors(SUB_ID);
     mockCall.mockResolvedValueOnce(STATUS as never);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useGetCampaignParticipantStatus(CAMPAIGN_ID),
     );
-    await act(async () => {
-      await waitForNextUpdate();
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
     expect(mockCall).toHaveBeenCalledWith(
@@ -117,12 +126,12 @@ describe('useGetCampaignParticipantStatus', () => {
     );
     expect(mockDispatch).toHaveBeenCalledWith(
       mockSetCampaignParticipantStatus({
+        subscriptionId: SUB_ID,
         campaignId: CAMPAIGN_ID,
         status: STATUS,
       }),
     );
     expect(result.current.status).toEqual(STATUS);
-    expect(result.current.isLoading).toBe(false);
     expect(result.current.hasError).toBe(false);
   });
 
@@ -130,11 +139,12 @@ describe('useGetCampaignParticipantStatus', () => {
     setupSelectors(SUB_ID);
     mockCall.mockRejectedValueOnce(new Error('fail') as never);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useGetCampaignParticipantStatus(CAMPAIGN_ID),
     );
-    await act(async () => {
-      await waitForNextUpdate();
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
     expect(result.current.hasError).toBe(true);
@@ -163,19 +173,21 @@ describe('useGetCampaignParticipantStatus', () => {
       .mockResolvedValueOnce(INITIAL_STATUS as never)
       .mockResolvedValueOnce(STATUS as never);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useGetCampaignParticipantStatus(CAMPAIGN_ID),
     );
-    await act(async () => {
-      await waitForNextUpdate();
-    });
-    expect(result.current.status).toEqual(INITIAL_STATUS);
 
-    await act(async () => {
-      result.current.refetch();
-      await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.status).toEqual(INITIAL_STATUS);
     });
-    expect(result.current.status).toEqual(STATUS);
+
+    act(() => {
+      result.current.refetch();
+    });
+
+    await waitFor(() => {
+      expect(result.current.status).toEqual(STATUS);
+    });
   });
 
   it('skips fetch when subscriptionId is missing', async () => {

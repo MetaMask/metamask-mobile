@@ -36,12 +36,8 @@ jest.mock('react-native', () => {
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => {
-    const tw = (...args: unknown[]) => ({
-      fontSize: 14,
-      lineHeight: 20,
-      ...(typeof args[0] === 'string' ? { testStyle: args[0] } : {}),
-    });
-    tw.style = (...args: unknown[]) => args;
+    const tw = (..._args: unknown[]) => ({});
+    tw.style = jest.fn(() => ({}));
     return tw;
   },
   useTheme: () => 'light',
@@ -219,9 +215,11 @@ describe('ManualBackupStep1', () => {
     jest.clearAllMocks();
   });
 
-  it('matches snapshot', () => {
+  it('renders correctly', () => {
     const { wrapper } = renderComponent();
-    expect(wrapper).toMatchSnapshot();
+    expect(
+      wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   describe('seed phrase reveal', () => {
@@ -305,7 +303,7 @@ describe('ManualBackupStep1', () => {
       const opts = setOptions.mock.calls[0][0];
       expect(opts.headerShown).toBeUndefined();
       expect(opts.headerLeft).toBeDefined();
-      expect(opts.headerTitle).toBeNull();
+      expect(opts.headerTitle).toBe('');
     });
 
     it('shows header with back button for settings backup flow', () => {
@@ -318,7 +316,7 @@ describe('ManualBackupStep1', () => {
       const opts = setOptions.mock.calls[0][0];
       expect(opts.headerShown).toBeUndefined();
       expect(opts.headerLeft).toBeDefined();
-      expect(opts.headerTitle).toBeNull();
+      expect(opts.headerTitle).toBe('');
     });
   });
 
@@ -343,12 +341,32 @@ describe('ManualBackupStep1', () => {
       Platform.OS = 'ios';
     });
 
-    it('renders with dark theme', () => {
+    it('renders blur overlay before seed phrase is revealed (dark theme, iOS)', () => {
+      mockUseTheme.mockReturnValue({
+        colors: {
+          text: { default: mockTheme.colors.text.default },
+          background: {
+            default: mockTheme.colors.background.default,
+            muted: mockTheme.colors.background.muted,
+          },
+          icon: { default: mockTheme.colors.icon.default },
+          border: {
+            default: mockTheme.colors.border.default,
+            muted: mockTheme.colors.border.muted,
+          },
+          error: { default: mockTheme.colors.error.default },
+        },
+        themeAppearance: 'dark',
+      });
+
       const { wrapper } = renderComponent();
-      expect(wrapper).toMatchSnapshot();
+
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
+      ).toBeOnTheScreen();
     });
 
-    it('renders with light theme on Android', () => {
+    it('renders blur overlay before seed phrase is revealed (light theme, Android)', () => {
       Platform.OS = 'android';
       mockUseTheme.mockReturnValue({
         colors: {
@@ -368,7 +386,10 @@ describe('ManualBackupStep1', () => {
       });
 
       const { wrapper } = renderComponent();
-      expect(wrapper).toMatchSnapshot();
+
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 

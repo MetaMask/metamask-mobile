@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -11,7 +11,7 @@ import { TestSnapResultSelectorWebIDS } from '../../selectors/Browser/TestSnaps.
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Background Events Snap Tests'), () => {
+describe(SmokeSnaps('Background Events Snap Tests'), () => {
   it('can connect to the background events Snap', async () => {
     await withFixtures(
       {
@@ -120,20 +120,11 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
 
         await TestSnaps.fillMessage('backgroundEventDateInput', pastDate);
         await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
-        // iOS shows the error as a native alert; Android renders it in the
-        // web-view result span as JSON with escaped quotes.
-        if (device.getPlatform() === 'ios') {
-          await Assertions.expectTextDisplayed(
-            'Cannot schedule an event in the past.',
-            { timeout: 30000 },
-          );
-        } else {
-          await TestSnaps.checkResultSpanIncludes(
-            'scheduleBackgroundEventResultSpan',
-            'Cannot schedule an event in the past.',
-            { timeout: 30000 },
-          );
-        }
+        await Assertions.expectTextDisplayed(
+          'Cannot schedule an event in the past.',
+          { timeout: 30000 },
+        );
+        await TestSnaps.dismissAlert();
       },
     );
   });

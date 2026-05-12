@@ -1,13 +1,21 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from '../../reducers';
+import type {
+  RewardsAccountState,
+  RewardsControllerState,
+} from '../../core/Engine/controllers/rewards-controller/types';
+import { defaultRewardsControllerState } from '../../core/Engine/controllers/rewards-controller/defaultState';
 
 /**
  *
  * @param state - Root redux state
  * @returns - AccountsController state
  */
-export const selectRewardsControllerState = (state: RootState) =>
-  state.engine.backgroundState.RewardsController;
+export const selectRewardsControllerState = (
+  state: RootState,
+): RewardsControllerState =>
+  state.engine.backgroundState.RewardsController ??
+  defaultRewardsControllerState;
 
 export const selectRewardsActiveAccountSubscriptionId = createSelector(
   selectRewardsControllerState,
@@ -42,17 +50,6 @@ export const selectRewardsSubscriptionId = createSelector(
   },
 );
 
-export const selectCampaignParticipantOptedIn =
-  (subscriptionId: string | null, campaignId: string | undefined) =>
-  (state: RootState): boolean => {
-    if (!subscriptionId || !campaignId) return false;
-    return (
-      state.engine.backgroundState.RewardsController.campaignParticipantStatus[
-        `${subscriptionId}:${campaignId}`
-      ]?.optedIn === true
-    );
-  };
-
 export const selectRewardsActiveAccountAddress = createSelector(
   selectRewardsControllerState,
   (rewardsControllerState): string | null => {
@@ -61,4 +58,21 @@ export const selectRewardsActiveAccountAddress = createSelector(
     const parts = account.split(':');
     return parts[parts.length - 1];
   },
+);
+
+export const selectCurrentSubscription = createSelector(
+  [selectRewardsSubscriptionId, selectRewardsControllerState],
+  (subscriptionId, rewardsState) =>
+    subscriptionId
+      ? (rewardsState.subscriptions?.[subscriptionId] ?? null)
+      : null,
+);
+
+export const selectCurrentSubscriptionAccounts = createSelector(
+  [selectRewardsControllerState, selectCurrentSubscription],
+  (rewardsState, subscription) =>
+    Object.values(rewardsState.accounts ?? {}).filter(
+      (account: RewardsAccountState) =>
+        account.subscriptionId === subscription?.id,
+    ),
 );

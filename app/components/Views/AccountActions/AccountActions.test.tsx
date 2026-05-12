@@ -3,7 +3,7 @@ import Share from 'react-native-share';
 
 import { Alert, AlertButton } from 'react-native';
 
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
@@ -26,7 +26,6 @@ import { strings } from '../../../../locales/i18n';
 import * as Networks7702 from '../confirmations/hooks/7702/useEIP7702Networks';
 // eslint-disable-next-line import-x/no-namespace
 import * as AddressUtils from '../../../util/address';
-import { act } from '@testing-library/react-hooks';
 import { RPC } from '../../../constants/network';
 
 jest.mock('../confirmations/hooks/7702/useEIP7702Networks', () => ({
@@ -243,19 +242,6 @@ mockedUseRoute.mockImplementation(() => ({
     selectedAccount: MOCK_ACCOUNT,
   },
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
 
 jest.mock('react-native-share', () => ({
   open: jest.fn(() => Promise.resolve()),
@@ -588,6 +574,39 @@ describe('AccountActions', () => {
   });
 
   describe('export srp', () => {
+    const MOCK_HD_ACCOUNT_WITH_ENTROPY = {
+      ...MOCK_ACCOUNT,
+      options: { entropySource: 'hd-keyring-entropy-id' },
+    };
+
+    it('navigates to full-screen reveal SRP', () => {
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
+        params: {
+          selectedAccount: MOCK_HD_ACCOUNT_WITH_ENTROPY,
+        },
+      }));
+
+      const { getByTestId } = renderWithProvider(<AccountActions />, {
+        state: initialState,
+      });
+
+      fireEvent.press(
+        getByTestId(
+          AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+        {
+          keyringId: 'hd-keyring-entropy-id',
+          popToTopOnDone: true,
+        },
+      );
+    });
+
     it.each([
       { account: MOCK_ACCOUNT },
       { account: MOCK_BTC_ACCOUNT },
@@ -703,7 +722,7 @@ describe('AccountActions', () => {
         state: initialState,
       });
 
-      expect(queryByText('Switch to Smart account')).toBeNull();
+      expect(queryByText('Switch to Smart account')).not.toBeOnTheScreen();
     });
 
     it('option should not be displayed for hardware wallet accounts', () => {
@@ -713,7 +732,7 @@ describe('AccountActions', () => {
         state: initialState,
       });
 
-      expect(queryByText('Switch to Smart account')).toBeNull();
+      expect(queryByText('Switch to Smart account')).not.toBeOnTheScreen();
     });
   });
 

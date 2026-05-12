@@ -35,6 +35,7 @@ import BottomSheetDialog, {
  * @deprecated Please update your code to use `BottomSheet` from `@metamask/design-system-react-native`.
  * The API may have changed — compare props before migrating.
  * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BottomSheet/README.md}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#bottomsheet-component Migration docs}
  * @since @metamask/design-system-react-native@0.11.0
  */
 const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
@@ -48,11 +49,12 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       shouldNavigateBack = true,
       isFullscreen = false,
       keyboardAvoidingViewEnabled = true,
+      panGestureHandlerProps,
       ...props
     },
     ref,
   ) => {
-    const postCallback = useRef<BottomSheetPostCallback>();
+    const postCallback = useRef<BottomSheetPostCallback | undefined>(undefined);
     const bottomSheetDialogRef = useRef<BottomSheetDialogRef>(null);
     const didNavigateBackRef = useRef(false);
     const closeRequestedRef = useRef(false);
@@ -89,15 +91,20 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       } else if (shouldNavigateBack && didNavigateBackRef.current) {
         Logger.log('[BottomSheet] navigation.goBack skipped (duplicate close)');
       }
-      const callback = postCallback.current;
-      const hasCallback = !!callback;
+      const callbackBeforeOnClose = postCallback.current;
+      const hasCallbackBeforeOnClose = !!callbackBeforeOnClose;
 
-      onClose?.(hasCallback);
+      onClose?.(hasCallbackBeforeOnClose);
 
-      if (!didRunPostCallbackRef.current && hasCallback) {
+      // Overlay / hardware-back call `onCloseDialog` directly (no prior
+      // `onCloseBottomSheet`), so `postCallback` may only be set inside `onClose`
+      // (e.g. Perps handleClose → onCloseBottomSheet). Re-read after `onClose`.
+      const finalCallback =
+        postCallback.current ?? callbackBeforeOnClose ?? undefined;
+      if (!didRunPostCallbackRef.current && finalCallback) {
         didRunPostCallbackRef.current = true;
         postCallback.current = undefined;
-        callback?.();
+        finalCallback();
       }
     }, [navigation, onClose, shouldNavigateBack]);
 
@@ -110,9 +117,12 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         isInteractable && bottomSheetDialogRef.current?.onCloseDialog();
         return true;
       };
-      BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
+      const backHandlerSubscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        hardwareBackPress,
+      );
       return () => {
-        BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
+        backHandlerSubscription.remove();
       };
     }, [onCloseCB, isInteractable, navigation]);
 
@@ -163,6 +173,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
           isFullscreen={isFullscreen}
           style={style}
           keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
+          panGestureHandlerProps={panGestureHandlerProps}
         >
           {children}
         </BottomSheetDialog>

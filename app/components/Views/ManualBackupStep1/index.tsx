@@ -29,12 +29,9 @@ import {
   IconSize,
   IconColor,
   TextField,
-  TextFieldSize,
   Button,
   ButtonVariant,
   ButtonSize,
-  TextButton,
-  TextButtonSize,
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
@@ -325,16 +322,16 @@ const ManualBackupStep1 = () => {
                 placeholder={strings('manual_backup_step_1.password')}
                 value={password}
                 onChangeText={onPasswordChange}
-                secureTextEntry
-                onSubmitEditing={tryUnlock}
-                testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
-                accessibilityLabel={
-                  ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT
-                }
-                keyboardAppearance={themeAppearance}
-                autoCapitalize="none"
                 autoFocus
-                size={TextFieldSize.Lg}
+                inputProps={{
+                  secureTextEntry: true,
+                  onSubmitEditing: tryUnlock,
+                  testID: ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+                  accessibilityLabel:
+                    ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+                  keyboardAppearance: themeAppearance,
+                  autoCapitalize: 'none',
+                }}
               />
               {warningIncorrectPassword && (
                 <Text
@@ -423,8 +420,9 @@ const ManualBackupStep1 = () => {
                       variant={TextVariant.BodyMd}
                       color={TextColor.TextDefault}
                       key={index}
-                      ellipsizeMode="tail"
                       numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
                       style={tw.style('flex-1')}
                       testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
                       maxFontSizeMultiplier={1}
@@ -452,13 +450,15 @@ const ManualBackupStep1 = () => {
           {strings('manual_backup_step_1.continue')}
         </Button>
         {!hasFunds && !backupFlow && !settingsBackup && (
-          <TextButton
+          <Button
+            variant={ButtonVariant.Tertiary}
             onPress={showRemindLater}
-            size={TextButtonSize.BodyMd}
+            size={ButtonSize.Lg}
+            isFullWidth
             testID={ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON}
           >
             {strings('account_backup_step_1.remind_me_later')}
-          </TextButton>
+          </Button>
         )}
       </Box>
     </Box>

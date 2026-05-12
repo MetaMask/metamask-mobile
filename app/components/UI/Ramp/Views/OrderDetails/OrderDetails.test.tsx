@@ -9,16 +9,15 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
 
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockSetParams = jest.fn();
 const mockReset = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    setOptions: mockSetOptions,
     navigate: mockNavigate,
-    goBack: jest.fn(),
+    goBack: mockGoBack,
     setParams: mockSetParams,
     reset: mockReset,
   }),
@@ -35,12 +34,6 @@ jest.mock('../../hooks/useRampsOrders', () => ({
     getOrderFromCallback: mockGetOrderFromCallback,
     addOrder: mockAddOrder,
   }),
-}));
-
-jest.mock('../../../Navbar', () => ({
-  getRampsOrderDetailsNavbarOptions: jest.fn((_nav, _opts, _theme, onBack) => ({
-    headerLeft: onBack ? () => null : undefined,
-  })),
 }));
 
 jest.mock('../../../../../util/theme', () => {
@@ -125,13 +118,13 @@ describe('OrderDetails', () => {
     mockUseParams.mockReturnValue({ orderId: 'ord-123' });
   });
 
-  it('matches snapshot when order exists', async () => {
+  it('displays order content when order exists', async () => {
     mockRefreshOrder.mockResolvedValue(undefined);
-    const { toJSON } = render();
+    const { getByTestId } = render();
     await waitFor(() => {
       expect(mockGetOrderById).toHaveBeenCalledWith('ord-123');
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('order-content')).toBeOnTheScreen();
   });
 
   it('displays order content when order is loaded', async () => {
@@ -146,8 +139,8 @@ describe('OrderDetails', () => {
 
   it('renders empty ScreenLayout when order is not found', () => {
     mockGetOrderById.mockReturnValue(undefined);
-    const { toJSON } = render();
-    expect(toJSON()).toMatchSnapshot();
+    const { queryByTestId } = render();
+    expect(queryByTestId('order-content')).not.toBeOnTheScreen();
   });
 
   it('shows loading state when order is pending and refreshing', () => {
@@ -198,6 +191,19 @@ describe('OrderDetails', () => {
   it('createRampsOrderDetailsNavDetails returns correct route', () => {
     const result = createRampsOrderDetailsNavDetails();
     expect(result[0]).toBe(Routes.RAMP.RAMPS_ORDER_DETAILS);
+  });
+
+  it('calls navigation.goBack when header back is pressed with loaded order', async () => {
+    const { getByTestId } = render();
+
+    await waitFor(() => {
+      expect(getByTestId('order-content')).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByTestId('ramps-order-details-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('shows error state with retry when initial callback fetch fails', async () => {

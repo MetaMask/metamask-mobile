@@ -7,27 +7,32 @@
     }
   },
   "validate": {
-    "runtime": {
+    "workflow": {
       "pre_conditions": [
         "wallet.unlocked"
       ],
-      "steps": [
-        {
-          "id": "switch-account",
+      "entry": "switch-account",
+      "nodes": {
+        "switch-account": {
           "action": "select_account",
-          "address": "{{address}}"
+          "address": "{{address}}",
+          "next": "wait-switch"
         },
-        {
-          "id": "wait-switch",
+        "wait-switch": {
           "action": "wait_for",
           "expression": "JSON.stringify({address:Engine.context.AccountsController.state.internalAccounts.accounts[Engine.context.AccountsController.state.internalAccounts.selectedAccount].address})",
           "assert": {
             "operator": "eq",
             "field": "address",
             "value": "{{address}}"
-          }
+          },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
         }
-      ]
+      }
     }
   }
 }

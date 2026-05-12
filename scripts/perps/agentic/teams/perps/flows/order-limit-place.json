@@ -23,14 +23,14 @@
     }
   },
   "validate": {
-    "runtime": {
+    "workflow": {
       "pre_conditions": [
         "wallet.unlocked",
         "perps.ready_to_trade"
       ],
-      "steps": [
-        {
-          "id": "nav",
+      "entry": "nav",
+      "nodes": {
+        "nav": {
           "action": "navigate",
           "target": "PerpsMarketDetails",
           "params": {
@@ -43,124 +43,129 @@
               "volume": "0",
               "maxLeverage": "100"
             }
-          }
+          },
+          "next": "wait-render"
         },
-        {
-          "id": "wait-render",
+        "wait-render": {
           "action": "wait_for",
-          "test_id": "perps-market-details-{{side}}-button"
+          "test_id": "perps-market-details-{{side}}-button",
+          "next": "press-side"
         },
-        {
-          "id": "press-side",
+        "press-side": {
           "action": "press",
-          "test_id": "perps-market-details-{{side}}-button"
+          "test_id": "perps-market-details-{{side}}-button",
+          "next": "wait-form"
         },
-        {
-          "id": "wait-form",
+        "wait-form": {
           "action": "wait_for",
-          "test_id": "perps-order-header-order-type-button"
+          "test_id": "perps-order-header-order-type-button",
+          "next": "press-order-type"
         },
-        {
-          "id": "press-order-type",
+        "press-order-type": {
           "action": "press",
-          "test_id": "perps-order-header-order-type-button"
+          "test_id": "perps-order-header-order-type-button",
+          "next": "wait-type-sheet"
         },
-        {
-          "id": "wait-type-sheet",
+        "wait-type-sheet": {
           "action": "wait_for",
-          "test_id": "perps-order-type-limit"
+          "test_id": "perps-order-type-limit",
+          "next": "press-limit"
         },
-        {
-          "id": "press-limit",
+        "press-limit": {
           "action": "press",
-          "test_id": "perps-order-type-limit"
+          "test_id": "perps-order-type-limit",
+          "next": "wait-limit-form"
         },
-        {
-          "id": "wait-limit-form",
+        "wait-limit-form": {
           "action": "wait_for",
-          "test_id": "perps-order-view-limit-price-row"
+          "test_id": "perps-order-view-limit-price-row",
+          "next": "press-limit-price-row"
         },
-        {
-          "id": "press-limit-price-row",
+        "press-limit-price-row": {
           "action": "press",
-          "test_id": "perps-order-view-limit-price-row"
+          "test_id": "perps-order-view-limit-price-row",
+          "next": "wait-price-sheet"
         },
-        {
-          "id": "wait-price-sheet",
+        "wait-price-sheet": {
           "action": "wait_for",
-          "test_id": "keypad-delete-button"
+          "test_id": "keypad-delete-button",
+          "next": "clear-limit-keypad"
         },
-        {
-          "id": "clear-limit-keypad",
+        "clear-limit-keypad": {
           "action": "clear_keypad",
-          "count": 12
+          "count": 12,
+          "next": "type-limit-price"
         },
-        {
-          "id": "type-limit-price",
+        "type-limit-price": {
           "action": "type_keypad",
-          "value": "{{limitPrice}}"
+          "value": "{{limitPrice}}",
+          "next": "press-set"
         },
-        {
-          "id": "press-set",
+        "press-set": {
           "action": "press",
-          "test_id": "perps-limit-price-confirm-button"
+          "test_id": "perps-limit-price-confirm-button",
+          "next": "wait-price-set"
         },
-        {
-          "id": "wait-price-set",
+        "wait-price-set": {
           "action": "wait_for",
-          "test_id": "perps-amount-display-touchable"
+          "test_id": "perps-amount-display-touchable",
+          "next": "press-amount"
         },
-        {
-          "id": "press-amount",
+        "press-amount": {
           "action": "press",
-          "test_id": "perps-amount-display-touchable"
+          "test_id": "perps-amount-display-touchable",
+          "next": "wait-keypad"
         },
-        {
-          "id": "wait-keypad",
+        "wait-keypad": {
           "action": "wait_for",
-          "test_id": "keypad-delete-button"
+          "test_id": "keypad-delete-button",
+          "next": "clear-keypad"
         },
-        {
-          "id": "clear-keypad",
+        "clear-keypad": {
           "action": "clear_keypad",
-          "count": 8
+          "count": 8,
+          "next": "type-amount"
         },
-        {
-          "id": "type-amount",
+        "type-amount": {
           "action": "type_keypad",
-          "value": "{{usdAmount}}"
+          "value": "{{usdAmount}}",
+          "next": "assert-amount"
         },
-        {
-          "id": "assert-amount",
+        "assert-amount": {
           "action": "eval_sync",
           "expression": "JSON.stringify((function(){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; if(!hook)return{v:null}; var found=null; function walk(f){if(!f)return; if(f.memoizedProps&&f.memoizedProps.testID==='perps-amount-display-amount'){found=f;return;} walk(f.child);if(!found)walk(f.sibling);} for(var [id] of hook.renderers){var roots=hook.getFiberRoots?hook.getFiberRoots(id):null;if(roots)roots.forEach(function(r){if(!found)walk(r.current);});} return {v: found&&found.memoizedProps?String(found.memoizedProps.children||''):null}; })())",
           "assert": {
             "operator": "contains",
             "field": "v",
             "value": "{{usdAmount}}"
-          }
+          },
+          "next": "press-done"
         },
-        {
-          "id": "press-done",
+        "press-done": {
           "action": "press",
-          "test_id": "perps-order-view-keypad-done"
+          "test_id": "perps-order-view-keypad-done",
+          "next": "wait-summary"
         },
-        {
-          "id": "wait-summary",
+        "wait-summary": {
           "action": "wait_for",
-          "test_id": "perps-order-view-place-order-button"
+          "test_id": "perps-order-view-place-order-button",
+          "next": "place-order"
         },
-        {
-          "id": "place-order",
+        "place-order": {
           "action": "press",
-          "test_id": "perps-order-view-place-order-button"
+          "test_id": "perps-order-view-place-order-button",
+          "next": "wait-confirm"
         },
-        {
-          "id": "wait-confirm",
+        "wait-confirm": {
           "action": "wait_for",
-          "not_route": "RedesignedConfirmations"
+          "not_route": "RedesignedConfirmations",
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
         }
-      ]
+      }
     }
   }
 }

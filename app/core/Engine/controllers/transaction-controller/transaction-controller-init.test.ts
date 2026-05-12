@@ -14,6 +14,8 @@ import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { Hex } from '@metamask/utils';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { updateConfirmationMetric } from '../../../redux/slices/confirmationMetrics';
+import { store } from '../../../../store';
 import { selectMetaMaskPayFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { getGlobalChainId } from '../../../../util/networks/global-network';
 import { submitSmartTransactionHook } from '../../../../util/smart-transactions/smart-publish-hook';
@@ -22,8 +24,8 @@ import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/d
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
-import { ControllerInitRequest } from '../../types';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { MessengerClientInitRequest } from '../../types';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import {
   handleTransactionAddedEventForMetrics,
   handleTransactionApprovedEventForMetrics,
@@ -31,6 +33,8 @@ import {
   handleTransactionRejectedEventForMetrics,
   handleTransactionSubmittedEventForMetrics,
 } from './event-handlers/metrics';
+import { handleShowNotification } from './event-handlers/notification';
+import { handleUnapprovedTransactionAddedForMoneyAccount } from './event-handlers/money-account-override';
 import { TransactionControllerInit } from './transaction-controller-init';
 import { TransactionPayPublishHook } from '@metamask/transaction-pay-controller';
 
@@ -40,11 +44,22 @@ jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/networks/global-network');
 jest.mock('../../../../util/smart-transactions/smart-publish-hook');
 jest.mock('./event-handlers/metrics');
+jest.mock('./event-handlers/notification');
+jest.mock('./event-handlers/money-account-override');
 jest.mock('../../../../util/transactions/account-supports-7702');
 jest.mock('../../../../util/transactions/hooks/delegation-7702-publish');
 jest.mock('../../../../util/transactions/sentinel-api');
 jest.mock('@metamask/transaction-pay-controller');
 jest.mock('../../../../selectors/featureFlagController/confirmations');
+jest.mock('../../../redux/slices/confirmationMetrics', () => ({
+  updateConfirmationMetric: jest.fn((params) => ({
+    type: 'updateConfirmationMetric',
+    payload: params,
+  })),
+}));
+jest.mock('../../../../store', () => ({
+  store: { dispatch: jest.fn() },
+}));
 
 jest.mock('../../../../util/transactions', () => ({
   getTransactionById: jest.fn((_id) => ({
@@ -77,10 +92,20 @@ const MOCK_TRANSACTION_META = {
  * with the default mock.
  * @returns A mock NetworkController.
  */
+type ControllerMock = NetworkController & {
+  beforePublish: jest.Mock;
+  beforeSign: jest.Mock;
+  publish: jest.Mock;
+};
+
 function buildControllerMock(
-  partialMock?: Partial<NetworkController>,
-): NetworkController {
-  const defaultControllerMocks = {};
+  partialMock?: Partial<ControllerMock>,
+): ControllerMock {
+  const defaultControllerMocks = {
+    beforePublish: jest.fn().mockResolvedValue(true),
+    beforeSign: jest.fn(),
+    publish: jest.fn().mockResolvedValue({ transactionHash: undefined }),
+  };
 
   // @ts-expect-error Incomplete mock, just includes properties used by code-under-test.
   return {
@@ -92,28 +117,49 @@ function buildControllerMock(
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >
 > {
+  const {
+    predictControllerMock: providedPredictControllerMock,
+    ...requestOverrides
+  } = initRequestProperties;
+  const predictControllerMock =
+    (providedPredictControllerMock as ControllerMock | undefined) ??
+    buildControllerMock();
   const initMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
   const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
+  (initMessenger as unknown as { call: jest.Mock }).call = jest.fn(
+    (actionType: string, params: unknown) => {
+      if (actionType === 'PredictController:beforePublish') {
+        return predictControllerMock.beforePublish(params);
+      }
+
+      if (actionType === 'PredictController:publish') {
+        return predictControllerMock.publish(params);
+      }
+
+      throw new Error(`Unexpected init messenger action: ${actionType}`);
+    },
+  );
+
   const requestMock = {
-    ...buildControllerInitRequestMock(baseControllerMessenger),
+    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     initMessenger:
       initMessenger as unknown as TransactionControllerInitMessenger,
     controllerMessenger:
       baseControllerMessenger as unknown as TransactionControllerMessenger,
-    ...initRequestProperties,
+    ...requestOverrides,
   };
 
-  if (!initRequestProperties.getController) {
-    requestMock.getController.mockReturnValue(buildControllerMock());
+  if (!requestOverrides.getMessengerClient) {
+    requestMock.getMessengerClient.mockReturnValue(buildControllerMock());
   }
 
   return requestMock;
@@ -148,6 +194,8 @@ describe('Transaction Controller Init', () => {
   const selectMetaMaskPayFlagsMock = jest.mocked(selectMetaMaskPayFlags);
   const payHookClassMock = jest.mocked(TransactionPayPublishHook);
   const payHookMock: jest.MockedFn<PublishHook> = jest.fn();
+  const updateConfirmationMetricMock = jest.mocked(updateConfirmationMetric);
+  const storeMock = jest.mocked(store);
 
   /**
    * Extract a constructor option passed to the controller.
@@ -163,9 +211,11 @@ describe('Transaction Controller Init', () => {
   ): TransactionControllerOptions[T] {
     const requestMock = buildInitRequestMock(initRequestProperties);
 
-    requestMock.getController.mockReturnValue(
-      buildControllerMock(dependencyProperties),
-    );
+    if (!initRequestProperties.getMessengerClient) {
+      requestMock.getMessengerClient.mockReturnValue(
+        buildControllerMock(dependencyProperties),
+      );
+    }
 
     TransactionControllerInit(requestMock);
 
@@ -219,7 +269,7 @@ describe('Transaction Controller Init', () => {
   describe('throws error', () => {
     it('if requested controller is not found', () => {
       const requestMock = buildInitRequestMock({
-        getController: () => {
+        getMessengerClient: () => {
           throw new Error('Controller not found');
         },
       });
@@ -303,6 +353,25 @@ describe('Transaction Controller Init', () => {
     expect(optionFn?.()).toBe(false);
   });
 
+  describe('beforePublish hook', () => {
+    it('delegates to PredictController beforePublish', async () => {
+      const predictControllerMock = buildControllerMock();
+      const hooks = testConstructorOption(
+        'hooks',
+        {},
+        {
+          predictControllerMock,
+        },
+      );
+
+      await hooks?.beforePublish?.(MOCK_TRANSACTION_META);
+
+      expect(predictControllerMock.beforePublish).toHaveBeenCalledWith({
+        transactionMeta: MOCK_TRANSACTION_META,
+      });
+    });
+  });
+
   describe('publish hook', () => {
     it('calls submitSmartTransactionHook', async () => {
       const hooks = testConstructorOption('hooks');
@@ -328,6 +397,53 @@ describe('Transaction Controller Init', () => {
       await hooks?.publish?.(MOCK_TRANSACTION_META);
 
       expect(payHookMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls Predict publish before pay and smart transaction hooks', async () => {
+      const predictControllerMock = buildControllerMock();
+      const hooks = testConstructorOption(
+        'hooks',
+        {},
+        {
+          predictControllerMock,
+        },
+      );
+
+      await hooks?.publish?.(MOCK_TRANSACTION_META);
+
+      expect(predictControllerMock.publish).toHaveBeenCalledWith({
+        transactionMeta: MOCK_TRANSACTION_META,
+      });
+      expect(payHookMock).toHaveBeenCalledTimes(1);
+      expect(
+        (predictControllerMock.publish as jest.Mock).mock
+          .invocationCallOrder[0],
+      ).toBeLessThan(payHookMock.mock.invocationCallOrder[0]);
+      expect(
+        (predictControllerMock.publish as jest.Mock).mock
+          .invocationCallOrder[0],
+      ).toBeLessThan(
+        submitSmartTransactionHookMock.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('short-circuits publish when Predict returns a transaction hash', async () => {
+      const predictControllerMock = buildControllerMock({
+        publish: jest.fn().mockResolvedValue({ transactionHash: '0xpredict' }),
+      } as unknown as Partial<NetworkController>);
+      const hooks = testConstructorOption(
+        'hooks',
+        {},
+        {
+          predictControllerMock,
+        },
+      );
+
+      const result = await hooks?.publish?.(MOCK_TRANSACTION_META);
+
+      expect(result).toEqual({ transactionHash: '0xpredict' });
+      expect(payHookMock).not.toHaveBeenCalled();
+      expect(submitSmartTransactionHookMock).not.toHaveBeenCalled();
     });
 
     it('passes isSmartTransaction returning false to pay hook when stxDisabled is true', async () => {
@@ -362,6 +478,56 @@ describe('Transaction Controller Init', () => {
 
       const { isSmartTransaction } = payHookClassMock.mock.calls[0][0];
       expect(isSmartTransaction('0x1')).toBe(true);
+    });
+
+    it('dispatches sentinel_relay metric when delegation-7702 hook returns a transaction hash', async () => {
+      accountSupports7702Mock.mockResolvedValue(true);
+      isSendBundleSupportedMock.mockResolvedValue(false);
+      selectShouldUseSmartTransactionMock.mockReturnValue(false);
+
+      const delegation7702Mock: jest.MockedFn<PublishHook> = jest
+        .fn()
+        .mockResolvedValue({ transactionHash: '0xde702' });
+      jest.mocked(Delegation7702PublishHook).mockImplementation(
+        () =>
+          ({
+            getHook: () => delegation7702Mock,
+          }) as unknown as InstanceType<typeof Delegation7702PublishHook>,
+      );
+
+      const hooks = testConstructorOption('hooks');
+      await hooks?.publish?.({ ...MOCK_TRANSACTION_META, chainId: '0x13' });
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: MOCK_TRANSACTION_META.id,
+          params: expect.objectContaining({
+            properties: expect.objectContaining({
+              transaction_submission_method: 'sentinel_relay',
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('dispatches sentinel_stx metric when STX hook returns a transaction hash', async () => {
+      submitSmartTransactionHookMock.mockResolvedValue({
+        transactionHash: '0xsmarthash',
+      });
+
+      const hooks = testConstructorOption('hooks');
+      await hooks?.publish?.(MOCK_TRANSACTION_META);
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: MOCK_TRANSACTION_META.id,
+          params: expect.objectContaining({
+            properties: expect.objectContaining({
+              transaction_submission_method: 'sentinel_stx',
+            }),
+          }),
+        }),
+      );
     });
   });
 
@@ -414,6 +580,67 @@ describe('Transaction Controller Init', () => {
         expect.objectContaining({
           transactions: mockTransactions,
           shouldUseSmartTransaction: true,
+        }),
+      );
+    });
+
+    it('dispatches sentinel_stx metric for each transaction when batch hook returns a result', async () => {
+      const mockTransactions = [
+        { id: 'tx1', signedTx: '0xaaa' as Hex },
+        { id: 'tx2', signedTx: '0xbbb' as Hex },
+      ];
+
+      const getTransactionByIdMock = jest.requireMock(
+        '../../../../util/transactions',
+      ).getTransactionById;
+      getTransactionByIdMock.mockReturnValue({
+        id: 'tx2',
+        chainId: '0x1',
+        status: 'approved',
+        time: 123,
+        txParams: { from: '0x123' },
+        networkClientId: 'selectedNetworkClientId',
+      });
+
+      selectShouldUseSmartTransactionMock.mockReturnValue(true);
+
+      const submitBatchMock = jest.requireMock(
+        '../../../../util/smart-transactions/smart-publish-hook',
+      ).submitBatchSmartTransactionHook;
+      submitBatchMock.mockResolvedValue({
+        results: [
+          { transactionHash: '0xhash1' },
+          { transactionHash: '0xhash2' },
+        ],
+      });
+
+      const hooks = testConstructorOption('hooks');
+      await hooks?.publishBatch?.({
+        transactions:
+          mockTransactions as unknown as PublishBatchHookTransaction[],
+        from: '0x123',
+        networkClientId: 'selectedNetworkClientId',
+      });
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledTimes(2);
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'tx1',
+          params: expect.objectContaining({
+            properties: expect.objectContaining({
+              transaction_submission_method: 'sentinel_stx',
+            }),
+          }),
+        }),
+      );
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'tx2',
+          params: expect.objectContaining({
+            properties: expect.objectContaining({
+              transaction_submission_method: 'sentinel_stx',
+            }),
+          }),
         }),
       );
     });
@@ -642,10 +869,11 @@ describe('Transaction Controller Init', () => {
 
   it('calls appropriate handlers when transaction events are triggered', () => {
     const mockSubscribe = jest.fn();
-    const subscribeCallbacks: Record<string, (...args: unknown[]) => void> = {};
+    const subscribeCallbacks: Record<string, ((...args: unknown[]) => void)[]> =
+      {};
 
     mockSubscribe.mockImplementation((eventName, callback) => {
-      subscribeCallbacks[eventName] = callback;
+      (subscribeCallbacks[eventName] ??= []).push(callback);
     });
 
     const requestMock = buildInitRequestMock({
@@ -668,7 +896,18 @@ describe('Transaction Controller Init', () => {
       smartTransactionsController: expect.any(Object),
     };
 
+    const handleUnapprovedTransactionAddedForMoneyAccountMock = jest.mocked(
+      handleUnapprovedTransactionAddedForMoneyAccount,
+    );
+    const handleShowNotificationMock = jest.mocked(handleShowNotification);
+
     const eventHandlerMap = [
+      {
+        event: 'TransactionController:transactionApproved',
+        handler: handleShowNotificationMock,
+        payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta],
+      },
       {
         event: 'TransactionController:transactionApproved',
         handler: handleTransactionApprovedEventForMetricsMock,
@@ -711,14 +950,27 @@ describe('Transaction Controller Init', () => {
         payload: mockTransactionMeta,
         expectedArgs: [mockTransactionMeta, handlerContext],
       },
+      {
+        event: 'TransactionController:unapprovedTransactionAdded',
+        handler: handleUnapprovedTransactionAddedForMoneyAccountMock,
+        payload: mockTransactionMeta,
+        expectedArgs: [mockTransactionMeta],
+      },
     ];
 
-    // Verify all events are subscribed
-    expect(Object.keys(subscribeCallbacks).length).toBe(eventHandlerMap.length);
+    // Verify total subscription count matches the expected handlers
+    const totalSubscriptions = Object.values(subscribeCallbacks).reduce(
+      (sum, callbacks) => sum + callbacks.length,
+      0,
+    );
+    expect(totalSubscriptions).toBe(eventHandlerMap.length);
 
-    // Test each event handler
+    // Test each event handler — invoke each subscribed callback in order
+    const consumedIndexByEvent: Record<string, number> = {};
     eventHandlerMap.forEach(({ event, handler, payload, expectedArgs }) => {
-      subscribeCallbacks[event](payload);
+      const callbackIndex = consumedIndexByEvent[event] ?? 0;
+      subscribeCallbacks[event][callbackIndex](payload);
+      consumedIndexByEvent[event] = callbackIndex + 1;
       expect(handler).toHaveBeenCalledWith(...expectedArgs);
     });
   });

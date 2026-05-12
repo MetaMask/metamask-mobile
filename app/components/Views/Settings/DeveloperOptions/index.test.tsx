@@ -32,12 +32,12 @@ describe('DeveloperOptions', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderScreen(
+    const { getByText } = renderScreen(
       DeveloperOptions,
       { name: 'DeveloperOptions' },
       { state: initialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Developer options')).toBeOnTheScreen();
   });
 
   it('does not render PerpsDeveloperOptionsSection when Perps is not enabled', () => {
@@ -49,6 +49,6 @@ describe('DeveloperOptions', () => {
       { state: initialState },
     );
 
-    expect(queryByText('Perpetual Trading')).toBeNull();
+    expect(queryByText('Perpetual Trading')).not.toBeOnTheScreen();
   });
 });

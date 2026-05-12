@@ -13,6 +13,9 @@ export const NetworkDetailsViewSelectorsIDs = {
   ICON_BUTTON_RPC: 'network-details-view-rpc-dropdown',
   ICON_BUTTON_BLOCK_EXPLORER: 'network-details-view-block-explorer-dropdown',
   ADD_RPC_BUTTON: 'network-details-view-add-rpc-button',
+  RPC_SHEET_SUBMIT_ERROR: 'network-details-view-rpc-sheet-submit-error',
+  BLOCK_EXPLORER_SHEET_SUBMIT_ERROR:
+    'network-details-view-block-explorer-sheet-submit-error',
   RPC_NAME_INPUT: 'network-details-view-rpc-name-input',
   REMOVE_NETWORK_BUTTON: 'network-details-view-remove-network-button',
   USE_THIS_NETWORK_BUTTON: 'network-details-view-use-this-network-button',

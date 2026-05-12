@@ -1,12 +1,12 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useGetOndoLeaderboardPosition } from './useGetOndoLeaderboardPosition';
 import Engine from '../../../../core/Engine';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import {
-  selectRewardsSubscriptionId,
   selectCampaignParticipantOptedIn,
-} from '../../../../selectors/rewards';
-import { selectOndoCampaignLeaderboardPositionById } from '../../../../reducers/rewards/selectors';
+  selectOndoCampaignLeaderboardPositionById,
+} from '../../../../reducers/rewards/selectors';
 import { setOndoCampaignLeaderboardPosition } from '../../../../reducers/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import type { CampaignLeaderboardPositionDto } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -26,10 +26,10 @@ jest.mock('./useInvalidateByRewardEvents', () => ({
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
-  selectCampaignParticipantOptedIn: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
+  selectCampaignParticipantOptedIn: jest.fn(),
   selectOndoCampaignLeaderboardPositionById: jest.fn(),
 }));
 
@@ -68,6 +68,9 @@ const MOCK_POSITION: CampaignLeaderboardPositionDto = {
   currentUsdValue: 12500.5,
   totalUsdDeposited: 10000.0,
   netDeposit: 8500.0,
+  qualifiedDays: 10,
+  qualified: true,
+  neighbors: [],
   computedAt: '2024-03-20T12:00:00.000Z',
 };
 
@@ -80,16 +83,18 @@ interface SelectorState {
 function setupSelectors(state: SelectorState) {
   const isOptedIn = state.isOptedIn ?? true;
   const mockPositionSelector = jest.fn().mockReturnValue(state.position);
-  const mockOptedInSelector = jest.fn().mockReturnValue(isOptedIn);
+  const mockParticipantOptedInSelector = jest.fn().mockReturnValue(isOptedIn);
   mockSelectCampaignLeaderboardPositionById.mockReturnValue(
     mockPositionSelector,
   );
-  mockSelectCampaignParticipantOptedIn.mockReturnValue(mockOptedInSelector);
+  mockSelectCampaignParticipantOptedIn.mockReturnValue(
+    mockParticipantOptedInSelector,
+  );
 
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectRewardsSubscriptionId) return state.subscriptionId;
     if (selector === mockPositionSelector) return state.position;
-    if (selector === mockOptedInSelector) return isOptedIn;
+    if (selector === mockParticipantOptedInSelector) return isOptedIn;
     return undefined;
   });
 }
@@ -200,17 +205,14 @@ describe('useGetOndoLeaderboardPosition', () => {
   it('returns loading state', async () => {
     mockCall.mockResolvedValue(MOCK_POSITION as never);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useGetOndoLeaderboardPosition(CAMPAIGN_ID),
     );
 
     // Wait for the fetch to complete
-    await act(async () => {
-      await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
-
-    // After fetch completes, check the final state
-    expect(result.current.isLoading).toBe(false);
   });
 
   it('returns error state', async () => {

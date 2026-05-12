@@ -32,6 +32,8 @@ export const SUPPORTED_ASSET_NETWORKS: CardNetwork[] = [
   'monad',
 ];
 export const CARD_SUPPORT_EMAIL = 'metamask@cl-cards.com';
+export const HUBSPOT_WAITLIST_URL =
+  'https://share.hsforms.com/1kNZXeod7TU2xEy0BxmQxJw2urwb';
 export const NON_PRODUCTION_ENVIRONMENTS = [
   'e2e',
   'dev',
@@ -70,10 +72,29 @@ export const caipChainIdToNetwork = Object.fromEntries(
   ]),
 ) as Record<CaipChainId, CardNetwork>;
 
+export const SOLANA_CAIP_CHAIN_ID = cardNetworkInfos.solana.caipChainId;
+
+export const isEvmChain = (chainId: CaipChainId | undefined): boolean =>
+  chainId?.startsWith('eip155:') ?? false;
+
+export const isSolanaChain = (chainId: CaipChainId | undefined): boolean =>
+  chainId === SOLANA_CAIP_CHAIN_ID;
+
 /**
  * Tokens that don't support the spending limit progress bar feature.
  * These tokens have different allowance behavior and we cannot reliably
  * track the total allowance from approval logs.
  * Format: Token symbols in uppercase
  */
-export const SPENDING_LIMIT_UNSUPPORTED_TOKENS = ['AUSDC'];
+export const SPENDING_LIMIT_UNSUPPORTED_TOKENS = ['AUSDC', 'AMUSD'];
+
+/**
+ * Checks if a token supports the spending limit progress bar feature.
+ * Returns false for tokens with non-standard allowance behavior.
+ */
+export const isSpendingLimitSupportedToken = (
+  symbol: string | undefined,
+): boolean => {
+  if (!symbol) return false;
+  return !SPENDING_LIMIT_UNSUPPORTED_TOKENS.includes(symbol.toUpperCase());
+};

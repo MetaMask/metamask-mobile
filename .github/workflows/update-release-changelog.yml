@@ -1,7 +1,9 @@
-# On every push to a release branch (release/x.y.z format), this workflow rebuilds the matching
-# changelog branch, re-runs the auto-changelog script, and either updates or recreates the changelog PR.
+# On every push to a release branch (release/x.y.z or release/x.y.z-ota), this workflow rebuilds
+# the matching changelog branch, re-runs the auto-changelog script, and either updates or
+# recreates the changelog PR.
 # Note: This workflow validates the branch name to ensure it matches the semantic versioning pattern
-# (release/x.y.z) and skips execution for other branch names like release/x.y.z-Changelog.
+# (release/x.y.z, optionally suffixed with -ota for OTA hotfixes) and skips execution for other
+# branch names like release/x.y.z-Changelog.
 name: Update Release Changelog PR
 
 on:
@@ -27,14 +29,18 @@ jobs:
           BRANCH_NAME="${{ github.ref_name }}"
           echo "Checking branch: $BRANCH_NAME"
 
-          # Validate branch matches release/x.y.z format (semantic versioning)
-          if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          # Validate branch matches release/x.y.z or release/x.y.z-ota (OTA hotfix) format
+          if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+(-ota)?$ ]]; then
             VERSION="${BRANCH_NAME#release/}"
+            # Strip `-ota` suffix: it is a branch-name convention only. The published
+            # `version` output uses strict X.Y.Z to match the rest of the release pipeline
+            # (see build-rc-auto.yml, create-bug-report.yml).
+            VERSION="${VERSION%-ota}"
             echo "Valid release branch detected: $BRANCH_NAME (version: $VERSION)"
             echo "is-valid=true" >> "$GITHUB_OUTPUT"
             echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           else
-            echo "Branch '$BRANCH_NAME' does not match release/x.y.z pattern. Skipping changelog update."
+            echo "Branch '$BRANCH_NAME' does not match release/x.y.z or release/x.y.z-ota pattern. Skipping changelog update."
             echo "is-valid=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -47,11 +53,39 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - name: Update Release Changelog
-        uses: MetaMask/github-tools/.github/actions/update-release-changelog@v1
+      - name: Checkout release branch
+        uses: actions/checkout@v4
         with:
-          release-branch: ${{ github.ref_name }}
-          repository-url: ${{ github.server_url }}/${{ github.repository }}
-          platform: mobile
-          previous-version-ref: 'null'
-          github-token: ${{ secrets.PR_TOKEN }}
+          ref: ${{ github.ref_name }}
+          token: ${{ secrets.PR_TOKEN }}
+          fetch-depth: 0
+
+      - name: Checkout github-tools
+        uses: actions/checkout@v4
+        with:
+          repository: MetaMask/github-tools
+          path: github-tools
+          ref: v1
+
+      - name: Setup Node for changelog tooling
+        uses: ./github-tools/.github/actions/checkout-and-setup
+        with:
+          is-high-risk-environment: true
+
+      - name: Update Release Changelog
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.PR_TOKEN }}
+          GIT_AUTHOR_NAME: metamaskbot
+          GIT_AUTHOR_EMAIL: metamaskbot@users.noreply.github.com
+        run: |
+          set -euo pipefail
+          git config user.name metamaskbot
+          git config user.email metamaskbot@users.noreply.github.com
+          corepack enable
+          yarn install --immutable
+          bash .github/scripts/run-update-release-changelog-mobile.sh \
+            "${{ github.ref_name }}" \
+            mobile \
+            "${{ github.server_url }}/${{ github.repository }}" \
+            "null"

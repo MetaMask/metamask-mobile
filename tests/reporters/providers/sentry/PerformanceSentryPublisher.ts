@@ -28,11 +28,11 @@ interface PublishPerformanceScenarioOptions {
   testTitle: string;
   projectName: string;
   testFilePath?: string;
-  browserstackRecordingUrl?: string | null;
   tags: string[];
   status?: string;
   retry?: number;
   workerIndex?: number;
+  videoRecordingUrl?: string | null;
 }
 
 interface ParsedSentryDsn {
@@ -313,7 +313,7 @@ export async function publishPerformanceScenarioToSentry(
     device_name: options.metrics.device.name,
     device_os_version: options.metrics.device.osVersion,
     test_file_path: testFilePath,
-    recording_url: options.browserstackRecordingUrl ?? null,
+    recording_url: options.videoRecordingUrl ?? null,
     github_job_url: getGithubJobUrl(),
     github_job_name: getEnvValue(ENV_GITHUB_JOB) ?? null,
   };
@@ -373,7 +373,7 @@ export async function publishPerformanceScenarioToSentry(
       },
     },
     tags: {
-      source: 'appwright-e2e-performance',
+      source: 'playwright-e2e-performance',
       project_name: mirroredScenarioAttributes.project_name,
       provider: mirroredScenarioAttributes.provider,
       team_id: mirroredScenarioAttributes.team_id,
@@ -418,7 +418,7 @@ export async function publishPerformanceScenarioToSentry(
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-sentry-envelope',
-        'User-Agent': 'metamask-mobile-appwright-performance',
+        'User-Agent': 'metamask-mobile-playwright-performance',
       },
       body: envelope,
     });

@@ -1,11 +1,16 @@
 import React, { useRef } from 'react';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import AddNewAccount from './AddNewAccount';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import { AddNewAccountBottomSheetProps } from './AddNewAccountBottomSheet.types';
+import { AddNewAccountBottomSheetRouteParams } from './AddNewAccountBottomSheet.types';
 
-const AddNewAccountBottomSheet = ({ route }: AddNewAccountBottomSheetProps) => {
+const AddNewAccountBottomSheet = () => {
+  const route =
+    useRoute<
+      RouteProp<{ params: AddNewAccountBottomSheetRouteParams }, 'params'>
+    >();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { scope, clientType } = route?.params || {};
 

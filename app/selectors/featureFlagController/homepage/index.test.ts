@@ -1,6 +1,8 @@
 import {
-  selectHomepageRedesignV1Enabled,
   selectHomepageSectionsV1Enabled,
+  selectHubPageDiscoveryTabsABTest,
+  selectWalletHomeOnboardingStepsEnabled,
+  selectWalletHomePostOnboardingAbTest,
 } from '.';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
@@ -23,54 +25,6 @@ describe('Homepage Feature Flag Selectors', () => {
 
   afterEach(() => {
     mockHasMinimumRequiredVersion?.mockRestore();
-  });
-
-  describe('selectHomepageRedesignV1Enabled', () => {
-    it('returns true when remote flag is valid and enabled', () => {
-      const result = selectHomepageRedesignV1Enabled.resultFunc({
-        homepageRedesignV1: {
-          enabled: true,
-          minimumVersion: '1.0.0',
-        },
-      });
-      expect(result).toBe(true);
-    });
-
-    it('returns false when remote flag is valid but disabled', () => {
-      const result = selectHomepageRedesignV1Enabled.resultFunc({
-        homepageRedesignV1: {
-          enabled: false,
-          minimumVersion: '1.0.0',
-        },
-      });
-      expect(result).toBe(false);
-    });
-
-    it('returns false when version check fails', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(false);
-      const result = selectHomepageRedesignV1Enabled.resultFunc({
-        homepageRedesignV1: {
-          enabled: true,
-          minimumVersion: '99.0.0',
-        },
-      });
-      expect(result).toBe(false);
-    });
-
-    it('returns false when remote flag is invalid', () => {
-      const result = selectHomepageRedesignV1Enabled.resultFunc({
-        homepageRedesignV1: {
-          enabled: 'invalid',
-          minimumVersion: 123,
-        },
-      });
-      expect(result).toBe(false);
-    });
-
-    it('returns false when remote feature flags are empty', () => {
-      const result = selectHomepageRedesignV1Enabled.resultFunc({});
-      expect(result).toBe(false);
-    });
   });
 
   describe('selectHomepageSectionsV1Enabled', () => {
@@ -117,6 +71,98 @@ describe('Homepage Feature Flag Selectors', () => {
 
     it('returns false when remote feature flags are empty', () => {
       const result = selectHomepageSectionsV1Enabled.resultFunc({});
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectHubPageDiscoveryTabsABTest', () => {
+    it('returns treatment assignment when flag is set to treatment string', () => {
+      const result = selectHubPageDiscoveryTabsABTest.resultFunc({
+        coreMCU589AbtestHubPageDiscoveryTabs: 'treatment',
+      });
+      expect(result).toEqual({ variantName: 'treatment', isActive: true });
+    });
+
+    it('returns control assignment when flag is set to control string', () => {
+      const result = selectHubPageDiscoveryTabsABTest.resultFunc({
+        coreMCU589AbtestHubPageDiscoveryTabs: 'control',
+      });
+      expect(result).toEqual({ variantName: 'control', isActive: true });
+    });
+
+    it('resolves controller object format ({ name }) for treatment', () => {
+      const result = selectHubPageDiscoveryTabsABTest.resultFunc({
+        coreMCU589AbtestHubPageDiscoveryTabs: { name: 'treatment' },
+      });
+      expect(result).toEqual({ variantName: 'treatment', isActive: true });
+    });
+
+    it('falls back to control and isActive false when flag is missing', () => {
+      const result = selectHubPageDiscoveryTabsABTest.resultFunc({});
+      expect(result).toEqual({ variantName: 'control', isActive: false });
+    });
+
+    it('falls back to control and isActive false when flag value is invalid', () => {
+      const result = selectHubPageDiscoveryTabsABTest.resultFunc({
+        coreMCU589AbtestHubPageDiscoveryTabs: 'unknown_variant',
+      });
+      expect(result).toEqual({ variantName: 'control', isActive: false });
+    });
+  });
+
+  describe('selectWalletHomePostOnboardingAbTest', () => {
+    it('returns postOnboardingSteps assignment when flag is set to treatment string', () => {
+      const result = selectWalletHomePostOnboardingAbTest.resultFunc({
+        homeTMCU610AbtestWalletHomePostOnboardingSteps: 'postOnboardingSteps',
+      });
+      expect(result).toEqual({
+        variantName: 'postOnboardingSteps',
+        isActive: true,
+      });
+    });
+
+    it('returns control assignment when flag is set to control string', () => {
+      const result = selectWalletHomePostOnboardingAbTest.resultFunc({
+        homeTMCU610AbtestWalletHomePostOnboardingSteps: 'control',
+      });
+      expect(result).toEqual({ variantName: 'control', isActive: true });
+    });
+
+    it('falls back to control and isActive false when flag is missing', () => {
+      const result = selectWalletHomePostOnboardingAbTest.resultFunc({});
+      expect(result).toEqual({ variantName: 'control', isActive: false });
+    });
+
+    it('falls back to control and isActive false when flag value is invalid', () => {
+      const result = selectWalletHomePostOnboardingAbTest.resultFunc({
+        homeTMCU610AbtestWalletHomePostOnboardingSteps: 'unknown_variant',
+      });
+      expect(result).toEqual({ variantName: 'control', isActive: false });
+    });
+  });
+
+  describe('selectWalletHomeOnboardingStepsEnabled', () => {
+    it('returns true when AB assignment is postOnboardingSteps', () => {
+      const result = selectWalletHomeOnboardingStepsEnabled.resultFunc({
+        variantName: 'postOnboardingSteps',
+        isActive: true,
+      });
+      expect(result).toBe(true);
+    });
+
+    it('returns false when assignment is control', () => {
+      const result = selectWalletHomeOnboardingStepsEnabled.resultFunc({
+        variantName: 'control',
+        isActive: true,
+      });
+      expect(result).toBe(false);
+    });
+
+    it('returns false when assignment is inactive', () => {
+      const result = selectWalletHomeOnboardingStepsEnabled.resultFunc({
+        variantName: 'control',
+        isActive: false,
+      });
       expect(result).toBe(false);
     });
   });

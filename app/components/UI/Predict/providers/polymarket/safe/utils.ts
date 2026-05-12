@@ -12,38 +12,23 @@ import {
   hexlify,
   Interface,
   keccak256,
-  parseUnits,
   solidityPack,
   splitSignature,
 } from 'ethers/lib/utils';
-import { PredictPosition } from '../../..';
 import { PREDICT_CONSTANTS } from '../../../constants/errors';
 import Engine from '../../../../../../core/Engine';
 import Logger, { type LoggerErrorOptions } from '../../../../../../util/Logger';
 import { isSmartContractAddress } from '../../../../../../util/transactions';
 import { Signer } from '../../types';
 import {
-  COLLATERAL_TOKEN_DECIMALS,
-  CONDITIONAL_TOKEN_DECIMALS,
-  MATIC_CONTRACTS,
-  MIN_COLLATERAL_BALANCE_FOR_CLAIM,
+  MATIC_CONTRACTS_V2,
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
 } from '../constants';
-import {
-  encodeApprove,
-  encodeClaim,
-  encodeErc1155Approve,
-  encodeErc20Transfer,
-  getAllowance,
-  getContractConfig,
-  getIsApprovedForAll,
-} from '../utils';
 import { multisendAbi, safeAbi } from './abi';
 import {
   DOMAIN_SEPARATOR_TYPEHASH,
   MASTER_COPY_ADDRESS,
-  outcomeTokenSpenders,
   PERMIT2_ADDRESS,
   PROXY_CREATION_CODE,
   SAFE_FACTORY_ADDRESS,
@@ -51,17 +36,13 @@ import {
   SAFE_MSG_TYPEHASH,
   SAFE_MULTISEND_ADDRESS,
   SAFE_TX_TYPEHASH,
-  usdcSpenders,
 } from './constants';
 import {
   OperationType,
   Permit2FeeAuthorization,
-  SafeFeeAuthorization,
   SafeTransaction,
   SplitSignature,
 } from './types';
-
-const MIN_VALID_HEX_DATA_LENGTH = 10;
 
 function joinHexData(hexData: string[]): string {
   return `0x${hexData
@@ -261,87 +242,22 @@ const getTransactionHash = ({
   ) as Hex;
 };
 
-const signSafetransaction = async (
-  safeAddress: Hex,
-  safeTx: SafeTransaction,
-  signer: Signer,
-) => {
-  const nonce = await getNonce({ safeAddress });
-
-  const txHash = getTransactionHash({
-    safeAddress,
-    to: safeTx.to,
-    value: safeTx.value,
-    data: safeTx.data,
-    operation: safeTx.operation,
-    nonce,
-  });
-
-  const rsvSignature = await signTransactionHash(signer, txHash);
-  const packedSig = abiEncodePacked(
-    { type: 'uint256', value: rsvSignature.r },
-    { type: 'uint256', value: rsvSignature.s },
-    { type: 'uint8', value: rsvSignature.v },
-  );
-
-  return packedSig;
-};
-
-/**
- * Creates a SafeFeeAuthorization for a given safe address, signer, amount, and to address
- * @param safeAddress Safe address
- * @param signer Signer
- * @param amount Amount to transfer
- * @param to payee address
- * @returns SafeFeeAuthorization
- */
-export const createSafeFeeAuthorization = async ({
-  safeAddress,
-  signer,
-  amount,
-  to,
-}: {
-  safeAddress: Hex;
-  signer: Signer;
-  amount: bigint;
-  to: Hex;
-}): Promise<SafeFeeAuthorization> => {
-  const erc20transfer = new Interface([
-    'function transfer(address to, uint256 amount)',
-  ]).encodeFunctionData('transfer', [to, amount]);
-
-  const tx = {
-    to: MATIC_CONTRACTS.collateral,
-    operation: OperationType.Call,
-    data: erc20transfer,
-    value: '0',
-  };
-
-  const sig = await signSafetransaction(safeAddress, tx, signer);
-
-  return {
-    type: 'safe-transaction',
-    authorization: {
-      tx,
-      sig,
-    },
-  };
-};
-
 export const createPermit2FeeAuthorization = async ({
   safeAddress,
   signer,
   amount,
   spender,
+  tokenAddress = MATIC_CONTRACTS_V2.collateral,
 }: {
   safeAddress: Hex;
   signer: Signer;
   amount: bigint;
   spender: string;
+  tokenAddress?: string;
 }): Promise<Permit2FeeAuthorization> => {
   const nonce = await getPermit2Nonce();
   const deadline = (Math.floor(Date.now() / 1000) + 3600).toString();
-  const token = MATIC_CONTRACTS.collateral;
+  const token = tokenAddress;
 
   const domain = {
     name: 'Permit2',
@@ -582,41 +498,6 @@ export const aggregateTransaction = (
   return transaction;
 };
 
-export const createAllowancesSafeTransaction = (options?: {
-  extraUsdcSpenders?: string[];
-}) => {
-  const safeTxns: SafeTransaction[] = [];
-  const allUsdcSpenders = [
-    ...usdcSpenders,
-    ...(options?.extraUsdcSpenders ?? []),
-  ];
-
-  for (const spender of allUsdcSpenders) {
-    safeTxns.push({
-      to: MATIC_CONTRACTS.collateral,
-      data: encodeApprove({
-        spender,
-        amount: ethers.constants.MaxUint256.toBigInt(),
-      }),
-      operation: OperationType.Call,
-      value: '0',
-    });
-  }
-
-  for (const spender of outcomeTokenSpenders) {
-    safeTxns.push({
-      to: MATIC_CONTRACTS.conditionalTokens,
-      data: encodeErc1155Approve({ spender, approved: true }),
-      operation: OperationType.Call,
-      value: '0',
-    });
-  }
-
-  const safeTxn = aggregateTransaction(safeTxns);
-
-  return safeTxn;
-};
-
 export const getSafeTransactionCallData = async ({
   signer,
   safeAddress,
@@ -680,213 +561,6 @@ export const getSafeTransactionCallData = async ({
   return callData;
 };
 
-export const getProxyWalletAllowancesTransaction = async ({
-  signer,
-  extraUsdcSpenders,
-}: {
-  signer: Signer;
-  extraUsdcSpenders?: string[];
-}) => {
-  try {
-    const safeAddress = computeProxyAddress(signer.address);
-    const safeTxn = createAllowancesSafeTransaction({ extraUsdcSpenders });
-    const callData = await getSafeTransactionCallData({
-      signer,
-      safeAddress,
-      txn: safeTxn,
-    });
-
-    if (!callData || callData.length < MIN_VALID_HEX_DATA_LENGTH) {
-      throw new Error(
-        `Invalid call data generated: ${callData?.length ?? 0} bytes, minimum ${MIN_VALID_HEX_DATA_LENGTH} required`,
-      );
-    }
-
-    return {
-      params: {
-        to: safeAddress as Hex,
-        data: callData as Hex,
-      },
-      type: TransactionType.contractInteraction,
-    };
-  } catch (error) {
-    const errorContext: LoggerErrorOptions = {
-      tags: {
-        feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        provider: POLYMARKET_PROVIDER_ID,
-      },
-      context: {
-        name: 'safeUtils',
-        data: {
-          method: 'getProxyWalletAllowancesTransaction',
-        },
-      },
-    };
-    Logger.error(error as Error, errorContext);
-
-    throw new Error(
-      `Failed to generate proxy wallet allowances transaction: ${
-        error instanceof Error ? error.message : 'Unknown error'
-      }`,
-    );
-  }
-};
-
-export const hasAllowances = async ({
-  address,
-  extraUsdcSpenders = [],
-}: {
-  address: string;
-  extraUsdcSpenders?: string[];
-}) => {
-  const allowanceCalls = [];
-  const isApprovedForAllCalls = [];
-  const allUsdcSpenders = [...usdcSpenders, ...extraUsdcSpenders];
-  for (const spender of allUsdcSpenders) {
-    allowanceCalls.push(
-      getAllowance({
-        tokenAddress: MATIC_CONTRACTS.collateral,
-        owner: address,
-        spender,
-      }),
-    );
-  }
-  for (const spender of outcomeTokenSpenders) {
-    isApprovedForAllCalls.push(
-      getIsApprovedForAll({
-        owner: address,
-        operator: spender,
-      }),
-    );
-  }
-  const allowanceResults = await Promise.all(allowanceCalls);
-  const isApprovedForAllResults = await Promise.all(isApprovedForAllCalls);
-  return (
-    allowanceResults.every((allowance) => allowance > 0) &&
-    isApprovedForAllResults.every((isApproved) => isApproved)
-  );
-};
-
-export const hasPermit2Allowance = async ({
-  address,
-}: {
-  address: string;
-}): Promise<boolean> => {
-  const allowance = await getAllowance({
-    tokenAddress: MATIC_CONTRACTS.collateral,
-    owner: address,
-    spender: PERMIT2_ADDRESS,
-  });
-  return allowance > 0;
-};
-
-export const createClaimSafeTransaction = (
-  positions: PredictPosition[],
-  includeTransfer?: {
-    address: string;
-  },
-) => {
-  const safeTxns: SafeTransaction[] = [];
-  const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
-
-  for (const position of positions) {
-    const amounts: bigint[] = [0n, 0n];
-    amounts[position.outcomeIndex] = BigInt(
-      parseUnits(
-        position.size.toString(),
-        CONDITIONAL_TOKEN_DECIMALS,
-      ).toString(),
-    );
-    const negRisk = !!position.negRisk;
-
-    const to = (
-      negRisk ? contractConfig.negRiskAdapter : contractConfig.conditionalTokens
-    ) as Hex;
-    const callData = encodeClaim(position.outcomeId, negRisk, amounts);
-    safeTxns.push({
-      to,
-      data: callData,
-      operation: OperationType.Call,
-      value: '0',
-    });
-  }
-
-  if (includeTransfer) {
-    safeTxns.push({
-      to: MATIC_CONTRACTS.collateral,
-      data: encodeErc20Transfer({
-        to: includeTransfer.address,
-        value: parseUnits(
-          MIN_COLLATERAL_BALANCE_FOR_CLAIM.toString(),
-          COLLATERAL_TOKEN_DECIMALS,
-        ).toBigInt(),
-      }),
-      operation: OperationType.Call,
-      value: '0',
-    });
-  }
-
-  const safeTxn = aggregateTransaction(safeTxns);
-
-  return safeTxn;
-};
-
-export const getClaimTransaction = async ({
-  signer,
-  positions,
-  safeAddress,
-  includeTransferTransaction,
-}: {
-  signer: Signer;
-  positions: PredictPosition[];
-  safeAddress: string;
-  includeTransferTransaction?: boolean;
-}) => {
-  const includeTransfer = includeTransferTransaction
-    ? { address: signer.address }
-    : undefined;
-  const safeTxn = createClaimSafeTransaction(positions, includeTransfer);
-  const callData = await getSafeTransactionCallData({
-    signer,
-    safeAddress,
-    txn: safeTxn,
-  });
-  return [
-    {
-      params: {
-        to: safeAddress as Hex,
-        data: callData as Hex,
-      },
-      type: TransactionType.predictClaim,
-    },
-  ];
-};
-
-export const getWithdrawTransactionCallData = async ({
-  signer,
-  safeAddress,
-  data,
-}: {
-  signer: Signer;
-  safeAddress: string;
-  data: Hex;
-}) => {
-  const safeTxn: SafeTransaction = {
-    to: MATIC_CONTRACTS.collateral,
-    data,
-    operation: OperationType.Call,
-    value: '0',
-  };
-
-  const callData = await getSafeTransactionCallData({
-    signer,
-    safeAddress,
-    txn: safeTxn,
-  });
-
-  return callData as Hex;
-};
-
 /*
  * Computes the proxy address for a given user address
  * @param userAddress User address
@@ -906,11 +580,11 @@ export function computeProxyAddress(userAddress: string): Hex {
 }
 
 /**
- * Decodes USDC amount from ERC20 transfer calldata
+ * Decodes token amount from ERC20 transfer calldata.
  * @param data ERC20 transfer calldata (0xa9059cbb...)
- * @returns USDC amount in decimal format (e.g., 1.5 for 1.5 USDC)
+ * @returns Raw token amount.
  */
-export function getSafeUsdcAmount(data: string): number {
+export function getSafeTransferAmountRaw(data: string): bigint {
   if (!data.startsWith('0xa9059cbb')) {
     throw new Error('Not an ERC20 transfer call');
   }
@@ -936,23 +610,29 @@ export function getSafeUsdcAmount(data: string): number {
     throw new Error('Invalid encoded amount in calldata');
   }
 
-  // Convert to USDC float
-  const usdcValue = parseFloat(ethers.utils.formatUnits(amount, 6));
+  const rawAmount = amount.toBigInt();
+  const maxReasonableRawAmount = ethers.utils
+    .parseUnits('100000000000', 6)
+    .toBigInt();
 
-  // Check for unreasonably large values (likely corrupted data)
-  // USDC total supply is ~35 billion, so anything above 100 billion is invalid
-  const MAX_REASONABLE_USDC = 1e11; // 100 billion USDC
-  if (usdcValue > MAX_REASONABLE_USDC || !isFinite(usdcValue)) {
+  if (rawAmount > maxReasonableRawAmount) {
     throw new Error(
-      `Decoded USDC amount is invalid or too large: ${usdcValue}`,
+      `Decoded token amount is invalid or too large: ${rawAmount.toString()}`,
     );
   }
 
-  // Validate non-negative
-  if (usdcValue < 0) {
-    throw new Error(`Decoded USDC amount is negative: ${usdcValue}`);
+  if (rawAmount < 0n) {
+    throw new Error(
+      `Decoded token amount is negative: ${rawAmount.toString()}`,
+    );
   }
 
-  // Round to 6 decimals to match USDC
-  return Math.round(usdcValue * 1e6) / 1e6;
+  return rawAmount;
+}
+
+export function getSafeTransferAmount(data: string): number {
+  const rawAmount = getSafeTransferAmountRaw(data);
+  const tokenValue = parseFloat(ethers.utils.formatUnits(rawAmount, 6));
+
+  return Math.round(tokenValue * 1e6) / 1e6;
 }

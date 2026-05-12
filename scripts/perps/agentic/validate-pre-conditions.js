@@ -1,105 +1,65 @@
 #!/usr/bin/env node
-/**
- * validate-pre-conditions.js — Offline assertion correctness test.
- *
- * For every entry in the pre-conditions REGISTRY, verifies that:
- *   - checkAssert(passFixture, entry.assert) returns true
- *   - checkAssert(failFixture, entry.assert) returns false
- *
- * No live app or CDP connection required.
- *
- * Usage:
- *   node scripts/perps/agentic/validate-pre-conditions.js
- */
-
 'use strict';
 
-const REGISTRY = require('./lib/registry');
 const { checkAssert } = require('./lib/assert');
+const {
+  getAppRoot,
+  loadPreConditionRegistry,
+  renderTemplate,
+} = require('./lib/catalog');
 
-// ---------------------------------------------------------------------------
-// Fixtures — pass/fail JSON strings per REGISTRY key
-// ---------------------------------------------------------------------------
-const FIXTURES = {
-  'wallet.unlocked': {
-    pass: '{"route":"WalletView","unlocked":true}',
-    fail: '{"route":"Login","unlocked":false}',
-  },
-  'perps.feature_enabled': {
-    pass: '{"enabled":true}',
-    fail: '{"enabled":false}',
-  },
-  'perps.ready_to_trade': {
-    pass: '{"isAuthenticated":true}',
-    fail: '{"isAuthenticated":false}',
-  },
-  'perps.sufficient_balance': {
-    pass: '{"balance":100}',
-    fail: '{"balance":0}',
-  },
-  'perps.open_position': {
-    pass: '{"count":2}',
-    fail: '{"count":0}',
-  },
-  'perps.open_position_tpsl': {
-    pass: '{"count":1}',
-    fail: '{"count":0}',
-  },
-  'perps.open_limit_order': {
-    pass: '{"count":1}',
-    fail: '{"count":0}',
-  },
-  'perps.not_in_watchlist': {
-    pass: '{"inWatchlist":false}',
-    fail: '{"inWatchlist":true}',
-  },
-  'perps.trading_flag': {
-    pass: '{"enabled":true}',
-    fail: '{"enabled":false}',
-  },
-  'ui.homepage_redesign_v1_enabled': {
-    pass: '{"enabled":true}',
-    fail: '{"enabled":false}',
-  },
-  'ui.homepage_redesign_v1_disabled': {
-    pass: '{"enabled":false}',
-    fail: '{"enabled":true}',
-  },
-};
+function main() {
+  const appRoot = getAppRoot();
+  const registry = loadPreConditionRegistry(appRoot);
+  const failures = [];
 
-// ---------------------------------------------------------------------------
-// Run checks
-// ---------------------------------------------------------------------------
-const failures = [];
-const keys = Object.keys(REGISTRY);
+  Object.entries(registry).forEach(([name, entry]) => {
+    const fixtures = entry.fixtures;
+    if (!fixtures) {
+      failures.push(`  ${name}: missing fixtures.pass and fixtures.fail`);
+      return;
+    }
 
-keys.forEach((name) => {
-  const entry = REGISTRY[name];
-  const fixture = FIXTURES[name];
+    if (!Object.prototype.hasOwnProperty.call(fixtures, 'pass')) {
+      failures.push(`  ${name}: missing fixtures.pass`);
+      return;
+    }
 
-  if (!fixture) {
-    failures.push('  ' + name + ': no fixture defined — add pass/fail JSON strings to FIXTURES');
-    return;
+    if (!Object.prototype.hasOwnProperty.call(fixtures, 'fail')) {
+      failures.push(`  ${name}: missing fixtures.fail`);
+      return;
+    }
+
+    const params = fixtures.params || {};
+    const assertSpec = renderTemplate(entry.assert, params);
+
+    const passResult = checkAssert(fixtures.pass, assertSpec);
+    if (!passResult) {
+      failures.push(
+        `  ${name}: pass fixture did not satisfy assert\n` +
+          `    fixture: ${fixtures.pass}\n` +
+          `    assert:  ${JSON.stringify(assertSpec)}`
+      );
+    }
+
+    const failResult = checkAssert(fixtures.fail, assertSpec);
+    if (failResult) {
+      failures.push(
+        `  ${name}: fail fixture unexpectedly satisfied assert\n` +
+          `    fixture: ${fixtures.fail}\n` +
+          `    assert:  ${JSON.stringify(assertSpec)}`
+      );
+    }
+  });
+
+  if (failures.length > 0) {
+    console.error(`Pre-condition assertion check FAILED:\n${failures.join('\n')}`);
+    process.exit(1);
   }
 
-  const passResult = checkAssert(fixture.pass, entry.assert);
-  if (!passResult) {
-    failures.push('  ' + name + ': pass-fixture did not satisfy assert\n' +
-      '    fixture : ' + fixture.pass + '\n' +
-      '    assert  : ' + JSON.stringify(entry.assert));
-  }
-
-  const failResult = checkAssert(fixture.fail, entry.assert);
-  if (failResult) {
-    failures.push('  ' + name + ': fail-fixture unexpectedly satisfied assert\n' +
-      '    fixture : ' + fixture.fail + '\n' +
-      '    assert  : ' + JSON.stringify(entry.assert));
-  }
-});
-
-if (failures.length > 0) {
-  console.error('Pre-condition assertion check FAILED:\n' + failures.join('\n'));
-  process.exit(1);
-} else {
-  console.log('All ' + keys.length + ' pre-condition(s) pass assertion correctness check.');
+  console.log(
+    `All ${Object.keys(registry).length} pre-condition(s) pass assertion correctness checks.`
+  );
 }
+
+main();

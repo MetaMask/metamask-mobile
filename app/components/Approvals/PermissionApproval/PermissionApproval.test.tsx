@@ -11,6 +11,8 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import useOriginSource from '../../hooks/useOriginSource';
+import { SourceType } from '../../hooks/useAnalytics/useAnalytics.types';
+import AppConstants from '../../../core/AppConstants';
 import {
   Caip25EndowmentPermissionName,
   getAllScopesFromPermission,
@@ -29,6 +31,9 @@ jest.mock('../../Views/AccountConnect', () => ({
 }));
 
 jest.mock('../../hooks/useOriginSource');
+jest.mock('../../hooks/useSDKV2Connection', () => ({
+  useSDKV2Connection: jest.fn(() => undefined),
+}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -133,7 +138,10 @@ describe('PermissionApproval', () => {
         createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
       }),
     );
-    (useOriginSource as jest.Mock).mockImplementation(() => 'IN_APP_BROWSER');
+    (useOriginSource as jest.Mock).mockImplementation(() => ({
+      source: SourceType.IN_APP_BROWSER,
+      requestSource: AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+    }));
     (
       getAllScopesFromPermission as jest.MockedFn<
         typeof getAllScopesFromPermission
@@ -205,7 +213,8 @@ describe('PermissionApproval', () => {
     )
       .addProperties({
         number_of_accounts: 3,
-        source: 'IN_APP_BROWSER',
+        source: SourceType.IN_APP_BROWSER,
+        request_source: AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
         chain_id_list: [],
         method: MESSAGE_TYPE.ETH_REQUEST_ACCOUNTS,
         api_source: MetaMetricsRequestedThrough.EthereumProvider,

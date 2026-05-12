@@ -18,9 +18,9 @@
   },
   "AccountTreeController": {
     "accountTree": {
-      "selectedAccountGroup": "",
       "wallets": {}
     },
+    "selectedAccountGroup": "",
     "accountGroupsMetadata": {},
     "accountWalletsMetadata": {},
     "hasAccountTreeSyncingSyncedAtLeastOnce": false,
@@ -34,10 +34,10 @@
     "optedIn": false
   },
   "GatorPermissionsController": {
-    "gatorPermissionsMapSerialized": "{\"native-token-stream\":{},\"native-token-periodic\":{},\"erc20-token-stream\":{},\"erc20-token-periodic\":{},\"other\":{}}",
-    "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+    "grantedPermissions": [],
     "isFetchingGatorPermissions": false,
-    "isGatorPermissionsEnabled": false
+    "lastSyncedTimestamp": -1,
+    "pendingRevocations": []
   },
   "NftController": {
     "allNftContracts": {},
@@ -386,11 +386,16 @@
   "SnapInterfaceController": {
     "interfaces": {}
   },
-  "SnapsRegistry": {
+  "SnapRegistryController": {
     "database": null,
     "databaseUnavailable": false,
     "lastUpdated": null,
     "signature": null
+  },
+  "SocialController": {
+    "followingAddresses": [],
+    "followingProfileIds": [],
+    "leaderboardEntries": []
   },
   "SubjectMetadataController": {
     "subjectMetadata": {}
@@ -416,7 +421,26 @@
   "AssetsController": {
     "assetPreferences": {},
     "assetsBalance": {},
-    "assetsInfo": {},
+    "assetsInfo": {
+      "eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da": {
+        "decimals": 6,
+        "name": "MetaMask USD",
+        "symbol": "mUSD",
+        "type": "erc20"
+      },
+      "eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da": {
+        "decimals": 6,
+        "name": "MetaMask USD",
+        "symbol": "mUSD",
+        "type": "erc20"
+      },
+      "eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da": {
+        "decimals": 6,
+        "name": "MetaMask USD",
+        "symbol": "mUSD",
+        "type": "erc20"
+      }
+    },
     "assetsPrice": {},
     "customAssets": {},
     "selectedCurrency": "usd"
@@ -624,7 +648,10 @@
     "quotesInitialLoadTime": null,
     "quotesLastFetched": null,
     "quotesLoadingStatus": null,
-    "quotesRefreshCount": 0
+    "quotesRefreshCount": 0,
+    "quoteStreamComplete": null,
+    "tokenSecurityTypeDestination": null,
+    "tokenWarnings": []
   },
   "BridgeStatusController": {
     "txHistory": {}
@@ -632,9 +659,14 @@
   "CardController": {
     "selectedCountry": null,
     "activeProviderId": "baanx",
+    "cardHomeData": null,
+    "cardHomeDataStatus": "idle",
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {}
+  },
+  "ClientController": {
+    "isUiOpen": false
   },
   "ComplianceController": {},
   "ConnectivityController": {
@@ -693,7 +725,8 @@
         }
       ],
       "isEligible": false
-    }
+    },
+    "tron_staking": null
   },
   "DeFiPositionsController": {
     "allDeFiPositions": {},
@@ -712,11 +745,17 @@
     "campaigns": {},
     "ondoCampaignLeaderboardPositions": {},
     "ondoCampaignPortfolio": {},
+    "ondoCampaignActivity": {},
+    "ondoCampaignDeposits": {},
     "ondoCampaignLeaderboard": {},
+    "perpsTradingCampaignLeaderboard": {},
+    "perpsTradingCampaignLeaderboardPositions": {},
+    "perpsTradingCampaignVolume": {},
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
+    "subscriptionBenefits": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null
@@ -748,6 +787,7 @@
       "isLoading": false,
       "error": null
     },
+    "providerAutoSelected": false,
     "providers": {
       "data": [],
       "selected": null,
@@ -792,5 +832,9 @@
     "requests": {},
     "orders": [],
     "providerAutoSelected": false
-  }
+  },
+  "MoneyAccountController": {
+    "moneyAccounts": {}
+  },
+  "MoneyAccountUpgradeController": {}
 }

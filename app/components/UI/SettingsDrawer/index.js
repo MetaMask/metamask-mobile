@@ -1,18 +1,18 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import ListItem from '../../../component-library/components/List/ListItem/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../../component-library/components/List/ListItemColumn';
+import {
+  Box,
+  BoxFlexDirection,
+  ListItem,
+} from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
   TextColor,
@@ -54,10 +54,6 @@ const propTypes = {
    */
   description: PropTypes.string,
   /**
-   * Disable bottom border
-   */
-  noBorder: PropTypes.bool,
-  /**
    * Handler called when this drawer is pressed
    */
   onPress: PropTypes.func,
@@ -79,10 +75,16 @@ const propTypes = {
   titleColor: PropTypes.string,
 };
 
-const defaultProps = {
-  onPress: undefined,
-};
-
+/**
+ * @param {object} props
+ * @param {any} props.title
+ * @param {any} [props.description]
+ * @param {() => void} props.onPress
+ * @param {string} [props.warning]
+ * @param {boolean} [props.renderArrowRight]
+ * @param {string} [props.testID]
+ * @param {any} [props.titleColor]
+ */
 const SettingsDrawer = ({
   title,
   description,
@@ -95,9 +97,9 @@ const SettingsDrawer = ({
   const { colors } = useTheme();
   const styles = createStyles(colors, titleColor);
   return (
-    <TouchableOpacity onPress={onPress} {...generateTestId(Platform, testID)}>
+    <TouchableOpacity onPress={onPress} testID={testID}>
       <ListItem style={styles.root} gap={16}>
-        <ListItemColumn widthType={WidthType.Fill}>
+        <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
           <Text variant={TextVariant.BodyLGMedium} color={titleColor}>
             {title}
           </Text>
@@ -122,15 +124,15 @@ const SettingsDrawer = ({
               </Text>
             </View>
           )}
-        </ListItemColumn>
+        </Box>
         {renderArrowRight && (
-          <ListItemColumn>
+          <Box>
             <Icon
               style={styles.action}
               size={IconSize.Md}
               name={IconName.ArrowRight}
             />
-          </ListItemColumn>
+          </Box>
         )}
       </ListItem>
     </TouchableOpacity>
@@ -138,6 +140,5 @@ const SettingsDrawer = ({
 };
 
 SettingsDrawer.propTypes = propTypes;
-SettingsDrawer.defaultProps = defaultProps;
 
 export default SettingsDrawer;

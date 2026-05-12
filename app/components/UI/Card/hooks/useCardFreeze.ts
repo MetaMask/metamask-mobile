@@ -1,89 +1,22 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useCardSDK } from '../sdk';
-import { CardStatus } from '../types';
+import { useMutation } from '@tanstack/react-query';
+import Engine from '../../../../core/Engine';
 
-type CardFreezeStatus =
-  | { type: 'idle' }
-  | { type: 'toggling' }
-  | { type: 'error'; error: Error };
+const useCardFreeze = (cardId: string | undefined) => {
+  const freeze = useMutation({
+    mutationFn: () => {
+      if (!cardId) throw new Error('Cannot freeze: no card ID');
+      return Engine.context.CardController.freezeCard(cardId);
+    },
+  });
 
-interface UseCardFreezeParams {
-  cardStatus: CardStatus | undefined;
-  fetchCardDetails: () => Promise<unknown>;
-}
+  const unfreeze = useMutation({
+    mutationFn: () => {
+      if (!cardId) throw new Error('Cannot unfreeze: no card ID');
+      return Engine.context.CardController.unfreezeCard(cardId);
+    },
+  });
 
-interface UseCardFreezeResult {
-  isFrozen: boolean;
-  status: CardFreezeStatus;
-  toggleFreeze: () => Promise<boolean>;
-}
-
-const useCardFreeze = ({
-  cardStatus,
-  fetchCardDetails,
-}: UseCardFreezeParams): UseCardFreezeResult => {
-  const { sdk } = useCardSDK();
-  const [status, setStatus] = useState<CardFreezeStatus>({ type: 'idle' });
-  const [optimisticStatus, setOptimisticStatus] = useState<CardStatus | null>(
-    null,
-  );
-
-  const optimisticStatusRef = useRef(optimisticStatus);
-  optimisticStatusRef.current = optimisticStatus;
-
-  // Clear optimistic override once the real cardStatus prop catches up.
-  useEffect(() => {
-    if (optimisticStatus !== null && cardStatus === optimisticStatus) {
-      setOptimisticStatus(null);
-    }
-  }, [cardStatus, optimisticStatus]);
-
-  const effectiveStatus = optimisticStatus ?? cardStatus;
-  const isFrozen = effectiveStatus === CardStatus.FROZEN;
-
-  const toggleFreeze = useCallback(async (): Promise<boolean> => {
-    if (!sdk || status.type === 'toggling') {
-      return false;
-    }
-
-    const current = optimisticStatusRef.current ?? cardStatus;
-
-    if (current !== CardStatus.ACTIVE && current !== CardStatus.FROZEN) {
-      return false;
-    }
-
-    const nextStatus =
-      current === CardStatus.ACTIVE ? CardStatus.FROZEN : CardStatus.ACTIVE;
-
-    setOptimisticStatus(nextStatus);
-    setStatus({ type: 'toggling' });
-
-    try {
-      if (current === CardStatus.ACTIVE) {
-        await sdk.freezeCard();
-      } else {
-        await sdk.unfreezeCard();
-      }
-    } catch (err) {
-      setOptimisticStatus(null);
-      setStatus({
-        type: 'error',
-        error: err instanceof Error ? err : new Error('Unknown error'),
-      });
-      return false;
-    }
-
-    setStatus({ type: 'idle' });
-    fetchCardDetails();
-    return true;
-  }, [sdk, cardStatus, status.type, fetchCardDetails]);
-
-  return {
-    isFrozen,
-    status,
-    toggleFreeze,
-  };
+  return { freeze, unfreeze };
 };
 
 export default useCardFreeze;
-export type { CardFreezeStatus };

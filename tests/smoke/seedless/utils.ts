@@ -1,5 +1,7 @@
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
+import { asDetoxElement } from '../../framework/EncapsulatedElement';
+
 import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
@@ -157,7 +159,7 @@ export const resetWallet = async (): Promise<void> => {
     timeout: 30000,
   });
 
-  await Gestures.swipe(LoginView.container, 'down', {
+  await Gestures.swipe(asDetoxElement(LoginView.container), 'down', {
     elemDescription: 'Login container - dismiss keyboard',
   });
 

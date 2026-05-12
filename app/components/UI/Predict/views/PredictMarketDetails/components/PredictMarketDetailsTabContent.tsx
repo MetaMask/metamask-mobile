@@ -68,7 +68,7 @@ const PredictMarketDetailsTabContent = memo(
       return (
         <Box
           twClassName="px-3 pt-4 pb-8"
-          testID={PredictMarketDetailsSelectorsIDs.ABOUT_TAB}
+          testID={PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT}
         >
           <PredictMarketDetailsAbout
             market={market}
@@ -81,7 +81,7 @@ const PredictMarketDetailsTabContent = memo(
       return (
         <Box
           twClassName="px-3 pt-4 pb-8"
-          testID={PredictMarketDetailsSelectorsIDs.POSITIONS_TAB}
+          testID={PredictMarketDetailsSelectorsIDs.POSITIONS_TAB_CONTENT}
         >
           <PredictMarketDetailsPositions
             activePositions={activePositions}
@@ -95,7 +95,7 @@ const PredictMarketDetailsTabContent = memo(
       return (
         <Box
           twClassName="px-3 pt-4 pb-8"
-          testID={PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB}
+          testID={PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT}
         >
           <PredictMarketDetailsOutcomes
             market={market}

@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { registerStepHudCallback } from './AgenticService';
 
 interface Step {
@@ -13,24 +14,22 @@ interface Step {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 90,
+    bottom: 0,
     left: 0,
     right: 0,
     zIndex: 9999,
-    backgroundColor: '#000000',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    paddingVertical: 6,
   },
   stepId: {
     color: '#00FF88',
     fontFamily: 'Courier',
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: '700',
-    marginBottom: 2,
   },
   description: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
   },
 });
@@ -39,6 +38,19 @@ const styles = StyleSheet.create({
 // Inner component — hooks always called unconditionally, per rules of React.
 const AgentStepHudInner = () => {
   const [step, setStep] = useState<Step | null>(null);
+  const insets = useSafeAreaInsets();
+
+  const containerStyle = useMemo(
+    () => [
+      styles.container,
+      {
+        paddingLeft: Math.max(insets.left, 10),
+        paddingRight: Math.max(insets.right, 10),
+        paddingBottom: insets.bottom > 0 ? insets.bottom : 6,
+      },
+    ],
+    [insets.left, insets.right, insets.bottom],
+  );
 
   useEffect(() => {
     registerStepHudCallback(setStep);
@@ -50,9 +62,11 @@ const AgentStepHudInner = () => {
   if (!step) return null;
 
   return (
-    <View style={styles.container} pointerEvents="none">
-      <Text style={styles.stepId}>{step.id}</Text>
-      <Text style={styles.description}>{step.description}</Text>
+    <View style={containerStyle} pointerEvents="none">
+      <Text numberOfLines={3}>
+        <Text style={styles.stepId}>{step.id}</Text>
+        <Text style={styles.description}>{`  ${step.description}`}</Text>
+      </Text>
     </View>
   );
 };

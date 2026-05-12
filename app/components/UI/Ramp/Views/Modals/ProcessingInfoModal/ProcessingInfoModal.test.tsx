@@ -12,12 +12,13 @@ const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
   callback?.();
 });
 
-jest.mock(
-  '../../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return ReactActual.forwardRef(
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
       (
         {
           children,
@@ -33,28 +34,15 @@ jest.mock(
         }));
         return <View testID={testID}>{children}</View>;
       },
-    );
-  },
-);
+    ),
+  };
+});
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }),
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 1, right: 2, bottom: 3, left: 4 };
-  const frame = { width: 5, height: 6, x: 7, y: 8 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
 
 jest.mock('react-native-inappbrowser-reborn', () => ({
   isAvailable: jest.fn(),
@@ -110,12 +98,6 @@ describe('ProcessingInfoModal', () => {
   });
 
   it('renders correctly', () => {
-    renderModal();
-    expect(screen.getByTestId('processing-info-modal')).toBeOnTheScreen();
-    expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('renders the close button', () => {
     renderModal();
     expect(
       screen.getByTestId('processing-info-modal-close-button'),

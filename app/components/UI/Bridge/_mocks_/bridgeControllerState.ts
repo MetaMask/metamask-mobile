@@ -20,4 +20,5 @@ export const defaultBridgeControllerState = {
   quotesLoadingStatus: null,
   quoteFetchError: null,
   quotesRefreshCount: 0,
+  tokenWarnings: [],
 };

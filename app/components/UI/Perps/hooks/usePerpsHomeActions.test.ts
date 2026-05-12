@@ -49,6 +49,26 @@ jest.mock('./usePerpsEventTracking', () => ({
   })),
 }));
 
+const mockWithdrawWithConfirmation = jest.fn().mockResolvedValue(undefined);
+jest.mock('./usePerpsWithdrawConfirmation', () => ({
+  usePerpsWithdrawConfirmation: jest.fn(() => ({
+    withdrawWithConfirmation: mockWithdrawWithConfirmation,
+  })),
+}));
+
+const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
+  action(),
+);
+
+jest.mock('../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: mockComplianceGate,
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
+  }),
+}));
+
 describe('usePerpsHomeActions', () => {
   const mockNavigation = {
     navigate: jest.fn(),
@@ -62,6 +82,10 @@ describe('usePerpsHomeActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrack.mockClear();
+    mockWithdrawWithConfirmation.mockResolvedValue(undefined);
+    mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
+      action(),
+    );
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useSelector as jest.Mock).mockReturnValue(true);
     (usePerpsTrading as jest.Mock).mockReturnValue({
@@ -204,6 +228,34 @@ describe('usePerpsHomeActions', () => {
     });
   });
 
+  describe('handleAddFunds - compliance blocked', () => {
+    it('does not call deposit functions when compliance gate blocks the action', async () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleAddFunds();
+      });
+
+      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not set processing state when compliance gate blocks', async () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleAddFunds();
+      });
+
+      expect(result.current.isProcessing).toBe(false);
+      expect(result.current.error).toBeNull();
+    });
+  });
+
   describe('handleWithdraw - eligible user', () => {
     it('navigates to withdraw screen', async () => {
       const { result } = renderHook(() => usePerpsHomeActions());
@@ -309,6 +361,74 @@ describe('usePerpsHomeActions', () => {
           [PERPS_EVENT_PROPERTY.IS_GEO_BLOCKED]: false,
         }),
       );
+    });
+  });
+
+  describe('handleWithdraw - feature flag enabled (withdraw to any token)', () => {
+    beforeEach(() => {
+      // First call: selectPerpsEligibility → true
+      // Second call: selectSelectedInternalAccountAddress → address string
+      // Third call: selectPayQuoteConfig → { enabled: true }
+      (useSelector as jest.Mock)
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce('0x1234567890abcdef1234567890abcdef12345678')
+        .mockReturnValueOnce({ enabled: true });
+    });
+
+    it('calls withdrawWithConfirmation instead of legacy navigation', async () => {
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockWithdrawWithConfirmation).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('triggers onWithdrawSuccess after withdrawWithConfirmation', async () => {
+      const onWithdrawSuccess = jest.fn();
+      const { result } = renderHook(() =>
+        usePerpsHomeActions({ onWithdrawSuccess }),
+      );
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      await waitFor(() => {
+        expect(onWithdrawSuccess).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('handles error from withdrawWithConfirmation', async () => {
+      mockWithdrawWithConfirmation.mockRejectedValueOnce(
+        new Error('Withdraw failed'),
+      );
+
+      const onError = jest.fn();
+      const { result } = renderHook(() => usePerpsHomeActions({ onError }));
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toEqual(new Error('Withdraw failed'));
+        expect(onError).toHaveBeenCalledWith(expect.any(Error), 'withdraw');
+      });
+    });
+
+    it('resets isProcessing after completion', async () => {
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      await waitFor(() => {
+        expect(result.current.isProcessing).toBe(false);
+      });
     });
   });
 

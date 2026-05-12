@@ -9,7 +9,6 @@ export const MUSD_TOKEN_API_RESPONSE = {
   symbol: 'MUSD',
   name: 'MetaMask USD',
   decimals: 6,
-  chainId: 1,
   logoURI: '',
   aggregators: [],
 };

@@ -4,7 +4,6 @@ import {
   IconName,
   TextVariant,
   Text,
-  TextFieldSize,
   FontWeight,
   ButtonIcon,
   TextColor,
@@ -13,7 +12,6 @@ import { strings } from '../../../../../locales/i18n';
 import { RevealSeedViewSelectorsIDs } from '../RevealSeedView.testIds';
 import { useTheme } from '../../../../util/theme';
 import { PasswordEntryProps } from '../types';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const PasswordEntry = ({
   password,
@@ -23,8 +21,7 @@ const PasswordEntry = ({
   showPassword,
   onToggleShowPassword,
 }: PasswordEntryProps) => {
-  const tw = useTailwind();
-  const { colors, themeAppearance } = useTheme();
+  const { themeAppearance } = useTheme();
 
   return (
     <>
@@ -39,23 +36,23 @@ const PasswordEntry = ({
       <TextField
         value={password}
         placeholder={'Password'}
-        placeholderTextColor={colors.text.muted}
         onChangeText={onPasswordChange}
-        secureTextEntry={!showPassword}
-        autoCapitalize="none"
-        onSubmitEditing={onSubmit}
-        keyboardAppearance={themeAppearance}
-        testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
-        accessibilityLabel={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
-        returnKeyType="done"
-        autoComplete="password"
         endAccessory={
           <ButtonIcon
             iconName={showPassword ? IconName.Eye : IconName.EyeSlash}
             onPress={onToggleShowPassword}
           />
         }
-        size={TextFieldSize.Lg}
+        inputProps={{
+          secureTextEntry: !showPassword,
+          autoCapitalize: 'none',
+          onSubmitEditing: onSubmit,
+          keyboardAppearance: themeAppearance,
+          testID: RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+          accessibilityLabel: RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+          returnKeyType: 'done',
+          autoComplete: 'password',
+        }}
       />
       <Text
         twClassName="mt-2"

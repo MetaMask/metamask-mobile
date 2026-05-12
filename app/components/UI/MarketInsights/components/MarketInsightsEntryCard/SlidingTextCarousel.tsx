@@ -27,6 +27,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
+    top: 0,
+  },
+  sizer: {
+    opacity: 0,
   },
 });
 
@@ -169,11 +173,21 @@ const SlidingTextCarousel: React.FC<SlidingTextCarouselProps> = ({
 
   return (
     <Box
-      twClassName="h-[44px]"
       style={styles.overflowHidden}
       onLayout={handleContainerLayout}
       testID={testID}
     >
+      {/* Invisible sizer that establishes the container height based on
+          actual font metrics, so the card adapts to Dynamic Type scaling. */}
+      <Text
+        variant={TextVariant.BodySm}
+        numberOfLines={2}
+        style={styles.sizer}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        {'Mg\nMg'}
+      </Text>
       <Animated.View style={[styles.slidingText, slotAStyle]}>
         <Text
           variant={TextVariant.BodySm}

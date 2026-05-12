@@ -76,9 +76,14 @@ class PerformanceReporter {
     const testId = `${test.title}-${projectName}`;
 
     if (this.processedTests.has(testId)) {
-      logger.warn(
-        `Test already processed, skipping: ${test.title} (${projectName})`,
-      );
+      // If this retry passed, update the existing failed entry to reflect final success
+      if (result.status === 'passed') {
+        this.resolveRetrySuccess(test, projectName);
+      } else {
+        logger.warn(
+          `Test already processed, skipping: ${test.title} (${projectName})`,
+        );
+      }
       return;
     }
     this.processedTests.add(testId);
@@ -264,6 +269,7 @@ class PerformanceReporter {
           testFilePath,
           tags: testTags,
           ...metrics,
+          projectName,
         };
 
         // Mark actual failures
@@ -347,6 +353,7 @@ class PerformanceReporter {
         testName: test.title,
         testFilePath,
         tags: testTags,
+        projectName,
         total: result.duration / 1000,
         device: deviceInfo,
         steps: [],
@@ -400,19 +407,26 @@ class PerformanceReporter {
     const projectNames = this.sessions
       .map((s) => s.projectName)
       .filter(Boolean);
+    const isBrowserStackProject = (name: string): boolean => {
+      const normalizedName = name.toLowerCase();
+      return (
+        normalizedName.includes('browserstack') ||
+        normalizedName === 'android-onboarding' ||
+        normalizedName === 'ios-onboarding'
+      );
+    };
     const isBrowserStackRun =
       this.sessions.length > 0 &&
-      projectNames.some((name) => (name ?? '').includes('browserstack-'));
+      projectNames.some((name) => isBrowserStackProject(name ?? ''));
 
     logger.info(
       `[Pipeline] Sessions: ${this.sessions.length}, projectNames: [${projectNames.join(', ') || 'none'}], isBrowserStackRun: ${isBrowserStackRun}`,
     );
     if (this.sessions.length > 0 && !isBrowserStackRun) {
       logger.info(
-        '[Pipeline] Skipping BrowserStack fetch (video/profiling/network logs): project name does not include "browserstack-"',
+        '[Pipeline] Skipping BrowserStack fetch (video/profiling/network logs): project is not recognized as BrowserStack-backed',
       );
     }
-
     return isBrowserStackRun;
   }
 
@@ -527,6 +541,40 @@ class PerformanceReporter {
         apiCallsError,
       };
     });
+  }
+
+  private resolveRetrySuccess(
+    test: PlaywrightTestCase,
+    projectName: string,
+  ): void {
+    const testTags: string[] = Array.isArray(test.tags) ? test.tags : [];
+    const teamInfo: TeamInfo = getTeamInfoFromTags(testTags) as TeamInfo;
+
+    logger.info(
+      `Test passed on retry, updating result: ${test.title} (${projectName})`,
+    );
+
+    // Mark the existing metric entry as passed (scoped to this Playwright project)
+    const metric = this.metrics.find(
+      (m) => m.testName === test.title && m.projectName === projectName,
+    );
+    if (metric) {
+      metric.testFailed = false;
+      metric.failureReason = null;
+    }
+
+    // Remove only this project's failed entry; same title in other projects stays
+    const teamId = teamInfo.teamId;
+    if (this.failedTestsByTeam[teamId]) {
+      this.failedTestsByTeam[teamId].tests = this.failedTestsByTeam[
+        teamId
+      ].tests.filter(
+        (t) => !(t.testName === test.title && t.projectName === projectName),
+      );
+      if (this.failedTestsByTeam[teamId].tests.length === 0) {
+        delete this.failedTestsByTeam[teamId];
+      }
+    }
   }
 }
 

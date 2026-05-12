@@ -4,7 +4,9 @@
  * which expects lines prefixed with "data: ". Raw JSON returns zero quotes.
  */
 export function toSSEResponse(quotes: object[]): string {
-  return quotes.map((q) => `data: ${JSON.stringify(q)}\n\n`).join('');
+  return quotes
+    .map((q) => `event: quote\ndata: ${JSON.stringify(q)}\n\n`)
+    .join('');
 }
 
 export const localNodeOptions = {

@@ -1,5 +1,5 @@
 import { Theme } from '@metamask/design-tokens';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 export const inputStepperStyles = ({
   vars,
@@ -26,6 +26,12 @@ export const inputStepperStyles = ({
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
+      ...(Platform.OS === 'android' && {
+        includeFontPadding: false,
+        textAlignVertical: 'center',
+        paddingVertical: 0,
+        paddingTop: 1,
+      }),
     },
   });
 

@@ -1,15 +1,12 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { act } from '@testing-library/react-native';
+import { act, screen } from '@testing-library/react-native';
 import WebviewModal from './WebviewModal';
+import { strings } from '../../../../../../../../locales/i18n';
 import { useParams } from '../../../../../../../util/navigation/navUtils';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import Logger from '../../../../../../../util/Logger';
-import {
-  registerCheckoutCallback,
-  removeCheckoutCallback,
-} from '../../../../utils/checkoutCallbackRegistry';
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -65,28 +62,24 @@ jest.mock('react-native', () => ({
 describe('WebviewModal Component', () => {
   const mockHandleNavigationStateChange = jest.fn();
   const mockSourceUrl = 'https://example.com';
-  let callbackKey: string;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    callbackKey = registerCheckoutCallback(mockHandleNavigationStateChange);
     (useParams as jest.Mock).mockReturnValue({
       sourceUrl: mockSourceUrl,
-      callbackKey,
+      handleNavigationStateChange: mockHandleNavigationStateChange,
     });
   });
 
-  afterEach(() => {
-    removeCheckoutCallback(callbackKey);
+  it('renders without errors on mount', () => {
+    renderWithProvider(WebviewModal);
+    expect(
+      screen.queryByText(strings('deposit.error_view.title')),
+    ).not.toBeOnTheScreen();
   });
 
-  it('renders correctly and matches snapshot', () => {
-    const { toJSON } = renderWithProvider(WebviewModal);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('should display error view when webview HTTP error occurs', () => {
-    const { toJSON } = renderWithProvider(WebviewModal);
+  it('displays error view when webview HTTP error occurs', () => {
+    renderWithProvider(WebviewModal);
 
     act(() => {
       mockWebViewProps.onHttpError({
@@ -97,10 +90,12 @@ describe('WebviewModal Component', () => {
       });
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByText(strings('deposit.webview_modal.error', { code: 404 })),
+    ).toBeOnTheScreen();
   });
 
-  it('should call handleNavigationStateChange with correct parameters when WebView navigation state changes', () => {
+  it('calls handleNavigationStateChange with correct parameters when WebView navigation state changes', () => {
     renderWithProvider(WebviewModal);
 
     const mockNavigationState = {
@@ -120,7 +115,7 @@ describe('WebviewModal Component', () => {
     );
   });
 
-  it('should deduplicate navigation state changes for the same URL', () => {
+  it('deduplicates navigation state changes for the same URL', () => {
     renderWithProvider(WebviewModal);
 
     const mockNavigationState = {
@@ -144,7 +139,6 @@ describe('WebviewModal Component', () => {
       mockNavigationState,
     );
 
-    // Call with a different URL
     const differentNavigationState = {
       ...mockNavigationState,
       url: 'https://example.com/different-page',

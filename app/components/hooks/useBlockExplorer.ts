@@ -2,7 +2,9 @@ import { useCallback } from 'react';
 import { RPC } from '../../constants/network';
 import {
   findBlockExplorerForRpc,
+  findBlockExplorerUrlForChain,
   getBlockExplorerName as getBlockExplorerNameFromUrl,
+  getHexEvmChainId,
 } from '../../util/networks';
 import {
   getEtherscanAddressUrl,
@@ -30,8 +32,6 @@ import {
 } from '../../core/Multichain/networks';
 import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../core/Multichain/constants';
 import { isNonEvmChainId } from '../../core/Multichain/utils';
-import { parseCaipChainId, isCaipChainId } from '@metamask/utils';
-import { toHex } from '@metamask/controller-utils';
 import { PopularList } from '../../util/networks/customNetworks';
 
 const useBlockExplorer = (chainId?: string) => {
@@ -39,19 +39,10 @@ const useBlockExplorer = (chainId?: string) => {
   const providerConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  // Helper function to convert CAIP chain ID to hex chain ID for EVM networks
-  const convertToHexChainId = useCallback((inputChainId: string): string => {
-    if (isCaipChainId(inputChainId)) {
-      const { namespace, reference } = parseCaipChainId(inputChainId);
-      if (namespace === 'eip155') {
-        return toHex(reference);
-      }
-      // For non-EVM chains, return as-is
-      return inputChainId;
-    }
-    // Already in hex format or other format
-    return inputChainId;
-  }, []);
+  const toHexChainIdForEvmLookup = useCallback(
+    (inputChainId: string) => getHexEvmChainId(inputChainId) ?? inputChainId,
+    [],
+  );
 
   // Helper function to get base block explorer URL for EVM chains
   const getEvmBlockExplorerUrl = useCallback((targetChainId: string) => {
@@ -100,10 +91,17 @@ const useBlockExplorer = (chainId?: string) => {
 
       // For specific EVM chain block explorers
       if (currentChainId) {
-        const hexChainId = convertToHexChainId(currentChainId);
+        const hexChainId = toHexChainIdForEvmLookup(currentChainId);
         const baseUrl = getEvmBlockExplorerUrl(hexChainId);
         if (baseUrl) {
           return `${baseUrl}/address/${address}`;
+        }
+        const explorerFromNetworkConfig = findBlockExplorerUrlForChain(
+          currentChainId,
+          networkConfigurations,
+        );
+        if (explorerFromNetworkConfig) {
+          return `${explorerFromNetworkConfig}/address/${address}`;
         }
       }
 
@@ -125,7 +123,7 @@ const useBlockExplorer = (chainId?: string) => {
       providerConfig,
       networkConfigurations,
       getEvmBlockExplorerUrl,
-      convertToHexChainId,
+      toHexChainIdForEvmLookup,
     ],
   );
 
@@ -172,10 +170,17 @@ const useBlockExplorer = (chainId?: string) => {
 
       // For specific EVM chain block explorers
       if (currentChainId) {
-        const hexChainId = convertToHexChainId(currentChainId);
+        const hexChainId = toHexChainIdForEvmLookup(currentChainId);
         const baseUrl = getEvmBlockExplorerUrl(hexChainId);
         if (baseUrl) {
           return baseUrl;
+        }
+        const explorerFromNetworkConfig = findBlockExplorerUrlForChain(
+          currentChainId,
+          networkConfigurations,
+        );
+        if (explorerFromNetworkConfig) {
+          return explorerFromNetworkConfig;
         }
       }
 
@@ -197,7 +202,7 @@ const useBlockExplorer = (chainId?: string) => {
       providerConfig,
       networkConfigurations,
       getEvmBlockExplorerUrl,
-      convertToHexChainId,
+      toHexChainIdForEvmLookup,
     ],
   );
 
@@ -236,10 +241,17 @@ const useBlockExplorer = (chainId?: string) => {
 
       // For specific EVM chain block explorers
       if (currentChainId) {
-        const hexChainId = convertToHexChainId(currentChainId);
+        const hexChainId = toHexChainIdForEvmLookup(currentChainId);
         const baseUrl = getEvmBlockExplorerUrl(hexChainId);
         if (baseUrl) {
           return getBlockExplorerNameFromUrl(baseUrl);
+        }
+        const explorerFromNetworkConfig = findBlockExplorerUrlForChain(
+          currentChainId,
+          networkConfigurations,
+        );
+        if (explorerFromNetworkConfig) {
+          return getBlockExplorerNameFromUrl(explorerFromNetworkConfig);
         }
       }
 
@@ -263,7 +275,7 @@ const useBlockExplorer = (chainId?: string) => {
       providerConfig,
       networkConfigurations,
       getEvmBlockExplorerUrl,
-      convertToHexChainId,
+      toHexChainIdForEvmLookup,
     ],
   );
 

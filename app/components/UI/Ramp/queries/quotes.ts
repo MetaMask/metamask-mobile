@@ -3,6 +3,9 @@ import type { QuotesResponse } from '@metamask/ramps-controller';
 import type { GetQuotesOptions } from '../hooks/useRampsQuotes';
 import Engine from '../../../../core/Engine';
 
+/** Aligns with `DEFAULT_QUOTES_TTL` in RampsController (15s controller-side cache). */
+export const RAMPS_QUOTES_STALE_TIME_MS = 15_000;
+
 type RampsQuotesQueryParams = Pick<
   GetQuotesOptions,
   | 'assetId'
@@ -42,5 +45,5 @@ export const rampsQuotesOptions = (params: RampsQuotesQueryParams) =>
         forceRefresh: params.forceRefresh,
         ttl: params.ttl,
       }),
-    staleTime: 0,
+    staleTime: RAMPS_QUOTES_STALE_TIME_MS,
   });

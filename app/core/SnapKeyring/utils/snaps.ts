@@ -78,7 +78,7 @@ export function getSnapName(
   snapId: SnapId,
   messenger: SnapKeyringBuilderMessenger,
 ) {
-  const snap = messenger.call('SnapController:get', snapId);
+  const snap = messenger.call('SnapController:getSnap', snapId);
   const currentLocale = I18n.locale;
 
   if (!snap) {

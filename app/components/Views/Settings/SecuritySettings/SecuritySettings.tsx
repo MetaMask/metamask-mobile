@@ -28,7 +28,7 @@ import {
 } from './Sections';
 import { selectProviderType } from '../../../../selectors/networkController';
 import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
-import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
+import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
 import createStyles from './SecuritySettings.styles';
 import { HeadingProps, SecuritySettingsParams } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -38,10 +38,14 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonWidthTypes,
+} from '@metamask/design-system-react-native';
+import OldButton, {
+  ButtonVariants,
+  ButtonSize as OldButtonSize,
 } from '../../../../component-library/components/Buttons/Button';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import Routes from '../../../../constants/navigation/Routes';
@@ -226,13 +230,14 @@ const Settings: React.FC = () => {
       </Text>
       <View style={styles.accessory}>
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('app_settings.clear_browser_history_desc')}
+          isFullWidth
           onPress={toggleClearBrowserHistoryModal}
           isDisabled={browserHistory.length === 0}
-        />
+        >
+          {strings('app_settings.clear_browser_history_desc')}
+        </Button>
       </View>
     </View>
   );
@@ -294,9 +299,9 @@ const Settings: React.FC = () => {
           style={styles.desc}
         >
           {strings('app_settings.simulation_details_description')}
-          <Button
+          <OldButton
             variant={ButtonVariants.Link}
-            size={ButtonSize.Auto}
+            size={OldButtonSize.Auto}
             onPress={() => {
               Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
               trackEvent(
@@ -355,7 +360,7 @@ const Settings: React.FC = () => {
       />
       <ScrollView
         style={styles.content}
-        testID={SECURITY_PRIVACY_VIEW_ID}
+        testID={SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL}
         ref={scrollViewRef}
       >
         <View style={styles.inner}>

@@ -1,4 +1,7 @@
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
+import FixtureBuilder, {
+  DEFAULT_FIXTURE_ACCOUNT,
+} from '../../../framework/fixtures/FixtureBuilder';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
 import SendView from '../../../page-objects/Send/RedesignedSendView';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
@@ -10,7 +13,6 @@ import { loginToApp } from '../../../flows/wallet.flow';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { LocalNode } from '../../../framework/types';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagExtensionUxPna25 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { validateTransactionHashInTransactionFinalizedEvent } from './metricsValidationHelper';
@@ -18,7 +20,8 @@ import { validateTransactionHashInTransactionFinalizedEvent } from './metricsVal
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
 describe(SmokeConfirmations('Send native asset'), () => {
-  it('should send ETH to an address', async () => {
+  // Moved partially to cv tests (send.view.test.tsx, EVM coverage)
+  it('should send MAX balance ETH to an address', async () => {
     await withFixtures(
       {
         dapps: [
@@ -38,10 +41,7 @@ describe(SmokeConfirmations('Send native asset'), () => {
           .withPreferencesController({})
           .build(),
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureFlagExtensionUxPna25(true),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer);
 
           await setupMockRequest(mockServer, {
             requestMethod: 'PUT',
@@ -49,6 +49,28 @@ describe(SmokeConfirmations('Send native asset'), () => {
             response: {
               message: 'OK',
             },
+            responseCode: 200,
+          });
+
+          await setupMockRequest(mockServer, {
+            url: /accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances/,
+            response: {
+              balances: [
+                {
+                  object: 'token',
+                  address: '0x0000000000000000000000000000000000000000',
+                  symbol: 'ETH',
+                  name: 'Ether',
+                  type: 'native',
+                  decimals: 18,
+                  chainId: 1337,
+                  balance: '10.000000000000000000',
+                  accountAddress: `eip155:1337:${DEFAULT_FIXTURE_ACCOUNT}`,
+                },
+              ],
+              unprocessedNetworks: [],
+            },
+            requestMethod: 'GET',
             responseCode: 200,
           });
         },
@@ -63,10 +85,10 @@ describe(SmokeConfirmations('Send native asset'), () => {
       }) => {
         await loginToApp();
         await device.disableSynchronization();
-        // send 5 ETH
+        // send Max ETH
         await WalletView.tapWalletSendButton();
         await SendView.selectEthereumToken();
-        await SendView.pressAmountFiveButton();
+        await SendView.pressAmountMaxButton();
         await SendView.pressContinueButton();
         await SendView.inputRecipientAddress(RECIPIENT);
         await SendView.pressReviewButton();
@@ -80,30 +102,6 @@ describe(SmokeConfirmations('Send native asset'), () => {
           localNodes,
           mockServer,
         );
-
-        // send 50% ETH
-        await TabBarComponent.tapWallet();
-        await WalletView.tapWalletSendButton();
-        await SendView.selectEthereumToken();
-        await SendView.pressFiftyPercentButton();
-        await SendView.pressContinueButton();
-        await SendView.inputRecipientAddress(RECIPIENT);
-        await SendView.pressReviewButton();
-        await FooterActions.tapConfirmButton();
-        await TabBarComponent.tapActivity();
-        await Assertions.expectTextDisplayed('Confirmed');
-
-        // send Max ETH
-        await TabBarComponent.tapWallet();
-        await WalletView.tapWalletSendButton();
-        await SendView.selectEthereumToken();
-        await SendView.pressAmountMaxButton();
-        await SendView.pressContinueButton();
-        await SendView.inputRecipientAddress(RECIPIENT);
-        await SendView.pressReviewButton();
-        await FooterActions.tapConfirmButton();
-        await TabBarComponent.tapActivity();
-        await Assertions.expectTextDisplayed('Confirmed');
       },
     );
   });

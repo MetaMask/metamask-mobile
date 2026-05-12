@@ -2,11 +2,9 @@
 import React from 'react';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
-import AccountRightButton from '../AccountRightButton';
 import {
   Alert,
   Image,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -22,9 +20,7 @@ import { analytics } from '../../../util/analytics/analytics';
 import { Authentication } from '../../../core';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
+import { NavbarSelectorsIDs } from './Navbar.testIds';
 import Routes from '../../../constants/navigation/Routes';
 
 import {
@@ -141,52 +137,6 @@ const styles = StyleSheet.create({
 
 const metamask_name = require('../../../images/branding/metamask-name.png'); // eslint-disable-line
 const metamask_fox = require('../../../images/branding/fox.png'); // eslint-disable-line
-/**
- * Function that returns the navigation options
- * This is used by views that will show our custom navbar
- * which contains accounts icon, Title or MetaMask Logo and current network, and settings icon
- *
- * @param {string} title - Title in string format
- * @param {Object} navigation - Navigation object required to push new views
- * @param {bool} disableNetwork - Boolean that specifies if the network can be changed, defaults to false
- * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft, headerTruncatedBackTitle and headerRight
- */
-export function getTransactionsNavbarOptions(
-  title,
-  themeColors,
-  _,
-  selectedAddress,
-  handleRightButtonPress,
-) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
-    headerButtonText: {
-      color: themeColors.primary.default,
-      fontSize: 14,
-      ...fontStyles.normal,
-    },
-  });
-
-  return {
-    headerTitle: () => <NavbarTitle title={title} />,
-    headerLeft: null,
-    headerRight: () => (
-      <AccountRightButton
-        selectedAddress={selectedAddress}
-        onPress={handleRightButtonPress}
-      />
-    ),
-    headerStyle: innerStyles.headerStyle,
-    headerTintColor: themeColors.primary.default,
-  };
-}
 
 /**
  * Function that returns the navigation options
@@ -471,7 +421,7 @@ export function getOnboardingNavbarOptions(
             />
           </View>
         )
-      : null,
+      : '',
     headerRight: headerRightHide,
     headerLeft: headerLeftHide,
     headerTintColor: themeColors.primary.default,
@@ -649,7 +599,7 @@ export function getClosableNavigationOptions(
         <TouchableOpacity
           onPress={navigationPop}
           style={styles.backButton}
-          {...generateTestId(Platform, NAV_ANDROID_BACK_BUTTON)}
+          testID={NavbarSelectorsIDs.ANDROID_BACK_BUTTON}
         >
           <IonicIcon
             name={'arrow-back'}
@@ -1177,7 +1127,7 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
 
   return getHeaderCompactStandardNavbarOptions({
     title,
-    onClose: () => navigation.getParent()?.pop(),
+    onBack: () => navigation.goBack(),
     includesTopInset: true,
   });
 }
@@ -1285,6 +1235,9 @@ export function getDepositNavbarOptions(
     startButtonIconProps,
     closeButtonProps,
     includesTopInset: true,
+    style: {
+      backgroundColor: theme.colors.background.default,
+    },
   });
 }
 
@@ -1490,6 +1443,7 @@ export function getStakingNavbar(
  */
 export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
   return {
+    headerShown: true,
     headerTitle: () => null,
     headerLeft: () => (
       <ButtonIcon

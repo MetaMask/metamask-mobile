@@ -76,29 +76,21 @@ export function PredictBuyPreviewHeaderTitle({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-3"
+      twClassName="flex-1 min-w-0 gap-3"
     >
       <Image
         source={{ uri: outcome.image }}
         style={tw.style('w-10 h-10 rounded')}
       />
       <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
-        <Text
-          variant={TextVariant.HeadingSm}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {market.title}
-        </Text>
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
+        <Text variant={TextVariant.HeadingSm}>{market.title}</Text>
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1 flex-wrap">
           {!!outcome.groupItemTitle && (
             <>
               <Text
                 variant={TextVariant.BodySm}
                 twClassName="font-medium"
                 color={TextColor.TextAlternative}
-                numberOfLines={1}
-                ellipsizeMode="tail"
               >
                 {outcome.groupItemTitle}
               </Text>
@@ -119,8 +111,6 @@ export function PredictBuyPreviewHeaderTitle({
                 ? TextColor.SuccessDefault
                 : TextColor.ErrorDefault
             }
-            numberOfLines={1}
-            ellipsizeMode="tail"
           >
             {outcomeTokenLabel}
           </Text>

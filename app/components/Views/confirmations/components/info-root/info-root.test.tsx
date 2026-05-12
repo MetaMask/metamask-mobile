@@ -257,6 +257,27 @@ describe('Info', () => {
     expect(getByTestId('custom-amount-info')).toBeOnTheScreen();
   });
 
+  it('renders CustomAmountInfo for money account withdraw confirmations', () => {
+    const moneyAccountWithdrawConfirmation = {
+      chainId: '0x89',
+      id: 'money-account-withdraw-confirmation-id',
+      networkClientId: 'polygon',
+      origin: 'metamask',
+      txParams: {
+        from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        value: '0x0',
+      },
+      type: TransactionType.moneyAccountWithdraw,
+    } as unknown as TransactionMeta;
+
+    const { getByTestId } = renderWithProvider(<Info />, {
+      state: getAppStateForConfirmation(moneyAccountWithdrawConfirmation),
+    });
+
+    expect(getByTestId('custom-amount-info')).toBeOnTheScreen();
+  });
+
   describe('useRefreshSmartTransactionsLiveness', () => {
     beforeEach(() => {
       jest.mocked(useRefreshSmartTransactionsLiveness).mockClear();

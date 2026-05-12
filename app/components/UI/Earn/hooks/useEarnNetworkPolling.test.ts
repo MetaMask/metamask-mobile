@@ -77,7 +77,6 @@ describe('useEarnNetworkPolling', () => {
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
         AccountTreeController: {
           accountTree: {
-            selectedAccountGroup: 'keyring:test-wallet/ethereum',
             wallets: {
               'keyring:test-wallet': {
                 id: 'test-wallet',
@@ -90,6 +89,7 @@ describe('useEarnNetworkPolling', () => {
               },
             },
           },
+          selectedAccountGroup: 'keyring:test-wallet/ethereum',
         },
         PreferencesController: {
           useTokenDetection: true,
@@ -233,9 +233,9 @@ describe('useEarnNetworkPolling', () => {
           },
           AccountTreeController: {
             accountTree: {
-              selectedAccountGroup: '',
               wallets: {},
             },
+            selectedAccountGroup: '',
           },
         },
       },

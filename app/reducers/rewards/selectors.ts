@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
-import { RootState } from '..';
+import type { RootState } from '..';
+import { initialState } from '.';
 import { RewardsTab, OnboardingStep } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
 
@@ -48,14 +49,20 @@ export const selectSeasonStartDate = (state: RootState) =>
 export const selectSeasonEndDate = (state: RootState) =>
   state.rewards.seasonEndDate;
 
-export const selectSeasonTiers = (state: RootState) =>
-  state.rewards.seasonTiers;
+export const selectSeasonTiers = (
+  state: RootState,
+): RootState['rewards']['seasonTiers'] =>
+  state.rewards.seasonTiers ?? initialState.seasonTiers;
 
-export const selectSeasonActivityTypes = (state: RootState) =>
-  state.rewards.seasonActivityTypes;
+export const selectSeasonActivityTypes = (
+  state: RootState,
+): RootState['rewards']['seasonActivityTypes'] =>
+  state.rewards.seasonActivityTypes ?? initialState.seasonActivityTypes;
 
-export const selectSeasonWaysToEarn = (state: RootState) =>
-  state.rewards.seasonWaysToEarn;
+export const selectSeasonWaysToEarn = (
+  state: RootState,
+): RootState['rewards']['seasonWaysToEarn'] =>
+  state.rewards.seasonWaysToEarn ?? initialState.seasonWaysToEarn;
 
 export const selectOnboardingActiveStep = (state: RootState): OnboardingStep =>
   state.rewards.onboardingActiveStep;
@@ -89,7 +96,9 @@ export const selectHideUnlinkedAccountsBanner = (state: RootState) =>
 
 export const selectHideCurrentAccountNotOptedInBannerArray = (
   state: RootState,
-) => state.rewards.hideCurrentAccountNotOptedInBanner;
+): RootState['rewards']['hideCurrentAccountNotOptedInBanner'] =>
+  state.rewards.hideCurrentAccountNotOptedInBanner ??
+  initialState.hideCurrentAccountNotOptedInBanner;
 
 export const selectActiveBoosts = (state: RootState) =>
   state.rewards.activeBoosts;
@@ -117,9 +126,6 @@ export const selectSeasonRewardById =
 
 export const selectPointsEvents = (state: RootState) =>
   state.rewards.pointsEvents;
-
-export const selectSeasonShouldInstallNewVersion = (state: RootState) =>
-  state.rewards.seasonShouldInstallNewVersion;
 
 // Bulk link selectors
 export const selectBulkLinkState = (state: RootState) => state.rewards.bulkLink;
@@ -153,8 +159,23 @@ export const selectBulkLinkAccountProgress = (state: RootState) => {
   return (linkedAccounts + failedAccounts) / totalAccounts;
 };
 
+// Benefits selectors
+export const selectBenefits = (
+  state: RootState,
+): RootState['rewards']['benefits'] =>
+  state.rewards.benefits ?? initialState.benefits;
+
+export const selectBenefitsLoading = (state: RootState): boolean =>
+  state.rewards.benefitsLoading;
+
 // Campaigns selectors
-export const selectCampaigns = (state: RootState) => state.rewards.campaigns;
+export const selectCampaigns = (
+  state: RootState,
+): RootState['rewards']['campaigns'] =>
+  state.rewards.campaigns ?? initialState.campaigns;
+
+export const selectCampaignById = (campaignId: string) => (state: RootState) =>
+  state.rewards.campaigns?.find((c) => c.id === campaignId) ?? null;
 
 export const selectCampaignsLoading = (state: RootState) =>
   state.rewards.campaignsLoading;
@@ -169,18 +190,35 @@ export const selectCampaignsHasLoaded = (state: RootState) =>
 export const selectCampaignParticipantStatuses = (state: RootState) =>
   state.rewards.campaignParticipantStatuses;
 
-export const selectCampaignParticipantStatusById =
-  (campaignId: string | undefined) => (state: RootState) =>
-    campaignId
-      ? (state.rewards.campaignParticipantStatuses?.[campaignId] ?? null)
-      : null;
+export const selectCampaignParticipantStatus =
+  (
+    subscriptionId: string | undefined | null,
+    campaignId: string | undefined | null,
+  ) =>
+  (state: RootState) => {
+    if (!subscriptionId || !campaignId) return null;
+    const key = `${subscriptionId}:${campaignId}`;
+    return state.rewards.campaignParticipantStatuses?.[key] ?? null;
+  };
+
+export const selectCampaignParticipantOptedIn =
+  (
+    subscriptionId: string | undefined | null,
+    campaignId: string | undefined | null,
+  ) =>
+  (state: RootState): boolean =>
+    selectCampaignParticipantStatus(subscriptionId, campaignId)(state)
+      ?.optedIn === true;
 
 export const selectCampaignParticipantCount =
-  (campaignId: string | undefined) => (state: RootState) =>
-    campaignId
-      ? (state.rewards.campaignParticipantStatuses?.[campaignId]
-          ?.participantCount ?? null)
-      : null;
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) => {
+    if (!subscriptionId || !campaignId) return null;
+    const key = `${subscriptionId}:${campaignId}`;
+    return (
+      state.rewards.campaignParticipantStatuses?.[key]?.participantCount ?? null
+    );
+  };
 
 // Version guard selectors
 export const selectVersionGuardMinimumMobileVersion = (state: RootState) =>
@@ -269,3 +307,62 @@ export const selectOndoCampaignPortfolioById =
           `${subscriptionId}:${campaignId}`
         ] ?? null)
       : null;
+
+export const selectOndoCampaignActivityById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId && state.rewards.ondoCampaignActivity
+      ? (state.rewards.ondoCampaignActivity[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;
+
+// Campaign deposits selectors
+export const selectOndoCampaignDeposits = (state: RootState) =>
+  state.rewards.ondoCampaignDeposits;
+
+export const selectOndoCampaignDepositsLoading = (state: RootState) =>
+  state.rewards.ondoCampaignDepositsLoading;
+
+export const selectOndoCampaignDepositsError = (state: RootState) =>
+  state.rewards.ondoCampaignDepositsError;
+
+export const selectPendingDeeplink = (state: RootState) =>
+  state.rewards.pendingDeeplink;
+
+export const selectDismissedCampaignOutcomeToasts = (
+  state: RootState,
+): RootState['rewards']['dismissedCampaignOutcomeToasts'] =>
+  state.rewards.dismissedCampaignOutcomeToasts ??
+  initialState.dismissedCampaignOutcomeToasts;
+
+// Perps Trading Campaign leaderboard selectors
+export const selectPerpsTradingCampaignLeaderboard = (state: RootState) =>
+  state.rewards.perpsTradingCampaignLeaderboard;
+
+export const selectPerpsTradingCampaignLeaderboardLoading = (
+  state: RootState,
+) => state.rewards.perpsTradingCampaignLeaderboardLoading;
+
+export const selectPerpsTradingCampaignLeaderboardError = (state: RootState) =>
+  state.rewards.perpsTradingCampaignLeaderboardError;
+
+// Perps Trading Campaign leaderboard position selectors
+export const selectPerpsTradingCampaignLeaderboardPositionById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId
+      ? (state.rewards.perpsTradingCampaignLeaderboardPositions[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;
+
+// Perps Trading Campaign prize pool selectors
+export const selectPerpsTradingCampaignVolume = (state: RootState) =>
+  state.rewards.perpsTradingCampaignVolume;
+
+export const selectPerpsTradingCampaignVolumeLoading = (state: RootState) =>
+  state.rewards.perpsTradingCampaignVolumeLoading;
+
+export const selectPerpsTradingCampaignVolumeError = (state: RootState) =>
+  state.rewards.perpsTradingCampaignVolumeError;

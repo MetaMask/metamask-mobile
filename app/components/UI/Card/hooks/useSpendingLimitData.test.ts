@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import useSpendingLimitData from './useSpendingLimitData';
 import { useCardSDK } from '../sdk';
 import useGetDelegationSettings from './useGetDelegationSettings';
-import { AllowanceState, DelegationSettingsResponse } from '../types';
+import { FundingStatus, DelegationSettingsResponse } from '../types';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -60,9 +60,8 @@ const createMockSDK = (tokensByChain: Record<string, unknown[]> = {}) => ({
   }),
 });
 
-// Default mock values for selectors (order: isAuthenticated, userCardLocation)
+// Default mock value for selectIsCardAuthenticated
 let mockIsAuthenticated = true;
-let mockUserCardLocation: string | null = 'international';
 
 describe('useSpendingLimitData', () => {
   const mockFetchDelegationSettings = jest.fn();
@@ -70,15 +69,9 @@ describe('useSpendingLimitData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsAuthenticated = true;
-    mockUserCardLocation = 'international';
 
-    // useSelector is called in order: selectIsAuthenticatedCard, selectUserCardLocation
-    let selectorCallCount = 0;
-    mockUseSelector.mockImplementation(() => {
-      selectorCallCount++;
-      if (selectorCallCount % 2 === 1) return mockIsAuthenticated;
-      return mockUserCardLocation;
-    });
+    // useSelector is called once: selectIsCardAuthenticated
+    mockUseSelector.mockImplementation(() => mockIsAuthenticated);
 
     mockUseCardSDK.mockReturnValue({
       sdk: createMockSDK(),
@@ -403,19 +396,19 @@ describe('useSpendingLimitData', () => {
       expect(result.current.availableTokens[0].name).toBe('USD Coin');
     });
 
-    it('sets allowanceState to NotEnabled for all tokens', () => {
+    it('sets fundingStatus to NotEnabled for all tokens', () => {
       const { result } = renderHook(() => useSpendingLimitData());
 
       result.current.availableTokens.forEach((token) => {
-        expect(token.allowanceState).toBe(AllowanceState.NotEnabled);
+        expect(token.fundingStatus).toBe(FundingStatus.NotEnabled);
       });
     });
 
-    it('sets allowance to 0 for all tokens', () => {
+    it('sets spendableBalance to 0 for all tokens', () => {
       const { result } = renderHook(() => useSpendingLimitData());
 
       result.current.availableTokens.forEach((token) => {
-        expect(token.allowance).toBe('0');
+        expect(token.spendableBalance).toBe('0');
       });
     });
 
@@ -664,8 +657,6 @@ describe('useSpendingLimitData', () => {
     });
 
     it('handles multiple tokens across multiple networks', () => {
-      mockUserCardLocation = 'international';
-
       mockUseGetDelegationSettings.mockReturnValue({
         data: createMockDelegationSettings({
           networks: [

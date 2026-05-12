@@ -16,10 +16,7 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
 } from '../../actions/user';
-import {
-  setCompletedOnboarding,
-  clearAccountType,
-} from '../../actions/onboarding';
+import { clearOnboarding } from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
@@ -730,15 +727,18 @@ class AuthenticationService {
    *
    * @param options - Options for unlocking the wallet.
    * @param options.password - The password to use to unlock the wallet.
+   * @param options.onBeforeNavigate - When set, awaited after unlock succeeds and before navigation to home/opt-in.
    * @returns - void
    */
   unlockWallet = async (
     {
       password,
       authPreference,
+      onBeforeNavigate,
     }: {
       password?: string;
       authPreference?: AuthData;
+      onBeforeNavigate?: () => Promise<void>;
     } = {
       password: undefined,
       authPreference: undefined,
@@ -803,6 +803,10 @@ class AuthenticationService {
 
           // Mark user as existing after successful unlock
           ReduxService.store.dispatch(setExistingUser(true));
+
+          if (onBeforeNavigate) {
+            await onBeforeNavigate();
+          }
 
           // TODO: Refactor this orchestration to sagas.
           // Navigate to optin metrics or home screen based on metrics consent and UI seen.
@@ -1117,7 +1121,7 @@ class AuthenticationService {
     );
     const entropySource = wallet.entropySource;
 
-    const [newAccountAddress] = await KeyringController.withKeyring(
+    const [newAccount] = await KeyringController.withKeyringV2(
       { id: entropySource },
       async ({ keyring }) => keyring.getAccounts(),
     );
@@ -1133,7 +1137,7 @@ class AuthenticationService {
       // handle seedless controller import error by reverting keyring controller mnemonic import
       await MultichainAccountService.removeMultichainAccountWallet(
         entropySource,
-        newAccountAddress,
+        newAccount.address,
       );
       throw error;
     }
@@ -1530,17 +1534,16 @@ class AuthenticationService {
    * Deletes the wallet by resetting wallet state and deleting user data.
    * This is the main public method for wallet deletion/reset flows.
    * It calls resetWalletState() followed by deleteUser(), and also clears
-   * metrics opt-in UI state and resets onboarding completion status.
+   * metrics opt-in UI state and resets onboarding Redux state.
    *
    * @returns {Promise<void>}
    */
   deleteWallet = async (): Promise<void> => {
     await this.resetWalletState();
     await this.deleteUser();
-    // Clear metrics opt-in UI state and reset onboarding completion
+    // Clear metrics opt-in UI state and reset onboarding Redux state
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
-    ReduxService.store.dispatch(setCompletedOnboarding(false));
-    ReduxService.store.dispatch(clearAccountType());
+    ReduxService.store.dispatch(clearOnboarding());
   };
 
   /**

@@ -1,10 +1,11 @@
 import React, { useCallback, useLayoutEffect } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   CommonActions,
   RouteProp,
   useNavigation,
+  useRoute,
 } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -12,9 +13,12 @@ import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
 
 import OnboardingSuccessEndAnimation from './OnboardingSuccessEndAnimation/index';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import { setWalletHomeOnboardingStepsEligible } from '../../../actions/onboarding';
+import { shouldMarkWalletHomeOnboardingStepsEligible } from '../../../util/onboarding/walletHomeOnboardingStepsEligibility';
 
 import Engine from '../../../core/Engine/Engine';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
+import Logger from '../../../util/Logger';
 import {
   Box,
   BoxAlignItems,
@@ -25,7 +29,6 @@ import {
   FontFamily,
   FontWeight,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -44,10 +47,6 @@ interface OnboardingSuccessParamList {
   [key: string]: object | undefined;
 }
 
-interface OnboardingSuccessScreenProps {
-  route?: RouteProp<OnboardingSuccessParamList, 'OnboardingSuccess'>;
-}
-
 interface OnboardingSuccessProps {
   onDone: () => void;
   successFlow: ONBOARDING_SUCCESS_FLOW;
@@ -58,6 +57,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   successFlow,
 }) => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
 
   const tw = useTailwind();
 
@@ -72,15 +72,31 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   };
 
   const handleOnDone = useCallback(() => {
-    const onOnboardingSuccess = async () => {
-      // Run discovery on all account providers (EVM and non-EVM)
-      await discoverAccounts(
-        Engine.context.KeyringController.state.keyrings[0].metadata.id,
+    if (shouldMarkWalletHomeOnboardingStepsEligible(successFlow)) {
+      dispatch(
+        setWalletHomeOnboardingStepsEligible(true, {
+          skipInitialBalanceWait: true,
+        }),
       );
+    }
+
+    const runDiscoverAccounts = async () => {
+      try {
+        await discoverAccounts(
+          Engine.context.KeyringController.state.keyrings[0].metadata.id,
+        );
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'OnboardingSuccess: discoverAccounts failed',
+        );
+      }
     };
-    onOnboardingSuccess();
-    onDone();
-  }, [onDone]);
+    void runDiscoverAccounts();
+    queueMicrotask(() => {
+      onDone();
+    });
+  }, [dispatch, onDone, successFlow]);
 
   const getTitleString = () => {
     if (successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP) {
@@ -115,19 +131,15 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     }
 
     return (
-      <TouchableOpacity
+      <Button
         onPress={goToDefaultSettings}
         testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
-        style={tw.style('py-2 items-center')}
+        variant={ButtonVariant.Tertiary}
+        size={ButtonSize.Lg}
+        isFullWidth
       >
-        <Text
-          color={TextColor.InfoDefault}
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-        >
-          {strings('onboarding_success.manage_default_settings')}
-        </Text>
-      </TouchableOpacity>
+        {strings('onboarding_success.manage_default_settings')}
+      </Button>
     );
   };
 
@@ -165,8 +177,10 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   );
 };
 
-export const OnboardingSuccess = ({ route }: OnboardingSuccessScreenProps) => {
+export const OnboardingSuccess = () => {
   const navigation = useNavigation();
+  const route =
+    useRoute<RouteProp<OnboardingSuccessParamList, 'OnboardingSuccess'>>();
   const successFlow =
     route?.params?.successFlow ?? ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP;
   const nextScreen = ResetNavigationToHome;
