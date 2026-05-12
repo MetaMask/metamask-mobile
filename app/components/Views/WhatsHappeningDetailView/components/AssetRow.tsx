@@ -1,7 +1,5 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import {
-  AvatarToken,
-  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -16,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import { getRelatedAssetImageSource } from '../utils/getRelatedAssetImageSource';
+import RelatedAssetAvatar from './RelatedAssetAvatar';
 
 export interface AssetRowSecondaryLine {
   priceText: string;
@@ -43,10 +42,7 @@ const AssetRow: React.FC<AssetRowProps> = ({
   onAction,
   secondaryLine,
 }) => {
-  const rawImageSource = getRelatedAssetImageSource(asset);
-  const imageSource = Array.isArray(rawImageSource)
-    ? (rawImageSource[0] as { uri?: string } | undefined)
-    : (rawImageSource as number | { uri?: string } | undefined);
+  const image = useMemo(() => getRelatedAssetImageSource(asset), [asset]);
 
   return (
     <Box
@@ -55,11 +51,7 @@ const AssetRow: React.FC<AssetRowProps> = ({
       gap={3}
       twClassName="py-3"
     >
-      <AvatarToken
-        name={asset.name}
-        size={AvatarTokenSize.Lg}
-        src={imageSource ?? undefined}
-      />
+      <RelatedAssetAvatar name={asset.name} image={image} />
 
       <Box
         twClassName="flex-1"
@@ -124,4 +116,4 @@ const AssetRow: React.FC<AssetRowProps> = ({
   );
 };
 
-export default AssetRow;
+export default memo(AssetRow);
