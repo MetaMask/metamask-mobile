@@ -62,6 +62,11 @@ export function PayWithRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
+  // Local dev override: set MM_DEV_PAY_WITH_BOTTOM_SHEET=true in `.js.env` to
+  // preview the redesigned picker. Routes to the existing PayWithModal.
+  // Remove once the first section of the redesign is complete.
+  const isPayWithBottomSheetEnabled =
+    process.env.MM_DEV_PAY_WITH_BOTTOM_SHEET === 'true';
 
   const {
     txParams: { from },
@@ -79,8 +84,17 @@ export function PayWithRow() {
         mm_pay_token_list_opened: true,
       },
     });
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [isDisabled, navigation, setConfirmationMetric]);
+    navigation.navigate(
+      isPayWithBottomSheetEnabled
+        ? Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET
+        : Routes.CONFIRMATION_PAY_WITH_MODAL,
+    );
+  }, [
+    isDisabled,
+    isPayWithBottomSheetEnabled,
+    navigation,
+    setConfirmationMetric,
+  ]);
 
   const label = isWithdraw
     ? strings('confirm.label.receive_as')
