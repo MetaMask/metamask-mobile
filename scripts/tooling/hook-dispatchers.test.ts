@@ -5,6 +5,10 @@ import { join, resolve } from 'path';
 
 const CURSOR_DISPATCHER = resolve(__dirname, 'hook-cursor-dispatch.sh');
 const CLAUDE_DISPATCHER = resolve(__dirname, 'hook-claude-dispatch.sh');
+const CURSOR_PROMPT_DISPATCHER = resolve(
+  __dirname,
+  'hook-cursor-prompt-dispatch.sh',
+);
 
 /** Read the log file and return only the data rows (skip the CSV header). */
 function dataLines(file: string): string[] {
@@ -241,6 +245,97 @@ describe('Claude skill payload', () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toBe('');
     expect(existsSync(logFile)).toBe(false);
+  });
+});
+
+describe('Cursor slash command prompt payload', () => {
+  const slashCommandPayload = JSON.stringify({
+    conversation_id: 'conv-abc',
+    session_id: 'sess-123',
+    hook_event_name: 'beforeSubmitPrompt',
+    prompt: '/mms-pr-changelog ',
+  });
+
+  const plainPromptPayload = JSON.stringify({
+    conversation_id: 'conv-abc',
+    session_id: 'sess-123',
+    hook_event_name: 'beforeSubmitPrompt',
+    prompt: 'what does this file do?',
+  });
+
+  it('emits {"permission":"allow"} unconditionally', () => {
+    const result = runDispatcher(CURSOR_PROMPT_DISPATCHER, {
+      stdin: slashCommandPayload,
+      env: { CI: '', TOOL_USAGE_COLLECTION_LOG_PATH: logFile },
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout.trim()).toBe('{"permission":"allow"}');
+  });
+
+  it('emits {"permission":"allow"} even when CI is set', () => {
+    const result = runDispatcher(CURSOR_PROMPT_DISPATCHER, {
+      stdin: slashCommandPayload,
+      env: { CI: 'true', TOOL_USAGE_COLLECTION_LOG_PATH: logFile },
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout.trim()).toBe('{"permission":"allow"}');
+    expect(existsSync(logFile)).toBe(false);
+  });
+
+  it('appends one CSV row for a slash command invocation', () => {
+    runDispatcher(CURSOR_PROMPT_DISPATCHER, {
+      stdin: slashCommandPayload,
+      env: { CI: '', TOOL_USAGE_COLLECTION_LOG_PATH: logFile },
+    });
+
+    const lines = dataLines(logFile);
+    expect(lines).toHaveLength(1);
+
+    const fields = lines[0].split(',');
+    expect(fields[0]).toBe('skill:mms-pr-changelog');
+    expect(fields[1]).toBe('skill');
+    expect(fields[2]).toBe('start');
+    expect(fields[3]).toBe('cursor');
+    expect(fields[4]).toBe('sess-123');
+    expect(fields[5]).toBe('');
+    expect(fields[6]).toBe('');
+    expect(fields[7]).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
+  });
+
+  it('does not log when prompt is a plain message with no slash command', () => {
+    const result = runDispatcher(CURSOR_PROMPT_DISPATCHER, {
+      stdin: plainPromptPayload,
+      env: { CI: '', TOOL_USAGE_COLLECTION_LOG_PATH: logFile },
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout.trim()).toBe('{"permission":"allow"}');
+    expect(existsSync(logFile)).toBe(false);
+  });
+
+  it('does not log when TOOL_USAGE_COLLECTION_OPT_IN is false', () => {
+    runDispatcher(CURSOR_PROMPT_DISPATCHER, {
+      stdin: slashCommandPayload,
+      env: {
+        CI: '',
+        TOOL_USAGE_COLLECTION_OPT_IN: 'false',
+        TOOL_USAGE_COLLECTION_LOG_PATH: logFile,
+      },
+    });
+
+    expect(existsSync(logFile)).toBe(false);
+  });
+
+  it('extracts session_id from the payload', () => {
+    runDispatcher(CURSOR_PROMPT_DISPATCHER, {
+      stdin: slashCommandPayload,
+      env: { CI: '', TOOL_USAGE_COLLECTION_LOG_PATH: logFile },
+    });
+
+    const fields = dataLines(logFile)[0].split(',');
+    expect(fields[4]).toBe('sess-123');
   });
 });
 

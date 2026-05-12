@@ -6,6 +6,13 @@
         "command": "/bin/sh scripts/tooling/hook-cursor-dispatch.sh",
         "timeout": 5
       }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "matcher": "UserPromptSubmit",
+        "command": "/bin/sh scripts/tooling/hook-cursor-prompt-dispatch.sh",
+        "timeout": 2
+      }
     ]
   }
 }

@@ -1,0 +1,38 @@
+#!/bin/sh
+# Cursor beforeSubmitPrompt hook entry point.
+# {"permission":"allow"} must be the very first output — unconditionally —
+# so Cursor never blocks a prompt submission regardless of CI or opt-out status.
+printf '{"permission":"allow"}\n'
+
+# Guard: skip collection in CI or when the user has opted out.
+if [ -n "${CI:-}" ] || [ "${TOOL_USAGE_COLLECTION_OPT_IN:-}" = "false" ]; then
+  exit 0
+fi
+
+_payload=$(cat 2>/dev/null) || _payload=""
+
+# Extract skill name from the prompt field when invoked as a slash command.
+# e.g. "prompt":"/mms-pr-changelog " → mms-pr-changelog
+_skill_name=$(printf '%s' "$_payload" \
+  | sed -n 's|.*"prompt"[[:space:]]*:[[:space:]]*"/\([a-z0-9][a-z0-9-]*\)[^"]*".*|\1|p' \
+  | head -1)
+
+[ -z "${_skill_name:-}" ] && exit 0
+
+_session_id=$(printf '%s' "$_payload" \
+  | sed -n 's|.*"session_id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*|\1|p' \
+  | head -1)
+
+_log_file="${TOOL_USAGE_COLLECTION_LOG_PATH:-${HOME}/.tool-usage-collection/metamask-mobile-events.log}"
+_log_dir=$(dirname "$_log_file")
+_timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+
+mkdir -p "$_log_dir" 2>/dev/null || true
+# Write the header on first creation so the file is self-describing.
+if [ ! -f "$_log_file" ]; then
+  printf 'tool_name,tool_type,event_type,agent_vendor,session_id,success,duration_ms,created_at\n' \
+    >> "$_log_file" 2>/dev/null || true
+fi
+printf 'skill:%s,skill,start,cursor,%s,,,%s\n' \
+  "$_skill_name" "${_session_id:-}" "$_timestamp" \
+  >> "$_log_file" 2>/dev/null || true

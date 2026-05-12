@@ -6,12 +6,12 @@
 
 _agent="${1:-unknown}"
 
-_payload=$(cat 2>/dev/null) || _payload=""
-
 # Guard: skip collection in CI or when the user has opted out.
 if [ -n "${CI:-}" ] || [ "${TOOL_USAGE_COLLECTION_OPT_IN:-}" = "false" ]; then
   return 0 2>/dev/null || exit 0
 fi
+
+_payload=$(cat 2>/dev/null) || _payload=""
 
 _log_file="${TOOL_USAGE_COLLECTION_LOG_PATH:-${HOME}/.tool-usage-collection/metamask-mobile-events.log}"
 _log_dir=$(dirname "$_log_file")
