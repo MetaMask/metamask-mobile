@@ -60,6 +60,7 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import type { RootState } from '../../../reducers';
+import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -100,6 +101,9 @@ const OptinMetrics = () => {
         : { width: 200, height: 180 },
     [isMediumDevice],
   );
+
+  const getShouldShowQuestionnaire =
+    useOnboardingInterestQuestionnaireEligibility();
 
   /**
    * Temporary disabling the back button so users can't go back
@@ -230,7 +234,15 @@ const OptinMetrics = () => {
       });
     }
     dispatch(clearOnboardingEvents());
-    continueNavigation();
+
+    if (isBasicUsageChecked && (await getShouldShowQuestionnaire())) {
+      navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
+        onComplete: continueNavigation,
+        ...(accountType && { accountType }),
+      });
+    } else {
+      continueNavigation();
+    }
   }, [
     isBasicUsageChecked,
     isMarketingChecked,
@@ -239,6 +251,8 @@ const OptinMetrics = () => {
     dispatch,
     continueNavigation,
     accountType,
+    getShouldShowQuestionnaire,
+    navigation,
   ]);
 
   /**

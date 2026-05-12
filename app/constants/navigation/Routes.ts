@@ -193,6 +193,7 @@ const Routes = {
     ONBOARDING_OAUTH_REHYDRATE: 'OnboardingOAuthRehydrate',
     REHYDRATE: 'Rehydrate',
     WALLET_CREATION_ERROR: 'WalletCreationError',
+    INTEREST_QUESTIONNAIRE: 'OnboardingInterestQuestionnaire',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -435,7 +436,6 @@ const Routes = {
       TRANSFER_MONEY_SHEET: 'MoneyTransferSheet',
       APY_INFO_SHEET: 'MoneyApyInfoSheet',
       EARNINGS_INFO_SHEET: 'MoneyEarningsInfoSheet',
-      MONEY_BALANCE_INFO_SHEET: 'MoneyBalanceInfoSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {
