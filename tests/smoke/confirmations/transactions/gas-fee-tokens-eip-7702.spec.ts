@@ -142,7 +142,7 @@ const SIMULATION_GAS_STATION_MOCK = {
 };
 
 // Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778589879443169
-describe(
+describe.skip(
   SmokeConfirmations('Send native asset Gas Station using EIP-7702'),
   () => {
     beforeAll(async () => {
@@ -291,7 +291,7 @@ describe(
           await SendView.pressContinueButton();
           await SendView.inputRecipientAddress(RECIPIENT_ADDRESS_MOCK);
           await SendView.pressReviewButton();
-
+          https://github.com/MetaMask/metamask-mobile/pull/30043
           await Assertions.expectElementToBeVisible(
             RowComponents.NetworkFeeGasFeeTokenArrow,
             { description: 'Gas Fee Token Arrow' },

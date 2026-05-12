@@ -21,6 +21,8 @@ const logger = createLogger({
 class LocalWebSocketServer implements Resource {
   private readonly name: string;
 
+  private readonly resourceType?: ResourceType;
+
   private port = 0;
 
   private server: WebSocketServer | null = null;
@@ -29,8 +31,17 @@ class LocalWebSocketServer implements Resource {
 
   private status: ServerStatus = ServerStatus.STOPPED;
 
-  constructor(name: string) {
+  /**
+   * @param name - Human-readable label used in log messages.
+   * @param resourceType - Optional ResourceType whose PortManager allocation
+   *   should be released when the server stops. Pass this only for servers
+   *   that are registered as single-instance resources in PortManager (e.g.
+   *   ResourceType.ACCOUNT_ACTIVITY_WS). Leave undefined for servers that
+   *   manage their own port lifecycle externally.
+   */
+  constructor(name: string, resourceType?: ResourceType) {
     this.name = name;
+    this.resourceType = resourceType;
   }
 
   setServerPort(port: number): void {
@@ -95,7 +106,9 @@ class LocalWebSocketServer implements Resource {
       logger.debug(`[${this.name}] WebSocket server is not running`);
       this.status = ServerStatus.STOPPED;
       // Ensure stale single-resource allocations do not carry over after timeout paths.
-      PortManager.getInstance().releasePort(ResourceType.ACCOUNT_ACTIVITY_WS);
+      if (this.resourceType) {
+        PortManager.getInstance().releasePort(this.resourceType);
+      }
       return;
     }
 
@@ -137,22 +150,27 @@ class LocalWebSocketServer implements Resource {
 
     this.websocketConnections = [];
 
-    await new Promise<void>((resolve, reject) => {
-      this.server?.close((err) => {
-        if (err) {
-          logger.warn(`[${this.name}] Error closing WebSocket server:`, err);
-          reject(err);
-        } else {
-          logger.info(
-            `[${this.name}] WebSocket server stopped on ws://localhost:${this.port}`,
-          );
-          resolve();
-        }
+    try {
+      await new Promise<void>((resolve, reject) => {
+        this.server?.close((err) => {
+          if (err) {
+            logger.warn(`[${this.name}] Error closing WebSocket server:`, err);
+            reject(err);
+          } else {
+            logger.info(
+              `[${this.name}] WebSocket server stopped on ws://localhost:${this.port}`,
+            );
+            resolve();
+          }
+        });
       });
-    });
-    this.server = null;
-    this.status = ServerStatus.STOPPED;
-    PortManager.getInstance().releasePort(ResourceType.ACCOUNT_ACTIVITY_WS);
+    } finally {
+      this.server = null;
+      this.status = ServerStatus.STOPPED;
+      if (this.resourceType) {
+        PortManager.getInstance().releasePort(this.resourceType);
+      }
+    }
   }
 
   /**
