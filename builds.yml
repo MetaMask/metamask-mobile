@@ -217,11 +217,11 @@ builds:
       # BrowserStack E2E builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
   # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
   main-e2e-bs-without-srp:
-    github_environment: build-e2e
+    github_environment: build-exp
     signing: *signing_uat
     env:
       <<: *public_envs
-      METAMASK_ENVIRONMENT: 'e2e'
+      METAMASK_ENVIRONMENT: 'exp'
       METAMASK_BUILD_TYPE: 'main'
       IS_BROWSERSTACK_BUILD: 'true'
       DISABLE_NOTIFICATION_PROMPT: 'true'
@@ -232,11 +232,11 @@ builds:
     
   # BrowserStack E2E builds — with pre-imported wallet (ADDITIONAL_SRP_1 baked in)
   main-e2e-bs-with-srp:
-    github_environment: build-e2e
+    github_environment: build-exp
     signing: *signing_uat
     env:
       <<: *public_envs
-      METAMASK_ENVIRONMENT: 'e2e'
+      METAMASK_ENVIRONMENT: 'exp'
       METAMASK_BUILD_TYPE: 'main'
       IS_BROWSERSTACK_BUILD: 'true'
       DISABLE_NOTIFICATION_PROMPT: 'true'

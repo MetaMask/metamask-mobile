@@ -43,8 +43,8 @@ on:
       build_variant:
         required: false
         type: string
-        default: e2e
-        description: 'Build variant for app artifacts (e2e, rc, or exp)'
+        default: rc
+        description: 'Build variant for app artifacts (rc or exp)'
     secrets:
       BROWSERSTACK_USERNAME:
         required: true
@@ -172,8 +172,8 @@ jobs:
           SENTRY_ENVIRONMENT="github-actions-performance-e2e"
           BUILD_VARIANT="${{ inputs.build_variant }}"
 
-          if [[ "$BUILD_VARIANT" != "rc" && "$BUILD_VARIANT" != "exp" && "$BUILD_VARIANT" != "e2e" ]]; then
-            echo "❌ Invalid build_variant '$BUILD_VARIANT'. Expected 'e2e', 'rc', or 'exp'."
+          if [[ "$BUILD_VARIANT" != "rc" && "$BUILD_VARIANT" != "exp" ]]; then
+            echo "❌ Invalid build_variant '$BUILD_VARIANT'. Expected 'rc' or 'exp'."
             exit 1
           fi
 
