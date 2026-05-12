@@ -32,8 +32,7 @@ import { AlignItems, FlexDirection, JustifyContent } from '../../Box/box.types';
 import StockBadge from '../../shared/StockBadge';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
-import { BridgeToken } from '../types';
-import { SecurityDataType } from '../hooks/usePopularTokens';
+import { BridgeToken, SecurityDataType } from '../types';
 import { RootState } from '../../../../reducers';
 import { fontStyles } from '../../../../styles/common';
 import {
@@ -353,7 +352,12 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           >
             <AvatarToken
               name={token.symbol}
-              imageSource={getTokenImageSource(token.symbol, token.image)}
+              imageSource={getTokenImageSource(
+                token.symbol,
+                token.image,
+                token.address,
+                token.chainId,
+              )}
               size={AvatarSize.Lg}
               testID={
                 isNative

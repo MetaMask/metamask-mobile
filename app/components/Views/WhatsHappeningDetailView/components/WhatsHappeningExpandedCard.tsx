@@ -17,6 +17,7 @@ import {
 } from '@metamask/design-system-react-native';
 import type { Article, MarketInsightsSource } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
+import type { WhatsHappeningSourceValue } from '../../Homepage/Sections/WhatsHappening/constants';
 import { strings } from '../../../../../locales/i18n';
 import {
   getImpactLabel,
@@ -30,6 +31,8 @@ import {
 import SourceLogoGroup from '../../../UI/MarketInsights/components/SourceLogoGroup';
 import PerpsRow from './PerpsRow';
 import { useWhatsHappeningAssetPrices } from '../hooks/useWhatsHappeningAssetPrices';
+import { useTheme } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 
 interface WhatsHappeningExpandedCardProps {
   item: WhatsHappeningItem;
@@ -37,6 +40,7 @@ interface WhatsHappeningExpandedCardProps {
   cardWidth: number;
   /** Height of the carousel container — used to give every card the same fixed height. */
   cardHeight: number;
+  source: WhatsHappeningSourceValue;
   /**
    * Called when the user taps the sources footer row. The parent is responsible
    * for rendering the bottom sheet so it is anchored to the screen root rather
@@ -50,9 +54,12 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   cardIndex,
   cardWidth,
   cardHeight,
+  source,
   onSourcesPress,
 }) => {
   const tw = useTailwind();
+  const { themeAppearance, colors } = useTheme();
+  const isDarkMode = themeAppearance === AppThemeKey.dark;
 
   const impactLabel = getImpactLabel(item.impact);
   const impactBgClass = getImpactBackgroundClass(item.impact);
@@ -76,8 +83,23 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
 
   const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(item);
 
-  /** Theme token resolved to a concrete color for `LinearGradient` */
-  const cardBgColor = tw.color('bg-background-muted');
+  const scrollBottomFadeColors = useMemo((): string[] => {
+    if (isDarkMode) {
+      return ['transparent', 'rgba(0,0,0,0.25)'];
+    }
+    const endColor =
+      tw.color('bg-background-muted') ??
+      tw.color('bg-default') ??
+      colors.background.muted;
+    return ['transparent', endColor];
+  }, [tw, isDarkMode, colors.background.muted]);
+
+  const aiPillContainerClass = isDarkMode
+    ? 'bg-icon-default rounded px-1.5 py-1 self-start'
+    : 'bg-default rounded px-1.5 py-1 self-start border border-text-default';
+  const aiPillForegroundClass = isDarkMode
+    ? 'text-icon-inverse'
+    : 'text-icon-default';
 
   return (
     <Box style={{ width: cardWidth, height: cardHeight }}>
@@ -104,22 +126,22 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                 gap={2}
                 twClassName="flex-wrap"
               >
-                {/* AI pill — inverted (dark bg, white content) */}
+                {/* AI pill */}
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
                   gap={1}
-                  twClassName="bg-icon-default rounded px-1.5 py-1 self-start"
+                  twClassName={aiPillContainerClass}
                 >
                   <Icon
                     name={IconName.Sparkle}
                     size={IconSize.Md}
-                    twClassName="text-icon-inverse"
+                    twClassName={aiPillForegroundClass}
                   />
                   <Text
                     variant={TextVariant.BodySm}
                     fontWeight={FontWeight.Medium}
-                    twClassName="text-icon-inverse"
+                    twClassName={aiPillForegroundClass}
                   >
                     {strings('homepage.sections.whats_happening_ai')}
                   </Text>
@@ -171,6 +193,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                     asset={asset}
                     item={item}
                     cardIndex={cardIndex}
+                    source={source}
                     perpsPriceBySymbol={perpsPriceBySymbol}
                   />
                 ))}
@@ -178,21 +201,16 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
             )}
           </ScrollView>
 
-          {/* Bottom fade — blends into the card bg; omitted if theme color cannot resolve */}
-          {cardBgColor ? (
-            <LinearGradient
-              pointerEvents="none"
-              colors={['transparent', cardBgColor]}
-              style={tw.style('absolute left-0 right-0 bottom-0 h-12')}
-            />
-          ) : null}
+          <LinearGradient
+            pointerEvents="none"
+            colors={scrollBottomFadeColors}
+            style={tw.style('absolute left-0 right-0 bottom-0 h-10')}
+          />
         </Box>
 
         {/* Fixed sources footer */}
         {uniqueSources.length > 0 && (
-          <Box twClassName="px-5 pb-5" gap={4}>
-            <Box twClassName="h-px bg-border-muted" />
-
+          <Box twClassName="px-5 pb-5 pt-4" gap={4}>
             <Pressable
               onPress={() => onSourcesPress?.(item.articles)}
               accessibilityRole="button"
