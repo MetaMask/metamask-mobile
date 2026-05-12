@@ -63,6 +63,7 @@ describe('Notification Services Controller', () => {
           platformVersion: expect.any(String),
         },
         locale: expect.any(Function),
+        env: 'prd',
       },
     });
   });
