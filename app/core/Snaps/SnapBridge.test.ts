@@ -13,7 +13,9 @@ jest.mock('../Engine/Engine', () => ({
   ...jest.requireActual('../Engine/Engine'),
   controllerMessenger: {
     call: jest.fn().mockImplementation((action) => {
-      if (action === 'AccountsController:listAccounts') {
+      if (action === 'PermissionController:hasUnrestrictedMethod') {
+        return true;
+      } else if (action === 'AccountsController:listAccounts') {
         return [
           {
             address: '0x1234567890123456789012345678901234567890',
@@ -83,15 +85,6 @@ jest.mock('../Engine/Engine', () => ({
       }),
     },
     PermissionController: {
-      createPermissionMiddleware: jest
-        .fn()
-        .mockReturnValue(
-          (
-            _req: JsonRpcRequest,
-            _res: PendingJsonRpcResponse,
-            next: JsonRpcEngineNextCallback,
-          ) => next(),
-        ),
       getPermissions: jest.fn().mockReturnValue({
         'endowment:ethereum-provider': {},
         'endowment:multichain-provider': {},
