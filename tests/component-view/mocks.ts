@@ -173,6 +173,10 @@ jest.mock('../../app/core/Engine', () => {
         fetchMarketInsights: jest.fn().mockResolvedValue(null),
         fetchMarketOverview: jest.fn().mockResolvedValue(undefined),
       },
+      SnapInterfaceController: {
+        deleteInterface: jest.fn().mockResolvedValue(undefined),
+        updateInterfaceState: jest.fn().mockResolvedValue(undefined),
+      },
       RampsController: {
         setSelectedToken: jest.fn(),
       },
