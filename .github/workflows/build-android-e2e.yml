@@ -131,6 +131,21 @@ jobs:
           APK_CACHED="${GRADLE_USER_HOME}/apk-cache/${ARTIFACT_NAME}.apk"
           TEST_APK_CACHED="${GRADLE_USER_HOME}/apk-cache/${ARTIFACT_NAME}-androidTest.apk"
           EXPECTED="${REF_NAME}"$'\n'"${BUILD_TYPE}"$'\n'"${CACHE_GENERATION}"$'\n'"${FINGERPRINT}"$'\n'"${GRADLE_FILES_HASH}"
+          echo "--- Debug: APK cache marker diagnostics ---"
+          echo "MARKER=$MARKER"
+          echo "APK_CACHED=$APK_CACHED"
+          echo "TEST_APK_CACHED=$TEST_APK_CACHED"
+          echo "marker exists: $([[ -f "${MARKER}" ]] && echo yes || echo NO)"
+          echo "apk exists: $([[ -f "${APK_CACHED}" ]] && echo yes || echo NO)"
+          echo "test-apk exists: $([[ -f "${TEST_APK_CACHED}" ]] && echo yes || echo NO)"
+          ls -la "${GRADLE_USER_HOME}/apk-cache/" 2>&1 || echo "apk-cache dir not found"
+          if [[ -f "${MARKER}" ]]; then
+            echo "--- marker contents ---"
+            cat "${MARKER}"
+            echo "--- expected ---"
+            echo "${EXPECTED}"
+            echo "--- match: $([[ "$(<"${MARKER}")" == "${EXPECTED}" ]] && echo YES || echo NO) ---"
+          fi
           if [[ -f "${MARKER}" ]] && [[ -f "${APK_CACHED}" ]] && [[ -f "${TEST_APK_CACHED}" ]] && [[ "$(<"${MARKER}")" == "${EXPECTED}" ]]; then
             echo "cache-hit=true" >> "${GITHUB_OUTPUT}"
             echo "Namespace APK cache hit — restoring APKs to build output dirs."
