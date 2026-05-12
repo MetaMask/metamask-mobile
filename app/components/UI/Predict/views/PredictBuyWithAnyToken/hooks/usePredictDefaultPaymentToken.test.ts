@@ -192,14 +192,25 @@ describe('usePredictDefaultPaymentToken', () => {
     expect(mockOnPaymentTokenChange).not.toHaveBeenCalled();
   });
 
-  it('falls back to predict balance when tokens array is empty', () => {
+  it('waits for account tokens before falling back or auto-selecting', () => {
     mockPredictBalance = 0.5;
     mockTokens = [];
 
-    renderHook(() => usePredictDefaultPaymentToken());
+    const { rerender } = renderHook(() => usePredictDefaultPaymentToken());
 
     expect(mockOnPaymentTokenChange).not.toHaveBeenCalled();
-    expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
+    expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
+
+    mockTokens = [
+      createEvmErc20Token({ address: '0x1', symbol: 'USDC', fiatBalance: 100 }),
+    ];
+
+    rerender({});
+
+    expect(mockOnPaymentTokenChange).toHaveBeenCalledWith(
+      expect.objectContaining({ address: '0x1', symbol: 'USDC' }),
+    );
+    expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
   });
 
   it('falls back to predict balance when no tokens have positive fiat balance', () => {

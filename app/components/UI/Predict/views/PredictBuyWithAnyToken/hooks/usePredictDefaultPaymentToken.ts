@@ -38,10 +38,9 @@ export function usePredictDefaultPaymentToken() {
     if (isBalanceLoading) return;
     if (activeOrder?.state !== ActiveOrderState.PREVIEW) return;
 
-    hasInitializedRef.current = true;
-
     const balance = predictBalance ?? 0;
     if (balance >= MINIMUM_BET) {
+      hasInitializedRef.current = true;
       resetSelectedPaymentToken();
       return;
     }
@@ -58,8 +57,14 @@ export function usePredictDefaultPaymentToken() {
     );
 
     if (bestToken) {
+      hasInitializedRef.current = true;
       onPaymentTokenChange(bestToken);
     } else {
+      if (tokens.length === 0) {
+        return;
+      }
+
+      hasInitializedRef.current = true;
       resetSelectedPaymentToken();
     }
   }, [

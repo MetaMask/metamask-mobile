@@ -406,6 +406,37 @@ describe('PredictPayWithAnyTokenInfo', () => {
       expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
     });
 
+    it('re-emits the same amount when the active transaction changes', () => {
+      mockActiveTransactionMeta = { id: 'tx-1' };
+      mockAmountHuman = '100';
+
+      const { rerender } = render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          isInputFocused={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('100');
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100');
+
+      mockUpdatePendingAmount.mockClear();
+      mockUpdateTokenAmountCallback.mockClear();
+      mockActiveTransactionMeta = { id: 'tx-2' };
+
+      rerender(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          isInputFocused={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('100');
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100');
+    });
+
     it('updates deposit amount when value changes after unfocus', () => {
       mockActiveTransactionMeta = { id: 'tx-1' };
 
