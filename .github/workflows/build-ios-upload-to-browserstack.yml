@@ -32,22 +32,22 @@ on:
     outputs:
       with-srp-ipa-uploaded:
         description: 'Whether the with-SRP IPA was successfully uploaded'
-        value: ${{ jobs.upload-to-browserstack.outputs.with-srp-ipa-uploaded }}
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.with-srp-ipa-uploaded }}
       without-srp-ipa-uploaded:
         description: 'Whether the without-SRP IPA was successfully uploaded'
-        value: ${{ jobs.upload-to-browserstack.outputs.without-srp-ipa-uploaded }}
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-ipa-uploaded }}
       with-srp-browserstack-url:
         description: 'BrowserStack URL for with-SRP version'
-        value: ${{ jobs.upload-to-browserstack.outputs.with-srp-browserstack-url }}
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.with-srp-browserstack-url }}
       without-srp-browserstack-url:
         description: 'BrowserStack URL for without-SRP version'
-        value: ${{ jobs.upload-to-browserstack.outputs.without-srp-browserstack-url }}
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-browserstack-url }}
       with-srp-version:
         description: 'App version for with-SRP build'
-        value: ${{ jobs.upload-to-browserstack.outputs.with-srp-version }}
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.with-srp-version }}
       without-srp-version:
         description: 'App version for without-SRP build'
-        value: ${{ jobs.upload-to-browserstack.outputs.without-srp-version }}
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-version }}
   workflow_dispatch:
     inputs:
       description:
@@ -88,7 +88,6 @@ jobs:
 
   trigger-ios-with-srp-build:
     name: Trigger iOS with-SRP Build on Bitrise
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [check-builds-needed]
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
     uses: ./.github/workflows/build.yml
@@ -101,7 +100,6 @@ jobs:
 
   trigger-ios-without-srp-build:
     name: Trigger iOS without-SRP Build on Bitrise
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [check-builds-needed]
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
     uses: ./.github/workflows/build.yml
@@ -182,7 +180,7 @@ jobs:
               {
                 echo "with-srp-browserstack-url=$WITH_SRP_APP_URL"
                 echo "with-srp-app-id=$WITH_SRP_APP_ID"
-                echo "with-srp-version=${{ needs.build-with-srp.outputs.semantic_version }}"
+                echo "with-srp-version=${{ needs.trigger-ios-with-srp-build.outputs.semantic_version }}"
                 echo "with-srp-ipa-uploaded=true"
               } >> "$GITHUB_OUTPUT"
             else
@@ -213,7 +211,7 @@ jobs:
               {
                 echo "without-srp-browserstack-url=$WITHOUT_SRP_APP_URL"
                 echo "without-srp-app-id=$WITHOUT_SRP_APP_ID"
-                echo "without-srp-version=${{ needs.build-without-srp.outputs.semantic_version }}"
+                echo "without-srp-version=${{ needs.trigger-ios-without-srp-build.outputs.semantic_version }}"
                 echo "without-srp-ipa-uploaded=true"
               } >> "$GITHUB_OUTPUT"
             else
