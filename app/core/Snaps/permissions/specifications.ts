@@ -18,6 +18,7 @@ import {
 } from '@metamask/snaps-controllers';
 import { CurrencyRateController } from '@metamask/assets-controllers';
 import {
+  KeyringControllerAddNewKeyringAction,
   KeyringControllerGetKeyringsByTypeAction,
   KeyringControllerGetStateAction,
   KeyringControllerUnlockEvent,
@@ -49,6 +50,7 @@ export type SnapPermissionSpecificationsActions =
   | SnapControllerHandleRequestAction
   | KeyringControllerGetKeyringsByTypeAction
   | KeyringControllerWithKeyringAction
+  | KeyringControllerAddNewKeyringAction
   | MaybeUpdateState
   | PreferencesControllerGetStateAction
   | TestOrigin
@@ -56,16 +58,10 @@ export type SnapPermissionSpecificationsActions =
   | SnapInterfaceControllerUpdateInterfaceAction
   | KeyringControllerGetStateAction
   | HasPermission
-  | SnapInterfaceControllerSetInterfaceDisplayedAction;
+  | SnapInterfaceControllerSetInterfaceDisplayedAction
+  | ApprovalControllerAddRequestAction;
 
 export type SnapPermissionSpecificationsEvents = KeyringControllerUnlockEvent;
-
-interface SnapPermissionSpecificationsHooks {
-  addNewKeyring(
-    type: KeyringTypes | string,
-    opts?: unknown,
-  ): Promise<KeyringMetadata>;
-}
 
 export const getSnapPermissionSpecifications = (
   messenger: Messenger<
@@ -73,7 +69,6 @@ export const getSnapPermissionSpecifications = (
     SnapPermissionSpecificationsActions,
     SnapPermissionSpecificationsEvents
   >,
-  { addNewKeyring }: SnapPermissionSpecificationsHooks,
 ) => ({
   ...buildSnapEndowmentSpecifications(Object.keys(ExcludedSnapEndowments)),
   ...buildSnapRestrictedMethodSpecifications(
@@ -138,7 +133,10 @@ export const getSnapPermissionSpecifications = (
         );
 
         if (!snapKeyring) {
-          await addNewKeyring(KeyringTypes.snap);
+          await messenger.call(
+            'KeyringController:addNewKeyring',
+            KeyringTypes.snap,
+          );
           // TODO: Replace `getKeyringsByType` with `withKeyring`
           [snapKeyring] = messenger.call(
             'KeyringController:getKeyringsByType',
