@@ -126,7 +126,10 @@ jobs:
     needs:
       - get_requirements
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
       - name: Configure Namespace cache
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
