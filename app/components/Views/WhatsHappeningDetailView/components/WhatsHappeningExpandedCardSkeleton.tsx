@@ -1,9 +1,11 @@
 import React, { useMemo } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../util/theme';
+import {
+  WhatsHappeningSkeletonLineStack,
+  WhatsHappeningSkeletonShimmer,
+} from '../../Homepage/Sections/WhatsHappening/components/whatsHappeningSkeletonShared';
 
 export interface WhatsHappeningExpandedCardSkeletonProps {
   cardWidth: number;
@@ -12,13 +14,12 @@ export interface WhatsHappeningExpandedCardSkeletonProps {
 /**
  * Loading placeholder for the detail carousel: matches expanded card width and
  * roughly mirrors tag row, title, body, related-asset rows, and sources footer.
- * Skeleton colors follow {@link WhatsHappeningCardSkeleton}.
+ * Shimmer colours and line stacks are shared with {@link WhatsHappeningCardSkeleton}.
  */
 const WhatsHappeningExpandedCardSkeleton: React.FC<
   WhatsHappeningExpandedCardSkeletonProps
 > = ({ cardWidth }) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
   const { height: windowHeight } = useWindowDimensions();
 
   const cardHeight = useMemo(
@@ -39,10 +40,7 @@ const WhatsHappeningExpandedCardSkeleton: React.FC<
         flexDirection={BoxFlexDirection.Column}
         twClassName="rounded-2xl bg-background-muted overflow-hidden flex-1 mt-4"
       >
-        <SkeletonPlaceholder
-          backgroundColor={colors.background.section}
-          highlightColor={colors.background.subsection}
-        >
+        <WhatsHappeningSkeletonShimmer>
           <View>
             <View style={tw.style('pt-7 px-5 pb-5 gap-4')}>
               <View style={tw.style('flex-row gap-2 flex-wrap')}>
@@ -50,18 +48,26 @@ const WhatsHappeningExpandedCardSkeleton: React.FC<
                 <View style={tw.style('w-[72px] h-6 rounded-md')} />
               </View>
 
-              <View style={tw.style('gap-1.5')}>
-                <View style={tw.style('w-full h-7 rounded')} />
-                <View style={tw.style('w-[92%] h-7 rounded')} />
-                <View style={tw.style('w-[48%] h-7 rounded')} />
-              </View>
+              <WhatsHappeningSkeletonLineStack
+                tw={tw}
+                gapClass="gap-1.5"
+                lineClassNames={[
+                  'w-full h-7 rounded',
+                  'w-[92%] h-7 rounded',
+                  'w-[48%] h-7 rounded',
+                ]}
+              />
 
-              <View style={tw.style('gap-1')}>
-                <View style={tw.style('w-full h-4 rounded')} />
-                <View style={tw.style('w-full h-4 rounded')} />
-                <View style={tw.style('w-[88%] h-4 rounded')} />
-                <View style={tw.style('w-[64%] h-4 rounded')} />
-              </View>
+              <WhatsHappeningSkeletonLineStack
+                tw={tw}
+                gapClass="gap-1"
+                lineClassNames={[
+                  'w-full h-4 rounded',
+                  'w-full h-4 rounded',
+                  'w-[88%] h-4 rounded',
+                  'w-[64%] h-4 rounded',
+                ]}
+              />
 
               <View style={tw.style('gap-3 pt-1')}>
                 <View style={tw.style('w-36 h-5 rounded')} />
@@ -99,7 +105,7 @@ const WhatsHappeningExpandedCardSkeleton: React.FC<
               </View>
             </View>
           </View>
-        </SkeletonPlaceholder>
+        </WhatsHappeningSkeletonShimmer>
       </Box>
     </Box>
   );
