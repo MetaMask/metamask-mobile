@@ -130,23 +130,20 @@ See detailed setup documentation:
 
 ### AI Tooling — Developer Usage Collection
 
-All three agent harnesses (Yarn, Claude Code, Cursor) automatically record tool/skill usage to a local SQLite database at `~/.tool-usage-collection/events.db`. This is developer-only, stored locally, and never sent anywhere.
+Tool/skill usage is automatically recorded to a local CSV log at `~/.tool-usage-collection/metamask-mobile-events.log` across three collection paths: Yarn scripts, Claude Code skills, and Cursor skills. This is developer-only, stored locally, and never sent anywhere.
 
 To opt out, set `TOOL_USAGE_COLLECTION_OPT_IN=false` in your shell profile. Collection is also automatically disabled in CI (`CI` env var set).
 
-| Path              | Mechanism                                                                                       | Tokens |
-| ----------------- | ----------------------------------------------------------------------------------------------- | ------ |
-| `yarn <script>`   | Yarn Berry plugin (`wrapScriptExecution`)                                                       | 0      |
-| Claude Code skill | `PreToolUse` hook in `.claude/skills/<skill>/SKILL.md` frontmatter                              | 0      |
-| Cursor skill      | `beforeReadFile` hook in `.cursor/hooks.json` → `scripts/tooling/cursor-hook-skill-tracking.ts` | 0      |
+| Path              | Mechanism                                                            | Tokens |
+| ----------------- | -------------------------------------------------------------------- | ------ |
+| `yarn <script>`   | Yarn Berry plugin (`wrapScriptExecution`) → CSV log append           | 0      |
+| Claude Code skill | `PreToolUse` hook in `.claude/settings.json` → pure-shell dispatcher | 0      |
+| Cursor skill      | `preToolUse` hook in `.cursor/hooks.json` → pure-shell dispatcher    | 0      |
 
 Inspect your local activity:
 
 ```bash
-yarn tooling:report
-# or directly:
-sqlite3 ~/.tool-usage-collection/events.db \
-  "SELECT tool_name, event_type, agent_vendor, created_at FROM events ORDER BY created_at DESC LIMIT 10;"
+tail -20 ~/.tool-usage-collection/metamask-mobile-events.log
 ```
 
 See [`scripts/tooling/README.md`](./scripts/tooling/README.md) for full implementation details.

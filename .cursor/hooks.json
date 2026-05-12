@@ -1,9 +1,10 @@
 {
   "version": 1,
   "hooks": {
-    "beforeReadFile": [
+    "preToolUse": [
       {
-        "command": "[ -z \"$CI\" ] && [ \"$TOOL_USAGE_COLLECTION_OPT_IN\" != \"false\" ] && yarn tsx scripts/tooling/cursor-hook-skill-tracking.ts || echo '{\"permission\":\"allow\"}'"
+        "command": "/bin/sh scripts/tooling/hook-cursor-dispatch.sh",
+        "timeout": 5
       }
     ]
   }
