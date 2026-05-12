@@ -814,7 +814,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
       completeInFlight();
     } catch (error) {
-      // If keyring is locked, don't cache so it retries when unlocked
+      // HyperLiquid wraps wallet signing failures and preserves KEYRING_LOCKED
+      // in `cause`, so classify the full chain and leave retry caches empty.
       if (isKeyringLockedError(error)) {
         this.#deps.debugLogger.log(
           '[ensureUnifiedAccountEnabled] Keyring locked, will retry later',
@@ -2650,7 +2651,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
       completeInFlight();
     } catch (error) {
-      // If keyring is locked, don't cache so it retries when unlocked
+      // HyperLiquid wraps wallet signing failures and preserves KEYRING_LOCKED
+      // in `cause`, so classify the full chain and leave retry caches empty.
       if (isKeyringLockedError(error)) {
         this.#deps.debugLogger.log(
           '[ensureBuilderFeeApproval] Keyring locked, will retry later',
@@ -8468,7 +8470,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
       completeInFlight();
     } catch (error) {
-      // If keyring is locked, don't cache so it retries when unlocked
+      // HyperLiquid wraps wallet signing failures and preserves KEYRING_LOCKED
+      // in `cause`, so classify the full chain and leave retry caches empty.
       if (isKeyringLockedError(error)) {
         this.#deps.debugLogger.log(
           '[ensureReferralSet] Keyring locked, will retry later',
