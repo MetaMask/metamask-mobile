@@ -27,12 +27,26 @@ function collectStrings(node, path, acc) {
 }
 
 describe('Turkish locale (tr.json)', () => {
-  it('contains no %{{ substrings in any translation value', () => {
+  /** @type {() => Array<{ path: string; value: string }>} */
+  function getAllLeafStrings() {
     /** @type {Array<{ path: string; value: string }>} */
     const strings = [];
     collectStrings(tr, '', strings);
+    return strings;
+  }
 
-    const offenders = strings.filter(({ value }) => value.includes('%{{'));
+  it('contains no %{{ substrings in any translation value', () => {
+    const offenders = getAllLeafStrings().filter(({ value }) =>
+      value.includes('%{{'),
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('does not use %%{…} (literal % before placeholder); use {{…}}% like other locales', () => {
+    const offenders = getAllLeafStrings().filter(({ value }) =>
+      value.includes('%%{'),
+    );
 
     expect(offenders).toEqual([]);
   });
