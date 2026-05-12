@@ -1,6 +1,3 @@
----
-alwaysApply: true
----
 # MetaMask Mobile E2E Testing Guidelines
 
 ## Core Principles
@@ -14,11 +11,13 @@ alwaysApply: true
 ## Test Naming Conventions
 
 ### DO:
+
 - Use clear, descriptive names that communicate the purpose of the test
 - Name tests based on what they verify (e.g., `adds Bob to the address book`)
 - Keep names concise but informative
 
 ### DON'T:
+
 - Use the prefix 'should' (e.g., `should add Bob to the address book`)
 - Include multiple behaviors with 'and' in a single test name
 - Use vague or generic names
@@ -57,16 +56,19 @@ alwaysApply: true
 ## Test Atomicity and Coupling
 
 ### When to Isolate Tests:
+
 - Testing specific functionality of a single component or feature
 - When you need to pinpoint exact failure causes
 - For basic unit-level behaviors
 
 ### When to Combine Tests:
+
 - For multi-step user flows that represent real user behavior
 - When testing how different parts of the application work together
 - When the setup for multiple tests is time-consuming and identical
 
 ### Guidelines:
+
 - Each test should run with a dedicated browser and mock services
 - Use the `withFixtures` function to create test prerequisites and clean up afterward
 - Avoid shared mocks and services between tests when possible
@@ -75,12 +77,14 @@ alwaysApply: true
 ## Controlling State
 
 ### Best Practices:
+
 - Control application state programmatically rather than through UI interactions
 - Use fixtures to set up test prerequisites instead of UI steps
 - Minimize UI interactions to reduce potential breaking points
 - Improve test stability by reducing timing and synchronization issues
 
 ### Example:
+
 ```javascript
 // GOOD: Use fixture to set up prerequisites
 new FixtureBuilder()
@@ -108,12 +112,14 @@ new FixtureBuilder().build();
 ## Framework Best Practices
 
 ### Page Object Model (POM) Pattern
+
 - ALWAYS use the Page Object Model pattern for organizing test code
 - Move all element selectors to Page Objects or dedicated selector files
 - When adding one or more testID to a component or view, place it in a dedicated file next to where it is being used with the file extension `.testIds.ts`
 - Access UI elements through Page Object methods, not directly in test specs
 
 #### Page Object Structure Example:
+
 ```typescript
 import { LoginPageSelectors } from './LoginPage.selectors';
 
@@ -152,6 +158,7 @@ export default new LoginPage();
 ```
 
 ### TestIDs location example:
+
 ```typescript
 // DON'T:
 import { MyComponentSelectors } from '../../tests/selectors/Card/RecurringFeeModal.selectors';
@@ -167,23 +174,27 @@ const MyComponent = () => {
 ```
 
 ### Proper Waiting and Assertions
+
 - NEVER use `TestHelpers.delay()` - it creates flaky tests and slows down test execution
 - ALWAYS use proper waiting with Assertions from the framework:
+
   ```javascript
   // DON'T:
   TestHelpers.delay(1000);
-  
+
   // DO:
   Assertions.expectElementToBeVisible(element, {
-    description: 'element should be visible'
+    description: 'element should be visible',
   });
   ```
 
 ### Framework Imports - MANDATORY
+
 - ALWAYS import framework utilities from `tests/framework/index.ts`, not from individual utility files
 - Use the centralized framework exports for consistency and maintainability
 
 ### Element State Checking Configuration
+
 - **Default behavior**: `checkVisibility: true`, `checkEnabled: true`, `checkStability: false`
 - **Performance optimization**: Stability checking disabled by default for better performance
 - **When to enable stability**: Complex animations, moving screens, carousel components
@@ -208,22 +219,25 @@ await Gestures.tap(processingButton, {
 ```
 
 ### Prohibited Patterns in Test Specs - MANDATORY
+
 The following patterns are prohibited in test specs:
 
 1. **Direct Element Selection**
+
    ```javascript
    // DON'T:
    element(by.id('some-id')).tap();
-   
+
    // DO:
    SomePage.tapOnSomeElement();
    ```
 
 2. **Direct By Selectors**
+
    ```javascript
    // DON'T:
    by.text('Submit');
-   
+
    // DO:
    // Define in page object:
    static get submitButton() {
@@ -232,10 +246,11 @@ The following patterns are prohibited in test specs:
    ```
 
 3. **Direct waitFor Calls**
+
    ```javascript
    // DON'T:
    await waitFor(element).toBeVisible().withTimeout(2000);
-   
+
    // DO:
    await Assertions.expectElementToBeVisible(element);
    ```
@@ -245,6 +260,7 @@ The following patterns are prohibited in test specs:
 ### Common Issues and Solutions
 
 #### "Element not enabled" Errors
+
 - **Cause**: Element exists but is not interactive (disabled/loading state)
 - **Solution**: Use `checkEnabled: false` to bypass enabled state validation
 
@@ -257,6 +273,7 @@ await Gestures.tap(loadingButton, {
 ```
 
 #### "Element moving/animating" Errors
+
 - **Cause**: UI animations interfering with interactions
 - **Solution**: Enable stability checking for that specific interaction
 
@@ -268,6 +285,7 @@ await Gestures.tap(animatedButton, {
 ```
 
 #### Handling Flaky Navigation/Tap Issues
+
 When elements sometimes don't respond to taps, use a higher-level retry pattern:
 
 ```typescript
