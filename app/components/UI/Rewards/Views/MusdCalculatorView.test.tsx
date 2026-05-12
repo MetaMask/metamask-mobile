@@ -29,26 +29,6 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
   default: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Pressable } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({ onBack }: { title: string; onBack: () => void }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'header' },
-          ReactActual.createElement(Pressable, {
-            onPress: onBack,
-            testID: 'header-back-button',
-          }),
-        ),
-    };
-  },
-);
-
 jest.mock('../components/Tabs/MusdCalculatorTab/MusdCalculatorTab', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -84,6 +64,13 @@ describe('MusdCalculatorView', () => {
   it('renders the calculator tab', () => {
     const { getByTestId } = render(<MusdCalculatorView />);
     expect(getByTestId('musd-calculator-tab')).toBeOnTheScreen();
+  });
+
+  it('wraps the calculator in a keyboard avoiding view', () => {
+    const { getByTestId } = render(<MusdCalculatorView />);
+    expect(
+      getByTestId('musd-calculator-keyboard-avoiding-view'),
+    ).toBeOnTheScreen();
   });
 
   it('tracks REWARDS_PAGE_VIEWED on mount with page_type musd_calculator', () => {

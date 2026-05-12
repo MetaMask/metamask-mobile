@@ -1,12 +1,13 @@
 import React from 'react';
 import { View } from 'react-native';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../../util/theme';
+import {
+  WhatsHappeningSkeletonLineStack,
+  WhatsHappeningSkeletonShimmer,
+} from './whatsHappeningSkeletonShared';
 
 const WhatsHappeningCardSkeleton: React.FC = () => {
   const tw = useTailwind();
-  const { colors } = useTheme();
 
   return (
     <View
@@ -14,23 +15,22 @@ const WhatsHappeningCardSkeleton: React.FC = () => {
         'w-[280px] rounded-2xl bg-background-muted overflow-hidden',
       )}
     >
-      <SkeletonPlaceholder
-        backgroundColor={colors.background.section}
-        highlightColor={colors.background.subsection}
-      >
+      <WhatsHappeningSkeletonShimmer>
         <View style={tw.style('p-4 gap-3')}>
           {/* Category badge */}
           <View style={tw.style('w-[80px] h-5 rounded-full')} />
           {/* Title */}
-          <View style={tw.style('gap-1')}>
-            <View style={tw.style('w-full h-5 rounded')} />
-            <View style={tw.style('w-[85%] h-5 rounded')} />
-          </View>
+          <WhatsHappeningSkeletonLineStack
+            tw={tw}
+            gapClass="gap-1"
+            lineClassNames={['w-full h-5 rounded', 'w-[85%] h-5 rounded']}
+          />
           {/* Description */}
-          <View style={tw.style('gap-1')}>
-            <View style={tw.style('w-full h-4 rounded')} />
-            <View style={tw.style('w-[75%] h-4 rounded')} />
-          </View>
+          <WhatsHappeningSkeletonLineStack
+            tw={tw}
+            gapClass="gap-1"
+            lineClassNames={['w-full h-4 rounded', 'w-[75%] h-4 rounded']}
+          />
           {/* Asset pills + date */}
           <View style={tw.style('gap-2')}>
             <View style={tw.style('flex-row gap-1')}>
@@ -40,7 +40,7 @@ const WhatsHappeningCardSkeleton: React.FC = () => {
             <View style={tw.style('w-[60px] h-3 rounded')} />
           </View>
         </View>
-      </SkeletonPlaceholder>
+      </WhatsHappeningSkeletonShimmer>
     </View>
   );
 };

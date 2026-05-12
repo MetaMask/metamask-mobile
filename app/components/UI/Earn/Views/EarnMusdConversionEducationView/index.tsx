@@ -1,19 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { useDispatch, useSelector } from 'react-redux';
-import { View, Image, useColorScheme, Linking } from 'react-native';
+import { Image, StyleSheet, useColorScheme } from 'react-native';
 import { setMusdConversionEducationSeen } from '../../../../../actions/user';
 import Logger from '../../../../../util/Logger';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { useStyles } from '../../../../../component-library/hooks';
-import { styleSheet } from './EarnMusdConversionEducationView.styles';
 import musdEducationBackgroundV2Dark from '../../../../../images/musd-conversion-education-screen-v2-dark-3x.png';
 import musdEducationBackgroundV2Light from '../../../../../images/musd-conversion-education-screen-v2-light-3x.png';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,9 +12,28 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import {
-  Button as DesignSystemButton,
-  ButtonVariant as DesignSystemButtonVariant,
+  Box,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+// component-library TagBase: DSRN Tag has no startAccessory + Rectangle shape support
+import TagBase from '../../../../../component-library/base-components/TagBase';
+import {
+  TagShape,
+  TagSeverity,
+} from '../../../../../component-library/base-components/TagBase/TagBase.types';
+import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -39,12 +48,31 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../Ramp/types';
 import { EARN_TEST_IDS } from '../../constants/testIds';
-import AppConstants from '../../../../../core/AppConstants';
 import { MusdNavigationTarget } from '../../types/musd.types';
 import { toChecksumAddress } from '../../../../../util/address';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
 import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
 import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingTop: 40,
+  },
+  heading: {
+    fontFamily: 'MMPoly-Regular',
+    fontSize: 40,
+    lineHeight: 40,
+    paddingVertical: 16,
+    textAlign: 'center',
+  },
+  backgroundImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
+});
+
 interface EarnMusdConversionEducationViewRouteParams {
   /**
    * Indicates if this navigation originated from a deeplink
@@ -93,8 +121,6 @@ const EarnMusdConversionEducationView = () => {
     isMusdBuyable,
     conversionTokens,
   } = useMusdConversionFlowData();
-
-  const { styles } = useStyles(styleSheet, {});
 
   const navigation =
     useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
@@ -363,19 +389,6 @@ const EarnMusdConversionEducationView = () => {
     }
   };
 
-  const handleTermsOfUsePressed = () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
-        .addProperties({
-          location: MUSD_EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
-          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
-        })
-        .build(),
-    );
-
-    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
-  };
-
   return (
     // Do not remove the top edge as this screen does not have a navbar set in the route options.
     <SafeAreaView
@@ -383,53 +396,86 @@ const EarnMusdConversionEducationView = () => {
       edges={['top', 'bottom']}
       testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.CONTAINER}
     >
-      <View style={styles.content}>
+      <Box twClassName="px-4 items-center">
         <Text style={styles.heading} numberOfLines={2} adjustsFontSizeToFit>
           {strings('earn.musd_conversion.education.heading', {
             percentage: MUSD_CONVERSION_APY,
           })}
         </Text>
-        <Text variant={TextVariant.BodyMD} style={styles.bodyText}>
-          {strings('earn.musd_conversion.education.description', {
-            percentage: MUSD_CONVERSION_APY,
-          })}{' '}
-          <Text
-            variant={TextVariant.BodyMD}
-            style={styles.termsText}
-            onPress={handleTermsOfUsePressed}
-          >
-            {strings('earn.musd_conversion.education.terms_apply')}
-          </Text>
-        </Text>
-      </View>
-      <View style={styles.imageContainer}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="flex-wrap gap-1 mt-4"
+        >
+          {[
+            'earn.musd_conversion.education.checklist.dollar_backed',
+            'earn.musd_conversion.education.checklist.no_lockups',
+            'earn.musd_conversion.education.checklist.daily_bonus',
+            'earn.musd_conversion.education.checklist.metamask_stablecoins',
+            'earn.musd_conversion.education.checklist.no_metamask_fee',
+          ].map((key) => (
+            <TagBase
+              key={key}
+              shape={TagShape.Rectangle}
+              severity={TagSeverity.Neutral}
+              gap={4}
+              startAccessory={
+                <Icon
+                  name={IconName.CheckBold}
+                  size={IconSize.Sm}
+                  color={IconColor.SuccessDefault}
+                />
+              }
+              textProps={{
+                variant: ComponentTextVariant.BodySMMedium,
+                numberOfLines: 1,
+              }}
+            >
+              {strings(key)}
+            </TagBase>
+          ))}
+        </Box>
+      </Box>
+      <Box twClassName="flex-1 min-h-[100px]">
         <Image
           source={backgroundImage}
           style={styles.backgroundImage}
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.BACKGROUND_IMAGE}
         />
-      </View>
+      </Box>
+      <Box twClassName="px-4 items-center">
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="text-center mt-4 mb-6"
+        >
+          {strings('earn.musd_conversion.education.description', {
+            percentage: MUSD_CONVERSION_APY,
+          })}
+        </Text>
+      </Box>
 
-      <View style={styles.buttonsContainer}>
+      <Box twClassName="mx-4 mb-4 gap-2">
         <Button
-          variant={ButtonVariants.Primary}
-          label={primaryButtonText}
+          variant={ButtonVariant.Primary}
           onPress={handleContinue}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON}
-        />
-        <DesignSystemButton
-          variant={DesignSystemButtonVariant.Tertiary}
+        >
+          {primaryButtonText}
+        </Button>
+        <Button
+          variant={ButtonVariant.Tertiary}
           isFullWidth
           onPress={handleNotNow}
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON}
         >
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('earn.musd_conversion.education.secondary_button')}
           </Text>
-        </DesignSystemButton>
-      </View>
+        </Button>
+      </Box>
     </SafeAreaView>
   );
 };
