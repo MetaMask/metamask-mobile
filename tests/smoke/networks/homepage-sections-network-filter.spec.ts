@@ -129,20 +129,19 @@ describe(
       );
     });
 
-    it('shows homepage tokens regardless of full-view network filter state', async () => {
+    it('shows all tokens on homepage regardless of network filter set in tokens full view', async () => {
       await withFixtures(
         {
           // withTokensForAllPopularNetworks seeds both TokensController.allTokens
           // AND TokenBalancesController (required for ERC-20s to show in the selector).
-          // Seed the full-view token filter directly. The previous test covers
-          // selecting networks through NetworkManager; this test only verifies
-          // the homepage ignores the full-view filter state.
+          // withNetworkEnabledMap restricts popularChainIds to Ethereum only, so the
+          // homepage selector returns exactly 2 tokens (ETH + USDC from Ethereum) —
+          // well within MAX_TOKENS_DISPLAYED = 5. Linea has no tokens seeded, so
+          // selecting Linea in the full view's NetworkManager makes it appear empty
+          // while the homepage (scoped to Ethereum) still shows both tokens.
           fixture: new FixtureBuilder()
             .withTokensForAllPopularNetworks([ETH_TOKEN, USDC_TOKEN])
-            .withNetworkEnabledMap({ eip155: { '0x1': true, '0xe708': true } })
-            .withPreferencesController({
-              tokenNetworkFilter: { '0xe708': true },
-            })
+            .withNetworkEnabledMap({ eip155: { '0x1': true } })
             .build(),
           restartDevice: true,
           testSpecificMock: async (mockServer: Mockttp) => {
@@ -158,9 +157,31 @@ describe(
             description: 'Wallet homepage should be visible',
           });
 
-          // Homepage tokens section shows Ethereum tokens regardless of the
-          // full-view Linea-only token filter.
-          await NetworkManager.checkTokenIsVisible('USDC');
+          // Navigate to TokensFullView and apply a Linea-only filter.
+          // No tokens were seeded on Linea, so the full view becomes empty.
+          await WalletView.tapOnNewTokensSection();
+          await TokensFullView.waitForVisible();
+
+          await NetworkManager.openNetworkManager();
+
+          await NetworkManager.tapNetwork(NetworkToCaipChainId.LINEA);
+          await NetworkManager.checkBaseControlBarText(
+            NetworkToCaipChainId.LINEA,
+          );
+
+          // Full view: Ethereum tokens should not be visible (filtered to Linea only)
+          await NetworkManager.checkTokenIsNotVisible('ETH');
+
+          // Return to the homepage
+          await TokensFullView.tapBackButton();
+
+          await Assertions.expectElementToBeVisible(WalletView.container, {
+            description:
+              'Wallet homepage should be visible after navigating back',
+          });
+
+          // Homepage tokens section shows ALL tokens regardless of the Linea-only filter
+          await NetworkManager.checkTokenIsVisible('SOL');
           await NetworkManager.checkTokenIsVisible('ETH');
         },
       );
