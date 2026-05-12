@@ -231,13 +231,13 @@ describe('QRSigningDetails', () => {
         visible: true,
         purpose: QrScanRequestType.SIGN,
       }),
-      {},
+      undefined,
     );
     expect(AnimatedQRCode).toHaveBeenLastCalledWith(
       expect.objectContaining({
         shouldPause: true,
       }),
-      {},
+      undefined,
     );
   });
 
@@ -252,7 +252,7 @@ describe('QRSigningDetails', () => {
       expect.objectContaining({
         visible: false,
       }),
-      {},
+      undefined,
     );
 
     fireEvent.press(getByText('scanner-hidden'));
@@ -282,7 +282,7 @@ describe('QRSigningDetails', () => {
       expect.objectContaining({
         visible: true,
       }),
-      {},
+      undefined,
     );
   });
 
@@ -435,7 +435,7 @@ describe('QRSigningDetails', () => {
       expect.objectContaining({
         shouldPause: false,
       }),
-      {},
+      undefined,
     );
   });
 
