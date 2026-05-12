@@ -31,6 +31,8 @@ import {
 import SourceLogoGroup from '../../../UI/MarketInsights/components/SourceLogoGroup';
 import PerpsRow from './PerpsRow';
 import { useWhatsHappeningAssetPrices } from '../hooks/useWhatsHappeningAssetPrices';
+import { useTheme } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 
 interface WhatsHappeningExpandedCardProps {
   item: WhatsHappeningItem;
@@ -56,6 +58,8 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   onSourcesPress,
 }) => {
   const tw = useTailwind();
+  const { themeAppearance, colors } = useTheme();
+  const isDarkMode = themeAppearance === AppThemeKey.dark;
 
   const impactLabel = getImpactLabel(item.impact);
   const impactBgClass = getImpactBackgroundClass(item.impact);
@@ -84,6 +88,24 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
 
   const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(item);
 
+  const scrollBottomFadeColors = useMemo((): string[] => {
+    if (isDarkMode) {
+      return ['transparent', 'rgba(0,0,0,0.25)'];
+    }
+    const endColor =
+      tw.color('bg-background-muted') ??
+      tw.color('bg-default') ??
+      colors.background.muted;
+    return ['transparent', endColor];
+  }, [tw, isDarkMode, colors.background.muted]);
+
+  const aiPillContainerClass = isDarkMode
+    ? 'bg-icon-default rounded px-1.5 py-1 self-start'
+    : 'bg-default rounded px-1.5 py-1 self-start border border-text-default';
+  const aiPillForegroundClass = isDarkMode
+    ? 'text-icon-inverse'
+    : 'text-icon-default';
+
   return (
     <Box style={{ width: cardWidth, height: cardHeight }}>
       {/* Card surface */}
@@ -109,22 +131,22 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                 gap={2}
                 twClassName="flex-wrap"
               >
-                {/* AI pill — inverted (dark bg, white content) */}
+                {/* AI pill */}
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
                   gap={1}
-                  twClassName="bg-icon-default rounded px-1.5 py-1 self-start"
+                  twClassName={aiPillContainerClass}
                 >
                   <Icon
                     name={IconName.Sparkle}
                     size={IconSize.Md}
-                    twClassName="text-icon-inverse"
+                    twClassName={aiPillForegroundClass}
                   />
                   <Text
                     variant={TextVariant.BodySm}
                     fontWeight={FontWeight.Medium}
-                    twClassName="text-icon-inverse"
+                    twClassName={aiPillForegroundClass}
                   >
                     {strings('homepage.sections.whats_happening_ai')}
                   </Text>
@@ -238,7 +260,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
 
           <LinearGradient
             pointerEvents="none"
-            colors={['transparent', 'rgba(0,0,0,0.25)']}
+            colors={scrollBottomFadeColors}
             style={tw.style('absolute left-0 right-0 bottom-0 h-10')}
           />
         </Box>
