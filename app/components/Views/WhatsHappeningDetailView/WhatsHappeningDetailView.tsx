@@ -24,13 +24,18 @@ import type { Article } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../Homepage/Sections/WhatsHappening/types';
 import { strings } from '../../../../locales/i18n';
 import { useWhatsHappening } from '../Homepage/Sections/WhatsHappening/hooks';
-import { WhatsHappeningCardSkeleton } from '../Homepage/Sections/WhatsHappening/components';
-import { MAX_ITEMS_DISPLAYED } from '../Homepage/Sections/WhatsHappening/constants';
+import WhatsHappeningExpandedCardSkeleton from './components/WhatsHappeningExpandedCardSkeleton';
+import {
+  MAX_ITEMS_DISPLAYED,
+  WhatsHappeningSource,
+  type WhatsHappeningSourceValue,
+} from '../Homepage/Sections/WhatsHappening/constants';
 import { getWhatsHappeningEventProps } from '../Homepage/Sections/WhatsHappening/eventProperties';
 import ErrorState from '../Homepage/components/ErrorState/ErrorState';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
 import WhatsHappeningSourcesBottomSheet from './components/WhatsHappeningSourcesBottomSheet';
 import PageIndicator from './components/PageIndicator';
+import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 
@@ -48,6 +53,7 @@ const SKELETON_KEYS = Array.from(
 
 interface WhatsHappeningDetailParams {
   initialIndex: number;
+  source: WhatsHappeningSourceValue;
 }
 
 const WhatsHappeningDetailView = () => {
@@ -57,6 +63,8 @@ const WhatsHappeningDetailView = () => {
     useRoute<RouteProp<{ params: WhatsHappeningDetailParams }, 'params'>>();
 
   const initialIndex = route.params?.initialIndex ?? 0;
+  const source: WhatsHappeningSourceValue =
+    route.params?.source ?? WhatsHappeningSource.Unknown;
 
   const { items, isLoading, error, refresh } =
     useWhatsHappening(MAX_ITEMS_DISPLAYED);
@@ -125,26 +133,32 @@ const WhatsHappeningDetailView = () => {
     ) {
       hasTrackedViewRef.current = true;
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_VIEWED)
+        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED)
           .addProperties(
-            getWhatsHappeningEventProps(items[initialIndex], initialIndex),
+            getWhatsHappeningEventProps(
+              items[initialIndex],
+              initialIndex,
+              source,
+            ),
           )
           .build(),
       );
     }
-  }, [isLoading, items, initialIndex, trackEvent, createEventBuilder]);
+  }, [isLoading, items, initialIndex, source, trackEvent, createEventBuilder]);
 
   const handleBackPress = useCallback(() => {
     const visible = items[currentIndex];
     if (visible) {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_CLOSED)
-          .addProperties(getWhatsHappeningEventProps(visible, currentIndex))
+        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_CLOSED)
+          .addProperties(
+            getWhatsHappeningEventProps(visible, currentIndex, source),
+          )
           .build(),
       );
     }
     navigation.goBack();
-  }, [navigation, items, currentIndex, trackEvent, createEventBuilder]);
+  }, [navigation, items, currentIndex, source, trackEvent, createEventBuilder]);
 
   // Updates the dot indicator live during the drag.
   // Flips at 20% visibility (bias = 0.8) — responsive without being erratic.
@@ -176,15 +190,17 @@ const WhatsHappeningDetailView = () => {
         const newItem = items[index];
         if (newItem) {
           trackEvent(
-            createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_VIEWED)
-              .addProperties(getWhatsHappeningEventProps(newItem, index))
+            createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED)
+              .addProperties(
+                getWhatsHappeningEventProps(newItem, index, source),
+              )
               .build(),
           );
         }
         previousIndexRef.current = index;
       }
     },
-    [items, trackEvent, createEventBuilder],
+    [items, source, trackEvent, createEventBuilder],
   );
 
   const hasError = !isLoading && items.length === 0 && !!error;
@@ -210,70 +226,77 @@ const WhatsHappeningDetailView = () => {
         <Box twClassName="w-10" />
       </Box>
 
-      <Box twClassName="flex-1">
-        {isLoading ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
-            testID="whats-happening-detail-skeleton"
-          >
-            {SKELETON_KEYS.map((key) => (
-              <WhatsHappeningCardSkeleton key={key} />
-            ))}
-          </ScrollView>
-        ) : hasError ? (
-          <ErrorState
-            title={strings('homepage.error.unable_to_load', {
-              section: strings(
-                'homepage.sections.whats_happening',
-              ).toLowerCase(),
-            })}
-            onRetry={refresh}
-          />
-        ) : (
-          <>
+      <PerpsStreamProvider>
+        <Box twClassName="flex-1">
+          {isLoading ? (
             <ScrollView
-              ref={scrollViewRef}
               horizontal
               showsHorizontalScrollIndicator={false}
-              decelerationRate="fast"
-              snapToInterval={SNAP_INTERVAL}
-              snapToAlignment="start"
-              style={tw`flex-1`}
-              contentContainerStyle={tw.style('px-4 gap-3')}
-              onLayout={handleCarouselLayout}
-              onContentSizeChange={handleContentSizeChange}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
-              onMomentumScrollEnd={handleScrollEnd}
-              testID="whats-happening-detail-carousel"
+              contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
+              testID="whats-happening-detail-skeleton"
             >
-              {cardHeight > 0 &&
-                items.map((item, index) => (
-                  <WhatsHappeningExpandedCard
-                    key={item.id}
-                    item={item}
-                    cardIndex={index}
-                    cardWidth={CARD_WIDTH}
-                    cardHeight={cardHeight}
-                    onSourcesPress={(articles) =>
-                      handleSourcesPress(articles, item, index)
-                    }
-                  />
-                ))}
+              {SKELETON_KEYS.map((key) => (
+                <WhatsHappeningExpandedCardSkeleton
+                  key={key}
+                  cardWidth={CARD_WIDTH}
+                />
+              ))}
             </ScrollView>
+          ) : hasError ? (
+            <ErrorState
+              title={strings('homepage.error.unable_to_load', {
+                section: strings(
+                  'homepage.sections.whats_happening',
+                ).toLowerCase(),
+              })}
+              onRetry={refresh}
+            />
+          ) : (
+            <>
+              <ScrollView
+                ref={scrollViewRef}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                decelerationRate="fast"
+                snapToInterval={SNAP_INTERVAL}
+                snapToAlignment="start"
+                style={tw`flex-1`}
+                contentContainerStyle={tw.style('px-4 gap-3')}
+                onLayout={handleCarouselLayout}
+                onContentSizeChange={handleContentSizeChange}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                onMomentumScrollEnd={handleScrollEnd}
+                testID="whats-happening-detail-carousel"
+              >
+                {cardHeight > 0 &&
+                  items.map((item, index) => (
+                    <WhatsHappeningExpandedCard
+                      key={item.id}
+                      item={item}
+                      cardIndex={index}
+                      cardWidth={CARD_WIDTH}
+                      cardHeight={cardHeight}
+                      source={source}
+                      onSourcesPress={(articles) =>
+                        handleSourcesPress(articles, item, index)
+                      }
+                    />
+                  ))}
+              </ScrollView>
 
-            <PageIndicator count={items.length} activeIndex={currentIndex} />
-          </>
-        )}
-      </Box>
+              <PageIndicator count={items.length} activeIndex={currentIndex} />
+            </>
+          )}
+        </Box>
+      </PerpsStreamProvider>
       {sourcesContext && (
         <WhatsHappeningSourcesBottomSheet
           onClose={handleSourcesClose}
           articles={sourcesContext.articles}
           item={sourcesContext.item}
           cardIndex={sourcesContext.cardIndex}
+          source={source}
         />
       )}
     </SafeAreaView>
