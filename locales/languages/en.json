@@ -6599,7 +6599,7 @@
       "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
       "description_with_amounts_prefix": "Convert your {{total}} in assets and you could earn up to ",
-      "description_with_amounts_suffix": " in one year.",
+      "description_with_amounts_suffix": "in one year.",
       "convert": "Convert",
       "convert_cta": "Convert your crypto",
       "no_fee": "No MetaMask fee",
@@ -6618,12 +6618,17 @@
       "link_bullet_cashback": "Get {{percentage}}% mUSD back",
       "link_bullet_apy": "Earn up to {{apy}}% APY",
       "link_card": "Link card",
+      "link_pending_title": "Linking card",
+      "link_pending_description": "Approving spending limit…",
+      "link_success_title": "Card linked successfully",
+      "link_success_description": "You can now spend while you earn",
+      "link_error": "Couldn't link card",
       "manage_card": "Manage",
       "avail_balance": "Avail. balance"
     },
     "what_you_get": {
       "title": "What you get",
-      "benefit_auto_earn": "Auto-earn up to ",
+      "benefit_auto_earn": "Auto-earn up to",
       "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
       "benefit_liquidity": "Get full liquidity with no lockups, so you can trade or withdraw anytime",
       "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
@@ -6673,7 +6678,7 @@
     },
     "earn_crypto_info_sheet": {
       "title": "Earn on your crypto",
-      "body": "Illustration assumes 4% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and may change due to various factors. No guarantee of return."
+      "body": "Illustration assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and may change due to various factors. No guarantee of return."
     },
     "activity": {
       "title": "Activity",
@@ -6717,11 +6722,11 @@
     "how_it_works_page": {
       "header_title": "Money",
       "section_title": "How it works",
-      "description_1": "Deposit mUSD into your Money account and earn up to 4% APY (variable) automatically. Funds go into a DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
+      "description_1": "Deposit mUSD into your Money account and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
       "description_2": "Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.",
       "faq_title": "Frequently asked questions",
       "faq_placeholder_answer": "Coming soon.",
-      "faq_q1": "How does the 4% APY work?",
+      "faq_q1": "How does the {{percentage}}% APY work?",
       "faq_q2": "What is mUSD?",
       "faq_q3": "Where does the yield come from?",
       "faq_q4": "Is my money locked? Can I withdraw anytime?",

@@ -36,6 +36,7 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
+import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { AssetType } from '../../../../Views/confirmations/types/token';
@@ -70,6 +71,7 @@ const MoneyHomeView = () => {
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
+  const { canLink, linkInBackground } = useMoneyAccountCardLinkage();
   const geolocation = useSelector(getDetectedGeolocation);
   const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
 
@@ -132,11 +134,15 @@ const MoneyHomeView = () => {
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation]);
 
-  const handleLinkCardPress = useCallback(() => {
+  const handleLinkCardPress = useCallback(async () => {
+    if (isCardholder && canLink) {
+      await linkInBackground();
+      return;
+    }
     navigation.navigate(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
     });
-  }, [navigation]);
+  }, [isCardholder, canLink, linkInBackground, navigation]);
 
   const handleApyInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {

@@ -165,9 +165,9 @@ const MoneyPotentialEarningsView = () => {
               >
                 {`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
               </Text>
-              {strings(
+              {` ${strings(
                 'money.potential_earnings.description_with_amounts_suffix',
-              )}
+              )}`}
             </Text>
           ) : (
             <Text

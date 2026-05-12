@@ -4,9 +4,15 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyEarnCryptoInfoSheet from './MoneyEarnCryptoInfoSheet';
 import { MoneyEarnCryptoInfoSheetTestIds } from './MoneyEarnCryptoInfoSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
+
+jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -64,6 +70,9 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('MoneyEarnCryptoInfoSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+      apyPercent: 4,
+    });
   });
 
   it('renders the container', () => {
@@ -94,7 +103,9 @@ describe('MoneyEarnCryptoInfoSheet', () => {
 
     expect(getByTestId(MoneyEarnCryptoInfoSheetTestIds.BODY)).toBeOnTheScreen();
     expect(
-      getByText(strings('money.earn_crypto_info_sheet.body')),
+      getByText(
+        strings('money.earn_crypto_info_sheet.body', { percentage: 4 }),
+      ),
     ).toBeOnTheScreen();
   });
 

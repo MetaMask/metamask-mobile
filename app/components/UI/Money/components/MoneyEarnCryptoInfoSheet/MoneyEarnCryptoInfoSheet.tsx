@@ -11,13 +11,17 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import styleSheet from './MoneyEarnCryptoInfoSheet.styles';
 import { MoneyEarnCryptoInfoSheetTestIds } from './MoneyEarnCryptoInfoSheet.testIds';
+
+const FALLBACK_APY = 4;
 
 const MoneyEarnCryptoInfoSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
+  const { apyPercent } = useMoneyAccountBalance();
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -48,7 +52,9 @@ const MoneyEarnCryptoInfoSheet = () => {
           variant={TextVariant.BodyMd}
           testID={MoneyEarnCryptoInfoSheetTestIds.BODY}
         >
-          {strings('money.earn_crypto_info_sheet.body')}
+          {strings('money.earn_crypto_info_sheet.body', {
+            percentage: apyPercent ?? FALLBACK_APY,
+          })}
         </Text>
       </View>
     </BottomSheet>

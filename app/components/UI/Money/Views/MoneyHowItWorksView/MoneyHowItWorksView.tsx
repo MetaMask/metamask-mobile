@@ -26,6 +26,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
 
 const localStyles = StyleSheet.create({
@@ -50,6 +51,7 @@ const FAQ_KEYS = [
 ] as const;
 
 const ANIMATION_DURATION = 200;
+const FALLBACK_APY = 4;
 
 const FaqItem = ({
   question,
@@ -118,6 +120,8 @@ const MoneyHowItWorksView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { colors: themeColors } = useTheme();
+  const { apyPercent } = useMoneyAccountBalance();
+  const percentage = apyPercent ?? FALLBACK_APY;
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -171,7 +175,7 @@ const MoneyHowItWorksView = () => {
             color={TextColor.TextAlternative}
             testID={MoneyHowItWorksViewTestIds.DESCRIPTION_1}
           >
-            {strings('money.how_it_works_page.description_1')}
+            {strings('money.how_it_works_page.description_1', { percentage })}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
@@ -198,7 +202,9 @@ const MoneyHowItWorksView = () => {
           <React.Fragment key={key}>
             {index > 0 && <FaqDivider />}
             <FaqItem
-              question={strings(`money.how_it_works_page.${key}`)}
+              question={strings(`money.how_it_works_page.${key}`, {
+                percentage,
+              })}
               answer={strings('money.how_it_works_page.faq_placeholder_answer')}
               testID={MoneyHowItWorksViewTestIds.FAQ_ITEM(index + 1)}
             />

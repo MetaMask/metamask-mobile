@@ -127,22 +127,24 @@ const MoneyPotentialEarnings = ({
             >
               {`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
             </Text>
-            {strings(
+            {` ${strings(
               'money.potential_earnings.description_with_amounts_suffix',
-            )}
+            )}`}
             {onInfoPress && (
-              <Text
-                onPress={onInfoPress}
-                testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
-              >
+              <>
                 {' '}
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
+                <Text
+                  onPress={onInfoPress}
+                  testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
                   style={{ transform: [{ translateY: 3 }] }}
-                />
-              </Text>
+                >
+                  <Icon
+                    name={IconName.Info}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                </Text>
+              </>
             )}
           </Text>
         ) : (
@@ -153,18 +155,20 @@ const MoneyPotentialEarnings = ({
           >
             {strings('money.potential_earnings.description')}
             {onInfoPress && (
-              <Text
-                onPress={onInfoPress}
-                testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
-              >
+              <>
                 {' '}
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
+                <Text
+                  onPress={onInfoPress}
+                  testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
                   style={{ transform: [{ translateY: 3 }] }}
-                />
-              </Text>
+                >
+                  <Icon
+                    name={IconName.Info}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                </Text>
+              </>
             )}
           </Text>
         )}

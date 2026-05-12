@@ -52,7 +52,7 @@ const MoneyWhatYouGet = ({ apy, onLearnMorePress }: MoneyWhatYouGetProps) => (
     <Box twClassName="mt-3 mb-3 gap-3">
       <BenefitRow>
         <Text variant={TextVariant.BodyMd}>
-          {strings('money.what_you_get.benefit_auto_earn')}
+          {`${strings('money.what_you_get.benefit_auto_earn')} `}
           {isPositiveNumber(apy) && (
             <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
               {strings('money.apy_label', { percentage: apy })}

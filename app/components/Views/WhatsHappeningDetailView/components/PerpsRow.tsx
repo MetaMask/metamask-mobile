@@ -54,7 +54,7 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
       return;
     }
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED)
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTED)
         .addProperties({
           ...getWhatsHappeningEventProps(item, cardIndex, source),
           interaction_type: WhatsHappeningInteractionType.TradePressed,
