@@ -3,7 +3,7 @@ import { TokenSecurityData } from '@metamask/assets-controllers';
 import { useSelector } from 'react-redux';
 import { useTokenActions, getSwapTokens } from './useTokenActions';
 import { TokenI } from '../../Tokens/types';
-import { SecurityDataType } from '../../Bridge/hooks/usePopularTokens';
+import { SecurityDataType } from '../../Bridge/types';
 import { selectEvmChainId } from '../../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';

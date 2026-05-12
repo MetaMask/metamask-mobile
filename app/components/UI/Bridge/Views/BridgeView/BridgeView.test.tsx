@@ -13,7 +13,7 @@ import { Hex } from '@metamask/utils';
 import BridgeView from '.';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { createBridgeTestState } from '../../testUtils';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeToken, BridgeViewMode, SecurityDataType } from '../../types';
 import {
   RequestStatus,
   type QuoteResponse,
@@ -22,7 +22,6 @@ import {
   TokenFeatureType,
 } from '@metamask/bridge-controller';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
-import { SecurityDataType } from '../../hooks/usePopularTokens';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
@@ -1005,6 +1004,37 @@ describe('BridgeView', () => {
         queryByTestId(BridgeTrendingTokensSectionTestIds.SECTION),
       ).toBeNull();
       expect(queryByText('Fetching quote')).toBeNull();
+    });
+
+    it('shows quote skeleton when a non-zero input has no active quote yet', () => {
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: false,
+          activeQuote: null,
+          needsNewQuote: false,
+        }));
+
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.QUOTE_DETAILS_SKELETON),
+      ).toBeTruthy();
+      expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
+      expect(queryByTestId('edit-slippage-button')).toBeNull();
     });
 
     it('keeps quote mode content visible while refreshing an existing quote', async () => {
