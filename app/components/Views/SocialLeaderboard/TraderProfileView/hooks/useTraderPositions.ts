@@ -102,8 +102,7 @@ export const useTraderPositions = (
   const refetch = useCallback(async () => {
     const results = await Promise.allSettled([refetchOpen(), refetchClosed()]);
     const failures = results.filter(
-      (result): result is PromiseRejectedResult =>
-        result.status === 'rejected',
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
     );
 
     if (failures.length > 0) {
