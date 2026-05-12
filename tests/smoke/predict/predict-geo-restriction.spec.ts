@@ -21,8 +21,8 @@ import {
 import PredictAddFunds from '../../page-objects/Predict/PredictAddFunds';
 import PredictUnavailableView from '../../page-objects/Predict/PredictUnavailableView';
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
-import type { AnalyticsExpectations } from '../../framework/types';
 import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants';
+import { geoBlockedCombinedExpectations } from '../../helpers/analytics/expectations/predict-geo-restriction.analytics';
 
 const predictionGeoBlockedFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
@@ -33,39 +33,6 @@ const predictionGeoBlockedFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   await POLYMARKET_GEO_BLOCKED_MOCKS(mockServer);
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
-};
-
-const geoBlockedCombinedExpectations: AnalyticsExpectations = {
-  eventNames: ['Geo Blocked Triggered'],
-  validate: async ({ events }) => {
-    if (events.length < 3) {
-      throw new Error(
-        `Expected at least 3 Geo Blocked Triggered events, got ${events.length}`,
-      );
-    }
-
-    const attemptedActions = new Set(
-      events
-        .map((event) => event.properties?.attempted_action)
-        .filter((value): value is string => typeof value === 'string'),
-    );
-
-    for (const event of events) {
-      if (!event.properties?.country) {
-        throw new Error(
-          'Geo Blocked Triggered analytics is missing required "country" property',
-        );
-      }
-    }
-
-    for (const expectedAction of ['predict_action', 'cashout', 'deposit']) {
-      if (!attemptedActions.has(expectedAction)) {
-        throw new Error(
-          `Missing Geo Blocked Triggered analytics for attempted_action="${expectedAction}"`,
-        );
-      }
-    }
-  },
 };
 
 describe(SmokePredictions('Predictions - Geo Restriction'), () => {
@@ -88,12 +55,14 @@ describe(SmokePredictions('Predictions - Geo Restriction'), () => {
           description:
             'Predict market list container is visible before feed action',
         });
+
+        await device.disableSynchronization();
         await PredictMarketList.tapCategoryTab('new');
         await PredictMarketList.tapYesBasedOnCategoryAndIndex('new', 1);
         await PredictUnavailableView.expectVisible();
         await PredictUnavailableView.tapGotIt();
-
         await PredictMarketList.tapBackButton();
+
         await WalletView.scrollAndTapPredictionsPosition('Spurs vs. Pelicans');
         await PredictDetailsPage.tapGameCashOutButton(
           SPURS_PELICANS_POSITION_ID,
