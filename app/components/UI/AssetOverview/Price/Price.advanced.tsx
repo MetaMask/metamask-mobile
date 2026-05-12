@@ -63,6 +63,7 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
 
@@ -148,6 +149,7 @@ const PriceAdvanced = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
   const chartType = useSelector(selectTokenOverviewChartType);
+  const isOhlcvWsEnabled = useSelector(selectTokenDetailsOhlcvWsEnabled);
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
@@ -308,8 +310,8 @@ const PriceAdvanced = ({
   });
 
   const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
-  // TODO: Check if we want to add a feature flag to gate the WS OHLCV feature
   const wsEnabled =
+    isOhlcvWsEnabled &&
     !chartLoading &&
     ohlcvData.length >= CHART_DATA_THRESHOLD &&
     !hasEmptyData &&

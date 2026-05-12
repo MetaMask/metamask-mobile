@@ -28,6 +28,13 @@ jest.mock('../PriceChart/PriceChart.context', () => ({
   }),
 }));
 
+jest.mock(
+  '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration',
+  () => ({
+    selectTokenDetailsOhlcvWsEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('react-redux', () => {
   const actual = jest.requireActual('react-redux');
   return {
