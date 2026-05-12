@@ -118,6 +118,7 @@ jobs:
           android-avd-name: emulator
           android-api-level: 36
           configure-keystores: false
+          runner_provider: ${{ inputs.runner_provider }}
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
