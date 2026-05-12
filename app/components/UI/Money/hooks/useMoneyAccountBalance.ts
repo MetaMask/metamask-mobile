@@ -7,21 +7,31 @@ import {
 import { useQueries, type UseQueryResult } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import useFiatFormatter from '../../SimulationDetails/FiatDisplay/useFiatFormatter';
+import { fromTokenMinimalUnitString } from '../../../../util/number';
+import { moneyFormatFiat } from '../utils/moneyFormatFiat';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_DECIMALS,
 } from '../../Earn/constants/musd';
-import { fromTokenMinimalUnitString } from '../../../../util/number';
 import { toChecksumAddress } from '../../../../util/address';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
+
+// TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
+const DEV_APY = {
+  decimal: 0.04,
+  percent: 4,
+  percentFormatted: '4%',
+};
 
 /**
  * Fetches the live exchange rate for the mUSD token.
@@ -41,7 +51,7 @@ const useMoneyAccountBalance = (
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const formatFiat = useFiatFormatter();
+  const currentCurrency = useSelector(selectCurrentCurrency);
 
   const [musdBalanceQuery, vaultApyQuery, musdEquivalentBalanceQuery] =
     useQueries({
@@ -102,68 +112,87 @@ const useMoneyAccountBalance = (
     [musdBalanceQuery.isLoading, musdEquivalentBalanceQuery.isLoading],
   );
 
-  const { musdFiat, musdSHFvdFiat, tokenTotal, totalFiat } = useMemo(() => {
-    // mUSD balance: raw uint256 (6 decimals) → decimal BigNumber
-    const musdDecimal = musdBalanceQuery.data?.balance
-      ? new BigNumber(
-          fromTokenMinimalUnitString(
-            musdBalanceQuery.data.balance,
-            MUSD_DECIMALS,
-          ),
-        )
-      : new BigNumber(0);
+  const { musdFiat, musdSHFvdFiat, tokenTotal, totalFiat, withdrawableMusd } =
+    useMemo(() => {
+      // mUSD balance: raw uint256 (6 decimals) → decimal BigNumber
+      const musdDecimal = musdBalanceQuery.data?.balance
+        ? new BigNumber(
+            fromTokenMinimalUnitString(
+              musdBalanceQuery.data.balance,
+              MUSD_DECIMALS,
+            ),
+          )
+        : new BigNumber(0);
 
-    // musdSHFvd balance expressed in mUSD: pre-computed by the service as
-    // musdSHFvdBalance * exchangeRate / 10^6, returned as a raw uint256 string.
-    const musdSHFvdDecimal = musdEquivalentBalanceQuery.data
-      ?.musdEquivalentValue
-      ? new BigNumber(
-          fromTokenMinimalUnitString(
-            musdEquivalentBalanceQuery.data.musdEquivalentValue,
-            MUSD_DECIMALS,
-          ),
-        )
-      : new BigNumber(0);
+      // musdSHFvd balance expressed in mUSD.
+      const musdSHFvdDecimal = musdEquivalentBalanceQuery.data
+        ?.balanceOfInAssets
+        ? new BigNumber(
+            fromTokenMinimalUnitString(
+              musdEquivalentBalanceQuery.data.balanceOfInAssets,
+              MUSD_DECIMALS,
+            ),
+          )
+        : new BigNumber(0);
 
-    if (!musdFiatRate) {
+      // vmUSD shares expressed in mUSD via the vault rate — this is the withdrawable amount.
+      // Undefined while loading so callers can distinguish "loading" from a genuine zero balance.
+      const computedWithdrawableMusd = isAggregatedBalanceLoading
+        ? undefined
+        : musdSHFvdDecimal;
+
+      if (!musdFiatRate) {
+        return {
+          musdFiat: undefined,
+          musdSHFvdFiat: undefined,
+          // Undefined during loading so callers can distinguish "loading" from a genuine zero balance.
+          tokenTotal: isAggregatedBalanceLoading
+            ? undefined
+            : musdDecimal.plus(musdSHFvdDecimal),
+          totalFiat: undefined,
+          withdrawableMusd: computedWithdrawableMusd,
+        };
+      }
+
+      const computedMusdFiat = musdDecimal.times(musdFiatRate);
+      const computedMusdSHFvdFiat = musdSHFvdDecimal.times(musdFiatRate);
+
       return {
-        musdFiat: undefined,
-        musdSHFvdFiat: undefined,
+        musdFiat: computedMusdFiat,
+        musdSHFvdFiat: computedMusdSHFvdFiat,
         // Undefined during loading so callers can distinguish "loading" from a genuine zero balance.
         tokenTotal: isAggregatedBalanceLoading
           ? undefined
           : musdDecimal.plus(musdSHFvdDecimal),
-        totalFiat: undefined,
+        // Both fiat values share musdFiatRate as their sole dependency — computing
+        // them inside this guard means no null assertions are needed.
+        totalFiat: computedMusdFiat.plus(computedMusdSHFvdFiat),
+        withdrawableMusd: computedWithdrawableMusd,
       };
-    }
+    }, [
+      isAggregatedBalanceLoading,
+      musdBalanceQuery.data,
+      musdEquivalentBalanceQuery.data,
+      musdFiatRate,
+    ]);
 
-    const computedMusdFiat = musdDecimal.times(musdFiatRate);
-    const computedMusdSHFvdFiat = musdSHFvdDecimal.times(musdFiatRate);
-
-    return {
-      musdFiat: computedMusdFiat,
-      musdSHFvdFiat: computedMusdSHFvdFiat,
-      // Undefined during loading so callers can distinguish "loading" from a genuine zero balance.
-      tokenTotal: isAggregatedBalanceLoading
-        ? undefined
-        : musdDecimal.plus(musdSHFvdDecimal),
-      // Both fiat values share musdFiatRate as their sole dependency — computing
-      // them inside this guard means no null assertions are needed.
-      totalFiat: computedMusdFiat.plus(computedMusdSHFvdFiat),
-    };
-  }, [
-    isAggregatedBalanceLoading,
-    musdBalanceQuery.data,
-    musdEquivalentBalanceQuery.data,
-    musdFiatRate,
-  ]);
-
-  const musdFiatFormatted = musdFiat ? formatFiat(musdFiat) : undefined;
-  const musdSHFvdFiatFormatted = musdSHFvdFiat
-    ? formatFiat(musdSHFvdFiat)
+  const musdFiatFormatted = musdFiat
+    ? moneyFormatFiat(musdFiat, currentCurrency)
     : undefined;
-  const totalFiatFormatted = totalFiat ? formatFiat(totalFiat) : undefined;
+  const musdSHFvdFiatFormatted = musdSHFvdFiat
+    ? moneyFormatFiat(musdSHFvdFiat, currentCurrency)
+    : undefined;
+  const totalFiatFormatted = totalFiat
+    ? moneyFormatFiat(totalFiat, currentCurrency)
+    : undefined;
   const totalFiatRaw = totalFiat ? totalFiat.toString() : undefined;
+
+  const rawApy = vaultApyQuery.data?.apy;
+
+  const apyDecimal = rawApy;
+  const apyPercent = rawApy !== undefined ? rawApy * 100 : undefined;
+  const apyPercentFormatted =
+    apyPercent !== undefined ? `${apyPercent}%` : undefined;
 
   return {
     musdBalanceQuery,
@@ -175,6 +204,13 @@ const useMoneyAccountBalance = (
     tokenTotal,
     totalFiatFormatted,
     totalFiatRaw,
+    withdrawableMusd,
+    // TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
+    apyDecimal: __DEV__ ? DEV_APY.decimal : apyDecimal,
+    apyPercent: __DEV__ ? DEV_APY.percent : apyPercent,
+    apyPercentFormatted: __DEV__
+      ? DEV_APY.percentFormatted
+      : apyPercentFormatted,
   };
 };
 

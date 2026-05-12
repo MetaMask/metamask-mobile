@@ -72,50 +72,20 @@ jest.mock('react-native-safe-area-context', () => {
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
-  return { ...actual };
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Skeleton: ({ children }: { children?: React.ReactNode }) =>
+      ReactActual.createElement(View, { testID: 'skeleton' }, children),
+  };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
-
-jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text, Pressable } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        title,
-        onBack,
-        backButtonProps,
-        endButtonIconProps,
-      }: {
-        title: string;
-        onBack: () => void;
-        backButtonProps?: { testID?: string };
-        endButtonIconProps?: { testID?: string; onPress?: () => void }[];
-      }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'header' },
-          ReactActual.createElement(Text, null, title),
-          ReactActual.createElement(Pressable, {
-            onPress: onBack,
-            testID: backButtonProps?.testID ?? 'header-back-button',
-          }),
-          ...(endButtonIconProps ?? []).map((btn, index) =>
-            ReactActual.createElement(Pressable, {
-              key: `end-${String(index)}`,
-              onPress: btn.onPress,
-              testID: btn.testID ?? `header-end-button-${String(index)}`,
-            }),
-          ),
-        ),
-    };
-  },
-);
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
@@ -186,6 +156,9 @@ jest.mock('../utils/formatUtils', () => ({
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`,
+  formatRewardsTimeOnly: () => '12:00 PM',
+  getPortfolioReturnColor: (pnl?: string) =>
+    pnl && parseFloat(pnl) < 0 ? 'errorDefault' : 'textDefault',
 }));
 
 // Mock Engine to prevent @metamask/social-controllers resolution chain
@@ -432,7 +405,9 @@ describe('OndoCampaignStatsView', () => {
       hasError: false,
     });
     const { getByText } = render(<OndoCampaignStatsView />);
-    const title = getByText('rewards.ondo_outcome_banner.winner_pending.title');
+    const title = getByText(
+      'rewards.campaign_outcome_banner.winner_pending.title',
+    );
     fireEvent.press(title);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
@@ -462,7 +437,7 @@ describe('OndoCampaignStatsView', () => {
     });
     const { queryByText } = render(<OndoCampaignStatsView />);
     expect(
-      queryByText('rewards.ondo_outcome_banner.winner_pending.title'),
+      queryByText('rewards.campaign_outcome_banner.winner_pending.title'),
     ).toBeNull();
   });
 
@@ -1011,7 +986,9 @@ describe('OndoCampaignStatsView', () => {
       hasError: false,
     });
     const { getByText } = render(<OndoCampaignStatsView />);
-    const title = getByText('rewards.ondo_outcome_banner.winner_pending.title');
+    const title = getByText(
+      'rewards.campaign_outcome_banner.winner_pending.title',
+    );
     fireEvent.press(title);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
@@ -1039,5 +1016,52 @@ describe('OndoCampaignStatsView', () => {
     expect(
       getByText('rewards.ondo_campaign_leaderboard.qualify_for_rank_title'),
     ).toBeDefined();
+  });
+});
+
+describe('OndoCampaignStatsView — last updated', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseGetCampaignParticipantStatus.mockReturnValue({
+      status: { optedIn: true, participantCount: 1 },
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetOndoPortfolioPosition.mockReturnValue({
+      portfolio: null,
+      isLoading: false,
+      hasError: false,
+      hasFetched: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetOndoLeaderboard.mockReturnValue(leaderboardDefaults);
+    mockUseOndoCampaignParticipantOutcome.mockReturnValue({
+      outcome: null,
+      isLoading: false,
+      hasError: false,
+    });
+    mockRewardsState.campaigns = [createTestCampaign()];
+  });
+
+  it('shows last updated timestamp when position has computedAt', () => {
+    mockUseGetOndoLeaderboardPosition.mockReturnValue({
+      ...positionDefaults,
+      position: makeQualifiedPosition({
+        computedAt: '2024-03-20T12:00:00.000Z',
+      }),
+    });
+    const { getByText } = render(<OndoCampaignStatsView />);
+    expect(
+      getByText(/rewards\.ondo_campaign_leaderboard\.updated_at/),
+    ).toBeDefined();
+  });
+
+  it('does not show last updated timestamp when position is null', () => {
+    mockUseGetOndoLeaderboardPosition.mockReturnValue(positionDefaults);
+    const { queryByText } = render(<OndoCampaignStatsView />);
+    expect(
+      queryByText(/rewards\.ondo_campaign_leaderboard\.updated_at/),
+    ).toBeNull();
   });
 });

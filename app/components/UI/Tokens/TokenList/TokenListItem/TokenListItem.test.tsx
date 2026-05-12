@@ -24,11 +24,12 @@ import {
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 
+import { useQuery } from '@tanstack/react-query';
+import { selectTokenListSecurityBadgesEnabled } from '../../../../../selectors/featureFlagController/tokenListSecurityBadges';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
 import {
   selectIsMusdConversionFlowEnabledFlag,
-  selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import {
@@ -36,7 +37,6 @@ import {
   MUSD_TOKEN_ADDRESS,
 } from '../../../Earn/constants/musd';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
   __esModule: true,
@@ -55,11 +55,13 @@ jest.mock('../../../Bridge/hooks/useRWAToken', () => ({
 }));
 
 // CAIP resolution uses useQuery; these tests use renderWithProvider (no QueryClient).
+const mockGetQueryData = jest.fn();
 jest.mock('@tanstack/react-query', () => {
   const actual = jest.requireActual('@tanstack/react-query');
   return {
     ...actual,
     useQuery: jest.fn(() => ({ data: undefined })),
+    useQueryClient: jest.fn(() => ({ getQueryData: mockGetQueryData })),
   };
 });
 
@@ -84,10 +86,11 @@ jest.mock('../../../shared/StockBadge', () => {
 });
 
 // Mock dependencies
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
   }),
 }));
 
@@ -196,7 +199,6 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => true),
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
-  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
   selectMusdConversionPaymentTokensAllowlist: jest.fn(() => ({})),
 }));
 
@@ -208,11 +210,6 @@ const mockSelectIsMusdConversionFlowEnabledFlag =
 const mockSelectStablecoinLendingEnabledFlag =
   selectStablecoinLendingEnabledFlag as jest.MockedFunction<
     typeof selectStablecoinLendingEnabledFlag
-  >;
-
-const mockSelectMusdQuickConvertEnabledFlag =
-  selectMusdQuickConvertEnabledFlag as jest.MockedFunction<
-    typeof selectMusdQuickConvertEnabledFlag
   >;
 
 jest.mock('../../util/deriveBalanceFromAssetMarketDetails', () => ({
@@ -336,7 +333,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     asset?: TokenI;
     pricePercentChange1d?: number;
     isMusdConversionEnabled?: boolean;
-    isQuickConvertEnabled?: boolean;
     isTokenWithCta?: boolean;
     isGeoEligible?: boolean;
     isStockToken?: boolean;
@@ -354,7 +350,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     asset,
     pricePercentChange1d = 5.67,
     isMusdConversionEnabled = false,
-    isQuickConvertEnabled = false,
     isTokenWithCta = false,
     isGeoEligible = true,
     isStockToken = false,
@@ -391,9 +386,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     mockSelectIsMusdConversionFlowEnabledFlag.mockReturnValue(
       isMusdConversionEnabled,
     );
-    mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(
-      isQuickConvertEnabled,
-    );
     mockUseMusdConversionTokens.mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
       hasConvertibleTokensByChainId: jest.fn().mockReturnValue(false),
@@ -421,10 +413,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
         if (selector === selectStablecoinLendingEnabledFlag) {
           return isStablecoinLendingEnabled;
-        }
-
-        if (selector === selectMusdQuickConvertEnabledFlag) {
-          return isQuickConvertEnabled;
         }
 
         if (selector === selectTokenMarketData) {
@@ -807,7 +795,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
             chainId: toHex('0x1'),
           },
           navigationStack: Routes.EARN.ROOT,
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       });
     }, 10000);
@@ -945,80 +932,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: 'token_list_item',
         redirects_to: 'custom_amount_screen',
-        cta_type: 'musd_conversion_secondary_cta',
-        cta_text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
-          percentage: MUSD_CONVERSION_APY,
-        }),
-        network_chain_id: usdcAsset.chainId,
-        network_name: 'Ethereum Mainnet',
-        asset_symbol: usdcAsset.symbol,
-      });
-
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
-    }, 10000);
-
-    it('tracks mUSD conversion CTA clicked event with quick convert redirect when education screen has been seen and quick convert is enabled', async () => {
-      // Arrange
-      mockHasSeenConversionEducationScreen = true;
-      prepareMocks({
-        asset: usdcAsset,
-        isMusdConversionEnabled: true,
-        isQuickConvertEnabled: true,
-        isTokenWithCta: true,
-      });
-
-      const convertAssetKey: FlashListAssetKey = {
-        address: usdcAsset.address,
-        chainId: usdcAsset.chainId,
-        isStaked: false,
-      };
-
-      const { getByTestId, getByText } = renderWithProvider(
-        <TokenListItem
-          assetKey={convertAssetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
-        />,
-      );
-
-      await waitFor(
-        () => {
-          expect(getByText('Get 3% mUSD bonus')).toBeOnTheScreen();
-        },
-        { timeout: 3000 },
-      );
-
-      mockTrackEvent.mockClear();
-      mockCreateEventBuilder.mockClear();
-      mockAddProperties.mockClear();
-      mockBuild.mockClear();
-
-      // Act
-      await act(async () => {
-        fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
-      });
-
-      // Assert
-      await waitFor(
-        () => {
-          expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
-        },
-        { timeout: 3000 },
-      );
-      const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
-      );
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED,
-      );
-
-      expect(mockAddProperties).toHaveBeenCalledTimes(1);
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        location: 'token_list_item',
-        redirects_to: 'quick_convert_home_screen',
         cta_type: 'musd_conversion_secondary_cta',
         cta_text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
           percentage: MUSD_CONVERSION_APY,
@@ -1225,6 +1138,56 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     });
   });
 
+  describe('hideSecondaryPriceRow (Money Hub compact mUSD layout)', () => {
+    const musdAsset = {
+      ...defaultAsset,
+      address: MUSD_TOKEN_ADDRESS,
+      symbol: 'mUSD',
+      name: 'MetaMask USD',
+      isNative: false,
+      balance: '1280.34',
+      balanceFiat: '$1,280.34',
+    };
+    const musdKey: FlashListAssetKey = {
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: '0x1',
+      isStaked: false,
+    };
+    const renderCompact = (key: FlashListAssetKey) =>
+      renderWithProvider(
+        <TokenListItem
+          assetKey={key}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+          hideSecondaryPriceRow
+        />,
+      );
+
+    it('renders compact mUSD layout and navigates on press', () => {
+      prepareMocks({ asset: musdAsset });
+      const { getByText } = renderCompact(musdKey);
+      expect(getByText('MetaMask USD')).toBeOnTheScreen();
+      expect(getByText('1280.34 mUSD')).toBeOnTheScreen();
+      fireEvent.press(getByText('MetaMask USD'));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Asset',
+        expect.objectContaining({ symbol: 'mUSD' }),
+      );
+    });
+
+    it('does not affect non-mUSD rows', () => {
+      prepareMocks({ asset: defaultAsset });
+      const { getByText } = renderCompact({
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      });
+      expect(getByText('Test Token')).toBeOnTheScreen();
+    });
+  });
+
   describe('mUSD Bonus Row', () => {
     const claimableAsset = {
       ...defaultAsset,
@@ -1238,14 +1201,14 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       isStaked: false,
     };
 
-    it('shows green "3% bonus" on mUSD rows when conversion is enabled', () => {
+    it('does not render the "3% bonus" label on mUSD rows (MUSD-729)', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 5.0,
         isMusdConversionEnabled: true,
       });
 
-      const { getByText, queryByText } = renderWithProvider(
+      const { queryByText, getByText } = renderWithProvider(
         <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
@@ -1256,15 +1219,15 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(
-        getByText(
+        queryByText(
           strings('earn.musd_conversion.percentage_bonus', {
             percentage: MUSD_CONVERSION_APY,
           }),
         ),
-      ).toBeOnTheScreen();
-      expect(queryByText('+5.00%')).toBeNull();
-      // Price rail must stay hidden on mUSD bonus rows per Figma.
-      expect(queryByText(/\u2022/)).toBeNull();
+      ).toBeNull();
+      // Without the bonus label or a Convert CTA, the row falls back to the
+      // standard percentage-change rail.
+      expect(getByText('+5.00%')).toBeOnTheScreen();
     });
 
     it('shows normal percentage when mUSD but conversion flow is disabled', () => {
@@ -1457,6 +1420,174 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(getByText('TEST')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Security data passed to Token Details on press', () => {
+    const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
+
+    const assetKey: FlashListAssetKey = {
+      address: '0x456',
+      chainId: '0x1',
+      isStaked: false,
+    };
+
+    const mockSecurityData = {
+      resultType: 'Verified',
+      maliciousScore: '0',
+      features: [],
+      fees: { transfer: 0, transferFeeMaxAmount: null, buy: 0, sell: null },
+      financialStats: {
+        supply: 1000,
+        topHolders: [],
+        holdersCount: 10,
+        tradeVolume24h: null,
+        lockedLiquidityPct: null,
+        markets: [],
+      },
+      metadata: {
+        externalLinks: {
+          homepage: null,
+          twitterPage: null,
+          telegramChannelId: null,
+        },
+      },
+      created: '2023-01-01T00:00:00Z',
+    };
+
+    it('passes cached security data in nav params when feature flag is ON', () => {
+      prepareMocks({ asset: defaultAsset });
+
+      // Enable the feature flag and basicFunctionality
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector === selectTokenListSecurityBadgesEnabled) {
+            return true;
+          }
+          const selectorString = selector.toString();
+          if (selectorString.includes('basicFunctionalityEnabled')) {
+            return true;
+          }
+          if (selectorString.includes('selectAsset')) {
+            return defaultAsset;
+          }
+          return {};
+        },
+      );
+
+      // Mock useQuery to return a resolved CAIP asset ID
+      const caipId = 'eip155:1/erc20:0x456';
+      mockUseQuery.mockReturnValue({ data: caipId } as ReturnType<
+        typeof useQuery
+      >);
+
+      // Mock cached security data
+      mockGetQueryData.mockReturnValue(mockSecurityData);
+
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+        />,
+      );
+
+      fireEvent.press(getByText('Test Token'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Asset',
+        expect.objectContaining({ securityData: mockSecurityData }),
+      );
+    });
+
+    it('does not pass security data in nav params when feature flag is OFF', () => {
+      prepareMocks({ asset: defaultAsset });
+
+      // Feature flag OFF (default)
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector === selectTokenListSecurityBadgesEnabled) {
+            return false;
+          }
+          const selectorString = selector.toString();
+          if (selectorString.includes('basicFunctionalityEnabled')) {
+            return true;
+          }
+          if (selectorString.includes('selectAsset')) {
+            return defaultAsset;
+          }
+          return {};
+        },
+      );
+
+      mockUseQuery.mockReturnValue({ data: undefined } as ReturnType<
+        typeof useQuery
+      >);
+      mockGetQueryData.mockReturnValue(mockSecurityData);
+
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+        />,
+      );
+
+      fireEvent.press(getByText('Test Token'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Asset',
+        expect.not.objectContaining({ securityData: expect.anything() }),
+      );
+    });
+
+    it('does not pass security data when cache has no data', () => {
+      prepareMocks({ asset: defaultAsset });
+
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector === selectTokenListSecurityBadgesEnabled) {
+            return true;
+          }
+          const selectorString = selector.toString();
+          if (selectorString.includes('basicFunctionalityEnabled')) {
+            return true;
+          }
+          if (selectorString.includes('selectAsset')) {
+            return defaultAsset;
+          }
+          return {};
+        },
+      );
+
+      const caipId = 'eip155:1/erc20:0x456';
+      mockUseQuery.mockReturnValue({ data: caipId } as ReturnType<
+        typeof useQuery
+      >);
+
+      // No cached data
+      mockGetQueryData.mockReturnValue(null);
+
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+        />,
+      );
+
+      fireEvent.press(getByText('Test Token'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Asset',
+        expect.not.objectContaining({ securityData: expect.anything() }),
+      );
     });
   });
 });

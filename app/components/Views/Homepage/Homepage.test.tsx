@@ -234,7 +234,6 @@ jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectMusdConversionCTATokens: jest.fn(() => ({})),
   selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
-  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
   selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
 
