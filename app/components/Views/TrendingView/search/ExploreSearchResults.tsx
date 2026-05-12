@@ -43,7 +43,6 @@ interface ListItemHeader {
   type: 'header';
   feedId: SearchFeedId;
   title: string;
-  hasMore: boolean;
 }
 
 interface ListItemData {
@@ -108,32 +107,27 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         >
           {item.title}
         </Text>
-        {item.hasMore && (
-          <Pressable
-            onPress={() => handleViewMore(section)}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={`${strings('trending.view_all')} ${item.title}`}
-            style={({ pressed }) =>
-              tw.style(
-                'flex-row items-center gap-1 rounded px-1',
-                pressed && 'opacity-50',
-              )
-            }
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('trending.view_all')}
-            </Text>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          </Pressable>
-        )}
+        <Pressable
+          onPress={() => handleViewMore(section)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={`${strings('trending.view_all')} ${item.title}`}
+          style={({ pressed }) =>
+            tw.style(
+              'flex-row items-center gap-1 rounded px-1',
+              pressed && 'opacity-50',
+            )
+          }
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('trending.view_all')}
+          </Text>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+        </Pressable>
       </Box>
     ),
     [handleViewMore, tw],
@@ -147,8 +141,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       const { feedId, title, items, isLoading } = section;
       if (!isLoading && items.length === 0) return;
 
-      const hasMore = !isLoading && items.length > MAX_ITEMS_PER_SECTION;
-      result.push({ type: 'header', feedId, title, hasMore });
+      result.push({ type: 'header', feedId, title });
 
       if (isLoading) {
         for (let i = 0; i < MAX_ITEMS_PER_SECTION; i++) {
