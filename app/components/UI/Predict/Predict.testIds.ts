@@ -55,6 +55,7 @@ export const PredictFeedSelectorsIDs = {
 } as const;
 
 export const getPredictFeedSelector = {
+  tab: (index: number) => `${PredictFeedSelectorsIDs.TABS}-tab-${index}`,
   tabPage: (key: string) => `predict-feed-tab-page-${key}`,
   emptyState: (category: string) => `predict-empty-state-${category}`,
   skeletonLoading: (category: string, index: number) =>
