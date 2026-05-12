@@ -193,7 +193,8 @@ const useMoneyAccountBalance = (
     musdSHFvdFiatFormatted,
     tokenTotal,
     totalFiatFormatted,
-    totalFiatRaw, // TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
+    totalFiatRaw,
+    // TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
     apyDecimal: __DEV__ ? DEV_APY.decimal : apyDecimal,
     apyPercent: __DEV__ ? DEV_APY.percent : apyPercent,
     apyPercentFormatted: __DEV__
