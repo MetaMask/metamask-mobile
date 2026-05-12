@@ -34,10 +34,10 @@ class LocalWebSocketServer implements Resource {
   /**
    * @param name - Human-readable label used in log messages.
    * @param resourceType - Optional ResourceType whose PortManager allocation
-   *   should be released when the server stops. Pass this only for servers
-   *   that are registered as single-instance resources in PortManager (e.g.
-   *   ResourceType.ACCOUNT_ACTIVITY_WS). Leave undefined for servers that
-   *   manage their own port lifecycle externally.
+   * should be released when the server stops. Pass this only for servers
+   * that are registered as single-instance resources in PortManager (e.g.
+   * ResourceType.ACCOUNT_ACTIVITY_WS). Leave undefined for servers that
+   * manage their own port lifecycle externally.
    */
   constructor(name: string, resourceType?: ResourceType) {
     this.name = name;

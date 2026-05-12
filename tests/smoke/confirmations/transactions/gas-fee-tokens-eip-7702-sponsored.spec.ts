@@ -257,7 +257,8 @@ describe.skip(
   },
 );
 
-describe(
+// Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778589879443169
+describe.skip(
   SmokeConfirmations('Send native asset using EIP-7702 - Failure Case'),
   () => {
     beforeAll(async () => {
