@@ -36,6 +36,7 @@ import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import WhatsHappeningSection from '../../Homepage/Sections/WhatsHappening';
+import { WhatsHappeningSource } from '../../Homepage/Sections/WhatsHappening/constants';
 import type { SectionRefreshHandle } from '../../Homepage/types';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 
@@ -182,6 +183,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             ref={whatsHappeningRef}
             sectionIndex={0}
             totalSectionsLoaded={1}
+            source={WhatsHappeningSource.Explore}
           />
         </Box>
       )}
