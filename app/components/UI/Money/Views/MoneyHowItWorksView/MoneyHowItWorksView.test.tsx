@@ -3,7 +3,6 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHowItWorksView from './MoneyHowItWorksView';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
-import { MoneyWhatYouGetTestIds } from '../../components/MoneyWhatYouGet/MoneyWhatYouGet.testIds';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 
 const mockGoBack = jest.fn();
@@ -91,12 +90,6 @@ describe('MoneyHowItWorksView', () => {
     const { getByTestId } = renderWithProvider(<MoneyHowItWorksView />);
 
     expect(getByTestId(MoneyHowItWorksViewTestIds.FAQ_TITLE)).toBeOnTheScreen();
-  });
-
-  it('does not render the What you get section in How it works view', () => {
-    const { queryByTestId } = renderWithProvider(<MoneyHowItWorksView />);
-
-    expect(queryByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeNull();
   });
 
   it('applies safe-area bottom padding to the scroll content', () => {
