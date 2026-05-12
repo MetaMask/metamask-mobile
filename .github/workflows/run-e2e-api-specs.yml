@@ -5,7 +5,22 @@ name: API Specs E2E Tests
 
 on:
   workflow_call:
+    inputs:
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
   workflow_dispatch:
+    inputs:
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: false
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
   pull_request:
     types: [opened, synchronize]
 
@@ -13,7 +28,7 @@ jobs:
   api-specs-ios:
     name: 'api-specs-ios'
     if: false
-    runs-on: macos-latest-xlarge
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'macos-latest-xlarge' }}
     continue-on-error: true
 
     env:
