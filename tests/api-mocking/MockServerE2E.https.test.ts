@@ -1,11 +1,11 @@
 /* eslint-disable import-x/no-nodejs-modules */
 /* eslint-disable import-x/no-namespace */
-/* eslint-disable import-x/no-extraneous-dependencies */
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as https from 'https';
 import { HttpsProxyAgent } from 'https-proxy-agent';
+import nock from 'nock';
 import MockServerE2E from './MockServerE2E.ts';
 
 jest.mock('../framework/logger.ts', () => ({
@@ -45,6 +45,9 @@ describe('MockServerE2E HTTPS proxy mode', () => {
   let tmpDir: string;
 
   beforeEach(() => {
+    // testSetup globally disables external network; allow localhost so the
+    // test can talk to mockttp + the proxy CONNECT tunnel.
+    nock.enableNetConnect('localhost');
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mockserver-https-test-'));
     server = new MockServerE2E({
       events: {},

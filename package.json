@@ -664,6 +664,7 @@
     "liveline": "0.0.7",
     "metro-react-native-babel-preset": "~0.76.9",
     "metro-react-native-babel-transformer": "~0.76.9",
+    "https-proxy-agent": "^7.0.6",
     "nock": "^14.0.11",
     "nyc": "^15.1.0",
     "openai": "^6.25.0",
