@@ -6,6 +6,7 @@ import { isEvmAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 
 import Engine from '../../../../Engine';
+import { replaceAccountInNestedTransactions } from '../../../../../components/Views/confirmations/utils/transaction-pay';
 
 const MONEY_ACCOUNT_TRANSACTION_TYPES: readonly TransactionType[] = [
   TransactionType.moneyAccountDeposit,
@@ -56,6 +57,13 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
   if (!selectedAccount || !isEvmAccountType(selectedAccount.type)) {
     return;
   }
+
+  replaceAccountInNestedTransactions({
+    transactionId: transaction.id,
+    nestedTransactions: transaction.nestedTransactions,
+    oldAddress: transaction.txParams?.from,
+    newAddress: selectedAccount.address,
+  });
 
   TransactionPayController.setTransactionConfig(transaction.id, (config) => {
     config.accountOverride = selectedAccount.address as Hex;
