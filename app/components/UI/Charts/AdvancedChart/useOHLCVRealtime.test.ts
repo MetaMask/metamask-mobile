@@ -422,5 +422,43 @@ describe('useOHLCVRealtime', () => {
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(result.current.latestBar).toBeNull();
     });
+
+    it('activates REST fallback when OHLCVService:subscribe throws', async () => {
+      mockCall.mockRejectedValueOnce(new Error('WS subscribe failed'));
+      mockFetch.mockResolvedValue(
+        makeFetchResponse({
+          timestamp: 1700000000000,
+          open: 100,
+          high: 110,
+          low: 95,
+          close: 108,
+          volume: 9000,
+        }),
+      );
+
+      const { result } = renderHook(() =>
+        useOHLCVRealtime(arrangeDefaultOptions()),
+      );
+
+      // Fire the debounce — subscribe will reject
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+      });
+
+      // Advance past staleness threshold (30s) + one check interval (15s)
+      await act(async () => {
+        jest.advanceTimersByTime(30_000 + 15_000);
+      });
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(result.current.latestBar).toEqual({
+        timestamp: 1700000000,
+        open: 100,
+        high: 110,
+        low: 95,
+        close: 108,
+        volume: 9000,
+      });
+    });
   });
 });

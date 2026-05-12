@@ -144,12 +144,12 @@ export function useOHLCVRealtime({
       }
     };
 
-    const handleSubscriptionError = (payload: {
+    const handleSubscriptionError = (_payload: {
       channel: string;
       error: string;
       operation: string;
     }) => {
-      // Error is logged by OHLCVService in core; hook only needs to react if needed.
+      // Intentional no-op: errors are logged by OHLCVService internally.
     };
 
     const chainId = extractChainId(assetId);
@@ -231,7 +231,9 @@ export function useOHLCVRealtime({
         subscribedRef.current = true;
         lastMessageTimeRef.current = Date.now();
       } catch {
-        // Subscribe failure is handled by OHLCVService (reconnection + subscriptionError event).
+        // Seed lastMessageTime so the staleness timer can detect the gap
+        // and activate the REST polling fallback after STALENESS_THRESHOLD_MS.
+        lastMessageTimeRef.current = Date.now();
       }
     }, DEBOUNCE_MS);
 
