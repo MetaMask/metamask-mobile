@@ -1064,7 +1064,12 @@
       "closed": "Closed",
       "no_positions": "No positions yet",
       "error_loading_profile": "Couldn't load profile",
-      "twitter_link": "View on X (Twitter)"
+      "twitter_link": "View on X (Twitter)",
+      "sort": {
+        "value": "Value",
+        "pnl_percent": "P&L %",
+        "recent": "Recent"
+      }
     },
     "trader_position": {
       "market_cap": "Market cap",
