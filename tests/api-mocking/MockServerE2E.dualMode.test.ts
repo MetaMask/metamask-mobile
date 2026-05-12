@@ -83,9 +83,13 @@ describe('MockServerE2E dual-mode dispatch', () => {
   }
 
   beforeEach(() => {
-    // testSetup globally disables external network; allow localhost so the
-    // test can talk to mockttp + the proxy CONNECT tunnel.
-    nock.enableNetConnect('localhost');
+    // testSetup globally disables external network. Re-enable unrestricted
+    // because the test issues an HTTPS proxy CONNECT — the tunnel client
+    // connects to localhost but mswjs's interceptor inspects the tunnel's
+    // inner host (test.example.com) and nock rejects on that hostname.
+    // mockttp terminates the connection locally, so no traffic actually
+    // reaches the named host.
+    nock.enableNetConnect();
     tmpDir = fs.mkdtempSync(
       path.join(os.tmpdir(), 'mockserver-dualmode-test-'),
     );
