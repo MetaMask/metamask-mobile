@@ -857,7 +857,6 @@ jobs:
       changed_files: ${{ needs.get_requirements.outputs.changed_files }}
       selected_tags: >-
         ${{
-          inputs.runner_provider == 'namespace' && '["SmokeAccounts"]' ||
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
@@ -896,7 +895,7 @@ jobs:
 
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
-    if: ${{ !cancelled() && needs.ios-tests-ready.result == 'success' && inputs.runner_provider != 'namespace' }} # TEMP: skip E2E on namespace to isolate build cache testing
+    if: ${{ !cancelled() && needs.ios-tests-ready.result == 'success' }}
     permissions:
       contents: read
       id-token: write
