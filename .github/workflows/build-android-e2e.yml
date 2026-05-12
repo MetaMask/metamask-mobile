@@ -193,6 +193,7 @@ jobs:
           setup-simulator: false
           configure-keystores: true
           install-foundry: false
+          runner_provider: ${{ inputs.runner_provider }}
 
       # The Namespace cache action above already includes `.metamask`, so the
       # dedicated actions/cache restore is only needed on non-Namespace runners.

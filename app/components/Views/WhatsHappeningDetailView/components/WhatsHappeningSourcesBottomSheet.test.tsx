@@ -186,11 +186,11 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
     );
     fireEvent.press(screen.getByText('coindesk.com'));
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
         properties: expect.objectContaining({
           interaction_type: 'source_click',
           article_url: 'https://coindesk.com/fed-pauses',
@@ -218,7 +218,7 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
     );
     fireEvent.press(screen.getByText('coindesk.com'));
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
     );
   });
 });

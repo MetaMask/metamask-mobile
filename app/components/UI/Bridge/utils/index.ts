@@ -4,6 +4,7 @@ import { CaipAssetType, Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
+  formatAddressToAssetId,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { ImageSourcePropType } from 'react-native';
@@ -60,6 +61,8 @@ export const getTokenIconUrl = (
 export const getTokenImageSource = (
   symbol: string | undefined,
   imageUrl: string | undefined,
+  address?: string,
+  chainId?: Hex | CaipChainId,
 ): ImageSourcePropType | undefined => {
   // Check if we have a local icon for this symbol
   if (symbol && Object.keys(imageIcons).includes(symbol)) {
@@ -72,7 +75,21 @@ export const getTokenImageSource = (
 
   // Fall back to remote URL
   if (imageUrl) {
-    return { uri: imageUrl };
+    return {
+      uri: imageUrl,
+    };
+  }
+  const url =
+    address && chainId
+      ? getTokenIconUrl(
+          formatAddressToAssetId(address, chainId),
+          isNonEvmChainId(chainId),
+        )
+      : undefined;
+  if (url) {
+    return {
+      uri: url,
+    };
   }
 
   return undefined;
