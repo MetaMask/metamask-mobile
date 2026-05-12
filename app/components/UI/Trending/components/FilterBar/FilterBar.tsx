@@ -104,6 +104,8 @@ const FilterBar: React.FC<FilterBarProps> = ({
           onPress={onPriceChangePress}
           disabled={isPriceChangeDisabled}
           iconName={priceChangeIconName}
+          numberOfLines={1}
+          ellipsizeMode="tail"
         />
         <View style={tw`ml-2 min-w-0 shrink flex-row items-center gap-2`}>
           <FilterButton
