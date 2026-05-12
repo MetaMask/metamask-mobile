@@ -167,6 +167,20 @@ const UnifiedTransactionsView = ({
     [enabledNonEVMNetworks],
   );
 
+  /** Drop confirmed rows not on currently enabled EVM chains (guards stale query pages). */
+  const allConfirmedForEnabledChains = useMemo<TransactionViewModel[]>(() => {
+    const chains = enabledEVMChainIds ?? [];
+    if (chains.length === 0) {
+      return [];
+    }
+    const allowed = new Set(chains.map((c) => c.toLowerCase()));
+    return allConfirmedFiltered.filter(
+      (tx) =>
+        typeof tx.hexChainId === 'string' &&
+        allowed.has(tx.hexChainId.toLowerCase()),
+    );
+  }, [allConfirmedFiltered, enabledEVMChainIds]);
+
   const { maliciousTokenKeys } =
     useMultichainActivityMaliciousTokenKeys(nonEvmTransactions);
 
@@ -183,6 +197,9 @@ const UnifiedTransactionsView = ({
     chainFilteredNonEvmTransactionsForSelectedChain: NonEvmTransaction[];
   }>(() => {
     const bridgeHistoryValues = Object.values(bridgeHistory ?? {});
+    const enabledEvmSet = new Set(
+      (enabledEVMChainIds ?? []).map((id) => id.toLowerCase()),
+    );
     const submittedTxsFiltered = submittedTxs.filter(
       (tx): tx is EvmTransaction => {
         if (!isTransactionMetaLike(tx)) {
@@ -190,6 +207,12 @@ const UnifiedTransactionsView = ({
         }
 
         const { chainId: _chainId, txParams } = tx;
+        if (!enabledEvmSet.size) {
+          return false;
+        }
+        if (!_chainId || !enabledEvmSet.has(String(_chainId).toLowerCase())) {
+          return false;
+        }
         const isBridgeTransaction = isBridgeHistoryForEvmTransaction(
           tx,
           bridgeHistoryValues,
@@ -198,17 +221,17 @@ const UnifiedTransactionsView = ({
         const { from, nonce } = txParams || {};
         const hasNonce = nonce !== undefined && nonce !== null;
 
-        const matchingConfirmedByHash = allConfirmedFiltered.some(
+        const matchingConfirmedByHash = allConfirmedForEnabledChains.some(
           (confirmedTx) =>
             typeof hash === 'string' &&
             confirmedTx.hash.toLowerCase() === hash.toLowerCase() &&
-            confirmedTx.hexChainId === _chainId,
+            confirmedTx.hexChainId?.toLowerCase() === _chainId?.toLowerCase(),
         );
-        const matchingConfirmedByNonce = allConfirmedFiltered.some(
+        const matchingConfirmedByNonce = allConfirmedForEnabledChains.some(
           (confirmedTx) =>
             hasNonce &&
             confirmedTx.nonce === nonce &&
-            confirmedTx.hexChainId === _chainId &&
+            confirmedTx.hexChainId?.toLowerCase() === _chainId?.toLowerCase() &&
             Boolean(from) &&
             areAddressesEqual(confirmedTx.from, from),
         );
@@ -250,11 +273,11 @@ const UnifiedTransactionsView = ({
 
     return {
       evmPendingTxs: evmPendingFirst,
-      evmConfirmedTxs: allConfirmedFiltered,
+      evmConfirmedTxs: allConfirmedForEnabledChains,
       chainFilteredNonEvmTransactionsForSelectedChain,
     };
   }, [
-    allConfirmedFiltered,
+    allConfirmedForEnabledChains,
     submittedTxs,
     nonEvmTransactions,
     enabledEVMChainIds,
@@ -609,7 +632,9 @@ const UnifiedTransactionsView = ({
           i={index}
           navigation={navigation}
           txChainId={item.tx.hexChainId}
-          selectedAddress={selectedInternalAccount?.address}
+          selectedAddress={
+            selectedAccountGroupEvmAddress || selectedInternalAccount?.address
+          }
           currentCurrency={currentCurrency}
           showBottomBorder
           location={location}

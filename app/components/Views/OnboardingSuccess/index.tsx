@@ -1,4 +1,5 @@
 import React, { useCallback, useLayoutEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   CommonActions,
@@ -12,9 +13,12 @@ import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
 
 import OnboardingSuccessEndAnimation from './OnboardingSuccessEndAnimation/index';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import { setWalletHomeOnboardingStepsEligible } from '../../../actions/onboarding';
+import { shouldMarkWalletHomeOnboardingStepsEligible } from '../../../util/onboarding/walletHomeOnboardingStepsEligibility';
 
 import Engine from '../../../core/Engine/Engine';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
+import Logger from '../../../util/Logger';
 import {
   Box,
   BoxAlignItems,
@@ -53,6 +57,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   successFlow,
 }) => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
 
   const tw = useTailwind();
 
@@ -67,15 +72,31 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   };
 
   const handleOnDone = useCallback(() => {
-    const onOnboardingSuccess = async () => {
-      // Run discovery on all account providers (EVM and non-EVM)
-      await discoverAccounts(
-        Engine.context.KeyringController.state.keyrings[0].metadata.id,
+    if (shouldMarkWalletHomeOnboardingStepsEligible(successFlow)) {
+      dispatch(
+        setWalletHomeOnboardingStepsEligible(true, {
+          skipInitialBalanceWait: true,
+        }),
       );
+    }
+
+    const runDiscoverAccounts = async () => {
+      try {
+        await discoverAccounts(
+          Engine.context.KeyringController.state.keyrings[0].metadata.id,
+        );
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'OnboardingSuccess: discoverAccounts failed',
+        );
+      }
     };
-    onOnboardingSuccess();
-    onDone();
-  }, [onDone]);
+    void runDiscoverAccounts();
+    queueMicrotask(() => {
+      onDone();
+    });
+  }, [dispatch, onDone, successFlow]);
 
   const getTitleString = () => {
     if (successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP) {

@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import type { PerpsMarketData, SortOptionId } from '@metamask/perps-controller';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -35,7 +35,7 @@ import { trackExploreInteracted } from '../search/analytics';
 
 interface RwaPerpsBlockProps {
   refresh: TabProps['refresh'];
-  onViewAll: (filter: string) => void;
+  onViewAll: (filter: string, sortOptionId: SortOptionId) => void;
 }
 
 const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
@@ -78,6 +78,7 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
       isLoading={perps.isLoading}
       defaultPillKey="commodities"
       onViewAll={onViewAll}
+      sortOptionId={perps.defaultSortOptionId}
       tabName="RWAs"
       sectionName="perps_markets"
       headerTestID="section-header-view-all-rwa_perps"
@@ -201,8 +202,8 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         <PerpsSectionProvider>
           <RwaPerpsBlock
             refresh={refresh}
-            onViewAll={(filter) =>
-              navigateToPerpsMarketList(perpsNavigation, filter)
+            onViewAll={(filter, sortOptionId) =>
+              navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
             }
           />
         </PerpsSectionProvider>
