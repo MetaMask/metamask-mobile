@@ -3,14 +3,8 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHowItWorksView from './MoneyHowItWorksView';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 
 const mockGoBack = jest.fn();
-
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -62,9 +56,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
 describe('MoneyHowItWorksView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-      apyPercent: 4,
-    });
   });
 
   it('renders the section title', () => {
