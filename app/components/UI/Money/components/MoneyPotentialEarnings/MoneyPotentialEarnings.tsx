@@ -111,7 +111,7 @@ const MoneyPotentialEarnings = ({
             color={TextColor.TextAlternative}
             testID={MoneyPotentialEarningsTestIds.TEXT}
           >
-            {strings(
+            {`${strings(
               'money.potential_earnings.description_with_amounts_prefix',
               {
                 total: moneyFormatFiat(
@@ -119,7 +119,7 @@ const MoneyPotentialEarnings = ({
                   currentCurrency,
                 ),
               },
-            )}
+            )} `}
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
