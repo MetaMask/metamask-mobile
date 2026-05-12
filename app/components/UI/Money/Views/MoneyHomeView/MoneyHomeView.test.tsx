@@ -425,7 +425,9 @@ describe('MoneyHomeView', () => {
 
   describe('monthly and yearly earnings', () => {
     it('passes the formatted monthly earnings to MoneyEarnings', () => {
-      mockMoneyFormatFiat.mockReturnValue('$0.12');
+      mockMoneyFormatFiat.mockImplementation((value) =>
+        String(value) === '0' ? '$0.00' : '$0.12',
+      );
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -435,12 +437,41 @@ describe('MoneyHomeView', () => {
     });
 
     it('passes the formatted yearly earnings to MoneyEarnings', () => {
-      mockMoneyFormatFiat.mockReturnValue('$0.12');
+      mockMoneyFormatFiat.mockImplementation((value) =>
+        String(value) === '0' ? '$0.00' : '$0.12',
+      );
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(getByTestId(MoneyEarningsTestIds.YEARLY_VALUE)).toHaveTextContent(
         '+$0.12',
+      );
+    });
+
+    it('drops the + prefix when projected earnings round to formatted zero', () => {
+      mockMoneyFormatFiat.mockReturnValue('$0.00');
+      mockUseMoneyAccountBalance.mockReturnValue({
+        totalFiatFormatted: '$0.00',
+        musdFiatFormatted: '$0.00',
+        musdSHFvdFiatFormatted: '$0.00',
+        totalFiatRaw: '0.001',
+        tokenTotal: undefined,
+        isAggregatedBalanceLoading: false,
+        apyDecimal: 0.05,
+        apyPercent: 5,
+        apyPercentFormatted: '5%',
+        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
+        musdBalanceQuery: { data: undefined, isLoading: false },
+        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyEarningsTestIds.MONTHLY_VALUE)).toHaveTextContent(
+        /^\$0\.00$/,
+      );
+      expect(getByTestId(MoneyEarningsTestIds.YEARLY_VALUE)).toHaveTextContent(
+        /^\$0\.00$/,
       );
     });
 

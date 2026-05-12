@@ -92,7 +92,8 @@ const MoneyHomeView = () => {
       1 / 12,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
-    return `+${moneyFormatFiat(new BigNumber(earnings), currentCurrency)}`;
+    const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    return formatted === formattedZero ? formatted : `+${formatted}`;
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   const yearlyEarnings = useMemo(() => {
@@ -105,7 +106,8 @@ const MoneyHomeView = () => {
       1,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
-    return `+${moneyFormatFiat(new BigNumber(earnings), currentCurrency)}`;
+    const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    return formatted === formattedZero ? formatted : `+${formatted}`;
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   const handleMenuPress = useCallback(() => {
