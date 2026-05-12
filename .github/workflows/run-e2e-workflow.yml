@@ -103,7 +103,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'android' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          cache: |
+            gradle
+            maven
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+            /home/runner/_work/.gradle/caches
+            /home/runner/_work/.gradle/wrapper
+            /home/runner/_work/.gradle/apk-cache
+
       - name: Restore .metamask folder
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/cache@v4
         with:
           path: .metamask
