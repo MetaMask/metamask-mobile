@@ -107,11 +107,11 @@ const NotificationsSettings = ({ navigation }: Props) => {
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <HeaderCompactStandard
-        title={strings('app_settings.notifications_title')}
-        onBack={navigation.goBack}
-      />
+      <HeaderCompactStandard onBack={navigation.goBack} />
       <ScrollView style={styles.container}>
+        <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
+          {strings('app_settings.notifications_title')}
+        </Text>
         <MainNotificationToggle />
 
         {isMetamaskNotificationsEnabled && (
@@ -149,6 +149,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
               }
             />
 
+            {/* Temporarily disabled until we match/replace social AI preferences
             <NotificationRow
               title={strings('app_settings.notifications_opts.social_ai_title')}
               status={getStatusText(preferences.socialAI)}
@@ -160,21 +161,17 @@ const NotificationsSettings = ({ navigation }: Props) => {
                   strings('app_settings.notifications_opts.social_ai_desc'),
                 )
               }
-            />
+            /> */}
 
             <NotificationRow
-              title={strings(
-                'app_settings.notifications_opts.announcements_title',
-              )}
+              title={strings('app_settings.notifications_opts.marketing_title')}
               status={getStatusText(preferences.marketing)}
               iconName={IconName.Campaign}
               onPress={() =>
                 navigateToSection(
                   'marketing',
-                  strings(
-                    'app_settings.notifications_opts.announcements_title',
-                  ),
-                  strings('app_settings.notifications_opts.announcements_desc'),
+                  strings('app_settings.notifications_opts.marketing_title'),
+                  strings('app_settings.notifications_opts.marketing_desc'),
                 )
               }
             />
