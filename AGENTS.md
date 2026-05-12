@@ -126,7 +126,7 @@ See detailed setup documentation:
 - **Native development**: [docs/readme/environment.md](./docs/readme/environment.md)
 - **Infura & Firebase**: [README.md](./README.md#getting-started)
 
-**Required Tools**: Node.js ^20.18.0 • Yarn ^4.10.3 • Watchman
+**Required Tools**: Node.js ^20.18.0 • Yarn ^4.14.1 • Watchman
 
 ### AI Tooling — Developer Usage Collection
 

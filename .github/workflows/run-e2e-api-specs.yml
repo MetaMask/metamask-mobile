@@ -43,7 +43,7 @@ jobs:
       - name: Enable Corepack and setup Yarn
         run: |
           corepack enable
-          corepack prepare yarn@4.10.3 --activate
+          corepack prepare yarn@4.14.1 --activate
 
       - name: Install JavaScript dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
