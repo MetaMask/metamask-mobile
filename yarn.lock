@@ -10233,7 +10233,7 @@ __metadata:
 
 "@metamask/transaction-controller@patch:@metamask/transaction-controller@npm%3A65.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-65.2.0-0cf1da01e0.patch":
   version: 65.2.0
-  resolution: "@metamask/transaction-controller@patch:@metamask/transaction-controller@npm%3A65.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-65.2.0-0cf1da01e0.patch::version=65.2.0&hash=4f7244"
+  resolution: "@metamask/transaction-controller@patch:@metamask/transaction-controller@npm%3A65.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-65.2.0-0cf1da01e0.patch::version=65.2.0&hash=0709d5"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -10265,7 +10265,7 @@ __metadata:
   peerDependencies:
     "@babel/runtime": ^7.0.0
     "@metamask/eth-block-tracker": ">=9"
-  checksum: 10/7352a264fd21a7762603a2e0237d01354b25bb796c5b8bb01d8da1e6c761068f43e5bb350ec3b7b1bebc86deefc3d59130cdebe761e16eac29090ae3f66f4eba
+  checksum: 10/0574353dd39c87291258d9a7378ec14283e343836f0abcd77263dd3a8933cedec26b232c000c90801cbde5aab13aab7d0f2d3caddf13752db9b2693a75853f85
   languageName: node
   linkType: hard
 
@@ -10300,7 +10300,7 @@ __metadata:
 
 "@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A22.1.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-22.1.0-3997973b7e.patch":
   version: 22.1.0
-  resolution: "@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A22.1.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-22.1.0-3997973b7e.patch::version=22.1.0&hash=de9d78"
+  resolution: "@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A22.1.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-22.1.0-3997973b7e.patch::version=22.1.0&hash=3fa570"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10323,7 +10323,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/04b5809fcb3d06a63d06aedfd1b1f0dcfe6c78b8a510f64b03e31ef9baeb18b520c630a6f253345cd5be2f16f72fa008b72c4bcdaf4bf79da529ca4a9b8c3ca6
+  checksum: 10/7613bc820e666201a3b5433de8fd6115c88ceb52c4ad17c94952ca6b7920624959ee8f85aa4c687f72b75351e7bfd9eb5fa05df242459b89e3e9ed887a3a2bd5
   languageName: node
   linkType: hard
 

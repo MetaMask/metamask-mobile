@@ -150,6 +150,7 @@ export function useTransactionConfirm() {
             assetId,
             amount: amountFiat,
             paymentMethodId: fiatPayment?.selectedPaymentMethodId,
+            currency: 'USD',
           },
           {
             onOrderCreated: (orderIdFromCallback) => {
