@@ -64,13 +64,12 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
+          cache: gradle
           path: |
             ~/.cache/yarn
             .metamask
             node_modules
             .yarn/cache
-            ${{ env.GRADLE_USER_HOME }}/caches
-            ${{ env.GRADLE_USER_HOME }}/wrapper
             ${{ env.GRADLE_USER_HOME }}/apk-cache
 
       - name: Configure Gradle remote build cache
