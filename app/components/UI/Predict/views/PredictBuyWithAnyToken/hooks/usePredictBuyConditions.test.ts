@@ -24,6 +24,28 @@ let mockAvailableTokens: {
 let mockPredictBalance = 0;
 let mockQuotes: unknown[] = [];
 const mockResetSelectedPaymentToken = jest.fn();
+const mockNavigationListeners: Record<string, Set<() => void>> = {};
+const mockAddListener = jest.fn((eventName: string, callback: () => void) => {
+  if (!mockNavigationListeners[eventName]) {
+    mockNavigationListeners[eventName] = new Set();
+  }
+
+  mockNavigationListeners[eventName].add(callback);
+
+  return () => {
+    mockNavigationListeners[eventName]?.delete(callback);
+  };
+});
+const mockEmitNavigationEvent = (eventName: string) => {
+  mockNavigationListeners[eventName]?.forEach((callback) => callback());
+};
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    addListener: mockAddListener,
+  }),
+}));
 
 jest.mock('./usePredictBuyAvailableBalance', () => ({
   usePredictBuyAvailableBalance: () => ({
@@ -99,6 +121,9 @@ const defaultParams = {
 describe('usePredictBuyConditions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    Object.keys(mockNavigationListeners).forEach((eventName) => {
+      delete mockNavigationListeners[eventName];
+    });
     mockIsBalanceLoading = false;
     mockAvailableBalance = 100;
     mockActiveOrder = null;
@@ -115,7 +140,46 @@ describe('usePredictBuyConditions', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.restoreAllMocks();
+  });
+
+  describe('payment selector navigation lock', () => {
+    it('locks immediately and unlocks one second after focus returns from the selector', () => {
+      jest.useFakeTimers();
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.isPaymentSelectorNavigationLocked).toBe(false);
+      expect(result.current.canPlaceBet).toBe(true);
+
+      act(() => {
+        result.current.lockPaymentSelectorNavigation();
+      });
+
+      expect(result.current.isPaymentSelectorNavigationLocked).toBe(true);
+      expect(result.current.canPlaceBet).toBe(false);
+
+      act(() => {
+        mockEmitNavigationEvent('blur');
+        mockEmitNavigationEvent('focus');
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(999);
+      });
+
+      expect(result.current.isPaymentSelectorNavigationLocked).toBe(true);
+
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+
+      expect(result.current.isPaymentSelectorNavigationLocked).toBe(false);
+      expect(result.current.canPlaceBet).toBe(true);
+    });
   });
 
   describe('isBelowMinimum', () => {

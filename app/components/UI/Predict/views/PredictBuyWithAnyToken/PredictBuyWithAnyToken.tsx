@@ -68,8 +68,6 @@ import {
   predictBuyPreviewSessionRef,
 } from '../PredictBuyPreview/PredictBuyPreview';
 
-const PAYMENT_SELECTOR_NAVIGATION_UNLOCK_DELAY_MS = 1000;
-
 const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
@@ -93,15 +91,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const { deposit } = usePredictDeposit();
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
-  const [
-    isPaymentSelectorNavigationLocked,
-    setIsPaymentSelectorNavigationLocked,
-  ] = useState(false);
-  const isPaymentSelectorNavigationLockedRef = useRef(false);
-  const didBlurAfterPaymentSelectorOpenRef = useRef(false);
-  const paymentSelectorUnlockTimerRef = useRef<ReturnType<
-    typeof setTimeout
-  > | null>(null);
 
   const payWithAnyTokenEnabled = useSelector(
     selectPredictWithAnyTokenEnabledFlag,
@@ -155,63 +144,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     setIsFeeBreakdownVisible(false);
   }, []);
 
-  const clearPaymentSelectorUnlockTimer = useCallback(() => {
-    if (paymentSelectorUnlockTimerRef.current) {
-      clearTimeout(paymentSelectorUnlockTimerRef.current);
-      paymentSelectorUnlockTimerRef.current = null;
-    }
-  }, []);
-
-  const updatePaymentSelectorNavigationLock = useCallback(
-    (isLocked: boolean) => {
-      isPaymentSelectorNavigationLockedRef.current = isLocked;
-      setIsPaymentSelectorNavigationLocked(isLocked);
-    },
-    [],
-  );
-
-  const lockPaymentSelectorNavigation = useCallback(() => {
-    clearPaymentSelectorUnlockTimer();
-    didBlurAfterPaymentSelectorOpenRef.current = false;
-    updatePaymentSelectorNavigationLock(true);
-  }, [clearPaymentSelectorUnlockTimer, updatePaymentSelectorNavigationLock]);
-
-  useEffect(() => {
-    const scheduleUnlock = () => {
-      clearPaymentSelectorUnlockTimer();
-      paymentSelectorUnlockTimerRef.current = setTimeout(() => {
-        didBlurAfterPaymentSelectorOpenRef.current = false;
-        updatePaymentSelectorNavigationLock(false);
-        paymentSelectorUnlockTimerRef.current = null;
-      }, PAYMENT_SELECTOR_NAVIGATION_UNLOCK_DELAY_MS);
-    };
-
-    const unsubscribeBlur = navigation.addListener('blur', () => {
-      if (isPaymentSelectorNavigationLockedRef.current) {
-        didBlurAfterPaymentSelectorOpenRef.current = true;
-      }
-    });
-
-    const unsubscribeFocus = navigation.addListener('focus', () => {
-      if (
-        isPaymentSelectorNavigationLockedRef.current &&
-        didBlurAfterPaymentSelectorOpenRef.current
-      ) {
-        scheduleUnlock();
-      }
-    });
-
-    return () => {
-      unsubscribeBlur();
-      unsubscribeFocus();
-      clearPaymentSelectorUnlockTimer();
-    };
-  }, [
-    clearPaymentSelectorUnlockTimer,
-    navigation,
-    updatePaymentSelectorNavigationLock,
-  ]);
-
   const {
     preview,
     error: previewError,
@@ -252,6 +184,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isCurrentTokenInsufficient,
     hasAlternativeBalance,
     isPaySystemSettling,
+    isPaymentSelectorNavigationLocked,
+    lockPaymentSelectorNavigation,
   } = usePredictBuyConditions({
     currentValue,
     preview,

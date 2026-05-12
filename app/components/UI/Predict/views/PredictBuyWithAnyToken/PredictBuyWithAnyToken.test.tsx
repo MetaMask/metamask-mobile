@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictBuyWithAnyToken from './PredictBuyWithAnyToken';
@@ -37,21 +37,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 const mockNavigate = jest.fn();
-const mockNavigationListeners: Record<string, Set<() => void>> = {};
-const mockAddListener = jest.fn((eventName: string, callback: () => void) => {
-  if (!mockNavigationListeners[eventName]) {
-    mockNavigationListeners[eventName] = new Set();
-  }
-
-  mockNavigationListeners[eventName].add(callback);
-
-  return () => {
-    mockNavigationListeners[eventName]?.delete(callback);
-  };
-});
-const mockEmitNavigationEvent = (eventName: string) => {
-  mockNavigationListeners[eventName]?.forEach((callback) => callback());
-};
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -63,10 +48,7 @@ jest.mock('@react-navigation/native', () => ({
       entryPoint: 'market_details',
     },
   }),
-  useNavigation: () => ({
-    addListener: mockAddListener,
-    navigate: mockNavigate,
-  }),
+  useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
 jest.mock('react-redux', () => ({
@@ -174,6 +156,8 @@ jest.mock('./hooks/usePredictBuyInfo', () => ({
 
 let mockIsCurrentTokenInsufficient = false;
 let mockHasAlternativeBalance = false;
+let mockIsPaymentSelectorNavigationLocked = false;
+const mockLockPaymentSelectorNavigation = jest.fn();
 
 jest.mock('./hooks/usePredictBuyConditions', () => ({
   usePredictBuyConditions: () => ({
@@ -185,6 +169,9 @@ jest.mock('./hooks/usePredictBuyConditions', () => ({
     isInsufficientBalance: false,
     isCurrentTokenInsufficient: mockIsCurrentTokenInsufficient,
     hasAlternativeBalance: mockHasAlternativeBalance,
+    maxBetAmount: 50,
+    isPaymentSelectorNavigationLocked: mockIsPaymentSelectorNavigationLocked,
+    lockPaymentSelectorNavigation: mockLockPaymentSelectorNavigation,
   }),
 }));
 
@@ -430,9 +417,6 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 describe('PredictBuyWithAnyToken', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    Object.keys(mockNavigationListeners).forEach((eventName) => {
-      delete mockNavigationListeners[eventName];
-    });
     mockPayWithAnyTokenEnabled = true;
     mockFakOrdersEnabled = false;
     mockIsPreviewCalculating = false;
@@ -441,6 +425,7 @@ describe('PredictBuyWithAnyToken', () => {
     mockBuyErrorBanner = null;
     mockIsCurrentTokenInsufficient = false;
     mockHasAlternativeBalance = false;
+    mockIsPaymentSelectorNavigationLocked = false;
     mockUseSelector.mockImplementation((selector) => {
       if (typeof selector === 'function') {
         return selector({
@@ -454,10 +439,6 @@ describe('PredictBuyWithAnyToken', () => {
 
       return undefined;
     });
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
   });
 
   it('renders the screen, resets user input change after preview calculation, and opens the fee breakdown sheet', () => {
@@ -516,45 +497,23 @@ describe('PredictBuyWithAnyToken', () => {
   });
 
   it('locks the buy button when the payment selector opens and unlocks one second after focus returns', () => {
-    jest.useFakeTimers();
-
     renderWithProvider(<PredictBuyWithAnyToken />);
 
-    expect(screen.getByTestId('predict-buy-action-button')).toHaveTextContent(
-      /button-disabled-false/,
-    );
-
     fireEvent.press(screen.getByTestId('predict-pay-with-row'));
+
+    expect(mockLockPaymentSelectorNavigation).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the payment selector lock condition to disable the buy button and pay row', () => {
+    mockIsPaymentSelectorNavigationLocked = true;
+
+    renderWithProvider(<PredictBuyWithAnyToken />);
 
     expect(screen.getByTestId('predict-buy-action-button')).toHaveTextContent(
       /button-disabled-true/,
     );
     expect(screen.getByTestId('predict-pay-with-row')).toHaveTextContent(
       /disabled-true/,
-    );
-
-    act(() => {
-      mockEmitNavigationEvent('blur');
-      mockEmitNavigationEvent('focus');
-    });
-
-    act(() => {
-      jest.advanceTimersByTime(999);
-    });
-
-    expect(screen.getByTestId('predict-buy-action-button')).toHaveTextContent(
-      /button-disabled-true/,
-    );
-
-    act(() => {
-      jest.advanceTimersByTime(1);
-    });
-
-    expect(screen.getByTestId('predict-buy-action-button')).toHaveTextContent(
-      /button-disabled-false/,
-    );
-    expect(screen.getByTestId('predict-pay-with-row')).toHaveTextContent(
-      /disabled-false/,
     );
   });
 
@@ -744,6 +703,7 @@ describe('PredictBuyWithAnyToken', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CONFIRMATION_PAY_WITH_MODAL,
       );
+      expect(mockLockPaymentSelectorNavigation).toHaveBeenCalledTimes(1);
       expect(mockHandleConfirm).not.toHaveBeenCalled();
     });
 

@@ -1,5 +1,6 @@
 import { BigNumber } from 'bignumber.js';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
@@ -12,6 +13,8 @@ import { usePredictDeposit } from '../../../hooks/usePredictDeposit';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
+
+const PAYMENT_SELECTOR_NAVIGATION_UNLOCK_DELAY_MS = 1000;
 
 interface UsePredictBuyConditionsParams {
   currentValue: number;
@@ -34,6 +37,7 @@ export const usePredictBuyConditions = ({
   isInputFocused,
   hasBlockingPayAlerts,
 }: UsePredictBuyConditionsParams) => {
+  const navigation = useNavigation();
   const { isBalanceLoading, availableBalance } =
     usePredictBuyAvailableBalance();
   const isPayTotalsLoading = useIsTransactionPayLoading();
@@ -57,6 +61,72 @@ export const usePredictBuyConditions = ({
   // falsely mark a loading cycle as "seen" — which would cause a premature
   // settling exit (Bug 3).
   const hasSeenLoadingRef = useRef(false);
+  const [
+    isPaymentSelectorNavigationLocked,
+    setIsPaymentSelectorNavigationLocked,
+  ] = useState(false);
+  const isPaymentSelectorNavigationLockedRef = useRef(false);
+  const didBlurAfterPaymentSelectorOpenRef = useRef(false);
+  const paymentSelectorUnlockTimerRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+
+  const clearPaymentSelectorUnlockTimer = useCallback(() => {
+    if (paymentSelectorUnlockTimerRef.current) {
+      clearTimeout(paymentSelectorUnlockTimerRef.current);
+      paymentSelectorUnlockTimerRef.current = null;
+    }
+  }, []);
+
+  const updatePaymentSelectorNavigationLock = useCallback(
+    (isLocked: boolean) => {
+      isPaymentSelectorNavigationLockedRef.current = isLocked;
+      setIsPaymentSelectorNavigationLocked(isLocked);
+    },
+    [],
+  );
+
+  const lockPaymentSelectorNavigation = useCallback(() => {
+    clearPaymentSelectorUnlockTimer();
+    didBlurAfterPaymentSelectorOpenRef.current = false;
+    updatePaymentSelectorNavigationLock(true);
+  }, [clearPaymentSelectorUnlockTimer, updatePaymentSelectorNavigationLock]);
+
+  useEffect(() => {
+    const scheduleUnlock = () => {
+      clearPaymentSelectorUnlockTimer();
+      paymentSelectorUnlockTimerRef.current = setTimeout(() => {
+        didBlurAfterPaymentSelectorOpenRef.current = false;
+        updatePaymentSelectorNavigationLock(false);
+        paymentSelectorUnlockTimerRef.current = null;
+      }, PAYMENT_SELECTOR_NAVIGATION_UNLOCK_DELAY_MS);
+    };
+
+    const unsubscribeBlur = navigation.addListener('blur', () => {
+      if (isPaymentSelectorNavigationLockedRef.current) {
+        didBlurAfterPaymentSelectorOpenRef.current = true;
+      }
+    });
+
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      if (
+        isPaymentSelectorNavigationLockedRef.current &&
+        didBlurAfterPaymentSelectorOpenRef.current
+      ) {
+        scheduleUnlock();
+      }
+    });
+
+    return () => {
+      unsubscribeBlur();
+      unsubscribeFocus();
+      clearPaymentSelectorUnlockTimer();
+    };
+  }, [
+    clearPaymentSelectorUnlockTimer,
+    navigation,
+    updatePaymentSelectorNavigationLock,
+  ]);
 
   const selectedPaymentTokenKey = useMemo(() => {
     if (!selectedPaymentToken?.address || !selectedPaymentToken?.chainId) {
@@ -226,7 +296,8 @@ export const usePredictBuyConditions = ({
       !isRateLimited &&
       !isBalanceLoading &&
       !isPayFeesLoading &&
-      !hasBlockingPayAlerts,
+      !hasBlockingPayAlerts &&
+      !isPaymentSelectorNavigationLocked,
     [
       isPaySystemSettling,
       isConfirming,
@@ -237,6 +308,7 @@ export const usePredictBuyConditions = ({
       isBalanceLoading,
       isPayFeesLoading,
       hasBlockingPayAlerts,
+      isPaymentSelectorNavigationLocked,
     ],
   );
 
@@ -273,5 +345,7 @@ export const usePredictBuyConditions = ({
     isPayFeesLoading,
     isBalancePulsing,
     isPaySystemSettling,
+    isPaymentSelectorNavigationLocked,
+    lockPaymentSelectorNavigation,
   };
 };
