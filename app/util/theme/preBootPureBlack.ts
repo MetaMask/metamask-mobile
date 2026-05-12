@@ -13,9 +13,9 @@
  * twrnc preset. If the DS team ever freezes the exported token objects,
  * this approach breaks and we fall back to forking the preset.
  *
- * Flag source: hardcoded constant below, gated on `__DEV__`. Flip
- * `PURE_BLACK_ENABLED` to `true` in your working copy, restart Metro, audit
- * your flows, flip back. Will never apply in release builds.
+ * Flag source: `MM_PURE_BLACK_PREVIEW` in `.js.env`. Inlined at bundle time
+ * by `babel-plugin-transform-inline-environment-variables`. Default is off;
+ * set to `"true"` in `.js.env` (or in a CI build profile's env) and rebuild.
  *
  * Values mirror the DS preview branch `cursor/background-default-pure-black-2ad1`
  * commit c84e301a "feat: Refine pure black colors (#1137)". Re-diff and update
@@ -23,11 +23,13 @@
  */
 /* eslint-disable @metamask/design-tokens/color-no-hex */
 import { brandColor, darkTheme } from '@metamask/design-tokens';
+import Logger from '../Logger';
 
-// Flip locally to audit your flows; never commit as `true`.
-const PURE_BLACK_ENABLED = false;
+const PURE_BLACK_ENABLED = process.env.MM_PURE_BLACK_PREVIEW === 'true';
 
-if (__DEV__ && PURE_BLACK_ENABLED) {
+Logger.log('[pure-black] enabled:', PURE_BLACK_ENABLED);
+
+if (PURE_BLACK_ENABLED) {
   Object.assign(brandColor, {
     grey600: '#2b2b30',
     grey700: '#222226',
@@ -62,6 +64,5 @@ if (__DEV__ && PURE_BLACK_ENABLED) {
     muted: '#e2e2ff26',
   });
 
-  // eslint-disable-next-line no-console
-  console.log('[pure-black] preview tokens applied');
+  Logger.log('[pure-black] preview tokens applied');
 }
