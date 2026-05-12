@@ -3,23 +3,24 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import type { Hex } from '@metamask/utils';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
 import {
   applySlippage,
   getSharesForWithdrawal,
   buildMoneyAccountDepositBatch,
-  buildMoneyAccountWithdraw,
+  buildMoneyAccountWithdrawBatch,
   updateMoneyAccountDepositTokenAmount,
   updateMoneyAccountWithdrawTokenAmount,
 } from './moneyAccountTransactions';
+import ReduxService from '../../../../core/redux/ReduxService';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectEvmAddress } from '../../../../selectors/accountsController';
+import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import {
   type MoneyAccountVaultConfig,
   selectMoneyAccountVaultConfig,
 } from '../../../../selectors/featureFlagController/moneyAccount';
-import { getProviderByChainId } from '../../../../util/notifications/methods/common';
-import ReduxService from '../../../../core/redux';
 
 jest.mock('../../Earn/constants/musd', () => ({
   MUSD_TOKEN_ADDRESS_BY_CHAIN: {} as Record<string, Hex>,
@@ -33,6 +34,27 @@ jest.mock('../../../../core/AppConstants', () => ({
   },
 }));
 
+jest.mock('../../../../core/redux/ReduxService', () => ({
+  __esModule: true,
+  default: { store: { getState: jest.fn() } },
+}));
+
+jest.mock('../../../../selectors/featureFlagController/moneyAccount', () => ({
+  selectMoneyAccountVaultConfig: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: jest.fn(),
+  selectMoneyAccounts: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/accountsController', () => ({
+  selectEvmAddress: jest.fn(),
+}));
+
+jest.mock('../../../../util/notifications/methods/common', () => ({
+  getProviderByChainId: jest.fn(),
+}));
 jest.mock('../../../../util/notifications/methods/common');
 jest.mock('../../../../core/redux');
 jest.mock('../../../../selectors/featureFlagController/moneyAccount');
@@ -72,7 +94,6 @@ const MOCK_BORING_VAULT = '0xB5F07d769dD60fE54c97dd53101181073DDf21b2' as Hex;
 const MOCK_TELLER = '0x86821F179eaD9F0b3C79b2f8deF0227eEBFDc9f9' as Hex;
 const MOCK_ACCOUNTANT = '0x800ebc3B74F67EaC27C9CCE4E4FF28b17CdCA173' as Hex;
 const MOCK_LENS = '0x846a7832022350434B5cC006d07cc9c782469660' as Hex;
-const MOCK_TO_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678' as Hex;
 const MOCK_PROVIDER = {} as ethers.providers.Provider;
 
 const MOCK_VAULT_CONFIG: MoneyAccountVaultConfig = {
@@ -283,96 +304,228 @@ describe('moneyAccountTransactions', () => {
   });
 
   describe('updateMoneyAccountWithdrawTokenAmount', () => {
-    it('resolves to an empty array (stub implementation)', async () => {
-      const transactionMeta = {
-        id: 'tx-1',
-        nestedTransactions: [],
-      } as unknown as TransactionMeta;
+    const mockGetState = jest.mocked(ReduxService).store.getState as jest.Mock;
+    const mockSelectVaultConfig = jest.mocked(selectMoneyAccountVaultConfig);
+    const mockSelectPrimaryMoneyAccount = jest.mocked(
+      selectPrimaryMoneyAccount,
+    );
+    const mockSelectEvmAddress = jest.mocked(selectEvmAddress);
+    const mockGetProviderByChainId = jest.mocked(getProviderByChainId);
 
-      await expect(
-        updateMoneyAccountWithdrawTokenAmount(transactionMeta, '1.23'),
-      ).resolves.toEqual([]);
+    const MOCK_VAULT_CONFIG = {
+      chainId: MOCK_CHAIN_ID,
+      boringVault: MOCK_BORING_VAULT,
+      tellerAddress: MOCK_TELLER,
+      accountantAddress: MOCK_ACCOUNTANT,
+      lensAddress: MOCK_LENS,
+    };
+    const MOCK_MONEY_ACCOUNT_ADDRESS =
+      '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as Hex;
+    const MOCK_RECIPIENT = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex;
+
+    const MOCK_TX_META = {
+      id: 'tx-1',
+      chainId: MOCK_CHAIN_ID,
+    } as unknown as TransactionMeta;
+
+    beforeEach(() => {
+      mockGetState.mockReturnValue({});
+      mockSelectVaultConfig.mockReturnValue(MOCK_VAULT_CONFIG);
+      mockSelectPrimaryMoneyAccount.mockReturnValue({
+        address: MOCK_MONEY_ACCOUNT_ADDRESS,
+      } as ReturnType<typeof selectPrimaryMoneyAccount>);
+      mockSelectEvmAddress.mockReturnValue(MOCK_RECIPIENT);
+      mockGetProviderByChainId.mockReturnValue(
+        MOCK_PROVIDER as ReturnType<typeof getProviderByChainId>,
+      );
+      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
     });
 
-    it('resolves to an array regardless of transactionMeta shape', async () => {
-      const transactionMeta = {
-        id: 'tx-2',
-      } as unknown as TransactionMeta;
-
+    it('returns two UpdateTransactionPayAmountCall entries with nestedTransactionIndex 0 and 1', async () => {
       const result = await updateMoneyAccountWithdrawTokenAmount(
-        transactionMeta,
-        '1.23',
+        MOCK_TX_META,
+        '1',
       );
 
-      expect(Array.isArray(result)).toBe(true);
+      expect(result).toHaveLength(2);
+      expect(result[0].nestedTransactionIndex).toBe(0);
+      expect(result[1].nestedTransactionIndex).toBe(1);
+    });
+
+    it('returns calldata hex strings for both nested transactions', async () => {
+      const result = await updateMoneyAccountWithdrawTokenAmount(
+        MOCK_TX_META,
+        '1',
+      );
+
+      expect(result[0].transactionData).toBeDefined();
+      expect(result[0].transactionData.startsWith('0x')).toBe(true);
+
+      expect(result[1].transactionData).toBeDefined();
+      expect(result[1].transactionData.startsWith('0x')).toBe(true);
+    });
+
+    it('returns empty array when vaultConfig is missing', async () => {
+      mockSelectVaultConfig.mockReturnValue(undefined);
+
+      const result = await updateMoneyAccountWithdrawTokenAmount(
+        MOCK_TX_META,
+        '1',
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when primaryMoneyAccount is missing', async () => {
+      mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
+
+      const result = await updateMoneyAccountWithdrawTokenAmount(
+        MOCK_TX_META,
+        '1',
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when recipient (selectEvmAddress) is missing', async () => {
+      mockSelectEvmAddress.mockReturnValue(undefined);
+
+      const result = await updateMoneyAccountWithdrawTokenAmount(
+        MOCK_TX_META,
+        '1',
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when provider is not available for the chain', async () => {
+      mockGetProviderByChainId.mockReturnValue(
+        undefined as unknown as ReturnType<typeof getProviderByChainId>,
+      );
+
+      const result = await updateMoneyAccountWithdrawTokenAmount(
+        MOCK_TX_META,
+        '1',
+      );
+
+      expect(result).toEqual([]);
     });
   });
 
-  describe('buildMoneyAccountWithdraw', () => {
-    it('returns withdraw params with correct transaction type', async () => {
+  describe('buildMoneyAccountWithdrawBatch', () => {
+    const MOCK_MONEY_ACCOUNT_ADDRESS =
+      '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as Hex;
+    const MOCK_RECIPIENT_ADDRESS =
+      '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex;
+
+    it('returns withdrawTx and transferTx with correct transaction types', async () => {
       mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
 
-      const result = await buildMoneyAccountWithdraw({
+      const result = await buildMoneyAccountWithdrawBatch({
         amount: BigInt(1_000_000),
         chainId: MOCK_CHAIN_ID,
         tellerAddress: MOCK_TELLER,
         accountantAddress: MOCK_ACCOUNTANT,
-        toAddress: MOCK_TO_ADDRESS,
+        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
+        recipient: MOCK_RECIPIENT_ADDRESS,
         provider: MOCK_PROVIDER,
       });
 
-      expect(result.params.to).toBe(MOCK_TELLER);
-      expect(result.params.value).toBe('0x0');
-      expect(result.options.type).toBe(TransactionType.moneyAccountWithdraw);
-      expect(result.options.origin).toBe(ORIGIN_METAMASK);
-      expect(result.options.requireApproval).toBe(true);
+      expect(result.withdrawTx.type).toBe(TransactionType.moneyAccountWithdraw);
+      expect(result.withdrawTx.params.to).toBe(MOCK_TELLER);
+      expect(result.withdrawTx.params.value).toBe('0x0');
+
+      expect(result.transferTx.type).toBe(TransactionType.tokenMethodTransfer);
+      expect(result.transferTx.params.value).toBe('0x0');
     });
 
-    it('throws when mUSD is not deployed on the chain', async () => {
-      const unsupportedChain = '0xdead' as Hex;
+    it('transferTx targets the USDC contract address', async () => {
+      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
 
-      await expect(
-        buildMoneyAccountWithdraw({
-          amount: BigInt(1_000_000),
-          chainId: unsupportedChain,
-          tellerAddress: MOCK_TELLER,
-          accountantAddress: MOCK_ACCOUNTANT,
-          toAddress: MOCK_TO_ADDRESS,
-          provider: MOCK_PROVIDER,
-        }),
-      ).rejects.toThrow(`mUSD not deployed on chain ${unsupportedChain}`);
+      const result = await buildMoneyAccountWithdrawBatch({
+        amount: BigInt(1_000_000),
+        chainId: MOCK_CHAIN_ID,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
+        recipient: MOCK_RECIPIENT_ADDRESS,
+        provider: MOCK_PROVIDER,
+      });
+
+      // transferTx.to is the ERC-20 token contract (USDC), not the recipient
+      expect(result.transferTx.params.to).not.toBe(MOCK_RECIPIENT_ADDRESS);
+      expect(result.transferTx.params.to.startsWith('0x')).toBe(true);
+    });
+
+    it('encodes both withdraw and transfer data as hex strings', async () => {
+      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
+
+      const result = await buildMoneyAccountWithdrawBatch({
+        amount: BigInt(1_000_000),
+        chainId: MOCK_CHAIN_ID,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
+        recipient: MOCK_RECIPIENT_ADDRESS,
+        provider: MOCK_PROVIDER,
+      });
+
+      expect(result.withdrawTx.params.data).toBeDefined();
+      expect(result.withdrawTx.params.data.startsWith('0x')).toBe(true);
+
+      expect(result.transferTx.params.data).toBeDefined();
+      expect(result.transferTx.params.data.startsWith('0x')).toBe(true);
     });
 
     it('calls getRate on the accountant contract', async () => {
       mockGetRate.mockResolvedValue(ethers.BigNumber.from('2000000'));
 
-      await buildMoneyAccountWithdraw({
+      await buildMoneyAccountWithdrawBatch({
         amount: BigInt(1_000_000),
         chainId: MOCK_CHAIN_ID,
         tellerAddress: MOCK_TELLER,
         accountantAddress: MOCK_ACCOUNTANT,
-        toAddress: MOCK_TO_ADDRESS,
+        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
+        recipient: MOCK_RECIPIENT_ADDRESS,
         provider: MOCK_PROVIDER,
       });
 
       expect(mockGetRate).toHaveBeenCalledTimes(1);
     });
 
-    it('encodes withdraw data as a hex string', async () => {
+    it('skips getRate when amount is 0 (placeholder batch)', async () => {
+      const result = await buildMoneyAccountWithdrawBatch({
+        amount: BigInt(0),
+        chainId: MOCK_CHAIN_ID,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
+        recipient: MOCK_RECIPIENT_ADDRESS,
+        provider: MOCK_PROVIDER,
+      });
+
+      expect(mockGetRate).not.toHaveBeenCalled();
+      expect(result.withdrawTx.params.data.startsWith('0x')).toBe(true);
+      expect(result.transferTx.params.data.startsWith('0x')).toBe(true);
+    });
+
+    it('encodes the recipient address in the transfer calldata', async () => {
       mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
 
-      const result = await buildMoneyAccountWithdraw({
+      const result = await buildMoneyAccountWithdrawBatch({
         amount: BigInt(1_000_000),
         chainId: MOCK_CHAIN_ID,
         tellerAddress: MOCK_TELLER,
         accountantAddress: MOCK_ACCOUNTANT,
-        toAddress: MOCK_TO_ADDRESS,
+        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
+        recipient: MOCK_RECIPIENT_ADDRESS,
         provider: MOCK_PROVIDER,
       });
 
-      expect(result.params.data).toBeDefined();
-      expect(typeof result.params.data).toBe('string');
-      expect(result.params.data.startsWith('0x')).toBe(true);
+      // The recipient address (lowercased, without 0x prefix) should appear in the calldata
+      expect(result.transferTx.params.data.toLowerCase()).toContain(
+        MOCK_RECIPIENT_ADDRESS.toLowerCase().slice(2),
+      );
     });
   });
 });
