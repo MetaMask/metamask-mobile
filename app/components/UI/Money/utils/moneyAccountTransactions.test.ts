@@ -23,6 +23,7 @@ import ReduxService from '../../../../core/redux';
 
 jest.mock('../../Earn/constants/musd', () => ({
   MUSD_TOKEN_ADDRESS_BY_CHAIN: {} as Record<string, Hex>,
+  MUSD_DECIMALS: 6,
 }));
 
 jest.mock('../../../../core/AppConstants', () => ({
