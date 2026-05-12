@@ -4,6 +4,11 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import WhatsHappeningSection from './WhatsHappeningSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import {
+  WhatsHappeningInteractionType,
+  WhatsHappeningSource,
+  WhatsHappeningView,
+} from './constants';
 
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -198,7 +203,7 @@ describe('WhatsHappeningSection', () => {
     });
   });
 
-  it('tracks WHATS_HAPPENING_DETAILS_INTERACTED pan event when carousel swipes to a new card', () => {
+  it('tracks WHATS_HAPPENING_INTERACTED pan event when carousel swipes to a new card', () => {
     const secondItem = { ...mockItem, id: 'trend-1', title: 'Second trend' };
     mockUseWhatsHappening.mockReturnValue({
       items: [mockItem, secondItem],
@@ -219,11 +224,11 @@ describe('WhatsHappeningSection', () => {
       expect.objectContaining({
         category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
         properties: expect.objectContaining({
-          interaction_type: 'pan',
-          view: 'carousel',
+          interaction_type: WhatsHappeningInteractionType.Pan,
+          view: WhatsHappeningView.Carousel,
           trend_id: secondItem.id,
           card_index: 1,
-          source: 'homepage',
+          source: WhatsHappeningSource.Homepage,
         }),
       }),
     );

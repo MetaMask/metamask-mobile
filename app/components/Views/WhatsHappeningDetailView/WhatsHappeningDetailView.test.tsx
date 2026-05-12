@@ -8,6 +8,11 @@ import WhatsHappeningDetailView, {
   CARD_WIDTH,
 } from './WhatsHappeningDetailView';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import {
+  WhatsHappeningInteractionType,
+  WhatsHappeningSource,
+  WhatsHappeningView,
+} from '../Homepage/Sections/WhatsHappening/constants';
 
 const GAP = 12;
 const SNAP_INTERVAL_FOR_TEST = CARD_WIDTH + GAP;
@@ -312,7 +317,7 @@ describe('WhatsHappeningDetailView', () => {
     expect(mockCreateEventBuilder).not.toHaveBeenCalled();
   });
 
-  it('tracks WHATS_HAPPENING_DETAILS_INTERACTED pan event when swiping to a new card', () => {
+  it('tracks WHATS_HAPPENING_INTERACTED pan event when swiping to a new card', () => {
     const secondItem = {
       ...mockItem,
       id: 'trend-1',
@@ -340,11 +345,11 @@ describe('WhatsHappeningDetailView', () => {
       expect.objectContaining({
         category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
         properties: expect.objectContaining({
-          interaction_type: 'pan',
-          view: 'expanded',
+          interaction_type: WhatsHappeningInteractionType.Pan,
+          view: WhatsHappeningView.Expanded,
           trend_id: secondItem.id,
           card_index: 1,
-          source: 'homepage',
+          source: WhatsHappeningSource.Homepage,
         }),
       }),
     );
