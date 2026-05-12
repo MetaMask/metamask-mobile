@@ -26,7 +26,10 @@ export function usePayWithSelectedToken({
   preferredToken?: SetPayTokenRequest;
 } = {}): UsePayWithSelectedTokenResult {
   const { payToken, setPayToken } = useTransactionPayToken();
-  const automaticToken = useAutomaticTransactionPayToken({ preferredToken });
+  const automaticToken = useAutomaticTransactionPayToken({
+    preferredToken,
+    disable: true,
+  });
 
   const isSelectedDistinctFromAutomatic = useMemo(() => {
     if (!payToken || !automaticToken) {

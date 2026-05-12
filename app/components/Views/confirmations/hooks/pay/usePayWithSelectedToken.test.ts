@@ -98,7 +98,7 @@ describe('usePayWithSelectedToken', () => {
     expect(result.current.isSelectedDistinctFromAutomatic).toBe(false);
   });
 
-  it('passes the explicit preferred token into automatic token selection', () => {
+  it('forwards the explicit preferred token unchanged and disables the underlying side-effects', () => {
     const preferredToken = {
       address: AUTOMATIC_TOKEN_MOCK.address,
       chainId: AUTOMATIC_TOKEN_MOCK.chainId,
@@ -108,6 +108,7 @@ describe('usePayWithSelectedToken', () => {
 
     expect(useAutomaticTransactionPayTokenMock).toHaveBeenCalledWith({
       preferredToken,
+      disable: true,
     });
   });
 

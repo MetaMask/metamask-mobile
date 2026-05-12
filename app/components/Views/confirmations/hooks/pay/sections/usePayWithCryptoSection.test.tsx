@@ -1,11 +1,14 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { TokenIcon, TokenIconVariant } from '../../../components/token-icon';
+import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
+import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
 import { usePayWithCryptoSection } from './usePayWithCryptoSection';
@@ -30,6 +33,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 jest.mock('../../../../../../util/navigation/navUtils');
 jest.mock('../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter');
+jest.mock('../../transactions/useTransactionMetadataRequest');
 jest.mock('../usePayWithPreferredToken');
 jest.mock('../usePayWithSelectedToken');
 
@@ -55,6 +59,9 @@ describe('usePayWithCryptoSection', () => {
   const useNavigationMock = jest.mocked(useNavigation);
   const useFiatFormatterMock = jest.mocked(useFiatFormatter);
   const useParamsMock = jest.mocked(useParams);
+  const useTransactionMetadataRequestMock = jest.mocked(
+    useTransactionMetadataRequest,
+  );
   const usePayWithPreferredTokenMock = jest.mocked(usePayWithPreferredToken);
   const usePayWithSelectedTokenMock = jest.mocked(usePayWithSelectedToken);
   const navigateMock = jest.fn();
@@ -69,6 +76,7 @@ describe('usePayWithCryptoSection', () => {
       goBack: goBackMock,
     } as never);
     useParamsMock.mockReturnValue({});
+    useTransactionMetadataRequestMock.mockReturnValue(undefined);
     useFiatFormatterMock.mockReturnValue((value) => `$${value.toFixed(2)}`);
     usePayWithPreferredTokenMock.mockReturnValue({
       hasTokens: true,
@@ -102,6 +110,44 @@ describe('usePayWithCryptoSection', () => {
     expect(usePayWithSelectedTokenMock).toHaveBeenCalledWith({
       preferredToken: preferredPaymentToken,
     });
+  });
+
+  it('resolves the mUSD fallback for moneyAccountWithdraw and passes it to both pay-with hooks', () => {
+    useParamsMock.mockReturnValue({});
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: {},
+    } as never);
+
+    renderHook(() => usePayWithCryptoSection());
+
+    const expectedPreferred = {
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: CHAIN_IDS.MAINNET,
+    };
+    expect(usePayWithPreferredTokenMock).toHaveBeenCalledWith({
+      preferredToken: expectedPreferred,
+    });
+    expect(usePayWithSelectedTokenMock).toHaveBeenCalledWith({
+      preferredToken: expectedPreferred,
+    });
+  });
+
+  it('passes the same preferred token reference to both pay-with hooks (single resolution)', () => {
+    useParamsMock.mockReturnValue({});
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: {},
+    } as never);
+
+    renderHook(() => usePayWithCryptoSection());
+
+    const preferredArg =
+      usePayWithPreferredTokenMock.mock.calls[0][0]?.preferredToken;
+    const selectedArg =
+      usePayWithSelectedTokenMock.mock.calls[0][0]?.preferredToken;
+    expect(preferredArg).toBeDefined();
+    expect(selectedArg).toBe(preferredArg);
   });
 
   it('returns null when the user has no crypto tokens', () => {

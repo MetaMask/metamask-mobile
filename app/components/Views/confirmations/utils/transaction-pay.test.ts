@@ -11,7 +11,9 @@ import {
   getTokenTransferData,
   isMatchingPayToken,
   isTokenBlocked,
+  resolvePreferredPayToken,
 } from './transaction-pay';
+import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
 import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
@@ -668,6 +670,72 @@ describe('Transaction Pay Utils', () => {
           { address: '0xabc', chainId: '0x1' },
         ),
       ).toBe(false);
+    });
+  });
+
+  describe('resolvePreferredPayToken', () => {
+    const OVERRIDE = {
+      address: '0xabc' as Hex,
+      chainId: '0x1' as Hex,
+    };
+
+    const withdrawTransactionMeta = {
+      id: 'tx-1',
+      type: TransactionType.moneyAccountWithdraw,
+    } as unknown as TransactionMeta;
+
+    const otherTransactionMeta = {
+      id: 'tx-2',
+      type: TransactionType.simpleSend,
+    } as unknown as TransactionMeta;
+
+    it('returns the explicit override when provided', () => {
+      const result = resolvePreferredPayToken({
+        override: OVERRIDE,
+        transactionMeta: withdrawTransactionMeta,
+      });
+
+      expect(result).toBe(OVERRIDE);
+    });
+
+    it('returns the mUSD mainnet fallback for moneyAccountWithdraw transactions when no override is provided', () => {
+      const result = resolvePreferredPayToken({
+        override: undefined,
+        transactionMeta: withdrawTransactionMeta,
+      });
+
+      expect(result).toStrictEqual({
+        address: MUSD_TOKEN_ADDRESS,
+        chainId: CHAIN_IDS.MAINNET,
+      });
+    });
+
+    it('returns undefined for non-withdraw transactions when no override is provided', () => {
+      const result = resolvePreferredPayToken({
+        override: undefined,
+        transactionMeta: otherTransactionMeta,
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when transactionMeta is undefined and no override is provided', () => {
+      const result = resolvePreferredPayToken({
+        override: undefined,
+        transactionMeta: undefined,
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('prefers the override over the moneyAccountWithdraw fallback', () => {
+      const result = resolvePreferredPayToken({
+        override: OVERRIDE,
+        transactionMeta: withdrawTransactionMeta,
+      });
+
+      expect(result).toBe(OVERRIDE);
+      expect(result?.address).not.toBe(MUSD_TOKEN_ADDRESS);
     });
   });
 });

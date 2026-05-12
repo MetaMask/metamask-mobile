@@ -16,10 +16,14 @@ import {
   PayWithRowConfig,
   PayWithSectionConfig,
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
-import { isMatchingPayToken } from '../../../utils/transaction-pay';
+import {
+  isMatchingPayToken,
+  resolvePreferredPayToken,
+} from '../../../utils/transaction-pay';
 import { SetPayTokenRequest } from '../useAutomaticTransactionPayToken';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
+import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 
 interface PayWithCryptoSectionParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -37,16 +41,25 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const navigation = useNavigation();
   const { preferredPaymentToken } = useParams<PayWithCryptoSectionParams>({});
   const formatFiat = useFiatFormatter({ currency: 'usd' });
+  const transactionMeta = useTransactionMetadataRequest();
+  const resolvedPreferredToken = useMemo(
+    () =>
+      resolvePreferredPayToken({
+        override: preferredPaymentToken,
+        transactionMeta,
+      }),
+    [preferredPaymentToken, transactionMeta],
+  );
   const { hasTokens, preferredToken, selectedToken } = usePayWithPreferredToken(
     {
-      preferredToken: preferredPaymentToken,
+      preferredToken: resolvedPreferredToken,
     },
   );
   const {
     isSelectedDistinctFromAutomatic,
     selectedToken: selectedTokenDisplay,
     selectToken,
-  } = usePayWithSelectedToken({ preferredToken: preferredPaymentToken });
+  } = usePayWithSelectedToken({ preferredToken: resolvedPreferredToken });
 
   const handleOtherAssetsPress = useCallback(() => {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);

@@ -1,4 +1,5 @@
 import {
+  CHAIN_IDS,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
@@ -22,6 +23,12 @@ import {
 } from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
+
+interface ResolvedPayTokenRequest {
+  address: Hex;
+  chainId: Hex;
+}
 
 const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
 
@@ -247,4 +254,35 @@ export function isMatchingPayToken(
     token.address?.toLowerCase() === target.address.toLowerCase() &&
     token.chainId?.toLowerCase() === target.chainId.toLowerCase()
   );
+}
+
+/**
+ * Resolves the preferred pay token for a transaction.
+ *
+ * Returns the explicit override when provided. Otherwise, falls back to
+ * mUSD on mainnet for moneyAccountWithdraw transactions so the preferred-token
+ * row in the pay-with bottom sheet reflects the deposit-default asset.
+ *
+ */
+export function resolvePreferredPayToken({
+  override,
+  transactionMeta,
+}: {
+  override?: ResolvedPayTokenRequest;
+  transactionMeta: TransactionMeta | undefined;
+}): ResolvedPayTokenRequest | undefined {
+  if (override) {
+    return override;
+  }
+
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
+  ) {
+    return {
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: CHAIN_IDS.MAINNET,
+    };
+  }
+
+  return undefined;
 }

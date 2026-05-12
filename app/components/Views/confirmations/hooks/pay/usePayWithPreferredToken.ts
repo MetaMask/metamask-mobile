@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
-import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import {
   SetPayTokenRequest,
@@ -8,9 +7,6 @@ import {
 } from './useAutomaticTransactionPayToken';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../utils/transaction';
 import { isMatchingPayToken } from '../../utils/transaction-pay';
 
 export interface PayWithPreferredToken {
@@ -27,26 +23,12 @@ export interface UsePayWithPreferredTokenResult {
 }
 
 export function usePayWithPreferredToken({
-  preferredToken: preferredTokenOverride,
+  preferredToken,
 }: {
   preferredToken?: SetPayTokenRequest;
 } = {}): UsePayWithPreferredTokenResult {
-  const transactionMeta = useTransactionMetadataRequest();
-  const resolvedPreferredToken = useMemo(
-    () =>
-      preferredTokenOverride ??
-      (hasTransactionType(transactionMeta, [
-        TransactionType.moneyAccountWithdraw,
-      ])
-        ? {
-            address: MUSD_TOKEN_ADDRESS,
-            chainId: CHAIN_IDS.MAINNET,
-          }
-        : undefined),
-    [preferredTokenOverride, transactionMeta],
-  );
   const automaticToken = useAutomaticTransactionPayToken({
-    preferredToken: resolvedPreferredToken,
+    preferredToken,
   });
 
   const { payToken } = useTransactionPayToken();
