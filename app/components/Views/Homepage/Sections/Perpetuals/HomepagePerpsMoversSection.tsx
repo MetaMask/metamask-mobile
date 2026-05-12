@@ -57,7 +57,12 @@ const HomepagePerpsMoversSection = forwardRef<
     });
 
     const handleViewAll = useCallback(() => {
-      navigateToPerpsMarketList(navigation, 'all', perps.defaultSortOptionId);
+      navigateToPerpsMarketList(
+        navigation,
+        'all',
+        perps.defaultSortOptionId,
+        PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+      );
     }, [navigation, perps.defaultSortOptionId]);
 
     const refetchPills = perps.refetch;
@@ -121,7 +126,11 @@ const HomepagePerpsMoversSection = forwardRef<
             isLoading={perps.isLoading}
             wrapperTwClassName="-mx-4 bg-transparent"
             renderItem={(item) => (
-              <PerpsPillItem item={item} onCardPress={trackPillWalletHome} />
+              <PerpsPillItem
+                item={item}
+                marketDetailsSource={PERPS_EVENT_VALUE.SOURCE.HOME_SECTION}
+                onCardPress={trackPillWalletHome}
+              />
             )}
             keyExtractor={(pillItem) => pillItem.market.symbol}
             Skeleton={CryptoMoversSkeleton}

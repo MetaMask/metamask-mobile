@@ -96,6 +96,8 @@ describe('HomepagePerpsHomeSlot', () => {
 
     expect(screen.getByText('PerpsSection')).toBeOnTheScreen();
     expect(screen.queryByText('HomepagePerpsMoversSection')).toBeNull();
+    expect(mockUsePerpsLivePositions).not.toHaveBeenCalled();
+    expect(mockUsePerpsLiveOrders).not.toHaveBeenCalled();
   });
 
   it('renders HomepagePerpsMoversSection when experiment is treatment and user has no positions or orders', () => {
@@ -123,6 +125,8 @@ describe('HomepagePerpsHomeSlot', () => {
 
     expect(screen.getByText('HomepagePerpsMoversSection')).toBeOnTheScreen();
     expect(screen.queryByText('PerpsSection')).toBeNull();
+    expect(mockUsePerpsLivePositions).toHaveBeenCalled();
+    expect(mockUsePerpsLiveOrders).toHaveBeenCalled();
   });
 
   it('renders PerpsSection when mode is positions-only even in treatment', () => {
@@ -153,6 +157,8 @@ describe('HomepagePerpsHomeSlot', () => {
     );
 
     expect(screen.getByText('PerpsSection')).toBeOnTheScreen();
+    expect(mockUsePerpsLivePositions).not.toHaveBeenCalled();
+    expect(mockUsePerpsLiveOrders).not.toHaveBeenCalled();
   });
 
   it('renders PerpsSection when user has open positions', () => {
@@ -183,5 +189,6 @@ describe('HomepagePerpsHomeSlot', () => {
     );
 
     expect(screen.getByText('PerpsSection')).toBeOnTheScreen();
+    expect(mockUsePerpsLivePositions).toHaveBeenCalled();
   });
 });

@@ -13,13 +13,25 @@ import type { PerpsFeedItem } from './usePerpsFeed';
 
 const LOGO_SIZE = 24;
 
+type PerpsMarketDetailsSource =
+  (typeof PERPS_EVENT_VALUE.SOURCE)[keyof typeof PERPS_EVENT_VALUE.SOURCE];
+
 interface PerpsPillItemProps {
   item: PerpsFeedItem;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
+  /**
+   * `params.source` for market-details navigation. Defaults to Explore so Now-tab
+   * movers stay unchanged; homepage passes `HOME_SECTION` to match `PerpsSection` tiles.
+   */
+  marketDetailsSource?: PerpsMarketDetailsSource;
 }
 
-const PerpsPillItem: React.FC<PerpsPillItemProps> = ({ item, onCardPress }) => {
+const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
+  item,
+  onCardPress,
+  marketDetailsSource = PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+}) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { market } = item;
 
@@ -49,7 +61,7 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({ item, onCardPress }) => {
     onCardPress?.();
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
-      params: { market, source: PERPS_EVENT_VALUE.SOURCE.EXPLORE },
+      params: { market, source: marketDetailsSource },
     });
   };
 

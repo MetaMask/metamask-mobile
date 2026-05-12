@@ -42,6 +42,26 @@ describe('PerpsPillItem', () => {
     });
   });
 
+  it('navigates to market details with home section source when prop is set', () => {
+    const item = buildItem('1.5');
+    const { getByTestId } = render(
+      <PerpsPillItem
+        item={item}
+        marketDetailsSource={PERPS_EVENT_VALUE.SOURCE.HOME_SECTION}
+      />,
+    );
+
+    fireEvent.press(getByTestId('perps-market-tile-card-ETH'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: {
+        market: item.market,
+        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+      },
+    });
+  });
+
   it('hides change label when change is null, empty, or not a number', () => {
     const { queryByText, rerender } = render(
       <PerpsPillItem item={buildItem(null)} />,

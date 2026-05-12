@@ -17,32 +17,14 @@ const HOMEPAGE_THROTTLE_MS = 5000;
 const MAX_ITEMS = 5;
 
 /**
- * Chooses between the classic homepage Perps section and the Explore-style
- * "Perps movers" rail for the empty state when the TMCU-725 experiment is in treatment.
- * `PerpsSection.tsx` stays unchanged; experiment wiring lives here.
+ * Only mounted when the TMCU-725 experiment is in treatment (and not
+ * positions-only). Owns `usePerpsLivePositions` / `usePerpsLiveOrders` so control
+ * users never pay for duplicate subscriptions with `PerpsSection`.
  */
-const HomepagePerpsHomeSlot = forwardRef<
+const HomepagePerpsTreatmentEmptyBranch = forwardRef<
   SectionRefreshHandle,
   PerpsSectionProps
 >((props, ref) => {
-  const { mode = 'default' } = props;
-  const isPositionsOnly = mode === 'positions-only';
-
-  const { variant: perpsPillsEmptyAbVariant } = useABTest(
-    HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
-    HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
-    {
-      experimentName: 'Homepage Perps empty state pills',
-      variationNames: {
-        control: 'Tile carousel empty state',
-        treatment: 'Explore Perps Movers pills empty state',
-      },
-    },
-  );
-
-  const emptyStateUsesExplorePills =
-    !isPositionsOnly && perpsPillsEmptyAbVariant.showExplorePillsWhenEmpty;
-
   const { positions, isInitialLoading: positionsLoading } =
     usePerpsLivePositions({
       throttleMs: HOMEPAGE_THROTTLE_MS,
@@ -73,14 +55,50 @@ const HomepagePerpsHomeSlot = forwardRef<
   );
   const hasItems = displayPositions.length > 0 || displayOrders.length > 0;
 
-  const showMoversEmpty =
-    emptyStateUsesExplorePills && !showSkeleton && !hasItems;
+  const showMoversEmpty = !showSkeleton && !hasItems;
 
   if (showMoversEmpty) {
     return <HomepagePerpsMoversSection ref={ref} {...props} />;
   }
 
   return <PerpsSection ref={ref} {...props} />;
+});
+
+HomepagePerpsTreatmentEmptyBranch.displayName =
+  'HomepagePerpsTreatmentEmptyBranch';
+
+/**
+ * Chooses between the classic homepage Perps section and the Explore-style
+ * "Perps movers" rail for the empty state when the TMCU-725 experiment is in treatment.
+ * `PerpsSection.tsx` stays unchanged; experiment wiring lives here.
+ */
+const HomepagePerpsHomeSlot = forwardRef<
+  SectionRefreshHandle,
+  PerpsSectionProps
+>((props, ref) => {
+  const { mode = 'default' } = props;
+  const isPositionsOnly = mode === 'positions-only';
+
+  const { variant: perpsPillsEmptyAbVariant } = useABTest(
+    HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
+    HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
+    {
+      experimentName: 'Homepage Perps empty state pills',
+      variationNames: {
+        control: 'Tile carousel empty state',
+        treatment: 'Explore Perps Movers pills empty state',
+      },
+    },
+  );
+
+  const emptyStateUsesExplorePills =
+    !isPositionsOnly && perpsPillsEmptyAbVariant.showExplorePillsWhenEmpty;
+
+  if (!emptyStateUsesExplorePills) {
+    return <PerpsSection ref={ref} {...props} />;
+  }
+
+  return <HomepagePerpsTreatmentEmptyBranch ref={ref} {...props} />;
 });
 
 HomepagePerpsHomeSlot.displayName = 'HomepagePerpsHomeSlot';
