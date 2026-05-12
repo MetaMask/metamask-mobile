@@ -29,21 +29,66 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
+  selectBatchSellSlippages,
   selectBatchSellDestToken,
   selectBatchSellDestStablecoins,
   selectBatchSellSourceTokens,
   setBatchSellDestToken,
+  setBatchSellTokenSlippages,
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
+import AppConstants from '../../../../../core/AppConstants';
 import { BridgeToken } from '../../types';
+import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
 
 const DEFAULT_PERCENT = 100;
+const DEFAULT_BATCH_SELL_SLIPPAGE =
+  AppConstants.SWAPS.DEFAULT_SLIPPAGE.toString();
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
+// TODO(SWAPS-4439): When Batch Sell quote fetching is wired, pass
+// batchSellSlippages[assetId] into each token's BridgeController quote request.
 const HAS_QUOTES = false;
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
+
+function hasOwnSlippageValue(
+  slippages: Record<string, string | undefined>,
+  assetId: string | undefined,
+): assetId is string {
+  // Missing key means initialize to default; existing key with undefined means user selected Auto.
+  return (
+    assetId !== undefined &&
+    Object.prototype.hasOwnProperty.call(slippages, assetId)
+  );
+}
+
+function getBatchSellSlippageValue(
+  slippages: Record<string, string | undefined>,
+  assetId: string | undefined,
+) {
+  return hasOwnSlippageValue(slippages, assetId)
+    ? slippages[assetId]
+    : DEFAULT_BATCH_SELL_SLIPPAGE;
+}
+
+function areBatchSellSlippageMapsEqual(
+  first: Record<string, string | undefined>,
+  second: Record<string, string | undefined>,
+) {
+  const firstKeys = Object.keys(first);
+  const secondKeys = Object.keys(second);
+
+  return (
+    firstKeys.length === secondKeys.length &&
+    firstKeys.every(
+      (assetId) =>
+        Object.prototype.hasOwnProperty.call(second, assetId) &&
+        first[assetId] === second[assetId],
+    )
+  );
+}
 
 export function BatchSellReview() {
   const navigation = useNavigation();
@@ -55,6 +100,7 @@ export function BatchSellReview() {
     selectBatchSellDestStablecoins(state, sourceChainId),
   );
   const selectedDestinationToken = useSelector(selectBatchSellDestToken);
+  const batchSellSlippages = useSelector(selectBatchSellSlippages);
   const [percentsByTokenKey, setPercentsByTokenKey] = useState<
     Record<string, number>
   >({});
@@ -77,6 +123,27 @@ export function BatchSellReview() {
     );
   }, [selectedTokens]);
 
+  useEffect(() => {
+    // Keep Redux slippages aligned with selected tokens when the user removes tokens.
+    const nextSlippage = selectedTokens.reduce<
+      Record<string, string | undefined>
+    >((slippageByAssetId, token) => {
+      const assetId = getBridgeTokenAssetId(token);
+
+      if (!assetId) return slippageByAssetId;
+
+      slippageByAssetId[assetId] = getBatchSellSlippageValue(
+        batchSellSlippages,
+        assetId,
+      );
+      return slippageByAssetId;
+    }, {});
+
+    if (!areBatchSellSlippageMapsEqual(batchSellSlippages, nextSlippage)) {
+      dispatch(setBatchSellTokenSlippages(nextSlippage));
+    }
+  }, [batchSellSlippages, dispatch, selectedTokens]);
+
   const handlePercentChange = useCallback(
     (tokenKey: string, percent: number) => {
       setPercentsByTokenKey((currentPercents) => ({
@@ -96,6 +163,24 @@ export function BatchSellReview() {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL,
     });
   }, [navigation]);
+
+  const handleSlippagePress = useCallback(
+    (token: BridgeToken) => {
+      const assetId = getBridgeTokenAssetId(token);
+
+      if (!assetId) return;
+
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.BATCH_SELL_DEFAULT_SLIPPAGE_MODAL,
+        params: {
+          sourceChainId: token.chainId,
+          destChainId: selectedDestinationToken?.chainId,
+          batchSellAssetId: assetId,
+        },
+      });
+    },
+    [navigation, selectedDestinationToken?.chainId],
+  );
 
   return (
     <SafeAreaView
@@ -188,6 +273,7 @@ export function BatchSellReview() {
                 tokenKey={tokenKey}
                 percent={percentsByTokenKey[tokenKey] ?? DEFAULT_PERCENT}
                 onPercentChange={handlePercentChange}
+                onSlippagePress={handleSlippagePress}
               />
             );
           })}

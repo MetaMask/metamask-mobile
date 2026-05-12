@@ -28,7 +28,7 @@ interface BatchSellReviewTokenRowProps {
   tokenKey: string;
   percent: number;
   onPercentChange: (tokenKey: string, percent: number) => void;
-  onCustomizePress?: (token: BridgeToken) => void;
+  onSlippagePress?: (token: BridgeToken) => void;
   onRemovePress?: (token: BridgeToken) => void;
 }
 
@@ -45,7 +45,7 @@ export function BatchSellReviewTokenRow({
   tokenKey,
   percent,
   onPercentChange,
-  onCustomizePress,
+  onSlippagePress,
   onRemovePress,
 }: BatchSellReviewTokenRowProps) {
   const tw = useTailwind();
@@ -104,7 +104,7 @@ export function BatchSellReviewTokenRow({
             accessibilityLabel={strings('bridge.batch_sell_customize_token', {
               tokenSymbol: token.symbol,
             })}
-            onPress={() => onCustomizePress?.(token)}
+            onPress={() => onSlippagePress?.(token)}
             testID={`${BatchSellReviewSelectorsIDs.CUSTOMIZE_BUTTON}-${tokenKey}`}
           />
           <ButtonIcon

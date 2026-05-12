@@ -314,8 +314,10 @@ const Routes = {
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     MODALS: {
       ROOT: 'BridgeModals',
-      DEFAULT_SLIPPAGE_MODAL: 'DefaultSlippageModal',
-      CUSTOM_SLIPPAGE_MODAL: 'CustomSlippageModal',
+      SWAP_DEFAULT_SLIPPAGE_MODAL: 'SwapDefaultSlippageModal',
+      SWAP_CUSTOM_SLIPPAGE_MODAL: 'SwapCustomSlippageModal',
+      BATCH_SELL_DEFAULT_SLIPPAGE_MODAL: 'BatchSellDefaultSlippageModal',
+      BATCH_SELL_CUSTOM_SLIPPAGE_MODAL: 'BatchSellCustomSlippageModal',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       BLOCKAID_MODAL: 'BlockaidModal',
       RECIPIENT_SELECTOR_MODAL: 'RecipientSelectorModal',

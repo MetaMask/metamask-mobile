@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 
 import { BridgeToken } from '../../types';
 import { BatchSellReview } from './BatchSellReview';
@@ -41,6 +41,8 @@ const musdToken: BridgeToken = {
 };
 let mockSelectedDestinationToken: BridgeToken | undefined = usdcToken;
 let mockDestinationTokens: BridgeToken[] = [usdcToken];
+let mockBatchSellSlippages: Partial<Record<CaipAssetType, string | undefined>> =
+  {};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -54,10 +56,17 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBatchSellSourceTokens: jest.fn(() => mockSelectedTokens),
   selectBatchSellDestStablecoins: jest.fn(() => mockDestinationTokens),
   selectBatchSellDestToken: jest.fn(() => mockSelectedDestinationToken),
+  selectBatchSellSlippages: jest.fn(() => mockBatchSellSlippages),
   setBatchSellDestToken: jest.fn((token: BridgeToken) => ({
     type: 'bridge/setBatchSellDestToken',
     payload: token,
   })),
+  setBatchSellTokenSlippages: jest.fn(
+    (slippage: Partial<Record<CaipAssetType, string | undefined>>) => ({
+      type: 'bridge/setBatchSellTokenSlippages',
+      payload: slippage,
+    }),
+  ),
 }));
 
 jest.mock('react-redux', () => ({
@@ -67,16 +76,18 @@ jest.mock('react-redux', () => ({
 
 jest.mock('./BatchSellReviewTokenRow', () => {
   const ReactActual = jest.requireActual('react');
-  const { Text, View } = jest.requireActual('react-native');
+  const { Pressable, Text, View } = jest.requireActual('react-native');
 
   return {
     BatchSellReviewTokenRow: ({
+      onSlippagePress,
       percent,
       token,
       tokenKey,
     }: {
+      onSlippagePress: (token: BridgeToken) => void;
       percent: number;
-      token: { symbol: string };
+      token: BridgeToken;
       tokenKey: string;
     }) =>
       ReactActual.createElement(
@@ -84,6 +95,10 @@ jest.mock('./BatchSellReviewTokenRow', () => {
         { testID: `batch-sell-review-token-row-${tokenKey}` },
         ReactActual.createElement(Text, null, token.symbol),
         ReactActual.createElement(Text, null, `${percent}%`),
+        ReactActual.createElement(Pressable, {
+          onPress: () => onSlippagePress(token),
+          testID: `batch-sell-review-customize-button-${tokenKey}`,
+        }),
       ),
   };
 });
@@ -93,6 +108,7 @@ describe('BatchSellReview', () => {
     jest.clearAllMocks();
     mockSelectedDestinationToken = usdcToken;
     mockDestinationTokens = [usdcToken];
+    mockBatchSellSlippages = {};
   });
 
   it('renders the quote loading screen', () => {
@@ -148,6 +164,26 @@ describe('BatchSellReview', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL,
+    });
+  });
+
+  it('opens the slippage modal for a selected token row', () => {
+    const { getByTestId } = render(<BatchSellReview />);
+
+    fireEvent.press(
+      getByTestId(
+        `${BatchSellReviewSelectorsIDs.CUSTOMIZE_BUTTON}-0x1:0x1111111111111111111111111111111111111111`,
+      ),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_DEFAULT_SLIPPAGE_MODAL,
+      params: {
+        sourceChainId: '0x1',
+        destChainId: '0x1',
+        batchSellAssetId:
+          'eip155:1/erc20:0x1111111111111111111111111111111111111111',
+      },
     });
   });
 

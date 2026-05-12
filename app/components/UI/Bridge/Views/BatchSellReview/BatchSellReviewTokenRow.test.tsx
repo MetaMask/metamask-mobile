@@ -98,7 +98,7 @@ jest.mock('./BatchSellPercentageSlider', () => {
 
 describe('BatchSellReviewTokenRow', () => {
   const mockOnPercentChange = jest.fn();
-  const mockOnCustomizePress = jest.fn();
+  const mockOnSlippagePress = jest.fn();
   const mockOnRemovePress = jest.fn();
 
   beforeEach(() => {
@@ -112,7 +112,7 @@ describe('BatchSellReviewTokenRow', () => {
         tokenKey={mockTokenKey}
         percent={100}
         onPercentChange={mockOnPercentChange}
-        onCustomizePress={mockOnCustomizePress}
+        onSlippagePress={mockOnSlippagePress}
         onRemovePress={mockOnRemovePress}
       />,
     );
@@ -160,14 +160,14 @@ describe('BatchSellReviewTokenRow', () => {
     expect(mockOnPercentChange).toHaveBeenCalledWith(mockTokenKey, 75);
   });
 
-  it('forwards customize and remove presses', () => {
+  it('forwards slippage and remove presses', () => {
     const { getByTestId } = render(
       <BatchSellReviewTokenRow
         token={mockToken}
         tokenKey={mockTokenKey}
         percent={100}
         onPercentChange={mockOnPercentChange}
-        onCustomizePress={mockOnCustomizePress}
+        onSlippagePress={mockOnSlippagePress}
         onRemovePress={mockOnRemovePress}
       />,
     );
@@ -183,7 +183,7 @@ describe('BatchSellReviewTokenRow', () => {
       ),
     );
 
-    expect(mockOnCustomizePress).toHaveBeenCalledWith(mockToken);
+    expect(mockOnSlippagePress).toHaveBeenCalledWith(mockToken);
     expect(mockOnRemovePress).toHaveBeenCalledWith(mockToken);
   });
 });
