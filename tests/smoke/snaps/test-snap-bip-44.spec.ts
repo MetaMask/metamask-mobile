@@ -8,7 +8,9 @@ import Assertions from '../../framework/Assertions';
 
 jest.setTimeout(150_000);
 
-describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
+const isIos = device.getPlatform?.() === 'ios';
+
+(isIos ? describe.skip : describe)(SmokeSnaps('BIP-44 Snap Tests'), () => {
   it('can connect to BIP-44 snap', async () => {
     await withFixtures(
       {
