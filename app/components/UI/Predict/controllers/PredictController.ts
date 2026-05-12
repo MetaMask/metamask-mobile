@@ -2622,7 +2622,7 @@ export class PredictController extends BaseController<
         disableSequential: true,
         requireApproval: true,
         // Deposit wallet withdraws are gas-sponsored via the Polymarket bridge
-        // relayer (handled by TransactionPayPublishHook → PolymarketBridgeStrategy),
+        // relayer (handled by TransactionPayPublishHook → PolymarketStrategy),
         // so the TC gas-fee-token system must not gate publish.
         ...(isDepositWallet
           ? {}
