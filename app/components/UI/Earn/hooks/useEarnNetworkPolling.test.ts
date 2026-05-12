@@ -23,9 +23,6 @@ jest.mock('../../../../core/Engine', () => ({
     TokenDetectionController: {
       detectTokens: jest.fn(),
     },
-    TokensController: {
-      addTokens: jest.fn(),
-    },
   },
 }));
 
@@ -61,7 +58,6 @@ describe('useEarnNetworkPolling', () => {
   const mockDetectTokens = jest.mocked(
     Engine.context.TokenDetectionController.detectTokens,
   );
-  const mockAddTokens = jest.mocked(Engine.context.TokensController.addTokens);
 
   const mockSelectedAccount =
     MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
@@ -91,32 +87,6 @@ describe('useEarnNetworkPolling', () => {
         PreferencesController: {
           useTokenDetection: true,
         },
-        TokensController: {
-          allDetectedTokens: {
-            '0x1': {
-              [mockSelectedAccount.address]: {
-                '0x123': {
-                  address: '0x123',
-                  symbol: 'TEST',
-                  decimals: 18,
-                  image: 'test-image.png',
-                  name: 'Test Token',
-                },
-              },
-            },
-            '0x89': {
-              [mockSelectedAccount.address]: {
-                '0x456': {
-                  address: '0x456',
-                  symbol: 'TEST2',
-                  decimals: 6,
-                  image: 'test2-image.png',
-                  name: 'Test Token 2',
-                },
-              },
-            },
-          },
-        },
       },
     },
   } as unknown as RootState;
@@ -129,7 +99,6 @@ describe('useEarnNetworkPolling', () => {
       throw new Error(`Network client not found for chain ${chainId}`);
     });
     mockDetectTokens.mockResolvedValue(undefined);
-    mockAddTokens.mockResolvedValue(undefined);
   });
 
   it('should call all polling hooks when mounted', () => {
@@ -242,54 +211,6 @@ describe('useEarnNetworkPolling', () => {
     });
   });
 
-  it('should call TokensController.addTokens for detected tokens', async () => {
-    renderHookWithProvider(() => useEarnNetworkPolling(), {
-      state: mockState,
-    });
-
-    // Wait for async operations to complete
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    // Verify tokens are added (order may vary based on LENDING_CHAIN_IDS)
-    expect(mockAddTokens).toHaveBeenCalledWith(
-      [
-        {
-          address: '0x123',
-          symbol: 'TEST',
-          decimals: 18,
-          image: 'test-image.png',
-          name: 'Test Token',
-          isERC721: false,
-        },
-      ],
-      'mainnet',
-    );
-  });
-
-  it('should not call addTokens when no detected tokens', async () => {
-    const stateWithoutDetectedTokens = {
-      ...mockState,
-      engine: {
-        ...mockState.engine,
-        backgroundState: {
-          ...mockState.engine.backgroundState,
-          TokensController: {
-            allDetectedTokens: {},
-          },
-        },
-      },
-    } as unknown as RootState;
-
-    renderHookWithProvider(() => useEarnNetworkPolling(), {
-      state: stateWithoutDetectedTokens,
-    });
-
-    // Wait for async operations to complete
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    expect(mockAddTokens).not.toHaveBeenCalled();
-  });
-
   it('should pass empty chainIds to useTokenDetectionPolling when useTokenDetection is false', () => {
     const stateWithoutTokenDetection = {
       ...mockState,
@@ -312,19 +233,6 @@ describe('useEarnNetworkPolling', () => {
       chainIds: [],
       address: mockSelectedAccount.address,
     });
-  });
-
-  it('should handle addTokens errors gracefully', async () => {
-    mockAddTokens.mockRejectedValue(new Error('Failed to add tokens'));
-
-    expect(() => {
-      renderHookWithProvider(() => useEarnNetworkPolling(), {
-        state: mockState,
-      });
-    }).not.toThrow();
-
-    // Wait for async operations to complete
-    await new Promise((resolve) => setTimeout(resolve, 0));
   });
 
   it('should handle detectTokens errors gracefully', async () => {

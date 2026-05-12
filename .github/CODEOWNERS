@@ -259,7 +259,6 @@ app/components/Views/AssetHideConfirmation @MetaMask/metamask-assets
 app/components/Views/AssetOptions @MetaMask/metamask-assets
 app/components/Views/Collectible @MetaMask/metamask-assets
 app/components/Views/CollectibleView @MetaMask/metamask-assets
-app/components/Views/DetectedTokens @MetaMask/metamask-assets
 app/components/Views/NFTAutoDetectionModal @MetaMask/metamask-assets
 app/components/Views/NftDetails @MetaMask/metamask-assets
 app/reducers/collectibles @MetaMask/metamask-assets
