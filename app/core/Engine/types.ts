@@ -835,12 +835,18 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 // Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EngineState = {
+  /**
+   * @deprecated Access this state via {@link getAccountTrackerControllerAccountsByChainId} from `app/selectors/assets/assets-migration` instead.
+   */
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
   AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
   NftController: NftControllerState;
+  /**
+   * @deprecated Access this state via {@link getCurrencyRateControllerCurrentCurrency} or {@link getCurrencyRateControllerCurrencyRates} from `app/selectors/assets/assets-migration` instead.
+   */
   CurrencyRateController: CurrencyRateState;
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
@@ -849,12 +855,21 @@ export type EngineState = {
   RemoteFeatureFlagController: RemoteFeatureFlagControllerState;
   RampsController: RampsControllerState;
   PhishingController: PhishingControllerState;
+  /**
+   * @deprecated Access this state via {@link getTokenBalancesControllerTokenBalances} from `app/selectors/assets/assets-migration` instead.
+   */
   TokenBalancesController: TokenBalancesControllerState;
+  /**
+   * @deprecated Access this state via {@link getTokenRatesControllerMarketData} from `app/selectors/assets/assets-migration` instead.
+   */
   TokenRatesController: TokenRatesControllerState;
   TransactionController: TransactionControllerState;
   TransactionPayController: TransactionPayControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
   GasFeeController: GasFeeState;
+  /**
+   * @deprecated Access this state via {@link getTokensControllerAllTokens} or {@link getTokensControllerAllIgnoredTokens} from `app/selectors/assets/assets-migration` instead.
+   */
   TokensController: TokensControllerState;
   DeFiPositionsController: DeFiPositionsControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -877,9 +892,19 @@ export type EngineState = {
   SelectedNetworkController: SelectedNetworkControllerState;
   SignatureController: SignatureControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  /**
+   * @deprecated Access this state via {@link getMultiChainBalancesControllerBalances} from `app/selectors/assets/assets-migration` instead.
+   */
   MultichainBalancesController: MultichainBalancesControllerState;
+  /**
+   * @deprecated Access this state via {@link getMultiChainAssetsControllerAccountsAssets}, {@link getMultiChainAssetsControllerAssetsMetadata}, or {@link getMultiChainAssetsControllerAllIgnoredAssets} from `app/selectors/assets/assets-migration` instead.
+   */
   MultichainAssetsController: MultichainAssetsControllerState;
+  /**
+   * @deprecated Access this state via {@link getMultichainAssetsRatesControllerConversionRates} from `app/selectors/assets/assets-migration` instead.
+   */
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
+  /** @deprecated This controller state is deprecated and will be removed in a future release. */
   MultichainTransactionsController: MultichainTransactionsControllerState;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataControllerState;
