@@ -845,7 +845,7 @@ jobs:
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    if: ${{ !cancelled() && needs.build-android-apks.result == 'success' }}
+    if: ${{ !cancelled() && needs.build-android-apks.result == 'success' && inputs.runner_provider != 'namespace' }} # TEMP: skip E2E on namespace to isolate build cache testing
     permissions:
       contents: read
       id-token: write
@@ -893,7 +893,7 @@ jobs:
 
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
-    if: ${{ !cancelled() && needs.ios-tests-ready.result == 'success' }}
+    if: ${{ !cancelled() && needs.ios-tests-ready.result == 'success' && inputs.runner_provider != 'namespace' }} # TEMP: skip E2E on namespace to isolate build cache testing
     permissions:
       contents: read
       id-token: write
