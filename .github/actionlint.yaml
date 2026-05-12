@@ -18,7 +18,6 @@ self-hosted-runner:
     # Namespace runner profile labels (INFRA-3592). Format: namespace-profile-<profile-name>.
     - "namespace-profile-metamask-ci-linux"
     - "namespace-profile-metamask-android-build"
-    - "namespace-profile-metamask-android-build;overrides.cache-tag=metamask-android-e2e"
     - "namespace-profile-metamask-ios-build"
     - "namespace-profile-metamask-ios-e2e"
 
