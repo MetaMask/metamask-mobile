@@ -7826,6 +7826,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/authenticated-user-storage@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@metamask/authenticated-user-storage@npm:1.0.1"
+  dependencies:
+    "@metamask/base-data-service": "npm:^0.1.2"
+    "@metamask/controller-utils": "npm:^12.0.0"
+    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/utils": "npm:^11.9.0"
+  checksum: 10/e6ae2f9a094536e269ec73f87a9939701bf2ce9fd3bf32671da49341da8d13179d55a4e34a1c9d899e48e707c7a1d12e36faaf1f0b4e5fe82445ca43b5265fc5
+  languageName: node
+  linkType: hard
+
 "@metamask/auto-changelog@npm:^5.3.0":
   version: 5.3.0
   resolution: "@metamask/auto-changelog@npm:5.3.0"
@@ -7864,6 +7877,19 @@ __metadata:
     "@tanstack/query-core": "npm:^4.43.0"
     fast-deep-equal: "npm:^3.1.3"
   checksum: 10/b746cfaad6625d61e0d5e3202488d1f3139ef1e4b8f04c7b07a3e0fbe474c1307c73bacb1cf5d9288e946719137c52f1bc1fd40e9e44800f65b8729bbed7311d
+  languageName: node
+  linkType: hard
+
+"@metamask/base-data-service@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "@metamask/base-data-service@npm:0.1.2"
+  dependencies:
+    "@metamask/controller-utils": "npm:^12.0.0"
+    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/utils": "npm:^11.9.0"
+    "@tanstack/query-core": "npm:^4.43.0"
+    fast-deep-equal: "npm:^3.1.3"
+  checksum: 10/c05e2334e94f8a6d61764ddfec657cb5fc9cd1b29688bbcc3d83bee0ff032de9490319fedf17deb36916da906efd648197c71af4663d68966bdb78b8f1f8c3e2
   languageName: node
   linkType: hard
 
@@ -8061,17 +8087,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/chomp-api-service@npm:@metamask-previews/chomp-api-service@3.0.0-preview-cce45fbde":
-  version: 3.0.0-preview-cce45fbde
-  resolution: "@metamask-previews/chomp-api-service@npm:3.0.0-preview-cce45fbde"
+"@metamask/chomp-api-service@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@metamask/chomp-api-service@npm:3.1.0"
   dependencies:
-    "@metamask/base-data-service": "npm:^0.1.1"
-    "@metamask/controller-utils": "npm:^11.20.0"
+    "@metamask/base-data-service": "npm:^0.1.2"
+    "@metamask/controller-utils": "npm:^12.0.0"
     "@metamask/messenger": "npm:^1.2.0"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.9.0"
     "@tanstack/query-core": "npm:^4.43.0"
-  checksum: 10/75b8f2973bf2a72d6d9db8e6292620c201741b5a033419d570ac13182455a36640c4c15b7d4555d6039dfd3a181a60cff4e8f6945161db6888795b49f45fa182
+  checksum: 10/b1b9b83841bac0bbd21f569588785a3744b9fe61790003a5ebcf5c0188be99cf7049f75a85814a2214a673d370226dd970129a9d7a45a4a28d49657ab0184a40
   languageName: node
   linkType: hard
 
@@ -8886,29 +8912,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-controller@npm:^25.5.0":
-  version: 25.5.0
-  resolution: "@metamask/keyring-controller@npm:25.5.0"
-  dependencies:
-    "@ethereumjs/util": "npm:^9.1.0"
-    "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/browser-passworder": "npm:^6.0.0"
-    "@metamask/eth-hd-keyring": "npm:^14.1.1"
-    "@metamask/eth-sig-util": "npm:^8.2.0"
-    "@metamask/eth-simple-keyring": "npm:^12.0.2"
-    "@metamask/keyring-api": "npm:^23.1.0"
-    "@metamask/keyring-internal-api": "npm:^11.0.1"
-    "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/utils": "npm:^11.9.0"
-    async-mutex: "npm:^0.5.0"
-    ethereumjs-wallet: "npm:^1.0.1"
-    immer: "npm:^9.0.6"
-    lodash: "npm:^4.17.21"
-    ulid: "npm:^2.3.0"
-  checksum: 10/1ca02ea62e8d235a6343a054cc58cad42039242a319a982bcadb9dd0d7df0d1f06852dd5e3e91ee208b9c42df6580e776f76de1f49ce458b8c49029284caedad
-  languageName: node
-  linkType: hard
-
 "@metamask/keyring-internal-api@npm:^11.0.1":
   version: 11.0.1
   resolution: "@metamask/keyring-internal-api@npm:11.0.1"
@@ -9159,21 +9162,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-upgrade-controller@npm:@metamask-previews/money-account-upgrade-controller@1.3.1-preview-cce45fbde":
-  version: 1.3.1-preview-cce45fbde
-  resolution: "@metamask-previews/money-account-upgrade-controller@npm:1.3.1-preview-cce45fbde"
+"@metamask/money-account-upgrade-controller@npm:^2.0.0":
+  version: 2.0.1
+  resolution: "@metamask/money-account-upgrade-controller@npm:2.0.1"
   dependencies:
-    "@metamask/authenticated-user-storage": "npm:^1.0.0"
+    "@metamask/authenticated-user-storage": "npm:^1.0.1"
     "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/chomp-api-service": "npm:^3.0.0"
+    "@metamask/chomp-api-service": "npm:^3.1.0"
     "@metamask/delegation-controller": "npm:^3.0.0"
     "@metamask/delegation-core": "npm:^2.0.0"
     "@metamask/delegation-deployments": "npm:^1.3.0"
     "@metamask/keyring-controller": "npm:^25.5.0"
     "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/network-controller": "npm:^30.1.0"
+    "@metamask/network-controller": "npm:^32.0.0"
     "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/7cb994fda48ed43b2ad5f6ac107cad9337db8e8e7679d36839cdb9496488d5581885392462f88ed3d4541eb8f1a09cbe9d409651dabfd855e1e613d672f6fed8
+  checksum: 10/5a903ccde41188f9e61a0200f79b8bae540c0ca31d8b7e4089708c876eaba46accdd7b2b5e110e7228d724b35e8f279b2fc5e257f3dc9d5d0f2b764416f968fe
   languageName: node
   linkType: hard
 
@@ -35275,7 +35278,7 @@ __metadata:
     "@metamask/browser-playground": "npm:0.3.0"
     "@metamask/build-utils": "npm:^3.0.0"
     "@metamask/chain-agnostic-permission": "npm:^1.5.0"
-    "@metamask/chomp-api-service": "npm:@metamask-previews/chomp-api-service@3.0.0-preview-cce45fbde"
+    "@metamask/chomp-api-service": "npm:^3.1.0"
     "@metamask/client-controller": "npm:^1.0.1"
     "@metamask/compliance-controller": "npm:2.0.0"
     "@metamask/connectivity-controller": "npm:^0.1.0"
@@ -35328,7 +35331,7 @@ __metadata:
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
     "@metamask/money-account-balance-service": "npm:^1.0.0"
     "@metamask/money-account-controller": "npm:^0.2.0"
-    "@metamask/money-account-upgrade-controller": "npm:@metamask-previews/money-account-upgrade-controller@1.3.1-preview-cce45fbde"
+    "@metamask/money-account-upgrade-controller": "npm:^2.0.0"
     "@metamask/multichain-account-service": "npm:^8.0.1"
     "@metamask/multichain-api-client": "npm:^0.10.1"
     "@metamask/multichain-api-middleware": "npm:^3.1.1"
