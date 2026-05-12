@@ -49,7 +49,11 @@ fi
 
 echo "🚀 Uploading to TestFlight..."
 echo "IPA: $IPA_PATH"
-echo "Group: $TESTFLIGHT_GROUP"
+if [ "$DISTRIBUTE_EXTERNAL" = "true" ]; then
+  echo "Group: $TESTFLIGHT_GROUP"
+else
+  echo "Group: (not set — distribute_external is false)"
+fi
 
 # Extract environment from pipeline name for changelog
 # GitHub Actions passes "github_actions_<build_name>" (e.g. github_actions_main-exp); use segment after first "-" (e.g. exp).
@@ -73,9 +77,15 @@ echo "Changelog: $CHANGELOG"
 # Change to ios directory where fastlane folder is located
 cd ios
 
-bundle exec fastlane upload_to_testflight_only \
-  ipa_path:"$IPA_PATH" \
-  groups:"$TESTFLIGHT_GROUP" \
-  changelog:"$CHANGELOG" \
+FASTLANE_ARGS=(
+  ipa_path:"$IPA_PATH"
+  changelog:"$CHANGELOG"
   distribute_external:"$DISTRIBUTE_EXTERNAL"
+)
+
+if [ "$DISTRIBUTE_EXTERNAL" = "true" ]; then
+  FASTLANE_ARGS+=(groups:"$TESTFLIGHT_GROUP")
+fi
+
+bundle exec fastlane upload_to_testflight_only "${FASTLANE_ARGS[@]}"
 
