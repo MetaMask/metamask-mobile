@@ -134,13 +134,15 @@ describe(
         {
           // withTokensForAllPopularNetworks seeds both TokensController.allTokens
           // AND TokenBalancesController (required for ERC-20s to show in the selector).
-          // Enable Linea before filtering to it so the NetworkManager selection
-          // path mirrors the other filter tests and does not need to enable a
-          // network mid-test. No Linea native balance is seeded, so the full view
-          // filter is still empty while the homepage still shows Ethereum tokens.
+          // Seed the full-view token filter directly. The previous test covers
+          // selecting networks through NetworkManager; this test only verifies
+          // the homepage ignores the full-view filter.
           fixture: new FixtureBuilder()
             .withTokensForAllPopularNetworks([ETH_TOKEN, USDC_TOKEN])
             .withNetworkEnabledMap({ eip155: { '0x1': true, '0xe708': true } })
+            .withPreferencesController({
+              tokenNetworkFilter: { '0xe708': true },
+            })
             .build(),
           restartDevice: true,
           testSpecificMock: async (mockServer: Mockttp) => {
@@ -156,14 +158,11 @@ describe(
             description: 'Wallet homepage should be visible',
           });
 
-          // Navigate to TokensFullView and apply a Linea-only filter.
+          // Navigate to TokensFullView with a seeded Linea-only filter.
           // No tokens were seeded on Linea, so the full view becomes empty.
           await WalletView.tapOnNewTokensSection();
           await TokensFullView.waitForVisible();
 
-          await NetworkManager.openNetworkManager();
-
-          await NetworkManager.tapNetwork(NetworkToCaipChainId.LINEA);
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.LINEA,
           );
