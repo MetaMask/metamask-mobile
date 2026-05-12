@@ -15,6 +15,7 @@ import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
 import handleBrowserUrl from '../handleBrowserUrl';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
+import handleRampReturnUrl from '../handleRampReturnUrl';
 import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
 import { handleSocialLeaderboardUrl } from '../handleSocialLeaderboardUrl';
 import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
@@ -33,6 +34,7 @@ jest.mock('../../../../NativeModules', () => ({
 }));
 jest.mock('../handleDeepLinkModalDisplay');
 jest.mock('../handleRampUrl');
+jest.mock('../handleRampReturnUrl');
 jest.mock('../handleHomeUrl');
 jest.mock('../handleSwapUrl');
 jest.mock('../handleBrowserUrl');
@@ -203,6 +205,32 @@ describe('handleUniversalLink', () => {
         source: 'test-source',
       });
 
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.ON_RAMP', () => {
+    it('calls handleRampReturnUrl with the path after the action', async () => {
+      const onRampPath = '/return?orderId=order-99';
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.ON_RAMP}${onRampPath}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.ON_RAMP}${onRampPath}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(handleRampReturnUrl).toHaveBeenCalledWith({
+        rampReturnPath: onRampPath,
+      });
       expect(handled).toHaveBeenCalled();
     });
   });
