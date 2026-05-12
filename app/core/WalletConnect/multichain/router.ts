@@ -7,26 +7,30 @@ import type { SnapMappedRequest } from './types';
  * Session classes can wrap this with approval/rejection logic.
  */
 export const callMultichainRoutingService = async ({
+  channelId,
   connectedAddresses,
   scope,
   requestId,
   mappedRequest,
 }: {
+  channelId: string;
   connectedAddresses: CaipAccountId[];
   scope: CaipChainId;
   requestId: number;
   mappedRequest: SnapMappedRequest;
-}): Promise<unknown> =>
-  Engine.controllerMessenger.call('MultichainRoutingService:handleRequest', {
-    connectedAddresses,
-    origin: 'metamask',
-    scope,
-    request: {
-      jsonrpc: '2.0' as const,
-      id: requestId,
-      method: mappedRequest.method,
-      ...(mappedRequest.params
-        ? { params: mappedRequest.params as Record<string, Json> | Json[] }
-        : {}),
+}): Promise<unknown> => Engine.controllerMessenger.call(
+    'MultichainRoutingService:handleRequest',
+    {
+      connectedAddresses,
+      origin: `wc-${channelId}`,
+      scope,
+      request: {
+        jsonrpc: '2.0' as const,
+        id: requestId,
+        method: mappedRequest.method,
+        ...(mappedRequest.params
+          ? { params: mappedRequest.params as Record<string, Json> | Json[] }
+          : {}),
+      },
     },
-  });
+  );

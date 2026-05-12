@@ -13,11 +13,13 @@
  */
 
 import { TrxAccountType, TrxScope } from '@metamask/keyring-api';
+import Logger from '../../../../util/Logger';
 import {
   type CaipChainId,
   type CaipAccountId,
   KnownCaipNamespace,
   parseCaipAccountId,
+  parseCaipChainId,
 } from '@metamask/utils';
 import {
   Caip25CaveatType,
@@ -42,46 +44,55 @@ const TRON_METHODS: string[] = ['tron_signTransaction', 'tron_signMessage'];
 const TRON_EVENTS: readonly string[] = [];
 
 /** CAIP-2 prefix used to identify Tron chain ids in proposals. */
-const TRON_PREFIX = 'tron:';
 const DEFAULT_TRON_CHAIN_ID: CaipChainId = 'tron:0x2b6653dc';
 
-export const normalizeCaipChainIdInboundTron = (
-  caipChainId: CaipChainId,
-): CaipChainId => {
-  if (!caipChainId.startsWith(TRON_PREFIX)) {
+/**
+ * Normalize a CAIP chain ID coming in from a dapp proposal or request params
+ * WalletConnect use hex chain references for Tron, but the Tron Snap use decimal.
+ */
+const normalizeCaipChainIdInbound = (caipChainId: CaipChainId): CaipChainId => {
+  const { namespace, reference } = parseCaipChainId(caipChainId);
+
+  if (namespace !== KnownCaipNamespace.Tron) {
     return caipChainId;
   }
-  const chainRef = caipChainId.slice(TRON_PREFIX.length);
-  if (chainRef.startsWith('0x')) {
-    return `tron:${parseInt(chainRef, 16)}`;
+
+  if (reference.startsWith('0x')) {
+    return `${namespace}:${parseInt(reference, 16)}`;
   }
   return caipChainId;
 };
 
-export const normalizeCaipChainIdOutboundTron = (
+/**
+ * Normalize a CAIP chain ID going out to a dapp response
+ * WalletConnect use hex chain references for Tron, but the Tron Snap use decimal.
+ */
+const normalizeCaipChainIdOutbound = (
   caipChainId: CaipChainId,
 ): CaipChainId => {
-  if (!caipChainId.startsWith(TRON_PREFIX)) {
+  const { namespace, reference } = parseCaipChainId(caipChainId);
+
+  if (namespace !== KnownCaipNamespace.Tron) {
     return caipChainId;
   }
-  const chainRef = caipChainId.slice(TRON_PREFIX.length);
-  if (!chainRef.startsWith('0x')) {
-    if (!/^\d+$/.test(chainRef)) {
+
+  if (!reference.startsWith('0x')) {
+    if (!/^\d+$/.test(reference)) {
       return caipChainId;
     }
-    return `tron:0x${parseInt(chainRef, 10).toString(16)}`;
+    return `${namespace}:0x${parseInt(reference, 10).toString(16)}`;
   }
   return caipChainId;
 };
 
-export const getCompatibleTronCaipChainIdsForWalletConnect = (
+const getCompatibleTronCaipChainIdsForWalletConnect = (
   caipChainId: CaipChainId,
 ): CaipChainId[] =>
   Array.from(
     new Set([
       caipChainId,
-      normalizeCaipChainIdInboundTron(caipChainId),
-      normalizeCaipChainIdOutboundTron(caipChainId),
+      normalizeCaipChainIdInbound(caipChainId),
+      normalizeCaipChainIdOutbound(caipChainId),
     ]),
   );
 
@@ -90,7 +101,7 @@ export const getCompatibleTronCaipChainIdsForWalletConnect = (
  * proposal — local typing keeps the dependency on `@walletconnect/types`
  * out of this module.
  */
-export interface TronProposalLike {
+interface TronProposalLike {
   requiredNamespaces?: Record<
     string,
     { chains?: string[]; methods?: string[]; events?: string[] } | undefined
@@ -109,7 +120,7 @@ const listTronEoaAddresses = (): string[] =>
     .filter((account: { type: string }) => account.type === TrxAccountType.Eoa)
     .map((account: { address: string }) => account.address);
 
-export const buildTronScopedPermissionsNamespace = ({
+const buildScopedPermissionsNamespace = ({
   channelId,
   permittedChains,
 }: {
@@ -248,7 +259,7 @@ const extractTronType = (value: unknown): string | undefined => {
  * Map a WalletConnect-shaped Tron request into the params shape the Tron
  * Snap expects. Unrecognized methods are passed through unchanged.
  */
-export const mapTronRequestForSnap = ({
+const mapRequestInbound = ({
   method,
   params,
 }: {
@@ -277,13 +288,23 @@ export const mapTronRequestForSnap = ({
       mappedParams.address = address;
     }
     if (typeof message === 'string') {
-      mappedParams.message = message;
+      // The Tron snap requires `message` to be base64-encoded
+      // (validated against /^(?:[A-Za-z0-9+/]{4})*...$/ then decoded via
+      // Buffer.from(message, 'base64').toString('utf8')).
+      // WC dapps send either a hex string ('0x...') or a plain UTF-8 string.
+      const utf8Message = message.startsWith('0x')
+        ? Buffer.from(message.slice(2), 'hex').toString('utf8')
+        : message;
+      mappedParams.message = Buffer.from(utf8Message, 'utf8').toString(
+        'base64',
+      );
     }
 
-    return {
+    const mapped: SnapMappedRequest = {
       method: 'signMessage',
       params: mappedParams,
     };
+    return mapped;
   }
 
   if (method === 'tron_signTransaction') {
@@ -331,10 +352,11 @@ export const mapTronRequestForSnap = ({
       mappedParams.address = address;
     }
 
-    return {
+    const mapped: SnapMappedRequest = {
       method: 'signTransaction',
       params: mappedParams,
     };
+    return mapped;
   }
 
   if (method === 'tron_sendTransaction') {
@@ -365,7 +387,7 @@ export const mapTronRequestForSnap = ({
  *
  * Other Tron methods are returned unchanged.
  */
-export const normalizeTronSnapResponse = ({
+const mapRequestOutbound = ({
   method,
   params,
   result,
@@ -429,7 +451,7 @@ export const normalizeTronSnapResponse = ({
  * channel. No-op if the wallet has no Tron EOAs. Errors are swallowed and
  * logged to mirror the previous best-effort behavior.
  */
-export const seedTronPermissions = (channelId: string): void => {
+const seedTronPermissions = (channelId: string): void => {
   try {
     const tronAddresses = listTronEoaAddresses();
     if (tronAddresses.length === 0) {
@@ -466,7 +488,10 @@ const collectRequestedTronChains = (
   };
   const direct = allNamespaces.tron?.chains ?? [];
   const bare = Object.values(allNamespaces).flatMap(
-    (ns) => ns?.chains?.filter((chain) => chain.startsWith(TRON_PREFIX)) ?? [],
+    (ns) =>
+      ns?.chains?.filter((chain) =>
+        chain.startsWith(KnownCaipNamespace.Tron),
+      ) ?? [],
   );
   return Array.from(new Set([...direct, ...bare])) as CaipChainId[];
 };
@@ -476,7 +501,7 @@ const collectRequestedTronChains = (
  * either via a top-level `tron` namespace key or via a bare `tron:<ref>`
  * chain id appearing under another namespace.
  */
-export const proposalReferencesTron = (proposal: TronProposalLike): boolean =>
+const proposalReferencesNamespace = (proposal: TronProposalLike): boolean =>
   Boolean(proposal.requiredNamespaces?.tron) ||
   Boolean(proposal.optionalNamespaces?.tron) ||
   collectRequestedTronChains(proposal).length > 0;
@@ -489,7 +514,7 @@ export const proposalReferencesTron = (proposal: TronProposalLike): boolean =>
  * Returns `undefined` when the proposal doesn't reference Tron, leaving
  * the caller's namespaces map untouched.
  */
-export const buildTronNamespace = ({
+const buildNamespace = ({
   proposal,
   existingAccounts = [],
   existingMethods,
@@ -500,7 +525,7 @@ export const buildTronNamespace = ({
   existingMethods?: string[];
   existingEvents?: string[];
 }): NamespaceConfig | undefined => {
-  if (!proposalReferencesTron(proposal)) {
+  if (!proposalReferencesNamespace(proposal)) {
     return undefined;
   }
 
@@ -548,18 +573,13 @@ export const buildTronNamespace = ({
     ),
   };
 
-  DevLogger.log(
-    '[wc][multichain/tron.buildTronNamespace] built tron namespace',
-    {
-      requestedTronChains,
-      finalTronChains: slice.chains,
-      accountsCount: slice.accounts.length,
-      addressSource:
-        existingAddresses.length > 0
-          ? 'scopedPermissions'
-          : 'accountsController',
-    },
-  );
+  DevLogger.log('[wc][multichain/tron.buildNamespace] built tron namespace', {
+    requestedTronChains,
+    finalTronChains: slice.chains,
+    accountsCount: slice.accounts.length,
+    addressSource:
+      existingAddresses.length > 0 ? 'scopedPermissions' : 'accountsController',
+  });
 
   return slice;
 };
@@ -574,17 +594,18 @@ export const buildTronNamespace = ({
 export const tronAdapter: ChainAdapter = {
   namespace: KnownCaipNamespace.Tron,
   redirectMethods: ['tron_signTransaction', 'tron_signMessage'],
-  proposalReferencesNamespace: proposalReferencesTron,
+  approvedMethods: ['tron_signTransaction', 'tron_signMessage'],
+  proposalReferencesNamespace,
   onBeforeApprove: ({ proposal, channelId }) => {
-    if (!proposalReferencesTron(proposal)) {
+    if (!proposalReferencesNamespace(proposal)) {
       return;
     }
     seedTronPermissions(channelId);
   },
-  buildScopedPermissionsNamespace: buildTronScopedPermissionsNamespace,
-  buildNamespace: buildTronNamespace,
-  normalizeCaipChainIdInbound: normalizeCaipChainIdInboundTron,
-  normalizeCaipChainIdOutbound: normalizeCaipChainIdOutboundTron,
-  mapRequestForSnap: mapTronRequestForSnap,
-  normalizeSnapResponse: normalizeTronSnapResponse,
+  buildScopedPermissionsNamespace,
+  buildNamespace,
+  normalizeCaipChainIdInbound,
+  normalizeCaipChainIdOutbound,
+  mapRequestInbound,
+  mapRequestOutbound,
 };

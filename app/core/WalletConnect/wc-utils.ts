@@ -1,5 +1,10 @@
 import { rpcErrors } from '@metamask/rpc-errors';
-import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
+import {
+  CaipChainId,
+  Hex,
+  KnownCaipNamespace,
+  parseCaipChainId,
+} from '@metamask/utils';
 import {
   NavigationContainerRef,
   ParamListBase,
@@ -19,8 +24,11 @@ import { findExistingNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
 import { WalletKitTypes } from '@reown/walletkit';
-import { APPROVED_METHODS_BY_NAMESPACE } from './wc-config';
-import { buildAdapterScopedPermissionsNamespaces } from './multichain';
+import { EVM_APPROVED_METHODS, EVM_METHODS_TO_REDIRECT } from './wc-config';
+import {
+  buildAdapterScopedPermissionsNamespaces,
+  isRedirectMethodForChain as isNonEVMRedirectMethodForChain,
+} from './multichain';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -253,7 +261,7 @@ export const getScopedPermissions = async ({
   );
   namespaces[KnownCaipNamespace.Eip155] = {
     chains: evmChains,
-    methods: APPROVED_METHODS_BY_NAMESPACE[KnownCaipNamespace.Eip155],
+    methods: EVM_APPROVED_METHODS,
     events: ['chainChanged', 'accountsChanged'],
     accounts: evmChains.flatMap((chain) =>
       approvedAccounts.map((account) => `${chain}:${account}`),
@@ -513,4 +521,42 @@ export const shouldEmitChainChangedForWalletConnect = ({
   }
 
   return { shouldEmit: true };
+};
+
+/**
+ * Determine whether a WalletConnect request method should trigger a deeplink redirect.
+ *
+ * Should be reworked when we'll create a specific adapter for Eip155 chains.
+ */
+export const isRedirectMethodForChain = ({
+  scope,
+  method,
+}: {
+  scope: CaipChainId;
+  method: string;
+}): boolean => {
+  if (scope.startsWith(KnownCaipNamespace.Eip155)) {
+    return EVM_METHODS_TO_REDIRECT.includes(method);
+  }
+  return isNonEVMRedirectMethodForChain({ scope, method });
+};
+
+/**
+ * Whether this CAIP namespace belongs to EIP-155 chains or not.
+ *
+ * Should be removed when we'll create a specific adapter for Eip155 chains.
+ */
+export const isEIP155NameSpace = (namespace: string): boolean => (
+    namespace === KnownCaipNamespace.Eip155 ||
+    namespace === KnownCaipNamespace.Wallet
+  );
+
+/**
+ * Whether this CAIP chain id belongs to an EIP-155 chain or not.
+ *
+ * Should be removed when we'll create a specific adapter for Eip155 chains.
+ */
+export const isEIP155Scope = (scope: CaipChainId): boolean => {
+  const { namespace } = parseCaipChainId(scope);
+  return isEIP155NameSpace(namespace);
 };

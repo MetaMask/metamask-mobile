@@ -83,6 +83,11 @@ export interface ChainAdapter {
   redirectMethods: readonly string[];
 
   /**
+   * Methods in this namespace that are approved for use in WC sessions
+   */
+  approvedMethods: readonly string[];
+
+  /**
    * Returns true if the dapp proposal references this namespace,
    * either via a top-level `<namespace>` key or via a bare
    * `<namespace>:<ref>` chain id under another namespace.
@@ -123,21 +128,21 @@ export interface ChainAdapter {
   /**
    * Normalize a CAIP chain id from WC into the shape the Snap expects.
    */
-  normalizeCaipChainIdInbound(caipChainId: CaipChainId): CaipChainId;
+  normalizeCaipChainIdInbound?(caipChainId: CaipChainId): CaipChainId;
 
   /**
    * Normalize a CAIP chain id from the Snap back into the shape WC expects.
    */
-  normalizeCaipChainIdOutbound(caipChainId: CaipChainId): CaipChainId;
+  normalizeCaipChainIdOutbound?(caipChainId: CaipChainId): CaipChainId;
 
   /** Maps a WC-shaped request into the Snap's expected shape. */
-  mapRequestForSnap(args: {
+  mapRequestInbound(args: {
     method: string;
     params: unknown;
   }): SnapMappedRequest;
 
   /** Normalizes the Snap's response back into what dapps expect. */
-  normalizeSnapResponse(args: {
+  mapRequestOutbound(args: {
     method: string;
     params: unknown;
     result: unknown;

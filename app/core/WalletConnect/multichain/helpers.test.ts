@@ -12,7 +12,7 @@ import {
   normalizeCaipChainIdOutbound,
   normalizeSnapResponse,
 } from './index';
-import { getAdapter , getAllAdapters } from './registry';
+import { getAdapter, getAllAdapters } from './registry';
 
 jest.mock('./registry', () => ({
   getAdapter: jest.fn(),
@@ -38,11 +38,11 @@ const createFakeAdapter = (
   onBeforeApprove: overrides.onBeforeApprove,
   buildNamespace:
     overrides.buildNamespace ?? jest.fn().mockReturnValue(undefined),
-  mapRequestForSnap:
-    overrides.mapRequestForSnap ??
+  mapRequestInbound:
+    overrides.mapRequestInbound ??
     jest.fn().mockImplementation(({ method, params }) => ({ method, params })),
-  normalizeSnapResponse:
-    overrides.normalizeSnapResponse ??
+  mapRequestOutbound:
+    overrides.mapRequestOutbound ??
     jest.fn().mockImplementation(({ result }) => result),
   buildScopedPermissionsNamespace:
     overrides.buildScopedPermissionsNamespace ??
@@ -294,7 +294,7 @@ describe('mapRequestForSnap', () => {
     const adapterMapped = { method: 'signTransaction', params: { foo: 1 } };
     const fakeAdapter = createFakeAdapter({
       namespace: KnownCaipNamespace.Tron,
-      mapRequestForSnap: jest.fn().mockReturnValue(adapterMapped),
+      mapRequestInbound: jest.fn().mockReturnValue(adapterMapped),
     });
     mockedGetAdapter.mockReturnValue(fakeAdapter);
 
@@ -305,7 +305,7 @@ describe('mapRequestForSnap', () => {
     });
 
     expect(result).toBe(adapterMapped);
-    expect(fakeAdapter.mapRequestForSnap).toHaveBeenCalledWith({
+    expect(fakeAdapter.mapRequestInbound).toHaveBeenCalledWith({
       method: 'tron_signTransaction',
       params: [{ raw_data_hex: '0xabc' }],
     });
@@ -332,7 +332,7 @@ describe('normalizeSnapResponse', () => {
     const adapterResult = { txID: 'tx-1', signature: ['0xsig'] };
     const fakeAdapter = createFakeAdapter({
       namespace: KnownCaipNamespace.Tron,
-      normalizeSnapResponse: jest.fn().mockReturnValue(adapterResult),
+      mapRequestOutbound: jest.fn().mockReturnValue(adapterResult),
     });
     mockedGetAdapter.mockReturnValue(fakeAdapter);
 
@@ -344,7 +344,7 @@ describe('normalizeSnapResponse', () => {
     });
 
     expect(result).toBe(adapterResult);
-    expect(fakeAdapter.normalizeSnapResponse).toHaveBeenCalledWith({
+    expect(fakeAdapter.mapRequestOutbound).toHaveBeenCalledWith({
       method: 'tron_signTransaction',
       params: [],
       result: { signature: '0xsig' },

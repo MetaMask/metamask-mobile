@@ -34,7 +34,6 @@ import getRpcMethodMiddleware, {
 } from '../RPCMethods/RPCMethodMiddleware';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { ERROR_MESSAGES } from './WalletConnectV2';
-import { REDIRECT_METHODS_BY_NAMESPACE } from './wc-config';
 import {
   getScopedPermissions,
   hideWCLoadingState,
@@ -47,14 +46,17 @@ import {
   normalizeDappUrl,
   getChainChangedEmissionForWalletConnect,
   shouldEmitChainChangedForWalletConnect,
+  isRedirectMethodForChain,
+  isEIP155Scope,
 } from './wc-utils';
 import {
   buildAdapterNamespaces,
   callMultichainRoutingService,
-  mapRequestForSnap,
-  normalizeSnapResponse,
+  mapRequestInbound,
+  mapRequestOutbound,
   proposalReferencedAdapterNamespaces,
   normalizeCaipChainIdInbound,
+  normalizeCaipAccountIdInbound,
   type NamespaceConfig,
 } from './multichain';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
@@ -747,25 +749,11 @@ class WalletConnect2Session {
       });
     }
 
-    const method = requestEvent.params.request.method;
-    const rawRequestChainId = requestEvent.params.chainId as CaipChainId;
-    if (typeof rawRequestChainId !== 'string') {
-      this._isHandlingRequest = false;
-      return this.web3Wallet.respondSessionRequest({
-        topic: this.session.topic,
-        response: {
-          id: requestEvent.id,
-          jsonrpc: '2.0',
-          error: { code: 4902, message: ERROR_MESSAGES.INVALID_CHAIN },
-        },
-      });
-    }
-    const requestChainId = normalizeCaipChainIdInbound(
-      rawRequestChainId,
-    ) as CaipChainId;
-    let requestNamespace: string | undefined;
+    let normalizedRequestChainId: CaipChainId;
     try {
-      requestNamespace = parseCaipChainId(requestChainId).namespace;
+      normalizedRequestChainId = normalizeCaipChainIdInbound(
+        requestEvent.params.chainId as CaipChainId,
+      );
     } catch {
       this._isHandlingRequest = false;
       return this.web3Wallet.respondSessionRequest({
@@ -777,63 +765,23 @@ class WalletConnect2Session {
         },
       });
     }
+    const method = requestEvent.params.request.method;
+    const permittedChains = await getPermittedChains(this.channelId);
 
     // Mark redirect before any routing so all namespaces benefit from it.
-    const redirectNamespace =
-      requestNamespace === KnownCaipNamespace.Wallet
-        ? KnownCaipNamespace.Eip155
-        : requestNamespace;
-    const redirectMethods =
-      (redirectNamespace && REDIRECT_METHODS_BY_NAMESPACE[redirectNamespace]) ??
-      [];
-    if (redirectMethods.includes(method)) {
-      this.requestsToRedirect[requestEvent.id] = true;
-    }
+    // isRedirectMethodForChain is a helper merging EVM and Non-EVM
+    this.requestsToRedirect[requestEvent.id] = isRedirectMethodForChain({
+      scope: normalizedRequestChainId,
+      method,
+    });
 
-    const getPermittedChainsSafe = async (
-      subject: string,
-    ): Promise<CaipChainId[]> => {
-      try {
-        return await getPermittedChains(subject);
-      } catch (error) {
-        if (error instanceof PermissionDoesNotExistError) {
-          return [];
-        }
-        throw error;
-      }
-    };
-
-    const permittedChainsFromChannel = await getPermittedChainsSafe(
-      this.channelId,
-    );
-    const permittedChainsFromSession =
-      this.session.topic !== this.channelId
-        ? await getPermittedChainsSafe(this.session.topic)
-        : [];
-    const permittedChains = Array.from(
-      new Set([...permittedChainsFromChannel, ...permittedChainsFromSession]),
-    );
-
-    const isPermittedByPermissionController =
-      permittedChains.includes(requestChainId);
-    const activeSessionChains = Object.values(
-      this.session.namespaces ?? {},
-    ).flatMap((namespaceSlice) => namespaceSlice?.chains ?? []);
-    const isPermittedByActiveSession =
-      activeSessionChains.includes(requestChainId);
-    const isPermittedRequestChain =
-      isPermittedByPermissionController || isPermittedByActiveSession;
-
-    // Non-EVM namespace routing: delegate to MultichainRoutingService which
-    // resolves the correct Snap internally via the SnapKeyring. The scope
-    // (CAIP-2 chainId) and the dapp-permitted accounts for that namespace
-    // are passed through untouched.
-    if (
-      requestNamespace &&
-      requestNamespace !== KnownCaipNamespace.Eip155 &&
-      requestNamespace !== KnownCaipNamespace.Wallet
-    ) {
-      if (!isPermittedRequestChain) {
+    // If the request is for a non-EVM chain.
+    if (!isEIP155Scope(normalizedRequestChainId)) {
+      // @TODO Should we test the permittedChains in the session and nto only from the permissions controller?
+      const isPermittedChains = permittedChains.includes(
+        normalizedRequestChainId,
+      );
+      if (!isPermittedChains) {
         this._isHandlingRequest = false;
         return this.web3Wallet.respondSessionRequest({
           topic: this.session.topic,
@@ -841,12 +789,17 @@ class WalletConnect2Session {
             id: requestEvent.id,
             jsonrpc: '2.0',
             error: providerErrors.unauthorized({
-              message: `Requested chain is not permitted for this WalletConnect session. Reconnect and approve ${requestChainId} to continue.`,
+              message: `Requested chain is not permitted for this WalletConnect session. Reconnect and approve ${normalizedRequestChainId} to continue.`,
             }),
           },
         });
       }
-      return this.routeToSnap(requestEvent, requestChainId);
+
+      return this.handleNonEVMRequest({
+        channelId: this.channelId,
+        requestEvent,
+        scope: normalizedRequestChainId,
+      });
     }
 
     const isSwitchingChain = isSwitchingChainRequest(requestEvent);
@@ -856,7 +809,7 @@ class WalletConnect2Session {
     try {
       hexChainId = isSwitchingChain
         ? requestEvent.params.request.params[0].chainId
-        : getChainIdForCaipChainId(requestEvent.params.chainId as CaipChainId);
+        : getChainIdForCaipChainId(normalizedRequestChainId);
       caip2ChainId = `eip155:${parseInt(hexChainId, 16)}` as CaipChainId;
     } catch (err) {
       this._isHandlingRequest = false;
@@ -968,33 +921,41 @@ class WalletConnect2Session {
   };
 
   /**
-   * Routes a non-EVM WalletConnect session request through the
+   * Handle a non-EVM WalletConnect session request through the
    * `MultichainRoutingService`. The routing service resolves the correct
    * Snap from the connected account address and dispatches the request,
    * keeping this class chain-agnostic.
+   *
+   * @TODO Should be reworked to use adapter instead of directly using `callMultichainRoutingService`
+   * All the inbound and outbound request mapping logic should be moved to the adapter.
    */
-  private routeToSnap = async (
-    requestEvent: WalletKitTypes.SessionRequest,
-    scope: CaipChainId,
-  ) => {
+  private handleNonEVMRequest = async ({
+    channelId,
+    requestEvent,
+    scope,
+  }: {
+    channelId: string;
+    requestEvent: WalletKitTypes.SessionRequest;
+    scope: CaipChainId;
+  }) => {
     const { method, params } = requestEvent.params.request;
-    const mappedRequest = mapRequestForSnap({ scope, method, params });
-
-    const namespace = scope.split(':')[0];
+    const { namespace } = parseCaipChainId(scope);
     const connectedAddresses = (this.session.namespaces?.[namespace]
       ?.accounts ?? []) as CaipAccountId[];
-
-    DevLogger.log(
-      `WC2::routeToSnap scope=${scope} method=${method} mappedMethod=${mappedRequest.method} connectedAddresses=${connectedAddresses.length}`,
+    const normalizedConnectedAddresses = connectedAddresses.map((account) =>
+      normalizeCaipAccountIdInbound(account),
     );
+
     try {
+      const mappedRequest = mapRequestInbound({ scope, method, params });
       const result = await callMultichainRoutingService({
-        connectedAddresses,
+        channelId,
+        connectedAddresses: normalizedConnectedAddresses,
         scope,
         requestId: requestEvent.id,
         mappedRequest,
       });
-      const walletConnectResult = normalizeSnapResponse({
+      const walletConnectResult = mapRequestOutbound({
         scope,
         method,
         params,

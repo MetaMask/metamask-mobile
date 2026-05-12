@@ -9,7 +9,9 @@
  */
 import {
   parseCaipChainId,
+  parseCaipAccountId,
   type CaipChainId,
+  type CaipAccountId,
   type KnownCaipNamespace,
 } from '@metamask/utils';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
@@ -91,7 +93,8 @@ export const buildAdapterNamespaces = ({
  */
 export const proposalReferencedAdapterNamespaces = (
   proposal: ProposalLike,
-): string[] => getAllAdapters()
+): string[] =>
+  getAllAdapters()
     .filter((adapter) => adapter.proposalReferencesNamespace(proposal))
     .map((adapter) => adapter.namespace);
 
@@ -126,9 +129,10 @@ export const buildAdapterScopedPermissionsNamespaces = ({
 export const normalizeCaipChainIdInbound = (
   caipChainId: CaipChainId,
 ): CaipChainId => {
+  const { namespace } = parseCaipChainId(caipChainId);
   for (const adapter of getAllAdapters()) {
-    if (caipChainId.startsWith(`${adapter.namespace}:`)) {
-      return adapter.normalizeCaipChainIdInbound(caipChainId);
+    if (namespace === adapter.namespace) {
+      return adapter.normalizeCaipChainIdInbound?.(caipChainId) ?? caipChainId;
     }
   }
 
@@ -141,9 +145,10 @@ export const normalizeCaipChainIdInbound = (
 export const normalizeCaipChainIdOutbound = (
   caipChainId: CaipChainId,
 ): CaipChainId => {
+  const { namespace } = parseCaipChainId(caipChainId);
   for (const adapter of getAllAdapters()) {
-    if (caipChainId.startsWith(`${adapter.namespace}:`)) {
-      return adapter.normalizeCaipChainIdOutbound(caipChainId);
+    if (namespace === adapter.namespace) {
+      return adapter.normalizeCaipChainIdOutbound?.(caipChainId) ?? caipChainId;
     }
   }
 
@@ -151,11 +156,33 @@ export const normalizeCaipChainIdOutbound = (
 };
 
 /**
+ * Normalize a CAIP account id from WC into the shape the Snap expects.
+ */
+export const normalizeCaipAccountIdInbound = (
+  caipAccountId: CaipAccountId,
+): CaipAccountId => {
+  const { address, chainId } = parseCaipAccountId(caipAccountId);
+  const normalizedCaipChainId = normalizeCaipChainIdInbound(chainId);
+  return `${normalizedCaipChainId}:${address}`;
+};
+
+/**
+ * Normalize a CAIP account id from the Snap back into the shape WC expects.
+ */
+export const normalizeCaipAccountIdOutbound = (
+  caipAccountId: CaipAccountId,
+): CaipAccountId => {
+  const { address, chainId } = parseCaipAccountId(caipAccountId);
+  const normalizedCaipChainId = normalizeCaipChainIdOutbound(chainId);
+  return `${normalizedCaipChainId}:${address}`;
+};
+
+/**
  * Translate a WalletConnect request into the parameter shape the
  * Snap behind this scope expects. Falls through unchanged when no
  * adapter matches.
  */
-export const mapRequestForSnap = ({
+export const mapRequestInbound = ({
   scope,
   method,
   params,
@@ -166,14 +193,14 @@ export const mapRequestForSnap = ({
 }): SnapMappedRequest => {
   const { namespace } = parseCaipChainId(scope);
   const adapter = getAdapter(namespace);
-  return adapter?.mapRequestForSnap({ method, params }) ?? { method, params };
+  return adapter?.mapRequestInbound({ method, params }) ?? { method, params };
 };
 
 /**
  * Normalize the Snap result back into the shape the dapp expects.
  * Falls through unchanged when no adapter matches.
  */
-export const normalizeSnapResponse = ({
+export const mapRequestOutbound = ({
   scope,
   method,
   params,
@@ -186,7 +213,7 @@ export const normalizeSnapResponse = ({
 }): unknown => {
   const { namespace } = parseCaipChainId(scope);
   const adapter = getAdapter(namespace);
-  return adapter?.normalizeSnapResponse({ method, params, result }) ?? result;
+  return adapter?.mapRequestOutbound({ method, params, result }) ?? result;
 };
 
 /**
@@ -198,4 +225,18 @@ export const getRedirectMethodsForChain = (
   const { namespace } = parseCaipChainId(scope);
   const adapter = getAdapter(namespace);
   return adapter?.redirectMethods ?? [];
+};
+
+/**
+ * Whether this method (across all chains) should redirect the user back to the dapp.
+ */
+export const isRedirectMethodForChain = ({
+  scope,
+  method,
+}: {
+  scope: CaipChainId;
+  method: string;
+}): boolean => {
+  const redirectMethods = getRedirectMethodsForChain(scope);
+  return redirectMethods.includes(method);
 };

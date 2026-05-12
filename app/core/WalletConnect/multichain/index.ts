@@ -3,7 +3,7 @@
  *
  * This module re-exports the orchestration helpers used by the WC2
  * session classes and provides per-request dispatchers
- * (`mapRequestForSnap` / `normalizeSnapResponse`) that pick the right
+ * (`mapRequestInbound` / `mapRequestOutbound`) that pick the right
  * adapter from the request scope's CAIP-2 namespace.
  *
  * The WC2 classes only depend on this barrel — they never import a
@@ -17,9 +17,12 @@ export {
   buildAdapterScopedPermissionsNamespaces,
   normalizeCaipChainIdInbound,
   normalizeCaipChainIdOutbound,
-  mapRequestForSnap,
-  normalizeSnapResponse,
+  normalizeCaipAccountIdInbound,
+  normalizeCaipAccountIdOutbound,
+  mapRequestInbound,
+  mapRequestOutbound,
   getRedirectMethodsForChain,
+  isRedirectMethodForChain,
 } from './helpers';
 export { callMultichainRoutingService } from './router';
 export {

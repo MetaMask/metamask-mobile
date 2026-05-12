@@ -564,7 +564,7 @@ describe('multichain/tron - tronAdapter', () => {
   });
 
   it('delegates mapRequestForSnap to mapTronRequestForSnap', () => {
-    const result = tronAdapter.mapRequestForSnap({
+    const result = tronAdapter.mapRequestInbound({
       method: 'tron_signMessage',
       params: [{ address: 'TAddr', message: '0xdead' }],
     });
@@ -577,7 +577,7 @@ describe('multichain/tron - tronAdapter', () => {
 
   it('delegates normalizeSnapResponse to normalizeTronSnapResponse', () => {
     const original = { raw_data_hex: '0xabc' };
-    const result = tronAdapter.normalizeSnapResponse({
+    const result = tronAdapter.mapRequestOutbound({
       method: 'tron_signTransaction',
       params: [{ transaction: { transaction: original } }],
       result: { signature: '0xsig' },
