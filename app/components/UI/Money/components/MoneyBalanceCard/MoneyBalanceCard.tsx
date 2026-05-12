@@ -16,6 +16,7 @@ import {
   FontWeight,
   IconColor,
   IconName,
+  IconSize,
   Skeleton,
   Text,
   TextColor,
@@ -120,7 +121,6 @@ const MoneyBalanceCard = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
         >
           <Text
             variant={TextVariant.BodySm}
@@ -132,7 +132,7 @@ const MoneyBalanceCard = () => {
           </Text>
           <ButtonIcon
             iconName={IconName.Info}
-            iconProps={{ color: IconColor.IconAlternative }}
+            iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
             size={ButtonIconSize.Sm}
             onPress={handleInfoPress}
             accessibilityLabel={strings('money.balance_card.info_sheet_title')}
