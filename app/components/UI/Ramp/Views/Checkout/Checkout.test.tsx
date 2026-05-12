@@ -766,6 +766,41 @@ describe('Checkout', () => {
       expect(mockParentPop).toHaveBeenCalled();
     });
 
+    it('fires RAMPS_CHECKOUT_CLOSED with close_source=callback_error when headless getOrderFromCallback returns null', async () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockGetOrderFromCallback.mockResolvedValue(null);
+      mockFailSession.mockReturnValue(true);
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId, unmount } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+      unmount();
+
+      const closedIdx = mockCreateEventBuilder.mock.calls.findIndex(
+        (c) => c[0] === MetaMetricsEvents.RAMPS_CHECKOUT_CLOSED,
+      );
+      expect(closedIdx).toBeGreaterThanOrEqual(0);
+      expect(mockAddProperties.mock.calls[closedIdx]?.[0]).toMatchObject({
+        close_source: 'callback_error',
+      });
+    });
+
     it('surfaces callback processing failures through onError and skips the ErrorView', async () => {
       mockGetSession.mockReturnValue({
         id: 'hs-1',
@@ -1276,8 +1311,7 @@ describe('Checkout', () => {
       });
     });
 
-    it('fires RAMPS_CHECKOUT_CLOSED with close_source=callback_error when getOrderFromCallback returns null', async () => {
-      mockGetOrderFromCallback.mockResolvedValue(null);
+    it('fires RAMPS_CHECKOUT_CLOSED with close_source=callback_success when callback URL is recognized (non-headless)', async () => {
       mockUseParams.mockReturnValue({
         url: 'https://provider.example.com/checkout',
         providerName: 'Test',
@@ -1298,7 +1332,7 @@ describe('Checkout', () => {
       unmount();
 
       const closed = findEventProps(MetaMetricsEvents.RAMPS_CHECKOUT_CLOSED);
-      expect(closed).toMatchObject({ close_source: 'callback_error' });
+      expect(closed).toMatchObject({ close_source: 'callback_success' });
     });
 
     it('fires RAMPS_CHECKOUT_CLOSED with close_source=http_error after a terminal HTTP error', async () => {
