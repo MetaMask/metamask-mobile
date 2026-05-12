@@ -34,7 +34,7 @@ export function useFiatOrderStatus(
   const [paymentMethodName, setPaymentMethodName] = useState<
     string | undefined
   >();
-  const intervalRef = useRef<ReturnType<typeof setInterval>>();
+  const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   useEffect(() => {
     if (!fiatOrderId || !fiatProvider || !walletAddress) {
