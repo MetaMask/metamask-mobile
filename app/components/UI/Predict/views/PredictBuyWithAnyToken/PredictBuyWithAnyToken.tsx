@@ -68,6 +68,8 @@ import {
   predictBuyPreviewSessionRef,
 } from '../PredictBuyPreview/PredictBuyPreview';
 
+const PAYMENT_SELECTOR_NAVIGATION_UNLOCK_DELAY_MS = 1000;
+
 const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
@@ -91,6 +93,15 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const { deposit } = usePredictDeposit();
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
+  const [
+    isPaymentSelectorNavigationLocked,
+    setIsPaymentSelectorNavigationLocked,
+  ] = useState(false);
+  const isPaymentSelectorNavigationLockedRef = useRef(false);
+  const didBlurAfterPaymentSelectorOpenRef = useRef(false);
+  const paymentSelectorUnlockTimerRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
 
   const payWithAnyTokenEnabled = useSelector(
     selectPredictWithAnyTokenEnabledFlag,
@@ -143,6 +154,63 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const handleFeeBreakdownClose = useCallback(() => {
     setIsFeeBreakdownVisible(false);
   }, []);
+
+  const clearPaymentSelectorUnlockTimer = useCallback(() => {
+    if (paymentSelectorUnlockTimerRef.current) {
+      clearTimeout(paymentSelectorUnlockTimerRef.current);
+      paymentSelectorUnlockTimerRef.current = null;
+    }
+  }, []);
+
+  const updatePaymentSelectorNavigationLock = useCallback(
+    (isLocked: boolean) => {
+      isPaymentSelectorNavigationLockedRef.current = isLocked;
+      setIsPaymentSelectorNavigationLocked(isLocked);
+    },
+    [],
+  );
+
+  const lockPaymentSelectorNavigation = useCallback(() => {
+    clearPaymentSelectorUnlockTimer();
+    didBlurAfterPaymentSelectorOpenRef.current = false;
+    updatePaymentSelectorNavigationLock(true);
+  }, [clearPaymentSelectorUnlockTimer, updatePaymentSelectorNavigationLock]);
+
+  useEffect(() => {
+    const scheduleUnlock = () => {
+      clearPaymentSelectorUnlockTimer();
+      paymentSelectorUnlockTimerRef.current = setTimeout(() => {
+        didBlurAfterPaymentSelectorOpenRef.current = false;
+        updatePaymentSelectorNavigationLock(false);
+        paymentSelectorUnlockTimerRef.current = null;
+      }, PAYMENT_SELECTOR_NAVIGATION_UNLOCK_DELAY_MS);
+    };
+
+    const unsubscribeBlur = navigation.addListener('blur', () => {
+      if (isPaymentSelectorNavigationLockedRef.current) {
+        didBlurAfterPaymentSelectorOpenRef.current = true;
+      }
+    });
+
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      if (
+        isPaymentSelectorNavigationLockedRef.current &&
+        didBlurAfterPaymentSelectorOpenRef.current
+      ) {
+        scheduleUnlock();
+      }
+    });
+
+    return () => {
+      unsubscribeBlur();
+      unsubscribeFocus();
+      clearPaymentSelectorUnlockTimer();
+    };
+  }, [
+    clearPaymentSelectorUnlockTimer,
+    navigation,
+    updatePaymentSelectorNavigationLock,
+  ]);
 
   const {
     preview,
@@ -224,8 +292,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   );
 
   const handleChangePaymentMethod = useCallback(() => {
+    lockPaymentSelectorNavigation();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [navigation]);
+  }, [lockPaymentSelectorNavigation, navigation]);
 
   const handleAddFunds = useCallback(() => {
     if (isSheetMode) {
@@ -294,6 +363,10 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   }, [isSheetMode, isBannerActive, isInputFocused, setIsInputFocused]);
 
   const handleBuyButtonPress = useCallback(() => {
+    if (isPaymentSelectorNavigationLocked) {
+      return;
+    }
+
     if (isBannerActive) {
       handleRetryWithBestPrice();
       return;
@@ -309,6 +382,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     handleConfirm();
   }, [
     isBannerActive,
+    isPaymentSelectorNavigationLocked,
     isChangePaymentMode,
     isAddFundsMode,
     handleRetryWithBestPrice,
@@ -332,6 +406,22 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const wrapperProps = isSheetMode
     ? { twClassName: 'bg-background-default' }
     : { style: tw.style('flex-1 bg-background-default') };
+
+  const isBuyActionButtonDisabled = isPaymentSelectorNavigationLocked
+    ? true
+    : !isBannerActive && (isChangePaymentMode || isAddFundsMode)
+      ? false
+      : isBannerActive
+        ? isRetrying || !preview
+        : !canPlaceBet;
+
+  const showBuyActionButtonReducedOpacity = isPaymentSelectorNavigationLocked
+    ? true
+    : !isBannerActive && (isChangePaymentMode || isAddFundsMode)
+      ? false
+      : isBannerActive
+        ? !preview
+        : !canPlaceBet;
 
   return (
     <Wrapper {...wrapperProps}>
@@ -393,7 +483,10 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
               hideAvailableBalance={false}
             />
             {payWithAnyTokenEnabled && (
-              <PredictPayWithRow disabled={isPlacingOrder} />
+              <PredictPayWithRow
+                disabled={isPlacingOrder || isPaymentSelectorNavigationLocked}
+                onPaymentSelectorOpen={lockPaymentSelectorNavigation}
+              />
             )}
           </Box>
         </ScrollView>
@@ -428,9 +521,10 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         )}
         {payWithAnyTokenEnabled && isSheetMode && (
           <PredictPayWithRow
-            disabled={isPlacingOrder}
+            disabled={isPlacingOrder || isPaymentSelectorNavigationLocked}
             variant="row"
             availableBalance={availableBalanceDisplay}
+            onPaymentSelectorOpen={lockPaymentSelectorNavigation}
           />
         )}
         <PredictFeeSummary
@@ -456,20 +550,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         <PredictBuyActionButton
           isLoading={isPlacingOrder || (isBannerActive && isRetrying)}
           onPress={handleBuyButtonPress}
-          disabled={
-            !isBannerActive && (isChangePaymentMode || isAddFundsMode)
-              ? false
-              : isBannerActive
-                ? isRetrying || !preview
-                : !canPlaceBet
-          }
-          showReducedOpacity={
-            !isBannerActive && (isChangePaymentMode || isAddFundsMode)
-              ? false
-              : isBannerActive
-                ? !preview
-                : !canPlaceBet
-          }
+          disabled={isBuyActionButtonDisabled}
+          showReducedOpacity={showBuyActionButtonReducedOpacity}
           outcomeTokenTitle={outcomeToken?.title}
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
           isSheetMode={isSheetMode}

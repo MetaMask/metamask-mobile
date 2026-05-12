@@ -58,21 +58,29 @@ export const usePredictBuyConditions = ({
   // settling exit (Bug 3).
   const hasSeenLoadingRef = useRef(false);
 
-  // Tracks the address of the last ERC20 token for which a full quote-loading
-  // cycle has completed. Compared synchronously each render to derive
+  const selectedPaymentTokenKey = useMemo(() => {
+    if (!selectedPaymentToken?.address || !selectedPaymentToken?.chainId) {
+      return null;
+    }
+
+    return `${selectedPaymentToken.chainId.toLowerCase()}:${selectedPaymentToken.address.toLowerCase()}`;
+  }, [selectedPaymentToken?.address, selectedPaymentToken?.chainId]);
+
+  // Tracks the chain/token pair for which a full quote-loading cycle has
+  // completed. Compared synchronously each render to derive
   // `isPaySystemSettling` — true from the very first render after the token
   // identity changes, with no one-frame gap (Bug 1).
-  const [lastSettledTokenAddress, setLastSettledTokenAddress] = useState<
-    string | null
-  >(null);
+  const [lastSettledTokenKey, setLastSettledTokenKey] = useState<string | null>(
+    null,
+  );
 
   // Synchronous derivation: true from the very first render after the selected
   // token changes. No effects needed to flip a boolean flag, so there is no
   // one-frame window where the CTA flashes incorrectly (Bug 1 fixed).
   const isPaySystemSettling =
     !isPredictBalanceSelected &&
-    selectedPaymentToken !== null &&
-    selectedPaymentToken?.address !== lastSettledTokenAddress;
+    selectedPaymentTokenKey !== null &&
+    selectedPaymentTokenKey !== lastSettledTokenKey;
 
   const isBalancePulsing = useMemo(
     () => isDepositPending && isPredictBalanceSelected,
@@ -146,14 +154,14 @@ export const usePredictBuyConditions = ({
     const quotesPresent = (quotes?.length ?? 0) > 0;
     if (quotesPresent || !isPayFeesLoading) {
       hasSeenLoadingRef.current = false;
-      setLastSettledTokenAddress(selectedPaymentToken?.address ?? null);
+      setLastSettledTokenKey(selectedPaymentTokenKey);
     }
   }, [
     isPaySystemSettling,
     isPayQuoteLoading,
     isPayFeesLoading,
     quotes,
-    selectedPaymentToken,
+    selectedPaymentTokenKey,
   ]);
 
   // Effect 3 — reset when switching back to Predict balance so that returning
@@ -162,7 +170,7 @@ export const usePredictBuyConditions = ({
   useEffect(() => {
     if (isPredictBalanceSelected) {
       hasSeenLoadingRef.current = false;
-      setLastSettledTokenAddress(null);
+      setLastSettledTokenKey(null);
     }
   }, [isPredictBalanceSelected]);
 

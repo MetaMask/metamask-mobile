@@ -657,7 +657,7 @@ describe('usePredictBuyConditions', () => {
     });
 
     it('is true immediately after an ERC20 token is selected (synchronous — no 1-frame gap)', () => {
-      // isPaySystemSettling is derived synchronously from lastSettledTokenAddress,
+      // isPaySystemSettling is derived synchronously from lastSettledTokenKey,
       // so it is true from the very first render after the token identity changes.
       mockIsPredictBalanceSelected = false;
       mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
@@ -852,6 +852,35 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isPaySystemSettling).toBe(true);
     });
 
+    it('resets to true when the same ERC20 address is selected on a different chain', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xUSDC', chainId: '0x1' };
+      mockIsPayQuoteLoading = true;
+      mockIsPayTotalsLoading = true;
+      mockQuotes = [];
+
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 1 }),
+      );
+
+      act(() => {
+        mockIsPayQuoteLoading = false;
+        mockIsPayTotalsLoading = false;
+        mockQuotes = [{ id: 'q1' }];
+      });
+      rerender({});
+      expect(result.current.isPaySystemSettling).toBe(false);
+
+      act(() => {
+        mockSelectedPaymentToken = { address: '0xUSDC', chainId: '0x2' };
+        mockQuotes = [];
+      });
+      rerender({});
+
+      expect(result.current.isPaySystemSettling).toBe(true);
+      expect(result.current.canPlaceBet).toBe(false);
+    });
+
     it('keeps canPlaceBet false while settling, even if all other conditions are met', () => {
       mockIsPredictBalanceSelected = false;
       mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
@@ -886,7 +915,7 @@ describe('usePredictBuyConditions', () => {
       rerender({});
       expect(result.current.isPaySystemSettling).toBe(false);
 
-      // Switch back to Predict balance — resets lastSettledTokenAddress
+      // Switch back to Predict balance — resets lastSettledTokenKey
       act(() => {
         mockIsPredictBalanceSelected = true;
         mockSelectedPaymentToken = null;
