@@ -136,7 +136,7 @@ jobs:
             .yarn/cache
             ~/Library/Detox
 
-      - name: Configure Namespace cache
+      - name: Configure Namespace cache (Android)
         if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'android' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
@@ -151,6 +151,19 @@ jobs:
             /home/runner/_work/.gradle/caches
             /home/runner/_work/.gradle/wrapper
             /home/runner/_work/.gradle/apk-cache
+
+      - name: Configure Namespace cache (iOS)
+        if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          cache: |
+            cocoapods
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+            ~/Library/Detox
 
       - name: Restore .metamask folder
         if: ${{ inputs.runner_provider != 'namespace' }}
