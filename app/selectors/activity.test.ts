@@ -54,7 +54,9 @@ function buildState({
             accounts: {
               'account-1': {
                 id: 'account-1',
-                ...(!omitAccountEvmAddress ? { address: accountEvmAddress } : {}),
+                ...(!omitAccountEvmAddress
+                  ? { address: accountEvmAddress }
+                  : {}),
                 type: 'eip155:eoa',
               },
             },
