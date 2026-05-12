@@ -10,8 +10,8 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { CashSection } from './Sections/Cash';
 import TokensSection from './Sections/Tokens';
-import PerpsSectionWithProvider from './Sections/Perpetuals';
 import { PerpsSection as PerpsSectionBase } from './Sections/Perpetuals/PerpsSection';
+import HomepagePerpsHomeSlot from './Sections/Perpetuals/HomepagePerpsHomeSlot';
 import PredictionsSection from './Sections/Predictions';
 import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
@@ -354,19 +354,23 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           />
           {isPerpsEnabled &&
             (perpsProvidersHoisted ? (
-              <PerpsSectionBase
+              <HomepagePerpsHomeSlot
                 ref={perpsSectionRef}
                 sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
                 totalSectionsLoaded={totalSectionsLoaded}
                 mode={sectionMode}
               />
             ) : (
-              <PerpsSectionWithProvider
-                ref={perpsSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-                totalSectionsLoaded={totalSectionsLoaded}
-                mode={sectionMode}
-              />
+              <PerpsConnectionProvider suppressErrorView>
+                <PerpsStreamProvider>
+                  <HomepagePerpsHomeSlot
+                    ref={perpsSectionRef}
+                    sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+                    totalSectionsLoaded={totalSectionsLoaded}
+                    mode={sectionMode}
+                  />
+                </PerpsStreamProvider>
+              </PerpsConnectionProvider>
             ))}
           <PredictionsSection
             ref={predictionsSectionRef}
