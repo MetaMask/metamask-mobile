@@ -123,13 +123,11 @@ const useMoneyAccountBalance = (
         )
       : new BigNumber(0);
 
-    // musdSHFvd balance expressed in mUSD: pre-computed by the service as
-    // musdSHFvdBalance * exchangeRate / 10^6, returned as a raw uint256 string.
-    const musdSHFvdDecimal = musdEquivalentBalanceQuery.data
-      ?.musdEquivalentValue
+    // musdSHFvd balance expressed in mUSD.
+    const musdSHFvdDecimal = musdEquivalentBalanceQuery.data?.balanceOfInAssets
       ? new BigNumber(
           fromTokenMinimalUnitString(
-            musdEquivalentBalanceQuery.data.musdEquivalentValue,
+            musdEquivalentBalanceQuery.data.balanceOfInAssets,
             MUSD_DECIMALS,
           ),
         )

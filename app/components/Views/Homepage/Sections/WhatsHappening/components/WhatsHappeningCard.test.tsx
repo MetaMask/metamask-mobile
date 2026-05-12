@@ -28,18 +28,24 @@ jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock(
+  '../../../../../UI/Perps/components/PerpsTokenLogo',
+  () => 'PerpsTokenLogo',
+);
+
 const mockRelatedAsset = {
   sourceAssetId: 'btc-mainnet',
   symbol: 'BTC',
   name: 'Bitcoin',
   caip19: ['eip155:1/slip44:0'],
+  hlPerpsMarket: ['BTC'],
 };
 
 const baseItem: WhatsHappeningItem = {
   id: 'trend-0',
   title: 'Bitcoin ETF inflows hit record high',
   description: 'Spot Bitcoin ETFs recorded over $1.2B in net inflows.',
-  date: '2026-03-15T10:00:00.000Z',
+  date: new Date(new Date().getTime() - 4 * 24 * 60 * 60 * 1000).toISOString(),
   category: 'macro',
   impact: 'positive',
   relatedAssets: [mockRelatedAsset],
@@ -53,93 +59,118 @@ describe('WhatsHappeningCard', () => {
   });
 
   it('renders title and description', () => {
-    renderWithProvider(<WhatsHappeningCard item={baseItem} cardIndex={0} />);
+    renderWithProvider(
+      <WhatsHappeningCard item={baseItem} cardIndex={0} source="homepage" />,
+    );
     expect(screen.getByText(baseItem.title)).toBeOnTheScreen();
     expect(screen.getByText(baseItem.description)).toBeOnTheScreen();
   });
 
-  it('renders category badge when category is provided', () => {
-    renderWithProvider(<WhatsHappeningCard item={baseItem} cardIndex={0} />);
-    expect(screen.getByText('Macro')).toBeOnTheScreen();
-  });
-
-  it('does not render category badge when category is absent', () => {
-    const item = { ...baseItem, category: undefined };
-    renderWithProvider(<WhatsHappeningCard item={item} cardIndex={0} />);
+  it('does not render category badge', () => {
+    renderWithProvider(
+      <WhatsHappeningCard item={baseItem} cardIndex={0} source="homepage" />,
+    );
     expect(screen.queryByText('Macro')).toBeNull();
   });
 
   it('renders Bullish impact badge for positive impact', () => {
     const item = { ...baseItem, impact: 'positive' as const };
-    renderWithProvider(<WhatsHappeningCard item={item} cardIndex={0} />);
+    renderWithProvider(
+      <WhatsHappeningCard item={item} cardIndex={0} source="homepage" />,
+    );
     expect(screen.getByText('Bullish')).toBeOnTheScreen();
   });
 
   it('renders Bearish impact badge for negative impact', () => {
     const item = { ...baseItem, impact: 'negative' as const };
-    renderWithProvider(<WhatsHappeningCard item={item} cardIndex={0} />);
+    renderWithProvider(
+      <WhatsHappeningCard item={item} cardIndex={0} source="homepage" />,
+    );
     expect(screen.getByText('Bearish')).toBeOnTheScreen();
   });
 
   it('renders Neutral impact badge for neutral impact', () => {
     const item = { ...baseItem, impact: 'neutral' as const };
-    renderWithProvider(<WhatsHappeningCard item={item} cardIndex={0} />);
+    renderWithProvider(
+      <WhatsHappeningCard item={item} cardIndex={0} source="homepage" />,
+    );
     expect(screen.getByText('Neutral')).toBeOnTheScreen();
   });
 
   it('does not render impact badge when impact is absent', () => {
     const item = { ...baseItem, impact: undefined };
-    renderWithProvider(<WhatsHappeningCard item={item} cardIndex={0} />);
+    renderWithProvider(
+      <WhatsHappeningCard item={item} cardIndex={0} source="homepage" />,
+    );
     expect(screen.queryByText('Bullish')).toBeNull();
     expect(screen.queryByText('Bearish')).toBeNull();
     expect(screen.queryByText('Neutral')).toBeNull();
   });
 
-  it('renders impact badge alongside category badge', () => {
-    renderWithProvider(<WhatsHappeningCard item={baseItem} cardIndex={0} />);
-    expect(screen.getByText('Bullish')).toBeOnTheScreen();
-    expect(screen.getByText('Macro')).toBeOnTheScreen();
-  });
-
-  it('renders related asset symbol pills', () => {
-    renderWithProvider(<WhatsHappeningCard item={baseItem} cardIndex={0} />);
+  it('renders the asset symbol label when there is a single related asset', () => {
+    renderWithProvider(
+      <WhatsHappeningCard item={baseItem} cardIndex={0} source="homepage" />,
+    );
     expect(screen.getByText('BTC')).toBeOnTheScreen();
   });
 
-  it('does not render asset pills when relatedAssets is empty', () => {
-    const item = { ...baseItem, relatedAssets: [] };
-    renderWithProvider(<WhatsHappeningCard item={item} cardIndex={0} />);
-    expect(screen.queryByText('BTC')).toBeNull();
-  });
-
-  it('renders multiple related asset symbols', () => {
+  it('renders "<symbol> +N" label when there are multiple related assets', () => {
     const ethAsset = {
       sourceAssetId: 'eth-mainnet',
       symbol: 'ETH',
       name: 'Ethereum',
       caip19: ['eip155:1/slip44:60'],
+      hlPerpsMarket: ['ETH'],
     };
-    const item = { ...baseItem, relatedAssets: [mockRelatedAsset, ethAsset] };
-    renderWithProvider(<WhatsHappeningCard item={item} cardIndex={0} />);
-    expect(screen.getByText('BTC')).toBeOnTheScreen();
-    expect(screen.getByText('ETH')).toBeOnTheScreen();
+    const solAsset = {
+      sourceAssetId: 'sol-mainnet',
+      symbol: 'SOL',
+      name: 'Solana',
+      caip19: ['solana:mainnet/slip44:501'],
+      hlPerpsMarket: ['SOL'],
+    };
+    const item = {
+      ...baseItem,
+      relatedAssets: [mockRelatedAsset, ethAsset, solAsset],
+    };
+    renderWithProvider(
+      <WhatsHappeningCard item={item} cardIndex={0} source="homepage" />,
+    );
+    expect(screen.getByText('BTC +2')).toBeOnTheScreen();
   });
 
-  it('renders formatted date when date is valid', () => {
-    renderWithProvider(<WhatsHappeningCard item={baseItem} cardIndex={0} />);
-    expect(screen.getByText('Mar 15, 2026')).toBeOnTheScreen();
+  it('does not render asset label when relatedAssets is empty', () => {
+    const item = { ...baseItem, relatedAssets: [] };
+    renderWithProvider(
+      <WhatsHappeningCard item={item} cardIndex={0} source="homepage" />,
+    );
+    expect(screen.queryByText('BTC')).toBeNull();
+  });
+
+  it('renders relative time when date is valid', () => {
+    renderWithProvider(
+      <WhatsHappeningCard item={baseItem} cardIndex={0} source="homepage" />,
+    );
+    expect(screen.getByText('4d ago')).toBeOnTheScreen();
   });
 
   it('does not render date when date string is invalid', () => {
     const item = { ...baseItem, date: 'not-a-date' };
-    renderWithProvider(<WhatsHappeningCard item={item} cardIndex={0} />);
+    renderWithProvider(
+      <WhatsHappeningCard item={item} cardIndex={0} source="homepage" />,
+    );
     expect(screen.queryByText('not-a-date')).toBeNull();
   });
 
   it('calls onPress with the item when tapped', () => {
     const onPress = jest.fn();
     renderWithProvider(
-      <WhatsHappeningCard item={baseItem} cardIndex={0} onPress={onPress} />,
+      <WhatsHappeningCard
+        item={baseItem}
+        cardIndex={0}
+        source="homepage"
+        onPress={onPress}
+      />,
     );
     fireEvent.press(screen.getByText(baseItem.title));
     expect(onPress).toHaveBeenCalledTimes(1);
@@ -147,14 +178,18 @@ describe('WhatsHappeningCard', () => {
   });
 
   it('does not throw when onPress is not provided', () => {
-    renderWithProvider(<WhatsHappeningCard item={baseItem} cardIndex={0} />);
+    renderWithProvider(
+      <WhatsHappeningCard item={baseItem} cardIndex={0} source="homepage" />,
+    );
     expect(() =>
       fireEvent.press(screen.getByText(baseItem.title)),
     ).not.toThrow();
   });
 
   it('tracks Whats Happening Card Scrolled to View when card becomes visible', () => {
-    renderWithProvider(<WhatsHappeningCard item={baseItem} cardIndex={2} />);
+    renderWithProvider(
+      <WhatsHappeningCard item={baseItem} cardIndex={2} source="homepage" />,
+    );
     expect(capturedOnVisible).not.toBeNull();
     capturedOnVisible?.();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -164,11 +199,12 @@ describe('WhatsHappeningCard', () => {
       expect.objectContaining({
         category: MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
         properties: expect.objectContaining({
-          event_id: 'trend-0',
+          trend_id: 'trend-0',
           card_index: 2,
-          category: 'macro',
-          impact: 'positive',
+          trend_category: 'macro',
+          trend_impact: 'positive',
           asset_symbols: ['BTC'],
+          source: 'homepage',
         }),
       }),
     );
