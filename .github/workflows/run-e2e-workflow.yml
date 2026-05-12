@@ -115,7 +115,9 @@ jobs:
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Set up E2E environment
-        timeout-minutes: 25
+        # Namespace iOS smoke runs many matrix jobs in parallel; CocoaPods + yarn need more
+        # headroom than the composite default (see INFRA-3596 / run 25755790077 timeouts).
+        timeout-minutes: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && 45 || 25 }}
         uses: ./.github/actions/setup-e2e-env
         with:
           platform: ${{ inputs.platform }}
@@ -124,6 +126,8 @@ jobs:
           android-api-level: 36
           configure-keystores: false
           runner_provider: ${{ inputs.runner_provider }}
+          js-retry-timeout-minutes: ${{ inputs.runner_provider == 'namespace' && '20' || '15' }}
+          pod-install-timeout-minutes: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && '22' || '15' }}
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
