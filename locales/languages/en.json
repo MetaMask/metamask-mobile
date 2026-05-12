@@ -1064,7 +1064,12 @@
       "closed": "Closed",
       "no_positions": "No positions yet",
       "error_loading_profile": "Couldn't load profile",
-      "twitter_link": "View on X (Twitter)"
+      "twitter_link": "View on X (Twitter)",
+      "sort": {
+        "value": "Value",
+        "pnl_percent": "P&L %",
+        "recent": "Recent"
+      }
     },
     "trader_position": {
       "market_cap": "Market cap",
@@ -6973,6 +6978,10 @@
   "confirm": {
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "pay_with_bottom_sheet": {
+      "title": "Pay with",
+      "last_used": "Last used"
+    },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
       "terms_of_use": "Terms of Use",
@@ -8838,6 +8847,7 @@
     "crypto_movers": "Crypto movers",
     "perps_movers": "Perps movers",
     "trending_tokens": "Trending",
+    "crypto": "Crypto",
     "stocks": "Stocks",
     "price_change": "Price change",
     "all_networks": "All networks",
