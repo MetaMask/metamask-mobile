@@ -186,6 +186,38 @@ describe('Transaction Pay Utils', () => {
 
       expect(getTokenAddress(transactionMeta)).toBe(TO_MOCK);
     });
+
+    it('returns first requiredAsset address if no nested transfer and requiredAssets present', () => {
+      const requiredAssetAddress =
+        '0xrequiredAssetAddress00000000000000000000' as Hex;
+      const transactionMeta = {
+        txParams: {
+          data: '0x1234',
+          to: TO_MOCK,
+        },
+        requiredAssets: [
+          {
+            address: requiredAssetAddress,
+            amount: '0x1' as Hex,
+            standard: 'erc20',
+          },
+        ],
+      } as TransactionMeta;
+
+      expect(getTokenAddress(transactionMeta)).toBe(requiredAssetAddress);
+    });
+
+    it('falls back to txParams.to when requiredAssets is empty', () => {
+      const transactionMeta = {
+        txParams: {
+          data: '0x1234',
+          to: TO_MOCK,
+        },
+        requiredAssets: [],
+      } as unknown as TransactionMeta;
+
+      expect(getTokenAddress(transactionMeta)).toBe(TO_MOCK);
+    });
   });
 
   describe('getAvailableTokens', () => {

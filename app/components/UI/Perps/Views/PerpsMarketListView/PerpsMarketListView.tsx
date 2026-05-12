@@ -67,6 +67,7 @@ const PerpsMarketListView = ({
     route.params?.showWatchlistOnly ?? propShowWatchlistOnly ?? false;
   const defaultMarketTypeFilter =
     route.params?.defaultMarketTypeFilter ?? 'all';
+  const defaultSortOptionId = route.params?.defaultSortOptionId;
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
@@ -84,6 +85,7 @@ const PerpsMarketListView = ({
     enablePolling: false,
     showWatchlistOnly,
     defaultMarketTypeFilter,
+    defaultSortOptionId,
     showZeroVolume: __DEV__,
   });
 

@@ -9,7 +9,10 @@ import {
   NativeEventSubscription,
 } from 'react-native';
 ///: END:ONLY_INCLUDE_IF
-import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
+import {
+  CodefiTokenPricesServiceV2,
+  TokenListService,
+} from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
 import {
   KeyringController,
@@ -274,6 +277,12 @@ export class Engine {
   >;
 
   /**
+   * Shared token list service. Stored so destroyEngineInstance can call
+   * destroy() to abort in-flight requests and clear the TanStack Query cache.
+   */
+  private tokenListService: TokenListService;
+
+  /**
    * Creates a CoreController instance
    */
   constructor(
@@ -287,6 +296,8 @@ export class Engine {
     this.controllerMessenger = getRootExtendedMessenger();
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
+    const tokenListService = new TokenListService();
+    this.tokenListService = tokenListService;
 
     const initRequest = {
       getState: () => store.getState(),
@@ -298,6 +309,7 @@ export class Engine {
       initialKeyringState: keyringState,
       qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
+      tokenListService,
     };
     const { messengerClientsByName } = initMessengerClients({
       initFunctions: {
@@ -1221,6 +1233,7 @@ export class Engine {
         controller.destroy();
       }
     });
+    this.tokenListService.destroy();
     this.removeAllListeners();
     await this.resetState();
 
