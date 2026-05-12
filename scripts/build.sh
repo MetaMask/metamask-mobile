@@ -495,9 +495,9 @@ generateAndroidBinary() {
 	local gradleLoggingFlags=""
 
 	# Check if configuration is valid
-	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] && [ "$configuration" != "E2eRelease" ] ; then
+	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
 		# Configuration is not recognized
-		echo "Configuration $configuration is not recognized! Only Debug, Release, and E2eRelease are supported"
+		echo "Configuration $configuration is not recognized! Only Debug and Release are supported"
 		exit 1
 	fi
 
@@ -511,15 +511,8 @@ generateAndroidBinary() {
 	if [ "$configuration" = "Debug" ] || [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
 		# Define assemble test APK task
 		assembleTestApkTask="app:assemble${flavor}${configuration}AndroidTest"
-		# Define test build type arg.
-		# Gradle's testBuildType is case-sensitive and must match the build type's
-		# camelCase name. Debug/Release happen to round-trip through lowercase, but
-		# E2eRelease does not — handle it explicitly.
-		local testBuildTypeName="${lowercaseConfiguration}"
-		if [ "$configuration" = "E2eRelease" ] ; then
-			testBuildTypeName="e2eRelease"
-		fi
-		testBuildTypeArg="-DtestBuildType=${testBuildTypeName}"
+		# Define test build type arg
+		testBuildTypeArg="-DtestBuildType=${lowercaseConfiguration}"
 
 		# Memory optimization for E2E builds (Keep an eye out if this breaks outside of E2E CI builds)
 		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then

@@ -294,25 +294,28 @@ android {
       }
     }
 
+    // Pick the network_security_config XML based on METAMASK_ENVIRONMENT.
+    // E2E builds need to trust user-installed CAs so the OS-level mockttp proxy
+    // can intercept HTTPS. Production builds (METAMASK_ENVIRONMENT=production/
+    // rc/beta/etc.) keep the strict default. Selection happens here rather than
+    // via a dedicated buildType to avoid forking the release build chain and
+    // the CI artifact paths that depend on it.
+    def networkSecurityConfigResource = System.getenv("METAMASK_ENVIRONMENT") == 'e2e'
+        ? '@xml/react_native_config_e2e'
+        : '@xml/react_native_config'
+
     buildTypes {
         debug {
             manifestPlaceholders.isDebug = true
+            manifestPlaceholders.networkSecurityConfig = networkSecurityConfigResource
         }
         release {
             manifestPlaceholders.isDebug = false
+            manifestPlaceholders.networkSecurityConfig = networkSecurityConfigResource
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules.pro"
             crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
             testProguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules.pro"
-        }
-        // E2E-only release variant: identical to `release` (minify, proguard, signing)
-        // but with a relaxed network_security_config that trusts user-installed CAs.
-        // Used by CI Detox runs against the OS-level proxy. The production
-        // `release` variant is untouched and continues to ship strict ATS.
-        e2eRelease {
-            initWith release
-            matchingFallbacks = ['release']
-            manifestPlaceholders.isDebug = false
         }
     }
 

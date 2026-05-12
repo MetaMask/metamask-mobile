@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  e2eRelease variant only. Trusts user-installed CAs so the OS-level proxy
-  (mockttp) can intercept HTTPS during E2E. The production `release` variant
-  uses android/app/src/main/res/xml/react_native_config.xml unchanged.
+  E2E-only network security config. Selected via build.gradle's
+  manifestPlaceholders.networkSecurityConfig when METAMASK_ENVIRONMENT=e2e.
+  Trusts user-installed CAs so the OS-level proxy (mockttp) can intercept
+  HTTPS. Production builds use react_native_config.xml unchanged.
 -->
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">

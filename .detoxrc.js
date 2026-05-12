@@ -63,11 +63,11 @@ module.exports = {
     },
     'android.emu.main.ci': {
       device: 'android.github_ci.emulator',
-      app: 'android.e2eRelease',
+      app: 'android.release',
     },
     'android.emu.flask.ci': {
       device: 'android.github_ci.emulator',
-      app: 'android.flask.e2eRelease',
+      app: 'android.flask.release',
     },
     'ios.sim.main.ci': {
       device: 'ios.simulator',
@@ -158,20 +158,6 @@ module.exports = {
       binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/flask/release/app-flask-release.apk',
       testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/flask/release/app-flask-release-androidTest.apk',
       build: `export CONFIGURATION="Release" && yarn build:android:flask:e2e`,
-    },
-    // e2eRelease variants — release-like APKs with relaxed network_security_config
-    // (trusts user CAs) so the OS-level proxy can intercept HTTPS in CI.
-    'android.e2eRelease': {
-      type: 'android.apk',
-      binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/prod/e2eRelease/app-prod-e2eRelease.apk',
-      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/prod/e2eRelease/app-prod-e2eRelease-androidTest.apk',
-      build: `export CONFIGURATION="E2eRelease" && yarn build:android:main:e2e-release`,
-    },
-    'android.flask.e2eRelease': {
-      type: 'android.apk',
-      binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/flask/e2eRelease/app-flask-e2eRelease.apk',
-      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/flask/e2eRelease/app-flask-e2eRelease-androidTest.apk',
-      build: `export CONFIGURATION="E2eRelease" && yarn build:android:flask:e2e-release`,
     },
   },
 };
