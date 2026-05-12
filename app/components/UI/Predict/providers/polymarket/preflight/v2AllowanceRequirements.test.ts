@@ -1,6 +1,7 @@
 import { PERMIT2_ADDRESS } from '../safe/constants';
 import { POLYMARKET_V2_PROTOCOL } from '../protocol/definitions';
 import {
+  filterDepositWalletUnsupportedRequirements,
   getActiveV2AllowanceRequirements,
   getCanonicalV2AllowanceRequirements,
 } from './v2AllowanceRequirements';
@@ -31,6 +32,34 @@ describe('v2 allowance requirements', () => {
         expect.objectContaining({
           type: 'erc20-allowance',
           spender: PERMIT2_ADDRESS,
+        }),
+        expect.objectContaining({
+          type: 'erc1155-operator',
+          operator: POLYMARKET_V2_PROTOCOL.contracts.exchange,
+        }),
+      ]),
+    );
+  });
+
+  it('filters Permit2 approvals from deposit-wallet requirements', () => {
+    const requirements = getActiveV2AllowanceRequirements();
+    const filteredRequirements =
+      filterDepositWalletUnsupportedRequirements(requirements);
+
+    expect(filteredRequirements).toHaveLength(requirements.length - 1);
+    expect(filteredRequirements).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'erc20-allowance',
+          spender: PERMIT2_ADDRESS,
+        }),
+      ]),
+    );
+    expect(filteredRequirements).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'erc20-allowance',
+          spender: POLYMARKET_V2_PROTOCOL.contracts.exchange,
         }),
         expect.objectContaining({
           type: 'erc1155-operator',
