@@ -403,17 +403,17 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
           isSameScanError(lastForwardedScanErrorRef.current, error),
       );
 
-      if (!isDuplicateForwardedScanError) {
-        scanErrorActiveRef.current = true;
-        resetDecoder();
+      if (isDuplicateForwardedScanError) {
+        return;
       }
 
+      scanErrorActiveRef.current = true;
+      resetDecoder();
+
       if (errorCallback) {
-        if (!isDuplicateForwardedScanError) {
-          lastForwardedScanErrorRef.current = error;
-          errorCallback(error);
-          scanErrorActiveRef.current = false;
-        }
+        lastForwardedScanErrorRef.current = error;
+        errorCallback(error);
+        scanErrorActiveRef.current = false;
       } else {
         lastForwardedScanErrorRef.current = null;
         setScanError(error);

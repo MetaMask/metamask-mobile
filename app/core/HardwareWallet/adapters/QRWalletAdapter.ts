@@ -183,7 +183,9 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
    */
   async isTransportAvailable(): Promise<boolean> {
     try {
-      return Camera.getCameraPermissionStatus() === CAMERA_PERMISSION_STATUS.granted;
+      return (
+        Camera.getCameraPermissionStatus() === CAMERA_PERMISSION_STATUS.granted
+      );
     } catch (error) {
       DevLogger.log(
         '[QRWalletAdapter] Error checking transport availability:',
