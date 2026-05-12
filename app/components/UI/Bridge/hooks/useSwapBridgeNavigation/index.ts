@@ -38,7 +38,9 @@ import {
   getDefaultDestToken,
 } from '../../utils/tokenUtils';
 import { areAddressesEqual } from '../../../../../util/address';
+import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { useInitialBridgeTokens } from '../useInitialBridgeTokens';
 
 /**
  * When navigating to the Asset view from trending tokens list, we add a property
@@ -152,6 +154,11 @@ export const useSwapBridgeNavigation = ({
     selectIsBridgeEnabledSourceFactory,
   );
   const currentNetworkInfo = useCurrentNetworkInfo();
+
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+  const { fetchPopularTokens } = useInitialBridgeTokens();
 
   // Unified swaps/bridge UI
   const goToNativeBridge = useCallback(
@@ -298,6 +305,10 @@ export const useSwapBridgeNavigation = ({
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
       };
 
+      // Prefetch popular tokens
+      if (isBasicFunctionalityEnabled) {
+        fetchPopularTokens();
+      }
       // Navigate before Redux bridge updates so the Wallet tab does not repaint from slice
       // dispatches while still visible (e.g. checklist trade primary → swaps).
       navigation.navigate(Routes.BRIDGE.ROOT, {
@@ -365,6 +376,8 @@ export const useSwapBridgeNavigation = ({
       skipLocationUpdate,
       swapButtonEventLocationOverride,
       transactionActiveAbTests,
+      isBasicFunctionalityEnabled,
+      fetchPopularTokens,
     ],
   );
   const { networkModal } = useAddNetwork();

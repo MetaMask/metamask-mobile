@@ -130,6 +130,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 1
           ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -169,7 +170,7 @@ jobs:
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
-      fetch-depth: 0
+      fetch-depth: 1
       checkout-submodules: true
       platform: ${{ matrix.platform }}
       build_name: ${{ inputs.build_name }}
@@ -332,16 +333,6 @@ jobs:
           SECRETS_JSON: ${{ toJSON(secrets) }}
         run: node scripts/validate-secrets-from-config.js
 
-      - name: Restore CocoaPods specs cache (iOS)
-        if: matrix.platform == 'ios'
-        uses: actions/cache@v4
-        with:
-          path: ~/.cocoapods/repos
-          key: ${{ runner.os }}-cocoapods-specs-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cocoapods-specs-
-        continue-on-error: true
-
       # iOS: Install Pods here so generated paths match this runner (setup-node-modules skips pod install with --no-install-pods).
       - name: Install CocoaPods dependencies (iOS)
         if: matrix.platform == 'ios'
@@ -411,7 +402,7 @@ jobs:
             security delete-keychain "$KEYCHAIN_PATH" || true
           fi
 
-      # Signing: uses role + secret from builds.yml (skipped when builds.yml omits signing, e.g. simulator-only flask-dev / qa-dev)
+      # Signing: uses role + secret from builds.yml (skipped when builds.yml omits signing, e.g. simulator-only flask-dev)
       - name: Configure signing certificates
         if: needs.prepare.outputs.signing_aws_role != ''
         uses: ./.github/actions/configure-signing
@@ -573,6 +564,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 1
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
 
       - name: Setup Node.js

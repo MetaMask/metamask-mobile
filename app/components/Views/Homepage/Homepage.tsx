@@ -11,6 +11,7 @@ import { Box } from '@metamask/design-system-react-native';
 import { CashSection } from './Sections/Cash';
 import TokensSection from './Sections/Tokens';
 import WhatsHappeningSection from './Sections/WhatsHappening';
+import { WhatsHappeningSource } from './Sections/WhatsHappening/constants';
 import PerpsSectionWithProvider from './Sections/Perpetuals';
 import { PerpsSection as PerpsSectionBase } from './Sections/Perpetuals/PerpsSection';
 import PredictionsSection from './Sections/Predictions';
@@ -245,6 +246,7 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
           ref={whatsHappeningSectionRef}
           sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
           totalSectionsLoaded={totalSectionsLoaded}
+          source={WhatsHappeningSource.Homepage}
         />
         <TokensSection
           ref={trendingTokensRef}
@@ -373,6 +375,7 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
           ref={whatsHappeningSectionRef}
           sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
           totalSectionsLoaded={totalSectionsLoaded}
+          source={WhatsHappeningSource.Homepage}
         />
         <DeFiSection
           ref={defiSectionRef}

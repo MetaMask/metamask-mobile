@@ -1,7 +1,5 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import {
-  AvatarToken,
-  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -16,29 +14,35 @@ import {
 } from '@metamask/design-system-react-native';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import { getRelatedAssetImageSource } from '../utils/getRelatedAssetImageSource';
+import RelatedAssetAvatar from './RelatedAssetAvatar';
+
+export interface AssetRowSecondaryLine {
+  priceText: string;
+  changeText: string | undefined;
+  changeColor: TextColor;
+}
 
 interface AssetRowProps {
   asset: RelatedAsset;
-  actionLabel: string;
-  accessibilityLabel: string;
-  onAction: () => void;
+  actionLabel?: string;
+  accessibilityLabel?: string;
+  onAction?: () => void;
+  /** When provided, renders price + 24h change below the asset name. */
+  secondaryLine?: AssetRowSecondaryLine;
 }
 
 /**
- * Shared layout for a single asset row (logo + symbol + action button).
- * Used by TokenRow (Buy/Trade) and PerpsRow (Trade); each wrapper supplies its
- * own hook logic and passes the resolved label and handler here.
+ * Shared layout for a single asset row (logo + name + optional badge + optional
+ * price/change + optional action button). Used by PerpsRow (Trade when tradable).
  */
 const AssetRow: React.FC<AssetRowProps> = ({
   asset,
   actionLabel,
   accessibilityLabel,
   onAction,
+  secondaryLine,
 }) => {
-  const rawImageSource = getRelatedAssetImageSource(asset);
-  const imageSource = Array.isArray(rawImageSource)
-    ? (rawImageSource[0] as { uri?: string } | undefined)
-    : (rawImageSource as number | { uri?: string } | undefined);
+  const image = useMemo(() => getRelatedAssetImageSource(asset), [asset]);
 
   return (
     <Box
@@ -47,11 +51,7 @@ const AssetRow: React.FC<AssetRowProps> = ({
       gap={3}
       twClassName="py-3"
     >
-      <AvatarToken
-        name={asset.name}
-        size={AvatarTokenSize.Lg}
-        src={imageSource ?? undefined}
-      />
+      <RelatedAssetAvatar name={asset.name} image={image} />
 
       <Box
         twClassName="flex-1"
@@ -59,25 +59,61 @@ const AssetRow: React.FC<AssetRowProps> = ({
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-        >
-          {asset.symbol}
-        </Text>
+        {/* Left: name + optional badge + optional price/change */}
+        <Box twClassName="flex-1 mr-2">
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+          >
+            {asset.name || asset.symbol}
+          </Text>
 
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Md}
-          onPress={onAction}
-          accessibilityLabel={accessibilityLabel}
-        >
-          {actionLabel}
-        </Button>
+          {secondaryLine && (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {secondaryLine.priceText}
+              </Text>
+              {secondaryLine.changeText ? (
+                <>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {' \u2022 '}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={secondaryLine.changeColor}
+                  >
+                    {secondaryLine.changeText}
+                  </Text>
+                </>
+              ) : null}
+            </Box>
+          )}
+        </Box>
+
+        {onAction && actionLabel && accessibilityLabel ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
+            onPress={onAction}
+            accessibilityLabel={accessibilityLabel}
+          >
+            {actionLabel}
+          </Button>
+        ) : null}
       </Box>
     </Box>
   );
 };
 
-export default AssetRow;
+export default memo(AssetRow);

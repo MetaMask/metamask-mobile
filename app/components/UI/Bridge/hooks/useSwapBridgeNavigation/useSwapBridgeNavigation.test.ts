@@ -75,6 +75,9 @@ jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
+      AuthenticationController: {
+        getBearerToken: jest.fn().mockResolvedValue('bearer-token'),
+      },
       NetworkController: {
         getNetworkConfigurationByChainId: jest.fn().mockReturnValue({
           rpcEndpoints: [
@@ -120,8 +123,16 @@ import {
 } from '../../utils/tokenUtils';
 
 jest.mock('../../utils/tokenUtils', () => ({
+  ...jest.requireActual('../../utils/tokenUtils'),
   getDefaultDestToken: jest.fn(),
   getNativeSourceToken: jest.fn(),
+}));
+
+const mockFetchPopularTokens = jest.fn();
+jest.mock('../useInitialBridgeTokens', () => ({
+  useInitialBridgeTokens: jest.fn().mockReturnValue({
+    fetchPopularTokens: () => mockFetchPopularTokens(),
+  }),
 }));
 
 describe('useSwapBridgeNavigation', () => {
@@ -230,6 +241,7 @@ describe('useSwapBridgeNavigation', () => {
         location: 'Main View',
       },
     });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
   it('uses provided token when available', () => {
@@ -262,6 +274,7 @@ describe('useSwapBridgeNavigation', () => {
         location: 'Main View',
       },
     });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
   it('uses tokenOverride when passed to goToSwaps', () => {
@@ -302,6 +315,7 @@ describe('useSwapBridgeNavigation', () => {
         location: 'Main View',
       },
     });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
   it('falls back to ETH on mainnet when bridge is not enabled for source chain', () => {
@@ -351,6 +365,7 @@ describe('useSwapBridgeNavigation', () => {
         location: 'Main View',
       },
     });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
   it('navigates to Bridge when goToSwaps is called and bridge UI is enabled', () => {
@@ -374,6 +389,36 @@ describe('useSwapBridgeNavigation', () => {
         location: 'Main View',
       },
     });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fetch popular tokens when basicFunctionalityEnabled is false', () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useSwapBridgeNavigation({
+          location: mockLocation,
+          sourcePage: mockSourcePage,
+        }),
+      {
+        state: {
+          ...initialState,
+          settings: { basicFunctionalityEnabled: false },
+        },
+      },
+    );
+
+    result.current.goToSwaps();
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: mockNativeAsset,
+        sourcePage: mockSourcePage,
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+      },
+    });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(0);
   });
 
   it('resets isDestTokenManuallySet flag when navigating to swaps', () => {
@@ -389,6 +434,7 @@ describe('useSwapBridgeNavigation', () => {
     result.current.goToSwaps();
 
     expect(mockSetIsDestTokenManuallySet).toHaveBeenCalledWith(false);
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
   it('uses home page filter network when no token is provided', () => {
@@ -439,6 +485,7 @@ describe('useSwapBridgeNavigation', () => {
         location: 'Main View',
       },
     });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
   it('falls back to Ethereum mainnet when multiple networks enabled', () => {
@@ -485,6 +532,7 @@ describe('useSwapBridgeNavigation', () => {
         location: 'Main View',
       },
     });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
   describe('Unified', () => {
@@ -509,6 +557,7 @@ describe('useSwapBridgeNavigation', () => {
           location: 'Main View',
         },
       });
+      expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
     });
   });
 

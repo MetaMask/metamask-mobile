@@ -305,6 +305,68 @@ describe('usePerpsMarketListView', () => {
       });
     });
 
+    it('defaultSortOptionId overrides the saved sort option and resets direction to default', () => {
+      let selectorCallCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        selectorCallCount++;
+        if (selectorCallCount % 2 === 1) {
+          return ['BTC'];
+        }
+        // Saved preference is volume/asc — user had it sorted ascending
+        return { optionId: 'volume', direction: 'asc' };
+      });
+
+      renderHook(() =>
+        usePerpsMarketListView({ defaultSortOptionId: 'priceChange' }),
+      );
+
+      // Option overridden → direction must reset to default (desc), not carry 'asc'
+      expect(mockUsePerpsSorting).toHaveBeenCalledWith({
+        initialOptionId: 'priceChange',
+        initialDirection: 'desc',
+      });
+    });
+
+    it('preserves saved direction when defaultSortOptionId matches the saved option', () => {
+      let selectorCallCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        selectorCallCount++;
+        if (selectorCallCount % 2 === 1) {
+          return ['BTC'];
+        }
+        // Saved preference is priceChange/asc
+        return { optionId: 'priceChange', direction: 'asc' };
+      });
+
+      renderHook(() =>
+        usePerpsMarketListView({ defaultSortOptionId: 'priceChange' }),
+      );
+
+      // Same option — carry the saved direction, don't reset
+      expect(mockUsePerpsSorting).toHaveBeenCalledWith({
+        initialOptionId: 'priceChange',
+        initialDirection: 'asc',
+      });
+    });
+
+    it('falls back to saved sort preference when defaultSortOptionId is not provided', () => {
+      let selectorCallCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        selectorCallCount++;
+        if (selectorCallCount % 2 === 1) {
+          return ['BTC'];
+        }
+        return { optionId: 'fundingRate', direction: 'asc' };
+      });
+
+      renderHook(() => usePerpsMarketListView());
+
+      expect(mockUsePerpsSorting).toHaveBeenCalledWith({
+        initialOptionId: 'fundingRate',
+        initialDirection: 'asc',
+      });
+    });
+
     it('exposes sort state correctly', () => {
       const { result } = renderHook(() => usePerpsMarketListView());
 
