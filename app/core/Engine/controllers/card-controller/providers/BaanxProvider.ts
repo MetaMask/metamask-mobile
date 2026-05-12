@@ -24,6 +24,7 @@ import {
   ARBITRARY_ALLOWANCE,
   BALANCE_SCANNER_ABI,
   BAANX_MAX_LIMIT,
+  CARD_CHAIN_IDS,
   SUPPORTED_ASSET_NETWORKS,
   cardNetworkInfos,
   caipChainIdToNetwork,
@@ -367,7 +368,7 @@ export class BaanxProvider implements ICardProvider {
   // -- Card Home Data --
 
   async getCardHomeData(
-    _address: string,
+    address: string,
     tokens: CardAuthTokens,
   ): Promise<CardHomeData> {
     try {
@@ -455,6 +456,7 @@ export class BaanxProvider implements ICardProvider {
       const availableFundingAssets = this.buildSupportedTokens(
         fundingAssets,
         delegationSettings,
+        address,
       );
 
       return {
@@ -1517,66 +1519,123 @@ export class BaanxProvider implements ICardProvider {
   private buildSupportedTokens(
     fundingAssets: CardFundingAsset[],
     delegationSettings: DelegationSettingsResponse | null,
+    currentWalletAddress: string = '',
   ): CardFundingAsset[] {
     const result = [...fundingAssets];
 
-    if (!delegationSettings?.networks) return result;
+    const currentAddressLower = currentWalletAddress.toLowerCase();
+    // Returns true when a placeholder already exists for the current wallet (or
+    // generically). Entries owned by other wallets do NOT count — this account
+    // can still enable the token independently.
+    // When no current address is known, any existing entry counts (legacy fallback).
+    const hasPlaceholderForCurrentWallet = (
+      tokenAddress: string,
+      chainId: string,
+    ) =>
+      result.some(
+        (a) =>
+          a.address?.toLowerCase() === tokenAddress.toLowerCase() &&
+          a.chainId === chainId &&
+          (!currentAddressLower ||
+            a.walletAddress?.toLowerCase() === currentAddressLower ||
+            !a.walletAddress),
+      );
 
-    for (const network of delegationSettings.networks) {
-      const networkName = network.network?.toLowerCase() as string;
-      if (
-        !networkName ||
-        !SUPPORTED_ASSET_NETWORKS.includes(networkName as never)
-      ) {
-        continue;
-      }
+    if (delegationSettings?.networks) {
+      for (const network of delegationSettings.networks) {
+        const networkName = network.network?.toLowerCase() as string;
+        if (
+          !networkName ||
+          !SUPPORTED_ASSET_NETWORKS.includes(networkName as never)
+        ) {
+          continue;
+        }
 
-      const info =
-        cardNetworkInfos[networkName as keyof typeof cardNetworkInfos];
-      const chainId = info?.caipChainId ?? `eip155:${network.chainId}`;
-      const isNonProduction = network.environment !== 'production';
+        const info =
+          cardNetworkInfos[networkName as keyof typeof cardNetworkInfos];
+        const chainId = info?.caipChainId ?? `eip155:${network.chainId}`;
+        const isNonProduction = network.environment !== 'production';
 
-      // Enrich existing assets with delegationContract from their matching network
-      for (const existing of result) {
-        if (existing.chainId === chainId && !existing.delegationContract) {
-          existing.delegationContract = network.delegationContract;
+        // Enrich existing assets with delegationContract from their matching network
+        for (const existing of result) {
+          if (existing.chainId === chainId && !existing.delegationContract) {
+            existing.delegationContract = network.delegationContract;
+          }
+        }
+
+        for (const tokenConfig of Object.values(network.tokens ?? {})) {
+          if (!tokenConfig.address) continue;
+
+          if (hasPlaceholderForCurrentWallet(tokenConfig.address, chainId)) {
+            continue;
+          }
+
+          const chainTokens =
+            this.cardFeatureFlag?.chains?.[chainId]?.tokens ?? [];
+          const sdkToken = chainTokens.find(
+            (t) =>
+              t?.symbol?.toLowerCase() === tokenConfig.symbol?.toLowerCase(),
+          );
+
+          result.push({
+            symbol: sdkToken?.symbol ?? tokenConfig.symbol,
+            name: sdkToken?.name ?? tokenConfig.symbol,
+            address:
+              isNonProduction && sdkToken?.address
+                ? sdkToken.address
+                : tokenConfig.address,
+            walletAddress: currentWalletAddress,
+            decimals: tokenConfig.decimals,
+            chainId,
+            spendableBalance: '0',
+            spendingCap: '0',
+            priority: Number.MAX_SAFE_INTEGER,
+            status: FundingAssetStatus.Inactive,
+            stagingTokenAddress: isNonProduction
+              ? tokenConfig.address
+              : undefined,
+            delegationContract: network.delegationContract,
+          });
         }
       }
+    }
 
-      for (const tokenConfig of Object.values(network.tokens ?? {})) {
-        if (!tokenConfig.address) continue;
+    // Fallback: ensure every token in the feature flag appears in the list,
+    // even if delegationSettings is empty or missing those networks/tokens.
+    // Tokens added here get status Inactive so they show as "Not enabled".
+    const featureFlagChains = this.cardFeatureFlag?.chains ?? {};
+    for (const [chainId, chainConfig] of Object.entries(featureFlagChains)) {
+      if (!chainConfig?.enabled) continue;
+      // Only process chains the card feature actually supports
+      if (!CARD_CHAIN_IDS.includes(chainId as (typeof CARD_CHAIN_IDS)[number]))
+        continue;
 
-        const alreadyExists = result.some(
-          (a) =>
-            a.address?.toLowerCase() === tokenConfig.address.toLowerCase() &&
-            a.chainId === chainId,
-        );
-        if (alreadyExists) continue;
+      // Reuse the delegationContract from settings when available for this chain
+      const matchingNetwork = delegationSettings?.networks.find((n) => {
+        const info = cardNetworkInfos[n.network?.toLowerCase() as CardNetwork];
+        return info?.caipChainId === chainId;
+      });
+      const delegationContract = matchingNetwork?.delegationContract;
 
-        const chainTokens =
-          this.cardFeatureFlag?.chains?.[chainId]?.tokens ?? [];
-        const sdkToken = chainTokens.find(
-          (t) => t?.symbol?.toLowerCase() === tokenConfig.symbol?.toLowerCase(),
-        );
+      for (const token of chainConfig.tokens ?? []) {
+        if (!token.address || !token.enabled) continue;
+
+        if (hasPlaceholderForCurrentWallet(token.address, chainId)) {
+          continue;
+        }
 
         result.push({
-          symbol: sdkToken?.symbol ?? tokenConfig.symbol,
-          name: sdkToken?.name ?? tokenConfig.symbol,
-          address:
-            isNonProduction && sdkToken?.address
-              ? sdkToken.address
-              : tokenConfig.address,
-          walletAddress: '',
-          decimals: tokenConfig.decimals,
-          chainId,
+          symbol: token.symbol ?? '',
+          name: token.name ?? '',
+          address: token.address,
+          walletAddress: currentWalletAddress,
+          decimals: token.decimals ?? 0,
+          chainId: chainId as (typeof CARD_CHAIN_IDS)[number],
           spendableBalance: '0',
           spendingCap: '0',
           priority: Number.MAX_SAFE_INTEGER,
           status: FundingAssetStatus.Inactive,
-          stagingTokenAddress: isNonProduction
-            ? tokenConfig.address
-            : undefined,
-          delegationContract: network.delegationContract,
+          delegationContract,
         });
       }
     }

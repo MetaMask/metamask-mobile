@@ -330,4 +330,209 @@ describe('BaanxProvider', () => {
       ).toStrictEqual([]);
     });
   });
+
+  describe('buildSupportedTokens', () => {
+    const LINEA_CHAIN_ID = 'eip155:59144';
+    const BASE_CHAIN_ID = 'eip155:8453';
+    const USDC_LINEA_ADDRESS = '0x176211869cA2b568f2A7D4EE941E073a821EE1ff';
+    const USDC_BASE_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+    const DELEGATION_CONTRACT = '0xdelegation';
+
+    const delegationSettings = {
+      networks: [
+        {
+          network: 'linea',
+          chainId: '0xe708',
+          environment: 'production',
+          delegationContract: DELEGATION_CONTRACT,
+          tokens: {
+            usdc: {
+              symbol: 'USDC',
+              address: USDC_LINEA_ADDRESS,
+              decimals: 6,
+            },
+          },
+        },
+      ],
+    };
+
+    const cardFeatureFlag = {
+      chains: {
+        [LINEA_CHAIN_ID]: {
+          enabled: true,
+          tokens: [
+            {
+              address: USDC_LINEA_ADDRESS,
+              symbol: 'USDC',
+              name: 'USD Coin',
+              decimals: 6,
+              enabled: true,
+            },
+          ],
+        },
+        [BASE_CHAIN_ID]: {
+          enabled: true,
+          tokens: [
+            {
+              address: USDC_BASE_ADDRESS,
+              symbol: 'USDC',
+              name: 'USD Coin',
+              decimals: 6,
+              enabled: true,
+            },
+          ],
+        },
+      },
+    };
+
+    const buildSupportedTokens = (
+      provider: BaanxProvider,
+      fundingAssets: CardFundingAsset[],
+      settings: typeof delegationSettings | null,
+    ) =>
+      (
+        provider as unknown as {
+          buildSupportedTokens: (
+            assets: CardFundingAsset[],
+            settings: typeof delegationSettings | null,
+          ) => CardFundingAsset[];
+        }
+      ).buildSupportedTokens(fundingAssets, settings);
+
+    it('includes delegation-settings tokens as Inactive when not in fundingAssets', () => {
+      const provider = new BaanxProvider({ service: {} as BaanxService });
+      const result = buildSupportedTokens(provider, [], delegationSettings);
+
+      const usdcLinea = result.find(
+        (a) =>
+          a.address?.toLowerCase() === USDC_LINEA_ADDRESS.toLowerCase() &&
+          a.chainId === LINEA_CHAIN_ID,
+      );
+      expect(usdcLinea).toBeDefined();
+      expect(usdcLinea?.status).toBe(FundingAssetStatus.Inactive);
+    });
+
+    it('preserves the status of an active fundingAsset and does not add a duplicate', () => {
+      const activeAsset: CardFundingAsset = {
+        symbol: 'USDC',
+        name: 'USD Coin',
+        address: USDC_LINEA_ADDRESS,
+        walletAddress: '0xwallet',
+        decimals: 6,
+        chainId: LINEA_CHAIN_ID,
+        spendableBalance: '100',
+        spendingCap: '1000',
+        priority: 1,
+        status: FundingAssetStatus.Active,
+      };
+
+      const provider = new BaanxProvider({ service: {} as BaanxService });
+      const result = buildSupportedTokens(
+        provider,
+        [activeAsset],
+        delegationSettings,
+      );
+
+      const usdcEntries = result.filter(
+        (a) =>
+          a.address?.toLowerCase() === USDC_LINEA_ADDRESS.toLowerCase() &&
+          a.chainId === LINEA_CHAIN_ID,
+      );
+      expect(usdcEntries).toHaveLength(1);
+      expect(usdcEntries[0].status).toBe(FundingAssetStatus.Active);
+    });
+
+    it('shows tokens as Inactive when delegationSettings is empty but cardFeatureFlag lists supported tokens', () => {
+      // Simulates on-chain revocation: delegationSettings returns no networks,
+      // fundingAssets is also empty, but cardFeatureFlag still lists all supported tokens.
+      const provider = new BaanxProvider({
+        service: {} as BaanxService,
+        cardFeatureFlag,
+      });
+
+      const result = buildSupportedTokens(provider, [], { networks: [] });
+
+      const usdcLinea = result.find(
+        (a) =>
+          a.address?.toLowerCase() === USDC_LINEA_ADDRESS.toLowerCase() &&
+          a.chainId === LINEA_CHAIN_ID,
+      );
+      const usdcBase = result.find(
+        (a) =>
+          a.address?.toLowerCase() === USDC_BASE_ADDRESS.toLowerCase() &&
+          a.chainId === BASE_CHAIN_ID,
+      );
+
+      expect(usdcLinea).toBeDefined();
+      expect(usdcLinea?.status).toBe(FundingAssetStatus.Inactive);
+      expect(usdcBase).toBeDefined();
+      expect(usdcBase?.status).toBe(FundingAssetStatus.Inactive);
+    });
+
+    it('shows tokens as Inactive when delegationSettings is null', () => {
+      const provider = new BaanxProvider({
+        service: {} as BaanxService,
+        cardFeatureFlag,
+      });
+
+      const result = buildSupportedTokens(provider, [], null);
+
+      expect(
+        result.find(
+          (a) =>
+            a.address?.toLowerCase() === USDC_LINEA_ADDRESS.toLowerCase() &&
+            a.chainId === LINEA_CHAIN_ID,
+        ),
+      ).toBeDefined();
+    });
+
+    it('attaches delegationContract from settings to feature-flag-sourced tokens', () => {
+      // delegationSettings has Linea but feature flag also has Base.
+      // Linea tokens from feature flag fallback get the contract; Base gets undefined.
+      const provider = new BaanxProvider({
+        service: {} as BaanxService,
+        cardFeatureFlag,
+      });
+
+      // Empty fundingAssets, delegationSettings only has Linea (not Base).
+      const result = buildSupportedTokens(provider, [], delegationSettings);
+
+      const usdcBase = result.find(
+        (a) =>
+          a.address?.toLowerCase() === USDC_BASE_ADDRESS.toLowerCase() &&
+          a.chainId === BASE_CHAIN_ID,
+      );
+      expect(usdcBase).toBeDefined();
+      expect(usdcBase?.status).toBe(FundingAssetStatus.Inactive);
+      // Base has no entry in delegationSettings so delegationContract is undefined
+      expect(usdcBase?.delegationContract).toBeUndefined();
+    });
+
+    it('does not add disabled tokens from the feature flag', () => {
+      const featureFlagWithDisabled = {
+        chains: {
+          [LINEA_CHAIN_ID]: {
+            enabled: true,
+            tokens: [
+              {
+                address: USDC_LINEA_ADDRESS,
+                symbol: 'USDC',
+                name: 'USD Coin',
+                decimals: 6,
+                enabled: false,
+              },
+            ],
+          },
+        },
+      };
+
+      const provider = new BaanxProvider({
+        service: {} as BaanxService,
+        cardFeatureFlag: featureFlagWithDisabled,
+      });
+
+      const result = buildSupportedTokens(provider, [], { networks: [] });
+      expect(result).toHaveLength(0);
+    });
+  });
 });
