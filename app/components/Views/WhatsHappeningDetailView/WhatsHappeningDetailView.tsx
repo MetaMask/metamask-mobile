@@ -53,22 +53,6 @@ const SKELETON_KEYS = Array.from(
 
 const DEFAULT_INITIAL_INDEX = 0;
 
-const getInitialIndexForItems = (
-  requestedInitialIndex: number,
-  itemCount: number,
-): number => {
-  if (
-    !Number.isInteger(requestedInitialIndex) ||
-    requestedInitialIndex < 0 ||
-    itemCount === 0 ||
-    requestedInitialIndex >= itemCount
-  ) {
-    return DEFAULT_INITIAL_INDEX;
-  }
-
-  return requestedInitialIndex;
-};
-
 interface WhatsHappeningDetailParams {
   initialIndex?: number;
   source: WhatsHappeningSourceValue;
@@ -80,19 +64,14 @@ const WhatsHappeningDetailView = () => {
   const route =
     useRoute<RouteProp<{ params: WhatsHappeningDetailParams }, 'params'>>();
 
-  const requestedInitialIndex =
-    route.params?.initialIndex ?? DEFAULT_INITIAL_INDEX;
+  const initialIndex = route.params?.initialIndex ?? DEFAULT_INITIAL_INDEX;
   const source: WhatsHappeningSourceValue =
     route.params?.source ?? WhatsHappeningSource.Unknown;
 
   const { items, isLoading, error, refresh } =
     useWhatsHappening(MAX_ITEMS_DISPLAYED);
 
-  const initialIndex = getInitialIndexForItems(
-    requestedInitialIndex,
-    items.length,
-  );
-  const [currentIndex, setCurrentIndex] = useState(DEFAULT_INITIAL_INDEX);
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [cardHeight, setCardHeight] = useState(0);
   const [sourcesContext, setSourcesContext] = useState<{
     articles: Article[];
@@ -101,7 +80,6 @@ const WhatsHappeningDetailView = () => {
   } | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const hasScrolledToInitial = useRef(false);
-  const hasResolvedInitialIndexRef = useRef(false);
 
   const handleSourcesPress = useCallback(
     (
@@ -122,7 +100,7 @@ const WhatsHappeningDetailView = () => {
     setSourcesContext(null);
   }, []);
   const hasTrackedViewRef = useRef(false);
-  const previousIndexRef = useRef(DEFAULT_INITIAL_INDEX);
+  const previousIndexRef = useRef(initialIndex);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleCarouselLayout = useCallback((e: LayoutChangeEvent) => {
@@ -147,14 +125,6 @@ const WhatsHappeningDetailView = () => {
     },
     [initialIndex],
   );
-
-  useEffect(() => {
-    if (!isLoading && items.length > 0 && !hasResolvedInitialIndexRef.current) {
-      hasResolvedInitialIndexRef.current = true;
-      setCurrentIndex(initialIndex);
-      previousIndexRef.current = initialIndex;
-    }
-  }, [initialIndex, isLoading, items.length]);
 
   useEffect(() => {
     if (

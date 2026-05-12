@@ -643,9 +643,7 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.WHATS_HAPPENING: {
-      handleWhatsHappeningUrl({
-        actionPath: actionBasedRampPath,
-      });
+      handleWhatsHappeningUrl();
       break;
     }
     case SUPPORTED_ACTIONS.SOCIAL_LEADERBOARD: {

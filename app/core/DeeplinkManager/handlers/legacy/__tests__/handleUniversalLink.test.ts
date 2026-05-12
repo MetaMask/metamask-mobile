@@ -855,9 +855,7 @@ describe('handleUniversalLink', () => {
       });
 
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
-      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith({
-        actionPath: '',
-      });
+      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith();
       expect(handled).toHaveBeenCalled();
     });
   });

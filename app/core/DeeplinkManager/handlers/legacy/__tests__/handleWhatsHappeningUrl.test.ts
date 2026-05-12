@@ -21,42 +21,20 @@ describe('handleWhatsHappeningUrl', () => {
     jest.clearAllMocks();
   });
 
-  it('navigates to WhatsHappeningDetailView with index 0', () => {
-    handleWhatsHappeningUrl({ actionPath: '' });
+  it('navigates to WhatsHappeningDetailView from a deeplink source', () => {
+    handleWhatsHappeningUrl();
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
-      initialIndex: 0,
       source: WhatsHappeningSource.Deeplink,
     });
   });
-
-  it('ignores index query params and still navigates to index 0', () => {
-    handleWhatsHappeningUrl({ actionPath: '?index=2' });
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
-      initialIndex: 0,
-      source: WhatsHappeningSource.Deeplink,
-    });
-  });
-
-  it.each(['?index=-1', '?index=1.5', '?index=abc', '?index=5'])(
-    'ignores invalid index query param %s',
-    (actionPath) => {
-      handleWhatsHappeningUrl({ actionPath });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
-        initialIndex: 0,
-        source: WhatsHappeningSource.Deeplink,
-      });
-    },
-  );
 
   it('falls back to wallet home on navigation errors', () => {
     mockNavigate.mockImplementationOnce(() => {
       throw new Error('Navigation error');
     });
 
-    handleWhatsHappeningUrl({ actionPath: '?index=2' });
+    handleWhatsHappeningUrl();
 
     expect(mockNavigate).toHaveBeenCalledTimes(2);
     expect(mockNavigate).toHaveBeenLastCalledWith(Routes.WALLET.HOME);
