@@ -68,6 +68,9 @@ import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import { PredictBalance } from '../../components/PredictBalance';
+import PredictWithdrawUnavailableSheet, {
+  type PredictWithdrawUnavailableSheetRef,
+} from '../../components/PredictWithdrawUnavailableSheet';
 import PredictOffline from '../../components/PredictOffline';
 import FeaturedCarousel from '../../components/FeaturedCarousel';
 import {
@@ -98,9 +101,13 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList as unknown as React.ComponentType<PredictFlashListProps>,
 ) as unknown as React.ComponentType<PredictFlashListProps>;
 
-const PredictFeedHeader: React.FC = () => (
+const PredictFeedHeader: React.FC<{
+  onDepositWalletWithdrawPress?: () => void;
+}> = ({ onDepositWalletWithdrawPress }) => (
   <Box twClassName="py-4">
-    <PredictBalance />
+    <PredictBalance
+      onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+    />
   </Box>
 );
 
@@ -145,6 +152,7 @@ interface AnimatedHeaderProps {
   onTabPress: (index: number) => void;
   onHeaderLayout: (event: LayoutChangeEvent) => void;
   onTabBarLayout: (event: LayoutChangeEvent) => void;
+  onDepositWalletWithdrawPress?: () => void;
 }
 
 const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
@@ -157,6 +165,7 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   onTabPress,
   onHeaderLayout,
   onTabBarLayout,
+  onDepositWalletWithdrawPress,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -193,7 +202,9 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
         style={animatedBalanceStyle}
         onLayout={onHeaderLayout}
       >
-        <PredictFeedHeader />
+        <PredictFeedHeader
+          onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+        />
         {isFeaturedCarouselEnabled && (
           <Box twClassName="pb-3">
             <FeaturedCarousel />
@@ -704,6 +715,12 @@ const PredictFeed: React.FC = () => {
     [onTabSwitch, sessionManager, tabs],
   );
 
+  const withdrawUnavailableSheetRef =
+    useRef<PredictWithdrawUnavailableSheetRef>(null);
+  const handleDepositWalletWithdrawPress = useCallback(() => {
+    withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
+  }, []);
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
@@ -747,6 +764,7 @@ const PredictFeed: React.FC = () => {
             onTabPress={handleTabPress}
             onHeaderLayout={onHeaderLayout}
             onTabBarLayout={onTabBarLayout}
+            onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
           />
 
           {layoutReady && (
@@ -770,6 +788,9 @@ const PredictFeed: React.FC = () => {
           onSearchChange={setSearchQuery}
           onClose={clearSearchAndClose}
         />
+      </Box>
+      <Box pointerEvents="box-none" twClassName="absolute inset-0 z-50">
+        <PredictWithdrawUnavailableSheet ref={withdrawUnavailableSheetRef} />
       </Box>
     </SafeAreaView>
   );
