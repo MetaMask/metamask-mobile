@@ -91,7 +91,7 @@ const MoneyCondensedInfoCards = ({
     <CondensedCard
       image={{
         source: howItWorksImage,
-        style: { height: 64, width: 64 },
+        style: { height: 58, width: 58 },
         testID: MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_IMAGE,
       }}
       title={strings('money.condensed_cards.how_it_works_title')}
@@ -102,7 +102,7 @@ const MoneyCondensedInfoCards = ({
     <CondensedCard
       image={{
         source: musdCoinImage,
-        style: { height: 64, width: 64 },
+        style: { height: 48, width: 48 },
         testID: MoneyCondensedInfoCardsTestIds.MUSD_IMAGE,
       }}
       title={strings('money.condensed_cards.musd_title')}
@@ -113,7 +113,7 @@ const MoneyCondensedInfoCards = ({
     <CondensedCard
       image={{
         source: whatYouGetImage,
-        style: { height: 64, width: 64 },
+        style: { height: 66, width: 66 },
         testID: MoneyCondensedInfoCardsTestIds.WHAT_YOU_GET_IMAGE,
       }}
       title={strings('money.condensed_cards.what_you_get_title')}

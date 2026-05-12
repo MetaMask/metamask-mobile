@@ -29,17 +29,17 @@ describe('MoneyCondensedInfoCards', () => {
       MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_IMAGE,
     );
     expect(howItWorksImage.props.source).toBe(howItWorksImageSource);
-    expect(howItWorksImage.props.style).toEqual({ height: 64, width: 64 });
+    expect(howItWorksImage.props.style).toEqual({ height: 58, width: 58 });
 
     const musdImage = getByTestId(MoneyCondensedInfoCardsTestIds.MUSD_IMAGE);
     expect(musdImage.props.source).toBe(musdCoinImageSource);
-    expect(musdImage.props.style).toEqual({ height: 64, width: 64 });
+    expect(musdImage.props.style).toEqual({ height: 48, width: 48 });
 
     const whatYouGetImage = getByTestId(
       MoneyCondensedInfoCardsTestIds.WHAT_YOU_GET_IMAGE,
     );
     expect(whatYouGetImage.props.source).toBe(whatYouGetImageSource);
-    expect(whatYouGetImage.props.style).toEqual({ height: 64, width: 64 });
+    expect(whatYouGetImage.props.style).toEqual({ height: 66, width: 66 });
   });
 
   it('renders correct titles and subtitles', () => {
