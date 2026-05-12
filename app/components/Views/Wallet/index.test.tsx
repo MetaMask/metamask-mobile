@@ -313,6 +313,9 @@ jest.mock('../../../core/Engine', () => {
       unsubscribe: jest.fn(),
     },
     context: {
+      AuthenticationController: {
+        getBearerToken: jest.fn().mockResolvedValue('bearer-token'),
+      },
       NftController: {
         state: {
           allNfts: {
@@ -528,6 +531,11 @@ const mockInitialState = {
         isTokenNetworkFilterEqualToAllNetworks: false,
         tokenNetworkFilter: {
           '0x1': true, // Ethereum mainnet enabled
+        },
+        tokenSortConfig: {
+          key: 'tokenFiatAmount',
+          order: 'dsc' as const,
+          sortCallback: 'stringNumeric',
         },
       },
       NetworkController: {
