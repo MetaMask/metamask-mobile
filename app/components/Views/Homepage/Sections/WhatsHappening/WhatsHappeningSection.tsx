@@ -16,7 +16,10 @@ import { SectionRefreshHandle } from '../../types';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MAX_ITEMS_DISPLAYED, WhatsHappeningEntryPoint } from './constants';
+import {
+  MAX_ITEMS_DISPLAYED,
+  type WhatsHappeningSourceValue,
+} from './constants';
 import { useWhatsHappening } from './hooks';
 import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
 import useHomeViewedEvent, {
@@ -24,9 +27,6 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { getWhatsHappeningEventProps } from './eventProperties';
 
 const CARD_WIDTH = 280;
 const GAP = 12;
@@ -48,18 +48,18 @@ const styles = StyleSheet.create({
 interface WhatsHappeningSectionProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
+  source: WhatsHappeningSourceValue;
 }
 
 const WhatsHappeningSection = forwardRef<
   SectionRefreshHandle,
   WhatsHappeningSectionProps
->(({ sectionIndex, totalSectionsLoaded }, ref) => {
+>(({ sectionIndex, totalSectionsLoaded, source }, ref) => {
   const sectionViewRef = useRef<View>(null);
   const tw = useTailwind();
   const navigation = useNavigation();
   const isEnabled = useSelector(selectWhatsHappeningEnabled);
   const title = strings('homepage.sections.whats_happening');
-  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { items, isLoading, error, refresh } =
     useWhatsHappening(MAX_ITEMS_DISPLAYED);
@@ -96,36 +96,21 @@ const WhatsHappeningSection = forwardRef<
     (initialIndex: number) => {
       navigation.navigate(Routes.WHATS_HAPPENING_DETAIL, {
         initialIndex,
+        source,
       });
     },
-    [navigation],
+    [navigation, source],
   );
 
   const handleViewAll = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_OPENED)
-        .addProperties({ entry_point: WhatsHappeningEntryPoint.ViewAll })
-        .build(),
-    );
     navigateToDetail(0);
-  }, [navigateToDetail, trackEvent, createEventBuilder]);
+  }, [navigateToDetail]);
 
   const handleCardPress = useCallback(
     (index: number) => {
-      const item = items[index];
-      if (item) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_OPENED)
-            .addProperties({
-              ...getWhatsHappeningEventProps(item, index),
-              entry_point: WhatsHappeningEntryPoint.Card,
-            })
-            .build(),
-        );
-      }
       navigateToDetail(index);
     },
-    [items, navigateToDetail, trackEvent, createEventBuilder],
+    [navigateToDetail],
   );
 
   if (!isEnabled) {
@@ -182,6 +167,7 @@ const WhatsHappeningSection = forwardRef<
                 key={item.id}
                 item={item}
                 cardIndex={index}
+                source={source}
                 onPress={() => handleCardPress(index)}
               />
             ))}

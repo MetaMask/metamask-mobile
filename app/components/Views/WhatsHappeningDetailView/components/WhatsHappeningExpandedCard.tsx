@@ -17,6 +17,7 @@ import {
 } from '@metamask/design-system-react-native';
 import type { Article, MarketInsightsSource } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
+import type { WhatsHappeningSourceValue } from '../../Homepage/Sections/WhatsHappening/constants';
 import { strings } from '../../../../../locales/i18n';
 import {
   getImpactLabel,
@@ -37,6 +38,7 @@ interface WhatsHappeningExpandedCardProps {
   cardWidth: number;
   /** Height of the carousel container — used to give every card the same fixed height. */
   cardHeight: number;
+  source: WhatsHappeningSourceValue;
   /**
    * Called when the user taps the sources footer row. The parent is responsible
    * for rendering the bottom sheet so it is anchored to the screen root rather
@@ -50,6 +52,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   cardIndex,
   cardWidth,
   cardHeight,
+  source,
   onSourcesPress,
 }) => {
   const tw = useTailwind();
@@ -75,9 +78,6 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   }, [uniqueSources]);
 
   const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(item);
-
-  /** Theme token resolved to a concrete color for `LinearGradient` */
-  const cardBgColor = tw.color('bg-background-muted');
 
   return (
     <Box style={{ width: cardWidth, height: cardHeight }}>
@@ -171,6 +171,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                     asset={asset}
                     item={item}
                     cardIndex={cardIndex}
+                    source={source}
                     perpsPriceBySymbol={perpsPriceBySymbol}
                   />
                 ))}
@@ -178,21 +179,16 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
             )}
           </ScrollView>
 
-          {/* Bottom fade — blends into the card bg; omitted if theme color cannot resolve */}
-          {cardBgColor ? (
-            <LinearGradient
-              pointerEvents="none"
-              colors={['transparent', cardBgColor]}
-              style={tw.style('absolute left-0 right-0 bottom-0 h-12')}
-            />
-          ) : null}
+          <LinearGradient
+            pointerEvents="none"
+            colors={['transparent', 'rgba(0,0,0,0.25)']}
+            style={tw.style('absolute left-0 right-0 bottom-0 h-10')}
+          />
         </Box>
 
         {/* Fixed sources footer */}
         {uniqueSources.length > 0 && (
-          <Box twClassName="px-5 pb-5" gap={4}>
-            <Box twClassName="h-px bg-border-muted" />
-
+          <Box twClassName="px-5 pb-5 pt-4" gap={4}>
             <Pressable
               onPress={() => onSourcesPress?.(item.articles)}
               accessibilityRole="button"
