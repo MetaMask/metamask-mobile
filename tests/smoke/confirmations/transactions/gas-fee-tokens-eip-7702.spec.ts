@@ -291,7 +291,7 @@ describe.skip(
           await SendView.pressContinueButton();
           await SendView.inputRecipientAddress(RECIPIENT_ADDRESS_MOCK);
           await SendView.pressReviewButton();
-          https://github.com/MetaMask/metamask-mobile/pull/30043
+
           await Assertions.expectElementToBeVisible(
             RowComponents.NetworkFeeGasFeeTokenArrow,
             { description: 'Gas Fee Token Arrow' },
