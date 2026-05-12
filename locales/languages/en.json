@@ -1064,7 +1064,12 @@
       "closed": "Closed",
       "no_positions": "No positions yet",
       "error_loading_profile": "Couldn't load profile",
-      "twitter_link": "View on X (Twitter)"
+      "twitter_link": "View on X (Twitter)",
+      "sort": {
+        "value": "Value",
+        "pnl_percent": "P&L %",
+        "recent": "Recent"
+      }
     },
     "trader_position": {
       "market_cap": "Market cap",
@@ -2500,6 +2505,9 @@
       "withdraw_completed": "Withdrawal complete",
       "withdraw_completed_subtitle": "{{amount}} USDC moved to your wallet",
       "withdraw_any_token_completed_subtitle": "{{amount}} {{token}} moved to your wallet",
+      "unavailable_title": "Withdrawals temporarily unavailable",
+      "unavailable_description": "For urgent assistance, please contact Customer Service.",
+      "unavailable_got_it": "Got it",
       "error_title": "Something went wrong",
       "error_description": "Failed to proceed with withdraw",
       "try_again": "Try again"
@@ -6969,6 +6977,10 @@
   "confirm": {
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "pay_with_bottom_sheet": {
+      "title": "Pay with",
+      "last_used": "Last used"
+    },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
       "terms_of_use": "Terms of Use",
@@ -7154,7 +7166,8 @@
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
-    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
+    "deposit_edit_amount_musd_conversion": "Convert to mUSD",
+    "preparing_order": "Preparing order"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -8833,6 +8846,7 @@
     "crypto_movers": "Crypto movers",
     "perps_movers": "Perps movers",
     "trending_tokens": "Trending",
+    "crypto": "Crypto",
     "stocks": "Stocks",
     "price_change": "Price change",
     "all_networks": "All networks",

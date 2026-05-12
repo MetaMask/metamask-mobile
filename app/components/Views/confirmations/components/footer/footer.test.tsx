@@ -107,9 +107,11 @@ describe('Footer', () => {
 
     mockUseConfirmationContext.mockReturnValue({
       isFooterVisible: true,
+      isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
       setIsFooterVisible: jest.fn(),
+      setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
     });
@@ -217,11 +219,13 @@ describe('Footer', () => {
   it('disables confirm button if isTransactionValueUpdating', () => {
     mockUseConfirmationContext.mockReturnValue({
       isFooterVisible: true,
+      isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: true,
       isTransactionValueUpdating: true,
+      setIsFooterVisible: jest.fn(),
+      setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
-      setIsFooterVisible: jest.fn(),
     });
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
@@ -276,9 +280,11 @@ describe('Footer', () => {
   it('hides footer by default for moneyAccountDeposit transaction type', () => {
     mockUseConfirmationContext.mockReturnValue({
       isFooterVisible: undefined,
+      isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
       setIsFooterVisible: jest.fn(),
+      setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
     });
@@ -308,9 +314,11 @@ describe('Footer', () => {
   it('hides footer by default for moneyAccountWithdraw transaction type', () => {
     mockUseConfirmationContext.mockReturnValue({
       isFooterVisible: undefined,
+      isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
       setIsFooterVisible: jest.fn(),
+      setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
     });
@@ -340,11 +348,13 @@ describe('Footer', () => {
   it('hides footer when isFooterVisible is false', () => {
     mockUseConfirmationContext.mockReturnValue({
       isFooterVisible: false,
+      isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
+      setIsFooterVisible: jest.fn(),
+      setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
-      setIsFooterVisible: jest.fn(),
     });
 
     const { queryByTestId } = renderWithProvider(<Footer />, {

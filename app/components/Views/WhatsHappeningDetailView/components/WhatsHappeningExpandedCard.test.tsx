@@ -96,6 +96,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText(baseItem.title)).toBeOnTheScreen();
@@ -109,6 +110,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText('Bullish')).toBeOnTheScreen();
@@ -121,6 +123,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText('AI')).toBeOnTheScreen();
@@ -135,6 +138,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText('Neutral')).toBeOnTheScreen();
@@ -148,6 +152,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.queryByText('Neutral')).toBeNull();
@@ -164,6 +169,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText('Related Assets')).toBeOnTheScreen();
@@ -180,6 +186,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText('Tesla')).toBeOnTheScreen();
@@ -196,6 +203,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText('Related Assets')).toBeOnTheScreen();
@@ -212,6 +220,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.queryByText('Related Assets')).toBeNull();
@@ -226,6 +235,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     fireEvent.press(screen.getByText('Trade'));
@@ -260,6 +270,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
         onSourcesPress={mockOnSourcesPress}
       />,
     );
@@ -284,6 +295,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText('$172.50')).toBeOnTheScreen();

@@ -59,8 +59,7 @@ describe(SmokeSwap('Swap from Actions'), (): void => {
 
         // Submit first swap: ETH->ERC20 (USDC) with custom slippage
         await submitSwapUnifiedUI('1', 'ETH', 'USDC', '0x1', {
-          // slippage: '3.5',
-          // comment out until bug #29615 is fixed
+          slippage: '3.5',
         });
         await checkSwapActivity('ETH', 'USDC');
 
