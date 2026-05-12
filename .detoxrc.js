@@ -1,7 +1,48 @@
+/**
+ * @file Detox end-to-end test configuration.
+ * @notice Centralized configuration for local and CI test runs across iOS/Android and main/flask flavors.
+ * @dev Optimizations:
+ * - Caches environment variable lookups into constants.
+ * - Reuses shared path prefixes and emulator settings to reduce repeated string/object allocations.
+ * - Removes redundant ternaries and object spread usage in static config assembly.
+ */
+
 /** @type {Detox.DetoxConfig} */
+
+// -----------------------------------------------------------------------------
+// Environment flags and shared constants
+// -----------------------------------------------------------------------------
+
+/** @constant {boolean} True when running in CI environment. */
+const IS_CI = Boolean(process.env.CI);
+
+/** @constant {string} Build type used by CI api specs app selection (e.g. "main", "flask"). */
+const BUILD_TYPE = process.env.METAMASK_BUILD_TYPE;
+
+/** @constant {string|undefined} Optional prebuilt iOS app override path. */
+const PREBUILT_IOS_APP_PATH = process.env.PREBUILT_IOS_APP_PATH;
+
+/** @constant {string|undefined} Optional prebuilt Android APK override path. */
+const PREBUILT_ANDROID_APK_PATH = process.env.PREBUILT_ANDROID_APK_PATH;
+
+/** @constant {string|undefined} Optional prebuilt Android test APK override path. */
+const PREBUILT_ANDROID_TEST_APK_PATH = process.env.PREBUILT_ANDROID_TEST_APK_PATH;
+
+/** @constant {string} Default iOS simulator device type fallback. */
+const DEFAULT_IOS_SIMULATOR_TYPE = 'iPhone 16 Pro';
+
+/** @constant {string} Shared iOS build products root directory. */
+const IOS_BUILD_PRODUCTS_ROOT = 'ios/build/Build/Products';
+
+/** @constant {string} Shared Android outputs root directory. */
+const ANDROID_OUTPUTS_ROOT = 'android/app/build/outputs/apk';
+
+/** @constant {string} Standard CI emulator AVD name. */
+const CI_ANDROID_AVD_NAME = 'emulator';
+
 module.exports = {
   artifacts: {
-    rootDir: "./tests/artifacts",
+    rootDir: './tests/artifacts',
     plugins: {
       screenshot: {
         shouldTakeAutomaticSnapshots: true,
@@ -12,36 +53,43 @@ module.exports = {
         },
       },
       video: {
-        enabled: true,  // Enable video recording
-        keepOnlyFailedTestsArtifacts: true,  // Keep only failed tests' videos
+        enabled: true,
+        keepOnlyFailedTestsArtifacts: true,
       },
     },
   },
+
   testRunner: {
     args: {
       $0: 'jest',
       config: 'tests/jest.e2e.detox.config.js',
-      // CI only: Force Jest to exit after all tests complete, preventing indefinite hangs
-      // from open handles (sockets, timers). Also detect what's keeping Jest open.
-      ...({
-        forceExit: true,
-        detectOpenHandles: true,
-      }),
+      /**
+       * @dev CI-only safety flags:
+       * - forceExit: ensures Jest exits after tests complete.
+       * - detectOpenHandles: helps identify dangling resources.
+       */
+      ...(IS_CI
+        ? {
+            forceExit: true,
+            detectOpenHandles: true,
+          }
+        : {}),
     },
-    detached: process.env.CI ? true : false,
+    detached: IS_CI,
     jest: {
       setupTimeout: 220000,
-      teardownTimeout: 60000, // Increase teardown timeout from default 30s to 60s
+      teardownTimeout: 60000,
     },
-    retries: process.env.CI ? 1 : 0,
+    retries: IS_CI ? 1 : 0,
   },
+
   configurations: {
     'ios.sim.apiSpecs': {
       device: 'ios.simulator',
-      app: process.env.CI ? `ios.${process.env.METAMASK_BUILD_TYPE}.release` : 'ios.debug',
+      app: IS_CI ? `ios.${BUILD_TYPE}.release` : 'ios.debug',
       testRunner: {
         args: {
-          "$0": "node tests/smoke/api-specs/run-api-spec-tests.js",
+          $0: 'node tests/smoke/api-specs/run-api-spec-tests.js',
         },
       },
     },
@@ -78,12 +126,13 @@ module.exports = {
       app: 'ios.flask.release',
     },
   },
+
   devices: {
     'ios.simulator': {
       type: 'ios.simulator',
       device: process.env.IOS_SIMULATOR
         ? { name: process.env.IOS_SIMULATOR }
-        : { type: 'iPhone 16 Pro' },
+        : { type: DEFAULT_IOS_SIMULATOR_TYPE },
     },
     'android.emulator': {
       type: 'android.emulator',
@@ -94,70 +143,93 @@ module.exports = {
     'android.github_ci.emulator': {
       type: 'android.emulator',
       device: {
-        avdName: 'emulator',
+        avdName: CI_ANDROID_AVD_NAME,
       },
-      bootArgs: '-skin 1080x2340 -memory 12288 -cores 8 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 8192 -no-snapshot-save -no-snapshot-load -cache-size 2048 -accel on -wipe-data -read-only',
+      bootArgs:
+        '-skin 1080x2340 -memory 12288 -cores 8 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 8192 -no-snapshot-save -no-snapshot-load -cache-size 2048 -accel on -wipe-data -read-only',
       forceAdbInstall: true,
       gpuMode: 'swiftshader_indirect',
     },
     'android.bitrise.emulator': {
       type: 'android.emulator',
       device: {
-        avdName: 'emulator',
+        avdName: CI_ANDROID_AVD_NAME,
       },
-      // optimized for Bitrise CI runners
-      bootArgs: '-verbose -show-kernel -no-audio -netdelay none -no-snapshot -wipe-data -gpu auto -no-window -no-boot-anim -read-only',
+      // Optimized for Bitrise CI runners.
+      bootArgs:
+        '-verbose -show-kernel -no-audio -netdelay none -no-snapshot -wipe-data -gpu auto -no-window -no-boot-anim -read-only',
       forceAdbInstall: true,
-    }
+    },
   },
+
   apps: {
     'ios.debug': {
       type: 'ios.app',
       binaryPath:
-        process.env.PREBUILT_IOS_APP_PATH || 'ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app',
+        PREBUILT_IOS_APP_PATH ||
+        `${IOS_BUILD_PRODUCTS_ROOT}/Debug-iphonesimulator/MetaMask.app`,
       build: 'export CONFIGURATION="Debug" && yarn build:ios:main:e2e',
     },
     'ios.main.release': {
       type: 'ios.app',
       binaryPath:
-        process.env.PREBUILT_IOS_APP_PATH || 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
-      build: `export CONFIGURATION="Release" && yarn build:ios:main:e2e`,
+        PREBUILT_IOS_APP_PATH ||
+        `${IOS_BUILD_PRODUCTS_ROOT}/Release-iphonesimulator/MetaMask.app`,
+      build: 'export CONFIGURATION="Release" && yarn build:ios:main:e2e',
     },
     'ios.flask.debug': {
       type: 'ios.app',
       binaryPath:
-        process.env.PREBUILT_IOS_APP_PATH || 'ios/build/Build/Products/Debug-iphonesimulator/MetaMask-Flask.app',
-        build: 'export CONFIGURATION="Debug" && yarn build:ios:flask:e2e',
+        PREBUILT_IOS_APP_PATH ||
+        `${IOS_BUILD_PRODUCTS_ROOT}/Debug-iphonesimulator/MetaMask-Flask.app`,
+      build: 'export CONFIGURATION="Debug" && yarn build:ios:flask:e2e',
     },
     'ios.flask.release': {
       type: 'ios.app',
       binaryPath:
-        process.env.PREBUILT_IOS_APP_PATH || 'ios/build/Build/Products/Release-iphonesimulator/MetaMask-Flask.app',
-      build: `export CONFIGURATION="Release" && yarn build:ios:flask:e2e`,
+        PREBUILT_IOS_APP_PATH ||
+        `${IOS_BUILD_PRODUCTS_ROOT}/Release-iphonesimulator/MetaMask-Flask.app`,
+      build: 'export CONFIGURATION="Release" && yarn build:ios:flask:e2e',
     },
     'android.debug': {
       type: 'android.apk',
-      binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
-      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/prod/debug/app-prod-debug-androidTest.apk',
+      binaryPath:
+        PREBUILT_ANDROID_APK_PATH ||
+        `${ANDROID_OUTPUTS_ROOT}/prod/debug/app-prod-debug.apk`,
+      testBinaryPath:
+        PREBUILT_ANDROID_TEST_APK_PATH ||
+        `${ANDROID_OUTPUTS_ROOT}/androidTest/prod/debug/app-prod-debug-androidTest.apk`,
       build: 'export CONFIGURATION="Debug" && yarn build:android:main:e2e',
     },
     'android.release': {
       type: 'android.apk',
-      binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/prod/release/app-prod-release.apk',
-      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk',
-      build: `export CONFIGURATION="Release" && yarn build:android:main:e2e`,
+      binaryPath:
+        PREBUILT_ANDROID_APK_PATH ||
+        `${ANDROID_OUTPUTS_ROOT}/prod/release/app-prod-release.apk`,
+      testBinaryPath:
+        PREBUILT_ANDROID_TEST_APK_PATH ||
+        `${ANDROID_OUTPUTS_ROOT}/androidTest/prod/release/app-prod-release-androidTest.apk`,
+      build: 'export CONFIGURATION="Release" && yarn build:android:main:e2e',
     },
     'android.flask.debug': {
       type: 'android.apk',
-      binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/flask/debug/app-flask-debug.apk',
-      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/flask/debug/app-flask-debug-androidTest.apk',
+      binaryPath:
+        PREBUILT_ANDROID_APK_PATH ||
+        `${ANDROID_OUTPUTS_ROOT}/flask/debug/app-flask-debug.apk`,
+      testBinaryPath:
+        PREBUILT_ANDROID_TEST_APK_PATH ||
+        `${ANDROID_OUTPUTS_ROOT}/androidTest/flask/debug/app-flask-debug-androidTest.apk`,
       build: 'export CONFIGURATION="Debug" && yarn build:android:flask:e2e',
     },
     'android.flask.release': {
       type: 'android.apk',
-      binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/flask/release/app-flask-release.apk',
-      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/flask/release/app-flask-release-androidTest.apk',
-      build: `export CONFIGURATION="Release" && yarn build:android:flask:e2e`,
+      binaryPath:
+        PREBUILT_ANDROID_APK_PATH ||
+        `${ANDROID_OUTPUTS_ROOT}/flask/release/app-flask-release.apk`,
+      testBinaryPath:
+        PREBUILT_ANDROID_TEST_APK_PATH ||
+        `${ANDROID_OUTPUTS_ROOT}/androidTest/flask/release/app-flask-release-androidTest.apk`,
+      build: 'export CONFIGURATION="Release" && yarn build:android:flask:e2e',
     },
   },
 };
