@@ -70,6 +70,8 @@ jobs:
             .metamask
             node_modules
             .yarn/cache
+            ${{ env.GRADLE_USER_HOME }}/caches
+            ${{ env.GRADLE_USER_HOME }}/wrapper
             ${{ env.GRADLE_USER_HOME }}/apk-cache
 
       - name: Configure Gradle remote build cache
