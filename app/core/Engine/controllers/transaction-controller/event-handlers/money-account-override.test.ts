@@ -160,10 +160,23 @@ describe('money-account-override', () => {
       expect(setTransactionConfigMock).not.toHaveBeenCalled();
     });
 
-    it('replaces the previous account in nested transactions for a money-account deposit batch', () => {
+    it('calls replaceAccountInNestedTransactions for a moneyAccountWithdraw transaction', () => {
+      handleUnapprovedTransactionAddedForMoneyAccount(
+        buildTransactionMeta({ type: TransactionType.moneyAccountWithdraw }),
+      );
+
+      expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID_MOCK,
+        nestedTransactions: undefined,
+        oldAddress: '0x123',
+        newAddress: EVM_ADDRESS_MOCK,
+      });
+    });
+
+    it('calls replaceAccountInNestedTransactions for a batch containing a nested moneyAccountWithdraw', () => {
       const nestedTransactions = [
         { type: TransactionType.tokenMethodApprove },
-        { type: TransactionType.moneyAccountDeposit },
+        { type: TransactionType.moneyAccountWithdraw },
       ];
 
       handleUnapprovedTransactionAddedForMoneyAccount(
@@ -181,17 +194,24 @@ describe('money-account-override', () => {
       });
     });
 
-    it('calls replaceAccountInNestedTransactions for a moneyAccountWithdraw transaction', () => {
+    it('does not call replaceAccountInNestedTransactions for a moneyAccountDeposit transaction', () => {
+      handleUnapprovedTransactionAddedForMoneyAccount(buildTransactionMeta());
+
+      expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
+    });
+
+    it('does not call replaceAccountInNestedTransactions for a batch containing only a nested moneyAccountDeposit', () => {
       handleUnapprovedTransactionAddedForMoneyAccount(
-        buildTransactionMeta({ type: TransactionType.moneyAccountWithdraw }),
+        buildTransactionMeta({
+          type: TransactionType.batch,
+          nestedTransactions: [
+            { type: TransactionType.tokenMethodApprove },
+            { type: TransactionType.moneyAccountDeposit },
+          ],
+        } as never),
       );
 
-      expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
-        transactionId: TRANSACTION_ID_MOCK,
-        nestedTransactions: undefined,
-        oldAddress: '0x123',
-        newAddress: EVM_ADDRESS_MOCK,
-      });
+      expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
     });
 
     it('does not call replaceAccountInNestedTransactions when transaction is skipped', () => {
