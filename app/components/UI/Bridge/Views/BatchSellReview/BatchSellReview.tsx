@@ -15,6 +15,7 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -26,7 +27,6 @@ import {
 
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   selectBatchSellDestToken,
@@ -59,16 +59,6 @@ export function BatchSellReview() {
     Record<string, number>
   >({});
 
-  useEffect(() => {
-    navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
-        title: '',
-        onBack: () => navigation.goBack(),
-        includesTopInset: true,
-      }),
-    );
-  }, [navigation]);
-
   // Seed the selected destination token on entry so the pill always reads from Redux.
   useEffect(() => {
     if (destinationTokens[0] && !selectedDestinationToken) {
@@ -97,6 +87,10 @@ export function BatchSellReview() {
     [],
   );
 
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   const handleOpenDestinationTokenSelector = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL,
@@ -104,11 +98,15 @@ export function BatchSellReview() {
   }, [navigation]);
 
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-default')} edges={['bottom']}>
+    <SafeAreaView
+      style={tw.style('flex-1 bg-default')}
+      edges={['bottom', 'left', 'right']}
+    >
       <Box
         testID={BatchSellReviewSelectorsIDs.CONTAINER}
         twClassName="flex-1 bg-default"
       >
+        <HeaderStandard title="" onBack={handleBackPress} includesTopInset />
         <Box twClassName="px-4 pb-6">
           <Box
             flexDirection={BoxFlexDirection.Row}

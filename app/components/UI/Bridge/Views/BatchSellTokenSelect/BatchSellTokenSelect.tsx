@@ -16,6 +16,7 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -27,7 +28,6 @@ import {
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { CaipChainId } from '@metamask/utils';
 
-import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -74,16 +74,6 @@ export function BatchSellTokenSelect() {
     CaipChainId | undefined
   >(() => sortedEligibleChains[0]?.chainId);
   const [selectedTokens, setSelectedTokens] = useState<BridgeToken[]>([]);
-
-  useEffect(() => {
-    navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
-        title: '',
-        onBack: () => navigation.goBack(),
-        includesTopInset: true,
-      }),
-    );
-  }, [navigation]);
 
   // Start each Batch Sell flow from a clean Redux handoff state.
   useEffect(() => {
@@ -159,6 +149,10 @@ export function BatchSellTokenSelect() {
 
     return strings('bridge.next');
   }, [selectedTokenCount]);
+
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const handleChainSelect = useCallback(
     (chainId?: CaipChainId) => {
@@ -311,95 +305,106 @@ export function BatchSellTokenSelect() {
     [handleTokenPress, selectedTokenKeys, sortedEligibleChains],
   );
 
-  if (sortedEligibleChains.length === 0) {
-    return (
-      <BatchSellEmptyState onExploreTokensPress={handleExploreTokensPress} />
-    );
-  }
-
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-default')} edges={['bottom']}>
+    <SafeAreaView
+      style={tw.style('flex-1 bg-default')}
+      edges={['bottom', 'left', 'right']}
+    >
       <Box twClassName="flex-1">
-        <Box twClassName="px-4 pt-2">
-          <Text variant={TextVariant.HeadingLg} color={TextColor.TextDefault}>
-            {strings('bridge.batch_sell_select_title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="mt-1"
-          >
-            {strings('bridge.batch_sell_select_subtitle')}
-          </Text>
-        </Box>
-        <Box twClassName="pt-4 pl-4">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('flex-row items-center gap-2 pr-4')}
-          >
-            {sortedEligibleChains.map((network) =>
-              renderNetworkPill(
-                network.chainId,
-                network.name,
-                activeChainId === network.chainId,
-              ),
-            )}
-          </ScrollView>
-        </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="px-4 py-4"
-        >
-          <Pressable
-            accessibilityRole="button"
-            onPress={handleTokenSortToggle}
-            testID={BatchSellTokenSelectSelectorsIDs.BALANCE_SORT_BUTTON}
-          >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={1}
-            >
+        <HeaderStandard title="" onBack={handleBackPress} includesTopInset />
+        {sortedEligibleChains.length === 0 ? (
+          <BatchSellEmptyState
+            onExploreTokensPress={handleExploreTokensPress}
+          />
+        ) : (
+          <>
+            <Box twClassName="px-4 pt-2">
+              <Text
+                variant={TextVariant.HeadingLg}
+                color={TextColor.TextDefault}
+              >
+                {strings('bridge.batch_sell_select_title')}
+              </Text>
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
+                twClassName="mt-1"
               >
-                {strings('bridge.sort_balance')}
+                {strings('bridge.batch_sell_select_subtitle')}
               </Text>
-              <Icon
-                name={
-                  tokenSortDirection === 'desc'
-                    ? IconName.Arrow2Down
-                    : IconName.Arrow2Up
-                }
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
             </Box>
-          </Pressable>
-        </Box>
-        <FlatList
-          testID={BatchSellTokenSelectSelectorsIDs.TOKEN_LIST}
-          data={selectedChainTokens}
-          renderItem={renderToken}
-          keyExtractor={getTokenKey}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('pb-4')}
-        />
-        <Box twClassName="border-t border-muted px-4 pb-4 pt-3">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            isDisabled={isPrimaryButtonDisabled}
-            onPress={handleNextPress}
-            testID={BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON}
-          >
-            {primaryButtonLabel}
-          </Button>
-        </Box>
+            <Box twClassName="pt-4 pl-4">
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={tw.style(
+                  'flex-row items-center gap-2 pr-4',
+                )}
+              >
+                {sortedEligibleChains.map((network) =>
+                  renderNetworkPill(
+                    network.chainId,
+                    network.name,
+                    activeChainId === network.chainId,
+                  ),
+                )}
+              </ScrollView>
+            </Box>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="px-4 py-4"
+            >
+              <Pressable
+                accessibilityRole="button"
+                onPress={handleTokenSortToggle}
+                testID={BatchSellTokenSelectSelectorsIDs.BALANCE_SORT_BUTTON}
+              >
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('bridge.sort_balance')}
+                  </Text>
+                  <Icon
+                    name={
+                      tokenSortDirection === 'desc'
+                        ? IconName.Arrow2Down
+                        : IconName.Arrow2Up
+                    }
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                </Box>
+              </Pressable>
+            </Box>
+            <FlatList
+              testID={BatchSellTokenSelectSelectorsIDs.TOKEN_LIST}
+              data={selectedChainTokens}
+              renderItem={renderToken}
+              keyExtractor={getTokenKey}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={tw.style('pb-4')}
+            />
+            <Box twClassName="border-t border-muted px-4 pb-4 pt-3">
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                isDisabled={isPrimaryButtonDisabled}
+                onPress={handleNextPress}
+                testID={BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON}
+              >
+                {primaryButtonLabel}
+              </Button>
+            </Box>
+          </>
+        )}
       </Box>
     </SafeAreaView>
   );
