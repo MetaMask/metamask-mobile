@@ -75,11 +75,11 @@ describe('useOHLCVRealtime', () => {
     );
   });
 
-  it('calls OHLCVService:subscribe after 300ms debounce', async () => {
+  it('calls OHLCVService:subscribe after 500ms debounce', async () => {
     renderHook(() => useOHLCVRealtime(arrangeDefaultOptions()));
 
     await act(async () => {
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(500);
     });
 
     expect(mockCall).toHaveBeenCalledWith('OHLCVService:subscribe', {
@@ -120,7 +120,7 @@ describe('useOHLCVRealtime', () => {
     );
 
     await act(async () => {
-      jest.advanceTimersByTime(300);
+      jest.advanceTimersByTime(500);
     });
 
     unmount();
@@ -144,17 +144,18 @@ describe('useOHLCVRealtime', () => {
     });
   });
 
-  it('does not call OHLCVService:unsubscribe on unmount if debounce did not fire', () => {
+  it('calls OHLCVService:unsubscribe on unmount even if debounce did not fire', () => {
     const { unmount } = renderHook(() =>
       useOHLCVRealtime(arrangeDefaultOptions()),
     );
 
     unmount();
 
-    expect(mockCall).not.toHaveBeenCalledWith(
-      'OHLCVService:unsubscribe',
-      expect.anything(),
-    );
+    expect(mockCall).toHaveBeenCalledWith('OHLCVService:unsubscribe', {
+      assetId: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      interval: '15m',
+      currency: 'usd',
+    });
   });
 
   it('sets latestBar when barUpdated event matches channel', async () => {
@@ -265,7 +266,7 @@ describe('useOHLCVRealtime', () => {
 
       // Fire the debounce so subscribe succeeds (sets lastMessageTime)
       await act(async () => {
-        jest.advanceTimersByTime(300);
+        jest.advanceTimersByTime(500);
       });
 
       // Advance past staleness threshold (30s) + one check interval (15s)
@@ -299,7 +300,7 @@ describe('useOHLCVRealtime', () => {
 
       // Fire debounce
       await act(async () => {
-        jest.advanceTimersByTime(300);
+        jest.advanceTimersByTime(500);
       });
 
       // Simulate a WS bar arriving at T+20s
@@ -351,7 +352,7 @@ describe('useOHLCVRealtime', () => {
 
       // Fire debounce
       await act(async () => {
-        jest.advanceTimersByTime(300);
+        jest.advanceTimersByTime(500);
       });
 
       // Trigger chainStatusChanged with 'down' for our chain
@@ -379,7 +380,7 @@ describe('useOHLCVRealtime', () => {
 
       // Fire debounce
       await act(async () => {
-        jest.advanceTimersByTime(300);
+        jest.advanceTimersByTime(500);
       });
 
       const chainStatusHandler = mockSubscribe.mock.calls.find(
@@ -410,7 +411,7 @@ describe('useOHLCVRealtime', () => {
 
       // Fire debounce
       await act(async () => {
-        jest.advanceTimersByTime(300);
+        jest.advanceTimersByTime(500);
       });
 
       // Force staleness
