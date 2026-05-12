@@ -11,6 +11,7 @@ import { useTransactionPayToken } from './useTransactionPayToken';
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
+import { isMatchingPayToken } from '../../utils/transaction-pay';
 
 export interface PayWithPreferredToken {
   address: Hex;
@@ -58,7 +59,7 @@ export function usePayWithPreferredToken({
 
     const selectedToken = payToken;
 
-    if (selectedToken && isMatchingToken(selectedToken, automaticToken)) {
+    if (selectedToken && isMatchingPayToken(selectedToken, automaticToken)) {
       return {
         address: selectedToken.address,
         balanceUsd: selectedToken.balanceUsd,
@@ -68,7 +69,7 @@ export function usePayWithPreferredToken({
     }
 
     const availableToken = availableTokens.find((token) =>
-      isMatchingToken(token, automaticToken),
+      isMatchingPayToken(token, automaticToken),
     );
 
     if (!availableToken?.chainId) {
@@ -90,18 +91,5 @@ export function usePayWithPreferredToken({
       selectedToken: payToken,
     }),
     [hasTokens, payToken, preferredTokenCandidate],
-  );
-}
-
-function isMatchingToken(
-  token:
-    | { address?: string; chainId?: string }
-    | { address: string; chainId: string }
-    | undefined,
-  target: { address: string; chainId: string },
-) {
-  return (
-    token?.address?.toLowerCase() === target.address.toLowerCase() &&
-    token?.chainId?.toLowerCase() === target.chainId.toLowerCase()
   );
 }

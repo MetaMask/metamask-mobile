@@ -9,6 +9,7 @@ import {
   getRequiredBalance,
   getTokenAddress,
   getTokenTransferData,
+  isMatchingPayToken,
   isTokenBlocked,
 } from './transaction-pay';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
@@ -573,6 +574,66 @@ describe('Transaction Pay Utils', () => {
         isTokenBlocked(
           { address: '0xabc', chainId: '0x1' },
           { chainIds: [], tokens: [] },
+        ),
+      ).toBe(false);
+    });
+  });
+
+  describe('isMatchingPayToken', () => {
+    it('returns true when address and chainId match (case-insensitive)', () => {
+      expect(
+        isMatchingPayToken(
+          { address: '0xABC', chainId: '0x1' },
+          { address: '0xabc', chainId: '0x1' },
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false when only address matches', () => {
+      expect(
+        isMatchingPayToken(
+          { address: '0xabc', chainId: '0x1' },
+          { address: '0xabc', chainId: '0x89' },
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when only chainId matches', () => {
+      expect(
+        isMatchingPayToken(
+          { address: '0xabc', chainId: '0x1' },
+          { address: '0xdef', chainId: '0x1' },
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when the token is undefined', () => {
+      expect(
+        isMatchingPayToken(undefined, { address: '0xabc', chainId: '0x1' }),
+      ).toBe(false);
+    });
+
+    it('returns false when the target is undefined', () => {
+      expect(
+        isMatchingPayToken({ address: '0xabc', chainId: '0x1' }, undefined),
+      ).toBe(false);
+    });
+
+    it('returns false when both arguments are undefined', () => {
+      expect(isMatchingPayToken(undefined, undefined)).toBe(false);
+    });
+
+    it('returns false when the token has missing address or chainId fields', () => {
+      expect(
+        isMatchingPayToken(
+          { chainId: '0x1' },
+          { address: '0xabc', chainId: '0x1' },
+        ),
+      ).toBe(false);
+      expect(
+        isMatchingPayToken(
+          { address: '0xabc' },
+          { address: '0xabc', chainId: '0x1' },
         ),
       ).toBe(false);
     });

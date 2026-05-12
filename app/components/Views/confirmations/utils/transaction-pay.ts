@@ -230,3 +230,16 @@ function getSupportedGasFeeTokens(): Record<Hex, Hex[]> {
     {},
   );
 }
+
+export function isMatchingPayToken(
+  token: { address?: string; chainId?: string } | undefined,
+  target: { address: string; chainId: string } | undefined,
+): boolean {
+  if (!token || !target) {
+    return false;
+  }
+  return (
+    token.address?.toLowerCase() === target.address.toLowerCase() &&
+    token.chainId?.toLowerCase() === target.chainId.toLowerCase()
+  );
+}
