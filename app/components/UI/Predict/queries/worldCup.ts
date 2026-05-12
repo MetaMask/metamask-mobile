@@ -17,7 +17,7 @@ export const predictWorldCupKeys = {
     [...predictWorldCupKeys.all(), 'stage', stageKey, ...eventIds] as const,
 };
 
-export const predictWorldCupQueries = {
+export const predictWorldCupOptions = {
   all: (config: Pick<PredictWorldCupConfig, 'tagSlug'>) =>
     buildPredictWorldCupAllQuery(config),
   props: (config: Pick<PredictWorldCupConfig, 'tagSlug' | 'gamesTagId'>) =>

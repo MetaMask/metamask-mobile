@@ -27,7 +27,7 @@ import {
   predictUnrealizedPnLKeys,
   predictUnrealizedPnLOptions,
 } from './unrealizedPnL';
-import { predictWorldCupKeys, predictWorldCupQueries } from './worldCup';
+import { predictWorldCupKeys, predictWorldCupOptions } from './worldCup';
 
 export const predictQueries = {
   accountState: {
@@ -76,6 +76,6 @@ export const predictQueries = {
   },
   worldCup: {
     keys: predictWorldCupKeys,
-    queries: predictWorldCupQueries,
+    options: predictWorldCupOptions,
   },
 };
