@@ -29,11 +29,11 @@ describe('MoneyCondensedInfoCards', () => {
       MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_IMAGE,
     );
     expect(howItWorksImage.props.source).toBe(howItWorksImageSource);
-    expect(howItWorksImage.props.style).toEqual({ height: 50, width: 64 });
+    expect(howItWorksImage.props.style).toEqual({ height: 64, width: 64 });
 
     const musdImage = getByTestId(MoneyCondensedInfoCardsTestIds.MUSD_IMAGE);
     expect(musdImage.props.source).toBe(musdCoinImageSource);
-    expect(musdImage.props.style).toEqual({ height: 50, width: 50 });
+    expect(musdImage.props.style).toEqual({ height: 64, width: 64 });
 
     const whatYouGetImage = getByTestId(
       MoneyCondensedInfoCardsTestIds.WHAT_YOU_GET_IMAGE,

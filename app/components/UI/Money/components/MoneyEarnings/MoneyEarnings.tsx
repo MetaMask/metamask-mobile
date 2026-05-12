@@ -42,16 +42,19 @@ const ValueText = ({
 }: {
   children: string;
   testID: string;
-}) => (
-  <Text
-    variant={TextVariant.BodyMd}
-    fontWeight={FontWeight.Medium}
-    color={TextColor.SuccessDefault}
-    testID={testID}
-  >
-    {`+${children}`}
-  </Text>
-);
+}) => {
+  const isPositive = children.startsWith('+');
+  return (
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={isPositive ? TextColor.SuccessDefault : TextColor.TextDefault}
+      testID={testID}
+    >
+      {children}
+    </Text>
+  );
+};
 
 const MoneyEarnings = ({
   monthlyEarnings,

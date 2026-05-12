@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyMoreSheet from './MoneyMoreSheet';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import AppConstants from '../../../../../core/AppConstants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 
@@ -57,18 +58,18 @@ describe('MoneyMoreSheet', () => {
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
   });
 
-  it('renders only How it works and Contact support rows', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <MoneyMoreSheet />,
-    );
+  it('renders How it works, What you get, and Contact support rows', () => {
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     expect(
       getByTestId(MoneyMoreSheetTestIds.HOW_IT_WORKS_OPTION),
     ).toBeOnTheScreen();
     expect(
+      getByTestId(MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION),
+    ).toBeOnTheScreen();
+    expect(
       getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION),
     ).toBeOnTheScreen();
-    expect(queryByTestId('money-more-sheet-what-you-get')).toBeNull();
   });
 
   it('renders the sheet title', () => {
@@ -84,6 +85,17 @@ describe('MoneyMoreSheet', () => {
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
+  });
+
+  it('opens the MUSD learn-more URL when "What you get" is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION));
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      AppConstants.URLS.MUSD_LEARN_MORE,
+    );
   });
 
   it('opens the MetaMask support URL when "Contact support" is pressed', () => {

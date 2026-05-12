@@ -58,8 +58,12 @@ const mockConversionTokens = [
   },
 ];
 
+const mockUseMusdConversionTokens = jest.fn(() => ({
+  tokens: mockConversionTokens as ReturnType<typeof Array.from>,
+}));
+
 jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: () => ({ tokens: mockConversionTokens }),
+  useMusdConversionTokens: () => mockUseMusdConversionTokens(),
   STABLECOIN_SYMBOLS: new Set(['USDC', 'USDT', 'DAI']),
   tokenFiatValue: (token: { fiat?: { balance?: number } }) =>
     token?.fiat?.balance ?? 0,
@@ -383,6 +387,14 @@ describe('MoneyHomeView', () => {
   });
 
   it('navigates to potential earnings screen when View potential earnings is pressed', () => {
+    mockUseMusdConversionTokens.mockReturnValueOnce({
+      tokens: Array.from({ length: 6 }, (_, i) => ({
+        ...mockConversionTokens[0],
+        address:
+          `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB${i.toString(16).padStart(2, '0')}` as `0x${string}`,
+        fiat: { balance: 5000 },
+      })),
+    });
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     fireEvent.press(getByTestId(MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON));
@@ -418,7 +430,7 @@ describe('MoneyHomeView', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(getByTestId(MoneyEarningsTestIds.MONTHLY_VALUE)).toHaveTextContent(
-        '$0.12',
+        '+$0.12',
       );
     });
 
@@ -428,7 +440,7 @@ describe('MoneyHomeView', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(getByTestId(MoneyEarningsTestIds.YEARLY_VALUE)).toHaveTextContent(
-        '$0.12',
+        '+$0.12',
       );
     });
 
@@ -717,6 +729,14 @@ describe('MoneyHomeView', () => {
 
   describe('filled state navigation handlers', () => {
     it('navigates to Potential Earnings when View all is pressed on potential earnings section', () => {
+      mockUseMusdConversionTokens.mockReturnValueOnce({
+        tokens: Array.from({ length: 6 }, (_, i) => ({
+          ...mockConversionTokens[0],
+          address:
+            `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB${i.toString(16).padStart(2, '0')}` as `0x${string}`,
+          fiat: { balance: 5000 },
+        })),
+      });
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(

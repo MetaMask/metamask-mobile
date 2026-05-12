@@ -37,7 +37,6 @@ import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
-import { getScenario } from '../../dev/scenarios';
 import Logger from '../../../../../util/Logger';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
@@ -70,17 +69,9 @@ const MoneyHomeView = () => {
   const { initiateCustomConversion } = useMusdConversion();
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
-  const realIsCardholder = useSelector(selectIsCardholder);
+  const isCardholder = useSelector(selectIsCardholder);
   const geolocation = useSelector(getDetectedGeolocation);
-  const realIsUS = geolocation?.toUpperCase().split('-')[0] === 'US';
-
-  // Apply DEV scenario overrides for the two selector-driven flags. Hook
-  // outputs (balance, APY, transactions, tokens) are mocked at the hook
-  // boundary in `dev/scenarios.ts`. Local-only — do NOT keep enabled in
-  // production builds.
-  const _devScenario = getScenario();
-  const isCardholder = _devScenario?.isCardholder ?? realIsCardholder;
-  const isUS = _devScenario?.isUS ?? realIsUS;
+  const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
@@ -101,7 +92,7 @@ const MoneyHomeView = () => {
       1 / 12,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
-    return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    return `+${moneyFormatFiat(new BigNumber(earnings), currentCurrency)}`;
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   const yearlyEarnings = useMemo(() => {
@@ -114,7 +105,7 @@ const MoneyHomeView = () => {
       1,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
-    return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    return `+${moneyFormatFiat(new BigNumber(earnings), currentCurrency)}`;
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   const handleMenuPress = useCallback(() => {
@@ -143,14 +134,6 @@ const MoneyHomeView = () => {
     navigation.navigate(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
     });
-  }, [navigation]);
-
-  const handleManageCardPress = useCallback(() => {
-    navigation.navigate(Routes.CARD.ROOT);
-  }, [navigation]);
-
-  const handleGetNowPress = useCallback(() => {
-    navigation.navigate(Routes.CARD.ROOT);
   }, [navigation]);
 
   const handleApyInfoPress = useCallback(() => {
@@ -334,10 +317,10 @@ const MoneyHomeView = () => {
         )}
         <MoneyMetaMaskCard
           mode={metamaskCardMode}
-          onGetNowPress={handleGetNowPress}
-          onHeaderPress={handleGetNowPress}
+          onGetNowPress={handleCardPress}
+          onHeaderPress={handleCardPress}
           onLinkPress={handleLinkCardPress}
-          onManagePress={handleManageCardPress}
+          onManagePress={handleCardPress}
           showMetalCard={isUS}
           cardBalance={cardBalance}
         />

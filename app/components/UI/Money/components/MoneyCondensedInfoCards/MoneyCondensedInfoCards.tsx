@@ -91,7 +91,7 @@ const MoneyCondensedInfoCards = ({
     <CondensedCard
       image={{
         source: howItWorksImage,
-        style: { height: 50, width: 64 },
+        style: { height: 64, width: 64 },
         testID: MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_IMAGE,
       }}
       title={strings('money.condensed_cards.how_it_works_title')}
@@ -102,7 +102,7 @@ const MoneyCondensedInfoCards = ({
     <CondensedCard
       image={{
         source: musdCoinImage,
-        style: { height: 50, width: 50 },
+        style: { height: 64, width: 64 },
         testID: MoneyCondensedInfoCardsTestIds.MUSD_IMAGE,
       }}
       title={strings('money.condensed_cards.musd_title')}
