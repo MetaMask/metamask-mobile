@@ -569,7 +569,7 @@ describe('TraderPositionView', () => {
     });
 
     await act(async () => {
-      refreshControl.props.onRefresh();
+      await refreshControl.props.onRefresh();
     });
 
     expect(mockRefetchPosition).toHaveBeenCalledTimes(1);
@@ -590,7 +590,7 @@ describe('TraderPositionView', () => {
     });
 
     await act(async () => {
-      refreshControl.props.onRefresh();
+      await refreshControl.props.onRefresh();
     });
 
     expect(mockRefetchPosition).toHaveBeenCalledTimes(1);

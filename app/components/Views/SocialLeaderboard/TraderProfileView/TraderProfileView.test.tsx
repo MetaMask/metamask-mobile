@@ -410,7 +410,7 @@ describe('TraderProfileView', () => {
       });
 
       await act(async () => {
-        refreshControl.props.onRefresh();
+        await refreshControl.props.onRefresh();
       });
 
       expect(mockRefresh).toHaveBeenCalledTimes(1);
