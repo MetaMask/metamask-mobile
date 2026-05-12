@@ -27,6 +27,7 @@ import { useWhatsHappening } from '../Homepage/Sections/WhatsHappening/hooks';
 import { WhatsHappeningCardSkeleton } from '../Homepage/Sections/WhatsHappening/components';
 import {
   MAX_ITEMS_DISPLAYED,
+  WhatsHappeningInteractionType,
   WhatsHappeningSource,
   type WhatsHappeningSourceValue,
 } from '../Homepage/Sections/WhatsHappening/constants';
@@ -202,7 +203,7 @@ const WhatsHappeningDetailView = () => {
             )
               .addProperties({
                 ...getWhatsHappeningEventProps(newItem, index, source),
-                interaction_type: 'pan',
+                interaction_type: WhatsHappeningInteractionType.Pan,
               })
               .build(),
           );

@@ -24,6 +24,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   MAX_ITEMS_DISPLAYED,
+  WhatsHappeningInteractionType,
   type WhatsHappeningSourceValue,
 } from './constants';
 import { useWhatsHappening } from './hooks';
@@ -138,7 +139,7 @@ const WhatsHappeningSection = forwardRef<
             )
               .addProperties({
                 ...getWhatsHappeningEventProps(item, index, source),
-                interaction_type: 'pan',
+                interaction_type: WhatsHappeningInteractionType.Pan,
               })
               .build(),
           );
