@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import { MINIMUM_BET } from '../../../constants/transactions';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
@@ -72,7 +72,24 @@ export const usePredictBuyError = ({
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
   const [persistedBuyErrorBanner, setPersistedBuyErrorBanner] =
     useState<PredictBuyErrorBannerData | null>(null);
-  const { isPredictBalanceSelected } = usePredictPaymentToken();
+  const { isPredictBalanceSelected, selectedPaymentToken } =
+    usePredictPaymentToken();
+  const selectedPaymentTokenKey = useMemo(() => {
+    if (isPredictBalanceSelected) {
+      return 'predict-balance';
+    }
+
+    if (!selectedPaymentToken?.address || !selectedPaymentToken?.chainId) {
+      return 'external-token:unknown';
+    }
+
+    return `${selectedPaymentToken.chainId.toLowerCase()}:${selectedPaymentToken.address.toLowerCase()}`;
+  }, [
+    isPredictBalanceSelected,
+    selectedPaymentToken?.address,
+    selectedPaymentToken?.chainId,
+  ]);
+  const previousSelectedPaymentTokenKeyRef = useRef(selectedPaymentTokenKey);
 
   const errorResult = useMemo<PredictBuyErrorResult | undefined>(() => {
     if (
@@ -273,6 +290,17 @@ export const usePredictBuyError = ({
       setPersistedBuyErrorBanner(currentBuyErrorBanner);
     }
   }, [currentBuyErrorBanner]);
+
+  useEffect(() => {
+    if (
+      previousSelectedPaymentTokenKeyRef.current === selectedPaymentTokenKey
+    ) {
+      return;
+    }
+
+    previousSelectedPaymentTokenKeyRef.current = selectedPaymentTokenKey;
+    setPersistedBuyErrorBanner(null);
+  }, [selectedPaymentTokenKey]);
 
   const shouldSuppressBuyErrorBanner =
     !isSheetMode ||

@@ -1,6 +1,10 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { usePredictBuyConditions } from './usePredictBuyConditions';
 import { ActiveOrderState, OrderPreview } from '../../../types';
+import {
+  PAYMENT_SELECTOR_NAVIGATION_SAFETY_UNLOCK_MS,
+  PAYMENT_SELECTOR_NAVIGATION_UNLOCK_DELAY_MS,
+} from '../../../constants/transactions';
 
 let mockIsBalanceLoading = false;
 let mockAvailableBalance = 100;
@@ -39,12 +43,13 @@ const mockAddListener = jest.fn((eventName: string, callback: () => void) => {
 const mockEmitNavigationEvent = (eventName: string) => {
   mockNavigationListeners[eventName]?.forEach((callback) => callback());
 };
+const mockNavigation = {
+  addListener: mockAddListener,
+};
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    addListener: mockAddListener,
-  }),
+  useNavigation: () => mockNavigation,
 }));
 
 jest.mock('./usePredictBuyAvailableBalance', () => ({
@@ -168,7 +173,39 @@ describe('usePredictBuyConditions', () => {
       });
 
       act(() => {
-        jest.advanceTimersByTime(999);
+        jest.advanceTimersByTime(
+          PAYMENT_SELECTOR_NAVIGATION_UNLOCK_DELAY_MS - 1,
+        );
+      });
+
+      expect(result.current.isPaymentSelectorNavigationLocked).toBe(true);
+
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+
+      expect(result.current.isPaymentSelectorNavigationLocked).toBe(false);
+      expect(result.current.canPlaceBet).toBe(true);
+    });
+
+    it('unlocks after the safety timeout when navigation events do not fire', () => {
+      jest.useFakeTimers();
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      act(() => {
+        result.current.lockPaymentSelectorNavigation();
+      });
+
+      expect(result.current.isPaymentSelectorNavigationLocked).toBe(true);
+      expect(result.current.canPlaceBet).toBe(false);
+
+      act(() => {
+        jest.advanceTimersByTime(
+          PAYMENT_SELECTOR_NAVIGATION_SAFETY_UNLOCK_MS - 1,
+        );
       });
 
       expect(result.current.isPaymentSelectorNavigationLocked).toBe(true);

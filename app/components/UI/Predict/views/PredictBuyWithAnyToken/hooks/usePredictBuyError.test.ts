@@ -8,6 +8,8 @@ const mockClearOrderError = jest.fn();
 let mockActiveOrder: { error?: string } | null = null;
 let mockIsBalanceLoading = false;
 let mockIsPredictBalanceSelected = true;
+let mockSelectedPaymentToken: { address: string; chainId: string } | null =
+  null;
 
 jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
@@ -26,6 +28,7 @@ jest.mock('../../../hooks/usePredictBalance', () => ({
 jest.mock('../../../hooks/usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
     isPredictBalanceSelected: mockIsPredictBalanceSelected,
+    selectedPaymentToken: mockSelectedPaymentToken,
   }),
 }));
 
@@ -117,6 +120,7 @@ describe('usePredictBuyError', () => {
     mockActiveOrder = null;
     mockIsBalanceLoading = false;
     mockIsPredictBalanceSelected = true;
+    mockSelectedPaymentToken = null;
   });
 
   describe('errorResult', () => {
@@ -607,6 +611,35 @@ describe('usePredictBuyError', () => {
       act(() => {
         result.current.clearBuyErrorBanner();
       });
+
+      expect(result.current.buyErrorBanner).toBeNull();
+    });
+
+    it('clears a persisted order_failed banner when the selected payment token changes', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xTokenA', chainId: '0x1' };
+      mockActiveOrder = { error: 'something broke' };
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
+        status: 'error',
+        error: 'parsed message',
+      });
+
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyError(defaultParams),
+      );
+
+      expect(result.current.buyErrorBanner).toEqual(
+        expect.objectContaining({ variant: 'order_failed' }),
+      );
+
+      mockActiveOrder = null;
+      rerender({});
+      expect(result.current.buyErrorBanner).toEqual(
+        expect.objectContaining({ variant: 'order_failed' }),
+      );
+
+      mockSelectedPaymentToken = { address: '0xTokenB', chainId: '0x1' };
+      rerender({});
 
       expect(result.current.buyErrorBanner).toBeNull();
     });

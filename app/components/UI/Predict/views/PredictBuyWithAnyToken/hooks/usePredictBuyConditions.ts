@@ -7,14 +7,16 @@ import {
   useTransactionPayQuotes,
 } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionPayAvailableTokens } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayAvailableTokens';
-import { MINIMUM_BET } from '../../../constants/transactions';
+import {
+  MINIMUM_BET,
+  PAYMENT_SELECTOR_NAVIGATION_SAFETY_UNLOCK_MS,
+  PAYMENT_SELECTOR_NAVIGATION_UNLOCK_DELAY_MS,
+} from '../../../constants/transactions';
 import { usePredictBalance } from '../../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../../hooks/usePredictDeposit';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
-
-const PAYMENT_SELECTOR_NAVIGATION_UNLOCK_DELAY_MS = 1000;
 
 interface UsePredictBuyConditionsParams {
   currentValue: number;
@@ -86,19 +88,31 @@ export const usePredictBuyConditions = ({
     [],
   );
 
+  const unlockPaymentSelectorNavigation = useCallback(() => {
+    clearPaymentSelectorUnlockTimer();
+    didBlurAfterPaymentSelectorOpenRef.current = false;
+    updatePaymentSelectorNavigationLock(false);
+  }, [clearPaymentSelectorUnlockTimer, updatePaymentSelectorNavigationLock]);
+
   const lockPaymentSelectorNavigation = useCallback(() => {
     clearPaymentSelectorUnlockTimer();
     didBlurAfterPaymentSelectorOpenRef.current = false;
     updatePaymentSelectorNavigationLock(true);
-  }, [clearPaymentSelectorUnlockTimer, updatePaymentSelectorNavigationLock]);
+    paymentSelectorUnlockTimerRef.current = setTimeout(
+      unlockPaymentSelectorNavigation,
+      PAYMENT_SELECTOR_NAVIGATION_SAFETY_UNLOCK_MS,
+    );
+  }, [
+    clearPaymentSelectorUnlockTimer,
+    unlockPaymentSelectorNavigation,
+    updatePaymentSelectorNavigationLock,
+  ]);
 
   useEffect(() => {
     const scheduleUnlock = () => {
       clearPaymentSelectorUnlockTimer();
       paymentSelectorUnlockTimerRef.current = setTimeout(() => {
-        didBlurAfterPaymentSelectorOpenRef.current = false;
-        updatePaymentSelectorNavigationLock(false);
-        paymentSelectorUnlockTimerRef.current = null;
+        unlockPaymentSelectorNavigation();
       }, PAYMENT_SELECTOR_NAVIGATION_UNLOCK_DELAY_MS);
     };
 
@@ -125,7 +139,7 @@ export const usePredictBuyConditions = ({
   }, [
     clearPaymentSelectorUnlockTimer,
     navigation,
-    updatePaymentSelectorNavigationLock,
+    unlockPaymentSelectorNavigation,
   ]);
 
   const selectedPaymentTokenKey = useMemo(() => {

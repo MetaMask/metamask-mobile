@@ -68,6 +68,52 @@ import {
   predictBuyPreviewSessionRef,
 } from '../PredictBuyPreview/PredictBuyPreview';
 
+interface BuyActionButtonStateParams {
+  isPaymentSelectorNavigationLocked: boolean;
+  isBannerActive: boolean;
+  isChangePaymentMode: boolean;
+  isAddFundsMode: boolean;
+  isRetrying: boolean;
+  hasPreview: boolean;
+  canPlaceBet: boolean;
+}
+
+const getBuyActionButtonState = ({
+  isPaymentSelectorNavigationLocked,
+  isBannerActive,
+  isChangePaymentMode,
+  isAddFundsMode,
+  isRetrying,
+  hasPreview,
+  canPlaceBet,
+}: BuyActionButtonStateParams) => {
+  if (isPaymentSelectorNavigationLocked) {
+    return {
+      disabled: true,
+      reducedOpacity: true,
+    };
+  }
+
+  if (!isBannerActive && (isChangePaymentMode || isAddFundsMode)) {
+    return {
+      disabled: false,
+      reducedOpacity: false,
+    };
+  }
+
+  if (isBannerActive) {
+    return {
+      disabled: isRetrying || !hasPreview,
+      reducedOpacity: !hasPreview,
+    };
+  }
+
+  return {
+    disabled: !canPlaceBet,
+    reducedOpacity: !canPlaceBet,
+  };
+};
+
 const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
@@ -342,21 +388,18 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     ? { twClassName: 'bg-background-default' }
     : { style: tw.style('flex-1 bg-background-default') };
 
-  const isBuyActionButtonDisabled = isPaymentSelectorNavigationLocked
-    ? true
-    : !isBannerActive && (isChangePaymentMode || isAddFundsMode)
-      ? false
-      : isBannerActive
-        ? isRetrying || !preview
-        : !canPlaceBet;
-
-  const showBuyActionButtonReducedOpacity = isPaymentSelectorNavigationLocked
-    ? true
-    : !isBannerActive && (isChangePaymentMode || isAddFundsMode)
-      ? false
-      : isBannerActive
-        ? !preview
-        : !canPlaceBet;
+  const {
+    disabled: isBuyActionButtonDisabled,
+    reducedOpacity: showBuyActionButtonReducedOpacity,
+  } = getBuyActionButtonState({
+    isPaymentSelectorNavigationLocked,
+    isBannerActive,
+    isChangePaymentMode,
+    isAddFundsMode,
+    isRetrying,
+    hasPreview: Boolean(preview),
+    canPlaceBet,
+  });
   const shouldSuppressInlineError =
     (isChangePaymentMode || isAddFundsMode) &&
     errorMessageSource === 'insufficient_balance';
