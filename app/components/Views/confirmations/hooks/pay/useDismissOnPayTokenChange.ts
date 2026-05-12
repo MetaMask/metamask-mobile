@@ -6,8 +6,7 @@ import { useTransactionPayToken } from './useTransactionPayToken';
 /**
  * Dismisses the current navigation route whenever the active transaction's
  * pay token changes after the component mounts. Used by `PayWithBottomSheet`
- * so that picking a token in the underlying `PayWithModal` (or any other
- * surface that mutates `TransactionPayController` state) collapses the
+ * so that picking a token in the underlying `PayWithModal` collapses the
  * picker stack back to the confirmation screen.
  *
  * The initial `payToken` is captured on mount, so the hook does not fire
