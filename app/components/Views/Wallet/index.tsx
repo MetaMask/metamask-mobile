@@ -1158,26 +1158,6 @@ const Wallet = ({
     navigation.navigate(Routes.TRANSACTIONS_VIEW);
   }, [navigation, trackEvent]);
 
-  const getTokenAddedAnalyticsParams = useCallback(
-    ({ address, symbol }: { address: string; symbol: string }) => {
-      try {
-        return {
-          token_address: address,
-          token_symbol: symbol,
-          chain_id: getDecimalChainId(chainId),
-          source: 'Add token dropdown',
-        };
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'SearchTokenAutocomplete.getTokenAddedAnalyticsParams',
-        );
-        return undefined;
-      }
-    },
-    [chainId],
-  );
-
   const onChangeTab = useCallback(
     (obj: { i: number; ref: React.ReactNode }) => {
       const tabLabel =

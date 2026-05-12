@@ -364,9 +364,6 @@ jest.mock('../../../core/Engine', () => {
       PreferencesController: {
         setTokenNetworkFilter: jest.fn(),
       },
-      TokensController: {
-        addTokens: jest.fn(),
-      },
       NetworkEnablementController: {
         setEnabledNetwork: jest.fn(),
         setDisabledNetwork: jest.fn(),
@@ -727,15 +724,6 @@ describe('Wallet', () => {
 
     // Check if TabsList mock was called
     expect(mockTabsListComponent).toHaveBeenCalled();
-  });
-
-  it('Should add tokens to state automatically when there are detected tokens', () => {
-    const mockedAddTokens = jest.mocked(Engine.context.TokensController);
-
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-
-    expect(mockedAddTokens.addTokens).toHaveBeenCalledTimes(1);
   });
 
   it('should render correctly when Solana support is enabled', () => {
