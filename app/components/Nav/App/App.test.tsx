@@ -123,6 +123,9 @@ jest.mock('../../Views/QRTabSwitcher', () => () => (
 jest.mock('../../UI/OptinMetrics', () => () => (
   <MockView testID="mock-optin" />
 ));
+jest.mock('../../Views/OnboardingInterestQuestionnaire', () => () => (
+  <MockView testID="mock-onboarding-interest-questionnaire" />
+));
 jest.mock('../../Views/AccountStatus', () => () => (
   <MockView testID="mock-account-status" />
 ));

@@ -16,6 +16,13 @@ jest.mock('../../hooks/useAnalytics/useAnalytics');
 const mockNavigate = jest.fn();
 const mockOnComplete = jest.fn();
 
+const mockInterestQuestionnaireRouteParams: {
+  onComplete: typeof mockOnComplete;
+  accountType?: string;
+} = {
+  onComplete: mockOnComplete,
+};
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -29,7 +36,7 @@ jest.mock('@react-navigation/native', () => {
     useRoute: () => ({
       key: 'OnboardingInterestQuestionnaire',
       name: 'OnboardingInterestQuestionnaire',
-      params: { onComplete: mockOnComplete },
+      params: mockInterestQuestionnaireRouteParams,
     }),
   };
 });
@@ -52,6 +59,7 @@ const renderComponent = () =>
 
 describe('OnboardingInterestQuestionnaire', () => {
   beforeEach(() => {
+    delete mockInterestQuestionnaireRouteParams.accountType;
     jest.clearAllMocks();
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
@@ -129,6 +137,20 @@ describe('OnboardingInterestQuestionnaire', () => {
       );
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
+
+    it('includes account_type in Viewed event when route supplies accountType', () => {
+      mockInterestQuestionnaireRouteParams.accountType = 'imported';
+
+      renderComponent();
+
+      const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
+
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          account_type: 'imported',
+        }),
+      );
+    });
   });
 
   describe('option selection', () => {
@@ -201,6 +223,30 @@ describe('OnboardingInterestQuestionnaire', () => {
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+    });
+
+    it('includes account_type in Submitted event when route supplies accountType', async () => {
+      mockInterestQuestionnaireRouteParams.accountType = 'hardware_wallet';
+
+      renderComponent();
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
+          ),
+        );
+      });
+
+      const builderInstance = mockCreateEventBuilder.mock.results[1]?.value;
+
+      expect(builderInstance.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          selected_interests: [],
+          skipped: true,
+          account_type: 'hardware_wallet',
+        }),
+      );
     });
 
     it('fires Submitted with skipped=false and correct interests when options selected', async () => {

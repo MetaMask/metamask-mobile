@@ -12,6 +12,31 @@ import { analytics } from '../../../util/analytics/analytics';
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
+const mockOptinMetricsTestOnboardingSlice = {
+  events: [] as unknown[],
+  accountType: undefined as string | undefined,
+};
+
+jest.mock('react-redux', () => {
+  const actual = jest.requireActual('react-redux');
+  const rootState = jest.requireActual(
+    '../../../util/test/initial-root-state',
+  ).default;
+  return {
+    ...actual,
+    useSelector: jest.fn((selector) =>
+      selector({
+        ...rootState,
+        onboarding: {
+          ...rootState.onboarding,
+          events: mockOptinMetricsTestOnboardingSlice.events,
+          accountType: mockOptinMetricsTestOnboardingSlice.accountType,
+        },
+      }),
+    ),
+  };
+});
+
 const mockGetShouldShow = jest.fn();
 jest.mock(
   '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility',
@@ -98,6 +123,8 @@ const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 
 describe('OptinMetrics — interest questionnaire navigation branching', () => {
   beforeEach(() => {
+    mockOptinMetricsTestOnboardingSlice.events = [];
+    mockOptinMetricsTestOnboardingSlice.accountType = undefined;
     jest.clearAllMocks();
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
@@ -192,6 +219,29 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
           Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
           expect.objectContaining({
             onComplete: expect.any(Function),
+          }),
+        );
+      });
+    });
+
+    it('includes accountType in navigation params when onboarding account type is set in Redux', async () => {
+      mockGetShouldShow.mockResolvedValue(true);
+      mockOptinMetricsTestOnboardingSlice.accountType = 'imported';
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({
+            onComplete: expect.any(Function),
+            accountType: 'imported',
           }),
         );
       });
