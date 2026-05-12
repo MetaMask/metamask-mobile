@@ -5,6 +5,13 @@ import {
   Controller as NotificationServicesController,
 } from '@metamask/notification-services-controller/notification-services';
 import I18n from '../../../../../locales/i18n';
+import { devApiEnv } from '../../../devApiEnv';
+
+// Maps mobile's `devApiEnv` ('prod') onto the notification SDK's `ENV` ('prd').
+const NOTIFICATION_ENV_BY_DEV_API_ENV: Record<
+  ReturnType<typeof devApiEnv>,
+  'dev' | 'uat' | 'prd'
+> = { dev: 'dev', uat: 'uat', prod: 'prd' };
 
 export const createNotificationServicesController = (props: {
   messenger: NotificationServicesControllerMessenger;
@@ -21,6 +28,7 @@ export const createNotificationServicesController = (props: {
         platformVersion: getVersion(),
       },
       locale: () => I18n.locale,
+      env: NOTIFICATION_ENV_BY_DEV_API_ENV[devApiEnv()],
     },
   });
   return notificationServicesController;

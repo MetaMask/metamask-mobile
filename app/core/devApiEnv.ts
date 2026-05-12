@@ -33,3 +33,16 @@ const AUTH_ENV_BY_DEV_API_ENV: Record<DevApiEnv, Env> = {
 
 /** `Env` enum value to hand to `AuthenticationController` / `profile-sync` SDK. */
 export const authEnv = (): Env => AUTH_ENV_BY_DEV_API_ENV[devApiEnv()];
+
+/**
+ * Rewrite a prod cx.metamask.io URL to its dev-api counterpart when
+ * `MM_DEV_API_ENV` is non-prod. Returns the input unchanged otherwise.
+ *
+ * Most cx.metamask.io services follow `*.api.cx.metamask.io` ↔
+ * `*.dev-api.cx.metamask.io`. Callers should verify their service follows
+ * this convention; if not, switch on `devApiEnv()` explicitly instead.
+ */
+export const apiUrl = (prodUrl: string): string =>
+  isDevApiEnv()
+    ? prodUrl.replace('.api.cx.metamask.io', '.dev-api.cx.metamask.io')
+    : prodUrl;

@@ -70,6 +70,11 @@ function getApiClient(
   initMessenger: AssetsControllerInitMessenger,
 ): QueryApiClient {
   if (!apiClient) {
+    // TODO(MM_DEV_API_ENV): `createApiPlatformClient` does not accept a URL or
+    // env override — `API_URLS` (accounts/prices/token/tokens) are sealed
+    // inside `@metamask/core-backend`. When `MM_DEV_API_ENV=dev`, these calls
+    // will still hit prod and 401 against a dev JWT. Needs upstream support
+    // for an `apiBaseUrl` / `env` option.
     apiClient = createApiPlatformClient({
       clientProduct: 'metamask-mobile',
       getBearerToken: () => safeGetBearerToken(initMessenger),

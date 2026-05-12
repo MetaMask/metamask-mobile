@@ -6,6 +6,10 @@ import {
 } from '../../messengers/core-backend';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
+import { isDevApiEnv } from '../../../devApiEnv';
+
+const PROD_WS_URL = 'wss://gateway.api.cx.metamask.io/v1';
+const DEV_WS_URL = 'wss://gateway.dev-api.cx.metamask.io/v1';
 
 /**
  * Initialize the Backend Platform WebSocket service with authentication support.
@@ -34,7 +38,7 @@ export const backendWebSocketServiceInit: MessengerClientInitFunction<
     messenger: controllerMessenger,
     url:
       process.env.MM_BACKEND_WEBSOCKET_URL ||
-      'wss://gateway.api.cx.metamask.io/v1',
+      (isDevApiEnv() ? DEV_WS_URL : PROD_WS_URL),
     // Inject the Sentry-backed trace function from mobile platform
     // @ts-expect-error: Types of `TraceRequest` are not the same.
     traceFn: trace,

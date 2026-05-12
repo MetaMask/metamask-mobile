@@ -5,6 +5,7 @@ import {
   BRIDGE_PROD_API_BASE_URL,
 } from '@metamask/bridge-controller';
 import { NETWORK_CHAIN_ID } from '../util/networks/customNetworks';
+import { isDevApiEnv } from '../core/devApiEnv';
 
 /**
  * Native token address (zero address)
@@ -38,7 +39,7 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
 };
 
 export const BRIDGE_API_BASE_URL =
-  process.env.BRIDGE_USE_DEV_APIS === 'true'
+  isDevApiEnv() || process.env.BRIDGE_USE_DEV_APIS === 'true'
     ? BRIDGE_DEV_API_BASE_URL
     : BRIDGE_PROD_API_BASE_URL;
 

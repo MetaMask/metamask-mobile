@@ -8,6 +8,8 @@
  * UI-only constants (layout, display, navigation) live in:
  * app/components/UI/Perps/constants/perpsConfig.ts
  */
+import { apiUrl } from '../../../core/devApiEnv';
+
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const ZERO_BALANCE = '0x0';
 
@@ -292,13 +294,17 @@ export const MARGIN_ADJUSTMENT_CONFIG = {
   FallbackMaxLeverage: 50,
 } as const;
 
+// TODO: Confirm the perps dev-api hostname. The cx.metamask.io convention is
+// `*.api.cx.metamask.io` -> `*.dev-api.cx.metamask.io`; if perps deviates,
+// replace `apiUrl(...)` below with an explicit dev URL switch.
+
 /**
  * Data Lake API configuration
  * Endpoints for reporting perps trading activity for notifications
  */
 export const DATA_LAKE_API_CONFIG = {
   // Order reporting endpoint - only used for mainnet perps trading
-  OrdersEndpoint: 'https://perps.api.cx.metamask.io/api/v1/orders',
+  OrdersEndpoint: apiUrl('https://perps.api.cx.metamask.io/api/v1/orders'),
 } as const;
 
 /**

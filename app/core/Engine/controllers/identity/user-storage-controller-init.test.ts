@@ -76,12 +76,33 @@ describe('UserStorageControllerInit', () => {
       nativeScryptCrypto: expect.any(Function),
       trace: expect.any(Function),
       config: {
+        env: 'prd',
         contactSyncing: {
           onContactUpdated: expect.any(Function),
           onContactDeleted: expect.any(Function),
           onContactSyncErroneousSituation: expect.any(Function),
         },
       },
+    });
+  });
+
+  describe('when MM_DEV_API_ENV=dev', () => {
+    beforeEach(() => {
+      process.env.MM_DEV_API_ENV = 'dev';
+    });
+
+    afterEach(() => {
+      delete process.env.MM_DEV_API_ENV;
+    });
+
+    it('targets the dev user-storage API', () => {
+      userStorageControllerInit(getInitRequestMock());
+
+      expect(jest.mocked(UserStorageController)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: expect.objectContaining({ env: 'dev' }),
+        }),
+      );
     });
   });
 

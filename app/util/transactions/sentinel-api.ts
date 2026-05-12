@@ -1,8 +1,11 @@
 import { convertHexToDecimal } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
+import { apiUrl } from '../../core/devApiEnv';
 
-// TODO: Make it configurable via environment variable
-const BASE_URL = 'https://tx-sentinel-{0}.api.cx.metamask.io/';
+// TODO: Verify the dev-api Sentinel hostname follows the standard
+// `*.api.cx.metamask.io` -> `*.dev-api.cx.metamask.io` rewrite. If Sentinel
+// uses a different dev hostname, switch off `devApiEnv()` directly instead.
+const BASE_URL = apiUrl('https://tx-sentinel-{0}.api.cx.metamask.io/');
 const ENDPOINT_NETWORKS = 'networks';
 
 /**

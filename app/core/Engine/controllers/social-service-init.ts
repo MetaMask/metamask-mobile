@@ -5,6 +5,7 @@ import {
 import type { MessengerClientInitFunction } from '../types';
 import AppConstants from '../../AppConstants';
 import Logger from '../../../util/Logger';
+import { apiUrl } from '../../devApiEnv';
 
 /**
  * Initialize the SocialService.
@@ -20,7 +21,7 @@ export const socialServiceInit: MessengerClientInitFunction<
   try {
     const controller = new SocialService({
       messenger: controllerMessenger,
-      baseUrl: AppConstants.SOCIAL_API_URL,
+      baseUrl: apiUrl(AppConstants.SOCIAL_API_URL),
     });
 
     return { controller };
