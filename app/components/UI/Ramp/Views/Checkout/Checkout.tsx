@@ -328,6 +328,7 @@ const Checkout = () => {
             );
           }
           closeSession(headlessSessionId, { reason: 'completed' });
+          closeSourceRef.current = 'callback_success';
           // @ts-expect-error navigation prop mismatch
           navigation.getParent()?.pop();
           return;

@@ -877,6 +877,40 @@ describe('Checkout', () => {
       expect(mockCloseSession).not.toHaveBeenCalled();
       expect(mockParentPop).not.toHaveBeenCalled();
     });
+
+    it('attributes RAMPS_CHECKOUT_CLOSED to callback_success after a successful headless callback', async () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId, unmount } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+      unmount();
+
+      const closedIdx = mockCreateEventBuilder.mock.calls.findIndex(
+        (c) => c[0] === MetaMetricsEvents.RAMPS_CHECKOUT_CLOSED,
+      );
+      expect(closedIdx).toBeGreaterThanOrEqual(0);
+      expect(mockAddProperties.mock.calls[closedIdx]?.[0]).toMatchObject({
+        close_source: 'callback_success',
+        callback_reached: true,
+      });
+    });
   });
 
   describe('WebView funnel analytics', () => {
