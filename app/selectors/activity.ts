@@ -1,4 +1,7 @@
-import { TransactionMeta, TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { areAddressesEqual } from '../util/address';
 import { createDeepEqualSelector } from './util';

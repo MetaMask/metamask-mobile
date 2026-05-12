@@ -17,7 +17,6 @@ interface MetaMaskPayToken {
   chainId: Hex;
 }
 
-
 function getNestedTransactionTypes(
   transaction: TransactionMeta,
 ): TransactionType[] {

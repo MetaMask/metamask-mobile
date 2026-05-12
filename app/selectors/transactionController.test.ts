@@ -4,7 +4,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import {
   selectTransactions,
   selectLastWithdrawTokenByType,
-    selectNonReplacedTransactions,
+  selectNonReplacedTransactions,
   selectRequiredTransactionIds,
   selectRequiredTransactionHashes,
   selectRequiredTransactions,
