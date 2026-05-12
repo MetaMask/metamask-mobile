@@ -52,7 +52,7 @@ const SKELETON_KEYS = Array.from(
 );
 
 interface WhatsHappeningDetailParams {
-  initialIndex: number;
+  initialIndex?: number;
   source: WhatsHappeningSourceValue;
 }
 

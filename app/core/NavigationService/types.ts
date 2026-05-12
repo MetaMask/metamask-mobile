@@ -210,7 +210,7 @@ import type {
   WebviewParams,
   SimpleWebviewParams,
 } from '../../components/Views/Webview/Webview.types';
-import type { WhatsHappeningItem } from '../../components/Views/Homepage/Sections/WhatsHappening/types';
+import type { WhatsHappeningSourceValue } from '../../components/Views/Homepage/Sections/WhatsHappening/constants';
 
 /**
  * Generic type for nested navigation params.
@@ -346,7 +346,7 @@ export interface RootStackParamList extends ParamListBase {
   TrendingView: undefined;
   TrendingFeed: undefined;
   WhatsHappeningDetailView:
-    | { items: WhatsHappeningItem[]; initialIndex: number }
+    | { initialIndex?: number; source: WhatsHappeningSourceValue }
     | undefined;
   SitesFullView: { mode?: 'favorites' } | undefined;
   ExploreSearch: undefined;

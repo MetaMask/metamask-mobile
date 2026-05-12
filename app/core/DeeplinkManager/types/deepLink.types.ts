@@ -64,6 +64,9 @@ export interface DeeplinkUrlParams {
   // Home-specific parameters
   previewToken?: string;
 
+  // Whats Happening-specific parameters
+  index?: string;
+
   // Note: All properties are explicitly defined above
 }
 
@@ -132,6 +135,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.ONBOARDING,
   ACTIONS.PREDICT,
   ACTIONS.TRENDING,
+  ACTIONS.WHATS_HAPPENING,
   ACTIONS.SOCIAL_LEADERBOARD,
   ACTIONS.SOCIAL_TRADER_POSITION,
   ACTIONS.CARD_ONBOARDING,
