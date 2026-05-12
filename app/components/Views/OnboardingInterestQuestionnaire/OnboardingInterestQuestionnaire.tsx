@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
+  BackHandler,
   Image,
   type ImageSourcePropType,
   Platform,
@@ -92,9 +93,10 @@ const OnboardingInterestQuestionnaire = () => {
     useRoute<
       RouteProp<RootStackParamList, 'OnboardingInterestQuestionnaire'>
     >();
+  const { onComplete, accountType: routeAccountType } = route.params;
   const reduxAccountType = useSelector(selectOnboardingAccountType);
 
-  const accountType = route.params?.accountType ?? reduxAccountType;
+  const accountType = routeAccountType ?? reduxAccountType;
 
   const [selectedIds, setSelectedIds] = useState<Set<InterestOptionId>>(
     new Set(),
@@ -112,6 +114,23 @@ const OnboardingInterestQuestionnaire = () => {
         .build(),
     );
   }, [trackEvent, createEventBuilder, accountType]);
+
+  /**
+   * Block hardware back so users cannot return to OptinMetrics beneath this screen
+   * (avoids duplicate opt-in / analytics). No alert — questionnaire has no back affordance.
+   */
+  const handleBackPress = useCallback(() => true, []);
+
+  useEffect(() => {
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
+
+    return () => {
+      backHandlerSubscription.remove();
+    };
+  }, [handleBackPress]);
 
   const toggleOption = useCallback((id: InterestOptionId) => {
     setSelectedIds((prev) => {
@@ -142,8 +161,8 @@ const OnboardingInterestQuestionnaire = () => {
         .build(),
     );
 
-    route.params?.onComplete();
-  }, [selectedIds, trackEvent, createEventBuilder, accountType, route.params]);
+    onComplete();
+  }, [selectedIds, trackEvent, createEventBuilder, accountType, onComplete]);
 
   return (
     <SafeAreaView

@@ -51,7 +51,9 @@ jest.mock('../../../util/analytics/analytics', () => ({
     trackEvent: jest.fn(),
     optIn: jest.fn().mockResolvedValue(undefined),
     optOut: jest.fn().mockResolvedValue(undefined),
-    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    getAnalyticsId: jest
+      .fn()
+      .mockResolvedValue('123e4567-e89b-12d3-a456-426614174000'),
     identify: jest.fn(),
     trackView: jest.fn(),
     isOptedIn: jest.fn().mockResolvedValue(false),
