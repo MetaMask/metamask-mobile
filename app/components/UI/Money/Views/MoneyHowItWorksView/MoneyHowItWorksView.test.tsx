@@ -93,10 +93,10 @@ describe('MoneyHowItWorksView', () => {
     expect(getByTestId(MoneyHowItWorksViewTestIds.FAQ_TITLE)).toBeOnTheScreen();
   });
 
-  it('renders the What you get section inside How it works view', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHowItWorksView />);
+  it('does not render the What you get section in How it works view', () => {
+    const { queryByTestId } = renderWithProvider(<MoneyHowItWorksView />);
 
-    expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
+    expect(queryByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeNull();
   });
 
   it('applies safe-area bottom padding to the scroll content', () => {

@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -26,9 +26,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import MoneyWhatYouGet from '../../components/MoneyWhatYouGet';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import AppConstants from '../../../../../core/AppConstants';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
 
 const localStyles = StyleSheet.create({
@@ -121,15 +118,9 @@ const MoneyHowItWorksView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { colors: themeColors } = useTheme();
-  const { apyPercent } = useMoneyAccountBalance();
-
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
-
-  const handleLearnMorePress = useCallback(() => {
-    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
-  }, []);
 
   return (
     <Box
@@ -190,13 +181,6 @@ const MoneyHowItWorksView = () => {
             {strings('money.how_it_works_page.description_2')}
           </Text>
         </Box>
-
-        <SectionDivider />
-
-        <MoneyWhatYouGet
-          apy={apyPercent}
-          onLearnMorePress={handleLearnMorePress}
-        />
 
         <SectionDivider />
 
