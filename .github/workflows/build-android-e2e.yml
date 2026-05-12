@@ -64,7 +64,9 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
-          cache: gradle
+          cache: |
+            gradle
+            maven
           path: |
             ~/.cache/yarn
             .metamask
