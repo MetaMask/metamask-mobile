@@ -1,3 +1,4 @@
+// Prefix emitted by ethjs-rpc when wrapping a provider error.
 const ethJsRpcSlug = 'Error: [ethjs-rpc] rpc error with payload ';
 const errorLabelPrefix = 'Error: ';
 
