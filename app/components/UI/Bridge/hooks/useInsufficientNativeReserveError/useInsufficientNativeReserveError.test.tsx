@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderHook } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
-import { createStore, Store } from 'redux';
+import { legacy_createStore as createStore, Store } from 'redux';
 
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'ethers';
@@ -57,6 +57,27 @@ const ethTokenOnMainnet: BridgeToken = {
   decimals: 18,
   chainId: CHAIN_IDS.MAINNET as `0x${string}`,
 };
+
+const nonEvmNativeTokens: BridgeToken[] = [
+  {
+    address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+    symbol: 'SOL',
+    decimals: 9,
+    chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  },
+  {
+    address: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+    symbol: 'BTC',
+    decimals: 8,
+    chainId: 'bip122:000000000019d6689c085ae165831e93',
+  },
+  {
+    address: 'tron:728126428/slip44:195',
+    symbol: 'TRX',
+    decimals: 6,
+    chainId: 'tron:728126428',
+  },
+];
 
 type RenderHookCallback<TProps, TResult> = (props: TProps) => TResult;
 
@@ -171,6 +192,22 @@ describe('useInsufficientNativeReserveError', () => {
     );
     expect(result.current).toStrictEqual(undefined);
   });
+
+  it.each(nonEvmNativeTokens)(
+    'returns insufficientNativeReserveError=undefined for non-EVM native token $symbol',
+    (token) => {
+      const { result } = renderHookWithWrapper(() =>
+        useInsufficientNativeReserveError({
+          amount: '45',
+          token,
+          latestAtomicBalance: BigNumber.from('50000000000000000000'), // 50
+          walletAddress: '0x13b7e6EBcd40777099E4c45d407745aB2de1D1F8',
+        }),
+      );
+
+      expect(result.current).toStrictEqual(undefined);
+    },
+  );
 
   it('returns insufficientNativeReserveError=undefined when token is the native one but on a chain not concered with reserve', () => {
     const { result } = renderHookWithWrapper(() =>
