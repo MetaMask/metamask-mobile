@@ -280,6 +280,7 @@ builds:
     code_fencing: *code_fencing_main
 
   # Test builds
+  # Test builds (QA)
   main-test:
     github_environment: build-uat
     signing: *signing_uat
