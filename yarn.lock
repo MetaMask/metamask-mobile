@@ -9985,23 +9985,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-controllers@npm:^20.0.3":
-  version: 20.0.3
-  resolution: "@metamask/snaps-controllers@npm:20.0.3"
+"@metamask/snaps-controllers@npm:^20.0.5":
+  version: 20.0.5
+  resolution: "@metamask/snaps-controllers@npm:20.0.5"
   dependencies:
     "@metamask/approval-controller": "npm:^9.0.1"
-    "@metamask/base-controller": "npm:^9.0.1"
-    "@metamask/json-rpc-engine": "npm:^10.2.4"
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/json-rpc-engine": "npm:^10.5.0"
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.8"
     "@metamask/key-tree": "npm:^10.1.1"
-    "@metamask/messenger": "npm:^1.1.1"
+    "@metamask/messenger": "npm:^1.2.0"
     "@metamask/object-multiplex": "npm:^2.1.0"
-    "@metamask/permission-controller": "npm:^12.3.0"
+    "@metamask/permission-controller": "npm:^13.1.0"
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/rpc-errors": "npm:^7.0.3"
     "@metamask/snaps-registry": "npm:^4.0.0"
-    "@metamask/snaps-rpc-methods": "npm:^15.1.1"
-    "@metamask/snaps-sdk": "npm:^11.1.0"
+    "@metamask/snaps-rpc-methods": "npm:^16.0.0"
+    "@metamask/snaps-sdk": "npm:^11.1.1"
     "@metamask/snaps-utils": "npm:^12.2.0"
     "@metamask/storage-service": "npm:^1.0.1"
     "@metamask/superstruct": "npm:^3.2.1"
@@ -10024,7 +10024,7 @@ __metadata:
   peerDependenciesMeta:
     "@metamask/snaps-execution-environments":
       optional: true
-  checksum: 10/83aa7cfa4f42ba8bf28120f56582beea907d532d621ff7e93ae0e0fa890c87ad45f8d08c2749ae821001492376e3b8f1cccb2f9b2c927fb2b3b51cd42ae82b7a
+  checksum: 10/704a7606054b73b1e0baee26e63576c5e0dad10d486b9aaa1d9bfe348cf2e158341ef0ceca126b076970f638cc45e71f7b8f51a65a81ba846db2fddddd007c44
   languageName: node
   linkType: hard
 
@@ -10058,7 +10058,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-rpc-methods@npm:15.1.1":
+"@metamask/snaps-rpc-methods@npm:^15.0.2":
   version: 15.1.1
   resolution: "@metamask/snaps-rpc-methods@npm:15.1.1"
   dependencies:
@@ -10075,20 +10075,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-rpc-methods@patch:@metamask/snaps-rpc-methods@npm%3A15.1.1#~/.yarn/patches/@metamask-snaps-rpc-methods-npm-15.1.1-95e9049d30.patch":
-  version: 15.1.1
-  resolution: "@metamask/snaps-rpc-methods@patch:@metamask/snaps-rpc-methods@npm%3A15.1.1#~/.yarn/patches/@metamask-snaps-rpc-methods-npm-15.1.1-95e9049d30.patch::version=15.1.1&hash=b5fc90"
+"@metamask/snaps-rpc-methods@npm:^16.0.0":
+  version: 16.0.0
+  resolution: "@metamask/snaps-rpc-methods@npm:16.0.0"
   dependencies:
     "@metamask/key-tree": "npm:^10.1.1"
-    "@metamask/permission-controller": "npm:^12.3.0"
+    "@metamask/permission-controller": "npm:^13.1.0"
     "@metamask/rpc-errors": "npm:^7.0.3"
-    "@metamask/snaps-sdk": "npm:^11.1.0"
+    "@metamask/snaps-sdk": "npm:^11.1.1"
     "@metamask/snaps-utils": "npm:^12.2.0"
     "@metamask/superstruct": "npm:^3.2.1"
     "@metamask/utils": "npm:^11.11.0"
     "@noble/hashes": "npm:^1.7.1"
     async-mutex: "npm:^0.5.0"
-  checksum: 10/38b6eb1dd2d8fc0eb6d8abf0f85339df9df4285b57f27e1f9f88ab07510e116f9a8d6c83dae3e1ba326258de115cc3ced1490aa16eeef785ee965219032ab9eb
+  checksum: 10/3d8c8ae1667ccabb7e9dd2d8f44746f93dbdd4312e1e81df8e7ee86d40c0f458679225178227938146c8c762bee7f6032554215de294e84ce4ce279768b17641
   languageName: node
   linkType: hard
 
@@ -35392,10 +35392,10 @@ __metadata:
     "@metamask/signature-controller": "npm:^39.2.0"
     "@metamask/slip44": "npm:^4.2.0"
     "@metamask/smart-transactions-controller": "npm:^24.0.0"
-    "@metamask/snaps-controllers": "npm:^20.0.3"
+    "@metamask/snaps-controllers": "npm:^20.0.5"
     "@metamask/snaps-execution-environments": "npm:^11.0.2"
-    "@metamask/snaps-rpc-methods": "patch:@metamask/snaps-rpc-methods@npm%3A15.1.1#~/.yarn/patches/@metamask-snaps-rpc-methods-npm-15.1.1-95e9049d30.patch"
-    "@metamask/snaps-sdk": "npm:^11.1.0"
+    "@metamask/snaps-rpc-methods": "npm:^16.0.0"
+    "@metamask/snaps-sdk": "npm:^11.1.1"
     "@metamask/snaps-utils": "npm:^12.2.0"
     "@metamask/social-controllers": "npm:^2.2.0"
     "@metamask/solana-wallet-snap": "npm:^2.8.0"
