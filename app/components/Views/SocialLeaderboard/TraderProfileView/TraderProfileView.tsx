@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { RefreshControl, TouchableOpacity } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
@@ -97,8 +97,15 @@ const TraderProfileView = () => {
     toggleFollow,
     refresh,
   } = useTraderProfile(traderId, { refetchInterval: 30_000 });
-  const { openPositions, closedPositions, isLoadingOpen, isLoadingClosed } =
-    useTraderPositions(traderId, { refetchInterval: 30_000 });
+  const {
+    openPositions,
+    closedPositions,
+    isLoadingOpen,
+    isLoadingClosed,
+    refetch: refetchPositions,
+  } = useTraderPositions(traderId, { refetchInterval: 30_000 });
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const {
     preferences,
@@ -118,6 +125,18 @@ const TraderProfileView = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      // Both hooks rethrow after logging; allSettled keeps one failure from
+      // taking down the other refetch and prevents an unhandled rejection
+      // from surfacing in the UI.
+      await Promise.allSettled([refresh(), refetchPositions()]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refresh, refetchPositions]);
 
   const handleNotificationPress = useCallback(() => {
     // Don't open any sheet while preferences are still loading — the enabled
@@ -187,6 +206,13 @@ const TraderProfileView = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('pb-6')}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            testID={TraderProfileViewSelectorsIDs.REFRESH_CONTROL}
+          />
+        }
       >
         {!isLoading && profileError && !profile ? (
           <Box testID={TraderProfileViewSelectorsIDs.ERROR_BANNER}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TraderPositionView from './TraderPositionView';
@@ -17,6 +17,8 @@ const mockGetAssetImageUrl = jest.fn();
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 const mockPriceChart = jest.fn();
 const mockTraderPriceChart = jest.fn();
+const mockRefetchPosition = jest.fn().mockResolvedValue(undefined);
+const mockRefreshProfile = jest.fn().mockResolvedValue(undefined);
 
 interface MockRouteParams {
   positionId?: string;
@@ -122,6 +124,7 @@ jest.mock('./hooks/useTraderPosition', () => ({
     position: undefined,
     isLoading: false,
     error: null,
+    refetch: mockRefetchPosition,
   })),
 }));
 
@@ -132,7 +135,7 @@ jest.mock('../TraderProfileView/hooks/useTraderProfile', () => ({
     error: null,
     isFollowing: false,
     toggleFollow: jest.fn(),
-    refresh: jest.fn(),
+    refresh: mockRefreshProfile,
   })),
 }));
 
@@ -212,6 +215,8 @@ jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
 describe('TraderPositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRefetchPosition.mockResolvedValue(undefined);
+    mockRefreshProfile.mockResolvedValue(undefined);
     mockGetState.mockReturnValue({ routes: [{ name: 'Home' }], index: 0 });
     mockHandleFetch.mockResolvedValue({});
     global.fetch = jest.fn().mockResolvedValue({
@@ -306,6 +311,7 @@ describe('TraderPositionView', () => {
       position: undefined,
       isLoading: true,
       error: null,
+      refetch: mockRefetchPosition,
     });
 
     mockRouteParams.position = undefined;
@@ -321,6 +327,7 @@ describe('TraderPositionView', () => {
       position: undefined,
       isLoading: false,
       error: null,
+      refetch: mockRefetchPosition,
     });
   });
 
@@ -330,6 +337,7 @@ describe('TraderPositionView', () => {
       position: makeDefaultPosition(),
       isLoading: false,
       error: null,
+      refetch: mockRefetchPosition,
     });
 
     mockRouteParams.position = undefined;
@@ -351,6 +359,7 @@ describe('TraderPositionView', () => {
       position: undefined,
       isLoading: false,
       error: null,
+      refetch: mockRefetchPosition,
     });
   });
 
@@ -550,6 +559,73 @@ describe('TraderPositionView', () => {
     });
 
     dateNowSpy.mockRestore();
+  });
+
+  it('refetches position and profile on pull-to-refresh', async () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    const refreshControl = screen.UNSAFE_getByProps({
+      testID: TraderPositionViewSelectorsIDs.REFRESH_CONTROL,
+    });
+
+    await act(async () => {
+      refreshControl.props.onRefresh();
+    });
+
+    expect(mockRefetchPosition).toHaveBeenCalledTimes(1);
+    expect(mockRefreshProfile).toHaveBeenCalledTimes(1);
+  });
+
+  it('refreshes profile on pull even when name and image came via nav params', async () => {
+    mockRouteParams = {
+      ...mockRouteParams,
+      traderName: 'dutchiono',
+      traderImageUrl: 'https://example.com/avatar.png',
+    } as MockRouteParams & { traderImageUrl?: string };
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    const refreshControl = screen.UNSAFE_getByProps({
+      testID: TraderPositionViewSelectorsIDs.REFRESH_CONTROL,
+    });
+
+    await act(async () => {
+      refreshControl.props.onRefresh();
+    });
+
+    expect(mockRefetchPosition).toHaveBeenCalledTimes(1);
+    expect(mockRefreshProfile).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render the refresh control in the fallback state', () => {
+    mockRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'dutchiono',
+      tokenSymbol: 'PEPE',
+      position: undefined,
+    };
+    (mockRouteParams as { positionId?: string }).positionId = undefined;
+
+    const { useTraderPosition } = jest.requireMock('./hooks/useTraderPosition');
+    (useTraderPosition as jest.Mock).mockReturnValue({
+      position: undefined,
+      isLoading: false,
+      error: null,
+      refetch: mockRefetchPosition,
+    });
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(
+      screen.queryByTestId(TraderPositionViewSelectorsIDs.REFRESH_CONTROL),
+    ).toBeNull();
+
+    (useTraderPosition as jest.Mock).mockReturnValue({
+      position: undefined,
+      isLoading: false,
+      error: null,
+      refetch: mockRefetchPosition,
+    });
   });
 
   it('uses 1W prices on the All tab when 3y and 1m are empty', async () => {

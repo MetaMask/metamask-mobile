@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import { addBreadcrumb } from '@sentry/react-native';
@@ -344,6 +344,42 @@ describe('useTraderPositions', () => {
       const serialised = JSON.stringify(extras);
       expect(serialised).not.toContain('0xSensitiveAddress');
       expect(Object.keys(extras)).not.toContain('addressOrId');
+    });
+  });
+
+  describe('refetch', () => {
+    it('calls both per-query refetch functions in parallel', async () => {
+      const refetchOpen = jest.fn().mockResolvedValue(undefined);
+      const refetchClosed = jest.fn().mockResolvedValue(undefined);
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult({ refetch: refetchOpen }))
+        .mockReturnValueOnce(makeQueryResult({ refetch: refetchClosed }));
+
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      await act(async () => {
+        await result.current.refetch();
+      });
+
+      expect(refetchOpen).toHaveBeenCalledTimes(1);
+      expect(refetchClosed).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs and rethrows when refetch fails', async () => {
+      const refetchOpen = jest.fn().mockRejectedValue(new Error('boom'));
+      const refetchClosed = jest.fn().mockResolvedValue(undefined);
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult({ refetch: refetchOpen }))
+        .mockReturnValueOnce(makeQueryResult({ refetch: refetchClosed }));
+
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      await expect(result.current.refetch()).rejects.toThrow('boom');
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'useTraderPositions: refetch failed',
+      );
     });
   });
 

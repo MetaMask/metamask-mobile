@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useState } from 'react';
+import { RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
@@ -55,17 +56,28 @@ const TraderPositionView = () => {
   } = route.params;
 
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Position resolution: prefer the row-tap snapshot; fetch via UUID only when
-  // it isn't there (deep link / out-of-app entry).
-  const { position: fetchedPosition, isLoading: isPositionLoading } =
-    useTraderPosition(positionParam ? undefined : positionId);
-  const resolvedPosition = positionParam ?? fetchedPosition;
+  // Position resolution: always fetch by id when we have one so pull-to-refresh
+  // can swap in fresh data. The row-tap snapshot (`positionParam`) is used as
+  // the initial value to avoid a loading skeleton; once `fetchedPosition`
+  // resolves it takes precedence. Falls back to `positionParam.positionId`
+  // when the deeplink-style `positionId` route param isn't provided.
+  const effectivePositionId = positionId ?? positionParam?.positionId;
+  const {
+    position: fetchedPosition,
+    isLoading: isPositionLoading,
+    refetch: refetchPosition,
+  } = useTraderPosition(effectivePositionId);
+  const resolvedPosition = fetchedPosition ?? positionParam;
 
-  // Trader profile: fetch only if name/image weren't passed in nav params.
-  const needsProfile = !traderNameParam || !traderImageUrlParam;
-  const { profile: fetchedProfile, isLoading: isProfileLoading } =
-    useTraderProfile(needsProfile ? traderId : '');
+  // Nav-param values win on first render to avoid a header flicker; once the
+  // profile resolves it fills in any missing fields and powers pull-to-refresh.
+  const {
+    profile: fetchedProfile,
+    isLoading: isProfileLoading,
+    refresh: refreshProfile,
+  } = useTraderProfile(traderId);
   const traderName = traderNameParam ?? fetchedProfile?.profile?.name ?? '';
   const traderImageUrl =
     traderImageUrlParam ?? fetchedProfile?.profile?.imageUrl ?? undefined;
@@ -88,6 +100,18 @@ const TraderPositionView = () => {
     setActiveTimePeriod,
     timePeriods,
   } = positionData;
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      // Both hooks rethrow after logging; allSettled keeps one failure from
+      // taking down the other refetch and prevents an unhandled rejection
+      // from surfacing in the UI.
+      await Promise.allSettled([refetchPosition(), refreshProfile()]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refetchPosition, refreshProfile]);
 
   const handleBack = useCallback(() => {
     const state = navigation.getState();
@@ -172,6 +196,13 @@ const TraderPositionView = () => {
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style('pb-6')}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
+              />
+            }
           >
             <TraderTokenInfoRow
               symbol={symbol}

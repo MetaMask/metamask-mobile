@@ -2,7 +2,7 @@ import type {
   Position,
   TraderProfileResponse,
 } from '@metamask/social-controllers';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -15,6 +15,7 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockRefresh = jest.fn();
+const mockRefetchPositions = jest.fn();
 
 jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   getAssetImageUrl: () => 'https://example.com/token.png',
@@ -196,6 +197,7 @@ let mockPositionsResult: UseTraderPositionsResult = {
   isLoadingOpen: false,
   isLoadingClosed: false,
   error: null,
+  refetch: mockRefetchPositions,
 };
 
 jest.mock('./hooks', () => ({
@@ -220,7 +222,10 @@ describe('TraderProfileView', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      refetch: mockRefetchPositions,
     };
+    mockRefresh.mockResolvedValue(undefined);
+    mockRefetchPositions.mockResolvedValue(undefined);
     mockNotificationPreferences = {
       enabled: false,
       txAmountLimit: 500 as const,
@@ -334,6 +339,23 @@ describe('TraderProfileView', () => {
       screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
     );
     expect(screen.queryByText('No positions yet')).not.toBeOnTheScreen();
+  });
+
+  describe('pull-to-refresh', () => {
+    it('calls both profile refresh and positions refetch when pulled', async () => {
+      renderWithProvider(<TraderProfileView />);
+
+      const refreshControl = screen.UNSAFE_getByProps({
+        testID: TraderProfileViewSelectorsIDs.REFRESH_CONTROL,
+      });
+
+      await act(async () => {
+        refreshControl.props.onRefresh();
+      });
+
+      expect(mockRefresh).toHaveBeenCalledTimes(1);
+      expect(mockRefetchPositions).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('notification bell routing', () => {

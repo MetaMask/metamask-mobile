@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
@@ -27,6 +27,7 @@ export interface UseTraderPositionsResult {
   isLoadingOpen: boolean;
   isLoadingClosed: boolean;
   error: string | null;
+  refetch: () => Promise<void>;
 }
 
 export const useTraderPositions = (
@@ -40,6 +41,7 @@ export const useTraderPositions = (
     data: openData,
     isLoading: isLoadingOpen,
     error: openError,
+    refetch: refetchOpen,
   } = useQuery<PositionsResponse>({
     queryKey: ['SocialService:fetchOpenPositions', fetchOptions],
     enabled: Boolean(addressOrId) && isUnlocked,
@@ -50,6 +52,7 @@ export const useTraderPositions = (
     data: closedData,
     isLoading: isLoadingClosed,
     error: closedError,
+    refetch: refetchClosed,
   } = useQuery<PositionsResponse>({
     queryKey: ['SocialService:fetchClosedPositions', fetchOptions],
     enabled: Boolean(addressOrId) && isUnlocked,
@@ -96,6 +99,15 @@ export const useTraderPositions = (
 
   const combinedError = openError ?? closedError;
 
+  const refetch = useCallback(async () => {
+    try {
+      await Promise.all([refetchOpen(), refetchClosed()]);
+    } catch (err) {
+      Logger.error(err as Error, 'useTraderPositions: refetch failed');
+      throw err;
+    }
+  }, [refetchOpen, refetchClosed]);
+
   return {
     openPositions,
     closedPositions,
@@ -107,6 +119,7 @@ export const useTraderPositions = (
         : combinedError
           ? String(combinedError)
           : null,
+    refetch,
   };
 };
 
