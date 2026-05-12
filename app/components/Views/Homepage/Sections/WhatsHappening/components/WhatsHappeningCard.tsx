@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, memo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -17,7 +17,9 @@ import {
   getImpactBackgroundClass,
   getImpactTextColor,
 } from '../util/impact';
-import PerpsTokenLogo from '../../../../../UI/Perps/components/PerpsTokenLogo';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import RelatedAssetAvatar from '../../../../WhatsHappeningDetailView/components/RelatedAssetAvatar';
+import { getRelatedAssetImageSource } from '../../../../WhatsHappeningDetailView/utils/getRelatedAssetImageSource';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useViewportTracking } from '../../../../../UI/MarketInsights/hooks/useViewportTracking';
@@ -63,13 +65,23 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   const { ref: cardRef, onLayout: onVisibilityLayout } =
     useViewportTracking(handleVisible);
 
-  const visibleAssets = item.relatedAssets.slice(0, MAX_VISIBLE_ASSET_ICONS);
+  const visibleAssets = useMemo(
+    () => item.relatedAssets.slice(0, MAX_VISIBLE_ASSET_ICONS),
+    [item.relatedAssets],
+  );
+  const visibleAssetImages = useMemo(
+    () => visibleAssets.map(getRelatedAssetImageSource),
+    [visibleAssets],
+  );
   const firstAsset = item.relatedAssets[0];
   const remainingAssetCount = Math.max(0, item.relatedAssets.length - 1);
-  const assetLabel = firstAsset
+  const firstAssetDisplaySymbol = firstAsset
+    ? getPerpsDisplaySymbol(firstAsset.symbol)
+    : null;
+  const assetLabel = firstAssetDisplaySymbol
     ? remainingAssetCount > 0
-      ? `${firstAsset.symbol} +${remainingAssetCount}`
-      : firstAsset.symbol
+      ? `${firstAssetDisplaySymbol} +${remainingAssetCount}`
+      : firstAssetDisplaySymbol
     : null;
 
   return (
@@ -134,8 +146,9 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
                       key={asset.sourceAssetId}
                       twClassName={index > 0 ? '-ml-1' : ''}
                     >
-                      <PerpsTokenLogo
-                        symbol={asset.hlPerpsMarket?.[0] ?? asset.symbol}
+                      <RelatedAssetAvatar
+                        name={asset.name}
+                        image={visibleAssetImages[index]}
                         size={16}
                       />
                     </Box>
@@ -167,4 +180,4 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   );
 };
 
-export default WhatsHappeningCard;
+export default memo(WhatsHappeningCard);
