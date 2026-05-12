@@ -7,6 +7,7 @@ export const TraderProfileViewSelectorsIDs = {
   FOLLOW_BUTTON: 'trader-profile-follow-button',
   TAB_OPEN: 'trader-profile-tab-open',
   TAB_CLOSED: 'trader-profile-tab-closed',
+  SORT_BUTTON: 'trader-profile-sort-button',
   ERROR_BANNER: 'trader-profile-error-banner',
   TWITTER_LINK: 'trader-profile-twitter-link',
   REFRESH_CONTROL: 'trader-profile-refresh-control',
