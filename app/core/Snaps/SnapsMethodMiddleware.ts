@@ -14,8 +14,8 @@ import { endTrace, trace } from '../../util/trace';
 
 export const trackSnapEvent = (eventPayload: {
   event: string;
-  properties: Record<string, Json>;
-  sensitiveProperties: Record<string, Json>;
+  properties?: Record<string, Json>;
+  sensitiveProperties?: Record<string, Json>;
 }) => {
   analytics.trackEvent(
     AnalyticsEventBuilder.createEventBuilder(eventPayload.event)
@@ -26,7 +26,6 @@ export const trackSnapEvent = (eventPayload: {
 };
 
 const snapMethodMiddlewareBuilder = (
-  engineContext: EngineContext,
   controllerMessenger: RootExtendedMessenger,
   origin: string,
   subjectType: SubjectType,
@@ -35,7 +34,7 @@ const snapMethodMiddlewareBuilder = (
     subjectType === SubjectType.Snap,
     {
       getUnlockPromise: async () => {
-        if (engineContext.KeyringController.isUnlocked()) {
+        if (controllerMessenger.call('KeyringController:isUnlocked')) {
           return;
         }
         await controllerMessenger.waitUntil('KeyringController:unlock');
@@ -45,7 +44,7 @@ const snapMethodMiddlewareBuilder = (
       trackEvent: trackSnapEvent,
       getIsActive: () =>
         AppState.currentState === 'active' &&
-        engineContext.KeyringController.isUnlocked(),
+        controllerMessenger.call('KeyringController:isUnlocked'),
       getVersion: () => {
         const baseVersion = getVersion();
         const buildType = process.env.METAMASK_BUILD_TYPE;
@@ -56,7 +55,9 @@ const snapMethodMiddlewareBuilder = (
 
         return `${baseVersion}-${buildType}.0`;
       },
+      // @ts-expect-error Type 'string' is not assignable to type 'TraceName'.
       startTrace: trace,
+      // @ts-expect-error Type 'string' is not assignable to type 'TraceName'.
       endTrace,
     },
     controllerMessenger,
