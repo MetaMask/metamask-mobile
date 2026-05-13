@@ -137,7 +137,7 @@ export const selectRelatedChainIdsByTransactionId = createSelector(
             .filter((chainId): chainId is Hex => Boolean(chainId))
             .map((chainId) => chainId.toLowerCase());
 
-          return [tx.id, [...new Set(chainIds)]] as const;
+          return [tx.id, [...new Set(chainIds)]] satisfies [string, string[]];
         })
         .filter(([, chainIds]) => chainIds.length > 0),
     );
