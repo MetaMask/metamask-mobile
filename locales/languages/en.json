@@ -6520,6 +6520,7 @@
       "convert_to_musd": "Convert to mUSD",
       "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
+      "confirm": "Confirm",
       "fetching_quote": "Fetching quote...",
       "you_convert": "You convert",
       "network_fee": "Network fee",

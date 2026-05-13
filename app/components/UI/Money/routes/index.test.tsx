@@ -137,4 +137,14 @@ describe('MoneyModalStack', () => {
 
     expect(getByTestId('money-screen-MoneyBalanceInfoSheet')).toBeOnTheScreen();
   });
+
+  it('registers the redesigned confirmations as a modal screen', () => {
+    const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(
+      getByTestId('money-screen-RedesignedConfirmations'),
+    ).toBeOnTheScreen();
+  });
 });

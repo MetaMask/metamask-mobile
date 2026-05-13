@@ -79,7 +79,7 @@ const MoneyPotentialEarningsView = () => {
           address: defaultToken.address as Hex,
           chainId: defaultToken.chainId as Hex,
         },
-        navigationStack: Routes.MONEY.ROOT,
+        navigationStack: Routes.MONEY.MODALS.ROOT,
       });
     } catch (error) {
       Logger.error(error as Error, {
@@ -97,7 +97,7 @@ const MoneyPotentialEarningsView = () => {
             address: token.address as Hex,
             chainId: token.chainId as Hex,
           },
-          navigationStack: Routes.MONEY.ROOT,
+          navigationStack: Routes.MONEY.MODALS.ROOT,
         });
       } catch (error) {
         Logger.error(error as Error, {

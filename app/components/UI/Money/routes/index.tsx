@@ -98,6 +98,11 @@ const MoneyModalStack = () => (
       component={MoneyEarnCryptoInfoSheet}
       options={{ headerShown: false }}
     />
+    <ModalStack.Screen
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+      component={Confirm}
+      options={{ headerShown: false }}
+    />
   </ModalStack.Navigator>
 );
 

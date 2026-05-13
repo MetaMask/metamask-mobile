@@ -186,4 +186,131 @@ describe('BridgeFeeRow', () => {
 
     expect(getByText('$0.50')).toBeOnTheScreen();
   });
+
+  describe('paid by MetaMask', () => {
+    const zeroFeesTotals = {
+      fees: {
+        provider: { usd: '0' },
+        sourceNetwork: { estimate: { usd: '0' } },
+        targetNetwork: { usd: '0' },
+        metaMask: { usd: '0', fiat: '0' },
+      },
+    } as TransactionPayTotals;
+
+    it('renders paid by MetaMask label for musd conversion with all-zero fees and quotes', () => {
+      useTransactionTotalsMock.mockReturnValue(zeroFeesTotals);
+
+      const { getByText, queryByTestId } = render({
+        type: TransactionType.musdConversion,
+      });
+
+      expect(getByText('Paid by MetaMask')).toBeOnTheScreen();
+      expect(queryByTestId('transaction-fee')).toBeNull();
+    });
+
+    it('hides the tooltip icon when paid by MetaMask is shown', () => {
+      useTransactionTotalsMock.mockReturnValue(zeroFeesTotals);
+
+      const { queryByTestId } = render({
+        type: TransactionType.musdConversion,
+      });
+
+      expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
+    });
+
+    it('renders fee value (not paid by MetaMask) for moneyAccountDeposit with all-zero fees', () => {
+      useTransactionTotalsMock.mockReturnValue(zeroFeesTotals);
+
+      const { getByText, queryByText } = render({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByText('$0')).toBeOnTheScreen();
+      expect(queryByText('Paid by MetaMask')).toBeNull();
+    });
+
+    it('renders fee value (not paid by MetaMask) for perpsDeposit with all-zero fees', () => {
+      useTransactionTotalsMock.mockReturnValue(zeroFeesTotals);
+
+      const { getByText, getByTestId, queryByText } = render({
+        type: TransactionType.perpsDeposit,
+      });
+
+      expect(getByText('$0')).toBeOnTheScreen();
+      expect(queryByText('Paid by MetaMask')).toBeNull();
+      expect(getByTestId('info-row-tooltip-open-btn')).toBeOnTheScreen();
+    });
+
+    it('renders fee value (not paid by MetaMask) for musd conversion with non-zero fees', () => {
+      const { getByText, getByTestId, queryByText } = render({
+        type: TransactionType.musdConversion,
+      });
+
+      expect(getByText('$1.23')).toBeOnTheScreen();
+      expect(queryByText('Paid by MetaMask')).toBeNull();
+      expect(getByTestId('info-row-tooltip-open-btn')).toBeOnTheScreen();
+    });
+
+    it('renders skeleton (not paid by MetaMask) while loading', () => {
+      useTransactionTotalsMock.mockReturnValue(zeroFeesTotals);
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+
+      const { getByTestId, queryByText, queryByTestId } = render({
+        type: TransactionType.musdConversion,
+      });
+
+      expect(getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(queryByText('Paid by MetaMask')).toBeNull();
+      expect(queryByTestId('transaction-fee')).toBeNull();
+    });
+
+    it('does not render paid by MetaMask when quotes are empty', () => {
+      useTransactionTotalsMock.mockReturnValue(zeroFeesTotals);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { queryByText, queryByTestId } = render({
+        type: TransactionType.musdConversion,
+      });
+
+      expect(queryByText('Paid by MetaMask')).toBeNull();
+      // feeTotalUsd useMemo returns '' when totals?.fees is falsy; here fees
+      // exist so we render the $ Text with the formatted zero total.
+      expect(queryByTestId('transaction-fee')).toBeOnTheScreen();
+    });
+
+    it('renders paid by MetaMask when metaMask.usd is undefined and other fees are zero', () => {
+      useTransactionTotalsMock.mockReturnValue({
+        fees: {
+          provider: { usd: '0' },
+          sourceNetwork: { estimate: { usd: '0' } },
+          targetNetwork: { usd: '0' },
+          metaMask: { fiat: '0' },
+        },
+      } as TransactionPayTotals);
+
+      const { getByText, queryByTestId } = render({
+        type: TransactionType.musdConversion,
+      });
+
+      expect(getByText('Paid by MetaMask')).toBeOnTheScreen();
+      expect(queryByTestId('transaction-fee')).toBeNull();
+    });
+  });
+
+  describe('tooltip messages', () => {
+    it.each([
+      [TransactionType.predictDeposit],
+      [TransactionType.predictWithdraw],
+      [TransactionType.musdConversion],
+      [TransactionType.moneyAccountWithdraw],
+    ])('renders tooltip with $ value for %s', async (type) => {
+      const { getByTestId } = render({ type });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(getByTestId('info-row-tooltip-close-btn')).toBeOnTheScreen();
+    });
+  });
 });

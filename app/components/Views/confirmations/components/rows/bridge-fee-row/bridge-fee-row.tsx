@@ -10,7 +10,11 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Box } from '../../../../../UI/Box/Box';
-import { FlexDirection, JustifyContent } from '../../../../../UI/Box/box.types';
+import {
+  AlignItems,
+  FlexDirection,
+  JustifyContent,
+} from '../../../../../UI/Box/box.types';
 import { hasTransactionType } from '../../../utils/transaction';
 import {
   TransactionPayQuote,
@@ -30,7 +34,11 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { Json } from '@metamask/utils';
 import { useConfirmationContext } from '../../../context/confirmation-context';
-import { IconColor } from '../../../../../../component-library/components/Icons/Icon/Icon.types';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../../component-library/components/Icons/Icon';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -91,6 +99,12 @@ function TransactionFeeRow({
     );
   }, [totals, formatFiat]);
 
+  const paidByMetaMask = isPaidByMetaMask({
+    totals,
+    transactionMeta,
+    hasQuotes,
+  });
+
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
 
   const labelColor = isDisabled ? TextColor.Muted : undefined;
@@ -106,7 +120,7 @@ function TransactionFeeRow({
       alertField={RowAlertKey.PayWithFee}
       label={strings('confirm.label.transaction_fee')}
       tooltip={
-        hasQuotes && totals ? (
+        !paidByMetaMask && hasQuotes && totals ? (
           <Tooltip transactionMeta={transactionMeta} totals={totals} />
         ) : undefined
       }
@@ -116,13 +130,30 @@ function TransactionFeeRow({
       rowVariant={InfoRowVariant.Small}
       variant={labelColor}
     >
-      <Text
-        variant={TextVariant.BodyMD}
-        color={valueColor}
-        testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
-      >
-        {feeTotalUsd}
-      </Text>
+      {paidByMetaMask ? (
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={4}
+        >
+          <Icon
+            name={IconName.Check}
+            color={IconColor.Success}
+            size={IconSize.Sm}
+          />
+          <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+            {strings('transactions.paid_by_metamask')}
+          </Text>
+        </Box>
+      ) : (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={valueColor}
+          testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
+        >
+          {feeTotalUsd}
+        </Text>
+      )}
     </AlertRow>
   );
 }
@@ -138,6 +169,31 @@ function getNetworkFeeUsdBN({
   if (sourceNetworkUsd == null || targetNetworkUsd == null) return undefined;
 
   return new BigNumber(sourceNetworkUsd).plus(targetNetworkUsd);
+}
+
+function isPaidByMetaMask({
+  totals,
+  transactionMeta,
+  hasQuotes,
+}: {
+  totals?: TransactionPayTotals;
+  transactionMeta: TransactionMeta;
+  hasQuotes: boolean;
+}): boolean {
+  if (!hasQuotes || !totals?.fees) return false;
+  if (!hasTransactionType(transactionMeta, [TransactionType.musdConversion]))
+    return false;
+
+  const sourceNetwork = new BigNumber(totals.fees.sourceNetwork.estimate.usd);
+  const targetNetwork = new BigNumber(totals.fees.targetNetwork.usd);
+  const provider = new BigNumber(totals.fees.provider.usd);
+  const metaMask = new BigNumber(totals.fees.metaMask.usd ?? 0);
+
+  return (
+    sourceNetwork.plus(targetNetwork).isZero() &&
+    provider.isZero() &&
+    metaMask.isZero()
+  );
 }
 
 function Tooltip({
