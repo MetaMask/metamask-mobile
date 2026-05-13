@@ -1,6 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -8,20 +7,21 @@ import {
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
+import PredictMarketDetails from '../views/PredictMarketDetails';
+import PredictUnavailableModal from '../views/PredictUnavailableModal';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import PredictActivityDetail from '../components/PredictActivityDetail/PredictActivityDetail';
-import PredictGTMModal from '../components/PredictGTMModal';
-import { PredictPreviewSheetProvider } from '../contexts';
-import { selectPredictWithAnyTokenEnabledFlag } from '../selectors/featureFlags';
 import { PredictNavigationParamList } from '../types/navigation';
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
+import PredictFeed from '../views/PredictFeed';
+import PredictWorldCup from '../views/PredictWorldCup';
+import PredictGTMModal from '../components/PredictGTMModal';
+import { useSelector } from 'react-redux';
+import { PredictPreviewSheetProvider } from '../contexts';
 import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken';
-import PredictFeed from '../views/PredictFeed';
-import PredictMarketDetails from '../views/PredictMarketDetails';
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
-import PredictUnavailableModal from '../views/PredictUnavailableModal';
-import PredictWorldCup from '../views/PredictWorldCup';
+import { selectPredictWithAnyTokenEnabledFlag } from '../selectors/featureFlags';
 
 const Stack = createNativeStackNavigator<PredictNavigationParamList>();
 const ModalStack = createNativeStackNavigator<PredictNavigationParamList>();
