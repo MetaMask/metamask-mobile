@@ -964,16 +964,16 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
-  it('does not re-select pay token when only accountOverride changes', () => {
+  it('does not re-select pay token when accountOverride changes for post-quote withdraws', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
         {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-        {
           address: TOKEN_ADDRESS_1_MOCK,
           chainId: CHAIN_ID_1_MOCK,
+        },
+        {
+          address: PREFERRED_TOKEN_ADDRESS_MOCK,
+          chainId: PREFERRED_CHAIN_ID_MOCK,
         },
       ] as AssetType[],
       hasTokens: true,
@@ -981,11 +981,16 @@ describe('useAutomaticTransactionPayToken', () => {
 
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
-      type: TransactionType.moneyAccountDeposit,
+      type: TransactionType.moneyAccountWithdraw,
       txParams: { from: '0xAddress1' },
     } as never);
 
-    const { rerender } = runHook();
+    const { rerender } = runHook({
+      preferredToken: {
+        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
+        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+      },
+    });
 
     expect(setPayTokenMock).toHaveBeenCalledTimes(1);
     setPayTokenMock.mockClear();
