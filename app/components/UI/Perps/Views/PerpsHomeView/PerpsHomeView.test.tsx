@@ -479,10 +479,12 @@ jest.mock(
   '../../components/PerpsRecentActivityList/PerpsRecentActivityList',
   () => 'PerpsRecentActivityList',
 );
-jest.mock(
-  '../../../../Views/Homepage/Sections/WhatsHappening',
-  () => 'WhatsHappeningSection',
-);
+jest.mock('../../../../Views/Homepage/Sections/WhatsHappening', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockWhatsHappeningSection() {
+    return <View testID="whats-happening-section" />;
+  };
+});
 jest.mock(
   '../../../../../selectors/featureFlagController/whatsHappening',
   () => ({
@@ -987,14 +989,14 @@ describe('PerpsHomeView', () => {
         if (selector === selectWhatsHappeningEnabled) return true;
         return false;
       });
-      const { UNSAFE_getByType } = render(<PerpsHomeView />);
-      expect(UNSAFE_getByType('WhatsHappeningSection' as never)).toBeTruthy();
+      const { getByTestId } = render(<PerpsHomeView />);
+      expect(getByTestId('whats-happening-section')).toBeOnTheScreen();
     });
 
     it('does not render WhatsHappeningSection when aiSocialWhatsHappeningEnabled flag is false', () => {
       mockUseSelector.mockReturnValue(false);
-      const { UNSAFE_queryByType } = render(<PerpsHomeView />);
-      expect(UNSAFE_queryByType('WhatsHappeningSection' as never)).toBeNull();
+      const { queryByTestId } = render(<PerpsHomeView />);
+      expect(queryByTestId('whats-happening-section')).not.toBeOnTheScreen();
     });
   });
 });
