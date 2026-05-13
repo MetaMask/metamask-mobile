@@ -178,7 +178,7 @@ const MoneyHomeView = () => {
             address: token.address as Hex,
             chainId: token.chainId as Hex,
           },
-          navigationStack: Routes.MONEY.MODALS.ROOT,
+          navigationStack: Routes.MONEY.ROOT,
         });
       } catch (error) {
         Logger.error(error as Error, {
