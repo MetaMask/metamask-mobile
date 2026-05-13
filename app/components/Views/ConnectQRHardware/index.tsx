@@ -8,6 +8,7 @@ import React, {
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import {
   type EdgeInsets,
+  SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import Engine from '../../../core/Engine';
@@ -292,7 +293,7 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
 
   return (
     <Fragment>
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <Icon
             name="qrcode"
@@ -326,7 +327,7 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
             title={strings('connect_qr_hardware.select_accounts')}
           />
         )}
-      </View>
+      </SafeAreaView>
       <AnimatedQRScannerModal
         visible={isScanning}
         purpose={QrScanRequestType.PAIR}
