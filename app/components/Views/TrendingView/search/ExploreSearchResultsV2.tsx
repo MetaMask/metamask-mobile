@@ -26,13 +26,13 @@ import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events
 import { strings } from '../../../../../locales/i18n';
 import { trackExploreEvent, useScrollTracking } from './analytics';
 import { type SearchFeedId, type SearchFeedSection } from './useExploreSearch';
-import { useExploreSearchV2 } from './useExploreSearchV2';
 import SearchFeedRow, { SearchFeedSkeleton } from './SearchFeedRow';
 
 const MAX_ITEMS_PER_SECTION = 3;
 
 interface ExploreSearchResultsV2Props {
   searchQuery: string;
+  sections: SearchFeedSection[];
   onViewMore: (feedId: SearchFeedId) => void;
 }
 
@@ -59,10 +59,10 @@ type FlatListItem = ListItemHeader | ListItemData | ListItemSkeleton;
 
 const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
   searchQuery,
+  sections,
   onViewMore,
 }) => {
   const tw = useTailwind();
-  const { sections } = useExploreSearchV2(searchQuery);
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,

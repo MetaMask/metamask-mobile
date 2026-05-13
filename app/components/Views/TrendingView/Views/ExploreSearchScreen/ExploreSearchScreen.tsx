@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Keyboard, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -10,12 +10,8 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
 import type { SiteData } from '../../../../UI/Sites/components/SiteRowItem/SiteRowItem';
-import TabsList from '../../../../../component-library/components-temp/Tabs/TabsList/TabsList';
-import {
-  type TabsListRef,
-  type TabViewProps,
-} from '../../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import ExploreSearchBar from '../../components/ExploreSearchBar/ExploreSearchBar';
+import PillRow, { type PillOption } from '../../components/PillRow';
 import ExploreSearchResults from '../../search/ExploreSearchResults';
 import ExploreSearchResultsV2 from '../../search/ExploreSearchResultsV2';
 import SearchFeedRow from '../../search/SearchFeedRow';
@@ -29,13 +25,8 @@ import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter
 import { strings } from '../../../../../../locales/i18n';
 import { selectExploreSearchV2EnabledFlag } from '../../../../../selectors/featureFlagController/exploreSearchV2';
 
-const FEED_TAB_INDEX: Record<SearchFeedId, number> = {
-  tokens: 1,
-  perps: 2,
-  stocks: 3,
-  predictions: 4,
-  sites: 5,
-};
+const ALL_PILL_KEY = 'all' as const;
+type ActivePill = typeof ALL_PILL_KEY | SearchFeedId;
 
 interface FullFeedListProps {
   feedId: SearchFeedId;
@@ -127,35 +118,86 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
   );
 };
 
-interface FeedTabProps {
-  feedId: SearchFeedId;
+interface ExploreSearchV2ContentProps {
   searchQuery: string;
-  title: string;
 }
 
-const FeedTab: React.FC<FeedTabProps> = ({ feedId, searchQuery, title }) => {
+/**
+ * Renders the pill filter row and content pane for the V2 search experience.
+ * Must be a child of PerpsSectionProvider because useExploreSearchV2
+ * internally calls usePerpsFeed, which requires PerpsStreamProvider.
+ *
+ * A single useExploreSearchV2 instance is shared across the pill row and the
+ * active content pane, so switching pills never triggers new API calls.
+ */
+const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
+  searchQuery,
+}) => {
+  const [activePill, setActivePill] = useState<ActivePill>(ALL_PILL_KEY);
+
   const { sections } = useExploreSearchV2(searchQuery);
-  const section = sections.find((s) => s.feedId === feedId);
+
+  useEffect(() => {
+    if (!searchQuery) {
+      setActivePill(ALL_PILL_KEY);
+    }
+  }, [searchQuery]);
+
+  const pills = useMemo<PillOption[]>(() => {
+    const feedPills: PillOption[] = sections.map((section) => ({
+      key: section.feedId,
+      name: section.title,
+    }));
+    return [
+      { key: ALL_PILL_KEY, name: strings('trending.search_tabs.all') },
+      ...feedPills,
+    ];
+  }, [sections]);
+
+  const activeSection = useMemo(
+    () => sections.find((s) => s.feedId === activePill),
+    [sections, activePill],
+  );
+
+  const handlePillSelect = useCallback((key: string) => {
+    setActivePill(key as ActivePill);
+  }, []);
 
   return (
-    <FullFeedList
-      feedId={feedId}
-      searchQuery={searchQuery}
-      data={section?.items ?? []}
-      title={title}
-      fetchMore={section?.fetchMore}
-      isFetchingMore={section?.isFetchingMore}
-      hasMore={section?.hasMore}
-    />
+    <Box twClassName="flex-1">
+      <Box twClassName="px-4">
+        <PillRow
+          pills={pills}
+          activeKey={activePill}
+          onSelect={handlePillSelect}
+          testIdPrefix="explore-search"
+        />
+      </Box>
+      {activePill === ALL_PILL_KEY ? (
+        <ExploreSearchResultsV2
+          searchQuery={searchQuery}
+          sections={sections}
+          onViewMore={handlePillSelect}
+        />
+      ) : (
+        <FullFeedList
+          feedId={activePill}
+          searchQuery={searchQuery}
+          data={activeSection?.items ?? []}
+          title={activeSection?.title ?? activePill}
+          fetchMore={activeSection?.fetchMore}
+          isFetchingMore={activeSection?.isFetchingMore}
+          hasMore={activeSection?.hasMore}
+        />
+      )}
+    </Box>
   );
 };
 
 const ExploreSearchScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const tw = useTailwind();
   const [searchQuery, setSearchQuery] = useState('');
-  const tabsListRef = useRef<TabsListRef>(null);
   const isExploreSearchV2Enabled = useSelector(
     selectExploreSearchV2EnabledFlag,
   );
@@ -165,10 +207,6 @@ const ExploreSearchScreen: React.FC = () => {
     Keyboard.dismiss();
     navigation.goBack();
   }, [navigation]);
-
-  const handleViewMore = useCallback((feedId: SearchFeedId) => {
-    tabsListRef.current?.goToTabIndex(FEED_TAB_INDEX[feedId]);
-  }, []);
 
   return (
     <Box
@@ -186,89 +224,7 @@ const ExploreSearchScreen: React.FC = () => {
 
       <PerpsSectionProvider>
         {isExploreSearchV2Enabled ? (
-          <TabsList
-            ref={tabsListRef}
-            tabsListContentTwClassName="px-0 pb-3"
-            style={tw.style('flex-1')}
-          >
-            <Box
-              key="all"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.search_tabs.all'),
-              } as TabViewProps)}
-            >
-              <ExploreSearchResultsV2
-                searchQuery={searchQuery}
-                onViewMore={handleViewMore}
-              />
-            </Box>
-            <Box
-              key="crypto"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.search_tabs.crypto'),
-              } as TabViewProps)}
-            >
-              <FeedTab
-                feedId="tokens"
-                searchQuery={searchQuery}
-                title={strings('trending.search_tabs.crypto')}
-              />
-            </Box>
-            <Box
-              key="perps"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.search_tabs.perps'),
-              } as TabViewProps)}
-            >
-              <FeedTab
-                feedId="perps"
-                searchQuery={searchQuery}
-                title={strings('trending.search_tabs.perps')}
-              />
-            </Box>
-            <Box
-              key="stocks"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.search_tabs.stocks'),
-              } as TabViewProps)}
-            >
-              <FeedTab
-                feedId="stocks"
-                searchQuery={searchQuery}
-                title={strings('trending.search_tabs.stocks')}
-              />
-            </Box>
-            <Box
-              key="predictions"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.search_tabs.predictions'),
-              } as TabViewProps)}
-            >
-              <FeedTab
-                feedId="predictions"
-                searchQuery={searchQuery}
-                title={strings('trending.search_tabs.predictions')}
-              />
-            </Box>
-            <Box
-              key="sites"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.search_tabs.sites'),
-              } as TabViewProps)}
-            >
-              <FeedTab
-                feedId="sites"
-                searchQuery={searchQuery}
-                title={strings('trending.search_tabs.sites')}
-              />
-            </Box>
-          </TabsList>
+          <ExploreSearchV2Content searchQuery={searchQuery} />
         ) : (
           <ExploreSearchResults searchQuery={searchQuery} />
         )}
