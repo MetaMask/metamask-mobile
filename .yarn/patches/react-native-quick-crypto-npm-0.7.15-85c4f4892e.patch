@@ -1,0 +1,22 @@
+diff --git a/android/build.gradle b/android/build.gradle
+index 45e323e8fe045f2d9c74c912a446cfc81ce35b6b..eb18ab413aa5a01a72b9b3d7b583800c9268fe09 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -112,7 +112,7 @@ android {
+     externalNativeBuild {
+       cmake {
+         cppFlags "-O2 -frtti -fexceptions -Wall -Wno-unused-variable -fstack-protector-all -DANDROID"
+-        arguments "-DANDROID_STL=c++_shared"
++        arguments "-DANDROID_STL=c++_shared", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+         abiFilters (*reactNativeArchitectures())
+       }
+     }
+@@ -175,7 +175,7 @@ dependencies {
+   implementation "com.facebook.react:react-android:+"
+ 
+   // Add a dependency on OpenSSL
+-  implementation 'io.github.ronickg:openssl:3.3.2'
++  implementation 'io.github.ronickg:openssl:3.6.0-1'
+ }
+ 
+ // Resolves "LOCAL_SRC_FILES points to a missing file, Check that libfb.so exists or that its path is correct".
