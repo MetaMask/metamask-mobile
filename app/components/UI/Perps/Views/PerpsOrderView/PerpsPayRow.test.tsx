@@ -142,7 +142,7 @@ describe('PerpsPayRow', () => {
     ).toHaveTextContent('USDC');
   });
 
-  it('navigates to pay with modal when row is pressed and not hardware account', () => {
+  it('navigates to the legacy PayWithModal when the bottom-sheet env var is not enabled', () => {
     const { getByTestId } = renderWithProvider(<PerpsPayRow />);
 
     fireEvent.press(getByTestId(ConfirmationRowComponentIDs.PAY_WITH));

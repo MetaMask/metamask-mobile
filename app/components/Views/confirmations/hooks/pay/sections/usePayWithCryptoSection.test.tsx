@@ -9,6 +9,7 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { TokenIcon, TokenIconVariant } from '../../../components/token-icon';
 import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
+import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { useLastUsedPaymentMethod } from '../useLastUsedPaymentMethod';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
@@ -35,6 +36,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 jest.mock('../../../../../../util/navigation/navUtils');
 jest.mock('../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter');
 jest.mock('../../transactions/useTransactionMetadataRequest');
+jest.mock('../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected');
 jest.mock('../useLastUsedPaymentMethod');
 jest.mock('../usePayWithPreferredToken');
 jest.mock('../usePayWithSelectedToken');
@@ -67,6 +69,7 @@ describe('usePayWithCryptoSection', () => {
   const usePayWithPreferredTokenMock = jest.mocked(usePayWithPreferredToken);
   const usePayWithSelectedTokenMock = jest.mocked(usePayWithSelectedToken);
   const useLastUsedPaymentMethodMock = jest.mocked(useLastUsedPaymentMethod);
+  const useIsPerpsBalanceSelectedMock = jest.mocked(useIsPerpsBalanceSelected);
   const navigateMock = jest.fn();
   const goBackMock = jest.fn();
   const selectTokenMock = jest.fn();
@@ -102,6 +105,7 @@ describe('usePayWithCryptoSection', () => {
       lastUsedToken: undefined,
       isLastUsed: isLastUsedMock,
     });
+    useIsPerpsBalanceSelectedMock.mockReturnValue(true);
   });
 
   it('passes route preferred payment token params to both pay-with hooks', () => {
@@ -241,6 +245,42 @@ describe('usePayWithCryptoSection', () => {
       }),
     );
     expect(result.current?.rows[1].icon).toEqual(expect.any(Object));
+  });
+
+  it('does not mark the preferred token row as selected on perpsDepositAndOrder flows when Perps balance is the implicit default', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDepositAndOrder,
+      txParams: {},
+    } as never);
+    useIsPerpsBalanceSelectedMock.mockReturnValue(true);
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    expect(result.current?.rows[0]).toEqual(
+      expect.objectContaining({
+        id: 'crypto-preferred-token',
+        isSelected: false,
+        trailingElement: 'none',
+      }),
+    );
+  });
+
+  it('still marks the preferred token row as selected on perpsDepositAndOrder flows when the user explicitly picked the preferred token via "Other assets"', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDepositAndOrder,
+      txParams: {},
+    } as never);
+    useIsPerpsBalanceSelectedMock.mockReturnValue(false);
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    expect(result.current?.rows[0]).toEqual(
+      expect.objectContaining({
+        id: 'crypto-preferred-token',
+        isSelected: true,
+        trailingElement: 'checkmark',
+      }),
+    );
   });
 
   it('does not select the preferred token row when another token is selected', () => {

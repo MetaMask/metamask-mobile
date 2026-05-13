@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { BigNumber } from 'bignumber.js';
+import { TransactionType } from '@metamask/transaction-controller';
 import {
   Icon,
   IconColor,
@@ -16,6 +17,8 @@ import {
   PayWithRowConfig,
   PayWithSectionConfig,
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
+import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
+import { hasTransactionType } from '../../../utils/transaction';
 import {
   isMatchingPayToken,
   resolvePreferredPayToken,
@@ -62,6 +65,12 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     selectToken,
   } = usePayWithSelectedToken({ preferredToken: resolvedPreferredToken });
   const { isLastUsed } = useLastUsedPaymentMethod();
+  const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
+  const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
+    TransactionType.perpsDepositAndOrder,
+  ]);
+  const isPerpsBalanceImplicitlySelected =
+    isPerpsDepositAndOrder && isPerpsBalanceSelected;
 
   const handleOtherAssetsPress = useCallback(() => {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
@@ -96,10 +105,15 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     const rows: PayWithRowConfig[] = [];
 
     if (preferredToken) {
-      const isPreferredTokenSelected = isMatchingPayToken(
-        selectedToken,
-        preferredToken,
-      );
+      // In perpsDepositAndOrder flows the PERPS section renders "Perps account"
+      // as the conceptual default ONLY when the user has not explicitly picked a
+      // token (`selectedPaymentToken === null` in `PerpsController`). When the
+      // user opens "Other assets" and picks e.g. BNB, `PerpsController` also
+      // stores BNB as `selectedPaymentToken`, and we should honor that
+      // selection here with a checkmark.
+      const isPreferredTokenSelected =
+        !isPerpsBalanceImplicitlySelected &&
+        isMatchingPayToken(selectedToken, preferredToken);
 
       rows.push({
         id: 'crypto-preferred-token',
@@ -169,6 +183,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     handlePreferredTokenPress,
     hasTokens,
     isLastUsed,
+    isPerpsBalanceImplicitlySelected,
     isSelectedDistinctFromAutomatic,
     preferredToken,
     preferredTokenBalance,

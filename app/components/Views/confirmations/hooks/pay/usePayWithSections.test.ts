@@ -1,9 +1,11 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { PayWithSectionConfig } from '../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { usePayWithCryptoSection } from './sections/usePayWithCryptoSection';
+import { usePayWithPerpsSection } from './sections/usePayWithPerpsSection';
 import { usePayWithSections } from './usePayWithSections';
 
 jest.mock('./sections/usePayWithCryptoSection');
+jest.mock('./sections/usePayWithPerpsSection');
 
 const CRYPTO_SECTION_MOCK: PayWithSectionConfig = {
   id: 'crypto',
@@ -17,13 +19,27 @@ const CRYPTO_SECTION_MOCK: PayWithSectionConfig = {
   ],
 };
 
+const PERPS_SECTION_MOCK: PayWithSectionConfig = {
+  id: 'perps',
+  title: 'Perps',
+  rows: [
+    {
+      id: 'perps-balance',
+      icon: 'Perps',
+      title: 'Perps account',
+    },
+  ],
+};
+
 describe('usePayWithSections', () => {
   const usePayWithCryptoSectionMock = jest.mocked(usePayWithCryptoSection);
+  const usePayWithPerpsSectionMock = jest.mocked(usePayWithPerpsSection);
 
   beforeEach(() => {
     jest.resetAllMocks();
 
     usePayWithCryptoSectionMock.mockReturnValue(null);
+    usePayWithPerpsSectionMock.mockReturnValue(null);
   });
 
   it('returns empty sections array when no section is visible', () => {
@@ -38,6 +54,26 @@ describe('usePayWithSections', () => {
     const { result } = renderHook(() => usePayWithSections());
 
     expect(result.current.sections).toEqual([CRYPTO_SECTION_MOCK]);
+  });
+
+  it('returns the visible perps section', () => {
+    usePayWithPerpsSectionMock.mockReturnValue(PERPS_SECTION_MOCK);
+
+    const { result } = renderHook(() => usePayWithSections());
+
+    expect(result.current.sections).toEqual([PERPS_SECTION_MOCK]);
+  });
+
+  it('returns perps section before crypto section when both are visible', () => {
+    usePayWithCryptoSectionMock.mockReturnValue(CRYPTO_SECTION_MOCK);
+    usePayWithPerpsSectionMock.mockReturnValue(PERPS_SECTION_MOCK);
+
+    const { result } = renderHook(() => usePayWithSections());
+
+    expect(result.current.sections).toEqual([
+      PERPS_SECTION_MOCK,
+      CRYPTO_SECTION_MOCK,
+    ]);
   });
 
   it('returns the same sections reference across renders', () => {
