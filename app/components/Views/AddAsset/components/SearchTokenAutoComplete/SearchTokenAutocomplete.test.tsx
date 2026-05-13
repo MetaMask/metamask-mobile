@@ -16,7 +16,10 @@ import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
-import { convertTrendingAssetsToImporAssets } from '../../utils/utils';
+import {
+  convertTrendingAssetsToImporAssets,
+  ImportAsset,
+} from '../../utils/utils';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 // --- Mock variables (hoisted by Jest for use inside jest.mock) ---
