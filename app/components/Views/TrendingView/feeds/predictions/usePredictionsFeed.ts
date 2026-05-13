@@ -18,6 +18,9 @@ export interface UsePredictionsFeedResult {
   data: PredictMarketType[];
   isLoading: boolean;
   refetch: () => Promise<void>;
+  fetchMore?: () => Promise<void>;
+  isFetchingMore?: boolean;
+  hasMore?: boolean;
 }
 
 /** Predict markets feed; one shape covers home tabs and search via the variant + query knobs. */
@@ -26,7 +29,14 @@ export const usePredictionsFeed = ({
   query,
   refresh,
 }: UsePredictionsFeedOptions = {}): UsePredictionsFeedResult => {
-  const { marketData, isFetching, refetch } = usePredictMarketData({
+  const {
+    marketData,
+    isFetching,
+    isFetchingMore,
+    hasMore,
+    refetch,
+    fetchMore,
+  } = usePredictMarketData({
     category: variant,
     pageSize: query ? 20 : 6,
     q: query || undefined,
@@ -39,5 +49,12 @@ export const usePredictionsFeed = ({
     [marketData, query],
   );
 
-  return { data: filteredData, isLoading: isFetching, refetch };
+  return {
+    data: filteredData,
+    isLoading: isFetching,
+    refetch,
+    fetchMore,
+    isFetchingMore,
+    hasMore,
+  };
 };

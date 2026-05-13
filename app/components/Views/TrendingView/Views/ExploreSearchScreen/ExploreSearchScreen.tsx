@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Keyboard, Platform } from 'react-native';
+import { ActivityIndicator, Keyboard, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -42,6 +42,9 @@ interface FullFeedListProps {
   searchQuery: string;
   data: unknown[];
   title: string;
+  fetchMore?: () => void;
+  isFetchingMore?: boolean;
+  hasMore?: boolean;
 }
 
 const FullFeedList: React.FC<FullFeedListProps> = ({
@@ -49,6 +52,9 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
   searchQuery,
   data,
   title,
+  fetchMore,
+  isFetchingMore,
+  hasMore,
 }) => {
   const tw = useTailwind();
   const { onScrollBeginDrag } = useScrollTracking('tab_scrolled', searchQuery, {
@@ -86,8 +92,23 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     [feedId],
   );
 
-  const footer =
-    feedId === 'sites' ? <SitesSearchFooter searchQuery={searchQuery} /> : null;
+  const handleEndReached = useCallback(() => {
+    if (hasMore && fetchMore) {
+      fetchMore();
+    }
+  }, [hasMore, fetchMore]);
+
+  const footer = (
+    <>
+      {isFetchingMore && (
+        <ActivityIndicator
+          style={tw.style('py-4')}
+          accessibilityLabel="Loading more results"
+        />
+      )}
+      {feedId === 'sites' && <SitesSearchFooter searchQuery={searchQuery} />}
+    </>
+  );
 
   return (
     <FlashList
@@ -99,6 +120,8 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
       keyboardDismissMode="on-drag"
       keyboardShouldPersistTaps="handled"
       onScrollBeginDrag={onScrollBeginDrag}
+      onEndReached={handleEndReached}
+      onEndReachedThreshold={0.3}
       ListFooterComponent={footer}
     />
   );
@@ -120,6 +143,9 @@ const FeedTab: React.FC<FeedTabProps> = ({ feedId, searchQuery, title }) => {
       searchQuery={searchQuery}
       data={section?.items ?? []}
       title={title}
+      fetchMore={section?.fetchMore}
+      isFetchingMore={section?.isFetchingMore}
+      hasMore={section?.hasMore}
     />
   );
 };

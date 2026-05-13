@@ -74,6 +74,9 @@ export const useExploreSearchV2 = (query: string): ExploreSearchResult => {
         title: strings('trending.search_tabs.predictions'),
         items: predictions.data,
         isLoading: isDebouncing || predictions.isLoading,
+        fetchMore: predictions.fetchMore,
+        isFetchingMore: predictions.isFetchingMore,
+        hasMore: predictions.hasMore,
       },
       {
         feedId: 'sites',
@@ -95,6 +98,9 @@ export const useExploreSearchV2 = (query: string): ExploreSearchResult => {
     stocks.isLoading,
     predictions.data,
     predictions.isLoading,
+    predictions.fetchMore,
+    predictions.isFetchingMore,
+    predictions.hasMore,
     sites.data,
     sites.isLoading,
   ]);
