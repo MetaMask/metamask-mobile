@@ -128,7 +128,7 @@ import {
   addSpotBalanceToAccountState,
   aggregateAccountStates,
 } from '../utils/accountUtils';
-import { ensureError } from '../utils/errorUtils';
+import { ensureError, isKeyringLockedError } from '../utils/errorUtils';
 import {
   adaptAccountStateFromSDK,
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
@@ -814,8 +814,9 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
       completeInFlight();
     } catch (error) {
-      // If keyring is locked, don't cache so it retries when unlocked
-      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+      // HyperLiquid wraps wallet signing failures and preserves KEYRING_LOCKED
+      // in `cause`, so classify the full chain and leave retry caches empty.
+      if (isKeyringLockedError(error)) {
         this.#deps.debugLogger.log(
           '[ensureUnifiedAccountEnabled] Keyring locked, will retry later',
         );
@@ -2666,8 +2667,9 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
       completeInFlight();
     } catch (error) {
-      // If keyring is locked, don't cache so it retries when unlocked
-      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+      // HyperLiquid wraps wallet signing failures and preserves KEYRING_LOCKED
+      // in `cause`, so classify the full chain and leave retry caches empty.
+      if (isKeyringLockedError(error)) {
         this.#deps.debugLogger.log(
           '[ensureBuilderFeeApproval] Keyring locked, will retry later',
         );
@@ -8484,8 +8486,9 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
       completeInFlight();
     } catch (error) {
-      // If keyring is locked, don't cache so it retries when unlocked
-      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+      // HyperLiquid wraps wallet signing failures and preserves KEYRING_LOCKED
+      // in `cause`, so classify the full chain and leave retry caches empty.
+      if (isKeyringLockedError(error)) {
         this.#deps.debugLogger.log(
           '[ensureReferralSet] Keyring locked, will retry later',
         );
