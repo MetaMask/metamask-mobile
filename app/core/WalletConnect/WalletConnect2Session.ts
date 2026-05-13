@@ -327,30 +327,10 @@ class WalletConnect2Session {
   isHandlingRequest = () => this._isHandlingRequest;
 
   emitEvent = async (eventName: string, data: unknown) => {
-    const numericChainId =
-      typeof data === 'number' ? data : Number.parseInt(String(data), 10);
-    const fallbackEvmHex = Number.isFinite(numericChainId)
-      ? `0x${numericChainId.toString(16)}`
-      : String(data);
-    let chainIdForEvent = `eip155:${data}`;
-    let eventDataForEvent = data;
-    if (eventName === 'chainChanged') {
-      const eip155ChainId = `eip155:${numericChainId}`;
-      const emitDecision = shouldEmitChainChangedForWalletConnect({
-        chainId: eip155ChainId,
-        namespaces: this.session.namespaces,
-      });
-      if (!emitDecision.shouldEmit) {
-        return;
-      }
-      chainIdForEvent = eip155ChainId;
-      eventDataForEvent = fallbackEvmHex;
-    }
-
     await this.web3Wallet.emitSessionEvent({
       topic: this.session.topic,
-      event: { name: eventName, data: eventDataForEvent },
-      chainId: chainIdForEvent,
+      event: { name: eventName, data },
+      chainId: `eip155:${data}`,
     });
   };
 
