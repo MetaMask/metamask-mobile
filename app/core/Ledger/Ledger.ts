@@ -214,7 +214,17 @@ export const getLedgerAccountsByOperation = async (
     if (isEthAppNotOpenError(e)) {
       throw new Error(strings('ledger.eth_app_not_open_message'));
     }
-    if (isDisconnectError(e)) {
+    const errorMessage =
+      e instanceof Error
+        ? e.message
+        : e && typeof e === 'object' && 'message' in e
+        ? String(e.message)
+        : '';
+
+    if (
+      isDisconnectError(e) ||
+      /disconnected|disconnect|connection lost/i.test(errorMessage)
+    ) {
       throw new Error(strings('ledger.ledger_disconnected'));
     }
     throw new Error(strings('ledger.unspecified_error_during_connect'));
