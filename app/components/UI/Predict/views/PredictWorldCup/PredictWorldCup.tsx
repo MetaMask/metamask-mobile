@@ -283,7 +283,7 @@ const PredictWorldCup: React.FC = () => {
                 onPress={() => setActiveTab(tab.key)}
                 style={tw.style(
                   'min-w-[51px] flex-row items-center justify-center gap-2 rounded-xl bg-muted p-2',
-                  isActive && 'bg-white',
+                  isActive && 'bg-icon-default',
                 )}
                 testID={`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-${tab.key}`}
               >
