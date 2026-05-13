@@ -1121,10 +1121,9 @@
       "subtitle": "Multiply your P&L up to {{leverage}}"
     },
     "service_interruption": {
-      "title": "Perps is experiencing an outage",
-      "description": "The team is aware and working on a fix. You can",
-      "contact_support": "contact customer support here",
-      "manage_positions": "Manage any position on Hyperliquid"
+      "title": "We're experiencing an outage",
+      "description": "Some services may be unavailable while the team works on a fix.",
+      "contact_support": "Contact support"
     },
     "today": "Today",
     "yesterday": "Yesterday",

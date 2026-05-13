@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Linking, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -21,8 +21,6 @@ import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors
 import { SUPPORT_CONFIG } from '../../constants/perpsConfig';
 import type { PerpsServiceInterruptionBannerProps } from './PerpsServiceInterruptionBanner.types';
 
-const HYPERLIQUID_URL = 'https://app.hyperliquid.xyz/';
-
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
@@ -40,9 +38,6 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
-  },
-  linkText: {
-    textDecorationLine: 'underline',
   },
 });
 
@@ -64,10 +59,6 @@ const PerpsServiceInterruptionBanner: React.FC<
     });
   }, [navigation]);
 
-  const handleHyperliquidPress = useCallback(() => {
-    Linking.openURL(HYPERLIQUID_URL);
-  }, []);
-
   if (!isEnabled) {
     return null;
   }
@@ -84,12 +75,15 @@ const PerpsServiceInterruptionBanner: React.FC<
           style={styles.contentRow}
         >
           <Icon
-            name={IconName.Danger}
-            size={IconSize.Lg}
+            name={IconName.FlashSlash}
+            size={IconSize.Md}
             color={IconColor.WarningDefault}
           />
           <Box style={styles.textContainer}>
-            <Text variant={TextVariant.BodyMd}>
+            <Text
+              variant={TextVariant.HeadingSm}
+              color={TextColor.WarningDefault}
+            >
               {strings('perps.service_interruption.title')}
             </Text>
             <Text
@@ -100,21 +94,10 @@ const PerpsServiceInterruptionBanner: React.FC<
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.InfoDefault}
-                style={styles.linkText}
                 onPress={handleSupportPress}
                 testID={`${testID}-support-link`}
               >
                 {strings('perps.service_interruption.contact_support')}
-              </Text>
-              {'. '}
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.InfoDefault}
-                style={styles.linkText}
-                onPress={handleHyperliquidPress}
-                testID={`${testID}-hyperliquid-link`}
-              >
-                {strings('perps.service_interruption.manage_positions')}
               </Text>
             </Text>
           </Box>

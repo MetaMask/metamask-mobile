@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import PerpsServiceInterruptionBanner from './PerpsServiceInterruptionBanner';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors/featureFlags';
 
@@ -14,10 +13,6 @@ jest.mock('react-redux', () => ({
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
-}));
-
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
 }));
 
 const { useSelector } = jest.requireMock('react-redux');
@@ -53,7 +48,7 @@ describe('PerpsServiceInterruptionBanner', () => {
     expect(getByTestId('perps-service-interruption-banner')).toBeOnTheScreen();
   });
 
-  it('displays outage title text', () => {
+  it('displays outage title and description', () => {
     useSelector.mockImplementation((selector: unknown) => {
       if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
         return true;
@@ -63,24 +58,9 @@ describe('PerpsServiceInterruptionBanner', () => {
 
     const { getByText } = render(<PerpsServiceInterruptionBanner />);
 
-    expect(getByText('Perps is experiencing an outage')).toBeOnTheScreen();
-  });
-
-  it('displays description and links', () => {
-    useSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
-        return true;
-      }
-      return undefined;
-    });
-
-    const { getByText } = render(<PerpsServiceInterruptionBanner />);
-
-    expect(
-      getByText(/The team is aware and working on a fix/),
-    ).toBeOnTheScreen();
-    expect(getByText('contact customer support here')).toBeOnTheScreen();
-    expect(getByText('Manage any position on Hyperliquid')).toBeOnTheScreen();
+    expect(getByText("We're experiencing an outage")).toBeOnTheScreen();
+    expect(getByText(/Some services may be unavailable/)).toBeOnTheScreen();
+    expect(getByText('Contact support')).toBeOnTheScreen();
   });
 
   it('navigates to support when support link pressed', () => {
@@ -98,25 +78,6 @@ describe('PerpsServiceInterruptionBanner', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
-  });
-
-  it('opens Hyperliquid URL when link pressed', () => {
-    useSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
-        return true;
-      }
-      return undefined;
-    });
-
-    const { getByTestId } = render(<PerpsServiceInterruptionBanner />);
-
-    fireEvent.press(
-      getByTestId('perps-service-interruption-banner-hyperliquid-link'),
-    );
-
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://app.hyperliquid.xyz/',
-    );
   });
 
   it('uses custom testID when provided', () => {

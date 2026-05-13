@@ -51,6 +51,7 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
+import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   ARBITRUM_USDC,
@@ -1810,6 +1811,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </Text>
             </View>
           )}
+
+          {/* Service Interruption Banner */}
+          <PerpsServiceInterruptionBanner
+            testID={PerpsOrderViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+          />
 
           {buttonColorVariant === 'monochrome' ? (
             <DSButton
