@@ -609,4 +609,32 @@ describe('Homepage', () => {
       });
     });
   });
+
+  describe('perpsProvidersHoisted + Perps feature flag', () => {
+    it('does not render PerpsSection when perpsProvidersHoisted=true and Perps flag is disabled', () => {
+      jest
+        .requireMock('../../UI/Perps')
+        .selectPerpsEnabledFlag.mockReturnValue(false);
+
+      renderWithProvider(<Homepage perpsProvidersHoisted />, {
+        state: stateWithPreferences,
+      });
+
+      const calls = getUseHomeViewedEventCalls();
+      expect(calls.some((c) => c[0]?.sectionName === 'perps')).toBe(false);
+    });
+
+    it('renders PerpsSection when perpsProvidersHoisted=true and Perps flag is enabled', () => {
+      jest
+        .requireMock('../../UI/Perps')
+        .selectPerpsEnabledFlag.mockReturnValue(true);
+
+      renderWithProvider(<Homepage perpsProvidersHoisted />, {
+        state: stateWithPreferences,
+      });
+
+      const calls = getUseHomeViewedEventCalls();
+      expect(calls.some((c) => c[0]?.sectionName === 'perps')).toBe(true);
+    });
+  });
 });
