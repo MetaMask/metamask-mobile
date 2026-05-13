@@ -9,10 +9,7 @@ import {
   AvatarAccount,
   AvatarAccountSize,
   AvatarAccountVariant,
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
+  ButtonIconSize,
   FontWeight,
   HeaderBase,
   Icon,
@@ -20,10 +17,14 @@ import {
   IconName,
   IconSize,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
+import {
+  AlignItems,
+  FlexDirection,
+  JustifyContent,
+} from '../../../UI/Box/box.types';
+import { Box } from '../../../UI/Box/Box';
 import { useStyles } from '../../../hooks/useStyles';
 import { AccountDetailsIds } from '../AccountDetails.testIds';
 import { useSelector } from 'react-redux';
@@ -60,19 +61,20 @@ interface AccountGroupDetailsRouteParams {
   accountGroup: AccountGroupObject;
 }
 
-function mapAvatarAccountTypeToVariant(
-  type: AvatarAccountType,
-): AvatarAccountVariant {
-  switch (type) {
-    case AvatarAccountType.JazzIcon:
-      return AvatarAccountVariant.Jazzicon;
-    case AvatarAccountType.Blockies:
-      return AvatarAccountVariant.Blockies;
-    case AvatarAccountType.Maskicon:
-    default:
-      return AvatarAccountVariant.Maskicon;
-  }
-}
+const AVATAR_ACCOUNT_TYPE_TO_VARIANT: Record<string, AvatarAccountVariant> = {
+  JazzIcon: AvatarAccountVariant.Jazzicon,
+  Blockies: AvatarAccountVariant.Blockies,
+  Maskicon: AvatarAccountVariant.Maskicon,
+  jazzicon: AvatarAccountVariant.Jazzicon,
+  blockies: AvatarAccountVariant.Blockies,
+  maskicon: AvatarAccountVariant.Maskicon,
+};
+
+const getAvatarAccountVariant = (
+  avatarAccountType?: string,
+): AvatarAccountVariant =>
+  AVATAR_ACCOUNT_TYPE_TO_VARIANT[avatarAccountType ?? ''] ??
+  AvatarAccountVariant.Maskicon;
 
 export const AccountGroupDetails = () => {
   const route =
@@ -91,6 +93,10 @@ export const AccountGroupDetails = () => {
   const walletId = useMemo(() => getWalletIdFromAccountGroup(id), [id]);
   const { styles } = useStyles(styleSheet, {});
   const accountAvatarType = useSelector(selectAvatarAccountType);
+  const accountAvatarVariant = useMemo(
+    () => getAvatarAccountVariant(accountAvatarType),
+    [accountAvatarType],
+  );
   const selectIconSeedAddress = React.useMemo(
     () => selectIconSeedAddressByAccountGroupId(id),
     [id],
@@ -183,10 +189,10 @@ export const AccountGroupDetails = () => {
       <HeaderBase
         style={styles.header}
         startButtonIconProps={{
-          iconName: IconName.ArrowLeft,
-          onPress: () => navigation.goBack(),
           testID: AccountDetailsIds.BACK_BUTTON,
-          accessibilityLabel: strings('navigation.back'),
+          iconName: IconName.ArrowLeft,
+          size: ButtonIconSize.Md,
+          onPress: () => navigation.goBack(),
         }}
       >
         {groupName}
@@ -196,14 +202,14 @@ export const AccountGroupDetails = () => {
         testID={AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER}
       >
         <Box
-          flexDirection={BoxFlexDirection.Row}
-          justifyContent={BoxJustifyContent.Center}
+          flexDirection={FlexDirection.Row}
+          justifyContent={JustifyContent.center}
           style={styles.avatar}
         >
           <AvatarAccount
-            address={iconSeedAddress}
-            variant={mapAvatarAccountTypeToVariant(accountAvatarType)}
+            variant={accountAvatarVariant}
             size={AvatarAccountSize.Xl}
+            address={iconSeedAddress}
             testID={AccountDetailsIds.ACCOUNT_GROUP_DETAILS_AVATAR}
           />
         </Box>
@@ -216,15 +222,14 @@ export const AccountGroupDetails = () => {
             {strings('multichain_accounts.account_details.account_name')}
           </Text>
           <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
             gap={8}
           >
             <Text
               style={styles.groupNameText}
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -246,14 +251,14 @@ export const AccountGroupDetails = () => {
             {strings('multichain_accounts.account_details.networks')}
           </Text>
           <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
             gap={8}
           >
             <Text
+              style={styles.text}
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
             >
               {`${internalAccountsSpreadByScopes.length} ${strings(
                 'multichain_accounts.address_list.addresses',
@@ -285,14 +290,14 @@ export const AccountGroupDetails = () => {
               {strings('multichain_accounts.account_details.private_keys')}
             </Text>
             <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
               gap={8}
             >
               <Text
+                style={styles.text}
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
               >
                 {strings(
                   'multichain_accounts.account_details.unlock_to_reveal',
@@ -315,14 +320,14 @@ export const AccountGroupDetails = () => {
             {strings('multichain_accounts.account_details.smart_account')}
           </Text>
           <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
             gap={8}
           >
             <Text
+              style={styles.text}
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
             >
               {strings('multichain_accounts.account_details.set_up')}
             </Text>

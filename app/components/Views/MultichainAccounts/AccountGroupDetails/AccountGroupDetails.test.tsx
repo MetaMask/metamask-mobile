@@ -18,7 +18,7 @@ import {
   createMockInternalAccountsFromGroups,
   createMockState,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
+import { AvatarAccountVariant } from '@metamask/design-system-react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 const mockGoBack = jest.fn();
@@ -45,6 +45,18 @@ const internalAccounts = createMockInternalAccountsFromGroups(groups);
 const baseState = createMockState([mockWallet], internalAccounts);
 
 let mockRouteParams = { accountGroup: mockAccountGroup };
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  return {
+    ...actual,
+    AvatarAccount: ({ testID }: { testID?: string }) =>
+      ReactActual.createElement(View, { testID }),
+  };
+});
 
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => {
   const actual = jest.requireActual(
@@ -128,7 +140,7 @@ describe('AccountGroupDetails', () => {
   const mockState = {
     ...baseState,
     settings: {
-      avatarAccountType: AvatarAccountType.Maskicon,
+      avatarAccountType: AvatarAccountVariant.Maskicon,
     },
     user: {
       seedphraseBackedUp: false,

@@ -3,18 +3,16 @@ import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { Box } from '../../../../UI/Box/Box';
+import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AccountDetailsIds } from '../../AccountDetails.testIds';
@@ -43,15 +41,15 @@ export const RemoveAccount = ({ account }: RemoveAccountProps) => {
       onPress={handleRemoveAccountClick}
     >
       <Text
+        style={styles.removeAccountText}
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        color={TextColor.ErrorDefault}
       >
         {strings('multichain_accounts.account_details.remove_account')}
       </Text>
       <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
         gap={8}
       >
         <Icon
