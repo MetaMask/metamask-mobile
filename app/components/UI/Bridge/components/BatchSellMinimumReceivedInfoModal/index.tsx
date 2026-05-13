@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import React from 'react';
 import {
   BottomSheet,
@@ -11,10 +12,17 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../locales/i18n';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import { BatchSellMinimumReceivedInfoModalSelectorsIDs } from './BatchSellMinimumReceivedInfoModal.testIds';
+import { BatchSellMinimumReceivedInfoModalParams } from './BatchSellMinimumReceivedInfoModal.types';
 
 export function BatchSellMinimumReceivedInfoModal() {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const { sourceModal } = useParams<BatchSellMinimumReceivedInfoModalParams>();
+  const handleBack = sourceModal
+    ? () => navigation.replace(sourceModal.screen, sourceModal.params)
+    : undefined;
 
   return (
     <BottomSheet
@@ -22,6 +30,10 @@ export function BatchSellMinimumReceivedInfoModal() {
       goBack={navigation.goBack}
     >
       <BottomSheetHeader
+        onBack={handleBack}
+        backButtonProps={{
+          testID: BatchSellMinimumReceivedInfoModalSelectorsIDs.BACK_BUTTON,
+        }}
         onClose={navigation.goBack}
         closeButtonProps={{
           size: ButtonIconSize.Md,

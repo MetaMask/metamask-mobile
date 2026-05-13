@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import React from 'react';
 import {
   BottomSheet,
@@ -14,13 +15,24 @@ import { BatchSellQuoteDetailsModalParams } from './BatchSellQuoteDetailsModal.t
 import { strings } from '../../../../../../locales/i18n';
 
 export function BatchSellQuoteDetailsModal() {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
   const { tokenData, totalReceived, minimumReceived } =
     useParams<BatchSellQuoteDetailsModalParams>();
   const handleOpenMinimumReceivedInfo = () => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL,
-    });
+    navigation.replace(
+      Routes.BRIDGE.MODALS.BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL,
+      {
+        sourceModal: {
+          screen: Routes.BRIDGE.MODALS.BATCH_SELL_QUOTE_DETAILS_MODAL,
+          params: {
+            tokenData,
+            totalReceived,
+            minimumReceived,
+          },
+        },
+      },
+    );
   };
 
   return (

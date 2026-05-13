@@ -20,6 +20,7 @@ import type { BrowserParams } from '../../components/Views/Browser/Browser.types
 import type { BridgeRouteParams } from '../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeTokenSelectorRouteParams } from '../../components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
 import type { BatchSellQuoteDetailsModalParams } from '../../components/UI/Bridge/components/BatchSellQuoteDetailsModal/BatchSellQuoteDetailsModal.types';
+import type { BatchSellMinimumReceivedInfoModalParams } from '../../components/UI/Bridge/components/BatchSellMinimumReceivedInfoModal/BatchSellMinimumReceivedInfoModal.types';
 import type {
   BatchSellSlippageModalParams,
   SwapSlippageModalParams,
@@ -539,7 +540,9 @@ export interface RootStackParamList extends ParamListBase {
   RecipientSelectorModal: undefined;
   BatchSellDestinationTokenSelectorModal: undefined;
   BatchSellQuoteDetailsModal: BatchSellQuoteDetailsModalParams;
-  BatchSellMinimumReceivedInfoModal: undefined;
+  BatchSellMinimumReceivedInfoModal:
+    | BatchSellMinimumReceivedInfoModalParams
+    | undefined;
   BridgeTransactionDetails: BridgeTransactionDetailsParams | undefined;
 
   // Perps routes - use PerpsNavigationParamList for type-safe perps navigation
