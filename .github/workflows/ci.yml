@@ -98,7 +98,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
@@ -115,9 +115,7 @@ jobs:
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
-          # .head.sha = PR head (pull_request events); github.sha fallback = pushed/scheduled commit
-          # (push to main, merge_group, schedule) where no PR payload exists.
-          target-sha: ${{ github.event.pull_request.head.sha || github.sha }}
+          target-sha: ${{  github.sha }}
 
   dedupe:
     name: Dedupe
