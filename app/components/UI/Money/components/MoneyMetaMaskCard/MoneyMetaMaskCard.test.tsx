@@ -99,11 +99,11 @@ describe('MoneyMetaMaskCard', () => {
   describe('link mode', () => {
     it('renders link subtitle instead of upsell subtitle', () => {
       const { getByText, queryByText } = render(
-        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
+        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} apy={4} />,
       );
 
       expect(
-        getByText(strings('money.metamask_card.link_subtitle')),
+        getByText(strings('money.metamask_card.link_subtitle', { apy: 4 })),
       ).toBeOnTheScreen();
       expect(
         queryByText(strings('money.metamask_card.subtitle')),
@@ -120,9 +120,9 @@ describe('MoneyMetaMaskCard', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders cashback and APY bullets', () => {
-      const { getByTestId } = render(
-        <MoneyMetaMaskCard mode="link" apy={5} onGetNowPress={jest.fn()} />,
+    it('renders 1% cashback and APY bullets for non-metal regions', () => {
+      const { getByTestId, getByText, queryByText } = render(
+        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} apy={4} />,
       );
 
       expect(
@@ -131,6 +131,30 @@ describe('MoneyMetaMaskCard', () => {
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
       ).toBeOnTheScreen();
+      expect(getByText('Get 1% mUSD back')).toBeOnTheScreen();
+      expect(getByText('Earn up to 4% APY')).toBeOnTheScreen();
+      expect(queryByText('Get 3% mUSD back')).not.toBeOnTheScreen();
+    });
+
+    it('renders 3% cashback and APY bullets when showMetalCard is true', () => {
+      const { getByTestId, getByText, queryByText } = render(
+        <MoneyMetaMaskCard
+          mode="link"
+          onGetNowPress={jest.fn()}
+          showMetalCard
+          apy={4}
+        />,
+      );
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
+      ).toBeOnTheScreen();
+      expect(getByText('Get 3% mUSD back')).toBeOnTheScreen();
+      expect(getByText('Earn up to 4% APY')).toBeOnTheScreen();
+      expect(queryByText('Get 1% mUSD back')).not.toBeOnTheScreen();
     });
 
     it('renders "Link card" button', () => {
@@ -192,6 +216,59 @@ describe('MoneyMetaMaskCard', () => {
 
       fireEvent.press(getByText(strings('money.metamask_card.link_title')));
       expect(mockHeader).toHaveBeenCalled();
+    });
+  });
+
+  describe('mode="manage"', () => {
+    const props = {
+      mode: 'manage' as const,
+      onGetNowPress: jest.fn(),
+      onManagePress: jest.fn(),
+      cardBalance: '$2,342.86',
+    };
+
+    beforeEach(() => {
+      props.onGetNowPress.mockClear();
+      props.onManagePress.mockClear();
+    });
+
+    it('renders both balance and metal rows', () => {
+      const { getByTestId } = render(<MoneyMetaMaskCard {...props} />);
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE_ROW),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_METAL_ROW),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the available balance', () => {
+      const { getByTestId } = render(<MoneyMetaMaskCard {...props} />);
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).toHaveTextContent('$2,342.86');
+    });
+
+    it('calls onManagePress when Manage is tapped', () => {
+      const { getByTestId } = render(<MoneyMetaMaskCard {...props} />);
+      fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BUTTON));
+      expect(props.onManagePress).toHaveBeenCalled();
+    });
+
+    it('calls onGetNowPress when metal Get now is tapped', () => {
+      const { getByTestId } = render(<MoneyMetaMaskCard {...props} />);
+      fireEvent.press(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_METAL_GET_NOW),
+      );
+      expect(props.onGetNowPress).toHaveBeenCalled();
+    });
+
+    it('does not render upsell or link content', () => {
+      const { queryByTestId } = render(<MoneyMetaMaskCard {...props} />);
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).toBeNull();
+      expect(queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER)).toBeNull();
     });
   });
 
