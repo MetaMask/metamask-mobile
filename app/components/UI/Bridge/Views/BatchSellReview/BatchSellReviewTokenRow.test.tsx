@@ -40,16 +40,24 @@ jest.mock('@metamask/design-system-react-native', () => {
     BoxFlexDirection: { Row: 'row' },
     ButtonIcon: ({
       accessibilityLabel,
+      isDisabled,
       onPress,
       testID,
     }: {
       accessibilityLabel?: string;
+      isDisabled?: boolean;
       onPress?: () => void;
       testID?: string;
     }) =>
       ReactActual.createElement(
         RNPressable,
-        { accessibilityLabel, onPress, testID },
+        {
+          accessibilityLabel,
+          accessibilityState: { disabled: Boolean(isDisabled) },
+          disabled: isDisabled,
+          onPress: isDisabled ? undefined : onPress,
+          testID,
+        },
         null,
       ),
     ButtonIconSize: { Md: 'md' },
@@ -185,5 +193,26 @@ describe('BatchSellReviewTokenRow', () => {
 
     expect(mockOnSlippagePress).toHaveBeenCalledWith(mockToken);
     expect(mockOnRemovePress).toHaveBeenCalledWith(mockToken);
+  });
+
+  it('disables remove presses', () => {
+    const { getByTestId } = render(
+      <BatchSellReviewTokenRow
+        token={mockToken}
+        tokenKey={mockTokenKey}
+        percent={100}
+        onPercentChange={mockOnPercentChange}
+        onRemovePress={mockOnRemovePress}
+        isRemoveTokenDisabled
+      />,
+    );
+    const removeButton = getByTestId(
+      `${BatchSellReviewSelectorsIDs.REMOVE_BUTTON}-${mockTokenKey}`,
+    );
+
+    fireEvent.press(removeButton);
+
+    expect(removeButton.props.accessibilityState.disabled).toBe(true);
+    expect(mockOnRemovePress).not.toHaveBeenCalled();
   });
 });

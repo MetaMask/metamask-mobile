@@ -34,6 +34,7 @@ import {
   selectBatchSellDestStablecoins,
   selectBatchSellSourceTokens,
   setBatchSellDestToken,
+  setBatchSellSourceTokens,
   setBatchSellTokenSlippages,
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
@@ -101,6 +102,7 @@ export function BatchSellReview() {
   );
   const selectedDestinationToken = useSelector(selectBatchSellDestToken);
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
+  const isRemoveTokenDisabled = selectedTokens.length <= 2;
   const [percentsByTokenKey, setPercentsByTokenKey] = useState<
     Record<string, number>
   >({});
@@ -180,6 +182,20 @@ export function BatchSellReview() {
       });
     },
     [navigation, selectedDestinationToken?.chainId],
+  );
+
+  const handleRemoveToken = useCallback(
+    (tokenToRemove: BridgeToken) => {
+      if (isRemoveTokenDisabled) return;
+
+      const tokenKeyToRemove = getTokenKey(tokenToRemove);
+      const remainingTokens = selectedTokens.filter(
+        (token) => getTokenKey(token) !== tokenKeyToRemove,
+      );
+
+      dispatch(setBatchSellSourceTokens(remainingTokens));
+    },
+    [dispatch, isRemoveTokenDisabled, selectedTokens],
   );
 
   return (
@@ -274,6 +290,8 @@ export function BatchSellReview() {
                 percent={percentsByTokenKey[tokenKey] ?? DEFAULT_PERCENT}
                 onPercentChange={handlePercentChange}
                 onSlippagePress={handleSlippagePress}
+                onRemovePress={handleRemoveToken}
+                isRemoveTokenDisabled={isRemoveTokenDisabled}
               />
             );
           })}
