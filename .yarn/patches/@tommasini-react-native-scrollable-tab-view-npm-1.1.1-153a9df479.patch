@@ -1,5 +1,5 @@
 diff --git a/DefaultTabBar.js b/DefaultTabBar.js
-index 81a8a70576a2336fbfce44f429b80acb6bacb2c1..ee5ae990567fbc36fd0459d4d21eb0845c1d4ae0 100644
+index 81a8a70576a2336fbfce44f429b80acb6bacb2c1..f8916b181efe7ba4ab598d3e6fb114774a3ec164 100644
 --- a/DefaultTabBar.js
 +++ b/DefaultTabBar.js
 @@ -23,6 +23,7 @@ const DefaultTabBar = createReactClass({
@@ -45,12 +45,11 @@ index 81a8a70576a2336fbfce44f429b80acb6bacb2c1..ee5ae990567fbc36fd0459d4d21eb084
            ]}
          />
        </View>
-@@ -105,7 +108,7 @@ const styles = StyleSheet.create({
+@@ -105,7 +108,6 @@ const styles = StyleSheet.create({
    tabs: {
      height: 50,
      flexDirection: 'row',
 -    justifyContent: 'space-around',
-+    justifyContent: 'start',
      borderWidth: 1,
      borderTopWidth: 0,
      borderLeftWidth: 0,
