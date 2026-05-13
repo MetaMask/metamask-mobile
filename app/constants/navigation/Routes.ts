@@ -308,6 +308,7 @@ const Routes = {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',
     TOKEN_SELECTOR: 'BridgeTokenSelector',
+    BATCH_SELL_TOKEN_SELECT: 'BatchSellTokenSelect',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     MODALS: {
       ROOT: 'BridgeModals',
@@ -321,6 +322,7 @@ const Routes = {
       PRICE_IMPACT_MODAL: 'PriceImpactModal',
       MISSING_PRICE_MODAL: 'MissingPriceModal',
       TOKEN_WARNING_MODAL: 'TokenWarningModal',
+      HIGH_RATE_ALERT_MODAL: 'HighRateAlertModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -376,6 +378,7 @@ const Routes = {
     MARKET_LIST: 'PredictMarketList',
     MARKET_DETAILS: 'PredictMarketDetails',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
+    WORLD_CUP: 'PredictWorldCup',
     MODALS: {
       ROOT: 'PredictModals',
       BUY_PREVIEW: 'PredictBuyPreview',

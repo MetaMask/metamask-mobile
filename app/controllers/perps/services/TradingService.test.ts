@@ -1002,6 +1002,33 @@ describe('TradingService', () => {
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalled();
     });
 
+    it('logs error when provider returns a failure result without throwing', async () => {
+      const cancelParams: CancelOrderParams = {
+        orderId: 'order-123',
+        symbol: 'BTC',
+      };
+      mockProvider.cancelOrder.mockResolvedValue({
+        success: false,
+        error: 'Order already filled',
+      });
+
+      const result = await tradingService.cancelOrder({
+        provider: mockProvider,
+        params: cancelParams,
+        context: mockContext,
+      });
+
+      expect(result.success).toBe(false);
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Order already filled' }),
+        expect.objectContaining({
+          controller: 'TradingService',
+          method: 'cancelOrder',
+          symbol: 'BTC',
+        }),
+      );
+    });
+
     it('handles provider exception during order cancel', async () => {
       const cancelParams: CancelOrderParams = {
         orderId: 'order-123',
@@ -1258,6 +1285,80 @@ describe('TradingService', () => {
       expect(result.results).toHaveLength(2);
       expect(mockProvider.cancelOrder).toHaveBeenCalledTimes(2);
     });
+
+    it('logs batch error when provider.cancelOrders returns partial/full failure', async () => {
+      const params: CancelOrdersParams = { cancelAll: true };
+      mockGetOpenOrders.mockResolvedValue(mockOrders);
+      mockWithStreamPause.mockImplementation(
+        async (callback) => await callback(),
+      );
+      (mockProvider.cancelOrders as jest.Mock).mockResolvedValue({
+        success: false,
+        successCount: 0,
+        failureCount: 2,
+        results: [
+          {
+            orderId: 'order-1',
+            symbol: 'BTC',
+            success: false,
+            error: 'rate limit',
+          },
+          {
+            orderId: 'order-2',
+            symbol: 'ETH',
+            success: false,
+            error: 'not found',
+          },
+        ],
+      });
+
+      const result = await tradingService.cancelOrders({
+        provider: mockProvider,
+        params,
+        context: { ...mockContext, getOpenOrders: mockGetOpenOrders },
+        withStreamPause: mockWithStreamPause,
+      });
+
+      expect(result.success).toBe(false);
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining(
+            'cancelOrders batch failure: 2/2 failed',
+          ),
+        }),
+        expect.objectContaining({
+          controller: 'TradingService',
+          method: 'cancelOrders',
+        }),
+      );
+    });
+
+    it('does NOT log batch error when using fallback path (provider.cancelOrders undefined)', async () => {
+      const params: CancelOrdersParams = { cancelAll: true };
+      mockGetOpenOrders.mockResolvedValue(mockOrders);
+      mockWithStreamPause.mockImplementation(
+        async (callback) => await callback(),
+      );
+      delete mockProvider.cancelOrders;
+      mockProvider.cancelOrder.mockResolvedValue({ success: true });
+
+      await tradingService.cancelOrders({
+        provider: mockProvider,
+        params,
+        context: { ...mockContext, getOpenOrders: mockGetOpenOrders },
+        withStreamPause: mockWithStreamPause,
+      });
+
+      // Batch-level log must not fire; individual leaf logs cover per-order failures
+      const batchErrorCalls = (
+        mockDeps.logger.error as jest.Mock
+      ).mock.calls.filter(
+        ([err]: [Error]) =>
+          err instanceof Error &&
+          err.message.includes('cancelOrders batch failure'),
+      );
+      expect(batchErrorCalls).toHaveLength(0);
+    });
   });
 
   describe('closePosition', () => {
@@ -1462,6 +1563,37 @@ describe('TradingService', () => {
         }),
       );
     });
+
+    it('logs error when provider returns a failure result without throwing', async () => {
+      const params: ClosePositionParams = { symbol: 'BTC' };
+      const mockFailureResult: OrderResult = {
+        success: false,
+        error: 'Insufficient liquidity',
+      };
+
+      mockGetPositions.mockResolvedValue([mockPosition]);
+      mockProvider.closePosition.mockResolvedValue(mockFailureResult);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      const result = await tradingService.closePosition({
+        provider: mockProvider,
+        params,
+        context: { ...mockContext, getPositions: mockGetPositions },
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(result).toEqual(mockFailureResult);
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Insufficient liquidity' }),
+        expect.objectContaining({
+          controller: 'TradingService',
+          method: 'closePosition',
+          symbol: 'BTC',
+        }),
+      );
+    });
   });
 
   describe('closePositions', () => {
@@ -1622,6 +1754,70 @@ describe('TradingService', () => {
 
       expect(result.results).toHaveLength(1);
       expect(mockProvider.closePosition).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs batch error when provider.closePositions returns partial/full failure', async () => {
+      const params: ClosePositionsParams = { closeAll: true };
+      (mockProvider.closePositions as jest.Mock).mockResolvedValue({
+        success: false,
+        successCount: 0,
+        failureCount: 2,
+        results: [
+          { symbol: 'BTC', success: false, error: 'insufficient liquidity' },
+          { symbol: 'ETH', success: false, error: 'min size' },
+        ],
+      });
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      const result = await tradingService.closePositions({
+        provider: mockProvider,
+        params,
+        context: { ...mockContext, getPositions: mockGetPositions },
+      });
+
+      expect(result.success).toBe(false);
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining(
+            'closePositions batch failure: 2/2 failed',
+          ),
+        }),
+        expect.objectContaining({
+          controller: 'TradingService',
+          method: 'closePositions',
+        }),
+      );
+    });
+
+    it('does NOT log batch error when using fallback path (provider.closePositions undefined)', async () => {
+      const params: ClosePositionsParams = { symbols: ['BTC'] };
+      mockGetPositions.mockResolvedValue(mockPositions);
+      delete mockProvider.closePositions;
+      mockProvider.closePosition.mockResolvedValue({
+        success: true,
+        orderId: 'close-1',
+      });
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.closePositions({
+        provider: mockProvider,
+        params,
+        context: { ...mockContext, getPositions: mockGetPositions },
+      });
+
+      // Batch-level log must not fire; individual leaf logs cover per-position failures
+      const batchErrorCalls = (
+        mockDeps.logger.error as jest.Mock
+      ).mock.calls.filter(
+        ([err]: [Error]) =>
+          err instanceof Error &&
+          err.message.includes('closePositions batch failure'),
+      );
+      expect(batchErrorCalls).toHaveLength(0);
     });
   });
 
@@ -1820,6 +2016,39 @@ describe('TradingService', () => {
       expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
       expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
         undefined,
+      );
+    });
+
+    it('logs error with message and context when provider throws', async () => {
+      const params: UpdatePositionTPSLParams = {
+        symbol: 'BTC',
+        takeProfitPrice: '55000',
+        stopLossPrice: '45000',
+      };
+
+      mockGetPositions.mockResolvedValue([mockPosition]);
+      mockProvider.updatePositionTPSL.mockRejectedValue(
+        new Error('TPSL provider failure'),
+      );
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await expect(
+        tradingService.updatePositionTPSL({
+          provider: mockProvider,
+          params,
+          context: { ...mockContext, getPositions: mockGetPositions },
+        }),
+      ).rejects.toThrow('TPSL provider failure');
+
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'TPSL provider failure' }),
+        expect.objectContaining({
+          controller: 'TradingService',
+          method: 'updatePositionTPSL',
+          symbol: 'BTC',
+        }),
       );
     });
   });
