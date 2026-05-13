@@ -379,6 +379,7 @@ const Routes = {
     MARKET_LIST: 'PredictMarketList',
     MARKET_DETAILS: 'PredictMarketDetails',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
+    WORLD_CUP: 'PredictWorldCup',
     MODALS: {
       ROOT: 'PredictModals',
       BUY_PREVIEW: 'PredictBuyPreview',
