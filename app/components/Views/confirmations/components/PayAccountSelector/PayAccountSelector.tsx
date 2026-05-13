@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { StyleProp, ViewStyle } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
@@ -7,9 +8,12 @@ import Engine from '../../../../../core/Engine';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../../hooks/transactions/useTransactionAccountOverride';
 import { hasTransactionType } from '../../utils/transaction';
+import { replaceAccountInNestedTransactions } from '../../utils/transaction-pay';
 import AccountSelector from '../AccountSelector';
 
-const PayAccountSelector: React.FC = () => {
+const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
+  style,
+}) => {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id;
   const accountOverride = useTransactionAccountOverride();
@@ -23,16 +27,25 @@ const PayAccountSelector: React.FC = () => {
 
   const handleAccountSelected = useCallback(
     (address: string) => {
-      if (transactionId) {
-        Engine.context.TransactionPayController.setTransactionConfig(
-          transactionId,
-          (config) => {
-            config.accountOverride = address as Hex;
-          },
-        );
+      if (!transactionId) {
+        return;
       }
+
+      replaceAccountInNestedTransactions({
+        transactionId,
+        nestedTransactions: transactionMeta?.nestedTransactions,
+        oldAddress: accountOverride ?? transactionMeta?.txParams?.from,
+        newAddress: address,
+      });
+
+      Engine.context.TransactionPayController.setTransactionConfig(
+        transactionId,
+        (config) => {
+          config.accountOverride = address as Hex;
+        },
+      );
     },
-    [transactionId],
+    [accountOverride, transactionId, transactionMeta],
   );
 
   if (!isMoneyAccountDeposit && !isMoneyAccountWithdraw) {
@@ -43,11 +56,17 @@ const PayAccountSelector: React.FC = () => {
     ? strings('confirm.label.from')
     : undefined;
 
+  const selectorTitle = isMoneyAccountDeposit
+    ? strings('bridge.select_account')
+    : strings('bridge.select_recipient');
+
   return (
     <AccountSelector
       label={label}
+      selectorTitle={selectorTitle}
       selectedAddress={accountOverride}
       onAccountSelected={handleAccountSelected}
+      style={style}
     />
   );
 };

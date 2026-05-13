@@ -634,7 +634,8 @@
     "trade": "取引",
     "settings": "設定",
     "rewards": "報酬",
-    "trending": "閲覧"
+    "trending": "閲覧",
+    "money": "マネー"
   },
   "drawer": {
     "send_button": "送信",
@@ -2446,6 +2447,12 @@
         }
       }
     },
+    "payment": {
+      "change_payment_method": "Change Payment Method",
+      "add_funds": "資金を追加",
+      "add": "追加",
+      "predict_balance": "Predict balance"
+    },
     "order": {
       "available": "使用可能",
       "cashed_out": "キャッシュアウト済み",
@@ -3314,6 +3321,8 @@
     "invalid_number_range": "無効な数字です。1と%{maxSafeChainId}の間に数字を入力してください。",
     "hide_zero_balance_tokens_title": "残高のないトークンを非表示",
     "hide_zero_balance_tokens_desc": "トークンリストに残高がないトークンが表示されないようにします。",
+    "haptic_feedback_title": "Haptic feedback",
+    "haptic_feedback_desc": "Feel subtle vibrations for confirmations, errors, and interactions. Disable to reduce haptic stimuli.",
     "token_detection_title": "トークンの自動検出",
     "token_detection_description": "サードパーティーAPIを使用して、ウォレットに送られた新しいトークンを検出・表示します。アプリがこれらのサービスからデータを取得しないようにするには、オフにしてください。",
     "theme_button_text": "テーマを変更",
@@ -3457,7 +3466,7 @@
         "title": "Headless buy",
         "loading": "Preparing the buy flow…",
         "no_session": "Headless session is no longer active.",
-        "cancel": "Cancel"
+        "cancel": "キャンセル"
       }
     },
     "request_feature": "機能のリクエスト",
@@ -3572,6 +3581,39 @@
         "title": "カード",
         "reset_onboarding_description": "オンボーディングフローをやり直すには、カードのオンボーディングステータスをリセットしてください。",
         "reset_onboarding_button": "オンボーディングステータスのリセット"
+      },
+      "haptics": {
+        "title": "Haptics",
+        "description": "Preview haptic feedback on a physical device. This bypasses in-app reduced-haptics and the remote kill switch so you can evaluate each pattern. Simulators often do not play haptics.",
+        "catalog_impacts_heading": "Catalog impact moments",
+        "notifications_heading": "Notification patterns",
+        "selection_heading": "Selection",
+        "notification_success_button": "Notification — Success",
+        "notification_error_button": "Notification — Error",
+        "notification_warning_button": "Notification — Warning",
+        "selection_button": "Selection",
+        "raw_impacts_heading": "Raw Expo impact styles",
+        "raw_impacts_desc": "Direct expo-haptics impact styles for comparison with the mapped catalog moments above.",
+        "impacts": {
+          "quick_amount_selection": "Impact — Quick amount selection",
+          "slider_tick": "Impact — Slider tick",
+          "edge_gesture_engage": "Impact — Edge gesture engage",
+          "page_navigation": "Impact — Page navigation",
+          "slider_grip": "Impact — Slider grip",
+          "tab_change": "Impact — Tab change",
+          "primary_cta": "Impact — Primary CTA",
+          "pull_to_refresh_engage": "Impact — Pull to refresh (engage)",
+          "pull_to_refresh": "Impact — Pull to refresh (release)",
+          "chart_crosshair": "Impact — Chart crosshair",
+          "follow_toggle": "Impact — Follow toggle"
+        },
+        "raw_styles": {
+          "light": "Raw impact — Light",
+          "medium": "Raw impact — Medium",
+          "heavy": "Raw impact — Heavy",
+          "rigid": "Raw impact — Rigid",
+          "soft": "Raw impact — Soft"
+        }
       }
     },
     "feature_flag_override": {
@@ -6482,7 +6524,7 @@
     "onboarding": {
       "step_progress": "ステップ{{current}}/{{total}}",
       "title": "お金を追加",
-      "description": "mUSDを購入して、今すぐAPYの獲得を始めましょう",
+      "description": "Fund your account and start earning APY.",
       "add": "追加",
       "step2_title": "MetaMaskカードを取得",
       "step2_description": "Mastercardの取扱店であればどこでも、収益を得ると同時にマネー残高を使用できます。",
@@ -6499,7 +6541,8 @@
     "earnings": {
       "title": "収益",
       "lifetime": "累積報酬額",
-      "projected": "予想収益"
+      "projected": "予想収益",
+      "info_label": "Earnings info"
     },
     "how_it_works": {
       "title": "報酬獲得の仕組み",
@@ -6552,6 +6595,35 @@
       "move_musd_no_amount": "Move your mUSD",
       "receive_external": "Receive from external wallet",
       "coming_soon": "近日追加予定"
+    },
+    "more_sheet": {
+      "title": "さらに表示",
+      "how_it_works": "報酬獲得の仕組み",
+      "what_you_get": "得られるもの",
+      "contact_support": "サポートへのお問い合わせ"
+    },
+    "transfer_sheet": {
+      "title": "Transfer money",
+      "between_accounts": "Between accounts",
+      "perps_account": "Perps account",
+      "predictions_account": "Predictions account",
+      "send_external": "Send to external address",
+      "withdraw_to_bank": "Withdraw to bank"
+    },
+    "apy_tooltip": {
+      "title": "Annual Percentage Yield (APY)",
+      "paragraph_1": "Your Money account earns up to {{percentage}}% automatically.",
+      "paragraph_2": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and may change due to various factors. The rate is generated by third-party DeFi platforms that deploy funds in blockchain protocols.",
+      "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance.",
+      "learn_more": "詳細"
+    },
+    "earnings_tooltip": {
+      "title": "収益",
+      "lifetime_heading": "累積報酬額",
+      "lifetime_body": "The total yield you've earned since opening your Money account.",
+      "projected_heading": "予想収益",
+      "projected_body": "現在の残高とレートに基づき1年間でいくら稼げるかの予想です。",
+      "disclaimer": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for 1 year. APY is variable and may change due to various factors. No guarantee of return."
     },
     "activity": {
       "title": "アクティビティ",
@@ -6918,8 +6990,8 @@
       "perps_withdraw": "出金",
       "predict_deposit": "予測資金を追加",
       "predict_withdraw": "出金",
-      "money_account_deposit": "資金を追加",
-      "money_account_withdraw": "出金"
+      "money_account_add_money": "お金を追加",
+      "money_account_transfer_money": "Transfer money"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",
@@ -6939,7 +7011,7 @@
         "transaction_fee": "HyperCore (パーペチュアル取引で使用されるネットワーク) 上でトークンをUSDCにスワップします。スワッププロバイダーは手数料を請求する場合がありますが、MetaMaskは無料です。"
       },
       "predict_deposit": {
-        "transaction_fee": "Polygon (予測で使用されるネットワーク) 上でトークンをUSDCにスワップします。スワッププロバイダーは手数料を請求する場合がありますが、MetaMaskは無料です。"
+        "transaction_fee": "We'll swap your tokens for pUSD on Polygon, the network used by Predictions. Swap providers may charge a fee, but MetaMask won't."
       },
       "perps_withdraw": {
         "transaction_fee": "MetaMaskがユーザーに代わって希望のトークンをスワップします。mUSDへのスワップ時にMetaMaskの手数料は発生しません。"
@@ -7035,7 +7107,8 @@
     "custom_amount": {
       "buy_button": "仮想通貨を購入",
       "buy_predict": "予測を利用するには、ウォレットに資金を追加してください。",
-      "buy_perps": "パーペチュアルを利用するには、ウォレットに資金を追加してください。"
+      "buy_perps": "パーペチュアルを利用するには、ウォレットに資金を追加してください。",
+      "projected_five_year_balance": "Projected 5-year balance:"
     },
     "unlimited": "無制限",
     "all": "すべて",
@@ -7115,6 +7188,7 @@
     "receive_at": "受取先:",
     "recipient": "受取人",
     "select_recipient": "受取人を選択してください",
+    "select_account": "アカウントの選択",
     "external_account": "外部アカウント",
     "error_banner_description": "この取引ルートは現在使用できません。金額、ネットワーク、またはトークンを変更してみてください。最善のオプションを探します。",
     "stock_token_error_banner_description": "この取引ルートは現在使用できません。金額、ネットワーク、またはトークンを変更してみてください。最適なオプションを検索します。",
@@ -7793,6 +7867,7 @@
       "enable_card_button_label": "カードを有効にする",
       "enable_assets_button_label": "アセットを有効にする",
       "spending_limit_warning": "使用上限に近づいています。拒否されないように更新してください。",
+      "spending_limit_available": "使用可能",
       "logout": "ログアウト",
       "contact_support": "サポートへのお問い合わせ",
       "logout_confirmation_title": "カードからログアウトしますか？",
@@ -7927,7 +8002,12 @@
       "withdrawal_success": "出金が完了しました",
       "withdrawal_failed": "出金に失敗しました。もう一度お試しください。",
       "no_cashback": "利用可能なキャッシュバックはありません",
-      "loading_error": "キャッシュバックを読み込めませんでした。もう一度お試しください。"
+      "loading_error": "キャッシュバックを読み込めませんでした。もう一度お試しください。",
+      "funding_required": {
+        "title": "Set up Linea funding",
+        "description": "You need at least one approved funding source on Linea before redeeming cashback.",
+        "confirm_button_label": "Set up funding"
+      }
     },
     "change_asset": {
       "title": "トークンとネットワークの変更",
@@ -8032,7 +8112,8 @@
     "title": "支払方法を選択",
     "title_receive": "トークンの受取を選択してください",
     "no_gas": "ガスの支払いに使えるネイティブ残高がありません",
-    "not_supported": "未対応"
+    "not_supported": "未対応",
+    "crypto": "仮想通貨"
   },
   "connection_removed_modal": {
     "title": "接続が削除されました",
@@ -8310,15 +8391,6 @@
     "season_1": "シーズン1",
     "musd": {
       "page_title": "mUSD",
-      "title": "mUSDボーナス計算ツール",
-      "description": "ステーブルコインをmUSDに交換することで、どれだけの利益が得られるか確認しましょう。",
-      "amount_label": "変換金額",
-      "estimated_bonus": "推定年率ボーナス：最大3%",
-      "initial_amount": "初期金額",
-      "daily_bonus": "1日あたりに獲得可能なボーナス",
-      "annualized_bonus": "年率ボーナス",
-      "disclaimer": "これはあくまで目安です。ボーナスは変更される場合があります。",
-      "disclaimer_brief": "ボーナスは見込み額であり、変動する場合があります。",
       "buy_button": "mUSDを購入",
       "swap_button": "mUSDにスワップ"
     },
@@ -8367,6 +8439,8 @@
       "ends_date": "{{date}}終了",
       "ended_date": "{{date}}に終了",
       "pill_up_next": "近日追加予定",
+      "up_next": "次",
+      "notify_me": "通知を受ける",
       "pill_active": "ライブ",
       "pill_complete": "完了",
       "enter": "応募",
@@ -8380,7 +8454,9 @@
       "geo_locked_toast_title": "お客様の地域では利用できません",
       "geo_locked_toast_description": "このキャンペーンは、お客様の場所で利用できません。新しいキャンペーンがないか、後日また確認してください。",
       "geo_locked_cta": "資格を確認",
-      "geo_loading": "地域を確認中…"
+      "geo_loading": "地域を確認中…",
+      "remind_me_success_toast": "We'll let you know when this campaign starts.",
+      "remind_me_save_error": "Could not save your reminder. Please try again."
     },
     "campaign_mechanics": {
       "title": "仕組み"
@@ -8508,6 +8584,44 @@
       "cancel": "キャンセル",
       "confirm": "理解しています"
     },
+    "perps_trading_campaign": {
+      "title": "Perps Trading Competition",
+      "stats_title": "Stats",
+      "performance_title": "Performance",
+      "label_rank": "Rank",
+      "label_your_rank": "Your rank",
+      "label_pnl": "PnL",
+      "label_volume": "Volume",
+      "label_notional_volume": "Notional volume",
+      "pending": "Pending",
+      "qualified": "Qualified",
+      "open_position_cta": "Open Position",
+      "leaderboard_title": "Leaderboard",
+      "leaderboard_total_participants": "{{count}} participants",
+      "last_updated": "Last updated: {{time}}",
+      "leaderboard_error_loading": "Failed to load leaderboard",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
+      "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
+      "leaderboard_powered_by_prefix": "Powered by ",
+      "leaderboard_hypertracker_brand": "HyperTracker",
+      "prize_pool_title": "Prize pool",
+      "prize_pool_current_label": "Current",
+      "prize_pool_next_label": "Next",
+      "prize_pool_volume_subtext": "{{current}} of {{target}} volume",
+      "prize_pool_max_tier_subtext": "{{maxThreshold}}+ volume — all milestones reached",
+      "prize_pool_max_badge": "Max",
+      "prize_pool_error_title": "Failed to load prize pool",
+      "prize_pool_error_description": "There was an error loading the prize pool. Please try again.",
+      "prize_pool_retry_button": "Retry",
+      "stats_notional_volume_threshold": "${{amount}} required",
+      "stats_qualified_title": "You're qualified",
+      "stats_qualified_description": "Keep trading to improve your PnL and climb the leaderboard before the competition ends.",
+      "stats_qualify_for_rank_title": "Qualify for this rank",
+      "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "stats_retry": "Retry"
+    },
     "campaigns_preview": {
       "title": "キャンペーン",
       "coming_soon": "近日追加予定",
@@ -8532,29 +8646,18 @@
       "retry_button": "再試行",
       "refreshing": "更新中..."
     },
-    "ondo_campaign_winning": {
-      "you_won": "予測的中",
-      "rank_label": "{{place}}位",
-      "email_instructions": "賞品を請求するには、ondocampaign@consensys.netにメールでコードを送信してください。",
-      "open_mail": "メールを開く",
-      "skip_for_now": "今はスキップ",
-      "mail_subject": "Ondoキャンペーン賞品の請求",
-      "mail_body": "勝利コード: {{code}}",
-      "winning_code": "勝利コード",
-      "close_a11y": "閉じる"
-    },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "予測的中",
-        "description": "今すぐ賞品を請求しましょう。",
-        "a11y": "勝者の詳細を開く"
+        "title": "当選しました！",
+        "description": "当選コードを確認し、本日中に賞品を請求してください。",
+        "a11y": "詳細を表示"
       },
       "participant_pending": {
         "title": "キャンペーンが終了しました。",
         "description": "結果を判断しています。近々またご確認ください。"
       },
       "participant_finalized": {
-        "title": "キャンペーンの結果が出ました",
+        "title": "キャンペーンの結果が出ました。",
         "description": "今回は勝ちませんでした。リーダーボードで順位を確認しましょう。"
       },
       "winner_finalized": {
@@ -8562,17 +8665,28 @@
         "description": "間もなく報酬を受け取れます。近々ご連絡します。"
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "予測的中 💰",
-        "description": "{{campaignName}}の賞品を請求",
+        "description": "本日、{{campaignName}}の賞品を請求してください。",
         "cta": "詳細を表示"
       },
-      "participant_no_winner": {
-        "title": "結果が出ました。🏅",
-        "description": "{{campaignName}}でのランキングをご覧ください",
+      "non_winner": {
+        "title": "結果が出ました 🏅",
+        "description": "{{campaignName}}での順位を確認してください。",
         "cta": "表示"
       }
+    },
+    "campaign_winning": {
+      "you_won": "予測的中",
+      "rank_label": "{{place}}位",
+      "email_instructions": "賞品を請求するには、{{email}}にメールでコードを送信してください。",
+      "open_mail": "メールを開く",
+      "skip_for_now": "今はスキップ",
+      "mail_subject": "{{campaignName}} 賞品の請求",
+      "mail_body": "勝利コード: {{code}}",
+      "winning_code": "勝利コード",
+      "close_a11y": "閉じる"
     }
   },
   "time": {
@@ -8662,7 +8776,9 @@
   },
   "trending": {
     "title": "閲覧",
-    "trending_tokens": "トレンド",
+    "crypto_movers": "Crypto movers",
+    "perps_movers": "Perps movers",
+    "trending_tokens": "人気上昇中",
     "stocks": "株式",
     "price_change": "価格変動",
     "all_networks": "すべてのネットワーク",
@@ -8673,6 +8789,17 @@
     "1_hour": "1時間",
     "5_minutes": "5分",
     "networks": "ネットワーク",
+    "ecosystems": "Ecosystems",
+    "ecosystems_subtitle": "Explore dApps, tokens, and NFTs across chains on MetaMask Portfolio",
+    "all_sports": "Popular sports",
+    "basketball": "Basketball",
+    "football": "Football",
+    "soccer": "Soccer",
+    "tennis": "Tennis",
+    "f1": "F1",
+    "golf": "Golf",
+    "all_sports_no_markets": "No open markets in this category yet. Check back soon or pick another sport above.",
+    "load_more": "Load more",
     "sort_by": "並べ替え基準",
     "volume": "取引量",
     "market_cap": "時価総額",
@@ -8682,8 +8809,17 @@
     "search_placeholder": "トークン、サイト、URLを検索",
     "cancel": "キャンセル",
     "perps": "パーペチュアル",
+    "rwa_perps_section": "市場",
+    "macro_stocks_commodity_perps": "Stocks & commodities",
+    "macro_pill_stocks": "株式",
+    "macro_pill_commodities": "商品",
+    "rwa_pill_commodities": "商品",
+    "rwa_pill_stocks": "株式",
+    "rwa_pill_forex": "FX",
+    "crypto_perps_section": "パーペチュアル",
     "predictions": "予測",
     "no_results": "結果が見つかりませんでした",
+    "popular": "人気",
     "sites": "サイト",
     "popular_sites": "人気のサイト",
     "search_sites": "サイトを検索",
@@ -8699,6 +8835,14 @@
     "empty_search_result_state": {
       "title": "トークンが見つかりませんでした",
       "description": "このトークンを見つけることができませんでした"
+    },
+    "tabs": {
+      "now": "現在",
+      "macro": "マクロ",
+      "rwas": "RWAs",
+      "crypto": "仮想通貨",
+      "sports": "スポーツ",
+      "dapps": "サイト"
     }
   },
   "ota_update_modal": {
@@ -8716,7 +8860,9 @@
     },
     "common": {
       "cancel": "キャンセル",
-      "continue": "続行"
+      "continue": "続行",
+      "learn_more": "詳細",
+      "try_again": "もう一度お試しください"
     },
     "connecting": {
       "title": "{{device}}を接続しています...",
@@ -8762,6 +8908,7 @@
       "bluetooth_off": "デバイスに接続するには、Bluetoothをオンにしてください",
       "bluetooth_scan_failed": "デバイスを検索できませんでした。もう一度お試しください。",
       "bluetooth_connection_failed": "デバイスへの接続に失敗しました。もう一度お試しください",
+      "camera_permission_denied": "Camera permission is required to scan QR codes. Please enable it in your device settings",
       "not_supported": "この操作はサポートされていません。",
       "unknown_error": "{{device}}がこのアカウント用のシークレットリカバリーフレーズまたはパスフレーズを使ってセットアップされていることを確認してください。"
     },
@@ -8785,7 +8932,34 @@
       "location_permission_denied": "位置情報へのアクセス許可が必要です",
       "nearby_devices_permission_denied": "付近のデバイスへのアクセス許可が必要です",
       "scan_failed": "検索に失敗しました",
+      "camera_permission_denied": "Camera Permission Required",
       "something_went_wrong": "問題が発生しました"
+    },
+    "qr_scan_errors": {
+      "non_ur_qr_scanned": {
+        "pair": {
+          "title": "Scan wallet sync QR code",
+          "body": "Go back to your hardware wallet and find the option to share or export your accounts, choose MetaMask, then scan the QR code."
+        },
+        "sign": {
+          "title": "Scan signature QR code",
+          "body": "Go back to your hardware wallet and approve the transaction, then scan the QR code it shows."
+        }
+      },
+      "wrong_ur_type": {
+        "pair": {
+          "title": "Wrong QR code",
+          "body": "Go back to your hardware wallet, choose MetaMask as the wallet type, then generate and scan a new QR code."
+        },
+        "sign": {
+          "title": "Wrong QR code",
+          "body": "Go back to your hardware wallet and approve the transaction, then scan the QR code it shows."
+        }
+      },
+      "ur_decode_error": {
+        "title": "Couldn't read QR code",
+        "body": "Make sure the QR code is fully visible and well-lit, and try again. If the issue continues, you may need to update your hardware wallet's firmware."
+      }
     },
     "device_selection": {
       "title": "{{device}}の選択",
@@ -8804,6 +8978,14 @@
       "cash": "マネー",
       "cash_empty_description": "まだmUSDがありません。ホームページの「マネー」セクションでステーブルコインをmUSDに換金してください。",
       "cash_empty_description_network_filter": "このネットワークにはmUSDがありません。ネットワークを切り替えてお持ちのmUSDをご確認ください。",
+      "cash_empty_state": {
+        "get_started": "開始",
+        "earn_apy": "Earn {{percentage}}% APY"
+      },
+      "cash_filled_state": {
+        "add": "追加",
+        "apy": "年換算利率 (APY) {{percentage}}%"
+      },
       "tokens": "トークン",
       "perpetuals": "パーペチュアル",
       "predictions": "予測",
@@ -8819,7 +9001,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFT",
-      "trending_tokens": "トレンド",
+      "trending_tokens": "人気上昇中",
       "trending_perpetuals": "人気のパーペチュアル",
       "trending_predictions": "人気の予測",
       "import_nfts": "NFTをインポート",
@@ -8833,5 +9015,8 @@
       "unable_to_load": "{{section}}を読み込めませんでした",
       "retry": "再試行"
     }
+  },
+  "sites": {
+    "popular": "人気"
   }
 }

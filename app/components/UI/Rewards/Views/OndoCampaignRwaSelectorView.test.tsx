@@ -71,57 +71,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   };
 });
 
-jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Pressable } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        title,
-        onBack,
-        onClose,
-        backButtonProps,
-        endButtonIconProps,
-        testID,
-      }: {
-        title: React.ReactNode;
-        onBack?: () => void;
-        onClose?: () => void;
-        backButtonProps?: { onPress?: () => void };
-        endButtonIconProps?: {
-          onPress?: () => void;
-          testID?: string;
-        }[];
-        testID?: string;
-      }) =>
-        ReactActual.createElement(
-          View,
-          { testID: testID ?? 'header' },
-          ReactActual.createElement(Pressable, {
-            onPress: backButtonProps?.onPress ?? onBack ?? onClose,
-            testID: 'header-back-button',
-          }),
-          typeof title === 'string'
-            ? ReactActual.createElement(
-                jest.requireActual('react-native').Text,
-                { testID: 'header-title' },
-                title,
-              )
-            : title,
-          ...(endButtonIconProps ?? []).map((iconProps, index) =>
-            ReactActual.createElement(Pressable, {
-              key: `end-icon-${index}`,
-              onPress: iconProps.onPress,
-              testID: iconProps.testID ?? 'search-toggle',
-            }),
-          ),
-        ),
-    };
-  },
-);
-
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
   return {
@@ -427,7 +376,7 @@ describe('OndoCampaignRwaSelectorView', () => {
 
   it('navigates back when back button is pressed', () => {
     const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
-    fireEvent.press(getByTestId('header-back-button'));
+    fireEvent.press(getByTestId('ondo-rwa-selector-header-back-button'));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 

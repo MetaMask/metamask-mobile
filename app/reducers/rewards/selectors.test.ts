@@ -47,11 +47,15 @@ import {
   selectBulkLinkWasInterrupted,
   selectBulkLinkAccountProgress,
   selectBenefits,
+  selectVipDashboard,
+  selectVipDashboardError,
+  selectVipDashboardLoading,
   selectCampaigns,
   selectCampaignsLoading,
   selectCampaignsError,
   selectCampaignParticipantStatuses,
   selectCampaignParticipantStatus,
+  selectCampaignParticipantOptedIn,
   selectCampaignParticipantCount,
   selectIsRewardsVersionBlocked,
   selectVersionGuardMinimumMobileVersion,
@@ -86,6 +90,7 @@ import {
   PointsEventDto,
   OndoGmActivityEntryDto,
   SubscriptionBenefitDto,
+  VipDashboardState,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
 import { RewardsState, AccountOptInBannerInfoStatus } from '.';
@@ -3196,6 +3201,106 @@ describe('Rewards selectors', () => {
     });
   });
 
+  describe('VIP dashboard selectors', () => {
+    const mockVipDashboard: VipDashboardState = {
+      program: { id: 'vip', name: 'VIP Pilot' },
+      period: {
+        start: '2026-03-31T00:00:00.000Z',
+        end: '2026-04-30T23:59:59.999Z',
+      },
+      currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
+      nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
+      progress: {
+        percent: 72,
+        remainingSwapsUsd: 800000,
+        remainingPerpsUsd: 3600000,
+        estimatedDaysToNextTier: 4,
+        status: 'on_track',
+      },
+      fees: {
+        swapsBps: 15,
+        perpsBps: 4,
+        nextTierSwapsBps: 12,
+        nextTierPerpsBps: 3,
+      },
+      volume: {
+        swapsUsd: 4100000,
+        perpsUsd: 2300000,
+      },
+      pointsAllocation: {
+        earned: 24400000,
+        max: 100000000,
+        percent: 24.4,
+      },
+      tiers: [
+        {
+          id: 'gold-fox-vip-3',
+          name: 'Gold Fox 3',
+          tier: 3,
+          swapsRequirementUsd: 7000000,
+          perpsRequirementUsd: 35000000,
+          swapsBps: 15,
+          perpsBps: 4,
+          status: 'current',
+        },
+      ],
+      localizedText: {
+        period: 'Mar 31 - Apr 30',
+        progressToNextTier: 'Subline',
+        swapsFeeTitle: 'Swaps fee',
+        perpsFeeTitle: 'Perps fee',
+        nextTierSwapsFeeDelta: '↓ 12 bps next tier',
+        nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+        volumeTitle: 'Volume',
+        statusMessage: 'On track',
+        pointsTitle: 'Points',
+        pointsAllocationTitle: 'Earn VIP allocations',
+        pointsAllocationDescription: 'Body copy',
+      },
+      lastFetched: 123,
+    };
+
+    it('returns null when subscription id is missing', () => {
+      const state = createMockRootState({
+        vipDashboard: { 'sub-1': mockVipDashboard },
+      });
+
+      expect(selectVipDashboard(null)(state)).toBeNull();
+    });
+
+    it('returns null when dashboard is missing for subscription', () => {
+      const state = createMockRootState({
+        vipDashboard: {},
+      });
+
+      expect(selectVipDashboard('sub-1')(state)).toBeNull();
+    });
+
+    it('returns dashboard for subscription', () => {
+      const state = createMockRootState({
+        vipDashboard: { 'sub-1': mockVipDashboard },
+      });
+
+      expect(selectVipDashboard('sub-1')(state)).toEqual(mockVipDashboard);
+    });
+
+    it('returns loading state', () => {
+      const state = createMockRootState({
+        vipDashboardLoading: true,
+      });
+
+      expect(selectVipDashboardLoading(state)).toBe(true);
+    });
+
+    it('returns error state', () => {
+      const state = createMockRootState({
+        vipDashboardError: true,
+      });
+
+      expect(selectVipDashboardError(state)).toBe(true);
+    });
+  });
+
   describe('selectCampaigns', () => {
     it('returns empty array when campaigns is empty', () => {
       const mockState = { rewards: { campaigns: [] } };
@@ -3376,6 +3481,39 @@ describe('Rewards selectors', () => {
       expect(
         selectCampaignParticipantStatus('sub-2', 'campaign-1')(state),
       ).toBeNull();
+    });
+  });
+
+  describe('selectCampaignParticipantOptedIn', () => {
+    it('returns true when participant status is opted in', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(
+        selectCampaignParticipantOptedIn('sub-1', 'campaign-1')(state),
+      ).toBe(true);
+    });
+
+    it('returns false when participant status is not opted in', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: false, participantCount: 0 },
+        },
+      });
+      expect(
+        selectCampaignParticipantOptedIn('sub-1', 'campaign-1')(state),
+      ).toBe(false);
+    });
+
+    it('returns false when status is missing', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(
+        selectCampaignParticipantOptedIn('sub-1', 'campaign-1')(state),
+      ).toBe(false);
     });
   });
 
@@ -3933,8 +4071,8 @@ describe('Rewards selectors', () => {
 
     it('returns the dismissed toasts map', () => {
       const dismissed = {
-        'campaign-1:sub-1:winner_verify': true,
-        'campaign-2:sub-1:participant_no_winner': true,
+        'campaign-1:sub-1:winner': true,
+        'campaign-2:sub-1:non_winner': true,
       };
       const state = createMockRootState({
         dismissedCampaignOutcomeToasts: dismissed,
@@ -3945,11 +4083,11 @@ describe('Rewards selectors', () => {
     it('returns true for a dismissed toast key', () => {
       const state = createMockRootState({
         dismissedCampaignOutcomeToasts: {
-          'campaign-1:sub-1:winner_verify': true,
+          'campaign-1:sub-1:winner': true,
         },
       });
       const result = selectDismissedCampaignOutcomeToasts(state);
-      expect(result['campaign-1:sub-1:winner_verify']).toBe(true);
+      expect(result['campaign-1:sub-1:winner']).toBe(true);
     });
 
     it('returns undefined for a key that has not been dismissed', () => {
@@ -3957,7 +4095,7 @@ describe('Rewards selectors', () => {
         dismissedCampaignOutcomeToasts: {},
       });
       const result = selectDismissedCampaignOutcomeToasts(state);
-      expect(result['campaign-1:sub-1:winner_verify']).toBeUndefined();
+      expect(result['campaign-1:sub-1:winner']).toBeUndefined();
     });
   });
 });

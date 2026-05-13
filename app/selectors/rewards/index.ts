@@ -50,17 +50,6 @@ export const selectRewardsSubscriptionId = createSelector(
   },
 );
 
-export const selectCampaignParticipantOptedIn =
-  (subscriptionId: string | null, campaignId: string | undefined) =>
-  (state: RootState): boolean => {
-    if (!subscriptionId || !campaignId) return false;
-    return (
-      state.engine.backgroundState.RewardsController.campaignParticipantStatus[
-        `${subscriptionId}:${campaignId}`
-      ]?.optedIn === true
-    );
-  };
-
 export const selectRewardsActiveAccountAddress = createSelector(
   selectRewardsControllerState,
   (rewardsControllerState): string | null => {
@@ -77,6 +66,11 @@ export const selectCurrentSubscription = createSelector(
     subscriptionId
       ? (rewardsState.subscriptions?.[subscriptionId] ?? null)
       : null,
+);
+
+export const selectIsCurrentSubscriptionVipEnabled = createSelector(
+  selectCurrentSubscription,
+  (subscription): boolean => subscription?.features?.vip?.enabled === true,
 );
 
 export const selectCurrentSubscriptionAccounts = createSelector(

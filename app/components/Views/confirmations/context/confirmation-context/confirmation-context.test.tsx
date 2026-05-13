@@ -15,9 +15,11 @@ describe('ConfirmationContext', () => {
 
     expect(result.current).toStrictEqual({
       isFooterVisible: undefined,
+      isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
       setIsFooterVisible: expect.any(Function),
+      setIsHeadlessBuyInProgress: expect.any(Function),
       setIsTransactionDataUpdating: expect.any(Function),
       setIsTransactionValueUpdating: expect.any(Function),
     });
@@ -47,6 +49,22 @@ describe('ConfirmationContext', () => {
     });
 
     expect(result.current.isFooterVisible).toBe(false);
+  });
+
+  it('updates isHeadlessBuyInProgress state when calling setIsHeadlessBuyInProgress', () => {
+    const { result } = renderHook(() => useConfirmationContext(), { wrapper });
+
+    act(() => {
+      result.current.setIsHeadlessBuyInProgress(true);
+    });
+
+    expect(result.current.isHeadlessBuyInProgress).toBe(true);
+
+    act(() => {
+      result.current.setIsHeadlessBuyInProgress(false);
+    });
+
+    expect(result.current.isHeadlessBuyInProgress).toBe(false);
   });
 
   it('updates isTransactionDataUpdating state when calling setIsTransactionDataUpdating', () => {

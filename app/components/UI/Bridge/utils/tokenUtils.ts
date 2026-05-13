@@ -7,19 +7,9 @@ import {
 } from '@metamask/bridge-controller';
 import { zeroAddress } from 'ethereumjs-util';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { BridgeToken } from '../types';
+import type { BridgeToken, IncludeAsset } from '../types';
 import { DefaultSwapDestTokens } from '../constants/default-swap-dest-tokens';
-import { IncludeAsset } from '../hooks/usePopularTokens';
 import { POLYGON_NATIVE_TOKEN } from '../constants/assets';
-
-/**
- * Extracts security warning descriptions from a token's securityData metadata features.
- * Returns an empty array when the token has no security warnings.
- */
-export const getSecurityWarnings = (
-  token: BridgeToken | undefined | null,
-): string[] =>
-  token?.securityData?.metadata?.features?.map((f) => f.description) ?? [];
 
 /**
  * Normalizes chain-specific native token addresses to the zero address for the bridge flow.

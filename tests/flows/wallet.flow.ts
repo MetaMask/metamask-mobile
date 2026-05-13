@@ -25,7 +25,7 @@ import OnboardingSuccessView from '../page-objects/Onboarding/OnboardingSuccessV
 import ImportWalletView from '../page-objects/Onboarding/ImportWalletView';
 import OnboardingView from '../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../page-objects/Onboarding/OnboardingSheet';
-import Accounts from '../../wdio/helpers/Accounts';
+import Accounts from '../utils/Accounts';
 import EnableDeviceNotificationsAlert from '../page-objects/Onboarding/EnableDeviceNotificationsAlert';
 import ProtectYourWalletModal from '../page-objects/Onboarding/ProtectYourWalletModal';
 import SkipAccountSecurityModal from '../page-objects/Onboarding/SkipAccountSecurityModal';

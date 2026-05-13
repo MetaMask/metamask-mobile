@@ -1,7 +1,18 @@
 import { renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
+import { addBreadcrumb } from '@sentry/react-native';
 import Logger from '../../../../../util/Logger';
+import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import { useTraderPositions } from './useTraderPositions';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/keyringController', () => ({
+  selectIsUnlocked: jest.fn(),
+}));
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -9,7 +20,14 @@ jest.mock('../../../../../util/Logger', () => ({
 
 jest.mock('@metamask/react-data-query');
 
+jest.mock('@sentry/react-native', () => ({
+  addBreadcrumb: jest.fn(),
+}));
+
+const mockAddBreadcrumb = addBreadcrumb as jest.Mock;
+
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const makeQueryResult = (
   overrides: Partial<ReturnType<typeof useQuery>> = {},
@@ -17,6 +35,7 @@ const makeQueryResult = (
   ({
     data: undefined,
     isLoading: false,
+    isFetching: false,
     error: null,
     refetch: jest.fn(),
     ...overrides,
@@ -64,6 +83,11 @@ describe('useTraderPositions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseQuery.mockReturnValue(makeQueryResult());
+    mockAddBreadcrumb.mockClear();
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsUnlocked) return true;
+      return undefined;
+    });
   });
 
   describe('query configuration', () => {
@@ -90,7 +114,7 @@ describe('useTraderPositions', () => {
       );
     });
 
-    it('enables both queries when addressOrId is non-empty', () => {
+    it('enables both queries when addressOrId is non-empty and wallet is unlocked', () => {
       renderHook(() => useTraderPositions('trader-1'));
 
       expect(mockUseQuery.mock.calls[0][0]).toEqual(
@@ -103,6 +127,21 @@ describe('useTraderPositions', () => {
 
     it('disables both queries when addressOrId is empty', () => {
       renderHook(() => useTraderPositions(''));
+
+      expect(mockUseQuery.mock.calls[0][0]).toEqual(
+        expect.objectContaining({ enabled: false }),
+      );
+      expect(mockUseQuery.mock.calls[1][0]).toEqual(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('disables both queries when wallet is locked', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsUnlocked) return false;
+        return undefined;
+      });
+      renderHook(() => useTraderPositions('trader-1'));
 
       expect(mockUseQuery.mock.calls[0][0]).toEqual(
         expect.objectContaining({ enabled: false }),
@@ -248,7 +287,7 @@ describe('useTraderPositions', () => {
       expect(result.current.error).toBe('raw error');
     });
 
-    it('logs the combined error', () => {
+    it('logs the open error with enriched extras including the endpoint', () => {
       const error = new Error('fetch failed');
 
       mockUseQuery
@@ -259,13 +298,109 @@ describe('useTraderPositions', () => {
 
       expect(Logger.error).toHaveBeenCalledWith(
         error,
-        'useTraderPositions: positions fetch failed',
+        expect.objectContaining({
+          message: 'useTraderPositions: positions fetch failed',
+          endpoint: 'open_positions',
+          errorCategory: expect.any(String),
+        }),
+      );
+    });
+
+    it('logs the closed error with enriched extras including the endpoint', () => {
+      const error = new Error('closed fetch failed');
+
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult())
+        .mockReturnValueOnce(makeQueryResult({ error }));
+
+      renderHook(() => useTraderPositions('trader-1'));
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          message: 'useTraderPositions: positions fetch failed',
+          endpoint: 'closed_positions',
+          errorCategory: expect.any(String),
+        }),
       );
     });
 
     it('does not log when there is no error', () => {
       renderHook(() => useTraderPositions('trader-1'));
       expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('does NOT include addressOrId in the Logger.error extras', () => {
+      const error = new Error('fetch failed');
+
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult({ error }))
+        .mockReturnValueOnce(makeQueryResult());
+
+      renderHook(() => useTraderPositions('0xSensitiveAddress'));
+
+      const call = (Logger.error as jest.Mock).mock.calls[0];
+      const extras = call[1];
+      const serialised = JSON.stringify(extras);
+      expect(serialised).not.toContain('0xSensitiveAddress');
+      expect(Object.keys(extras)).not.toContain('addressOrId');
+    });
+  });
+
+  describe('breadcrumbs', () => {
+    it('emits a failure breadcrumb for open_positions on error', () => {
+      const error = new Error('open failed');
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult({ error }))
+        .mockReturnValueOnce(makeQueryResult());
+
+      renderHook(() => useTraderPositions('trader-1'));
+
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          level: 'error',
+          message: expect.stringContaining(
+            'social_service.open_positions.failure',
+          ),
+        }),
+      );
+    });
+
+    it('emits a failure breadcrumb for closed_positions on error', () => {
+      const error = new Error('closed failed');
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult())
+        .mockReturnValueOnce(makeQueryResult({ error }));
+
+      renderHook(() => useTraderPositions('trader-1'));
+
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          level: 'error',
+          message: expect.stringContaining(
+            'social_service.closed_positions.failure',
+          ),
+        }),
+      );
+    });
+
+    it('does not emit a breadcrumb when there are no errors', () => {
+      renderHook(() => useTraderPositions('trader-1'));
+      expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+    });
+
+    it('never includes addressOrId in breadcrumb data', () => {
+      const error = new Error('open failed');
+      mockUseQuery
+        .mockReturnValueOnce(makeQueryResult({ error }))
+        .mockReturnValueOnce(makeQueryResult());
+
+      renderHook(() => useTraderPositions('0xSensitiveAddress'));
+
+      mockAddBreadcrumb.mock.calls.forEach(([breadcrumb]) => {
+        const serialised = JSON.stringify(breadcrumb);
+        expect(serialised).not.toContain('0xSensitiveAddress');
+      });
     });
   });
 });
