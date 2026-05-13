@@ -129,6 +129,7 @@ import {
   aggregateAccountStates,
 } from '../utils/accountUtils';
 import { ensureError, isKeyringLockedError } from '../utils/errorUtils';
+import { shouldDeferUnifiedAccountSetup } from '../utils/hyperLiquidAbstraction';
 import {
   adaptAccountStateFromSDK,
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
@@ -726,14 +727,14 @@ export class HyperLiquidProvider implements PerpsProvider {
         return;
       }
 
-      // Defer the user-signed transition until the user attempts an action.
+      // Defer signing-backed transitions until the user attempts an action.
       // Cache is intentionally left untouched so the next entry re-evaluates;
       // the read-only userAbstraction call is cheap and gated by the in-flight
       // lock, preventing concurrent prompts.
-      if (currentMode === 'dexAbstraction' && !allowUserSigning) {
+      if (shouldDeferUnifiedAccountSetup(currentMode, allowUserSigning)) {
         this.#deps.debugLogger.log(
-          'HyperLiquidProvider: Deferring dexAbstraction → unifiedAccount migration to action time',
-          { user: userAddress, network },
+          'HyperLiquidProvider: Deferring unified account migration to action time',
+          { user: userAddress, network, mode: currentMode },
         );
         completeInFlight();
         return;
@@ -928,10 +929,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
 
       // Attempt Unified Account migration as early as possible so users aren't
-      // blocked when they try to trade. Software-wallet dexAbstraction users can
-      // complete the one-time EIP-712 migration during initial setup so the first
-      // trade sees the unified balance. Hardware wallets remain deferred to
-      // action time to avoid QR / Ledger prompt spam while browsing.
+      // blocked when they try to trade. Software wallets can complete the
+      // signing-backed migration during initial setup so the first trade sees
+      // the unified balance. Hardware wallets remain deferred to action time to
+      // avoid QR / Ledger prompt spam while browsing.
       await this.#ensureUnifiedAccountEnabled({
         allowUserSigning: !this.#walletService.isSelectedHardwareWallet(),
       });
