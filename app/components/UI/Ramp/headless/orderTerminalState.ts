@@ -85,6 +85,14 @@ export class AwaitOrderTerminalStatePrerequisitesError extends Error {
  * counterpart to the `getOrder` method on `useHeadlessBuy()` — usable from
  * non-React consumers (e.g. MetaMask Pay's `TransactionPayController`).
  *
+ * Reads via the **unscoped** `selectRampsOrders` selector — returns any
+ * matching order regardless of which account group owns it. This is
+ * deliberate: controller-side consumers don't necessarily have a "selected
+ * account group" in redux, and would lose access to their own tracked
+ * orders if this scoped to one. The React-only `useHeadlessBuy().getOrderById`
+ * is the account-group-scoped twin for in-app UI consumers — see its
+ * JSDoc in `types.ts` for the behaviour difference.
+ *
  * Accepts either a bare `providerOrderId` or a full `/providers/.../orders/<id>`
  * path; both shapes are normalised through `extractOrderCode`.
  */

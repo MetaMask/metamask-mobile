@@ -86,12 +86,31 @@ export interface HeadlessBuyResult {
    * Synchronous read of an order by its provider order id. Accepts either a
    * bare order id or a full `/providers/.../orders/<id>` path.
    *
-   * @deprecated since Phase 9. Prefer {@link HeadlessBuyResult.getOrder};
-   * `getOrderById` is kept for backwards-compat only and forwards to the
-   * same implementation.
+   * Scoped to the **selected account group** via
+   * `selectRampsOrdersForSelectedAccountGroup` (the React-tree default). An
+   * order whose `walletAddress` doesn't belong to one of the current
+   * account group's addresses returns `undefined`.
+   *
+   * @deprecated since Phase 9. Prefer {@link HeadlessBuyResult.getOrder} for
+   * new code. **Behaviour difference**: `getOrder` uses the unscoped
+   * `selectRampsOrders` selector and returns orders regardless of which
+   * account group owns them — this is intentional so non-React consumers
+   * (e.g. MetaMask Pay's `TransactionPayController`) can resolve any order
+   * they're tracking without needing a selected account group in redux.
+   * If you currently rely on the account-group scoping, keep using
+   * `getOrderById` or filter by `order.walletAddress` yourself.
    */
   getOrderById: (providerOrderId: string) => RampsOrder | undefined;
-  /** Synchronous read of an order. Phase 9 canonical name. */
+  /**
+   * Synchronous read of an order. Phase 9 canonical name.
+   *
+   * Reads from the **unscoped** `selectRampsOrders` selector — returns any
+   * order in RampsController state with a matching `providerOrderId`,
+   * regardless of which account group owns it. This is intentional for
+   * non-React consumers (e.g. controllers) that don't have a selected
+   * account group concept. For account-group-scoped reads, use
+   * {@link HeadlessBuyResult.getOrderById} or filter on `order.walletAddress`.
+   */
   getOrder: (providerOrderId: string) => RampsOrder | undefined;
   /**
    * Imperative network refresh — calls the provider via
