@@ -36,7 +36,8 @@ export const useMoneyNavigation = () => {
       return;
     }
 
-    NavigationService.navigation.navigate(Routes.MONEY.ROOT, {
+    NavigationService.navigation.navigate(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
   };

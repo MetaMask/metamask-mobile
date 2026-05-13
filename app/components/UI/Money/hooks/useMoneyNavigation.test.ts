@@ -41,7 +41,8 @@ describe('useMoneyNavigation', () => {
       act(() => result.current.navigateToMoneyHome());
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
         params: { screen: Routes.MONEY.HOME },
       });
     });
