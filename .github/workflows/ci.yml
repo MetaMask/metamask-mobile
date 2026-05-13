@@ -527,12 +527,8 @@ jobs:
         run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
 
-  # Producer: warms the Namespace cache volume once per run so downstream
-  # test shards skip the 2-min `yarn install` + setup. On a warm volume
-  # (yarn.lock unchanged across the pool) this job is near-instant; on a
-  # cold volume it pays the install cost once, on behalf of all consumers.
-  # On non-namespace runners there is no shared cache, so this job is a
-  # no-op (consumers will install themselves, matching main).
+  # Warms the Namespace cache volume before test shards run. Falls back to
+  # ubuntu-latest when not on Namespace, in which case it is a no-op.
   prepare-ci-js-deps:
     name: Prepare CI JS dependencies
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}

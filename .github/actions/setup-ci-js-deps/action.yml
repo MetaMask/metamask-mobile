@@ -1,13 +1,8 @@
 name: 'Setup CI JS dependencies'
 description: >
-  Sets up node_modules + project setup outputs for CI test jobs. On Namespace
-  runners it mounts a persistent cache volume and skips install when the volume
-  is already warm (yarn.lock unchanged across runs in the pool). On any other
-  runner provider it falls back to a plain `yarn install --immutable` +
-  `yarn setup:github-ci --node`, matching the behaviour on main. We deliberately
-  do not use `actions/cache` here: the 10 GB repo-wide pool is too small/volatile
-  for a ~1.3 GB node_modules entry, and self-hosted/Namespace cache is the
-  established pattern across this repo's CI.
+  Mounts the Namespace cache volume (node_modules + .yarn/cache) and runs
+  yarn install + yarn setup:github-ci --node only when the volume is cold.
+  On non-Namespace runners no cache is available, so install always runs.
 
 inputs:
   runner_provider:
