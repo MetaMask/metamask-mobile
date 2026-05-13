@@ -6,6 +6,7 @@ import {
   ButtonIconSize,
 } from '@metamask/design-system-react-native';
 
+import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { BatchSellQuoteDetails } from './BatchSellQuoteDetails';
 import { BatchSellQuoteDetailsModalSelectorsIDs } from './BatchSellQuoteDetailsModal.testIds';
@@ -16,6 +17,11 @@ export function BatchSellQuoteDetailsModal() {
   const navigation = useNavigation();
   const { tokenData, totalReceived, minimumReceived } =
     useParams<BatchSellQuoteDetailsModalParams>();
+  const handleOpenMinimumReceivedInfo = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL,
+    });
+  };
 
   return (
     <BottomSheet
@@ -35,6 +41,7 @@ export function BatchSellQuoteDetailsModal() {
         tokenData={tokenData}
         totalReceived={totalReceived}
         minimumReceived={minimumReceived}
+        onMinimumReceivedInfoPress={handleOpenMinimumReceivedInfo}
       />
     </BottomSheet>
   );

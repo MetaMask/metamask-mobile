@@ -539,6 +539,7 @@ export interface RootStackParamList extends ParamListBase {
   RecipientSelectorModal: undefined;
   BatchSellDestinationTokenSelectorModal: undefined;
   BatchSellQuoteDetailsModal: BatchSellQuoteDetailsModalParams;
+  BatchSellMinimumReceivedInfoModal: undefined;
   BridgeTransactionDetails: BridgeTransactionDetailsParams | undefined;
 
   // Perps routes - use PerpsNavigationParamList for type-safe perps navigation

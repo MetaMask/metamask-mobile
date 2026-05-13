@@ -25,6 +25,7 @@ import { MissingPriceModal } from './components/MissingPriceModal';
 import { HighRateAlertModal } from './components/HighRateAlertModal';
 import { BatchSellDestinationTokenSelectorModal } from './components/BatchSellDestinationTokenSelectorModal';
 import { BatchSellQuoteDetailsModal } from './components/BatchSellQuoteDetailsModal';
+import { BatchSellMinimumReceivedInfoModal } from './components/BatchSellMinimumReceivedInfoModal';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
@@ -121,6 +122,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.BATCH_SELL_QUOTE_DETAILS_MODAL}
       component={BatchSellQuoteDetailsModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL}
+      component={BatchSellMinimumReceivedInfoModal}
     />
   </ModalStack.Navigator>
 );

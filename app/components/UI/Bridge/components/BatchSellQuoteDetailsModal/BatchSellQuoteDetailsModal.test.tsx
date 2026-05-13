@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 
+import Routes from '../../../../../constants/navigation/Routes';
 import { BatchSellQuoteDetails, BatchSellQuoteDetailsModal } from './index';
 import { BatchSellQuoteDetailsModalSelectorsIDs } from './BatchSellQuoteDetailsModal.testIds';
 import {
@@ -9,11 +10,13 @@ import {
 } from './BatchSellQuoteDetailsModal.types';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 let mockRouteParams: BatchSellQuoteDetailsModalParams;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
+    navigate: mockNavigate,
   }),
 }));
 
@@ -115,5 +118,19 @@ describe('BatchSellQuoteDetailsModal', () => {
     );
 
     expect(onMinimumReceivedInfoPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the minimum received info modal when the info button is pressed', () => {
+    const { getByTestId } = renderModal();
+
+    fireEvent.press(
+      getByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_INFO_BUTTON,
+      ),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL,
+    });
   });
 });
