@@ -102,7 +102,7 @@ export const useConfirmActions = () => {
   );
 
   const { onConfirm: onLedgerConfirm } = useLedgerConfirm(sharedConfirmOptions);
-  const { onConfirm: onQrTxConfirm } = useQrConfirm(sharedConfirmOptions);
+  const { onConfirm: onQrConfirm } = useQrConfirm(sharedConfirmOptions);
 
   const onConfirm = useCallback(async () => {
     if (isLedgerAccount) {
@@ -110,8 +110,8 @@ export const useConfirmActions = () => {
       return;
     }
 
-    if (isQrAccount && isTransactionReq) {
-      await onQrTxConfirm();
+    if (isQrAccount) {
+      await onQrConfirm();
       return;
     }
 
@@ -138,7 +138,7 @@ export const useConfirmActions = () => {
     onTransactionConfirm,
     executeApproval,
     onLedgerConfirm,
-    onQrTxConfirm,
+    onQrConfirm,
   ]);
 
   return { onConfirm, onReject };

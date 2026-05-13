@@ -136,6 +136,22 @@ describe('useConfirmAction', () => {
     mockIsConfirmationFromQrAccount.mockReturnValue(false);
   });
 
+  it('delegates to useQrConfirm when account is QR hardware and request is a signature', async () => {
+    mockIsConfirmationFromQrAccount.mockReturnValue(true);
+    mockOnQrConfirm.mockClear();
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+
+    await result?.current?.onConfirm();
+
+    expect(mockOnQrConfirm).toHaveBeenCalledTimes(1);
+    expect(Engine.acceptPendingApproval).not.toHaveBeenCalled();
+
+    mockIsConfirmationFromQrAccount.mockReturnValue(false);
+  });
+
   it('calls setSigningConfirmed before executeApproval on default confirm path', async () => {
     const mockSetSigningConfirmed = jest.fn();
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
