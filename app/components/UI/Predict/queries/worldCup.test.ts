@@ -50,7 +50,7 @@ describe('worldCup queries', () => {
     expect(mockGetMarkets).toHaveBeenCalledWith({
       category: 'hot',
       customQueryParams:
-        'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr',
+        'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr&ascending=false',
       limit: 10,
       offset: 20,
     });
@@ -72,7 +72,7 @@ describe('worldCup queries', () => {
     expect(mockGetMarkets).toHaveBeenCalledWith({
       category: 'hot',
       customQueryParams:
-        'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&exclude_tag_id=100639&order=volume24hr',
+        'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&exclude_tag_id=100639&order=volume&ascending=false',
       limit: 25,
       offset: 50,
     });

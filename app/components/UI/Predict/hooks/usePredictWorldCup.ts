@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useQueries, useQuery } from '@tanstack/react-query';
+import { useQueries } from '@tanstack/react-query';
 import { predictQueries } from '../queries';
 import {
   getPredictWorldCupAvailableTabKeys,
@@ -9,16 +9,24 @@ import {
 } from '../constants/worldCupTabs';
 import {
   buildPredictWorldCupAllQuery,
+  buildPredictWorldCupLiveQuery,
   buildPredictWorldCupPropsQuery,
+  buildPredictWorldCupStageEventsQuery,
   resolvePredictWorldCupStageLabel,
 } from '../utils/worldCup';
-import { usePredictMarketData } from './usePredictMarketData';
-import type {
-  PredictWorldCupConfig,
-  PredictWorldCupStageConfig,
-} from '../types/flags';
+import { sortPredictWorldCupMarketsByStartTime } from '../services/worldCup';
+import {
+  usePredictMarketData,
+  type UsePredictMarketDataResult,
+} from './usePredictMarketData';
+import type { PredictWorldCupConfig } from '../types/flags';
 
 export interface UsePredictWorldCupMarketsOptions {
+  tabKey: PredictWorldCupTabKey;
+  config: Pick<
+    PredictWorldCupConfig,
+    'seriesId' | 'tagSlug' | 'gamesTagId' | 'stages'
+  >;
   enabled?: boolean;
   pageSize?: number;
 }
@@ -33,54 +41,110 @@ export interface PredictWorldCupAvailableTab {
   isLive?: boolean;
 }
 
+interface WorldCupMarketDataConfig {
+  queryParams: string;
+  pageSize?: number;
+  paginationEnabled: boolean;
+  refine?: UsePredictWorldCupMarketRefine;
+  enabled: boolean;
+}
+
+type UsePredictWorldCupMarketRefine = NonNullable<
+  Parameters<typeof usePredictMarketData>[0]
+>['refine'];
+
 const DEFAULT_WORLD_CUP_MARKETS_OPTIONS = {
   enabled: true,
 } as const;
 
-export const usePredictWorldCupAllMarkets = (
-  config: Pick<PredictWorldCupConfig, 'tagSlug'>,
-  options: UsePredictWorldCupMarketsOptions = DEFAULT_WORLD_CUP_MARKETS_OPTIONS,
-) =>
-  usePredictMarketData({
+const getWorldCupMarketDataConfig = ({
+  tabKey,
+  config,
+  enabled = true,
+  pageSize,
+}: UsePredictWorldCupMarketsOptions): WorldCupMarketDataConfig => {
+  switch (tabKey) {
+    case PREDICT_WORLD_CUP_TAB_KEYS.ALL:
+      return {
+        queryParams: buildPredictWorldCupAllQuery(config),
+        pageSize,
+        paginationEnabled: true,
+        enabled,
+      };
+    case PREDICT_WORLD_CUP_TAB_KEYS.PROPS:
+      return {
+        queryParams: buildPredictWorldCupPropsQuery(config),
+        pageSize,
+        paginationEnabled: true,
+        enabled,
+      };
+    case PREDICT_WORLD_CUP_TAB_KEYS.LIVE:
+      return {
+        queryParams: buildPredictWorldCupLiveQuery(config),
+        pageSize,
+        paginationEnabled: false,
+        enabled,
+      };
+    default: {
+      const stage = config.stages.find(
+        (configuredStage) => configuredStage.key === tabKey,
+      );
+
+      if (!stage || stage.eventIds.length === 0) {
+        return {
+          queryParams: '',
+          paginationEnabled: false,
+          enabled: false,
+        };
+      }
+
+      return {
+        queryParams: buildPredictWorldCupStageEventsQuery(stage),
+        pageSize: stage.eventIds.length,
+        paginationEnabled: false,
+        refine: sortPredictWorldCupMarketsByStartTime,
+        enabled,
+      };
+    }
+  }
+};
+
+export const usePredictWorldCupMarkets = ({
+  tabKey,
+  config,
+  enabled = DEFAULT_WORLD_CUP_MARKETS_OPTIONS.enabled,
+  pageSize,
+}: UsePredictWorldCupMarketsOptions): UsePredictMarketDataResult => {
+  const marketDataConfig = useMemo(
+    () =>
+      getWorldCupMarketDataConfig({
+        tabKey,
+        config,
+        enabled,
+        pageSize,
+      }),
+    [config, enabled, pageSize, tabKey],
+  );
+
+  const marketData = usePredictMarketData({
     category: 'hot',
-    customQueryParams: buildPredictWorldCupAllQuery(config),
-    pageSize: options.pageSize,
-    enabled: options.enabled,
+    customQueryParams: marketDataConfig.queryParams,
+    pageSize: marketDataConfig.pageSize,
+    refine: marketDataConfig.refine,
+    enabled: marketDataConfig.enabled,
   });
 
-export const usePredictWorldCupPropsMarkets = (
-  config: Pick<PredictWorldCupConfig, 'tagSlug' | 'gamesTagId'>,
-  options: UsePredictWorldCupMarketsOptions = DEFAULT_WORLD_CUP_MARKETS_OPTIONS,
-) =>
-  usePredictMarketData({
-    category: 'hot',
-    customQueryParams: buildPredictWorldCupPropsQuery(config),
-    pageSize: options.pageSize,
-    enabled: options.enabled,
-  });
+  if (marketDataConfig.paginationEnabled) {
+    return marketData;
+  }
 
-export const usePredictWorldCupLiveMarkets = (
-  config: Pick<PredictWorldCupConfig, 'seriesId' | 'gamesTagId'>,
-  options: UsePredictWorldCupMarketsOptions = DEFAULT_WORLD_CUP_MARKETS_OPTIONS,
-) =>
-  useQuery({
-    ...predictQueries.worldCup.options.live(config, {
-      limit: options.pageSize,
-    }),
-    enabled: options.enabled,
-  });
-
-export const usePredictWorldCupStageMarkets = (
-  stage: Pick<PredictWorldCupStageConfig, 'key' | 'eventIds'>,
-  options: Pick<
-    UsePredictWorldCupMarketsOptions,
-    'enabled'
-  > = DEFAULT_WORLD_CUP_MARKETS_OPTIONS,
-) =>
-  useQuery({
-    ...predictQueries.worldCup.options.stage(stage),
-    enabled: options.enabled,
-  });
+  return {
+    ...marketData,
+    hasMore: false,
+    isFetchingMore: false,
+    fetchMore: async () => undefined,
+  };
+};
 
 export const usePredictWorldCupAvailability = (
   config: Pick<

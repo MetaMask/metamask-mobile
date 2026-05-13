@@ -27,10 +27,7 @@ export {
 export { usePredictCashOut } from './usePredictCashOut';
 
 export {
-  usePredictWorldCupAllMarkets,
-  usePredictWorldCupPropsMarkets,
-  usePredictWorldCupLiveMarkets,
-  usePredictWorldCupStageMarkets,
+  usePredictWorldCupMarkets,
   usePredictWorldCupAvailability,
   usePredictWorldCupAvailableTabs,
   type UsePredictWorldCupMarketsOptions,

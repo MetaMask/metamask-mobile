@@ -22,6 +22,15 @@ let mockAvailability = {
   props: true,
   stages: {},
 };
+const mockUsePredictWorldCupMarkets: jest.Mock = jest.fn((_args: unknown) => ({
+  marketData: [],
+  isFetching: false,
+  isFetchingMore: false,
+  error: null,
+  hasMore: false,
+  refetch: jest.fn(),
+  fetchMore: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -52,6 +61,59 @@ jest.mock('../../selectors/featureFlags', () => ({
     'selectPredictWorldCupScreenEnabledFlag',
 }));
 
+jest.mock('@shopify/flash-list', () => {
+  const { View } = jest.requireActual('react-native');
+
+  interface MockItem {
+    id: string;
+  }
+  interface MockFlashListProps {
+    data?: MockItem[];
+    renderItem: (info: { item: MockItem; index: number }) => React.ReactNode;
+    keyExtractor?: (item: MockItem, index: number) => string;
+    ListFooterComponent?: React.ComponentType | React.ReactNode;
+    testID?: string;
+  }
+
+  const FlashList = ({
+    data = [],
+    renderItem,
+    keyExtractor,
+    ListFooterComponent,
+    testID,
+  }: MockFlashListProps) => (
+    <View testID={testID}>
+      {data.map((item, index) => (
+        <View key={keyExtractor ? keyExtractor(item, index) : item.id}>
+          {renderItem({ item, index })}
+        </View>
+      ))}
+      {typeof ListFooterComponent === 'function' ? (
+        <ListFooterComponent />
+      ) : (
+        ListFooterComponent
+      )}
+    </View>
+  );
+
+  return { FlashList };
+});
+
+jest.mock('../../components/PredictMarket', () => {
+  const { Text } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: ({
+      market,
+      testID,
+    }: {
+      market: { title: string };
+      testID: string;
+    }) => <Text testID={testID}>{market.title}</Text>,
+  };
+});
+
 jest.mock('../../hooks', () => ({
   usePredictWorldCupAvailableTabs: () => ({
     tabs: mockAvailableTabs,
@@ -61,6 +123,8 @@ jest.mock('../../hooks', () => ({
     errors: [],
     refetch: jest.fn(),
   }),
+  usePredictWorldCupMarkets: (args: unknown) =>
+    mockUsePredictWorldCupMarkets(args),
 }));
 
 describe('PredictWorldCup', () => {
@@ -84,6 +148,15 @@ describe('PredictWorldCup', () => {
       props: true,
       stages: {},
     };
+    mockUsePredictWorldCupMarkets.mockReturnValue({
+      marketData: [],
+      isFetching: false,
+      isFetchingMore: false,
+      error: null,
+      hasMore: false,
+      refetch: jest.fn(),
+      fetchMore: jest.fn(),
+    });
   });
 
   it('renders the screen scaffold with All selected by default', () => {
@@ -127,7 +200,7 @@ describe('PredictWorldCup', () => {
     ).toHaveTextContent('props');
   });
 
-  it('updates active tab when a tab is pressed', () => {
+  it('updates active tab and tab content when a tab is pressed', () => {
     render(<PredictWorldCup />);
 
     fireEvent.press(
@@ -137,6 +210,10 @@ describe('PredictWorldCup', () => {
     expect(
       screen.getByTestId(PREDICT_WORLD_CUP_SCREEN_TEST_IDS.INITIAL_TAB),
     ).toHaveTextContent('live');
+    expect(mockUsePredictWorldCupMarkets).toHaveBeenLastCalledWith({
+      tabKey: 'live',
+      config: mockConfig,
+    });
   });
 
   it('uses a configured available stage initial tab', () => {
@@ -159,6 +236,32 @@ describe('PredictWorldCup', () => {
     expect(
       screen.getByTestId(PREDICT_WORLD_CUP_SCREEN_TEST_IDS.INITIAL_TAB),
     ).toHaveTextContent('group-stage');
+  });
+
+  it('renders market content for the active tab', () => {
+    mockUsePredictWorldCupMarkets.mockReturnValue({
+      marketData: [
+        {
+          id: 'market-1',
+          title: 'World Cup winner',
+        },
+      ],
+      isFetching: false,
+      isFetchingMore: false,
+      error: null,
+      hasMore: false,
+      refetch: jest.fn(),
+      fetchMore: jest.fn(),
+    });
+
+    render(<PredictWorldCup />);
+
+    expect(
+      screen.getByTestId(PREDICT_WORLD_CUP_SCREEN_TEST_IDS.MARKET_LIST),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.MARKET_CARD}-1`),
+    ).toHaveTextContent('World Cup winner');
   });
 
   it('does not render tabs hidden by availability', () => {
