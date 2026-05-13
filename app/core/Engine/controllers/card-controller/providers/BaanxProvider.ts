@@ -68,6 +68,7 @@ import {
   type DelegationChallengeResponse,
   emptyCardHomeData,
 } from '../provider-types';
+import AppConstants from '../../../../AppConstants';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 const REFRESH_EXPIRY_BUFFER_MS = 60 * 60 * 1000;
@@ -601,6 +602,26 @@ export class BaanxProvider implements ICardProvider {
       nonce: response.nonce,
       expiresAt: response.expiresAt,
     };
+  }
+
+  generateCardDelegationSignatureMessage(params: {
+    network: string;
+    address: string;
+    nonce: string;
+    caipChainId?: string;
+  }): string {
+    const { network, address, nonce, caipChainId } = params;
+    const now = new Date();
+    const domain = AppConstants.MM_UNIVERSAL_LINK_HOST;
+    const uri = `https://${domain}`;
+
+    if (network === 'solana') {
+      return `${domain} wants you to sign in with your Solana account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: 1\nNonce: ${nonce}\nIssued At: ${now.toISOString()}`;
+    }
+
+    const expirationTime = new Date(now.getTime() + 2 * 60 * 1000);
+    const chainId = caipChainId?.split(':')[1] ?? '59144';
+    return `${domain} wants you to sign in with your Ethereum account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: ${chainId}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}\nExpiration Time: ${expirationTime.toISOString()}`;
   }
 
   // -- Funding Approval --
@@ -1502,7 +1523,7 @@ export class BaanxProvider implements ICardProvider {
       return [{ type: 'enable_card' }];
     }
 
-    if (card.status === CardStatus.ACTIVE && asset) {
+    if (card.status !== CardStatus.BLOCKED && asset) {
       return [{ type: 'add_funds', enabled: true }];
     }
 

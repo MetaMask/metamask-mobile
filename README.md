@@ -15,6 +15,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 ## Documentation
 
 - [Architecture](./docs/readme/architecture.md)
+- [BigInt number migration](./docs/bigint-migration-guide.md) (deprecated `app/util/number/index.js` burndown and ESLint allowlist)
 - [Expo Development Environment Setup](./docs/readme/expo-environment.md)
 - [Native Development Environment Setup](./docs/readme/environment.md)
 - [Build Troubleshooting](./docs/readme/troubleshooting.md)
@@ -195,6 +196,28 @@ yarn start:android
 ```
 
 ## Development Tools
+
+### AI Agent Skills (`yarn skills`)
+
+AI coding agents (Cursor, Claude Code, Codex) consume shared skills from the [Consensys/skills](https://github.com/Consensys/skills) repo. Per [ADR #57](https://github.com/MetaMask/decisions/pull/162) this content is **not committed here** — `yarn skills` syncs it on demand into local-only paths under `.cursor/`, `.claude/`, and `.agents/`.
+
+One-time setup:
+
+```bash
+git clone git@github.com:Consensys/skills.git ~/path/to/consensys-skills
+export CONSENSYS_SKILLS_DIR=~/path/to/consensys-skills   # add to your shell rc
+```
+
+Keep that checkout on `main` — `yarn skills` syncs from whatever revision is checked out there.
+
+Then in this repo:
+
+```bash
+yarn skills                                 # interactive prompt
+SKILLS_DOMAINS=perps,testing yarn skills    # non-interactive
+```
+
+If `CONSENSYS_SKILLS_DIR` is unset, `yarn skills` prints the same setup instructions and exits. Skipping it is fine — it only affects agent tooling, not the app build.
 
 ### Git Hooks (Husky)
 

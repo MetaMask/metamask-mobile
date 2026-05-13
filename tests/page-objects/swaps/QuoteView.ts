@@ -15,7 +15,7 @@ import {
   PlatformDetector,
   PlaywrightElement,
 } from '../../framework';
-import { getAssetTestId } from '../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,

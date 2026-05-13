@@ -29,6 +29,7 @@ import {
   formatRewardsDate,
   formatRewardsTimeOnly,
   formatSignedUsd,
+  formatUsd,
   getChainHex,
   shortenAddress,
 } from '../../utils/formatUtils';
@@ -49,7 +50,25 @@ const LABEL_KEY_MAP: Record<ActivityEntryType, string> = {
 };
 
 const tokenLabel = (token: ActivityTokenDto): string =>
-  token.tokenSymbol || token.tokenName;
+  token.tokenSymbol.toUpperCase() || token.tokenName;
+
+/** Rebalance USD is not portfolio P&L; omit the '+' used for signed inflows/outflows. */
+const formatActivityUsd = (
+  usdAmount: OndoGmActivityEntryDto['usdAmount'],
+  entryType: ActivityEntryType,
+): string => {
+  if (entryType !== 'REBALANCE') {
+    return formatSignedUsd(usdAmount);
+  }
+  if (usdAmount === null) {
+    return '—';
+  }
+  const num = typeof usdAmount === 'number' ? usdAmount : parseFloat(usdAmount);
+  if (Number.isNaN(num)) {
+    return '—';
+  }
+  return formatUsd(usdAmount);
+};
 
 interface OndoActivityRowProps {
   entry: OndoGmActivityEntryDto;
@@ -123,7 +142,7 @@ const OndoActivityRow: React.FC<OndoActivityRowProps> = ({
             {label}
           </Text>
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {formatSignedUsd(entry.usdAmount)}
+            {formatActivityUsd(entry.usdAmount, entryType)}
           </Text>
         </Box>
 

@@ -1,5 +1,6 @@
 import { captureException } from '@sentry/react-native';
-import { MMKV } from 'react-native-mmkv';
+// eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs
+const { MMKV } = require('react-native-mmkv');
 import { ensureValidState } from './util';
 
 const migrationVersion = 106;

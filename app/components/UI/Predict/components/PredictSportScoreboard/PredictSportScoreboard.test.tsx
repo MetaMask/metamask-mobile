@@ -458,6 +458,33 @@ describe('PredictSportScoreboard', () => {
       expect(queryByText('7')).toBeNull();
     });
 
+    it('normalizes home-first live scores when determining the winner', () => {
+      const game = createGame({
+        league: 'ucl',
+        status: 'ended',
+        period: 'FT',
+        score: { away: 0, home: 0, raw: '0-0' },
+      });
+      mockUseLiveGameUpdates.mockReturnValue(
+        createLiveUpdate({
+          gameUpdate: {
+            gameId: 'game-123',
+            score: '2-1',
+            elapsed: '90:00',
+            period: 'FT',
+            status: 'ended' as PredictGameStatus,
+          },
+        }),
+      );
+
+      const { getByTestId, queryByTestId } = render(
+        <PredictSportScoreboard game={game} testID="scoreboard" />,
+      );
+
+      expect(getByTestId('scoreboard-home-winner')).toBeOnTheScreen();
+      expect(queryByTestId('scoreboard-away-winner')).toBeNull();
+    });
+
     it('uses live status when available', () => {
       const game = createGame({ status: 'scheduled' });
       mockUseLiveGameUpdates.mockReturnValue(

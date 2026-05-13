@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
 import { Hex } from '@metamask/utils';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 export enum Side {
   BUY = 'BUY',
@@ -182,7 +183,8 @@ export type PredictSportsLeague =
   | 'bol1'
   | 'itc'
   | 'dfb'
-  | 'cde';
+  | 'cde'
+  | 'fifwc';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -576,6 +578,7 @@ export interface PlaceOrderParams {
   preview: OrderPreview;
   address?: string;
   transactionId?: string;
+  activeAbTests?: TransactionActiveAbTestEntry[];
   analyticsProperties?: {
     marketId?: string;
     marketTitle?: string;
@@ -609,10 +612,12 @@ export interface PreviewOrderParams {
   positionId?: string;
 }
 
+export type PredictWalletType = 'safe' | 'deposit-wallet';
+
 export interface AccountState {
   address: Hex;
   isDeployed: boolean;
-  hasAllowances: boolean;
+  walletType: PredictWalletType;
 }
 
 export interface GeoBlockResponse {
@@ -633,8 +638,9 @@ export type CryptoPriceUpdateCallback = (update: CryptoPriceUpdate) => void;
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareDepositParams {}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface GetAccountStateParams {}
+export interface GetAccountStateParams {
+  forceRefresh?: boolean;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareWithdrawParams {}

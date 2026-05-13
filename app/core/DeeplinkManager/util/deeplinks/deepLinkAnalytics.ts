@@ -463,6 +463,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.PREDICT]: extractPredictProperties,
   [DeepLinkRoute.SHIELD]: extractShieldProperties,
   [DeepLinkRoute.TRENDING]: extractTrendingProperties,
+  [DeepLinkRoute.SOCIAL_LEADERBOARD]: extractInvalidProperties,
   [DeepLinkRoute.SOCIAL_TRADER_POSITION]: extractInvalidProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
@@ -570,6 +571,7 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.TRANSACTION;
     case ACTIONS.BUY:
     case ACTIONS.BUY_CRYPTO:
+    case ACTIONS.ON_RAMP:
       return DeepLinkRoute.BUY;
     case ACTIONS.SELL:
     case ACTIONS.SELL_CRYPTO:
@@ -594,6 +596,8 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SHIELD;
     case ACTIONS.TRENDING:
       return DeepLinkRoute.TRENDING;
+    case ACTIONS.SOCIAL_LEADERBOARD:
+      return DeepLinkRoute.SOCIAL_LEADERBOARD;
     case ACTIONS.SOCIAL_TRADER_POSITION:
       return DeepLinkRoute.SOCIAL_TRADER_POSITION;
     case ACTIONS.CARD_ONBOARDING:
@@ -650,6 +654,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.SHIELD;
       case 'trending':
         return DeepLinkRoute.TRENDING;
+      case 'social-leaderboard':
+        return DeepLinkRoute.SOCIAL_LEADERBOARD;
       case 'social-trader-position':
         return DeepLinkRoute.SOCIAL_TRADER_POSITION;
       case 'card-onboarding':

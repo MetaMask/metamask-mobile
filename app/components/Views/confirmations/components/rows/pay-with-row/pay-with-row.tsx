@@ -47,9 +47,14 @@ import {
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useMoneyAccountPayToken } from '../../../hooks/pay/useMoneyAccountPayToken';
+import { useConfirmationContext } from '../../../context/confirmation-context';
+import { useTheme } from '../../../../../../util/theme';
+
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
+  const { displayToken: moneyAccountDisplayToken, isAwaitingAccountSelection } =
+    useMoneyAccountPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const selectedFiatPaymentMethod =
@@ -57,17 +62,20 @@ export function PayWithRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
+  // Local dev override: set MM_DEV_PAY_WITH_BOTTOM_SHEET=true in `.js.env` to
+  // preview the redesigned picker. Routes to the existing PayWithModal.
+  // Remove once the first section of the redesign is complete.
+  const isPayWithBottomSheetEnabled =
+    process.env.MM_DEV_PAY_WITH_BOTTOM_SHEET === 'true';
 
   const {
     txParams: { from },
   } = useTransactionMetadataRequest() ?? { txParams: {} };
 
+  const { isHeadlessBuyInProgress } = useConfirmationContext();
   const canEdit = !isHardwareAccount(from ?? '');
 
-  const { displayToken: moneyAccountDisplayToken, isAwaitingAccountSelection } =
-    useMoneyAccountPayToken();
-
-  const isDisabled = !canEdit || isAwaitingAccountSelection;
+  const isDisabled = !canEdit || isHeadlessBuyInProgress;
 
   const handleClick = useCallback(() => {
     if (isDisabled) return;
@@ -76,8 +84,17 @@ export function PayWithRow() {
         mm_pay_token_list_opened: true,
       },
     });
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [isDisabled, navigation, setConfirmationMetric]);
+    navigation.navigate(
+      isPayWithBottomSheetEnabled
+        ? Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET
+        : Routes.CONFIRMATION_PAY_WITH_MODAL,
+    );
+  }, [
+    isDisabled,
+    isPayWithBottomSheetEnabled,
+    navigation,
+    setConfirmationMetric,
+  ]);
 
   const label = isWithdraw
     ? strings('confirm.label.receive_as')
@@ -111,7 +128,7 @@ export function PayWithRow() {
       <PayWithFiatPaymentMethodRow
         paymentMethod={selectedFiatPaymentMethod}
         label={label}
-        canEdit={canEdit}
+        disabled={isDisabled}
         hasFrom={Boolean(from)}
         onPress={handleClick}
       />
@@ -158,7 +175,10 @@ export function PayWithRow() {
         justifyContent={JustifyContent.spaceBetween}
         style={styles.container}
       >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={isDisabled ? TextColor.TextMuted : TextColor.TextAlternative}
+        >
           {label}
         </Text>
         <Box
@@ -174,7 +194,7 @@ export function PayWithRow() {
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
+            color={isDisabled ? TextColor.TextMuted : TextColor.TextDefault}
             testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
           >
             {displayToken.symbol}
@@ -184,11 +204,11 @@ export function PayWithRow() {
               </Text>
             )}
           </Text>
-          {!isDisabled && from && (
+          {from && (
             <Icon
               name={IconName.ArrowDown}
               size={IconSize.Sm}
-              color={IconColor.Alternative}
+              color={isDisabled ? IconColor.Muted : IconColor.Alternative}
             />
           )}
         </Box>
@@ -200,22 +220,23 @@ export function PayWithRow() {
 function PayWithFiatPaymentMethodRow({
   paymentMethod,
   label,
-  canEdit,
+  disabled,
   hasFrom,
   onPress,
 }: {
   paymentMethod: PaymentMethod;
   label: string;
-  canEdit: boolean;
+  disabled: boolean;
   hasFrom: boolean;
   onPress: () => void;
 }) {
   const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
 
   return (
     <TouchableOpacity
       onPress={onPress}
-      disabled={!canEdit}
+      disabled={disabled}
       testID={ConfirmationRowComponentIDs.PAY_WITH}
     >
       <Box
@@ -224,7 +245,10 @@ function PayWithFiatPaymentMethodRow({
         justifyContent={JustifyContent.spaceBetween}
         style={styles.container}
       >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={disabled ? TextColor.TextMuted : TextColor.TextAlternative}
+        >
           {label}
         </Text>
         <Box
@@ -235,20 +259,21 @@ function PayWithFiatPaymentMethodRow({
           <PaymentMethodIcon
             paymentMethodType={paymentMethod.paymentType as PaymentType}
             size={20}
+            color={disabled ? colors.icon.muted : undefined}
           />
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
+            color={disabled ? TextColor.TextMuted : TextColor.TextDefault}
             testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
           >
             {paymentMethod.name}
           </Text>
-          {canEdit && hasFrom && (
+          {hasFrom && (
             <Icon
               name={IconName.ArrowDown}
               size={IconSize.Sm}
-              color={IconColor.Alternative}
+              color={disabled ? IconColor.Muted : IconColor.Alternative}
             />
           )}
         </Box>
