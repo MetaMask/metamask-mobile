@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import PagerView from 'react-native-pager-view';
 import {
   RouteProp,
   useFocusEffect,
@@ -18,11 +19,10 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
-import TabsList from '../../../component-library/components-temp/Tabs/TabsList/TabsList';
 import {
-  TabsListRef,
-  TabViewProps,
-} from '../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
+  TabsBar,
+  TabItem,
+} from '../../../component-library/components-temp/Tabs';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
@@ -55,6 +55,17 @@ const TAB_NAMES: ExploreTabName[] = [
   'Sites',
 ];
 
+// Module-level constant — strings() is pure and locale doesn't change at runtime.
+const TAB_ITEMS: TabItem[] = [
+  { key: 'Now', label: strings('trending.tabs.now'), content: null },
+  { key: 'Macro', label: strings('trending.tabs.macro'), content: null },
+  { key: 'RWAs', label: strings('trending.tabs.rwas'), content: null },
+  { key: 'Crypto', label: strings('trending.tabs.crypto'), content: null },
+  { key: 'Sports', label: strings('trending.tabs.sports'), content: null },
+  // i18n key is 'dapps' for historical reasons; the display label is "Sites".
+  { key: 'Sites', label: strings('trending.tabs.dapps'), content: null },
+];
+
 export const EXPLORE_TAB_INDEX = {
   NOW: 0,
   MACRO: 1,
@@ -69,9 +80,10 @@ interface ExploreFeedRouteParams {
 }
 
 const useExploreTabNavigationEffect = (opts: {
-  tabsListRef: React.RefObject<TabsListRef | null>;
+  pagerRef: React.RefObject<PagerView | null>;
+  switchToTab: (index: number) => void;
 }) => {
-  const { tabsListRef } = opts;
+  const { pagerRef, switchToTab } = opts;
   const route =
     useRoute<RouteProp<{ params: ExploreFeedRouteParams }, 'params'>>();
   const { setParams } = useNavigation();
@@ -85,9 +97,10 @@ const useExploreTabNavigationEffect = (opts: {
         return;
       }
 
-      tabsListRef.current?.goToTabIndex(initialTabIndex);
+      pagerRef.current?.setPage(initialTabIndex);
+      switchToTab(initialTabIndex);
       setParams?.({ initialTab: null });
-    }, [initialTabIndex, setParams, tabsListRef]),
+    }, [initialTabIndex, setParams, pagerRef, switchToTab]),
   );
 };
 
@@ -96,13 +109,38 @@ export const ExploreFeed: React.FC = () => {
   const navigation = useNavigation();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const tabProps = useExploreRefresh();
-  const tabsListRef = useRef<TabsListRef>(null);
+  const pagerRef = useRef<PagerView>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  // Tracks which tab indices have ever been visited so we only mount a tab's
+  // content (and trigger its data fetches) the first time the user visits it.
+  const [mountedTabs, setMountedTabs] = useState<Set<number>>(
+    () => new Set([0]),
+  );
   const sessionManager = TrendingFeedSessionManager.getInstance();
+  const previousTabRef = useRef<ExploreTabName>('Now');
 
-  // Handle tab navigation from route params
-  useExploreTabNavigationEffect({ tabsListRef });
+  const switchToTab = useCallback((index: number) => {
+    const destinationTab = TAB_NAMES[index];
+    if (!destinationTab) return;
 
-  // Initialize session and enable AppState listener on mount
+    setMountedTabs((prev) => {
+      if (prev.has(index)) return prev;
+      const next = new Set(prev);
+      next.add(index);
+      return next;
+    });
+    setActiveIndex(index);
+
+    trackExploreInteracted({
+      interaction_type: 'tab_switched',
+      tab_name: destinationTab,
+      previous_tab: previousTabRef.current,
+    });
+    previousTabRef.current = destinationTab;
+  }, []);
+
+  useExploreTabNavigationEffect({ pagerRef, switchToTab });
+
   useEffect(() => {
     sessionManager.enableAppStateListener();
     sessionManager.startSession('trending_feed');
@@ -149,18 +187,20 @@ export const ExploreFeed: React.FC = () => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
 
-  const previousTabRef = useRef<ExploreTabName>('Now');
+  const handleTabBarPress = useCallback(
+    (index: number) => {
+      pagerRef.current?.setPage(index);
+      switchToTab(index);
+    },
+    [switchToTab],
+  );
 
-  const handleTabChange = useCallback(({ i }: { i: number }) => {
-    const destinationTab = TAB_NAMES[i];
-    if (!destinationTab) return;
-    trackExploreInteracted({
-      interaction_type: 'tab_switched',
-      tab_name: destinationTab,
-      previous_tab: previousTabRef.current,
-    });
-    previousTabRef.current = destinationTab;
-  }, []);
+  const handlePageSelected = useCallback(
+    (e: { nativeEvent: { position: number } }) => {
+      switchToTab(e.nativeEvent.position);
+    },
+    [switchToTab],
+  );
 
   return (
     <SafeAreaView
@@ -196,62 +236,38 @@ export const ExploreFeed: React.FC = () => {
         {!isBasicFunctionalityEnabled ? (
           <BasicFunctionalityEmptyState />
         ) : isExplorePageV2Enabled ? (
-          <TabsList
-            ref={tabsListRef}
-            tabsListContentTwClassName="px-0 pb-3"
-            onChangeTab={handleTabChange}
-          >
-            <Box
-              key="now"
-              twClassName="flex-1"
-              {...({ tabLabel: strings('trending.tabs.now') } as TabViewProps)}
+          <Box twClassName="flex-1">
+            <TabsBar
+              tabs={TAB_ITEMS}
+              activeIndex={activeIndex}
+              onTabPress={handleTabBarPress}
+            />
+            <PagerView
+              ref={pagerRef}
+              style={tw.style('flex-1')}
+              initialPage={0}
+              onPageSelected={handlePageSelected}
             >
-              <NowTab {...tabProps} />
-            </Box>
-            <Box
-              key="macro"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.macro'),
-              } as TabViewProps)}
-            >
-              <MacroTab {...tabProps} />
-            </Box>
-            <Box
-              key="rwas"
-              twClassName="flex-1"
-              {...({ tabLabel: strings('trending.tabs.rwas') } as TabViewProps)}
-            >
-              <RwasTab {...tabProps} />
-            </Box>
-            <Box
-              key="crypto"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.crypto'),
-              } as TabViewProps)}
-            >
-              <CryptoTab {...tabProps} />
-            </Box>
-            <Box
-              key="sports"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.sports'),
-              } as TabViewProps)}
-            >
-              <SportsTab {...tabProps} />
-            </Box>
-            <Box
-              key="dapps"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.dapps'),
-              } as TabViewProps)}
-            >
-              <DappsTab {...tabProps} />
-            </Box>
-          </TabsList>
+              <View key="now" style={tw.style('flex-1')} collapsable={false}>
+                {mountedTabs.has(0) && <NowTab {...tabProps} />}
+              </View>
+              <View key="macro" style={tw.style('flex-1')} collapsable={false}>
+                {mountedTabs.has(1) && <MacroTab {...tabProps} />}
+              </View>
+              <View key="rwas" style={tw.style('flex-1')} collapsable={false}>
+                {mountedTabs.has(2) && <RwasTab {...tabProps} />}
+              </View>
+              <View key="crypto" style={tw.style('flex-1')} collapsable={false}>
+                {mountedTabs.has(3) && <CryptoTab {...tabProps} />}
+              </View>
+              <View key="sports" style={tw.style('flex-1')} collapsable={false}>
+                {mountedTabs.has(4) && <SportsTab {...tabProps} />}
+              </View>
+              <View key="dapps" style={tw.style('flex-1')} collapsable={false}>
+                {mountedTabs.has(5) && <DappsTab {...tabProps} />}
+              </View>
+            </PagerView>
+          </Box>
         ) : (
           <ExplorePageV1 {...tabProps} />
         )}
