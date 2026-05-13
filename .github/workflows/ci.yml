@@ -23,6 +23,7 @@ on:
         options:
           - current
           - namespace
+          - something
         default: current
 
 concurrency:
