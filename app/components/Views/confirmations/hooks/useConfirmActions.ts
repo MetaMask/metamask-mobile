@@ -116,6 +116,7 @@ export const useConfirmActions = () => {
     }
 
     if (isSigningQRObject) {
+      setSigningConfirmed();
       setScannerVisible(true);
       return;
     }

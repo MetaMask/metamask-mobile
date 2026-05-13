@@ -90,20 +90,23 @@ describe('useConfirmAction', () => {
     });
   });
 
-  it('call setScannerVisible if QR signing is in progress', async () => {
+  it('sets signing confirmed and shows scanner when QR signing is in progress', async () => {
     const clearSecurityAlertResponseSpy = jest.spyOn(
       PPOMUtil,
       'clearSignatureSecurityAlertResponse',
     );
     const mockSetScannerVisible = jest.fn().mockResolvedValue(undefined);
+    const mockSetSigningConfirmed = jest.fn();
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       isSigningQRObject: true,
       setScannerVisible: mockSetScannerVisible,
+      setSigningConfirmed: mockSetSigningConfirmed,
     } as unknown as QRHardwareHook.QRHardwareContextType);
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: personalSignatureConfirmationState,
     });
     result?.current?.onConfirm();
+    expect(mockSetSigningConfirmed).toHaveBeenCalledTimes(1);
     expect(mockSetScannerVisible).toHaveBeenCalledTimes(1);
     expect(mockSetScannerVisible).toHaveBeenLastCalledWith(true);
     expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(0);
