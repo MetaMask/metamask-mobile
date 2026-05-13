@@ -45,6 +45,42 @@ const styles = StyleSheet.create({
   },
 });
 
+/**
+ * Generic multi-step onboarding stepper driven by a single Rive animation.
+ *
+ * Each step advances the animation by firing a named trigger on a Rive state
+ * machine, so you only need one `.riv` file regardless of how many steps your
+ * flow has.
+ *
+ * **Quick-start**
+ * ```tsx
+ * <RiveOnboardingStepper
+ *   steps={[
+ *     { title: 'Step 1', body: 'Description.', durationMs: 3000, buttonLabel: 'Continue' },
+ *     { title: 'Step 2', body: 'Description.', durationMs: 3000, buttonLabel: 'Get started' },
+ *   ]}
+ *   riveConfig={{
+ *     source: require('./my-animation.riv'),
+ *     stateMachineName: 'MyStateMachine',
+ *     triggerName: 'Next',         // fired on every "Continue" button press
+ *   }}
+ *   renderBackground={() => <MyGradientBackground />}
+ *   textColor={TextColor.PrimaryInverse}
+ *   progressBarColor="#FFFFFF"
+ *   onComplete={() => navigation.navigate(Routes.HOME)}
+ * />
+ * ```
+ *
+ * **Rive file requirements**
+ * - One state machine with a trigger input whose name matches `riveConfig.triggerName`.
+ * - Each trigger fire should transition the animation to the next visual segment.
+ *
+ * @see {@link RiveOnboardingStepperProps} for the full prop reference.
+ * @see {@link OnboardingStep} for per-step configuration options.
+ * @see {@link RiveConfig} for animation wiring options.
+ *
+ * See existing MoneyOnboardingView for an example of how to use this component.
+ */
 const RiveOnboardingStepper = ({
   steps,
   riveConfig,
