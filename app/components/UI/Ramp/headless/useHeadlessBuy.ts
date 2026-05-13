@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { CaipChainId } from '@metamask/utils';
+import type { RampsOrder } from '@metamask/ramps-controller';
 
 import ReduxService from '../../../../core/redux';
 import Routes from '../../../../constants/navigation/Routes';
@@ -14,6 +15,13 @@ import {
   createSession,
   getActiveSessionId,
 } from './sessionRegistry';
+import {
+  awaitOrderTerminalState as awaitOrderTerminalStateImperative,
+  getOrder as getOrderImperative,
+  refreshOrder as refreshOrderImperative,
+  type AwaitOrderTerminalStateOptions,
+  type RefreshOrderOptions,
+} from './orderTerminalState';
 import type {
   HeadlessBuyCallbacks,
   HeadlessBuyParams,
@@ -51,21 +59,60 @@ function resolveWalletAddressForChain(chainId: CaipChainId): string | null {
 }
 
 /**
- * `useHeadlessBuy` is the public, read-only facade for driving the Unified
- * Buy v2 flow from outside the Ramp UI. Phase 2 only exposes catalog data,
- * orders and a `getQuotes` helper — start/cancel and lifecycle callbacks
- * land in later phases.
+ * `useHeadlessBuy` is the public facade for driving the Unified Buy v2 flow
+ * from outside the Ramp UI. It exposes catalog data (`tokens`, `providers`,
+ * `paymentMethods`, `countries`, `userRegion`) for building consumer UIs on
+ * top of the same data source the standard ramp surface uses; a quote
+ * selection helper (`getQuotes`); session lifecycle primitives
+ * (`startHeadlessBuy`, `errors`) that drive the three terminal callbacks
+ * (`onOrderCreated`, `onError`, `onClose`) — see Phase 5 / 6 / 7 / 8 of the
+ * plan; and Phase 9 order observation hooks (`getOrder`, `refreshOrder`,
+ * `awaitOrderTerminalState`) for waiting on a fiat order to settle. The
+ * imperative `awaitOrderTerminalState` is the load-bearing API for MetaMask
+ * Pay's `TransactionPayController` so the second step of its two-step flow
+ * can fire on settlement.
  *
- * @example
- * ```tsx
- * const { tokens, providers, paymentMethods, getQuotes } = useHeadlessBuy();
+ * Non-React consumers (e.g. controllers) should import the same imperative
+ * functions from `app/components/UI/Ramp/headless/orderTerminalState.ts` —
+ * the hook methods are thin passthroughs.
+ *
+ * @example Consumer-side TPC pattern
+ * ```ts
+ * const { startHeadlessBuy, awaitOrderTerminalState, getQuotes } = useHeadlessBuy();
  *
  * const quotes = await getQuotes({
  *   assetId: 'eip155:59144/erc20:0xaca…',
  *   amount: 25,
  *   paymentMethodIds: ['/payments/debit-credit-card'],
  * });
+ * const quote = pickQuote(quotes); // consumer-owned selection
+ *
+ * startHeadlessBuy(
+ *   { quote, assetId: quote.crypto.assetId, amount: 25 },
+ *   {
+ *     onOrderCreated: async (orderId) => {
+ *       // Bridge the callback into a promise so the consumer can await
+ *       // settlement. The order is in redux state by the time this fires;
+ *       // awaitOrderTerminalState polls the controller as a fallback when
+ *       // the unified order processor isn't running.
+ *       const settled = await awaitOrderTerminalState(orderId, {
+ *         timeoutMs: 5 * 60 * 1000,
+ *       });
+ *       if (settled.status === 'COMPLETED') {
+ *         await fireStepIIIntent(settled);
+ *       }
+ *     },
+ *     onError: (e) => surfaceError(e),
+ *     onClose: ({ reason }) => trackClose(reason),
+ *   },
+ * );
  * ```
+ *
+ * Notes:
+ * - Don't call `awaitOrderTerminalState` *before* `onOrderCreated` fires —
+ *   the order won't exist yet and the helper will sit on its slow-path poll.
+ * - `getOrder` is a synchronous read of redux state; `refreshOrder` is a
+ *   network call that returns a fresh order without writing back to state.
  */
 export function useHeadlessBuy(): HeadlessBuyResult {
   const navigation = useNavigation();
@@ -207,6 +254,29 @@ export function useHeadlessBuy(): HeadlessBuyResult {
     ],
   );
 
+  // Phase 9 — order observation hook surface. Each method is a thin pass-
+  // through to the module-level imperative twin in `orderTerminalState.ts`
+  // so non-React consumers (e.g. MetaMask Pay's `TransactionPayController`)
+  // can call into the exact same code path without going through React.
+  const getOrder = useCallback(
+    (providerOrderId: string): RampsOrder | undefined =>
+      getOrderImperative(providerOrderId),
+    [],
+  );
+  const refreshOrder = useCallback(
+    (orderIdOrOrder: string | RampsOrder, options?: RefreshOrderOptions) =>
+      refreshOrderImperative(orderIdOrOrder, options),
+    [],
+  );
+  const awaitOrderTerminalState = useCallback(
+    (
+      providerOrderId: string,
+      options?: AwaitOrderTerminalStateOptions,
+    ): Promise<RampsOrder> =>
+      awaitOrderTerminalStateImperative(providerOrderId, options),
+    [],
+  );
+
   const errors = useMemo(
     () => ({
       tokens: tokensError,
@@ -231,6 +301,9 @@ export function useHeadlessBuy(): HeadlessBuyResult {
     userRegion,
     orders,
     getOrderById,
+    getOrder,
+    refreshOrder,
+    awaitOrderTerminalState,
     getQuotes,
     startHeadlessBuy,
     isLoading,

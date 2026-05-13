@@ -34,8 +34,10 @@ import { useStyles } from '../../../../hooks/useStyles';
 import useRampsController from '../../hooks/useRampsController';
 import {
   useHeadlessBuy,
+  OrderTerminalStateTimeoutError,
   type PaymentMethod,
   type QuotesResponse,
+  type RampsOrder,
 } from '../../headless';
 import type { Quote } from '../../types';
 
@@ -68,6 +70,14 @@ export const HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID =
   'headless-playground-cancel-button';
 export const HEADLESS_PLAYGROUND_EVENT_LOG_TEST_ID =
   'headless-playground-event-log';
+export const HEADLESS_PLAYGROUND_ORDER_TRACKING_SECTION_TEST_ID =
+  'headless-playground-order-tracking-section';
+export const HEADLESS_PLAYGROUND_ORDER_TRACKING_REFRESH_TEST_ID =
+  'headless-playground-order-tracking-refresh';
+export const HEADLESS_PLAYGROUND_ORDER_TRACKING_AWAIT_TEST_ID =
+  'headless-playground-order-tracking-await';
+export const HEADLESS_PLAYGROUND_ORDER_TRACKING_STATUS_BADGE_TEST_ID =
+  'headless-playground-order-tracking-status-badge';
 
 export enum HeadlessPlaygroundAccordionIndex {
   Selected = 0,
@@ -307,6 +317,9 @@ function HeadlessPlayground() {
     errors: headlessErrors,
     getQuotes,
     startHeadlessBuy,
+    getOrder,
+    refreshOrder,
+    awaitOrderTerminalState,
   } = useHeadlessBuy();
 
   const handleBack = useCallback(() => {
@@ -471,6 +484,16 @@ function HeadlessPlayground() {
     cancel: () => void;
   } | null>(null);
 
+  // Phase 9 — once an order is created we surface the orderId here so a
+  // developer poking at the playground can exercise the same getOrder /
+  // refreshOrder / awaitOrderTerminalState hooks MetaMask Pay's
+  // TransactionPayController will use.
+  const [lastOrderId, setLastOrderId] = useState<string | null>(null);
+  const [awaitStatus, setAwaitStatus] = useState<
+    'idle' | 'awaiting' | 'terminal' | 'timed-out' | 'rejected'
+  >('idle');
+  const [awaitMessage, setAwaitMessage] = useState<string | null>(null);
+
   const appendEvent = useCallback((message: string) => {
     setEventLog((current) => [
       `${new Date().toISOString()} · ${message}`,
@@ -504,6 +527,9 @@ function HeadlessPlayground() {
               { orderId },
             ),
           );
+          setLastOrderId(orderId);
+          setAwaitStatus('idle');
+          setAwaitMessage(null);
           setActiveSession(null);
         },
         onError: (error) => {
@@ -567,6 +593,61 @@ function HeadlessPlayground() {
     activeSession.cancel();
     setActiveSession(null);
   }, [activeSession, appendEvent]);
+
+  // Read the tracked order live from redux state. Re-evaluated on each
+  // render so the rendered status badge stays in sync with controller-side
+  // updates (including those produced by the unified order processor).
+  const trackedOrder: RampsOrder | undefined = lastOrderId
+    ? getOrder(lastOrderId)
+    : undefined;
+
+  const handleRefreshOrder = useCallback(async () => {
+    if (!lastOrderId) {
+      return;
+    }
+    try {
+      const fresh = await refreshOrder(lastOrderId);
+      appendEvent(
+        strings(
+          'app_settings.fiat_on_ramp.headless_playground.order_tracking_refresh_logged',
+          { status: fresh.status },
+        ),
+      );
+    } catch (error) {
+      appendEvent(
+        strings(
+          'app_settings.fiat_on_ramp.headless_playground.event_log_error',
+          {
+            code: 'REFRESH_FAILED',
+            messageSuffix: error instanceof Error ? ` (${error.message})` : '',
+          },
+        ),
+      );
+    }
+  }, [appendEvent, lastOrderId, refreshOrder]);
+
+  const handleAwaitOrderTerminalState = useCallback(async () => {
+    if (!lastOrderId) {
+      return;
+    }
+    setAwaitStatus('awaiting');
+    setAwaitMessage(null);
+    try {
+      const terminal = await awaitOrderTerminalState(lastOrderId, {
+        timeoutMs: 5 * 60 * 1000,
+      });
+      setAwaitStatus('terminal');
+      setAwaitMessage(terminal.status);
+    } catch (error) {
+      if (error instanceof OrderTerminalStateTimeoutError) {
+        setAwaitStatus('timed-out');
+        setAwaitMessage(error.message);
+      } else {
+        setAwaitStatus('rejected');
+        setAwaitMessage(error instanceof Error ? error.message : 'Unknown');
+      }
+    }
+  }, [awaitOrderTerminalState, lastOrderId]);
 
   // Resolve the effective ids into human-friendly labels via `useHeadlessBuy`
   // so the section also exercises the catalog data exposed by the hook.
@@ -1101,6 +1182,109 @@ function HeadlessPlayground() {
                     ))
                   )}
                 </View>
+
+                {lastOrderId ? (
+                  <View
+                    style={styles.orderTrackingSection}
+                    testID={HEADLESS_PLAYGROUND_ORDER_TRACKING_SECTION_TEST_ID}
+                  >
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      style={styles.orderTrackingTitle}
+                    >
+                      {strings(
+                        'app_settings.fiat_on_ramp.headless_playground.order_tracking_title',
+                      )}
+                    </Text>
+                    <View style={styles.orderTrackingRow}>
+                      <Text
+                        variant={TextVariant.BodyXs}
+                        color={TextColor.TextAlternative}
+                      >
+                        {strings(
+                          'app_settings.fiat_on_ramp.headless_playground.order_tracking_id',
+                        )}
+                      </Text>
+                      <Text variant={TextVariant.BodyXs}>{lastOrderId}</Text>
+                    </View>
+                    <View style={styles.orderTrackingRow}>
+                      <Text
+                        variant={TextVariant.BodyXs}
+                        color={TextColor.TextAlternative}
+                      >
+                        {strings(
+                          'app_settings.fiat_on_ramp.headless_playground.order_tracking_status',
+                        )}
+                      </Text>
+                      <Text variant={TextVariant.BodyXs}>
+                        {trackedOrder?.status ??
+                          strings(
+                            'app_settings.fiat_on_ramp.headless_playground.order_tracking_status_unknown',
+                          )}
+                      </Text>
+                    </View>
+                    <View style={styles.orderTrackingActions}>
+                      <Button
+                        variant={ButtonVariant.Secondary}
+                        onPress={handleRefreshOrder}
+                        isDisabled={!trackedOrder}
+                        testID={
+                          HEADLESS_PLAYGROUND_ORDER_TRACKING_REFRESH_TEST_ID
+                        }
+                      >
+                        {strings(
+                          'app_settings.fiat_on_ramp.headless_playground.order_tracking_refresh',
+                        )}
+                      </Button>
+                      <Button
+                        variant={ButtonVariant.Secondary}
+                        onPress={handleAwaitOrderTerminalState}
+                        isDisabled={awaitStatus === 'awaiting'}
+                        testID={
+                          HEADLESS_PLAYGROUND_ORDER_TRACKING_AWAIT_TEST_ID
+                        }
+                      >
+                        {strings(
+                          'app_settings.fiat_on_ramp.headless_playground.order_tracking_await',
+                        )}
+                      </Button>
+                    </View>
+                    {awaitStatus !== 'idle' ? (
+                      <Text
+                        variant={TextVariant.BodyXs}
+                        color={
+                          awaitStatus === 'terminal'
+                            ? TextColor.SuccessDefault
+                            : awaitStatus === 'awaiting'
+                              ? TextColor.TextAlternative
+                              : TextColor.ErrorDefault
+                        }
+                        style={styles.orderTrackingBadge}
+                        testID={
+                          HEADLESS_PLAYGROUND_ORDER_TRACKING_STATUS_BADGE_TEST_ID
+                        }
+                      >
+                        {awaitStatus === 'awaiting'
+                          ? strings(
+                              'app_settings.fiat_on_ramp.headless_playground.order_tracking_awaiting',
+                            )
+                          : awaitStatus === 'terminal'
+                            ? strings(
+                                'app_settings.fiat_on_ramp.headless_playground.order_tracking_terminal',
+                              )
+                            : awaitStatus === 'timed-out'
+                              ? strings(
+                                  'app_settings.fiat_on_ramp.headless_playground.order_tracking_timed_out',
+                                )
+                              : strings(
+                                  'app_settings.fiat_on_ramp.headless_playground.order_tracking_rejected',
+                                  { message: awaitMessage ?? '' },
+                                )}
+                      </Text>
+                    ) : null}
+                  </View>
+                ) : null}
 
                 <View
                   style={styles.section}

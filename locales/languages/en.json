@@ -3520,7 +3520,18 @@
         "event_log_order_created": "onOrderCreated → {{orderId}}",
         "event_log_error": "onError → {{code}}{{messageSuffix}}",
         "event_log_close": "onClose → {{reason}}",
-        "event_log_cancelled": "consumer-cancelled session {{sessionId}}"
+        "event_log_cancelled": "consumer-cancelled session {{sessionId}}",
+        "order_tracking_title": "Order tracking",
+        "order_tracking_id": "Order id",
+        "order_tracking_status": "Status",
+        "order_tracking_status_unknown": "(not yet in state)",
+        "order_tracking_refresh": "Refresh order",
+        "order_tracking_await": "Await terminal state",
+        "order_tracking_awaiting": "Awaiting terminal state…",
+        "order_tracking_terminal": "Terminal state reached",
+        "order_tracking_timed_out": "Timed out waiting for terminal state",
+        "order_tracking_rejected": "Await rejected: {{message}}",
+        "order_tracking_refresh_logged": "refreshOrder → {{status}}"
       },
       "headless_host": {
         "title": "Headless buy",
