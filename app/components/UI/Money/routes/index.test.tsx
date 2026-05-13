@@ -147,4 +147,22 @@ describe('MoneyModalStack', () => {
       getByTestId('money-screen-RedesignedConfirmations'),
     ).toBeOnTheScreen();
   });
+
+  it('registers the claimable bonus info sheet as a modal screen', () => {
+    const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(
+      getByTestId('money-screen-MoneyClaimableBonusInfoSheet'),
+    ).toBeOnTheScreen();
+  });
+
+  it('registers the convert info sheet as a modal screen', () => {
+    const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(getByTestId('money-screen-MoneyConvertInfoSheet')).toBeOnTheScreen();
+  });
 });

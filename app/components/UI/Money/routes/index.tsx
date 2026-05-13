@@ -16,6 +16,8 @@ import MoneyApyInfoSheet from '../components/MoneyApyInfoSheet';
 import MoneyEarningsInfoSheet from '../components/MoneyEarningsInfoSheet';
 import MoneyBalanceInfoSheet from '../components/MoneyBalanceInfoSheet';
 import MoneyEarnCryptoInfoSheet from '../components/MoneyEarnCryptoInfoSheet';
+import MoneyClaimableBonusInfoSheet from '../components/MoneyClaimableBonusInfoSheet';
+import MoneyConvertInfoSheet from '../components/MoneyConvertInfoSheet';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 
@@ -96,6 +98,16 @@ const MoneyModalStack = () => (
     <ModalStack.Screen
       name={Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET}
       component={MoneyEarnCryptoInfoSheet}
+      options={{ headerShown: false }}
+    />
+    <ModalStack.Screen
+      name={Routes.MONEY.MODALS.CLAIMABLE_BONUS_INFO_SHEET}
+      component={MoneyClaimableBonusInfoSheet}
+      options={{ headerShown: false }}
+    />
+    <ModalStack.Screen
+      name={Routes.MONEY.MODALS.CONVERT_INFO_SHEET}
+      component={MoneyConvertInfoSheet}
       options={{ headerShown: false }}
     />
     <ModalStack.Screen

@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Linking } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import InfoRow from '../../UI/info-row';
 import { MUSD_CONVERSION_APY } from '../../../../../UI/Earn/constants/musd';
 import Text, {
@@ -9,29 +10,27 @@ import Text, {
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import { strings } from '../../../../../../../locales/i18n';
-import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
-import AppConstants from '../../../../../../core/AppConstants';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { MUSD_EVENTS_CONSTANTS } from '../../../../../UI/Earn/constants/events';
-
-const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 const styles = StyleSheet.create({
-  termsText: {
-    textDecorationLine: 'underline',
+  tooltipButton: {
+    marginLeft: 4,
   },
 });
 
 export function PercentageRow() {
   const isLoading = useIsTransactionPayLoading();
-
+  const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
-
-  const { trackEvent, createEventBuilder } = useAnalytics();
 
   if (
     !hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
@@ -39,17 +38,10 @@ export function PercentageRow() {
     return null;
   }
 
-  const redirectToBonusFaq = () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
-        .addProperties({
-          location: EVENT_LOCATIONS.PERCENTAGE_ROW,
-          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
-        })
-        .build(),
-    );
-
-    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
+  const handleInfoPress = () => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.CLAIMABLE_BONUS_INFO_SHEET,
+    });
   };
 
   if (isLoading) {
@@ -60,14 +52,19 @@ export function PercentageRow() {
     <InfoRow
       label={strings('earn.claimable_bonus')}
       rowVariant={InfoRowVariant.Small}
-      tooltipColor={IconColor.Alternative}
-      tooltip={
-        <Text>
-          {strings('earn.claimable_bonus_tooltip')}{' '}
-          <Text style={styles.termsText} onPress={redirectToBonusFaq}>
-            {strings('earn.musd_conversion.education.terms_apply')}
-          </Text>
-        </Text>
+      labelChildren={
+        <TouchableOpacity
+          onPress={handleInfoPress}
+          testID="percentage-row-tooltip-open-btn"
+          style={styles.tooltipButton}
+          hitSlop={8}
+        >
+          <Icon
+            name={IconName.Info}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+        </TouchableOpacity>
       }
     >
       <Text variant={TextVariant.BodyMD} color={TextColor.Success}>

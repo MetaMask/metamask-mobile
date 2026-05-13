@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, StyleSheet, Linking } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -11,14 +12,8 @@ import {
   IconColor,
   IconName,
 } from '@metamask/design-system-react-native';
+import Routes from '../../../../constants/navigation/Routes';
 import useNavbar from '../../../Views/confirmations/hooks/ui/useNavbar';
-import useTooltipModal from '../../../hooks/useTooltipModal';
-import AppConstants from '../../../../core/AppConstants';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { MUSD_EVENTS_CONSTANTS } from '../constants/events';
-
-const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 const styles = StyleSheet.create({
   headerTitle: {
@@ -31,9 +26,6 @@ const styles = StyleSheet.create({
   headerRight: {
     marginRight: 16,
   },
-  termsText: {
-    textDecorationLine: 'underline',
-  },
 });
 
 /**
@@ -42,9 +34,7 @@ const styles = StyleSheet.create({
  *
  */
 export function useMusdConversionNavbar() {
-  const { openTooltipModal } = useTooltipModal();
-
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const navigation = useNavigation();
 
   const renderHeaderTitle = useCallback(
     () => (
@@ -73,37 +63,11 @@ export function useMusdConversionNavbar() {
     [],
   );
 
-  const handleTermsOfUsePressed = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
-        .addProperties({
-          location: EVENT_LOCATIONS.CUSTOM_AMOUNT_NAVBAR,
-          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
-        })
-        .build(),
-    );
-    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
-  }, [createEventBuilder, trackEvent]);
-
   const onInfoPress = useCallback(() => {
-    openTooltipModal(
-      strings('earn.musd_conversion.convert_and_get_percentage_bonus', {
-        percentage: MUSD_CONVERSION_APY,
-      }),
-      <Text variant={TextVariant.BodyMD}>
-        {strings('earn.musd_conversion.education.description', {
-          percentage: MUSD_CONVERSION_APY,
-        })}{' '}
-        <Text variant={TextVariant.BodyMD}>
-          <Text onPress={handleTermsOfUsePressed} style={styles.termsText}>
-            {strings('earn.musd_conversion.education.terms_apply')}
-          </Text>
-        </Text>
-      </Text>,
-      strings('earn.musd_conversion.powered_by_relay'),
-      strings('earn.musd_conversion.ok'),
-    );
-  }, [handleTermsOfUsePressed, openTooltipModal]);
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.CONVERT_INFO_SHEET,
+    });
+  }, [navigation]);
 
   const renderHeaderRight = useCallback(
     () => (
