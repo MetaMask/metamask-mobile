@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.76.3]
+
+### Added
+
+- Added Predict transaction publishing hooks to support the Polymarket Deposit Wallet flow. (#29914)
+- Added support for depositing to a Polymarket Deposit Wallet in Predict, while preserving legacy Safe behavior for users with existing Polymarket activity. (#29917)
+- Added Polymarket Deposit Wallet order placement support in Predict. (#29933)
+- Added support for claiming Predict positions through the Polymarket Deposit Wallet. (#29936)
+
+### Fixed
+
+- Disabled Predict withdrawals for Polymarket Deposit Wallet users with a temporary "withdrawals unavailable" bottom sheet, while legacy Safe users keep the existing flow. (#29941)
+
 ## [7.76.0]
 
 ### Added
@@ -11422,7 +11435,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.76.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.76.3...HEAD
+[7.76.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.76.0...v7.76.3
 [7.76.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.75.1...v7.76.0
 [7.75.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.75.0...v7.75.1
 [7.75.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.74.3...v7.75.0
