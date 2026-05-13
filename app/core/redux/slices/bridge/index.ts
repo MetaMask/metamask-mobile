@@ -97,6 +97,7 @@ export interface BridgeState {
    */
   selectedQuoteRequestId: string | undefined;
   hardwareWalletsSwaps: HardwareWalletsSwapsState;
+  batchSellSourceTokens: BridgeToken[];
 }
 
 export const initialState: BridgeState = {
@@ -121,6 +122,7 @@ export const initialState: BridgeState = {
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
   hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
+  batchSellSourceTokens: [],
 };
 
 const name = 'bridge';
@@ -265,6 +267,9 @@ const slice = createSlice({
     resetHardwareWalletsSwaps: (state) => {
       state.hardwareWalletsSwaps = initialHardwareWalletsSwapsState;
     },
+    setBatchSellSourceTokens: (state, action: PayloadAction<BridgeToken[]>) => {
+      state.batchSellSourceTokens = action.payload.map(normalizeBridgeToken);
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(setSourceTokenExchangeRate.pending, (state) => {
@@ -349,6 +354,23 @@ export const selectBridgeFeatureFlags = createSelector(
       },
     });
   },
+);
+
+export const selectBatchSellDestStablecoinsByChain = createSelector(
+  selectBridgeFeatureFlags,
+  (bridgeFeatureFlags): Record<CaipChainId, CaipAssetType[]> =>
+    Object.entries(bridgeFeatureFlags.chains ?? {}).reduce(
+      (stablecoinsByChain, [chainId, chainConfig]) => {
+        const batchSellDestStablecoins = chainConfig.batchSellDestStablecoins;
+
+        if (batchSellDestStablecoins) {
+          stablecoinsByChain[chainId as CaipChainId] = batchSellDestStablecoins;
+        }
+
+        return stablecoinsByChain;
+      },
+      {} as Record<CaipChainId, CaipAssetType[]>,
+    ),
 );
 
 /**
@@ -480,6 +502,11 @@ export const selectDestAddress = createSelector(
 export const selectSelectedQuoteRequestId = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.selectedQuoteRequestId,
+);
+
+export const selectBatchSellSourceTokens = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.batchSellSourceTokens,
 );
 
 // Selectors for gas included STX/SendBundle support
@@ -777,4 +804,5 @@ export const {
   setSelectedQuoteRequestId,
   updateHardwareWalletsSwaps,
   resetHardwareWalletsSwaps,
+  setBatchSellSourceTokens,
 } = actions;

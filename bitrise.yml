@@ -3585,7 +3585,7 @@ app:
       NODE_VERSION: 20.18.0
     - opts:
         is_expand: false
-      YARN_VERSION: 4.10.3
+      YARN_VERSION: 4.14.1
     - opts:
         is_expand: false
       COREPACK_VERSION: 0.28.0

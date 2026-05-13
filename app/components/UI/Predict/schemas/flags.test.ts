@@ -1,6 +1,9 @@
 import { create, StructError } from '@metamask/superstruct';
-import { PredictFeeCollectionSchema } from './flags';
-import { DEFAULT_FEE_COLLECTION_FLAG } from '../constants/flags';
+import { PredictFeeCollectionSchema, PredictWorldCupSchema } from './flags';
+import {
+  DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_PREDICT_WORLD_CUP_FLAG,
+} from '../constants/flags';
 
 describe('PredictFeeCollectionSchema', () => {
   describe('defaults', () => {
@@ -172,5 +175,71 @@ describe('PredictFeeCollectionSchema', () => {
         StructError,
       );
     });
+  });
+});
+
+describe('PredictWorldCupSchema', () => {
+  it('returns safe disabled defaults when input is undefined', () => {
+    const result = create(undefined, PredictWorldCupSchema);
+
+    expect(result).toStrictEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
+  });
+
+  it('fills missing IDs and stages with defaults', () => {
+    const result = create(
+      {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        showMainFeedBanner: true,
+        showMainFeedTab: true,
+        showWorldCupScreen: true,
+      },
+      PredictWorldCupSchema,
+    );
+
+    expect(result).toStrictEqual({
+      ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+      enabled: true,
+      minimumVersion: '1.0.0',
+      showMainFeedBanner: true,
+      showMainFeedTab: true,
+      showWorldCupScreen: true,
+    });
+  });
+
+  it('preserves configured IDs, banner, and stages', () => {
+    const input = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      showMainFeedBanner: true,
+      showMainFeedTab: true,
+      showWorldCupScreen: true,
+      seriesId: '11433',
+      tagSlug: 'fifa-world-cup',
+      gamesTagId: '100639',
+      bannerImageUrl: 'https://example.com/banner.png',
+      stages: [
+        {
+          key: 'group_stage',
+          labelKey: 'predict.world_cup.stages.group_stage',
+          eventIds: ['1', '2'],
+        },
+      ],
+    };
+
+    const result = create(input, PredictWorldCupSchema);
+
+    expect(result).toStrictEqual(input);
+  });
+
+  it('throws for invalid stage event IDs', () => {
+    expect(() =>
+      create(
+        {
+          stages: [{ key: 'group_stage', eventIds: [123] }],
+        },
+        PredictWorldCupSchema,
+      ),
+    ).toThrow(StructError);
   });
 });
