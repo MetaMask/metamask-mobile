@@ -283,7 +283,12 @@ export const useBridgeQuoteData = ({
   );
 
   const validateQuote = useCallback(async () => {
-    if (!activeQuote || (!isSolanaSwap && !isSolanaToNonSolana)) {
+    if (
+      !activeQuote ||
+      (!isSolanaSwap && !isSolanaToNonSolana) ||
+      // Skip validation for gas-included quotes on Solana
+      activeQuote?.quote?.gasIncluded === true
+    ) {
       lastValidatedQuoteRef.current = null;
       setBlockaidError(null);
       return;
