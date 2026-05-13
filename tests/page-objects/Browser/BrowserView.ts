@@ -325,7 +325,6 @@ class Browser {
     url: string,
     options: { skipUrlEditorDismissal?: boolean } = {},
   ): Promise<void> {
-    // await device.disableSynchronization(); // because animations makes typing into the browser slow
     await Gestures.typeText(this.urlInputBoxID, url, {
       hideKeyboard: true,
       elemDescription: 'URL input box',
@@ -350,7 +349,6 @@ class Browser {
         });
       }
     }
-    // await device.enableSynchronization(); // re-enabling synchronization
   }
 
   /**
