@@ -2,12 +2,8 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import { WalletDevice } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
-import {
-  addTransaction,
-  addTransactionBatch,
-} from '../../../../util/transaction-controller';
+import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
@@ -15,9 +11,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectEvmAddress } from '../../../../selectors/accountsController';
 import {
   buildMoneyAccountDepositBatch,
-  buildMoneyAccountWithdraw,
+  buildMoneyAccountWithdrawBatch,
 } from '../utils/moneyAccountTransactions';
 import {
   useMoneyAccountDeposit,
@@ -73,16 +70,14 @@ const mockGetProviderByChainId = getProviderByChainId as jest.MockedFunction<
 const mockAddTransactionBatch = addTransactionBatch as jest.MockedFunction<
   typeof addTransactionBatch
 >;
-const mockAddTransaction = addTransaction as jest.MockedFunction<
-  typeof addTransaction
->;
 const mockBuildDepositBatch =
   buildMoneyAccountDepositBatch as jest.MockedFunction<
     typeof buildMoneyAccountDepositBatch
   >;
-const mockBuildWithdraw = buildMoneyAccountWithdraw as jest.MockedFunction<
-  typeof buildMoneyAccountWithdraw
->;
+const mockBuildWithdrawBatch =
+  buildMoneyAccountWithdrawBatch as jest.MockedFunction<
+    typeof buildMoneyAccountWithdrawBatch
+  >;
 const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
   .findNetworkClientIdByChainId as jest.MockedFunction<
   typeof Engine.context.NetworkController.findNetworkClientIdByChainId
@@ -100,6 +95,8 @@ const MOCK_MONEY_ACCOUNT = {
   address: '0xmoneyAccount',
 };
 
+const MOCK_RECIPIENT = '0xrecipient';
+
 const MOCK_PROVIDER = {} as ReturnType<typeof getProviderByChainId>;
 
 // 'key' in options is used instead of destructuring defaults so that
@@ -108,6 +105,7 @@ const MOCK_PROVIDER = {} as ReturnType<typeof getProviderByChainId>;
 interface SelectorOptions {
   vaultConfig?: typeof MOCK_VAULT_CONFIG | undefined;
   primaryMoneyAccount?: typeof MOCK_MONEY_ACCOUNT | undefined;
+  recipient?: string | undefined;
 }
 
 function setupSelectors(options: SelectorOptions = {}) {
@@ -117,9 +115,11 @@ function setupSelectors(options: SelectorOptions = {}) {
     'primaryMoneyAccount' in options
       ? options.primaryMoneyAccount
       : MOCK_MONEY_ACCOUNT;
+  const recipient = 'recipient' in options ? options.recipient : MOCK_RECIPIENT;
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectMoneyAccountVaultConfig) return vaultConfig;
     if (selector === selectPrimaryMoneyAccount) return primaryMoneyAccount;
+    if (selector === selectEvmAddress) return recipient;
     return undefined;
   });
 }
@@ -158,7 +158,7 @@ describe('useMoneyAccountDeposit', () => {
 
     await expect(
       act(async () => {
-        await result.current.initiateDeposit(BigInt(1_000_000));
+        await result.current.initiateDeposit();
       }),
     ).rejects.toThrow('Missing vault config');
 
@@ -173,7 +173,7 @@ describe('useMoneyAccountDeposit', () => {
 
     await expect(
       act(async () => {
-        await result.current.initiateDeposit(BigInt(1_000_000));
+        await result.current.initiateDeposit();
       }),
     ).rejects.toThrow('No provider available');
 
@@ -184,12 +184,12 @@ describe('useMoneyAccountDeposit', () => {
     const { result } = renderHook(() => useMoneyAccountDeposit());
 
     await act(async () => {
-      await result.current.initiateDeposit(BigInt(1_000_000));
+      await result.current.initiateDeposit();
     });
 
     expect(mockBuildDepositBatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        amount: BigInt(1_000_000),
+        amount: BigInt(0),
         chainId: MOCK_VAULT_CONFIG.chainId,
         boringVault: MOCK_VAULT_CONFIG.boringVault,
       }),
@@ -220,7 +220,7 @@ describe('useMoneyAccountDeposit', () => {
     let caught: Error | undefined;
     await act(async () => {
       try {
-        await result.current.initiateDeposit(BigInt(1_000_000));
+        await result.current.initiateDeposit();
       } catch (error) {
         caught = error as Error;
       }
@@ -242,7 +242,7 @@ describe('useMoneyAccountDeposit', () => {
 
     await expect(
       act(async () => {
-        await result.current.initiateDeposit(BigInt(1_000_000));
+        await result.current.initiateDeposit();
       }),
     ).rejects.toThrow('Network client not found');
 
@@ -257,19 +257,25 @@ describe('useMoneyAccountWithdrawal', () => {
     setupSelectors();
     mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER);
     mockFindNetworkClientIdByChainId.mockReturnValue('arbitrum-one');
-    mockBuildWithdraw.mockResolvedValue({
-      params: {
-        to: '0xteller' as Hex,
-        data: '0xwithdraw' as Hex,
-        value: '0x0' as Hex,
-      },
-      options: {
-        origin: ORIGIN_METAMASK,
-        requireApproval: true,
+    mockBuildWithdrawBatch.mockResolvedValue({
+      withdrawTx: {
+        params: {
+          to: '0xteller' as Hex,
+          data: '0xwithdraw' as Hex,
+          value: '0x0' as Hex,
+        },
         type: 'moneyAccountWithdraw' as never,
       },
+      transferTx: {
+        params: {
+          to: '0xusdc' as Hex,
+          data: '0xtransfer' as Hex,
+          value: '0x0' as Hex,
+        },
+        type: 'tokenMethodTransfer' as never,
+      },
     });
-    mockAddTransaction.mockResolvedValue({} as never);
+    mockAddTransactionBatch.mockResolvedValue({} as never);
   });
 
   it('throws when vault config is missing', async () => {
@@ -279,11 +285,26 @@ describe('useMoneyAccountWithdrawal', () => {
 
     await expect(
       act(async () => {
-        await result.current.initiateWithdrawal(BigInt(1_000_000));
+        await result.current.initiateWithdrawal();
       }),
     ).rejects.toThrow('Missing vault config');
 
-    expect(mockBuildWithdraw).not.toHaveBeenCalled();
+    expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
+    expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
+  });
+
+  it('throws when recipient EVM address is missing', async () => {
+    setupSelectors({ recipient: undefined });
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await expect(
+      act(async () => {
+        await result.current.initiateWithdrawal();
+      }),
+    ).rejects.toThrow('Missing recipient EVM address');
+
+    expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
     expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
   });
 
@@ -294,27 +315,31 @@ describe('useMoneyAccountWithdrawal', () => {
 
     await expect(
       act(async () => {
-        await result.current.initiateWithdrawal(BigInt(1_000_000));
+        await result.current.initiateWithdrawal();
       }),
     ).rejects.toThrow('No provider available');
 
-    expect(mockBuildWithdraw).not.toHaveBeenCalled();
+    expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
   });
 
-  it('builds withdraw, navigates, and submits transaction', async () => {
+  it('builds withdraw batch, navigates, and submits transaction batch', async () => {
     const { result } = renderHook(() => useMoneyAccountWithdrawal());
 
     await act(async () => {
-      await result.current.initiateWithdrawal(BigInt(500_000));
+      await result.current.initiateWithdrawal();
     });
 
-    expect(mockBuildWithdraw).toHaveBeenCalledWith(
+    // Hook calls the builder with a placeholder amount of 0n; MM Pay rewrites
+    // the calldata via `updateMoneyAccountWithdrawTokenAmount` once the user
+    // picks an amount on the confirmation screen.
+    expect(mockBuildWithdrawBatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        amount: BigInt(500_000),
+        amount: BigInt(0),
         chainId: MOCK_VAULT_CONFIG.chainId,
         tellerAddress: MOCK_VAULT_CONFIG.tellerAddress,
         accountantAddress: MOCK_VAULT_CONFIG.accountantAddress,
-        toAddress: MOCK_MONEY_ACCOUNT.address,
+        moneyAccountAddress: MOCK_MONEY_ACCOUNT.address,
+        recipient: MOCK_RECIPIENT,
       }),
     );
 
@@ -323,29 +348,31 @@ describe('useMoneyAccountWithdrawal', () => {
       stack: Routes.MONEY.ROOT,
     });
 
-    expect(mockAddTransaction).toHaveBeenCalledWith(
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
       expect.objectContaining({
         from: MOCK_MONEY_ACCOUNT.address,
-        to: '0xteller',
-      }),
-      expect.objectContaining({
         networkClientId: 'arbitrum-one',
-        deviceConfirmedOn: WalletDevice.MM_MOBILE,
-        requireApproval: true,
+        origin: ORIGIN_METAMASK,
+        disableHook: true,
+        disableSequential: true,
+        transactions: [
+          expect.objectContaining({ type: 'moneyAccountWithdraw' }),
+          expect.objectContaining({ type: 'tokenMethodTransfer' }),
+        ],
       }),
     );
   });
 
-  it('logs and rethrows when addTransaction fails', async () => {
-    const txError = new Error('withdraw failed');
-    mockAddTransaction.mockRejectedValue(txError);
+  it('logs and rethrows when addTransactionBatch fails', async () => {
+    const txError = new Error('batch failed');
+    mockAddTransactionBatch.mockRejectedValue(txError);
 
     const { result } = renderHook(() => useMoneyAccountWithdrawal());
 
     let caught: Error | undefined;
     await act(async () => {
       try {
-        await result.current.initiateWithdrawal(BigInt(500_000));
+        await result.current.initiateWithdrawal();
       } catch (error) {
         caught = error as Error;
       }
@@ -367,11 +394,11 @@ describe('useMoneyAccountWithdrawal', () => {
 
     await expect(
       act(async () => {
-        await result.current.initiateWithdrawal(BigInt(500_000));
+        await result.current.initiateWithdrawal();
       }),
     ).rejects.toThrow('Network client not found');
 
-    expect(mockBuildWithdraw).not.toHaveBeenCalled();
+    expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
     expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
   });
 });

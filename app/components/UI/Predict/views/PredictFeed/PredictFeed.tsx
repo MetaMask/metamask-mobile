@@ -20,10 +20,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Icon,
-  IconColor,
+  HeaderStandard,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -87,7 +85,6 @@ import {
   TabItem,
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import HeaderSearch, {
   HeaderSearchVariant,
 } from '../../../../../component-library/components-temp/HeaderSearch';
@@ -145,8 +142,8 @@ const PredictFeedTabBar: React.FC<PredictFeedTabBarProps> = ({
 interface AnimatedHeaderProps {
   headerTranslateY: SharedValue<number>;
   headerHeight: number;
-  headerRef: React.RefObject<View>;
-  tabBarRef: React.RefObject<View>;
+  headerRef: React.RefObject<View | null>;
+  tabBarRef: React.RefObject<View | null>;
   tabs: FeedTab[];
   activeIndex: number;
   onTabPress: (index: number) => void;
@@ -198,6 +195,7 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
       ]}
     >
       <Animated.View
+        testID={PredictFeedSelectorsIDs.HEADER}
         ref={headerRef}
         style={animatedBalanceStyle}
         onLayout={onHeaderLayout}
@@ -211,7 +209,11 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
           </Box>
         )}
       </Animated.View>
-      <View ref={tabBarRef} onLayout={onTabBarLayout}>
+      <View
+        ref={tabBarRef}
+        onLayout={onTabBarLayout}
+        testID={PredictFeedSelectorsIDs.TAB_BAR_CONTAINER}
+      >
         <PredictFeedTabBar
           tabs={tabs}
           activeIndex={activeIndex}
@@ -615,7 +617,19 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   );
 };
 
-const PredictFeed: React.FC = () => {
+interface PredictFeedProps {
+  hideHeader?: boolean;
+  onHeaderHiddenChange?: (hidden: boolean) => void;
+  walletHeaderTranslateY?: SharedValue<number>;
+  walletHeaderHeight?: number;
+}
+
+const PredictFeed: React.FC<PredictFeedProps> = ({
+  hideHeader = false,
+  onHeaderHiddenChange,
+  walletHeaderTranslateY,
+  walletHeaderHeight,
+}) => {
   const {
     tabs,
     activeIndex,
@@ -646,10 +660,7 @@ const PredictFeed: React.FC = () => {
       navigation.goBack();
     } else {
       navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
+        screen: Routes.WALLET_VIEW,
       });
     }
   }, [navigation]);
@@ -695,6 +706,9 @@ const PredictFeed: React.FC = () => {
     headerRef,
     tabBarRef,
     setActiveIndex,
+    onHeaderHiddenChange,
+    walletHeaderTranslateY,
+    walletHeaderHeight,
   });
 
   const handleTabPress = useCallback(
@@ -731,29 +745,31 @@ const PredictFeed: React.FC = () => {
         twClassName="flex-1"
         style={{ backgroundColor: colors.background.default }}
       >
-        <Box
-          style={tw.style('z-20', {
-            backgroundColor: colors.background.default,
-          })}
-        >
-          <HeaderCompactStandard
-            includesTopInset
-            title={strings('wallet.predict')}
-            onBack={handleBackPress}
-            backButtonProps={{
-              testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
-            }}
-            endButtonIconProps={[
-              {
-                iconName: IconName.Search,
-                onPress: showSearch,
-                testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
-              },
-            ]}
-          />
-        </Box>
+        {!hideHeader && (
+          <Box
+            style={tw.style('z-20', {
+              backgroundColor: colors.background.default,
+            })}
+          >
+            <HeaderStandard
+              includesTopInset
+              title={strings('wallet.predict')}
+              onBack={handleBackPress}
+              backButtonProps={{
+                testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
+              }}
+              endButtonIconProps={[
+                {
+                  iconName: IconName.Search,
+                  onPress: showSearch,
+                  testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
+                },
+              ]}
+            />
+          </Box>
+        )}
 
-        <Box twClassName="flex-1 relative">
+        <Box twClassName="flex-1 relative overflow-hidden">
           <AnimatedHeader
             headerTranslateY={headerTranslateY}
             headerHeight={headerHeight}

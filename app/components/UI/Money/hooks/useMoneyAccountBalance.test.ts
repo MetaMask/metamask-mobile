@@ -6,7 +6,10 @@ import useMoneyAccountBalance, {
 } from './useMoneyAccountBalance';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
 
@@ -18,12 +21,6 @@ jest.mock('react-redux', () => ({
 jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),
   useQueries: jest.fn(),
-}));
-
-jest.mock('../../SimulationDetails/FiatDisplay/useFiatFormatter', () => ({
-  __esModule: true,
-  default: () => (val: { toFixed: (n: number) => string }) =>
-    `$${val.toFixed(2)}`,
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -46,6 +43,7 @@ jest.mock('../../../../selectors/tokenRatesController', () => ({
 }));
 jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrencyRates: jest.fn(),
+  selectCurrentCurrency: jest.fn(),
 }));
 jest.mock('../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(),
@@ -93,6 +91,9 @@ function setupDefaultSelectors() {
     if (selector === selectNetworkConfigurations) {
       return MOCK_NETWORK_CONFIGURATIONS;
     }
+    if (selector === selectCurrentCurrency) {
+      return 'usd';
+    }
     return undefined;
   });
 }
@@ -107,13 +108,13 @@ const DEFAULT_MUSD_BALANCE_QUERY: QueryState<{ balance: string }> = {
   isLoading: false,
 };
 const DEFAULT_VAULT_APY_QUERY: QueryState<{ apy: number }> = {
-  data: { apy: 5.5 },
+  data: { apy: 0.05 },
   isLoading: false,
 };
 const DEFAULT_MUSD_EQUIVALENT_BALANCE_QUERY: QueryState<{
-  musdEquivalentValue: string;
+  balanceOfInAssets: string;
 }> = {
-  data: { musdEquivalentValue: '2000000' },
+  data: { balanceOfInAssets: '2000000' },
   isLoading: false,
 };
 
@@ -124,7 +125,7 @@ function makeQueryResults({
 }: {
   musdBalance?: QueryState<{ balance: string }>;
   vaultApy?: QueryState<{ apy: number }>;
-  musdEquivalentBalance?: QueryState<{ musdEquivalentValue: string }>;
+  musdEquivalentBalance?: QueryState<{ balanceOfInAssets: string }>;
 } = {}) {
   return [musdBalance, vaultApy, musdEquivalentBalance] as ReturnType<
     typeof useQueries
@@ -219,6 +220,25 @@ describe('useMoneyAccountBalance', () => {
     expect(result.current.tokenTotal?.toFixed(0)).toBe('3');
   });
 
+  it('returns withdrawableMusd as the vmUSD-shares-only mUSD equivalent when loaded', () => {
+    // musdEquivalentValue '2000000' = 2 mUSD (6 decimals) — vmUSD shares only, not including bare mUSD
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.withdrawableMusd?.toFixed(0)).toBe('2');
+  });
+
+  it('returns undefined withdrawableMusd while loading', () => {
+    mockUseQueries.mockReturnValue(
+      makeQueryResults({
+        musdEquivalentBalance: { data: undefined, isLoading: true },
+      }),
+    );
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.withdrawableMusd).toBeUndefined();
+  });
+
   it('returns undefined fiat values when musdFiatRate cannot be computed', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPrimaryMoneyAccount) {
@@ -269,6 +289,9 @@ describe('useMoneyAccountBalance', () => {
       if (selector === selectNetworkConfigurations) {
         return MOCK_NETWORK_CONFIGURATIONS;
       }
+      if (selector === selectCurrentCurrency) {
+        return 'usd';
+      }
       return undefined;
     });
 
@@ -285,5 +308,37 @@ describe('useMoneyAccountBalance', () => {
     const { result } = renderHook(() => useMoneyAccountBalance());
 
     expect(result.current.totalFiatRaw).toBe('3');
+  });
+
+  it('returns apyDecimal as the raw vault APY value from the API', () => {
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.apyDecimal).toBe(0.05);
+  });
+
+  it('returns apyPercent as the vault APY multiplied by 100', () => {
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.apyPercent).toBe(5);
+  });
+
+  it('returns apyPercentFormatted as a display-ready percentage string', () => {
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.apyPercentFormatted).toBe('5%');
+  });
+
+  it('returns undefined for all APY fields when vault APY data is not available', () => {
+    mockUseQueries.mockReturnValue(
+      makeQueryResults({
+        vaultApy: { data: undefined, isLoading: true },
+      }),
+    );
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.apyDecimal).toBeUndefined();
+    expect(result.current.apyPercent).toBeUndefined();
+    expect(result.current.apyPercentFormatted).toBeUndefined();
   });
 });

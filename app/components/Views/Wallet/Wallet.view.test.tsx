@@ -23,6 +23,13 @@ describeForPlatforms('Wallet', () => {
             RewardsController: {
               activeAccount: null,
             },
+            PreferencesController: {
+              tokenSortConfig: {
+                key: 'tokenFiatAmount',
+                order: 'dsc',
+                sortCallback: 'stringNumeric',
+              },
+            },
           },
         },
       } as unknown as Record<string, unknown>,
@@ -65,6 +72,13 @@ describeForPlatforms('Wallet', () => {
             RewardsController: {
               activeAccount: null,
             },
+            PreferencesController: {
+              tokenSortConfig: {
+                key: 'tokenFiatAmount',
+                order: 'dsc',
+                sortCallback: 'stringNumeric',
+              },
+            },
           },
         },
       } as unknown as Record<string, unknown>,
@@ -91,6 +105,13 @@ describeForPlatforms('Wallet', () => {
           },
           RewardsController: {
             activeAccount: null,
+          },
+          PreferencesController: {
+            tokenSortConfig: {
+              key: 'tokenFiatAmount',
+              order: 'dsc',
+              sortCallback: 'stringNumeric',
+            },
           },
         },
       },

@@ -5,8 +5,8 @@ import {
   BoxJustifyContent,
   Text,
   TextColor,
+  Spinner,
 } from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import images from 'images/image-icons';
 import React, { useCallback, useEffect } from 'react';

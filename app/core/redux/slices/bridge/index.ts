@@ -32,6 +32,12 @@ import {
 import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
+import {
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenRatesControllerMarketData,
+  getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
+} from '../../../../selectors/assets/assets-migration';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
@@ -84,6 +90,7 @@ export interface BridgeState {
    * When undefined, the recommended quote (best quote) is used.
    */
   selectedQuoteRequestId: string | undefined;
+  batchSellSourceTokens: BridgeToken[];
 }
 
 export const initialState: BridgeState = {
@@ -107,6 +114,7 @@ export const initialState: BridgeState = {
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
+  batchSellSourceTokens: [],
 };
 
 const name = 'bridge';
@@ -239,6 +247,9 @@ const slice = createSlice({
     ) => {
       state.selectedQuoteRequestId = action.payload;
     },
+    setBatchSellSourceTokens: (state, action: PayloadAction<BridgeToken[]>) => {
+      state.batchSellSourceTokens = action.payload.map(normalizeBridgeToken);
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(setSourceTokenExchangeRate.pending, (state) => {
@@ -323,6 +334,23 @@ export const selectBridgeFeatureFlags = createSelector(
       },
     });
   },
+);
+
+export const selectBatchSellDestStablecoinsByChain = createSelector(
+  selectBridgeFeatureFlags,
+  (bridgeFeatureFlags): Record<CaipChainId, CaipAssetType[]> =>
+    Object.entries(bridgeFeatureFlags.chains ?? {}).reduce(
+      (stablecoinsByChain, [chainId, chainConfig]) => {
+        const batchSellDestStablecoins = chainConfig.batchSellDestStablecoins;
+
+        if (batchSellDestStablecoins) {
+          stablecoinsByChain[chainId as CaipChainId] = batchSellDestStablecoins;
+        }
+
+        return stablecoinsByChain;
+      },
+      {} as Record<CaipChainId, CaipAssetType[]>,
+    ),
 );
 
 /**
@@ -456,6 +484,11 @@ export const selectSelectedQuoteRequestId = createSelector(
   (bridgeState) => bridgeState.selectedQuoteRequestId,
 );
 
+export const selectBatchSellSourceTokens = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.batchSellSourceTokens,
+);
+
 // Selectors for gas included STX/SendBundle support
 export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
   state.bridge.isGasIncludedSTXSendBundleSupported;
@@ -469,9 +502,17 @@ const selectControllerFields = (state: RootState) => ({
   gasFeeEstimatesByChainId:
     state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
     {},
-  ...state.engine.backgroundState.MultichainAssetsRatesController,
-  ...state.engine.backgroundState.TokenRatesController,
-  ...state.engine.backgroundState.CurrencyRateController,
+  ...{
+    conversionRates: getMultichainAssetsRatesControllerConversionRates(state),
+    historicalPrices: {},
+  },
+  ...{
+    marketData: getTokenRatesControllerMarketData(state),
+  },
+  ...{
+    currencyRates: getCurrencyRateControllerCurrencyRates(state),
+    currentCurrency: getCurrencyRateControllerCurrentCurrency(state),
+  },
   participateInMetaMetrics: analytics.isEnabled(),
   remoteFeatureFlags: {
     bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
@@ -736,4 +777,5 @@ export const {
   setTokenSelectorNetworkFilter,
   setVisiblePillChainIds,
   setSelectedQuoteRequestId,
+  setBatchSellSourceTokens,
 } = actions;

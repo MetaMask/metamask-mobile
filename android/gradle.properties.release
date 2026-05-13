@@ -1,0 +1,44 @@
+# Gradle settings for GitHub Actions release/production builds (LG runner, 48GB RAM)
+
+# JVM: 8GB heap to leave room for Metro workers + Kotlin daemon
+# MaxMetaspaceSize 2g to match gradle.properties.github (512m causes daemon OOM)
+org.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=2g -XX:+UseG1GC -XX:G1HeapRegionSize=8m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+
+org.gradle.parallel=true
+org.gradle.configureondemand=true
+org.gradle.caching=true
+# Daemon disabled: ephemeral CI runners are destroyed after each job, so the daemon
+# provides zero warm-start benefit and unnecessarily locks JVM memory.
+org.gradle.daemon=false
+# 4 workers to reduce concurrent memory pressure on 48GB runner
+org.gradle.workers.max=4
+org.gradle.vfs.watch=false
+
+kotlin.incremental=true
+kotlin.incremental.android=true
+kotlin.caching.enabled=true
+# Kotlin daemon: 2GB heap, 1GB metaspace to match gradle.properties.github
+kotlin.daemon.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError
+
+# File system optimizations
+org.gradle.vfs.verbose=false
+org.gradle.welcome=NEVER
+
+# AndroidX
+android.useAndroidX=true
+android.enableJetifier=true
+
+# Enable AAPT2 PNG crunching
+android.enablePngCrunchInReleaseBuilds=true
+
+# ALL architectures for Play Store distribution (differs from E2E which uses x86_64 only)
+reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
+
+# New Architecture + Hermes
+newArchEnabled=true
+hermesEnabled=true
+
+android.disableResourceValidation=true
+
+# Use legacy packaging to compress native libraries in the resulting APK.
+expo.useLegacyPackaging=false

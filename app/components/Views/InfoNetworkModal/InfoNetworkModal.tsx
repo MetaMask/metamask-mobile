@@ -16,7 +16,7 @@ import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
 import { handleNetworkSwitch } from './utils';
 
 const InfoNetworkModal = () => {
-  const prevNetwork = useRef<string>();
+  const prevNetwork = useRef<string | undefined>(undefined);
 
   const isFocused = useIsFocused();
   const isOnBridgeRoute = useIsOnBridgeRoute();

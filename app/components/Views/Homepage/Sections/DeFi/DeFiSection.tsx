@@ -126,9 +126,9 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
 
     useSectionPerformance({
       sectionId: HomeSectionNames.DEFI,
-      // Align with other sections: loading finished without error = ready (empty is success + content_state empty).
-      contentReady: !isLoading && !hasError,
-      isEmpty: isEmpty || hasError,
+      contentReady: !isLoading,
+      isEmpty: isEmpty && !hasError,
+      contentStateForTrace: hasError ? 'error' : undefined,
       isLoading,
       enabled: isDeFiEnabled,
     });

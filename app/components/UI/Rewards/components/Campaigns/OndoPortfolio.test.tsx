@@ -16,9 +16,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   return { ...actual };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: jest.fn(), dispatch: jest.fn() }),
@@ -166,10 +168,6 @@ jest.mock('../../../Trending/utils/getTrendingTokenImageUrl', () => ({
 
 jest.mock('../../../../../util/ondoGeoRestrictions', () => ({
   isGeoRestricted: jest.fn(() => false),
-}));
-
-jest.mock('./OndoLeaderboard.utils', () => ({
-  formatComputedAt: jest.fn(),
 }));
 
 jest.mock('../../../../../images/rewards/rewards-no-positions.svg', () => {
