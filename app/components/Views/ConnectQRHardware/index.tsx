@@ -6,11 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import {
-  type EdgeInsets,
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Engine from '../../../core/Engine';
 import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
 import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
@@ -46,7 +42,7 @@ interface IConnectQRHardwareProps {
   route?: any;
 }
 
-const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -54,7 +50,6 @@ const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
       alignItems: 'center',
     },
     header: {
-      marginTop: insets.top,
       flexDirection: 'row',
       width: '100%',
       paddingHorizontal: 32,
@@ -91,8 +86,7 @@ const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
 const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const insets = useSafeAreaInsets();
-  const styles = createStyles(colors, insets);
+  const styles = createStyles(colors);
   const hideMarketingContent = route?.params?.hideMarketingContent ?? false;
 
   const [isScanning, setIsScanning] = useState(false);

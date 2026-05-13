@@ -2,6 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import ConnectQRHardware from './index';
+import { StyleSheet, View } from 'react-native';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import { ConnectQRHardwareSelectorsIDs } from './ConnectQRHardware.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -33,6 +34,30 @@ jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
+
+jest.mock('react-native-safe-area-context', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View: MockView } = jest.requireActual('react-native');
+  const inset = { top: 44, right: 0, bottom: 0, left: 0 };
+  const frame = { x: 0, y: 0, width: 390, height: 844 };
+
+  return {
+    ...jest.requireActual('react-native-safe-area-context'),
+    SafeAreaInsetsContext: ReactActual.createContext(inset),
+    SafeAreaFrameContext: ReactActual.createContext(frame),
+    SafeAreaView: ({ children, ...props }: { children: React.ReactNode }) =>
+      ReactActual.createElement(MockView, props, children),
+    SafeAreaProvider: ({ children, ...props }: { children: React.ReactNode }) =>
+      ReactActual.createElement(MockView, props, children),
+    SafeAreaConsumer: ({
+      children,
+    }: {
+      children: (safeAreaInsets: typeof inset) => React.ReactNode;
+    }) => children(inset),
+    useSafeAreaInsets: () => inset,
+    useSafeAreaFrame: () => frame,
+  };
+});
 
 const mockedNavigate = {
   pop: jest.fn(),
@@ -219,6 +244,28 @@ describe('ConnectQRHardware', () => {
           ),
         ),
     );
+  });
+
+  it('does not add header top margin when SafeAreaView handles top inset', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    await waitFor(() => {
+      expect(mockKeyringController.getAccounts).toHaveBeenCalledTimes(1);
+    });
+
+    const header = UNSAFE_getAllByType(View).find(({ props }) => {
+      const style = StyleSheet.flatten(props.style);
+
+      return style?.width === '100%' && style?.paddingHorizontal === 32;
+    });
+
+    expect(header).toBeDefined();
+    expect(StyleSheet.flatten(header?.props.style).marginTop).toBeUndefined();
   });
 
   it('renders first page correctly when user clicks `continue` button', async () => {
