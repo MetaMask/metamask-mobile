@@ -30,7 +30,9 @@ describe(
       await TestHelpers.reverseServerPort();
     });
 
-    it('renames the account', async () => {
+    // Skipped after CV migration; retained pending accounts-engineers sign-off for removal.
+    // eslint-disable-next-line jest/no-disabled-tests
+    it.skip('renames the account', async () => {
       await withMultichainAccountDetailsEnabledFixtures(async () => {
         await goToAccountDetails(HD_ACCOUNT);
         await editName('Account 1-edited');

@@ -12,14 +12,56 @@ jest.mock('../../app/core/Engine', () => {
         state: {
           keyrings: [],
         },
+        removeAccount: jest.fn().mockResolvedValue(undefined),
+        getAccountKeyringType: jest.fn().mockReturnValue('HD Key Tree'),
       },
       AccountsController: {
+        state: {
+          internalAccounts: {
+            accounts: {},
+            selectedAccount: '',
+          },
+          accountIdByAddress: {},
+        },
         listAccounts: jest.fn().mockReturnValue([]),
+        listMultichainAccounts: jest.fn().mockReturnValue([]),
+        setAccountName: jest.fn(),
+      },
+      AccountTreeController: {
+        setAccountGroupName: jest.fn(),
+      },
+      MultichainAccountService: {
+        createNextMultichainAccountGroup: jest.fn().mockResolvedValue({
+          id: 'entropy:wallet1/1',
+          metadata: { name: 'Account 2' },
+          accounts: [],
+        }),
+        setBasicFunctionality: jest.fn().mockResolvedValue(undefined),
+      },
+      UserStorageController: {
+        setIsBackupAndSyncFeatureEnabled: jest
+          .fn()
+          .mockResolvedValue(undefined),
+        syncContactsWithUserStorage: jest.fn().mockResolvedValue(undefined),
+      },
+      AddressBookController: {
+        set: jest.fn(),
+        delete: jest.fn(),
       },
       AccountTrackerController: {
+        state: {
+          accounts: {},
+        },
         refresh() {
           return undefined;
         },
+      },
+      PermissionController: {
+        state: {
+          subjects: {},
+        },
+        revokePermission: jest.fn(),
+        updateCaveat: jest.fn(),
       },
       GasFeeController: {
         startPolling() {
@@ -170,6 +212,7 @@ jest.mock('../../app/core/Engine', () => {
       },
       AssetsContractController: {
         getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
+        getERC721AssetSymbol: jest.fn().mockResolvedValue(undefined),
       },
       TransactionController: {
         state: {
@@ -182,6 +225,18 @@ jest.mock('../../app/core/Engine', () => {
       },
       NetworkController: {
         state: { networksMetadata: {} },
+        getProviderAndBlockTracker() {
+          return {
+            provider: {
+              request: jest.fn().mockResolvedValue(null),
+              sendAsync: jest.fn(),
+            },
+            blockTracker: {
+              on: jest.fn(),
+              removeListener: jest.fn(),
+            },
+          };
+        },
         findNetworkClientIdByChainId() {
           return '';
         },
