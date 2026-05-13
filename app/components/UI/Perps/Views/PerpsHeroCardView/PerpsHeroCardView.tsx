@@ -232,11 +232,9 @@ const PerpsHeroCardView: React.FC = () => {
 
           {/* Asset Info Row */}
           <View style={styles.heroCardAssetRow}>
-            <PerpsTokenLogo
-              symbol={data.asset}
-              size={14.5}
-              style={styles.assetIcon}
-            />
+            <View style={styles.assetIcon}>
+              <PerpsTokenLogo symbol={data.asset} size={14.5} />
+            </View>
             <Text
               variant={TextVariant.BodySMMedium}
               style={styles.assetName}
