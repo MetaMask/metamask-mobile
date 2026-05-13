@@ -247,7 +247,7 @@ describe('WhatsHappeningExpandedCard', () => {
     });
   });
 
-  it('calls onSourcesPress with the item articles when the sources footer is pressed', () => {
+  it('calls onSourcesPress with the item articles when the sources row is pressed', () => {
     const mockOnSourcesPress = jest.fn();
     const article = {
       title: 'Test article',
@@ -257,9 +257,10 @@ describe('WhatsHappeningExpandedCard', () => {
     };
     const item = { ...baseItem, articles: [article] };
 
-    const { getUniqueSourcesByFavicon } = jest.requireMock(
+    const { formatRelativeTime, getUniqueSourcesByFavicon } = jest.requireMock(
       '../../../UI/MarketInsights/utils/marketInsightsFormatting',
     );
+    (formatRelativeTime as jest.Mock).mockReturnValueOnce('1d ago');
     (getUniqueSourcesByFavicon as jest.Mock).mockReturnValueOnce([
       { name: 'coindesk.com', type: 'news', url: 'https://coindesk.com' },
     ]);
@@ -277,6 +278,7 @@ describe('WhatsHappeningExpandedCard', () => {
 
     fireEvent.press(screen.getByText('coindesk.com'));
     expect(mockOnSourcesPress).toHaveBeenCalledWith([article]);
+    expect(screen.getByText('1d ago')).toBeOnTheScreen();
   });
 
   it('passes perpsPriceBySymbol from hook to PerpsRow', () => {
