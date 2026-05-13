@@ -123,12 +123,47 @@ describe('BenefitFullView', () => {
       getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION),
     ).toBeOnTheScreen();
     expect(getByText('1mo 3d')).toBeOnTheScreen();
+    expect(getByText('Claim now')).toBeOnTheScreen();
     expect(mockFormatDateRemaining).toHaveBeenCalledWith(
       mockBenefit.actionDate,
       expect.any(Number),
     );
     expect(mockStrings).toHaveBeenCalledWith('rewards.benefits.title_claim');
     expect(mockStrings).toHaveBeenCalledWith('rewards.benefits.action');
+  });
+
+  it('uses sanitized process text as the action button label', () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      process: 'Redeem!',
+    };
+
+    const { getByText, queryByText } = render(<BenefitFullView />);
+
+    expect(getByText('Redeem')).toBeOnTheScreen();
+    expect(queryByText('Claim now')).toBeNull();
+  });
+
+  it('strips trailing punctuation from process text before rendering the action button label', () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      process: 'Save $5.00!',
+    };
+
+    const { getByText } = render(<BenefitFullView />);
+
+    expect(getByText('Save $5.00')).toBeOnTheScreen();
+  });
+
+  it('falls back to the default action label when process is empty after sanitizing', () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      process: '!!!',
+    };
+
+    const { getByText } = render(<BenefitFullView />);
+
+    expect(getByText('Claim now')).toBeOnTheScreen();
   });
 
   it('navigates back when the header back button is pressed', () => {

@@ -1588,6 +1588,7 @@ export type SubscriptionBenefitDto = {
   longTitle: string;
   shortDescription: string;
   longDescription: string;
+  process?: string | null;
   thumbnail: string;
   validFrom: string;
   validTo: string;

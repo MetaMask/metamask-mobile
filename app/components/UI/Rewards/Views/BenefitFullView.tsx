@@ -31,12 +31,28 @@ import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import Engine from '../../../../core/Engine';
 
+const TRAILING_PUNCTUATION_REGEX = /[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~\s]+$/;
+
+const getClaimButtonLabel = (process?: string | null) => {
+  const sanitizedProcess = process
+    ?.trim()
+    .replace(TRAILING_PUNCTUATION_REGEX, '');
+  return sanitizedProcess || strings('rewards.benefits.action');
+};
+
 const BenefitFullView = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const route = useRoute<BenefitFullViewRouteProp>();
   const { benefit } = route.params;
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+
+  // TEMP DEBUG: Remove after confirming the Benefit Detail payload shape.
+  // eslint-disable-next-line no-console
+  console.log(
+    '[Rewards][Benefits] detail benefit payload',
+    JSON.stringify(benefit, null, 2),
+  );
 
   useTrackRewardsPageView({ page_type: 'benefit_detail' });
 
@@ -145,7 +161,7 @@ const BenefitFullView = () => {
             twClassName="w-full"
             testID={REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION}
           >
-            {strings('rewards.benefits.action')}
+            {getClaimButtonLabel(benefit.process)}
           </Button>
         </Box>
       </SafeAreaView>
