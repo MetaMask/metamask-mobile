@@ -4,11 +4,13 @@ import { View, ViewProps } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 
+import {
+  AvatarNetwork,
+  AvatarNetworkSize,
+} from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { NetworkList } from '../../../../util/networks';
 import { useStyles } from '../../../hooks/useStyles';
 import Name from '../../Name/Name';
@@ -45,12 +47,13 @@ const NativeAssetPill: React.FC<AssetPillProperties> = ({ asset }) => {
 
   return (
     <View style={styles.nativeAssetPill}>
-      <AvatarNetwork
-        testID="simulation-details-asset-pill-avatar-network"
-        size={AvatarSize.Xs}
-        name={nativeCurrency}
-        imageSource={imageSource}
-      />
+      <View testID="simulation-details-asset-pill-avatar-network">
+        <AvatarNetwork
+          size={AvatarNetworkSize.Xs}
+          name={nativeCurrency}
+          src={imageSource ?? undefined}
+        />
+      </View>
       <Text variant={TextVariant.BodyMD}>{nativeCurrency}</Text>
     </View>
   );
