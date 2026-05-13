@@ -1064,7 +1064,12 @@
       "closed": "Closed",
       "no_positions": "No positions yet",
       "error_loading_profile": "Couldn't load profile",
-      "twitter_link": "View on X (Twitter)"
+      "twitter_link": "View on X (Twitter)",
+      "sort": {
+        "value": "Value",
+        "pnl_percent": "P&L %",
+        "recent": "Recent"
+      }
     },
     "trader_position": {
       "market_cap": "Market cap",
@@ -2221,6 +2226,38 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "world_cup": {
+      "title": "World Cup",
+      "banner_title": "World Cup 2026",
+      "banner_description": "Trade on World Cup markets",
+      "tabs": {
+        "all": "All",
+        "props": "Props",
+        "live": "Live"
+      },
+      "stages": {
+        "group_stage": "Group Stage",
+        "round_of_32": "Round of 32",
+        "round_of_16": "Round of 16",
+        "quarterfinals": "Quarterfinals",
+        "semifinals": "Semifinals",
+        "third_place": "Third Place",
+        "final": "Final",
+        "group_a": "Group A",
+        "group_b": "Group B",
+        "group_c": "Group C",
+        "group_d": "Group D",
+        "group_e": "Group E",
+        "group_f": "Group F",
+        "group_g": "Group G",
+        "group_h": "Group H",
+        "group_i": "Group I",
+        "group_j": "Group J",
+        "group_k": "Group K",
+        "group_l": "Group L",
+        "third_place_match": "Third Place Match"
+      }
+    },
     "prediction_markets": "Prediction markets",
     "market_list": "Market list",
     "loading": "Loading...",
@@ -3805,6 +3842,8 @@
     "predict_button": "Predictions",
     "add_collectible_button": "Add",
     "info": "Info",
+    "batch_sell": "Batch Sell",
+    "batch_sell_new_label": "New",
     "swap": "Swap",
     "convert": "Convert",
     "bridge": "Bridge",
@@ -3844,6 +3883,7 @@
     "troubleshoot": "Troubleshoot",
     "deposit_description": "Low-fee bank or card transfer",
     "buy_description": "Good for buying a specific token",
+    "batch_sell_description": "Sell up to 5 tokens for a stablecoin",
     "sell_description": "Sell crypto for cash",
     "swap_description": "Exchange between tokens",
     "bridge_description": "Transfer tokens between networks",
@@ -6551,6 +6591,7 @@
     "title": "Money",
     "your_balance": "Your balance",
     "apy_label": "{{percentage}}% APY",
+    "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
     "onboarding": {
       "step_progress": "Step {{current}} of {{total}}",
@@ -6577,8 +6618,8 @@
     },
     "how_it_works": {
       "title": "How it works",
-      "description_prefix": "Hold mUSD in your Money Account and auto-earn",
-      "description_suffix": ". It's dollar-backed, always liquid, and ready to spend, trade, or send anytime."
+      "description_prefix": "Deposit mUSD into your Money account and earn up to",
+      "description_suffix": ". Your balance is dollar-backed and ready to spend, trade, or send anytime."
     },
     "musd_row": {
       "add": "Add"
@@ -6586,13 +6627,16 @@
     "balance_card": {
       "label": "Money balance",
       "add": "Add",
-      "info_sheet_title": "Money Home",
-      "info_sheet_body": "Your dollar-backed balance, always available. Spend it, send it, or trade it anytime. We don't calculate this into your total account balance."
+      "info_sheet_title": "Money balance",
+      "info_sheet_body": "Your dollar-backed mUSD balance that's always available to spend, send, or trade anytime. We don't calculate this into your total account balance.\n\nWithdrawals process immediately, subject to standard network confirmation times on the relevant blockchain. If liquidity is tight, there may be temporary delays."
     },
     "potential_earnings": {
       "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
+      "description_with_amounts_prefix": "Convert your {{total}} in assets and you could earn up to",
+      "description_with_amounts_suffix": "in one year.",
       "convert": "Convert",
+      "convert_cta": "Convert your crypto",
       "no_fee": "No MetaMask fee",
       "view_all": "View all",
       "view_potential_earnings": "View potential earnings"
@@ -6605,31 +6649,41 @@
       "cashback": "{{percentage}}% mUSD back",
       "get_now": "Get now",
       "link_title": "Link MetaMask Card",
-      "link_subtitle": "Spend your Money balance and earn.",
-      "link_bullet_cashback": "Up to 3% mUSD back",
-      "link_bullet_apy": "Up to {{apy}}% APY",
-      "link_card": "Link card"
+      "link_subtitle": "Spend your Money balance and earn on purchases. Plus, up to {{apy}}% APY on your balance.",
+      "link_bullet_cashback": "Get {{percentage}}% mUSD back",
+      "link_bullet_apy": "Earn up to {{apy}}% APY",
+      "link_card": "Link card",
+      "link_pending_title": "Linking card",
+      "link_pending_description": "Approving spending limit…",
+      "link_success_title": "Card linked successfully",
+      "link_success_description": "You can now spend while you earn",
+      "link_error": "Couldn't link card",
+      "manage_card": "Manage",
+      "avail_balance": "Avail. balance"
     },
     "what_you_get": {
       "title": "What you get",
-      "benefit_auto_earn": "Auto-earn ",
+      "benefit_auto_earn": "Auto-earn up to",
       "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
       "benefit_liquidity": "Get full liquidity with no lockups, so you can trade or withdraw anytime",
       "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
       "benefit_spend_cashback": "1-3% mUSD back",
-      "benefit_transfer": "Transfer money to any of your wallets across MetaMask",
-      "benefit_global": "Send and receive money globally",
+      "benefit_transfer": "Transfer to any of your wallets across MetaMask",
+      "benefit_global": "Send and receive funds globally",
       "learn_more": "Learn more"
     },
     "footer": {
-      "add_money": "Add money"
+      "add_money": "Add funds"
     },
     "add_money_sheet": {
-      "title": "Add money",
+      "title": "Add funds",
       "convert_crypto": "Convert crypto",
+      "convert_crypto_description": "From any account",
       "deposit_funds": "Deposit funds",
-      "move_musd": "Move your {{amount}} mUSD",
-      "move_musd_no_amount": "Move your mUSD",
+      "deposit_funds_description": "From debit card or bank",
+      "move_musd": "Transfer your {{amount}} mUSD",
+      "move_musd_no_amount": "Transfer your mUSD",
+      "move_musd_description": "From your balance",
       "receive_external": "Receive from external wallet",
       "coming_soon": "Coming soon"
     },
@@ -6640,7 +6694,7 @@
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
-      "title": "Transfer money",
+      "title": "Transfer funds",
       "between_accounts": "Between accounts",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
@@ -6651,12 +6705,15 @@
       "title": "Annual Percentage Yield (APY)",
       "paragraph_1": "Your Money account earns up to {{percentage}}% automatically.",
       "paragraph_2": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and may change due to various factors. The rate is generated by third-party DeFi platforms that deploy funds in blockchain protocols.",
-      "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance.",
-      "learn_more": "Learn more"
+      "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance."
     },
     "earnings_tooltip": {
       "title": "Estimated earnings",
       "body": "An estimate of how much you could earn over a period based on your current balance and today's APY. Estimates are not guaranteed returns and remain subject to change."
+    },
+    "earn_crypto_info_sheet": {
+      "title": "Earn on your crypto",
+      "body": "Illustration assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and may change due to various factors. No guarantee of return."
     },
     "activity": {
       "title": "Activity",
@@ -6700,11 +6757,11 @@
     "how_it_works_page": {
       "header_title": "Money",
       "section_title": "How it works",
-      "description_1": "Your Money account earns 4% APY (variable) automatically. Funds go into a curated DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
+      "description_1": "Deposit mUSD into your Money account and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
       "description_2": "Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.",
-      "faq_title": "FAQ",
+      "faq_title": "Frequently asked questions",
       "faq_placeholder_answer": "Coming soon.",
-      "faq_q1": "What is the Money account?",
+      "faq_q1": "How does the {{percentage}}% APY work?",
       "faq_q2": "What is mUSD?",
       "faq_q3": "Where does the yield come from?",
       "faq_q4": "Is my money locked? Can I withdraw anytime?",
@@ -6713,8 +6770,7 @@
       "faq_q7": "Does the APY rate change?",
       "faq_q8": "Is this a savings account or a spending account?",
       "faq_q9": "Who controls my money?",
-      "faq_q10": "What mUSD back do I get with the MetaMask Card?",
-      "sounds_good": "Sounds good"
+      "faq_q10": "What mUSD back do I get with the MetaMask Card?"
     }
   },
   "stake": {
@@ -6972,6 +7028,10 @@
   "confirm": {
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "pay_with_bottom_sheet": {
+      "title": "Pay with",
+      "last_used": "Last used"
+    },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
       "terms_of_use": "Terms of Use",
@@ -7054,6 +7114,9 @@
       },
       "musd_conversion": {
         "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
+      },
+      "money_account_withdraw": {
+        "transaction_fee": "MetaMask will swap your mUSD for your desired token. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Fees"
@@ -7183,6 +7246,20 @@
     "confirm_swap": "Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
+    "batch_sell_select_title": "Select up to 5 tokens",
+    "batch_sell_select_subtitle": "All tokens need to be on the same network.",
+    "batch_sell_empty_state_title": "No tokens. No problem.",
+    "batch_sell_empty_state_description": "No tokens. No problem. Explore and buy tokens to batch sell.",
+    "batch_sell_continue_with_one_token": "Continue with (1) token",
+    "batch_sell_continue_with_tokens": "Continue with ({{tokenCount}}) tokens",
+    "batch_sell_max_tokens_allowed": "Max 5 tokens allowed",
+    "batch_sell_single_token_dialog_title": "High rate alert",
+    "batch_sell_single_token_dialog_description": "Batch selling one token could lead to a higher rate. Want to do a swap instead?",
+    "batch_sell_swap_instead": "Yes, swap",
+    "batch_sell_checkbox_label": "Batch Sell token",
+    "sort_balance": "Balance",
+    "next": "Next",
+    "explore_tokens": "Explore tokens",
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with this name. Try a different search.",
     "select_network": "Select network",
@@ -8253,6 +8330,17 @@
       "retry_button": "Retry"
     },
     "main_title": "Rewards",
+    "vip": {
+      "bps_unit": "bps",
+      "swaps_label": "Swaps",
+      "perps_label": "Perps",
+      "error_title": "We couldn’t load your VIP dashboard",
+      "error_description": "Check your connection and try again.",
+      "retry_button": "Retry",
+      "tiers_title": "Tiers",
+      "tier_thresholds": "{{swaps}} Swaps • {{perps}} Perps",
+      "bps_value": "{{bps}} bps"
+    },
     "referral_title": "Referrals",
     "referral_stats_earned_from_referrals": "Earned from referrals",
     "referral_stats_referrals": "Referrals",
@@ -8838,6 +8926,7 @@
     "crypto_movers": "Crypto movers",
     "perps_movers": "Perps movers",
     "trending_tokens": "Trending",
+    "crypto": "Crypto",
     "stocks": "Stocks",
     "price_change": "Price change",
     "all_networks": "All networks",
