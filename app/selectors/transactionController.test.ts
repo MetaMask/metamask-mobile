@@ -6,6 +6,7 @@ import {
   selectLastWithdrawTokenByType,
   selectLocalTransactions,
   selectNonReplacedTransactions,
+  selectRelatedChainIdsByTransactionId,
   selectRequiredTransactionIds,
   selectRequiredTransactionHashes,
   selectRequiredTransactions,
@@ -178,6 +179,81 @@ describe('TransactionController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectRequiredTransactions(state)).toStrictEqual([child]);
+    });
+  });
+
+  describe('selectRelatedChainIdsByTransactionId', () => {
+    const buildState = (transactions: unknown[]) =>
+      ({
+        engine: {
+          backgroundState: {
+            TransactionController: { transactions },
+          },
+        },
+      }) as unknown as RootState;
+
+    it('returns the transaction own chain id, lower-cased', () => {
+      const state = buildState([{ id: 'lone', chainId: '0xA4B1' }]);
+
+      expect(selectRelatedChainIdsByTransactionId(state).get('lone')).toEqual([
+        '0xa4b1',
+      ]);
+    });
+
+    it('includes metamaskPay.chainId for gasless MetaMask Pay parents', () => {
+      const state = buildState([
+        {
+          id: 'pay-parent',
+          chainId: '0xA4B1',
+          metamaskPay: { chainId: '0x1' },
+        },
+      ]);
+
+      expect(
+        selectRelatedChainIdsByTransactionId(state).get('pay-parent')?.sort(),
+      ).toEqual(['0x1', '0xa4b1']);
+    });
+
+    it('includes chain ids of required (child) transactions', () => {
+      const state = buildState([
+        {
+          id: 'parent',
+          chainId: '0xA4B1',
+          requiredTransactionIds: ['child-1', 'child-2'],
+        },
+        { id: 'child-1', chainId: '0x1' },
+        { id: 'child-2', chainId: '0xA' },
+      ]);
+
+      expect(
+        selectRelatedChainIdsByTransactionId(state).get('parent')?.sort(),
+      ).toEqual(['0x1', '0xa', '0xa4b1']);
+    });
+
+    it('dedupes overlapping chain ids', () => {
+      const state = buildState([
+        {
+          id: 'parent',
+          chainId: '0x1',
+          metamaskPay: { chainId: '0x1' },
+          requiredTransactionIds: ['child'],
+        },
+        { id: 'child', chainId: '0x1' },
+      ]);
+
+      expect(selectRelatedChainIdsByTransactionId(state).get('parent')).toEqual(
+        ['0x1'],
+      );
+    });
+
+    it('ignores required ids that point to missing children', () => {
+      const state = buildState([
+        { id: 'parent', chainId: '0x1', requiredTransactionIds: ['ghost'] },
+      ]);
+
+      expect(selectRelatedChainIdsByTransactionId(state).get('parent')).toEqual(
+        ['0x1'],
+      );
     });
   });
 

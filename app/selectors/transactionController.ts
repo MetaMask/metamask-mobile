@@ -26,8 +26,8 @@ function dedupeTransactions(transactions: LocalTransaction[]) {
   const seenTransactions = new Set<string>();
 
   return transactions.filter((transaction) => {
-    const { chainId, txParams } = transaction;
-    const { from, nonce, actionId } = txParams || {};
+    const { chainId, txParams, id } = transaction as TransactionMeta;
+    const { from, nonce } = txParams || {};
     const hash = 'hash' in transaction ? transaction.hash : undefined;
     const isBridgeTransaction = transaction.type === TransactionType.bridge;
     const hasNonce = nonce !== undefined && nonce !== null;
@@ -42,7 +42,7 @@ function dedupeTransactions(transactions: LocalTransaction[]) {
         ? `${dedupeKeyPrefix}-bridge-${hash.toLowerCase()}`
         : hasNonce
           ? `${dedupeKeyPrefix}-${nonce}`
-          : `${dedupeKeyPrefix}-${actionId}`;
+          : `${dedupeKeyPrefix}-${id}`;
 
     // Keep only the first local transaction for each dedupe key
     if (seenTransactions.has(dedupeKey)) {
@@ -113,6 +113,35 @@ export const selectRequiredTransactionHashes = createSelector(
         .map((tx) => tx.hash?.toLowerCase())
         .filter((hash): hash is string => Boolean(hash)),
     ),
+);
+
+export const selectRelatedChainIdsByTransactionId = createSelector(
+  selectTransactionsStrict,
+  (transactions) => {
+    const transactionsById = new Map<string, TransactionMeta>(
+      transactions.map((tx) => [tx.id, tx]),
+    );
+
+    return new Map<string, string[]>(
+      transactions
+        .map((tx) => {
+          const childChainIds = (tx.requiredTransactionIds ?? []).map(
+            (childId) => transactionsById.get(childId)?.chainId,
+          );
+
+          const chainIds = [
+            tx.chainId,
+            tx.metamaskPay?.chainId,
+            ...childChainIds,
+          ]
+            .filter((chainId): chainId is Hex => Boolean(chainId))
+            .map((chainId) => chainId.toLowerCase());
+
+          return [tx.id, [...new Set(chainIds)]] as const;
+        })
+        .filter(([, chainIds]) => chainIds.length > 0),
+    );
+  },
 );
 
 export const selectTransactions = createDeepEqualSelector(
