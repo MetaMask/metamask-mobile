@@ -4,6 +4,7 @@ import { usePerpsMarkets } from './usePerpsMarkets';
 import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
 import {
+  MARKET_SORTING_CONFIG,
   sortMarkets,
   type PerpsMarketData,
   type MarketTypeFilter,
@@ -33,6 +34,11 @@ interface UsePerpsMarketListViewParams {
    * @default 'all'
    */
   defaultMarketTypeFilter?: MarketTypeFilter;
+  /**
+   * Initial sort option ID — overrides the persisted user preference when provided.
+   * @default undefined (falls back to saved user preference)
+   */
+  defaultSortOptionId?: SortOptionId;
   /**
    * Show markets with $0.00 volume
    * @default false
@@ -133,6 +139,7 @@ export const usePerpsMarketListView = ({
   enablePolling = false,
   showWatchlistOnly = false,
   defaultMarketTypeFilter = 'all',
+  defaultSortOptionId,
   showZeroVolume = false,
 }: UsePerpsMarketListViewParams = {}): UsePerpsMarketListViewReturn => {
   // Fetch markets data
@@ -196,10 +203,20 @@ export const usePerpsMarketListView = ({
     return searchedMarkets;
   }, [searchedMarkets, marketTypeFilter]);
 
-  // Use sorting hook for sort state and sorting logic
+  // Use sorting hook for sort state and sorting logic.
+  // defaultSortOptionId (from navigation params) takes precedence over the saved user
+  // preference. When it overrides a *different* option, reset direction to the default
+  // so the market list opens sorted the same way the explore feed displayed it (always desc).
+  // When there is no override, or the override matches the saved option, carry the saved direction.
+  const isOptionOverridden =
+    defaultSortOptionId !== undefined &&
+    defaultSortOptionId !== savedSortPreference.optionId;
   const sortingHook = usePerpsSorting({
-    initialOptionId: savedSortPreference.optionId as SortOptionId,
-    initialDirection: savedSortPreference.direction,
+    initialOptionId: (defaultSortOptionId ??
+      savedSortPreference.optionId) as SortOptionId,
+    initialDirection: isOptionOverridden
+      ? MARKET_SORTING_CONFIG.DefaultDirection
+      : savedSortPreference.direction,
   });
 
   // Wrap handleOptionChange to save preference to PerpsController

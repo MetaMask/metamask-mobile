@@ -109,11 +109,6 @@ const SiteTileRowItem: React.FC<SiteTileRowItemProps> = ({
             />
           )}
         </Box>
-        <Icon
-          name={IconName.Arrow2UpRight}
-          size={IconSize.Sm}
-          color={IconColor.IconDefault}
-        />
       </Box>
 
       <Text
