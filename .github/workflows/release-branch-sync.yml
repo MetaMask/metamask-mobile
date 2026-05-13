@@ -23,11 +23,11 @@ jobs:
         env:
           BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
-          if [[ "$BRANCH" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Branch '$BRANCH' matches release/X.Y.Z format"
+          if [[ "$BRANCH" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]]; then
+            echo "Branch '$BRANCH' matches release/X.Y.Z[-suffix] format"
             echo "is-valid=true" >> "$GITHUB_OUTPUT"
           else
-            echo "Branch '$BRANCH' does not match release/X.Y.Z format. Skipping."
+            echo "Branch '$BRANCH' does not match release/X.Y.Z[-suffix] format. Skipping."
             echo "is-valid=false" >> "$GITHUB_OUTPUT"
           fi
 
