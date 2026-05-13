@@ -527,15 +527,12 @@ jobs:
         run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
 
-  unit-tests:
-    name: Unit tests (${{ matrix.shard }})
+  prepare-ci-js-deps:
+    name: Prepare CI JS dependencies
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
-    strategy:
-      matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
       - uses: actions/checkout@v6
       - name: Configure Namespace cache
@@ -560,6 +557,44 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
+      - name: Validate prepared dependency files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d node_modules
+          test -f .yarn/install-state.gz
+          test -f app/util/termsOfUse/termsOfUseContent.ts
+      - name: Upload prepared dependencies
+        uses: actions/upload-artifact@v4.5.0
+        with:
+          name: ci-js-deps
+          path: |
+            node_modules
+            .yarn/install-state.gz
+            app/util/termsOfUse/termsOfUseContent.ts
+          retention-days: 1
+          compression-level: 1
+          if-no-files-found: error
+          include-hidden-files: true
+
+  unit-tests:
+    name: Unit tests (${{ matrix.shard }})
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    needs:
+      - get_requirements
+      - prepare-ci-js-deps
+    strategy:
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
+      - name: Restore prepared CI JS dependencies
+        uses: ./.github/actions/consume-ci-js-deps
       - name: Prepare results directory
         run: mkdir -p tests/results
       # The "10" in this command is the total number of shards. It must be kept
@@ -594,42 +629,16 @@ jobs:
   # threshold calculation is accurate.
   merge-unit-and-component-view-tests:
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    needs: [unit-tests, component-view-tests]
+    needs: [prepare-ci-js-deps, unit-tests, component-view-tests]
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v6
-      - name: Configure Namespace cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
-        with:
-          path: |
-            ~/.cache/yarn
-            .metamask
-            node_modules
-            .yarn/cache
-      - name: Restore node_modules cache
-        if: ${{ inputs.runner_provider != 'namespace' }}
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
-      - name: Install Yarn dependencies with retry
-        if: ${{ inputs.runner_provider == 'namespace' || steps.cache-node-modules.outputs.cache-hit != 'true' }}
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
+      - name: Restore prepared CI JS dependencies
+        uses: ./.github/actions/consume-ci-js-deps
       - uses: actions/download-artifact@v4
         with:
           pattern: coverage-*
@@ -724,43 +733,18 @@ jobs:
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
+      - prepare-ci-js-deps
     strategy:
       matrix:
         shard: [1, 2]
     steps:
       - uses: actions/checkout@v6
-      - name: Configure Namespace cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
-        with:
-          path: |
-            ~/.cache/yarn
-            .metamask
-            node_modules
-            .yarn/cache
-      - name: Restore node_modules cache
-        if: ${{ inputs.runner_provider != 'namespace' }}
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
-      - name: Install Yarn dependencies with retry
-        if: ${{ inputs.runner_provider == 'namespace' || steps.cache-node-modules.outputs.cache-hit != 'true' }}
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
+      - name: Restore prepared CI JS dependencies
+        uses: ./.github/actions/consume-ci-js-deps
       - name: Prepare results directory
         run: mkdir -p tests/results
       - run: |
@@ -1080,6 +1064,7 @@ jobs:
       - unit-tests
       - component-view-tests
       - check-workflows
+      - prepare-ci-js-deps
       - js-bundle-size-check
       - sonar-cloud-quality-gate-status
       - build-android-apks
