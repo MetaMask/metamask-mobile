@@ -3,12 +3,6 @@ export type { INotification } from '@metamask/notification-services-controller/n
 export enum PressActionId {
   OPEN_HOME = 'open-home-press-action-id',
   OPEN_NOTIFICATIONS_VIEW = 'open-notifications-view-press-action-id',
-  /**
-   * Press action for the agentic-CLI MFA flow. The press handler reads
-   * `notification.data.dataStr` for `{ deeplink }` and dispatches it through
-   * `handleDeeplink`, which routes via the existing saga to MfaWebview.
-   */
-  OPEN_CLI_MFA = 'open-cli-mfa-press-action-id',
 }
 
 // 'default' tells Notifee to use the activity declared in AndroidManifest.xml

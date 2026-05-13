@@ -57,6 +57,7 @@ export enum DeepLinkRoute {
   CARD_HOME = 'card-home',
   NFT = 'nft',
   MMC_MWP = 'mmc-mwp',
+  AGENTIC_CLI = 'agentic-cli',
   INVALID = 'invalid',
 }
 

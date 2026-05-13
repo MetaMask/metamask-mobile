@@ -29,17 +29,17 @@ the web side and embedded in a `WebView`.
 4. User taps the push:
    a. Killed: app cold-starts, vault unlocks via password, then routes to webview
    b. Background: app resumes, routes to webview
-   c. Foreground: TBD (see "Open questions")
-5. Mobile opens webview at `https://link.metamask.io/cli-login?sessionId=<id>`
-6. Mobile injects the user's bearer token into the webview's `Authorization` header
+   c. Foreground: in-app banner tap routes directly to webview
+5. Mobile receives `https://link.metamask.io/agentic-cli?...` and opens the hosted `approvalPageLink`
+6. Mobile injects the user's bearer token into the webview's `Authorization` header and `#token=<bearer>` URL fragment
 7. User completes the login challenge in the webview
-8. Webview posts a `success` or `error` message back to the native side
+8. Webview posts an `approved`, `rejected`, `close`, or `error` message back to the native side
 9. Mobile dismisses the webview and shows a toast/result
 ```
 
 ### Flow B: Transaction approve / reject
 
-Identical to Flow A except the deeplink path is `cli-approve` and the webview renders the tx intent +
+Identical to Flow A except `operationType=tx_approve` and the hosted webview renders the tx intent +
 human-readable policy diff (per [MMAI-138](https://consensyssoftware.atlassian.net/browse/MMAI-138) AC) plus
 Approve / Deny buttons. The backend signals back through `postMessage`.
 
@@ -65,9 +65,35 @@ Approve / Deny buttons. The backend signals back through `postMessage`.
                               │                SharedDeeplinkManager.parse()           │
                               │                     ↓                                  │
                               │                handleUniversalLink                     │
-                              │                     ↓ (new path: /cli-login)           │
+                              │                     ↓ (new path: /agentic-cli)          │
                               │                MfaWebviewScreen ─── new ───            │
                               └────────────────────────────────────────────────────────┘
+```
+
+## Hosted web contract
+
+The current hosted approval page lives in
+[`consensys-vertical-apps/agentic-cli-ui`](https://github.com/consensys-vertical-apps/agentic-cli-ui).
+Mobile accepts a notification CTA link in this shape:
+
+```text
+https://link.metamask.io/agentic-cli?approvalPageLink=https%3A%2F%2Fdauh7948dneg6.cloudfront.net%2Fapproval&projectId=<projectId>&notificationId=<requestId>&operationType=<login|tx_approve>&subjectId=<subjectId>
+```
+
+Mobile then opens:
+
+```text
+https://dauh7948dneg6.cloudfront.net/approval?projectId=<projectId>&notificationId=<requestId>&operationType=<login|tx_approve>&subjectId=<subjectId>#token=<bearer>
+```
+
+The hosted page notifies native with:
+
+```ts
+type WebviewToNative =
+  | { source: 'mm-cli-mfa'; type: 'approved'; approvalId: string }
+  | { source: 'mm-cli-mfa'; type: 'rejected'; approvalId: string }
+  | { source: 'mm-cli-mfa'; type: 'error'; approvalId: string; message: string }
+  | { source: 'mm-cli-mfa'; type: 'close'; approvalId: string };
 ```
 
 ## Reusable infrastructure (no work needed)
@@ -84,22 +110,22 @@ Approve / Deny buttons. The backend signals back through `postMessage`.
 
 ## Greenfield work (this branch's scope)
 
-| Item                                         | Owner                       | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| -------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ------------ | --------- | -------------------------------- | ----- | ------ | ---- | ------------------------------------------------- |
-| New deeplink handler `/cli-login`            | Mobile                      | Add to `handleUniversalLink`. Push to MfaWebviewScreen with `sessionId` param.                                                                                                                                                                                                                                                                                                                                                                                             |
-| New deeplink handler `/cli-approve`          | Mobile                      | Same as above.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `MfaWebviewScreen`                           | Mobile                      | Hosts a `react-native-webview` with `source.headers.Authorization` set to the user's bearer token (MMAI-176).                                                                                                                                                                                                                                                                                                                                                              |
-| `postMessage` listener                       | Mobile                      | Webview → native event channel for `success` / `error` / `approved` / `denied` (MMAI-177).                                                                                                                                                                                                                                                                                                                                                                                 |
-| Foreground push routing                      | Mobile                      | Decision (2026-05-05): tap on the in-app banner routes **directly to the webview**, not to today's notifications inbox. Two changes needed: (a) extend `processAndHandleNotification` to recognise our `notification_type` (today's branch silently drops non-wallet schemas), (b) replace the hardcoded `OPEN_NOTIFICATIONS_VIEW` press action in `push-utils.ts` with a deeplink press action.                                                                           |
-| Modal-collision handling                     | Mobile                      | Decision (2026-05-05): webview takes priority **only when launched via push tap** (origin = `ORIGIN_PUSH_NOTIFICATION`). On normal app launch, no pending deeplink exists (current behavior) — banners/modals show as usual, and the user accesses missed sessions via the in-app notification inbox. Implementation: ensure the saga's deeplink dispatch runs before the Wallet screen mounts its banner stack, or have banners check for a pending push-origin deeplink. |
-| New `team` + `notification_type` enum values | Notifications platform team | Today: `team-notify                                                                                                                                                                                                                                                                                                                                                                                                                                                        | team-shield | team-rewards | team-card | team-social-ai`and`internal-test | perps | shield | card | social-ai`. We need (e.g.) `team-web3auth`+`mfa`. |
-| NAAP integration in Mimir                    | Backend (Mimir)             | POST to NAAP `/api/internal/v1/notifications`, recipient by `rcpt-caip10`.                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Item                                                 | Owner                       | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ---------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| New deeplink handler `/agentic-cli`                  | Mobile                      | Add to `handleUniversalLink`. Push to MfaWebviewScreen with `approvalPageLink`, `projectId`, `notificationId`, `operationType`, and `subjectId`.                                                                                                                                                                                                                                                                                                                           |
+| Legacy deeplink handlers `/cli-login`/`/cli-approve` | Mobile                      | Kept temporarily for the local mock/debug button.                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `MfaWebviewScreen`                                   | Mobile                      | Hosts a `react-native-webview` with `source.headers.Authorization` set to the user's bearer token (MMAI-176).                                                                                                                                                                                                                                                                                                                                                              |
+| `postMessage` listener                               | Mobile                      | Webview → native event channel for `approved` / `rejected` / `close` / `error` (MMAI-177).                                                                                                                                                                                                                                                                                                                                                                                 |
+| Foreground push routing                              | Mobile                      | Decision (2026-05-05): tap on the in-app banner routes **directly to the webview**, not to today's notifications inbox. Two changes needed: (a) extend `processAndHandleNotification` to recognise our `notification_type` (today's branch silently drops non-wallet schemas), (b) replace the hardcoded `OPEN_NOTIFICATIONS_VIEW` press action in `push-utils.ts` with a deeplink press action.                                                                           |
+| Modal-collision handling                             | Mobile                      | Decision (2026-05-05): webview takes priority **only when launched via push tap** (origin = `ORIGIN_PUSH_NOTIFICATION`). On normal app launch, no pending deeplink exists (current behavior) — banners/modals show as usual, and the user accesses missed sessions via the in-app notification inbox. Implementation: ensure the saga's deeplink dispatch runs before the Wallet screen mounts its banner stack, or have banners check for a pending push-origin deeplink. |
+| New `team` + `notification_type` enum values         | Notifications platform team | Registered target values: `team-onboarding` and `agentic-cli`. Local dashboard testing can still use dashboard-allowed defaults.                                                                                                                                                                                                                                                                                                                                           |
+| NAAP integration in Mimir                            | Backend (Mimir)             | POST to NAAP `/api/internal/v1/notifications`, recipient by `rcpt-caip10`.                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 ## App states to support
 
 | State      | Behavior                                                                                                                                                     | Status today                                                                                                                                                            |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Killed     | OS shows tray notif (from FCM `notification` block); tap → cold start → unlock prompt → after `LOGIN`, saga consumes pending deeplink → routes to webview    | Plumbing reusable; needs the new `/cli-*` deeplink handler                                                                                                              |
+| Killed     | OS shows tray notif (from FCM `notification` block); tap → cold start → unlock prompt → after `LOGIN`, saga consumes pending deeplink → routes to webview    | Plumbing reusable; `/agentic-cli` deeplink handler added                                                                                                                |
 | Background | OS shows tray notif; tap → `onNotificationOpenedApp` → `handleDeeplink` → saga (already unlocked) → routes                                                   | Same as above                                                                                                                                                           |
 | Foreground | OS suppresses tray; in-app banner shown via Notifee. Decided: tap routes **directly to webview** (overrides today's `OPEN_NOTIFICATIONS_VIEW` press action). | Press-action change required; `processAndHandleNotification` also needs a parser branch for our `notification_type` (today's branch silently drops non-wallet schemas). |
 
@@ -116,7 +142,7 @@ Minimum viable payload that the mobile pipeline can route today, validated end-t
   "notification_type": "internal-test",
   "notification_event": "dashboard_test",
   "deduplication_id": "<uuid>",
-  "metadata": { "sessionId": "<id>" },
+  "metadata": { "notificationId": "<requestId>" },
   "template": {
     "version": "1.0",
     "default": {
@@ -124,7 +150,7 @@ Minimum viable payload that the mobile pipeline can route today, validated end-t
         "title": { "text": "Approve CLI sign-in" },
         "short_desc": { "text": "Tap to review" },
         "cta": {
-          "link": "https://link.metamask.io/cli-login?sessionId=<id>",
+          "link": "https://link.metamask.io/agentic-cli?approvalPageLink=https%3A%2F%2Fdauh7948dneg6.cloudfront.net%2Fapproval&projectId=<projectId>&notificationId=<requestId>&operationType=login&subjectId=<subjectId>",
           "content": { "text": "Review" }
         }
       }
@@ -154,25 +180,41 @@ For real production traffic, `team` and `notification_type` must be replaced wit
    a NAAP adjustment or a mobile-side parser tweak. (Easy to confirm with one test push + the dev logs in this branch.)
 2. **Auth header lifecycle** — bearer token has a TTL. If the user takes time to act in the webview, the token
    may expire mid-session. Need a refresh strategy.
-3. **postMessage protocol** — schema for events from webview to native (`{ type: 'approve' | 'deny' | 'error', sessionId, ... }`).
+3. **postMessage protocol** — current hosted schema is `{ source: 'mm-cli-mfa', type: 'approved' | 'rejected' | 'close' | 'error', approvalId, message? }`.
 4. **Recipient by CAIP-10 vs profile-id** — confirm `rcpt-caip10` works for `channel-push` (the OpenAPI allows it; not yet tested for push specifically).
 
 ## Smoke testing this branch
 
-Temporary debug logs are wired in this branch (`[FCM:*]`, `[Deeplink:*]`) for local iteration. To fire a test push:
+Local smoke testing currently uses direct deeplinks instead of Notifee. This keeps the mobile MFA webview loop
+testable on both Android and iOS while backend push delivery is still being finalized.
 
-1. Build and install: `yarn watch:clean` (separate terminal) + `yarn start:android`.
-2. In the app: enable notifications in Settings (the feature flag is force-enabled in `config.ts` for this branch).
-3. Capture FCM token from logcat: `adb logcat -s ReactNativeJS:V | grep '\[FCM:token\]'`.
-4. Wallet address from the receive screen (CAIP-10: `eip155:1:0x...`).
-5. Open `https://naap.dev-api.cx.metamask.io/public/dashboard`, authenticate with `@consensys.net` Google.
-6. Paste the payload above, replace `<address>` and `<id>`, click "Generate random deduplication_id", send.
-7. For each app state (killed / background / foreground), verify which of the four `[FCM:*]` and two `[Deeplink:*]`
-   logs fire and in what order.
+1. Start Metro: `yarn watch:clean`.
+2. Start the mock backend:
 
-The debug logs are marked `// TEMP debug — remove before commit` and the feature-flag override is marked
-`// TEMP debug — force-enable for local CLI-push testing; revert before commit`. All four files must be reverted
-before any PR off this branch.
+   ```sh
+   cd ~/Documents/Repo/tylerdashboard/mfa-backend
+   npm run dev:no-push
+   ```
+
+3. Build and install the app with `yarn start:ios` or `yarn start:android`.
+4. From Wallet home, tap the dev-only `Open CLI-MFA deeplink` button. It creates a mock session, opens the
+   corresponding `https://link.metamask.io/cli-login?...` link, and routes through the normal DeeplinkManager path.
+5. Approve or reject in the webview and confirm the screen dismisses.
+
+To test the OS-level universal link handoff without the debug button, create a mock session with
+`POST /api/cli/initiate`, then open the link manually:
+
+```sh
+# iOS simulator
+xcrun simctl openurl booted "https://link.metamask.io/cli-login?sessionId=<sessionId>&server=http%3A%2F%2Flocalhost%3A3000"
+
+# Android emulator
+adb shell am start -W -a android.intent.action.VIEW -d "https://link.metamask.io/cli-login?sessionId=<sessionId>&server=http%3A%2F%2F10.0.2.2%3A3000"
+```
+
+Temporary debug logs are still wired in this branch (`[FCM:*]`, `[Deeplink:*]`) for local iteration. They are
+marked `// TEMP debug — remove before commit`, and the notification feature-flag override is marked
+`// TEMP debug — force-enable for local CLI-push testing; revert before commit`.
 
 ## Jira
 

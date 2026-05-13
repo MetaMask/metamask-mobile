@@ -469,6 +469,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
   [DeepLinkRoute.NFT]: extractNftProperties,
   [DeepLinkRoute.MMC_MWP]: extractMmcMwpProperties,
+  [DeepLinkRoute.AGENTIC_CLI]: extractInvalidProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
 };
 
@@ -606,6 +607,10 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.CARD_HOME;
     case ACTIONS.NFT:
       return DeepLinkRoute.NFT;
+    case ACTIONS.AGENTIC_CLI:
+    case ACTIONS.CLI_LOGIN:
+    case ACTIONS.CLI_APPROVE:
+      return DeepLinkRoute.AGENTIC_CLI;
     default:
       return DeepLinkRoute.INVALID;
   }
@@ -664,6 +669,10 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.CARD_HOME;
       case 'nft':
         return DeepLinkRoute.NFT;
+      case 'agentic-cli':
+      case 'cli-login':
+      case 'cli-approve':
+        return DeepLinkRoute.AGENTIC_CLI;
       case undefined: // Empty path (no segments after filtering)
         return DeepLinkRoute.HOME;
       default:

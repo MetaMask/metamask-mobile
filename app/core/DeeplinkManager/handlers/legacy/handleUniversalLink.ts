@@ -93,6 +93,7 @@ const SUPPORTED_ACTIONS = {
   SHIELD: ACTIONS.SHIELD,
   EARN_MUSD: ACTIONS.EARN_MUSD,
   NFT: ACTIONS.NFT,
+  AGENTIC_CLI: ACTIONS.AGENTIC_CLI,
   CLI_LOGIN: ACTIONS.CLI_LOGIN,
   CLI_APPROVE: ACTIONS.CLI_APPROVE,
   ON_RAMP: ACTIONS.ON_RAMP,
@@ -129,6 +130,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION,
   SUPPORTED_ACTIONS.SHIELD,
   SUPPORTED_ACTIONS.EARN_MUSD,
+  SUPPORTED_ACTIONS.AGENTIC_CLI,
   SUPPORTED_ACTIONS.CLI_LOGIN,
   SUPPORTED_ACTIONS.CLI_APPROVE,
   SUPPORTED_ACTIONS.ON_RAMP,
@@ -669,13 +671,57 @@ async function handleUniversalLink({
       handleNftUrl();
       break;
     }
+    case SUPPORTED_ACTIONS.AGENTIC_CLI: {
+      const { params: cliParams } = extractURLParams(urlObj.href);
+      const cliMfaParams = cliParams as typeof cliParams & {
+        approvalPageLink?: string;
+        projectId?: string;
+        notificationId?: string;
+        requestId?: string;
+        approvalId?: string;
+        operationType?: string;
+        subjectId?: string;
+      };
+
+      handleCliMfa({
+        intent:
+          cliMfaParams.operationType === 'tx_approve' ? 'tx_approve' : 'login',
+        approvalPageLink: cliMfaParams.approvalPageLink,
+        projectId: cliMfaParams.projectId,
+        notificationId: cliMfaParams.notificationId,
+        requestId: cliMfaParams.requestId,
+        approvalId: cliMfaParams.approvalId,
+        operationType: cliMfaParams.operationType,
+        subjectId: cliMfaParams.subjectId,
+      });
+      break;
+    }
     case SUPPORTED_ACTIONS.CLI_LOGIN:
     case SUPPORTED_ACTIONS.CLI_APPROVE: {
       const { params: cliParams } = extractURLParams(urlObj.href);
+      const cliMfaParams = cliParams as typeof cliParams & {
+        approvalPageLink?: string;
+        projectId?: string;
+        notificationId?: string;
+        requestId?: string;
+        approvalId?: string;
+        operationType?: string;
+        subjectId?: string;
+        sessionId?: string;
+        server?: string;
+      };
+
       handleCliMfa({
         intent: action === SUPPORTED_ACTIONS.CLI_LOGIN ? 'login' : 'tx_approve',
-        sessionId: cliParams?.sessionId,
-        server: cliParams?.server,
+        approvalPageLink: cliMfaParams.approvalPageLink,
+        projectId: cliMfaParams.projectId,
+        notificationId: cliMfaParams.notificationId,
+        requestId: cliMfaParams.requestId,
+        approvalId: cliMfaParams.approvalId,
+        operationType: cliMfaParams.operationType,
+        subjectId: cliMfaParams.subjectId,
+        sessionId: cliMfaParams.sessionId,
+        server: cliMfaParams.server,
       });
       break;
     }

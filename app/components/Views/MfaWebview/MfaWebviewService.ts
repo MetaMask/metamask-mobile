@@ -1,4 +1,8 @@
-import { MESSAGE_SOURCE, type WebviewToNative } from './types';
+import {
+  MESSAGE_SOURCE,
+  type MfaWebviewParams,
+  type WebviewToNative,
+} from './types';
 
 /**
  * Pure logic for the MfaWebview screen — URL building + message validation.
@@ -17,27 +21,66 @@ const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^http:\/\/10\.0\.2\.2(?::\d+)?$/,
   /^http:\/\/localhost(?::\d+)?$/,
   /^https:\/\/link\.metamask\.io$/,
+  /^https:\/\/dauh7948dneg6\.cloudfront\.net$/,
   /^https:\/\/[a-z0-9-]+\.cx\.metamask\.io$/,
   /^https:\/\/[a-z0-9-]+\.ngrok-free\.app$/,
 ];
 
+const isOriginAllowed = (origin: string): boolean =>
+  ALLOWED_ORIGIN_PATTERNS.some((re) => re.test(origin));
+
 export const MfaWebviewService = {
   /**
-   * `${server}/webview/${sessionId}#token=${bearer}`
+   * `${approvalPageLink}?projectId=...&notificationId=...#token=${bearer}`
    * Bearer goes in the URL fragment so it doesn't hit server logs but is still
    * readable by the SPA's JS for subsequent same-origin XHR.
    */
-  buildWebViewUrl(
-    server: string,
-    sessionId: string,
-    bearerToken: string,
-  ): string {
-    const base = server.replace(/\/+$/, '');
-    return `${base}/webview/${encodeURIComponent(sessionId)}#token=${encodeURIComponent(bearerToken)}`;
+  buildWebViewUrl(params: MfaWebviewParams, bearerToken: string): string {
+    const {
+      approvalPageLink,
+      projectId,
+      notificationId,
+      requestId,
+      approvalId,
+      operationType,
+      subjectId,
+      server,
+      sessionId,
+    } = params;
+
+    if (!approvalPageLink) {
+      if (!server || !sessionId) {
+        throw new Error('Missing approval page link');
+      }
+
+      const base = server.replace(/\/+$/, '');
+      return `${base}/webview/${encodeURIComponent(
+        sessionId,
+      )}#token=${encodeURIComponent(bearerToken)}`;
+    }
+
+    const url = new URL(approvalPageLink);
+    const origin = `${url.protocol}//${url.host}`;
+    if (!isOriginAllowed(origin)) {
+      throw new Error('Approval page origin is not allowed');
+    }
+
+    const canonicalRequestId = notificationId ?? requestId;
+
+    if (projectId) url.searchParams.set('projectId', projectId);
+    if (canonicalRequestId) {
+      url.searchParams.set('notificationId', canonicalRequestId);
+    }
+    if (approvalId) url.searchParams.set('approvalId', approvalId);
+    if (operationType) url.searchParams.set('operationType', operationType);
+    if (subjectId) url.searchParams.set('subjectId', subjectId);
+    url.hash = `token=${encodeURIComponent(bearerToken)}`;
+
+    return url.toString();
   },
 
   isOriginAllowed(origin: string): boolean {
-    return ALLOWED_ORIGIN_PATTERNS.some((re) => re.test(origin));
+    return isOriginAllowed(origin);
   },
 
   /**
@@ -70,7 +113,13 @@ export const MfaWebviewService = {
     if (!parsed || typeof parsed !== 'object') return null;
     const obj = parsed as Record<string, unknown>;
     if (obj.source !== MESSAGE_SOURCE) return null;
-    if (typeof obj.sessionId !== 'string' || !obj.sessionId) return null;
+    const approvalId =
+      typeof obj.approvalId === 'string' && obj.approvalId
+        ? obj.approvalId
+        : typeof obj.sessionId === 'string' && obj.sessionId
+          ? obj.sessionId
+          : null;
+    if (!approvalId) return null;
 
     switch (obj.type) {
       case 'approved':
@@ -79,13 +128,13 @@ export const MfaWebviewService = {
         return {
           source: MESSAGE_SOURCE,
           type: obj.type,
-          sessionId: obj.sessionId,
+          approvalId,
         };
       case 'error':
         return {
           source: MESSAGE_SOURCE,
           type: 'error',
-          sessionId: obj.sessionId,
+          approvalId,
           message:
             typeof obj.message === 'string' ? obj.message : 'Unknown error',
         };

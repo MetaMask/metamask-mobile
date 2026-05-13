@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Linking, View } from 'react-native';
+import { Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -28,8 +29,8 @@ import type { MfaWebviewParams } from './types';
  * polling backstop, transparent overlay, accounts-changed broadcast).
  *
  * Flow:
- * 1. Receives `{ sessionId, server, intent }` via navigation params (set by the
- * deeplink handler).
+ * 1. Receives hosted approval page params via navigation (set by the deeplink
+ * handler).
  * 2. Pulls a bearer token from `AuthenticationController` and bakes it into
  * both the `Authorization` header AND the URL fragment (so the SPA's
  * same-origin XHR can keep using it).
@@ -41,14 +42,28 @@ const MfaWebview: React.FC = () => {
   const webViewRef = useRef<WebView>(null);
   const navigation = useNavigation();
   const tw = useTailwind();
-  const { sessionId, server, intent } = useParams<MfaWebviewParams>();
+  const {
+    approvalPageLink,
+    projectId,
+    notificationId,
+    requestId,
+    approvalId,
+    operationType,
+    subjectId,
+    sessionId,
+    server,
+    intent,
+  } = useParams<MfaWebviewParams>();
   const [error, setError] = useState<string | null>(null);
   const [webViewUrl, setWebViewUrl] = useState<string | null>(null);
   const [bearerToken, setBearerToken] = useState<string | null>(null);
 
   // Wire a top bar with title + close button (mirrors SimpleWebview pattern).
   useEffect(() => {
-    const title = intent === 'tx_approve' ? 'Approve transaction' : 'Sign in';
+    const title =
+      (operationType ?? intent) === 'tx_approve'
+        ? 'Approve transaction'
+        : 'Sign in';
     navigation.setOptions(
       getHeaderCompactStandardNavbarOptions({
         title,
@@ -57,7 +72,7 @@ const MfaWebview: React.FC = () => {
         twClassName: 'bg-default rounded-t-2xl',
       }),
     );
-  }, [navigation, intent]);
+  }, [navigation, operationType, intent]);
 
   // Resolve the bearer once on mount.
   useEffect(() => {
@@ -71,7 +86,21 @@ const MfaWebview: React.FC = () => {
           throw new Error('No bearer token available — is the user signed in?');
         setBearerToken(token);
         setWebViewUrl(
-          MfaWebviewService.buildWebViewUrl(server, sessionId, token),
+          MfaWebviewService.buildWebViewUrl(
+            {
+              approvalPageLink,
+              projectId,
+              notificationId,
+              requestId,
+              approvalId,
+              operationType,
+              subjectId,
+              sessionId,
+              server,
+              intent,
+            },
+            token,
+          ),
         );
       } catch (err) {
         Logger.error(err as Error, 'MfaWebview: failed to obtain bearer token');
@@ -82,7 +111,18 @@ const MfaWebview: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [server, sessionId]);
+  }, [
+    approvalId,
+    approvalPageLink,
+    intent,
+    notificationId,
+    operationType,
+    projectId,
+    requestId,
+    server,
+    sessionId,
+    subjectId,
+  ]);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
@@ -92,7 +132,7 @@ const MfaWebview: React.FC = () => {
     (messageEvent: WebViewMessageEvent) => {
       const event = MfaWebviewService.parseEvent(messageEvent.nativeEvent.data);
       if (!event) return;
-      if (event.sessionId !== sessionId) return; // ignore cross-session leakage
+      if (approvalId && event.approvalId !== approvalId) return;
       switch (event.type) {
         case 'approved':
         case 'rejected':
@@ -104,7 +144,7 @@ const MfaWebview: React.FC = () => {
           break;
       }
     },
-    [navigation, sessionId],
+    [approvalId, navigation],
   );
 
   const handleShouldStartLoadWithRequest = useCallback(
@@ -124,7 +164,8 @@ const MfaWebview: React.FC = () => {
 
   if (error) {
     return (
-      <View
+      <SafeAreaView
+        edges={['bottom']}
         style={tw.style(
           'flex-1 bg-default justify-center items-center p-4 gap-4',
         )}
@@ -143,32 +184,36 @@ const MfaWebview: React.FC = () => {
         >
           {strings('navigation.close')}
         </Button>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (!webViewUrl || !bearerToken) {
     // Brief blank state while we resolve the bearer; the WebView itself
     // shows a loading spinner once it starts.
-    return <View style={tw.style('flex-1 bg-default')} />;
+    return (
+      <SafeAreaView edges={['bottom']} style={tw.style('flex-1 bg-default')} />
+    );
   }
 
   return (
-    <WebView
-      ref={webViewRef}
-      source={{
-        uri: webViewUrl,
-        headers: { Authorization: `Bearer ${bearerToken}` },
-      }}
-      onMessage={handleMessage}
-      onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-      onError={handleHttpError}
-      onHttpError={handleHttpError}
-      javaScriptEnabled
-      domStorageEnabled
-      style={tw.style('flex-1 bg-default')}
-      androidLayerType="hardware"
-    />
+    <SafeAreaView edges={['bottom']} style={tw.style('flex-1 bg-default')}>
+      <WebView
+        ref={webViewRef}
+        source={{
+          uri: webViewUrl,
+          headers: { Authorization: `Bearer ${bearerToken}` },
+        }}
+        onMessage={handleMessage}
+        onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+        onError={handleHttpError}
+        onHttpError={handleHttpError}
+        javaScriptEnabled
+        domStorageEnabled
+        style={tw.style('flex-1 bg-default')}
+        androidLayerType="hardware"
+      />
+    </SafeAreaView>
   );
 };
 

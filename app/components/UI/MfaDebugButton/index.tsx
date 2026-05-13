@@ -1,14 +1,16 @@
 import React, { useCallback, useState } from 'react';
-import { Pressable, Text, View, StyleSheet } from 'react-native';
-import NotificationsService from '../../../util/notifications/services/NotificationService';
-import { PressActionId } from '../../../util/notifications/types';
+import {
+  Linking,
+  Platform,
+  Pressable,
+  Text,
+  View,
+  StyleSheet,
+} from 'react-native';
 import Logger from '../../../util/Logger';
 
 /**
- * TEMP debug — fires a fake CLI-MFA notification into the OS tray, no FCM needed.
- * Tap the resulting tray entry in any app state (foreground / background / killed)
- * to exercise the same code path a real push would use:
- * Notifee press handler -> handleDeeplink -> saga -> MfaWebview.
+ * TEMP debug — creates a fake CLI-MFA session and opens its deeplink directly.
  *
  * Remove before commit. Gated behind __DEV__ so it can never ship.
  */
@@ -41,22 +43,23 @@ const styles = StyleSheet.create({
   },
 });
 
-const SAMPLE_DEEPLINK_LOGIN =
-  'https://link.metamask.io/cli-login?sessionId=dev-' +
-  Date.now() +
-  '&server=' +
-  encodeURIComponent('http://10.0.2.2:3000');
+const getMockBackendUrl = () =>
+  Platform.OS === 'ios' ? 'http://localhost:3000' : 'http://10.0.2.2:3000';
+
+const buildCliLoginDeeplink = (sessionId: string, server: string) =>
+  `https://link.metamask.io/cli-login?sessionId=${encodeURIComponent(
+    sessionId,
+  )}&server=${encodeURIComponent(server)}`;
 
 const MfaDebugButton: React.FC = () => {
   const [counter, setCounter] = useState(0);
 
   const onPress = useCallback(async () => {
-    const backendUrl = 'http://10.0.2.2:3000';
+    const backendUrl = getMockBackendUrl();
 
     // First create a real session on the mock backend so the SPA's
     // /api/cli/session lookup succeeds. SKIP_PUSH=true on the backend means
-    // this won't actually send an FCM push — we display the notification
-    // ourselves below via Notifee.
+    // this won't send an FCM push.
     let sessionId: string;
     let deeplink: string;
     try {
@@ -74,13 +77,13 @@ const MfaDebugButton: React.FC = () => {
         deeplink: string;
       };
       sessionId = json.sessionId;
-      deeplink = json.deeplink;
+      deeplink = buildCliLoginDeeplink(json.sessionId, backendUrl);
     } catch (err) {
       Logger.error(err as Error, 'MfaDebugButton: backend initiate failed');
       // eslint-disable-next-line no-console -- TEMP debug
       console.log(
         '[MfaDebug:fire] backend unreachable —',
-        'is mfa-backend running on http://localhost:3000 with SKIP_PUSH=true?',
+        `is mfa-backend running on ${backendUrl} with SKIP_PUSH=true?`,
         err,
       );
       return;
@@ -91,26 +94,19 @@ const MfaDebugButton: React.FC = () => {
       '[MfaDebug:fire]',
       JSON.stringify({
         sessionId,
-        pressActionId: PressActionId.OPEN_CLI_MFA,
         deeplink,
       }),
     );
 
     try {
-      await NotificationsService.displayNotification({
-        id: sessionId,
-        pressActionId: PressActionId.OPEN_CLI_MFA,
-        title: 'Approve CLI sign-in',
-        body: 'Tap to review.',
-        data: { deeplink },
-      });
+      await Linking.openURL(deeplink);
       // eslint-disable-next-line no-console -- TEMP debug
-      console.log('[MfaDebug:fire] displayNotification OK');
+      console.log('[MfaDebug:fire] Linking.openURL OK');
       setCounter((c) => c + 1);
     } catch (err) {
       // eslint-disable-next-line no-console -- TEMP debug
-      console.log('[MfaDebug:fire] displayNotification threw', err);
-      Logger.error(err as Error, 'MfaDebugButton: displayNotification failed');
+      console.log('[MfaDebug:fire] Linking.openURL threw', err);
+      Logger.error(err as Error, 'MfaDebugButton: deeplink open failed');
     }
   }, []);
 
@@ -126,12 +122,12 @@ const MfaDebugButton: React.FC = () => {
         ]}
       >
         <Text style={styles.label}>
-          🧪 Fire fake CLI-MFA push{counter > 0 ? ` (${counter})` : ''}
+          🧪 Open CLI-MFA deeplink{counter > 0 ? ` (${counter})` : ''}
         </Text>
       </Pressable>
       <Text style={styles.hint}>
-        Sends a Notifee tray entry. Tap it (any app state) to test MfaWebview
-        routing. {SAMPLE_DEEPLINK_LOGIN.length > 0 ? '' : ''}
+        Creates a mock session, then opens the MetaMask deeplink to test
+        MfaWebview routing.
       </Text>
     </View>
   );
