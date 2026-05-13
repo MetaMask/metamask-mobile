@@ -12,6 +12,16 @@ const mockCanGoBack = jest.fn(() => true);
 let mockRouteParams: { entryPoint?: string; initialTab?: string } | undefined;
 let mockIsScreenEnabled = true;
 let mockConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
+let mockAvailableTabs = [
+  { key: 'all', label: 'All' },
+  { key: 'live', label: 'Live', isLive: true },
+  { key: 'props', label: 'Props' },
+];
+let mockAvailability = {
+  live: true,
+  props: true,
+  stages: {},
+};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -42,6 +52,17 @@ jest.mock('../../selectors/featureFlags', () => ({
     'selectPredictWorldCupScreenEnabledFlag',
 }));
 
+jest.mock('../../hooks', () => ({
+  usePredictWorldCupAvailableTabs: () => ({
+    tabs: mockAvailableTabs,
+    availability: mockAvailability,
+    isFetching: false,
+    isLoading: false,
+    errors: [],
+    refetch: jest.fn(),
+  }),
+}));
+
 describe('PredictWorldCup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -52,6 +73,16 @@ describe('PredictWorldCup', () => {
       ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
       enabled: true,
       showWorldCupScreen: true,
+    };
+    mockAvailableTabs = [
+      { key: 'all', label: 'All' },
+      { key: 'live', label: 'Live', isLive: true },
+      { key: 'props', label: 'Props' },
+    ];
+    mockAvailability = {
+      live: true,
+      props: true,
+      stages: {},
     };
   });
 
@@ -66,7 +97,7 @@ describe('PredictWorldCup', () => {
     ).toHaveTextContent('all');
   });
 
-  it('renders fixed tabs and an empty content area', () => {
+  it('renders available tabs and an empty content area', () => {
     render(<PredictWorldCup />);
 
     expect(
@@ -78,6 +109,9 @@ describe('PredictWorldCup', () => {
     expect(
       screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-props`),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-group-a`),
+    ).toBeNull();
     expect(
       screen.getByTestId(PREDICT_WORLD_CUP_SCREEN_TEST_IDS.EMPTY_STATE),
     ).toBeOnTheScreen();
@@ -105,18 +139,47 @@ describe('PredictWorldCup', () => {
     ).toHaveTextContent('live');
   });
 
-  it('uses a configured stage initial tab', () => {
+  it('uses a configured available stage initial tab', () => {
     mockRouteParams = { initialTab: 'group-stage' };
     mockConfig = {
       ...mockConfig,
       stages: [{ key: 'group-stage', eventIds: ['1'] }],
     };
+    mockAvailability = {
+      ...mockAvailability,
+      stages: { 'group-stage': true },
+    };
+    mockAvailableTabs = [
+      ...mockAvailableTabs,
+      { key: 'group-stage', label: 'Group Stage' },
+    ];
 
     render(<PredictWorldCup />);
 
     expect(
       screen.getByTestId(PREDICT_WORLD_CUP_SCREEN_TEST_IDS.INITIAL_TAB),
     ).toHaveTextContent('group-stage');
+  });
+
+  it('does not render tabs hidden by availability', () => {
+    mockAvailableTabs = [{ key: 'all', label: 'All' }];
+    mockAvailability = {
+      live: false,
+      props: false,
+      stages: {},
+    };
+
+    render(<PredictWorldCup />);
+
+    expect(
+      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-all`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-live`),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-props`),
+    ).toBeNull();
   });
 
   it('falls back to All for an invalid requested initial tab', () => {

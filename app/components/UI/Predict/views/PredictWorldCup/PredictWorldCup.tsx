@@ -18,11 +18,10 @@ import {
 } from '../../selectors/featureFlags';
 import type { PredictNavigationParamList } from '../../types/navigation';
 import {
-  PREDICT_WORLD_CUP_TAB_KEYS,
   resolvePredictWorldCupInitialTab,
   type PredictWorldCupTabKey,
 } from '../../constants/worldCupTabs';
-import { resolvePredictWorldCupStageLabel } from '../../utils/worldCup';
+import { usePredictWorldCupAvailableTabs } from '../../hooks';
 
 export const PREDICT_WORLD_CUP_SCREEN_TEST_IDS = {
   CONTAINER: 'predict-world-cup-screen',
@@ -33,18 +32,6 @@ export const PREDICT_WORLD_CUP_SCREEN_TEST_IDS = {
 } as const;
 
 type Tw = ReturnType<typeof useTailwind>;
-
-interface WorldCupTab {
-  key: PredictWorldCupTabKey;
-  label: string;
-  isLive?: boolean;
-}
-
-const DEFAULT_STAGE_TABS: WorldCupTab[] = [
-  { key: 'group-a', label: 'Group A' },
-  { key: 'group-b', label: 'Group B' },
-  { key: 'group-c', label: 'Group C' },
-];
 
 const LiveIndicator = ({ tw, size = 8 }: { tw: Tw; size?: number }) => (
   <View
@@ -67,25 +54,18 @@ const PredictWorldCup: React.FC = () => {
   const config = useSelector(selectPredictWorldCupConfig);
   const isScreenEnabled = useSelector(selectPredictWorldCupScreenEnabledFlag);
 
-  const tabs = useMemo<WorldCupTab[]>(() => {
-    const configuredStageTabs = config.stages.map((stage) => ({
-      key: stage.key,
-      label: resolvePredictWorldCupStageLabel(stage),
-    }));
-
-    return [
-      { key: PREDICT_WORLD_CUP_TAB_KEYS.ALL, label: 'All' },
-      { key: PREDICT_WORLD_CUP_TAB_KEYS.LIVE, label: 'Live', isLive: true },
-      { key: PREDICT_WORLD_CUP_TAB_KEYS.PROPS, label: 'Props' },
-      ...(configuredStageTabs.length
-        ? configuredStageTabs
-        : DEFAULT_STAGE_TABS),
-    ];
-  }, [config.stages]);
+  const { tabs, availability } = usePredictWorldCupAvailableTabs(config, {
+    enabled: isScreenEnabled,
+  });
 
   const initialTab = useMemo(
-    () => resolvePredictWorldCupInitialTab(route.params?.initialTab, config),
-    [config, route.params?.initialTab],
+    () =>
+      resolvePredictWorldCupInitialTab(
+        route.params?.initialTab,
+        config,
+        availability,
+      ),
+    [availability, config, route.params?.initialTab],
   );
 
   const [activeTab, setActiveTab] = useState<PredictWorldCupTabKey>(initialTab);
