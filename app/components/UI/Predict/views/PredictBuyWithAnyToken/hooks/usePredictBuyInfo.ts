@@ -5,10 +5,12 @@ import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from '../../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
-import { getPredictExchangeFee, roundUpToCents } from '../../../utils/orders';
+import {
+  getPredictBuyAllInCost,
+  getPredictExchangeFee,
+} from '../../../utils/orders';
 
 interface UsePredictBuyInfoParams {
-  currentValue: number;
   preview?: OrderPreview | null;
   previewError: string | null;
   isConfirming: boolean;
@@ -18,7 +20,6 @@ interface UsePredictBuyInfoParams {
 export const usePredictBuyInfo = ({
   preview,
   previewError,
-  currentValue,
   isConfirming,
   isPlacingOrder,
 }: UsePredictBuyInfoParams) => {
@@ -45,11 +46,8 @@ export const usePredictBuyInfo = ({
   const [acceptedDepositFee, setAcceptedDepositFee] = useState(0);
 
   const totalPayForPredictBalance = useMemo(
-    () =>
-      roundUpToCents(
-        currentValue + (fees?.metamaskFee ?? 0) + getPredictExchangeFee(fees),
-      ),
-    [currentValue, fees],
+    () => getPredictBuyAllInCost(preview),
+    [preview],
   );
 
   const computedDepositFee = useMemo(() => {

@@ -102,7 +102,6 @@ const createMockPreview = (
 });
 
 const defaultParams = {
-  currentValue: 100,
   preview: createMockPreview(),
   previewError: null as string | null,
   isConfirming: false,
@@ -246,11 +245,10 @@ describe('usePredictBuyInfo', () => {
   });
 
   describe('total', () => {
-    it('calculates total as currentValue + metamaskFee + exchangeFee + depositFee', () => {
+    it('calculates total as preview all-in cost plus depositFee', () => {
       mockIsPredictBalanceSelected = true;
       const params = {
         ...defaultParams,
-        currentValue: 100,
         preview: createMockPreview({
           fees: {
             totalFee: 5,
@@ -265,7 +263,7 @@ describe('usePredictBuyInfo', () => {
 
       const { result } = renderHook(() => usePredictBuyInfo(params));
 
-      // 100 (currentValue) + 2 (metamaskFee) + 3.25 (exchangeFee) + 0 (depositFee, balance selected)
+      // 100 (preview.maxAmountSpent) + 2 (metamaskFee) + 3.25 (exchangeFee) + 0 (depositFee, balance selected)
       expect(result.current.total).toBe(105.25);
       expect(result.current.exchangeFee).toBe(3.25);
     });
@@ -281,7 +279,6 @@ describe('usePredictBuyInfo', () => {
       };
       const params = {
         ...defaultParams,
-        currentValue: 100,
         preview: createMockPreview({
           fees: {
             totalFee: 5,
@@ -331,11 +328,23 @@ describe('usePredictBuyInfo', () => {
       expect(result.current.totalPayForPredictBalance).toBe(105);
     });
 
+    it('uses preview maxAmountSpent instead of the raw currentValue input', () => {
+      const { result } = renderHook(() =>
+        usePredictBuyInfo({
+          ...defaultParams,
+          preview: createMockPreview({
+            maxAmountSpent: 99.99,
+          }),
+        }),
+      );
+
+      expect(result.current.totalPayForPredictBalance).toBe(104.99);
+    });
+
     it('returns the rounded all-in cost including market fee', () => {
       const { result } = renderHook(() =>
         usePredictBuyInfo({
           ...defaultParams,
-          currentValue: 100,
           preview: createMockPreview({
             fees: {
               totalFee: 5,

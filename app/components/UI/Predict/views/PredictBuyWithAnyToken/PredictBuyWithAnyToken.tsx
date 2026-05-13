@@ -168,7 +168,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     hasBlockingPayAlerts,
     blockingPayAlertMessage,
   } = usePredictBuyInfo({
-    currentValue,
     preview,
     previewError,
     isConfirming,
