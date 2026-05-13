@@ -15,6 +15,12 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockRefresh = jest.fn();
+const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../../../util/haptics', () => ({
+  ...jest.requireActual('../../../../util/haptics'),
+  playSelection: (...args: unknown[]) => mockPlaySelection(...args),
+}));
 
 jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   getAssetImageUrl: () => 'https://example.com/token.png',
@@ -178,6 +184,60 @@ const fixtureOpenPositions: Position[] = [
     currentValueUSD: 2259.96,
     pnlValueUsd: 1059.96,
     pnlPercent: 182,
+  },
+];
+
+const fixtureClosedPositions: Position[] = [
+  {
+    positionId: 'cult-eth',
+    tokenSymbol: 'CULT',
+    tokenName: 'Cult',
+    tokenAddress: '0xc01t',
+    chain: 'ethereum',
+    positionAmount: 0,
+    boughtUsd: 100,
+    soldUsd: 300,
+    realizedPnl: 200,
+    costBasis: 100,
+    trades: [],
+    lastTradeAt: 1000,
+    currentValueUSD: 0,
+    pnlValueUsd: 200,
+    pnlPercent: null,
+  },
+  {
+    positionId: 'moonkin-sol',
+    tokenSymbol: 'MOONKIN',
+    tokenName: 'Moonkin',
+    tokenAddress: '0xm00n',
+    chain: 'solana',
+    positionAmount: 0,
+    boughtUsd: 100,
+    soldUsd: 1000,
+    realizedPnl: 900,
+    costBasis: 100,
+    trades: [],
+    lastTradeAt: 3000,
+    currentValueUSD: 0,
+    pnlValueUsd: 900,
+    pnlPercent: null,
+  },
+  {
+    positionId: 'dope-base',
+    tokenSymbol: 'DOPE',
+    tokenName: 'Dope',
+    tokenAddress: '0xd0pe',
+    chain: 'base',
+    positionAmount: 0,
+    boughtUsd: 500,
+    soldUsd: 500,
+    realizedPnl: 0,
+    costBasis: 500,
+    trades: [],
+    lastTradeAt: 2000,
+    currentValueUSD: 0,
+    pnlValueUsd: 0,
+    pnlPercent: null,
   },
 ];
 
@@ -434,6 +494,117 @@ describe('TraderProfileView', () => {
         screen.queryByTestId(TraderProfileViewSelectorsIDs.ERROR_BANNER),
       ).not.toBeOnTheScreen();
       expect(screen.getByText('45 followers')).toBeOnTheScreen();
+    });
+  });
+
+  describe('sort button', () => {
+    it('renders with default Value label on the Open tab', () => {
+      renderWithProvider(<TraderProfileView />);
+
+      expect(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Value')).toBeOnTheScreen();
+    });
+
+    it('cycles Open tab sort Value -> P&L % -> Value on consecutive taps', () => {
+      renderWithProvider(<TraderProfileView />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+      expect(screen.getByText('P&L %')).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+      expect(screen.getByText('Value')).toBeOnTheScreen();
+    });
+
+    it('defaults Closed tab sort to Recent and cycles Recent -> Value -> P&L % -> Recent', () => {
+      mockPositionsResult.closedPositions = fixtureClosedPositions;
+      renderWithProvider(<TraderProfileView />);
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
+      );
+
+      expect(screen.getByText('Recent')).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+      expect(screen.getByText('Value')).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+      expect(screen.getByText('P&L %')).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+      expect(screen.getByText('Recent')).toBeOnTheScreen();
+    });
+
+    it('preserves independent sort state when switching between tabs', () => {
+      mockPositionsResult.closedPositions = fixtureClosedPositions;
+      renderWithProvider(<TraderProfileView />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+      expect(screen.getByText('P&L %')).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
+      );
+      expect(screen.getByText('Recent')).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+      expect(screen.getByText('Value')).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_OPEN),
+      );
+      expect(screen.getByText('P&L %')).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
+      );
+      expect(screen.getByText('Value')).toBeOnTheScreen();
+    });
+
+    it('triggers a haptic on each sort tap', () => {
+      renderWithProvider(<TraderProfileView />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+
+      expect(mockPlaySelection).toHaveBeenCalledTimes(2);
+    });
+
+    it('hides the sort button when positions list is empty', () => {
+      mockPositionsResult.openPositions = [];
+      renderWithProvider(<TraderProfileView />);
+
+      expect(
+        screen.queryByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the sort button while positions are loading', () => {
+      mockPositionsResult.isLoadingOpen = true;
+      renderWithProvider(<TraderProfileView />);
+
+      expect(
+        screen.queryByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      ).not.toBeOnTheScreen();
     });
   });
 });

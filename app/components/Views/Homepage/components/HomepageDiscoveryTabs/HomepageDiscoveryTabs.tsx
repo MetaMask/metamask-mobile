@@ -5,21 +5,31 @@ import React, {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { Animated, RefreshControlProps, StyleSheet, View } from 'react-native';
+import {
+  Animated,
+  RefreshControlProps,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 import Reanimated, {
   SharedValue,
   withTiming,
   Easing,
+  useSharedValue,
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import TabsIconList from '../../../../../component-library/components-temp/Tabs/TabsIconList/TabsIconList';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { TabsIconListRef } from '../../../../../component-library/components-temp/Tabs/TabsIconList/TabsIconList.types';
 import Homepage from '../../Homepage';
 import PerpsHomeView from '../../../../UI/Perps/Views/PerpsHomeView/PerpsHomeView';
 import PredictFeed from '../../../../UI/Predict/views/PredictFeed';
 import { PerpsConnectionProvider } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
-import { PerpsStreamProvider } from '../../../../UI/Perps/providers/PerpsStreamManager';
+import {
+  PerpsStreamProvider,
+  getStreamManagerInstance,
+} from '../../../../UI/Perps/providers/PerpsStreamManager';
 import { PredictPreviewSheetProvider } from '../../../../UI/Predict/contexts';
 import { SectionRefreshHandle } from '../../types';
 import { IconName } from '../../../../../component-library/components/Icons/Icon/Icon.types';
@@ -37,6 +47,13 @@ const TAB_INDEX = {
   PERPETUALS: 1,
   PREDICTIONS: 2,
 } as const;
+
+// Tabs that consume live Perps WebSocket data. Add new tab indices here when
+// a future tab needs Perps WS channels to stay active.
+const PERPS_WS_TABS = new Set<number>([
+  TAB_INDEX.PORTFOLIO,
+  TAB_INDEX.PERPETUALS,
+]);
 
 const TAB_NAMES = {
   [TAB_INDEX.PORTFOLIO]: HomeTabNames.PORTFOLIO,
@@ -73,14 +90,16 @@ interface DiscoveryTabViewProps {
   tabLabel: string;
   tabIcon?: IconName;
   keepMounted?: boolean;
+  style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
 }
 
 const discoveryTabViewStyles = StyleSheet.create({ root: { flex: 1 } });
 
-const DiscoveryTabView: React.FC<DiscoveryTabViewProps> = ({ children }) => (
-  <View style={discoveryTabViewStyles.root}>{children}</View>
-);
+const DiscoveryTabView: React.FC<DiscoveryTabViewProps> = ({
+  children,
+  style,
+}) => <View style={[discoveryTabViewStyles.root, style]}>{children}</View>;
 
 export interface HomepageDiscoveryTabsProps {
   /**
@@ -145,7 +164,6 @@ const HomepageDiscoveryTabs = forwardRef<
     const tabsRef = useRef<TabsIconListRef>(null);
     const homepageRef = useRef<SectionRefreshHandle>(null);
     const perpsTabEnterRef = useRef<(() => void) | null>(null);
-    const tw = useTailwind();
     const { styles } = useStyles(styleSheet, {});
     const { themeAppearance } = useTheme();
     const isDarkMode = themeAppearance === AppThemeKey.dark;
@@ -157,36 +175,43 @@ const HomepageDiscoveryTabs = forwardRef<
       ),
     ).current;
     const activeTabIndexRef = useRef<number>(TAB_INDEX.PORTFOLIO);
+    // Tracks whether the tab layer currently holds a pause so the unmount
+    // cleanup only calls resume when it actually owns one, preventing an
+    // unmatched decrement against a controller-owned pause count.
+    const tabLayerHoldsPauseRef = useRef(false);
 
-    // 0 = icons expanded (header visible), 1 = icons collapsed (header hidden)
+    // 0 = icons expanded (header visible), 1 = icons collapsed (header hidden).
+    // Reanimated SharedValue drives icon height/marginBottom/opacity via useAnimatedStyle
+    // on the UI thread — no per-frame JS work, no JS-thread layout reflow.
+    const iconCollapseProgress = useSharedValue(0);
+    // RN Animated.Value mirror for the gradient overlay's Animated.multiply (which composes
+    // with tabGradientOpacities). Updated alongside the SharedValue at every toggle.
     const iconCollapseAnim = useRef(new Animated.Value(0)).current;
-    // Ref so the animated reaction closure always calls the latest animation starter
     const iconCollapseAnimRef = useRef(iconCollapseAnim);
-
-    // Drives TabsBar height collapse on the Predictions tab only (useNativeDriver: false)
-    const tabBarCollapseAnim = useRef(new Animated.Value(0)).current;
-    const tabBarCollapseAnimRef = useRef(tabBarCollapseAnim);
 
     // Triggered directly from the scroll worklet via onHeaderHiddenChange —
     // fires in the same frame as the hide/show decision, not based on position.
-    const animateIcons = useCallback((hidden: boolean) => {
-      const toValue = hidden ? 1 : 0;
-      const duration = hidden ? 300 : 250;
+    // eslint-disable-next-line react-compiler/react-compiler -- mutating a Reanimated SharedValue is the documented pattern; it does not affect React render
+    const animateIcons = useCallback(
+      (hidden: boolean) => {
+        const toValue = hidden ? 1 : 0;
+        const duration = hidden ? 300 : 250;
 
-      Animated.timing(iconCollapseAnimRef.current, {
-        toValue,
-        duration,
-        useNativeDriver: true,
-      }).start();
+        // UI-thread layout animation via Reanimated.
+        iconCollapseProgress.value = withTiming(toValue, {
+          duration,
+          easing: Easing.out(Easing.cubic),
+        });
 
-      if (activeTabIndexRef.current === TAB_INDEX.PREDICTIONS) {
-        Animated.timing(tabBarCollapseAnimRef.current, {
+        // Mirror onto the Animated.Value for the gradient overlay's Animated.multiply.
+        Animated.timing(iconCollapseAnimRef.current, {
           toValue,
           duration,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }).start();
-      }
-    }, []);
+      },
+      [iconCollapseProgress],
+    );
 
     const { scrollHandler, onTabEnter: portfolioOnTabEnter } =
       useDiscoveryScrollManager({
@@ -202,6 +227,16 @@ const HomepageDiscoveryTabs = forwardRef<
       },
     }));
 
+    // Only resume on unmount if the tab layer holds a pause, to avoid issuing
+    // an unmatched resume that could decrement a controller-owned pause count.
+    useEffect(
+      () => () => {
+        if (tabLayerHoldsPauseRef.current) {
+          getStreamManagerInstance().resumeAllChannels();
+        }
+      },
+      [],
+    );
     const { trackTabViewed } = useTabViewedEvent();
 
     useEffect(() => {
@@ -229,6 +264,10 @@ const HomepageDiscoveryTabs = forwardRef<
                 duration: 250,
                 easing: Easing.out(Easing.cubic),
               }));
+            iconCollapseProgress.value = withTiming(0, {
+              duration: 250,
+              easing: Easing.out(Easing.cubic),
+            });
             Animated.timing(iconCollapseAnimRef.current, {
               toValue: 0,
               duration: 250,
@@ -242,6 +281,10 @@ const HomepageDiscoveryTabs = forwardRef<
               duration: 250,
               easing: Easing.out(Easing.cubic),
             }));
+          iconCollapseProgress.value = withTiming(0, {
+            duration: 250,
+            easing: Easing.out(Easing.cubic),
+          });
           Animated.timing(iconCollapseAnimRef.current, {
             toValue: 0,
             duration: 250,
@@ -249,20 +292,21 @@ const HomepageDiscoveryTabs = forwardRef<
           }).start();
         }
 
-        // Reset tab bar collapse when leaving Predictions
-        if (
-          prevIndex === TAB_INDEX.PREDICTIONS &&
-          i !== TAB_INDEX.PREDICTIONS
-        ) {
-          Animated.timing(tabBarCollapseAnimRef.current, {
-            toValue: 0,
-            duration: 250,
-            useNativeDriver: false,
-          }).start();
-        }
-
         if (prevIndex !== i) {
           trackTabViewed(TAB_NAMES[i as keyof typeof TAB_NAMES]);
+
+          // Pause Perps streams only when leaving a Perps-consuming tab for one
+          // that has no Perps consumers (e.g. Predictions). Resume when returning.
+          const wasActive = PERPS_WS_TABS.has(prevIndex);
+          const isActive = PERPS_WS_TABS.has(i);
+
+          if (wasActive && !isActive) {
+            getStreamManagerInstance().pauseAllChannels();
+            tabLayerHoldsPauseRef.current = true;
+          } else if (!wasActive && isActive) {
+            getStreamManagerInstance().resumeAllChannels();
+            tabLayerHoldsPauseRef.current = false;
+          }
 
           // Snap outgoing to 1 and incoming to 0 before animating, in case a
           // previous transition was interrupted mid-flight.
@@ -288,99 +332,108 @@ const HomepageDiscoveryTabs = forwardRef<
         portfolioOnTabEnter,
         walletHeaderTranslateY,
         trackTabViewed,
+        iconCollapseProgress,
       ],
     );
 
     return (
-      <TabIconAnimationContext.Provider value={{ iconCollapseAnim }}>
-        <View style={styles.flex}>
-          <TabsIconList
-            ref={tabsRef}
-            initialActiveIndex={TAB_INDEX.PORTFOLIO}
-            onChangeTab={handleChangeTab}
-            tabsListContentTwClassName="px-0"
-            style={tw.style('mt-2')}
-            tabsBarProps={{
-              fillWidth: true,
-              collapseAnim: tabBarCollapseAnim,
-              style: { zIndex: 2 },
-            }}
-          >
-            <DiscoveryTabView tabLabel="Portfolio" tabIcon={IconName.PieChart}>
-              <Reanimated.ScrollView
-                showsVerticalScrollIndicator={false}
-                onScroll={scrollHandler}
-                scrollEventThrottle={16}
-                refreshControl={refreshControl}
+      <PerpsConnectionProvider suppressErrorView>
+        <PerpsStreamProvider>
+          <TabIconAnimationContext.Provider value={{ iconCollapseProgress }}>
+            <View style={styles.flex}>
+              <TabsIconList
+                ref={tabsRef}
+                initialActiveIndex={TAB_INDEX.PORTFOLIO}
+                onChangeTab={handleChangeTab}
+                tabsListContentTwClassName="px-0"
+                tabsBarProps={{
+                  fillWidth: true,
+                }}
               >
-                <View style={tw.style('mt-4 mb-2')}>{portfolioHeader}</View>
-                <Homepage ref={homepageRef} />
-              </Reanimated.ScrollView>
-            </DiscoveryTabView>
+                <DiscoveryTabView
+                  tabLabel="Portfolio"
+                  tabIcon={IconName.PieChart}
+                >
+                  <Reanimated.ScrollView
+                    showsVerticalScrollIndicator={false}
+                    onScroll={scrollHandler}
+                    scrollEventThrottle={16}
+                    refreshControl={refreshControl}
+                    contentContainerStyle={styles.portfolioScrollContent}
+                  >
+                    {portfolioHeader}
+                    <Homepage ref={homepageRef} perpsProvidersHoisted />
+                  </Reanimated.ScrollView>
+                </DiscoveryTabView>
 
-            <DiscoveryTabView
-              tabLabel="Perpetuals"
-              tabIcon={IconName.Candlestick}
-              keepMounted={false}
-            >
-              <PerpsConnectionProvider suppressErrorView>
-                <PerpsStreamProvider>
+                <DiscoveryTabView
+                  tabLabel="Perpetuals"
+                  tabIcon={IconName.Candlestick}
+                >
                   <PerpsHomeView
                     hideHeader
                     walletHeaderTranslateY={walletHeaderTranslateY}
                     walletHeaderHeight={walletHeaderHeight}
                     tabEnterCallbackRef={perpsTabEnterRef}
                     onHeaderHiddenChange={animateIcons}
+                    topInset={22}
                   />
-                </PerpsStreamProvider>
-              </PerpsConnectionProvider>
-            </DiscoveryTabView>
+                </DiscoveryTabView>
 
-            <DiscoveryTabView
-              tabLabel="Predictions"
-              tabIcon={IconName.Predictions}
-              keepMounted={false}
-            >
-              <PredictPreviewSheetProvider>
-                <PredictFeed hideHeader onHeaderHiddenChange={animateIcons} />
-              </PredictPreviewSheetProvider>
-            </DiscoveryTabView>
-          </TabsIconList>
+                <DiscoveryTabView
+                  tabLabel="Predictions"
+                  tabIcon={IconName.Predictions}
+                  keepMounted={false}
+                >
+                  <PredictPreviewSheetProvider>
+                    <PredictFeed
+                      hideHeader
+                      walletHeaderTranslateY={walletHeaderTranslateY}
+                      walletHeaderHeight={walletHeaderHeight}
+                      onHeaderHiddenChange={animateIcons}
+                    />
+                  </PredictPreviewSheetProvider>
+                </DiscoveryTabView>
+              </TabsIconList>
 
-          {/* Gradient overlay — dark mode only. One layer per tab, each always mounted
+              {/* Gradient overlay — dark mode only. One layer per tab, each always mounted
               with fixed colors. Crossfade is pure opacity animation on the native thread —
               no state update or unmount/remount during the transition.
               Outer wrapper fades the entire gradient out when the header/icons collapse. */}
-          {walletHeaderOffset > 0 &&
-            isDarkMode &&
-            Object.entries(TAB_GRADIENT_COLORS).map(([idx, colors]) => (
-              <Animated.View
-                key={idx}
-                style={[
-                  styles.gradient,
-                  {
-                    top: -walletHeaderOffset,
-                    height: walletHeaderOffset + 175,
-                    opacity: Animated.multiply(
-                      tabGradientOpacities[Number(idx)],
-                      iconCollapseAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [1, 0],
-                      }),
-                    ),
-                  },
-                ]}
-                pointerEvents="none"
-              >
-                <LinearGradient
-                  colors={colors}
-                  locations={[0, 0.6, 1.0]}
-                  style={styles.gradientFill}
-                />
-              </Animated.View>
-            ))}
-        </View>
-      </TabIconAnimationContext.Provider>
+              {walletHeaderOffset > 0 &&
+                isDarkMode &&
+                Object.entries(TAB_GRADIENT_COLORS).map(
+                  ([idx, gradientColors]) => (
+                    <Animated.View
+                      key={idx}
+                      style={[
+                        styles.gradient,
+                        {
+                          top: -walletHeaderOffset,
+                          height: walletHeaderOffset + 175,
+                          opacity: Animated.multiply(
+                            tabGradientOpacities[Number(idx)],
+                            iconCollapseAnim.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [1, 0],
+                            }),
+                          ),
+                        },
+                      ]}
+                      pointerEvents="none"
+                    >
+                      <LinearGradient
+                        colors={gradientColors}
+                        locations={[0, 0.6, 1.0]}
+                        style={styles.gradientFill}
+                      />
+                    </Animated.View>
+                  ),
+                )}
+            </View>
+          </TabIconAnimationContext.Provider>
+        </PerpsStreamProvider>
+      </PerpsConnectionProvider>
     );
   },
 );
