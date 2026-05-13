@@ -2,6 +2,7 @@ import { RampsOrderStatus, type RampsOrder } from '@metamask/ramps-controller';
 
 import {
   awaitOrderTerminalState,
+  AwaitOrderTerminalStatePrerequisitesError,
   getOrder,
   isTerminalOrderStatus,
   OrderTerminalStateTimeoutError,
@@ -336,5 +337,90 @@ describe('awaitOrderTerminalState', () => {
     expect(error instanceof Error).toBe(true);
     expect(error.name).toBe('OrderTerminalStateTimeoutError');
     expect(error.message).toBe('boom');
+  });
+
+  // Fix #3.3 — runtime guard: reject early when the order isn't in redux AND
+  // no `options.walletAddress` was passed, instead of silently looping
+  // forever on the slow-path tick.
+  describe('pre-flight prerequisite check (Fix #3.3)', () => {
+    it('rejects immediately with AwaitOrderTerminalStatePrerequisitesError when neither order nor walletAddress is available', async () => {
+      // mockOrders is already [] from the beforeEach reset.
+      await expect(
+        awaitOrderTerminalState('order-not-in-state'),
+      ).rejects.toBeInstanceOf(AwaitOrderTerminalStatePrerequisitesError);
+      // No interval / timeout / subscription should have been created.
+      expect(mockSubscribers.size).toBe(0);
+      expect(jest.getTimerCount()).toBe(0);
+    });
+
+    it('names options.walletAddress in the error message so consumers know how to fix the call', async () => {
+      await expect(
+        awaitOrderTerminalState('order-not-in-state'),
+      ).rejects.toThrow(/options\.walletAddress/);
+    });
+
+    it('passes pre-flight when the order is already in redux (existing happy paths still work)', async () => {
+      mockOrders = [buildOrder({ status: RampsOrderStatus.Pending })];
+      const promise = awaitOrderTerminalState(SAMPLE_ORDER_ID);
+      expect(mockSubscribers.size).toBe(1);
+
+      mockOrders = [buildOrder({ status: RampsOrderStatus.Completed })];
+      flushSubscribers();
+      await expect(promise).resolves.toMatchObject({
+        status: RampsOrderStatus.Completed,
+      });
+    });
+
+    it('passes pre-flight when walletAddress is provided even if the order is not yet in redux', async () => {
+      // mockOrders = []; walletAddress option provided. Pre-flight should NOT
+      // reject. Then dispatch the order; Path 1 (redux subscription) resolves.
+      const promise = awaitOrderTerminalState('order-future', {
+        walletAddress: '0xWALLET',
+      });
+      // The promise must not have synchronously rejected — register a catch
+      // to surface unexpected rejections, then drive the subscription.
+      let rejected: unknown = null;
+      promise.catch((e) => {
+        rejected = e;
+      });
+      expect(rejected).toBeNull();
+
+      mockOrders = [
+        buildOrder({
+          providerOrderId: 'order-future',
+          status: RampsOrderStatus.Completed,
+        }),
+      ];
+      flushSubscribers();
+      await expect(promise).resolves.toMatchObject({
+        providerOrderId: 'order-future',
+        status: RampsOrderStatus.Completed,
+      });
+    });
+
+    it('AwaitOrderTerminalStatePrerequisitesError survives instanceof through subclassing (Hermes safety)', () => {
+      const error = new AwaitOrderTerminalStatePrerequisitesError('boom');
+      expect(error instanceof AwaitOrderTerminalStatePrerequisitesError).toBe(
+        true,
+      );
+      expect(error instanceof Error).toBe(true);
+      expect(error.name).toBe('AwaitOrderTerminalStatePrerequisitesError');
+      expect(error.message).toBe('boom');
+    });
+
+    it('AwaitOrderTerminalStatePrerequisitesError instanceof works through the public index re-export', async () => {
+      // Defensive test: future refactor that breaks the re-export chain
+      // through Hermes would cause TPC's catch block to mis-classify the
+      // error. Import via the public surface and check instanceof against
+      // both that import and the direct import.
+      const index = await import('./index');
+      const error = new index.AwaitOrderTerminalStatePrerequisitesError('x');
+      expect(
+        error instanceof index.AwaitOrderTerminalStatePrerequisitesError,
+      ).toBe(true);
+      expect(error instanceof AwaitOrderTerminalStatePrerequisitesError).toBe(
+        true,
+      );
+    });
   });
 });

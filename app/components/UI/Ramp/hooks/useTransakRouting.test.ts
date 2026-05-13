@@ -1486,7 +1486,9 @@ describe('useTransakRouting', () => {
         });
       });
 
-      expect(onOrderCreated).toHaveBeenCalledWith('order-hs');
+      // Fix #3.1: onOrderCreated now takes (orderId, order) — the second
+      // arg is the same `rampsOrder` we already passed to `addOrder`.
+      expect(onOrderCreated).toHaveBeenCalledWith('order-hs', refreshedOrder);
       expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
         reason: 'completed',
       });
@@ -1660,7 +1662,15 @@ describe('useTransakRouting', () => {
         );
       });
 
-      expect(onOrderCreated).toHaveBeenCalledWith('order-hs');
+      // Fix #3.1: onOrderCreated now takes (orderId, order) — the second
+      // arg is the same `rampsOrder` we already passed to `addOrder`.
+      expect(onOrderCreated).toHaveBeenCalledWith(
+        'order-hs',
+        expect.objectContaining({
+          providerOrderId: 'order-hs',
+          status: 'Pending',
+        }),
+      );
       expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
         reason: 'completed',
       });

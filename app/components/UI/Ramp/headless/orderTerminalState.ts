@@ -64,6 +64,23 @@ export class RefreshOrderUnresolvableError extends Error {
 }
 
 /**
+ * Thrown by {@link awaitOrderTerminalState} when called with an `orderId`
+ * that isn't in redux AND no `options.walletAddress` to back the slow-path
+ * poll. Signals consumer misuse (vs {@link OrderTerminalStateTimeoutError}
+ * which signals a genuinely slow provider).
+ *
+ * `Object.setPrototypeOf` keeps `instanceof` working through Hermes/Metro
+ * target lowering — without it, the `instanceof` check is unreliable on RN.
+ */
+export class AwaitOrderTerminalStatePrerequisitesError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AwaitOrderTerminalStatePrerequisitesError';
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+/**
  * Synchronous read of an order from RampsController state. Imperative
  * counterpart to the `getOrder` method on `useHeadlessBuy()` — usable from
  * non-React consumers (e.g. MetaMask Pay's `TransactionPayController`).
@@ -136,8 +153,15 @@ export async function refreshOrder(
 export interface AwaitOrderTerminalStateOptions {
   /**
    * Reject the returned promise with an {@link OrderTerminalStateTimeoutError}
-   * after this many milliseconds. Defaults to no timeout — pair with your own
-   * timeout if the consumer doesn't already have one.
+   * after this many milliseconds.
+   *
+   * **Defaults to `undefined` → unbounded wait.** This is load-bearing, not
+   * optional, for consumers who need to gate a downstream action on the
+   * result: an order stuck in `Pending` would otherwise hang the consumer's
+   * promise indefinitely (and combined with an invisible host, hang their
+   * UI). The TPC example below uses `5 * 60 * 1000` — that's the
+   * recommended default for any consumer gating downstream behavior on
+   * settlement.
    */
   timeoutMs?: number;
   /**
@@ -149,8 +173,11 @@ export interface AwaitOrderTerminalStateOptions {
   pollIntervalMs?: number;
   /**
    * Wallet address used by the slow-path poll. Defaults to the in-state
-   * order's `walletAddress`. Only relevant if the order is not yet in redux
-   * state when the helper is called.
+   * order's `walletAddress`. **Recommended**: always pass
+   * `order.walletAddress` from your `onOrderCreated` handler — it makes
+   * the slow-path resilient if the in-state order is cleared between the
+   * fire and the await, and it's the contract enforced by the pre-flight
+   * check (see {@link AwaitOrderTerminalStatePrerequisitesError}).
    */
   walletAddress?: string;
 }
@@ -159,16 +186,43 @@ export interface AwaitOrderTerminalStateOptions {
  * Resolves with the order once its `status` reaches a terminal state
  * (`Completed | Failed | Cancelled | IdExpired`).
  *
+ * **Recommended invocation** (after Phase 9 / Fix #3.1 widened
+ * `onOrderCreated` to hand you the full `RampsOrder`):
+ *
+ * ```ts
+ * const final = await awaitOrderTerminalState(orderId, {
+ *   walletAddress: order.walletAddress,   // load-bearing in controller contexts
+ *   timeoutMs: 5 * 60 * 1000,              // bounds slow providers
+ * });
+ * ```
+ *
  * The helper is **self-sufficient** — it does not assume the unified order
- * processor (the `<FiatOrders />` poll) is mounted. It runs three layers in
- * parallel, any of which can resolve the promise. Fast path 0 is a synchronous
- * read on entry; if the order is already terminal, resolve immediately. Fast
- * path 1 subscribes to redux: any state writeback (from the unified processor
- * or anything else) re-checks the order and resolves if terminal — this is
- * an optimisation, never load-bearing. The slow path polls
- * `RampsController.getOrder(...)` every `pollIntervalMs` and resolves off the
- * fresh response when its status is terminal; the fresh order is not written
- * back to state, so we resolve from the controller call itself.
+ * processor (`<FiatOrders />` in `app/components/UI/Ramp/index.tsx`, mounted
+ * as `<RampOrders />` at `Nav/Main/index.js:426`) is running in sync with
+ * the caller. `<FiatOrders />` IS always mounted while the app is
+ * foregrounded, but MetaMask Pay's `TransactionPayController` runs in an
+ * Engine controller context where the React tree's polling timing isn't
+ * necessarily aligned. Passing `walletAddress` keeps the slow-path
+ * resilient if the in-state order is cleared between fire and await.
+ *
+ * It runs three layers in parallel, any of which can resolve the promise.
+ * Fast path 0 is a synchronous read on entry; if the order is already
+ * terminal, resolve immediately. Fast path 1 subscribes to redux: any
+ * state writeback (from the unified processor or anything else) re-checks
+ * the order and resolves if terminal — this is an optimisation, never
+ * load-bearing. The slow path polls `RampsController.getOrder(...)` every
+ * `pollIntervalMs` and resolves off the fresh response when its status is
+ * terminal; the fresh order is not written back to state, so we resolve
+ * from the controller call itself.
+ *
+ * **Pre-flight contract** (Fix #3.3): if the order is not in redux AND
+ * `options.walletAddress` is not provided, the slow-path can never run
+ * (`provider.id` is only readable from the in-state order). The helper
+ * rejects synchronously with
+ * {@link AwaitOrderTerminalStatePrerequisitesError} so consumer misuse
+ * fails immediately instead of hanging the unbounded `timeoutMs`. This
+ * is what makes the "always pass `walletAddress`" recommendation a
+ * contract, not a suggestion.
  *
  * Cleanup: every termination path (resolve, reject, timeout) clears the
  * interval, unsubscribes from the store, and clears the timeout. There is
@@ -180,6 +234,22 @@ export function awaitOrderTerminalState(
   providerOrderId: string,
   options?: AwaitOrderTerminalStateOptions,
 ): Promise<RampsOrder> {
+  // Pre-flight (Fix #3.3): if the order isn't in redux AND no
+  // `options.walletAddress` was passed, the slow-path can never run
+  // (`provider.id` is only readable from the in-state order). With
+  // `timeoutMs: undefined` (the default), this would otherwise hang the
+  // promise forever. Reject loudly with a typed error so consumer misuse
+  // — a stale `orderId`, a call before `addOrder` flushed, a cross-session
+  // id from an external source — fails immediately instead of stalling.
+  const inStateOrderAtStart = getOrder(providerOrderId);
+  if (!inStateOrderAtStart && !options?.walletAddress) {
+    return Promise.reject(
+      new AwaitOrderTerminalStatePrerequisitesError(
+        `awaitOrderTerminalState: order "${providerOrderId}" is not in redux and no options.walletAddress was provided. Either pass options.walletAddress (recommended: order.walletAddress from your onOrderCreated handler), or call this from a context where the order has already been dispatched.`,
+      ),
+    );
+  }
+
   const orderCode = extractOrderCode(providerOrderId);
   const pollIntervalMs = options?.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
 

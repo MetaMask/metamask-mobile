@@ -144,7 +144,7 @@ export function createSession(
 /**
  * Looks up a live session by id. Returns `undefined` for unknown ids and for
  * `undefined` itself, so consumers can write
- * `getSession(route.params?.headlessSessionId)?.callbacks.onOrderCreated(id)`
+ * `getSession(route.params?.headlessSessionId)?.callbacks.onOrderCreated(id, order)`
  * without any extra null-checking.
  */
 export function getSession(

@@ -707,7 +707,12 @@ describe('Checkout', () => {
       });
 
       await waitFor(() => {
-        expect(onOrderCreated).toHaveBeenCalledWith('headless-order-1');
+        // Fix #3.1: onOrderCreated now takes (orderId, order) — the second
+        // arg is the same `rampsOrder` we resolved from `getOrderFromCallback`.
+        expect(onOrderCreated).toHaveBeenCalledWith(
+          'headless-order-1',
+          mockOrder,
+        );
       });
       expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
         reason: 'completed',

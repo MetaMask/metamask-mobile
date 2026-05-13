@@ -313,14 +313,20 @@ const Checkout = () => {
         addOrder(rampsOrder);
         dispatch(protectWalletModalVisible());
 
-        // Headless mode: hand the orderId to the consumer, close the
-        // session, and unwind out of the ramp stack so the caller regains
-        // foreground. Skip the toast + RAMPS_ORDER_DETAILS reset — both
-        // are user-facing UI the headless consumer didn't ask for.
+        // Headless mode: hand the orderId AND the creation-snapshot order
+        // to the consumer, close the session, and unwind out of the ramp
+        // stack so the caller regains foreground. Skip the toast +
+        // RAMPS_ORDER_DETAILS reset — both are user-facing UI the headless
+        // consumer didn't ask for. The order arg (Phase 9 / Fix #3.1) lets
+        // consumers call `awaitOrderTerminalState(orderId, { walletAddress:
+        // order.walletAddress })` without an extra `getOrder` round-trip.
         const session = getSession(headlessSessionId);
         if (headlessSessionId && session) {
           try {
-            session.callbacks.onOrderCreated(rampsOrder.providerOrderId);
+            session.callbacks.onOrderCreated(
+              rampsOrder.providerOrderId,
+              rampsOrder,
+            );
           } catch (callbackError) {
             Logger.error(
               callbackError as Error,

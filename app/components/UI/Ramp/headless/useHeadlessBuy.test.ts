@@ -316,6 +316,180 @@ describe('useHeadlessBuy', () => {
       ).rejects.toThrow(/could not resolve wallet address/);
       expect(mockGetQuotesRaw).not.toHaveBeenCalled();
     });
+
+    // Fix #2 — provider rejection inspection. UB2 handles `success.length === 0
+    // && error.length > 0` at BuildQuote.tsx:683-687; headless mode previously
+    // returned the raw response silently. This block exercises the inspection
+    // + Design B (active-session routing) + classification logic.
+    describe('provider rejection inspection (Fix #2)', () => {
+      const sampleQuote = {
+        provider: '/providers/transak-native',
+        quote: {
+          amountIn: 5,
+          amountOut: 0.001,
+          paymentMethod: '/payments/debit-credit-card',
+        },
+        providerInfo: {
+          id: '/providers/transak-native',
+          name: 'Transak',
+          type: 'native' as const,
+        },
+      } as unknown as Parameters<
+        ReturnType<typeof useHeadlessBuy>['startHeadlessBuy']
+      >[0]['quote'];
+      const baseStartParams = {
+        quote: sampleQuote,
+        assetId: 'eip155:59144/erc20:0xabc',
+        amount: 5,
+      };
+      const getQuotesParams = {
+        assetId: 'eip155:59144/erc20:0xabc',
+        amount: 5,
+        walletAddress: '0xWALLET',
+      };
+
+      it('rejects with LIMIT_EXCEEDED and routes through the active session', async () => {
+        mockGetQuotesRaw.mockResolvedValueOnce({
+          success: [],
+          sorted: [],
+          error: [{ provider: 'transak', error: 'Below minimum buy amount' }],
+          customActions: [],
+        });
+        const { result } = renderHook(() => useHeadlessBuy());
+        const callbacks = {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        };
+        let sessionId: string | undefined;
+        act(() => {
+          sessionId = result.current.startHeadlessBuy(
+            baseStartParams,
+            callbacks,
+          ).sessionId;
+        });
+        await expect(
+          act(async () => {
+            await result.current.getQuotes(getQuotesParams);
+          }),
+        ).rejects.toMatchObject({
+          headlessBuyErrorCode: 'LIMIT_EXCEEDED',
+        });
+        expect(callbacks.onError).toHaveBeenCalledWith(
+          expect.objectContaining({
+            code: 'LIMIT_EXCEEDED',
+            details: expect.objectContaining({
+              providerErrors: [
+                expect.objectContaining({
+                  provider: 'transak',
+                  message: 'Below minimum buy amount',
+                }),
+              ],
+              successCount: 0,
+              errorCount: 1,
+            }),
+          }),
+        );
+        expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
+        expect(sessionId).toBeDefined();
+        expect(getSession(sessionId)).toBeUndefined();
+      });
+
+      it('rejects with the structured error when no session is active', async () => {
+        mockGetQuotesRaw.mockResolvedValueOnce({
+          success: [],
+          sorted: [],
+          error: [{ provider: 'transak', error: 'Below minimum buy amount' }],
+          customActions: [],
+        });
+        const { result } = renderHook(() => useHeadlessBuy());
+        await expect(
+          result.current.getQuotes(getQuotesParams),
+        ).rejects.toMatchObject({
+          headlessBuyErrorCode: 'LIMIT_EXCEEDED',
+          details: expect.objectContaining({ errorCount: 1, successCount: 0 }),
+        });
+      });
+
+      it('maps non-limit messages to QUOTE_FAILED', async () => {
+        mockGetQuotesRaw.mockResolvedValueOnce({
+          success: [],
+          sorted: [],
+          error: [
+            { provider: 'transak', error: 'Payment provider unavailable' },
+          ],
+          customActions: [],
+        });
+        const { result } = renderHook(() => useHeadlessBuy());
+        await expect(
+          result.current.getQuotes(getQuotesParams),
+        ).rejects.toMatchObject({ headlessBuyErrorCode: 'QUOTE_FAILED' });
+      });
+
+      it('treats "Rate limit exceeded" as QUOTE_FAILED, not LIMIT_EXCEEDED', async () => {
+        mockGetQuotesRaw.mockResolvedValueOnce({
+          success: [],
+          sorted: [],
+          error: [{ provider: 'transak', error: 'Rate limit exceeded' }],
+          customActions: [],
+        });
+        const { result } = renderHook(() => useHeadlessBuy());
+        await expect(
+          result.current.getQuotes(getQuotesParams),
+        ).rejects.toMatchObject({ headlessBuyErrorCode: 'QUOTE_FAILED' });
+      });
+
+      it('prefers structured SDK code (`code` field) over message parsing', async () => {
+        mockGetQuotesRaw.mockResolvedValueOnce({
+          success: [],
+          sorted: [],
+          error: [
+            {
+              provider: 'transak',
+              error: 'Some unrelated message',
+              code: 'AMOUNT_LIMIT_EXCEEDED',
+            },
+          ],
+          customActions: [],
+        });
+        const { result } = renderHook(() => useHeadlessBuy());
+        await expect(
+          result.current.getQuotes(getQuotesParams),
+        ).rejects.toMatchObject({ headlessBuyErrorCode: 'LIMIT_EXCEEDED' });
+      });
+
+      it('returns the response unchanged when both success and error are empty', async () => {
+        mockGetQuotesRaw.mockResolvedValueOnce({
+          success: [],
+          sorted: [],
+          error: [],
+          customActions: [],
+        });
+        const { result } = renderHook(() => useHeadlessBuy());
+        await expect(
+          result.current.getQuotes(getQuotesParams),
+        ).resolves.toEqual({
+          success: [],
+          sorted: [],
+          error: [],
+          customActions: [],
+        });
+      });
+
+      it('returns the response unchanged when success is non-empty (happy path)', async () => {
+        const happyResponse = {
+          success: [{ provider: 'transak', amountOut: 0.01 }],
+          sorted: [{ provider: 'transak', amountOut: 0.01 }],
+          error: [],
+          customActions: [],
+        };
+        mockGetQuotesRaw.mockResolvedValueOnce(happyResponse);
+        const { result } = renderHook(() => useHeadlessBuy());
+        await expect(
+          result.current.getQuotes(getQuotesParams),
+        ).resolves.toBe(happyResponse);
+      });
+    });
   });
 
   describe('startHeadlessBuy', () => {
@@ -582,16 +756,33 @@ describe('useHeadlessBuy', () => {
       // class from the public barrel and testing instanceof here exercises
       // the cross-module boundary that bites in production.
       // We trigger a real rejection by calling awaitOrderTerminalState
-      // through the hook with a tiny timeout — the order is never in state
-      // (our redux mock has no orders), so the timeout fires.
+      // through the hook with a tiny timeout. To reach the timeout path we
+      // must pass `walletAddress` — otherwise Fix #3.3's pre-flight check
+      // rejects first with AwaitOrderTerminalStatePrerequisitesError.
       const { OrderTerminalStateTimeoutError } = jest.requireActual('./');
       const { result } = renderHook(() => useHeadlessBuy());
       const promise = result.current.awaitOrderTerminalState('order-xyz', {
+        walletAddress: '0xWALLET',
         timeoutMs: 1,
       });
       await expect(promise).rejects.toBeInstanceOf(
         OrderTerminalStateTimeoutError,
       );
+    });
+
+    it('AwaitOrderTerminalStatePrerequisitesError survives a cross-module instanceof check (Fix #3.3)', async () => {
+      // Companion to the timeout cross-module test. When the consumer calls
+      // awaitOrderTerminalState with an orderId that isn't in redux AND no
+      // walletAddress option, the pre-flight check rejects with
+      // AwaitOrderTerminalStatePrerequisitesError. This must instanceof
+      // cleanly through the public barrel for MMPay's TransactionPayController
+      // (which catches errors imported from the public path).
+      const { AwaitOrderTerminalStatePrerequisitesError } =
+        jest.requireActual('./');
+      const { result } = renderHook(() => useHeadlessBuy());
+      await expect(
+        result.current.awaitOrderTerminalState('order-not-in-state'),
+      ).rejects.toBeInstanceOf(AwaitOrderTerminalStatePrerequisitesError);
     });
   });
 });

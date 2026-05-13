@@ -170,8 +170,68 @@ export interface HeadlessBuyParams {
  * Stored in the session registry by id; never serialized through navigation.
  */
 export interface HeadlessBuyCallbacks {
-  /** Fired once the provider produces an `orderId` (aggregator or native). */
-  onOrderCreated: (orderId: string) => void;
+  /**
+   * Fired once the provider produces an `orderId` (aggregator or native).
+   *
+   * **The headless API does NOT fire `onError` for a created-then-failed
+   * order.** After this callback fires, the session terminates via
+   * `onClose({ reason: 'completed' })` immediately. Subsequent failures
+   * (e.g. a 3-D Secure rejection on a card order) flip the order's
+   * `status` to `Failed` with no further callback. Consumers MUST call
+   * `awaitOrderTerminalState(orderId)` and branch on the resolved
+   * `RampsOrder.status`:
+   *
+   * - `RampsOrderStatus.Completed` → success path (fire downstream intent).
+   * - `RampsOrderStatus.Failed | Cancelled | IdExpired` → failure path
+   *   (surface error UI; do NOT fire downstream actions).
+   * - `RampsOrderStatus.Unknown` → transient, the helper keeps awaiting.
+   *
+   * The `order` argument is a **creation snapshot**, not authoritative
+   * final state. Its `status` varies by path:
+   *
+   * | Path | `status` on receipt |
+   * |---|---|
+   * | Aggregator widget (Transak WebView) | Almost always non-terminal. |
+   * | Native card (3-D Secure) | Fresh from `refreshOrder` — usually non-terminal. |
+   * | Native bank transfer | May already be terminal (some settle at creation). |
+   *
+   * So the rule: **always** call `awaitOrderTerminalState(orderId, { walletAddress: order.walletAddress, timeoutMs: 5 * 60 * 1000 })`, regardless of the snapshot's `status`. A reasonable-looking optimization
+   * ("skip the await if `status !== 'Pending'`") would silently break the
+   * bank-transfer path's success case and the widget path's failure case.
+   *
+   * @example Asymmetric-callback handling
+   * ```ts
+   * import {
+   *   awaitOrderTerminalState,
+   *   AwaitOrderTerminalStatePrerequisitesError,
+   *   OrderTerminalStateTimeoutError,
+   * } from 'app/components/UI/Ramp/headless';
+   * import { RampsOrderStatus } from '@metamask/ramps-controller';
+   *
+   * onOrderCreated: async (orderId, order) => {
+   *   try {
+   *     const final = await awaitOrderTerminalState(orderId, {
+   *       walletAddress: order.walletAddress,
+   *       timeoutMs: 5 * 60 * 1000,
+   *     });
+   *     if (final.status === RampsOrderStatus.Completed) {
+   *       // success path
+   *     } else {
+   *       // Failed | Cancelled | IdExpired
+   *     }
+   *   } catch (err) {
+   *     if (err instanceof AwaitOrderTerminalStatePrerequisitesError) {
+   *       // Consumer-side bug — surface to dev tooling, not user UI.
+   *     } else if (err instanceof OrderTerminalStateTimeoutError) {
+   *       // Genuine slow provider — show "still processing" UI.
+   *     } else {
+   *       // Other (controller failure, etc.)
+   *     }
+   *   }
+   * }
+   * ```
+   */
+  onOrderCreated: (orderId: string, order: RampsOrder) => void;
   /** Fired when the session terminates due to an error. */
   onError: (error: HeadlessBuyError) => void;
   /** Fired when the user dismisses or the consumer cancels the session. */

@@ -7,6 +7,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import {
   normalizeProviderCode,
+  type RampsOrder,
   type TransakBuyQuote,
 } from '@metamask/ramps-controller';
 import { REDIRECTION_URL } from '../Deposit/constants';
@@ -111,9 +112,10 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const baseRouteParams = config?.baseRouteParams;
   // Headless-mode marker extracted from the caller's config. When the
   // Host wires `baseRouteParams: { headlessSessionId }` through, this
-  // lets post-checkout success paths hand the orderId to the session's
-  // `onOrderCreated` callback and unwind the ramp stack instead of
-  // resetting to `RAMPS_ORDER_DETAILS`.
+  // lets post-checkout success paths hand the orderId AND the creation-
+  // snapshot order to the session's `onOrderCreated` callback (Fix #3.1
+  // widened the 2nd arg) and unwind the ramp stack instead of resetting
+  // to `RAMPS_ORDER_DETAILS`.
   const headlessSessionId = (
     baseRouteParams as { headlessSessionId?: string } | undefined
   )?.headlessSessionId;
@@ -319,14 +321,15 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   );
 
   const navigateToOrderProcessingCallback = useCallback(
-    ({ orderId }: { orderId: string }) => {
-      // Headless mode: fire `onOrderCreated`, close the session, and pop
-      // out of the ramp stack so the caller regains foreground. The
-      // consumer drives post-order UI themselves — no RAMPS_ORDER_DETAILS.
+    ({ orderId, order }: { orderId: string; order: RampsOrder }) => {
+      // Headless mode: fire `onOrderCreated` with the orderId AND the
+      // creation-snapshot order (Fix #3.1), close the session, and pop out
+      // of the ramp stack so the caller regains foreground. The consumer
+      // drives post-order UI themselves — no RAMPS_ORDER_DETAILS.
       const session = getSession(headlessSessionId);
       if (headlessSessionId && session) {
         try {
-          session.callbacks.onOrderCreated(orderId);
+          session.callbacks.onOrderCreated(orderId, order);
         } catch (callbackError) {
           Logger.error(
             callbackError as Error,
@@ -434,6 +437,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
         navigateToOrderProcessingCallback({
           orderId: rampsOrder.providerOrderId,
+          order: rampsOrder,
         });
 
         trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
@@ -598,6 +602,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                 if (getSession(headlessSessionId)) {
                   navigateToOrderProcessingCallback({
                     orderId: rampsOrder.providerOrderId,
+                    order: rampsOrder,
                   });
                   return true;
                 }

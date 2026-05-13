@@ -13,6 +13,7 @@ import useRampsController from '../hooks/useRampsController';
 import {
   closeSession,
   createSession,
+  failSession,
   getActiveSessionId,
 } from './sessionRegistry';
 import {
@@ -24,6 +25,7 @@ import {
 } from './orderTerminalState';
 import type {
   HeadlessBuyCallbacks,
+  HeadlessBuyErrorCode,
   HeadlessBuyParams,
   HeadlessBuyResult,
   HeadlessGetQuotesParams,
@@ -78,6 +80,8 @@ function resolveWalletAddressForChain(chainId: CaipChainId): string | null {
  *
  * @example Consumer-side TPC pattern
  * ```ts
+ * import { RampsOrderStatus } from '@metamask/ramps-controller';
+ *
  * const { startHeadlessBuy, awaitOrderTerminalState, getQuotes } = useHeadlessBuy();
  *
  * const quotes = await getQuotes({
@@ -90,17 +94,22 @@ function resolveWalletAddressForChain(chainId: CaipChainId): string | null {
  * startHeadlessBuy(
  *   { quote, assetId: quote.crypto.assetId, amount: 25 },
  *   {
- *     onOrderCreated: async (orderId) => {
+ *     onOrderCreated: async (orderId, order) => {
  *       // Bridge the callback into a promise so the consumer can await
- *       // settlement. The order is in redux state by the time this fires;
- *       // awaitOrderTerminalState polls the controller as a fallback when
- *       // the unified order processor isn't running.
+ *       // settlement. Pass `order.walletAddress` so the slow-path poll
+ *       // works even in Engine controller contexts where the React-tree
+ *       // unified order processor isn't load-bearing. Bound the wait —
+ *       // an unbounded default + an order stuck in `Pending` would hang.
  *       const settled = await awaitOrderTerminalState(orderId, {
+ *         walletAddress: order.walletAddress,
  *         timeoutMs: 5 * 60 * 1000,
  *       });
- *       if (settled.status === 'COMPLETED') {
+ *       if (settled.status === RampsOrderStatus.Completed) {
  *         await fireStepIIIntent(settled);
  *       }
+ *       // Failed | Cancelled | IdExpired → consumer's failure path; the
+ *       // headless API does NOT fire onError for a created-then-failed
+ *       // order (see types.ts onOrderCreated JSDoc).
  *     },
  *     onError: (e) => surfaceError(e),
  *     onClose: ({ reason }) => trackClose(reason),
@@ -110,7 +119,8 @@ function resolveWalletAddressForChain(chainId: CaipChainId): string | null {
  *
  * Notes:
  * - Don't call `awaitOrderTerminalState` *before* `onOrderCreated` fires —
- *   the order won't exist yet and the helper will sit on its slow-path poll.
+ *   the order won't exist yet, and without `options.walletAddress` the
+ *   helper rejects immediately with `AwaitOrderTerminalStatePrerequisitesError`.
  * - `getOrder` is a synchronous read of redux state; `refreshOrder` is a
  *   network call that returns a fresh order without writing back to state.
  */
@@ -149,7 +159,7 @@ export function useHeadlessBuy(): HeadlessBuyResult {
           `useHeadlessBuy: could not resolve wallet address for assetId="${params.assetId}". Pass walletAddress explicitly or ensure an account is selected for chain ${chainId ?? 'unknown'}.`,
         );
       }
-      return getQuotesRaw({
+      const quotesResponse = await getQuotesRaw({
         assetId: params.assetId,
         amount: params.amount,
         walletAddress,
@@ -158,6 +168,75 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         redirectUrl: params.redirectUrl ?? getRampCallbackBaseUrl(),
         forceRefresh: params.forceRefresh,
       });
+
+      // Provider rejection: `success` is empty AND `error[]` is non-empty.
+      // UB2 handles this at BuildQuote.tsx:683-687; headless mode previously
+      // returned the raw response, so the consumer's `onError` never fired
+      // and the consumer was stuck (Goktug's 5 EUR scenario). Inspect,
+      // classify, route through the active session (Design B) and re-throw
+      // so the consumer's `await getQuotes(...)` catch also receives the
+      // structured error.
+      const errorEntries = (quotesResponse?.error ?? []) as readonly Record<
+        string,
+        unknown
+      >[];
+      const successCount = quotesResponse?.success?.length ?? 0;
+      if (successCount === 0 && errorEntries.length > 0) {
+        const providerErrors = errorEntries.map((entry) => ({
+          provider:
+            typeof entry.provider === 'string' ? entry.provider : 'unknown',
+          message: typeof entry.error === 'string' ? entry.error : undefined,
+          code: typeof entry.code === 'string' ? entry.code : undefined,
+        }));
+        const combinedMessage = providerErrors
+          .map((p) => `${p.provider}: ${p.message ?? '(no message)'}`)
+          .join('; ');
+
+        // Prefer a structured `code` from the SDK; fall back to a
+        // word-boundary regex on the combined message. Exclude rate/request
+        // limit messages — those are 429-style API limits, not buy bounds.
+        const messageHasLimitWord = /\b(minimum|maximum|limit)\b/i.test(
+          combinedMessage,
+        );
+        const messageHasRateRequest = /\b(rate|request)\b/i.test(
+          combinedMessage,
+        );
+        const sdkCodeSaysLimit = providerErrors.some(
+          (p) => p.code !== undefined && /limit/i.test(p.code),
+        );
+        const sdkCodeSaysRateRequest = providerErrors.some(
+          (p) => p.code !== undefined && /rate|request/i.test(p.code),
+        );
+        const isLimitExceeded =
+          (sdkCodeSaysLimit && !sdkCodeSaysRateRequest) ||
+          (messageHasLimitWord && !messageHasRateRequest);
+        const code: HeadlessBuyErrorCode = isLimitExceeded
+          ? 'LIMIT_EXCEEDED'
+          : 'QUOTE_FAILED';
+
+        const error = new Error(combinedMessage) as Error & {
+          headlessBuyErrorCode: HeadlessBuyErrorCode;
+          details: Record<string, unknown>;
+        };
+        error.headlessBuyErrorCode = code;
+        error.details = {
+          providerErrors,
+          successCount,
+          errorCount: errorEntries.length,
+        };
+
+        // Design B: if a session is active, route the error through it so
+        // `onError` + `onClose({ reason: 'unknown' })` fire and the session
+        // is removed from the registry. Then re-throw so the consumer's
+        // `await getQuotes(...)` catch also receives it.
+        const activeId = getActiveSessionId();
+        if (activeId) {
+          failSession(activeId, error, code);
+        }
+        throw error;
+      }
+
+      return quotesResponse;
     },
     [getQuotesRaw],
   );

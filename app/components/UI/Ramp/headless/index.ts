@@ -15,6 +15,7 @@ export {
 export { useHeadlessSessionDismissal } from './useHeadlessSessionDismissal';
 export {
   awaitOrderTerminalState,
+  AwaitOrderTerminalStatePrerequisitesError,
   getOrder,
   isTerminalOrderStatus,
   OrderTerminalStateTimeoutError,
