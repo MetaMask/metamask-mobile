@@ -251,4 +251,34 @@ describe('WhatsHappeningSection', () => {
       MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
     );
   });
+
+  describe('without section-tracking props (Perps context)', () => {
+    it('renders correctly when sectionIndex and totalSectionsLoaded are omitted', () => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [mockItem],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+      renderWithProvider(
+        <WhatsHappeningSection source={WhatsHappeningSource.Perps} />,
+      );
+      expect(
+        screen.getByTestId('homepage-whats-happening-carousel'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders error state correctly when section-tracking props are omitted', () => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [],
+        isLoading: false,
+        error: 'Network error',
+        refresh: jest.fn(),
+      });
+      renderWithProvider(
+        <WhatsHappeningSection source={WhatsHappeningSource.Perps} />,
+      );
+      expect(screen.getByText(/unable to load/i)).toBeOnTheScreen();
+    });
+  });
 });

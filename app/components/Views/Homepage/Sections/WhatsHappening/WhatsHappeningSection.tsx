@@ -57,8 +57,8 @@ const styles = StyleSheet.create({
 });
 
 interface WhatsHappeningSectionProps {
-  sectionIndex: number;
-  totalSectionsLoaded: number;
+  sectionIndex?: number;
+  totalSectionsLoaded?: number;
   source: WhatsHappeningSourceValue;
 }
 
@@ -87,12 +87,14 @@ const WhatsHappeningSection = forwardRef<
   // for the truly-empty state (no items, no error) with isEmpty: true.
   const willRender = !isLoading && (items.length > 0 || hasError);
 
+  // When sectionIndex is absent (Perps context), pass -1 so the hook's
+  // guard (sectionIndex < 0) suppresses the HOME_VIEWED event entirely.
   const { onLayout } = useHomeViewedEvent({
     sectionRef: willRender ? sectionViewRef : null,
     isLoading,
     sectionName: HomeSectionNames.WHATS_HAPPENING,
-    sectionIndex,
-    totalSectionsLoaded,
+    sectionIndex: sectionIndex ?? -1,
+    totalSectionsLoaded: totalSectionsLoaded ?? 0,
     isEmpty: items.length === 0,
     itemCount: items.length,
   });

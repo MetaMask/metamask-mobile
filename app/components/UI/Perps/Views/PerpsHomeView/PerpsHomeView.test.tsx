@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
+import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { mockTheme } from '../../../../../util/theme';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 
@@ -477,6 +478,16 @@ jest.mock(
 jest.mock(
   '../../components/PerpsRecentActivityList/PerpsRecentActivityList',
   () => 'PerpsRecentActivityList',
+);
+jest.mock(
+  '../../../../Views/Homepage/Sections/WhatsHappening',
+  () => 'WhatsHappeningSection',
+);
+jest.mock(
+  '../../../../../selectors/featureFlagController/whatsHappening',
+  () => ({
+    selectWhatsHappeningEnabled: jest.fn(),
+  }),
 );
 jest.mock('../../../../../component-library/components/Texts/Text', () => ({
   __esModule: true,
@@ -967,6 +978,23 @@ describe('PerpsHomeView', () => {
       expect(useDiscoveryScrollManager).toHaveBeenCalledWith(
         expect.objectContaining({ walletHeaderHeight: 0 }),
       );
+    });
+  });
+
+  describe('WhatsHappening section', () => {
+    it('renders WhatsHappeningSection when aiSocialWhatsHappeningEnabled flag is true', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectWhatsHappeningEnabled) return true;
+        return false;
+      });
+      const { UNSAFE_getByType } = render(<PerpsHomeView />);
+      expect(UNSAFE_getByType('WhatsHappeningSection' as never)).toBeTruthy();
+    });
+
+    it('does not render WhatsHappeningSection when aiSocialWhatsHappeningEnabled flag is false', () => {
+      mockUseSelector.mockReturnValue(false);
+      const { UNSAFE_queryByType } = render(<PerpsHomeView />);
+      expect(UNSAFE_queryByType('WhatsHappeningSection' as never)).toBeNull();
     });
   });
 });

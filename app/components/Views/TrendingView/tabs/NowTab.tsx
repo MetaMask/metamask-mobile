@@ -181,8 +181,6 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         <Box twClassName="-mx-4" marginBottom={6}>
           <WhatsHappeningSection
             ref={whatsHappeningRef}
-            sectionIndex={0}
-            totalSectionsLoaded={1}
             source={WhatsHappeningSource.Explore}
           />
         </Box>
