@@ -50,7 +50,7 @@ export interface PredictMarketDetailsParams {
 
 /** Predict World Cup feed parameters */
 export interface PredictWorldCupParams {
-  entryPoint?: PredictEntryPoint | string;
+  entryPoint?: string;
   initialTab?: PredictWorldCupTabKey;
 }
 

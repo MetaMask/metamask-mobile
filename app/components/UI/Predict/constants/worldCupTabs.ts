@@ -8,19 +8,7 @@ export const PREDICT_WORLD_CUP_TAB_KEYS = {
   PROPS: 'props',
 } as const;
 
-export type PredictWorldCupFixedTabKey =
-  (typeof PREDICT_WORLD_CUP_TAB_KEYS)[keyof typeof PREDICT_WORLD_CUP_TAB_KEYS];
-
-export type PredictWorldCupTabKey = PredictWorldCupFixedTabKey | string;
-
-const PREDICT_WORLD_CUP_FIXED_TAB_KEY_SET = new Set<string>(
-  Object.values(PREDICT_WORLD_CUP_TAB_KEYS),
-);
-
-export const isPredictWorldCupFixedTabKey = (
-  value?: string | null,
-): value is PredictWorldCupFixedTabKey =>
-  Boolean(value && PREDICT_WORLD_CUP_FIXED_TAB_KEY_SET.has(value));
+export type PredictWorldCupTabKey = string;
 
 export const getPredictWorldCupAvailableTabKeys = (
   config?: Pick<PredictWorldCupConfig, 'stages'>,
