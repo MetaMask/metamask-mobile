@@ -127,6 +127,7 @@ import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import {
   selectPerpsButtonColorTestVariant,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsTradeWithAnyTokenEnabledFlag,
 } from '../../selectors/featureFlags';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
@@ -261,9 +262,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { track } = usePerpsEventTracking();
   const { openTooltipModal } = useTooltipModal();
 
-  // Feature flag for trade with any token
+  // Feature flags
   const isTradeWithAnyTokenEnabled = useSelector(
     selectPerpsTradeWithAnyTokenEnabledFlag,
+  );
+  const isServiceInterruptionBannerEnabled = useSelector(
+    selectPerpsServiceInterruptionBannerEnabledFlag,
   );
 
   // Check if there's an active transaction
@@ -395,6 +399,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     [PERPS_EVENT_PROPERTY.SOURCE]:
       source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     [PERPS_EVENT_PROPERTY.OPEN_POSITION]: currentMarketPosition ? 1 : 0,
+    [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
+      isServiceInterruptionBannerEnabled,
     ...(isButtonColorTestEnabled && {
       [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
     }),
