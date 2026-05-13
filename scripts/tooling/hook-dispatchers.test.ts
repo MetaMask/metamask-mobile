@@ -1,5 +1,5 @@
 import { execFileSync } from 'child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join, resolve } from 'path';
 
@@ -256,6 +256,21 @@ describe('Cursor slash command prompt payload', () => {
     prompt: '/mms-pr-changelog ',
   });
 
+  beforeEach(() => {
+    // Skills are not committed to the repo — they are installed locally via
+    // `yarn skills`. The dispatcher guards against unknown slash commands by
+    // checking whether a SKILL.md exists in a known skills directory, so tests
+    // that expect a log entry must create a stub SKILL.md and override HOME to
+    // point at tmpDir so the shell script resolves it.
+    mkdirSync(join(tmpDir, '.cursor', 'skills', 'mms-pr-changelog'), {
+      recursive: true,
+    });
+    writeFileSync(
+      join(tmpDir, '.cursor', 'skills', 'mms-pr-changelog', 'SKILL.md'),
+      '',
+    );
+  });
+
   const plainPromptPayload = JSON.stringify({
     conversation_id: 'conv-abc',
     session_id: 'sess-123',
@@ -287,7 +302,7 @@ describe('Cursor slash command prompt payload', () => {
   it('appends one CSV row for a slash command invocation', () => {
     runDispatcher(CURSOR_PROMPT_DISPATCHER, {
       stdin: slashCommandPayload,
-      env: { CI: '', TOOL_USAGE_COLLECTION_LOG_PATH: logFile },
+      env: { CI: '', HOME: tmpDir, TOOL_USAGE_COLLECTION_LOG_PATH: logFile },
     });
 
     const lines = dataLines(logFile);
@@ -331,7 +346,7 @@ describe('Cursor slash command prompt payload', () => {
   it('extracts session_id from the payload', () => {
     runDispatcher(CURSOR_PROMPT_DISPATCHER, {
       stdin: slashCommandPayload,
-      env: { CI: '', TOOL_USAGE_COLLECTION_LOG_PATH: logFile },
+      env: { CI: '', HOME: tmpDir, TOOL_USAGE_COLLECTION_LOG_PATH: logFile },
     });
 
     const fields = dataLines(logFile)[0].split(',');
