@@ -24,6 +24,11 @@ on:
         type: string
         description: 'Build variant for Bitrise (rc = release, exp = experimental)'
         default: 'rc'
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
     outputs:
       with-srp-ipa-uploaded:
         description: 'Whether the with-SRP IPA was successfully uploaded'
@@ -49,6 +54,14 @@ on:
         description: 'Optional description for this build run'
         required: false
         type: string
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: false
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
 
 permissions:
   contents: read
@@ -65,7 +78,7 @@ env:
 jobs:
   check-builds-needed:
     name: Check if iOS builds are needed
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     outputs:
       builds-needed: ${{ steps.check-builds.outputs.builds-needed }}
     
@@ -84,7 +97,7 @@ jobs:
 
   trigger-ios-with-srp-build:
     name: Trigger iOS with-SRP Build on Bitrise
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [check-builds-needed]
     env:
       METAMASK_WORKFLOW: ${{ inputs.build_variant == 'exp' && 'build_ios_main_exp' || 'build_ios_main_rc' }}
@@ -221,7 +234,7 @@ jobs:
 
   trigger-ios-without-srp-build:
     name: Trigger iOS without-SRP Build on Bitrise
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [check-builds-needed]
     env:
       METAMASK_WORKFLOW: ${{ inputs.build_variant == 'exp' && 'build_ios_main_exp' || 'build_ios_main_rc' }}
@@ -345,7 +358,7 @@ jobs:
 
   download-and-upload-to-browserstack:
     name: Download IPAs and Upload to BrowserStack
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [check-builds-needed, trigger-ios-with-srp-build, trigger-ios-without-srp-build]
     if: (needs.trigger-ios-with-srp-build.result == 'success' || needs.trigger-ios-with-srp-build.result == 'partial_success') && (needs.trigger-ios-without-srp-build.result == 'success' || needs.trigger-ios-without-srp-build.result == 'partial_success')
     outputs:
