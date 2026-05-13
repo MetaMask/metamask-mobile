@@ -132,7 +132,7 @@ const styleSheet = (params: { theme: Theme }) => {
     whatsHappeningSection: {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
-      paddingTop: 24,
+      paddingTop: 28,
       marginBottom: 36,
     },
   });
