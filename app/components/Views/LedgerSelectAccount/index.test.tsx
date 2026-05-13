@@ -827,7 +827,7 @@ describe('LedgerSelectAccount', () => {
       mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
 
       await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON));
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON));
       });
 
       await waitFor(() => {
@@ -843,7 +843,9 @@ describe('LedgerSelectAccount', () => {
       mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
 
       await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_PREVIOUS_BUTTON));
+        fireEvent.press(
+          getByTestId(AccountSelectorSelectorsIDs.PREVIOUS_BUTTON),
+        );
       });
 
       await waitFor(() => {
@@ -858,7 +860,7 @@ describe('LedgerSelectAccount', () => {
       mockGetLedgerAccountsByOperation.mockClear();
 
       await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON));
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON));
       });
 
       await waitFor(() => {
@@ -875,7 +877,9 @@ describe('LedgerSelectAccount', () => {
       mockGetLedgerAccountsByOperation.mockClear();
 
       await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_PREVIOUS_BUTTON));
+        fireEvent.press(
+          getByTestId(AccountSelectorSelectorsIDs.PREVIOUS_BUTTON),
+        );
       });
 
       await waitFor(() => {

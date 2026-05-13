@@ -467,6 +467,7 @@ describe('useDeviceConnectionFlow', () => {
     it('does not pre-check transport when entering scan mode without deviceId', async () => {
       const mockAdapter = {
         walletType: HardwareWalletType.Ledger,
+        requiresDeviceDiscovery: true,
         resetFlowState: jest.fn(),
         isTransportAvailable: jest.fn().mockResolvedValue(true),
         startDeviceDiscovery: jest.fn(),
