@@ -246,4 +246,54 @@ describe('useQrConfirm', () => {
 
     mockApprovalRequest.requestData = originalRequestData;
   });
+
+  it('rethrows error from onTransactionConfirm onError callback', async () => {
+    const transactionError = new Error('transaction onError thrown');
+    mockExecuteHardwareWalletOperation.mockImplementation(
+      async ({ execute }) => {
+        await execute();
+      },
+    );
+    onTransactionConfirm.mockImplementationOnce(async ({ onError }) => {
+      onError?.(transactionError);
+    });
+    mockExecuteHardwareWalletOperation.mockRejectedValueOnce(transactionError);
+
+    const { result } = renderHook(() =>
+      useQrConfirm({ ...defaultOptions, isTransactionReq: true }),
+    );
+
+    await act(async () => {
+      await result.current.onConfirm();
+    });
+
+    expect(onReject).toHaveBeenCalled();
+  });
+
+  it('does not reject twice when onRejected is called before execute throws', async () => {
+    const error = new Error('execute failed');
+    onTransactionConfirm.mockImplementationOnce(async ({ onError }) => {
+      onError?.(error);
+    });
+    mockExecuteHardwareWalletOperation.mockImplementation(
+      async ({ onRejected, execute }) => {
+        await onRejected();
+        try {
+          await execute();
+        } catch (_) {
+          // Already rejected
+        }
+      },
+    );
+
+    const { result } = renderHook(() =>
+      useQrConfirm({ ...defaultOptions, isTransactionReq: true }),
+    );
+
+    await act(async () => {
+      await result.current.onConfirm();
+    });
+
+    expect(onReject).toHaveBeenCalledTimes(1);
+  });
 });

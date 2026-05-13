@@ -26,14 +26,14 @@ jest.mock(
   }),
 );
 
-const mockOnQrTxConfirm = jest.fn().mockResolvedValue(undefined);
-jest.mock('../../../../core/HardwareWallet/hooks/useQrConfirm', () => ({
-  useQrConfirm: () => ({ onConfirm: mockOnQrTxConfirm }),
-}));
-
 const mockOnLedgerConfirm = jest.fn().mockResolvedValue(undefined);
 jest.mock('./useLedgerConfirm', () => ({
   useLedgerConfirm: () => ({ onConfirm: mockOnLedgerConfirm }),
+}));
+
+const mockOnQrConfirm = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../../core/HardwareWallet/hooks/useQrConfirm', () => ({
+  useQrConfirm: () => ({ onConfirm: mockOnQrConfirm }),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -121,7 +121,7 @@ describe('useConfirmAction', () => {
       '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount',
     );
     useIsConfirmationFromQrAccount.mockReturnValue(true);
-    mockOnQrTxConfirm.mockClear();
+    mockOnQrConfirm.mockClear();
 
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: stakingDepositConfirmationState,
@@ -129,7 +129,7 @@ describe('useConfirmAction', () => {
 
     await result?.current?.onConfirm();
 
-    expect(mockOnQrTxConfirm).toHaveBeenCalledTimes(1);
+    expect(mockOnQrConfirm).toHaveBeenCalledTimes(1);
     expect(Engine.acceptPendingApproval).not.toHaveBeenCalled();
 
     useIsConfirmationFromQrAccount.mockReturnValue(false);

@@ -13,8 +13,8 @@ import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
 import { useIsConfirmationFromLedgerAccount } from './useIsConfirmationFromLedgerAccount';
 import { useIsConfirmationFromQrAccount } from '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
-import { useQrConfirm } from '../../../../core/HardwareWallet/hooks/useQrConfirm';
 import { useLedgerConfirm } from './useLedgerConfirm';
+import { useQrConfirm } from '../../../../core/HardwareWallet/hooks/useQrConfirm';
 
 export const useConfirmActions = () => {
   const {
