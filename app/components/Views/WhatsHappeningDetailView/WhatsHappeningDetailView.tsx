@@ -53,8 +53,10 @@ const SKELETON_KEYS = Array.from(
   (_, i) => `skeleton-${i}`,
 );
 
+const DEFAULT_INITIAL_INDEX = 0;
+
 interface WhatsHappeningDetailParams {
-  initialIndex: number;
+  initialIndex?: number;
   source: WhatsHappeningSourceValue;
 }
 
@@ -64,7 +66,7 @@ const WhatsHappeningDetailView = () => {
   const route =
     useRoute<RouteProp<{ params: WhatsHappeningDetailParams }, 'params'>>();
 
-  const initialIndex = route.params?.initialIndex ?? 0;
+  const initialIndex = route.params?.initialIndex ?? DEFAULT_INITIAL_INDEX;
   const source: WhatsHappeningSourceValue =
     route.params?.source ?? WhatsHappeningSource.Unknown;
 

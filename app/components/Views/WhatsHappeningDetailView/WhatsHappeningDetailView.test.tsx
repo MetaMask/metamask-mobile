@@ -100,7 +100,7 @@ describe('WhatsHappeningDetailView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRoute.mockReturnValue({
-      params: { initialIndex: 0, source: 'homepage' },
+      params: { source: 'homepage' },
     });
     mockUseNavigation.mockReturnValue({ goBack: mockGoBack });
 
@@ -457,7 +457,9 @@ describe('WhatsHappeningDetailView', () => {
   });
 
   it('scrolls to initialIndex once content is wide enough', () => {
-    mockUseRoute.mockReturnValue({ params: { initialIndex: 1 } });
+    mockUseRoute.mockReturnValue({
+      params: { initialIndex: 1, source: 'homepage' },
+    });
     mockUseWhatsHappening.mockReturnValue({
       items: [mockItem, { ...mockItem, id: 'trend-1' }],
       isLoading: false,
