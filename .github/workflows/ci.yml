@@ -527,10 +527,12 @@ jobs:
         run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
 
-  # Producer: warms the CI JS deps cache once per run so that downstream test
-  # shards skip the 2-min `yarn install` + setup. On a warm cache (yarn.lock
-  # unchanged) this job itself is near-instant. On a cold cache it pays the
-  # install cost once, on behalf of all consumers.
+  # Producer: warms the Namespace cache volume once per run so downstream
+  # test shards skip the 2-min `yarn install` + setup. On a warm volume
+  # (yarn.lock unchanged across the pool) this job is near-instant; on a
+  # cold volume it pays the install cost once, on behalf of all consumers.
+  # On non-namespace runners there is no shared cache, so this job is a
+  # no-op (consumers will install themselves, matching main).
   prepare-ci-js-deps:
     name: Prepare CI JS dependencies
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
@@ -539,9 +541,15 @@ jobs:
       - get_requirements
     steps:
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: ./.github/actions/setup-ci-js-deps
+        if: ${{ inputs.runner_provider == 'namespace' }}
         with:
           runner_provider: ${{ inputs.runner_provider }}
+      - name: Skip cache warm-up (no shared cache available)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        run: |
+          echo "Skipping cache warm-up. runner_provider=${{ inputs.runner_provider }} has no cross-job cache; consumers will install themselves."
 
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
