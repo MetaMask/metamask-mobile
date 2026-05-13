@@ -530,6 +530,9 @@ jobs:
   prepare-ci-js-deps:
     name: Prepare CI JS dependencies
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    permissions:
+      contents: read
+      id-token: write
     needs:
       - get_requirements
     uses: ./.github/workflows/setup-node-modules.yml
