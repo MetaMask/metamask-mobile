@@ -28,18 +28,24 @@ describe('MoneyWhatYouGet', () => {
     expect(container).toHaveTextContent(/dollar-backed stablecoin/);
     expect(container).toHaveTextContent(/Get full liquidity/);
     expect(container).toHaveTextContent(/1-3% mUSD back/);
-    expect(container).toHaveTextContent(
-      /Transfer money to any of your wallets/,
-    );
-    expect(container).toHaveTextContent(/Send and receive money globally/);
+    expect(container).toHaveTextContent(/Transfer to any of your wallets/);
+    expect(container).toHaveTextContent(/Send and receive funds globally/);
   });
 
-  it('renders the Learn more button', () => {
-    const { getByTestId } = render(<MoneyWhatYouGet apy={4} />);
+  it('renders the Learn more button when an onLearnMorePress handler is provided', () => {
+    const { getByTestId } = render(
+      <MoneyWhatYouGet apy={4} onLearnMorePress={jest.fn()} />,
+    );
 
     expect(
       getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('omits the Learn more button when no onLearnMorePress handler is provided', () => {
+    const { queryByTestId } = render(<MoneyWhatYouGet apy={4} />);
+
+    expect(queryByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON)).toBeNull();
   });
 
   it('calls onLearnMorePress when Learn more is tapped', () => {
@@ -51,14 +57,6 @@ describe('MoneyWhatYouGet', () => {
     fireEvent.press(getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON));
 
     expect(mockLearnMore).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not throw when Learn more is tapped without a handler', () => {
-    const { getByTestId } = render(<MoneyWhatYouGet apy={4} />);
-
-    expect(() => {
-      fireEvent.press(getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON));
-    }).not.toThrow();
   });
 
   it('renders the inline APY text in the auto-earn benefit when apy is a positive number', () => {

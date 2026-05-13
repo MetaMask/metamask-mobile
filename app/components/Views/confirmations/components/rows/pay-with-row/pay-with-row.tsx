@@ -47,8 +47,14 @@ import {
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useMoneyAccountPayToken } from '../../../hooks/pay/useMoneyAccountPayToken';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
+
+interface PayWithRouteParams {
+  preferredPaymentToken?: SetPayTokenRequest;
+}
 
 export function PayWithRow() {
   const navigation = useNavigation();
@@ -62,6 +68,9 @@ export function PayWithRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
+  const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
+  const isPayWithBottomSheetEnabled =
+    process.env.MM_DEV_PAY_WITH_BOTTOM_SHEET === 'true';
 
   const {
     txParams: { from },
@@ -79,8 +88,21 @@ export function PayWithRow() {
         mm_pay_token_list_opened: true,
       },
     });
+    if (isPayWithBottomSheetEnabled) {
+      navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
+        preferredPaymentToken,
+      });
+      return;
+    }
+
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [isDisabled, navigation, setConfirmationMetric]);
+  }, [
+    isDisabled,
+    isPayWithBottomSheetEnabled,
+    navigation,
+    preferredPaymentToken,
+    setConfirmationMetric,
+  ]);
 
   const label = isWithdraw
     ? strings('confirm.label.receive_as')

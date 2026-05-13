@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import PredictBetButtons from './PredictBetButtons';
 import PredictClaimButton from './PredictClaimButton';
@@ -166,30 +166,60 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   }
 
   if (market.status === PredictMarketStatus.OPEN && buttonConfig) {
-    const drawToken = buttonConfig.drawToken;
-
     return (
-      <Box twClassName="w-full mt-4">
-        <PredictBetButtons
-          yesLabel={buttonConfig.yesLabel}
-          yesPrice={buttonConfig.yesPrice}
-          onYesPress={() => onBetPress(buttonConfig.yesToken)}
-          drawLabel={buttonConfig.drawLabel}
-          drawPrice={buttonConfig.drawPrice}
-          onDrawPress={drawToken ? () => onBetPress(drawToken) : undefined}
-          noLabel={buttonConfig.noLabel}
-          noPrice={buttonConfig.noPrice}
-          onNoPress={() => onBetPress(buttonConfig.noToken)}
-          yesTeamColor={buttonConfig.yesTeamColor}
-          noTeamColor={buttonConfig.noTeamColor}
-          testID={`${testID}${PREDICT_ACTION_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON}`}
-          isCarousel={isCarousel}
-        />
-      </Box>
+      <PredictBetButtonsContainer
+        buttonConfig={buttonConfig}
+        onBetPress={onBetPress}
+        testID={testID}
+        isCarousel={isCarousel}
+      />
     );
   }
 
   return null;
 };
+
+function PredictBetButtonsContainer(props: {
+  buttonConfig: ButtonConfig;
+  onBetPress: (token: PredictOutcomeToken) => void;
+  testID: string;
+  isCarousel?: boolean;
+}) {
+  const { buttonConfig, onBetPress, testID, isCarousel } = props;
+  const { yesToken, drawToken, noToken } = buttonConfig;
+
+  const onYesPress = useCallback(
+    () => onBetPress(yesToken),
+    [onBetPress, yesToken],
+  );
+  const onDrawPress = useMemo(
+    () => (drawToken ? () => onBetPress(drawToken) : undefined),
+    [onBetPress, drawToken],
+  );
+  const onNoPress = useCallback(
+    () => onBetPress(noToken),
+    [onBetPress, noToken],
+  );
+
+  return (
+    <Box twClassName="w-full mt-4">
+      <PredictBetButtons
+        yesLabel={buttonConfig.yesLabel}
+        yesPrice={buttonConfig.yesPrice}
+        onYesPress={onYesPress}
+        drawLabel={buttonConfig.drawLabel}
+        drawPrice={buttonConfig.drawPrice}
+        onDrawPress={onDrawPress}
+        noLabel={buttonConfig.noLabel}
+        noPrice={buttonConfig.noPrice}
+        onNoPress={onNoPress}
+        yesTeamColor={buttonConfig.yesTeamColor}
+        noTeamColor={buttonConfig.noTeamColor}
+        testID={`${testID}${PREDICT_ACTION_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON}`}
+        isCarousel={isCarousel}
+      />
+    </Box>
+  );
+}
 
 export default PredictActionButtons;

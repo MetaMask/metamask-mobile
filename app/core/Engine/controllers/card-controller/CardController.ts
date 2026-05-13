@@ -1,5 +1,9 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
-import { type Json } from '@metamask/utils';
+import { numberToHex, type Hex, type Json } from '@metamask/utils';
+import {
+  TransactionType,
+  WalletDevice,
+} from '@metamask/transaction-controller';
 import Logger from '../../../../util/Logger';
 import {
   CARD_CONTROLLER_NAME,
@@ -36,6 +40,15 @@ import {
 import { CardTokenStore } from './CardTokenStore';
 import { isEthAccount } from '../../../Multichain/utils';
 import { pickPrimaryFromReordered, reorderAssets } from './utils/assetPriority';
+import { encodeErc20ApproveCalldata } from './utils/encodeErc20ApproveCalldata';
+import {
+  awaitTransactionConfirmed,
+  type AwaitTransactionConfirmedMessenger,
+} from './utils/awaitTransactionConfirmed';
+import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
+import { safeToChecksumAddress } from '../../../../util/address';
+import { toTokenMinimalUnit } from '../../../../util/number/bigint';
+import TransactionTypes from '../../../../core/TransactionTypes';
 import {
   resolveCardFeatureFlag,
   type CardFeatureFlag,
@@ -873,6 +886,186 @@ export class CardController extends BaseController<
       );
     }
     return provider.fetchDelegationChallenge(params, tokens);
+  }
+
+  /**
+   * Builds the provider-specific SIWE message used to prove address ownership
+   * before a Card delegation approval. Active provider owns wording,
+   * chain-id mapping, and any EVM/Solana variants.
+   */
+  generateCardDelegationSignatureMessage(params: {
+    network: string;
+    address: string;
+    nonce: string;
+    caipChainId?: string;
+  }): string {
+    const provider = this.getActiveProvider();
+    if (!provider.generateCardDelegationSignatureMessage) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Card delegation signature message not supported',
+      );
+    }
+    return provider.generateCardDelegationSignatureMessage(params);
+  }
+
+  /**
+   * Links a primary Money Account to Card by approving a Monad USDC allowance
+   * to the active provider's delegation contract and completing the provider's
+   * funding flow. The approval transaction is submitted with
+   * `requireApproval: false` so it never opens the Confirmations modal — this
+   * is the background linkage path UI hooks consume.
+   *
+   * Race-safe by construction: subscribes to
+   * `TransactionController:transactionConfirmed` BEFORE submitting the
+   * transaction (see `awaitTransactionConfirmed`).
+   *
+   * @param params.moneyAccountAddress - The primary Money Account address.
+   * @param params.delegationAmountHuman - Allowance in human-readable units
+   * (e.g. `"2199023255551"`); converted to minimal units using the token's
+   * decimals. Pass `"0"` to revoke.
+   */
+  async linkMoneyAccountCard(params: {
+    moneyAccountAddress: string;
+    delegationAmountHuman: string;
+  }): Promise<void> {
+    const { moneyAccountAddress, delegationAmountHuman } = params;
+
+    let fromAddress: string;
+    try {
+      const checksummed = safeToChecksumAddress(moneyAccountAddress);
+      if (!checksummed) throw new Error();
+      fromAddress = checksummed;
+    } catch {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Invalid Money account address',
+      );
+    }
+
+    if (!delegationAmountHuman) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Delegation amount is required',
+      );
+    }
+
+    const tokens = await this.requireValidTokens();
+    const provider = this.getActiveProvider();
+    if (
+      !provider.fetchDelegationChallenge ||
+      !provider.approveFunding ||
+      !provider.generateCardDelegationSignatureMessage
+    ) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money account card delegation is not supported for this provider',
+      );
+    }
+
+    const cardToken = await this.#resolveMoneyAccountCardTokenOrRefetch();
+    if (!cardToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card spending token unavailable',
+      );
+    }
+
+    const { delegationToken, nonce } = await provider.fetchDelegationChallenge(
+      { network: 'monad', address: fromAddress },
+      tokens,
+    );
+
+    const signatureMessage = this.generateCardDelegationSignatureMessage({
+      network: 'monad',
+      address: fromAddress,
+      nonce,
+      caipChainId: cardToken.caipChainId ?? 'eip155:143',
+    });
+
+    const sigHash = await this.messenger.call(
+      'KeyringController:signPersonalMessage',
+      {
+        data: `0x${Buffer.from(signatureMessage, 'utf8').toString('hex')}`,
+        from: fromAddress,
+      },
+    );
+
+    const tokenAddress = cardToken.stagingTokenAddress ?? cardToken.address;
+    if (!tokenAddress) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card spending token address missing',
+      );
+    }
+    if (!cardToken.delegationContract) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card delegation contract missing',
+      );
+    }
+
+    const amountInMinimalUnits = toTokenMinimalUnit(
+      delegationAmountHuman,
+      cardToken.decimals ?? 6,
+    ).toString();
+    const data = encodeErc20ApproveCalldata(
+      cardToken.delegationContract,
+      amountInMinimalUnits,
+    );
+
+    const chainNumber = parseInt(
+      cardToken.caipChainId?.split(':')[1] ?? '143',
+      10,
+    );
+    const hexChainId = numberToHex(chainNumber) as Hex;
+    const networkClientId = this.messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
+      hexChainId,
+    );
+
+    const { txHash } = await awaitTransactionConfirmed({
+      messenger: this
+        .messenger as unknown as AwaitTransactionConfirmedMessenger,
+      submit: () =>
+        this.messenger.call(
+          'TransactionController:addTransaction',
+          { from: fromAddress, to: tokenAddress, data },
+          {
+            networkClientId,
+            origin: TransactionTypes.MMM_CARD,
+            type: TransactionType.tokenMethodApprove,
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            requireApproval: false,
+          },
+        ),
+    });
+
+    await provider.approveFunding(
+      {
+        address: fromAddress,
+        network: 'monad',
+        currency: 'usdc',
+        amount: delegationAmountHuman,
+        txHash,
+        sigHash,
+        sigMessage: signatureMessage,
+        token: delegationToken,
+      },
+      tokens,
+    );
+  }
+
+  async #resolveMoneyAccountCardTokenOrRefetch() {
+    const fromState = () => {
+      const data = this.state.cardHomeData as unknown as CardHomeData | null;
+      return resolveMoneyAccountCardToken(data?.delegationSettings ?? null);
+    };
+    const existing = fromState();
+    if (existing) return existing;
+
+    await this.fetchCardHomeData();
+    return fromState();
   }
 
   // -- Push Provisioning --
