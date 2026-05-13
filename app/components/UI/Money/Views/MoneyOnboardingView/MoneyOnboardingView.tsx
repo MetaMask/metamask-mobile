@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet, useColorScheme } from 'react-native';
+import { StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { type StackNavigationProp } from '@react-navigation/stack';
@@ -59,20 +59,23 @@ const MoneyOnboardingView = () => {
     useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
   const dispatch = useDispatch();
 
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
 
-  const colorScheme = useColorScheme();
+  const isDarkTheme = themeAppearance === 'dark';
 
-  const progressBarColor =
-    colorScheme === 'dark' ? colors.primary.default : colors.primary.inverse;
+  const progressBarColor = isDarkTheme
+    ? colors.primary.default
+    : colors.primary.inverse;
 
-  const textColor =
-    colorScheme === 'dark' ? TextColor.TextDefault : TextColor.PrimaryInverse;
+  const textColor = isDarkTheme
+    ? TextColor.TextDefault
+    : TextColor.PrimaryInverse;
 
-  const iconColor =
-    colorScheme === 'dark' ? IconColor.IconDefault : IconColor.PrimaryInverse;
+  const iconColor = isDarkTheme
+    ? IconColor.IconDefault
+    : IconColor.PrimaryInverse;
 
-  const buttonIsInverse = colorScheme === 'light';
+  const buttonIsInverse = !isDarkTheme;
 
   const { apyPercent } = useMoneyAccountBalance();
 
