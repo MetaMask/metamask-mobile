@@ -81,6 +81,15 @@ jobs:
       TOTAL_SPLITS: ${{ inputs.total_splits }}
       RAMP_INTERNAL_BUILD: 'true'
       BRIDGE_USE_DEV_APIS: 'true'
+      # Experimental: enable OS-level mockttp proxy on the Android emulator
+      # only for the snaps test suite, where react-native-blob-util drives
+      # snap-tarball downloads through native OkHttp (the original use case
+      # for MMQA-1775). Off elsewhere so the rest of the suite stays on the
+      # known-good baseline. Once validated, flip the init.detox.js default
+      # in a follow-up and remove this line. inputs.test-suite-name comes
+      # from the calling workflow (run-e2e-smoke-tests-android.yml), passed
+      # as a static string per job — not user-controlled.
+      MMQA_OS_PROXY: ${{ startsWith(inputs.test-suite-name, 'snaps-android-smoke') && 'true' || 'false' }}
       MM_SECURITY_ALERTS_API_ENABLED: 'true'
       MM_NOTIFICATIONS_UI_ENABLED: 'true'
       FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
