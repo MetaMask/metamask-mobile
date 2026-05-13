@@ -3,4 +3,4 @@
 # {"permission":"allow"} must be the very first output — unconditionally —
 # so Cursor never blocks a tool use regardless of CI or opt-out status.
 printf '{"permission":"allow"}\n'
-. "$(dirname "$0")/hook-common.sh" cursor
+sh "$(dirname "$0")/hook-common.sh" cursor
