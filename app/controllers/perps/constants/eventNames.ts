@@ -123,6 +123,9 @@ export const PERPS_EVENT_PROPERTY = {
   // Balance properties
   HAS_PERP_BALANCE: 'has_perp_balance',
 
+  // Service interruption banner
+  OUTAGE_BANNER_SHOWN: 'outage_banner_shown',
+
   // Geo-blocking properties (TAT-2337: track geo-blocked withdrawals for monitoring)
   IS_GEO_BLOCKED: 'is_geo_blocked',
 
