@@ -1,7 +1,7 @@
 import {
-  createStackNavigator,
-  type StackNavigationOptions,
-} from '@react-navigation/stack';
+  createNativeStackNavigator,
+  type NativeStackNavigationOptions,
+} from '@react-navigation/native-stack';
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -13,102 +13,66 @@ import { PredictNavigationParamList } from '../types/navigation';
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
 import PredictFeed from '../views/PredictFeed';
 import PredictGTMModal from '../components/PredictGTMModal';
-import { Dimensions } from 'react-native';
 import { useSelector } from 'react-redux';
 import { PredictPreviewSheetProvider } from '../contexts';
 import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken';
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { selectPredictWithAnyTokenEnabledFlag } from '../selectors/featureFlags';
-import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../../constants/navigation/clearStackNavigatorOptions';
 
 interface PredictConfirmationRouteParams {
   animationEnabled?: boolean;
 }
 
-const getConfirmationTransitionSpec = (
-  disableOpenAnimation: boolean,
-): StackNavigationOptions['transitionSpec'] =>
-  disableOpenAnimation
-    ? {
-        open: { animation: 'timing' as const, config: { duration: 0 } },
-        close: { animation: 'timing' as const, config: { duration: 300 } },
-      }
-    : undefined;
-
+// Note: native-stack cannot independently customize open vs close timing the way
+// JS-stack `transitionSpec` did. When the caller opts out of the open animation,
+// disable the screen animation entirely so the transition is instantaneous in
+// both directions instead of half-animated.
 const getPredictConfirmationScreenOptions = ({
   route,
 }: {
   route: {
     params?: PredictConfirmationRouteParams;
   };
-}): StackNavigationOptions => {
+}): NativeStackNavigationOptions => {
   const disableOpenAnimation = route.params?.animationEnabled === false;
 
   return {
     headerLeft: () => null,
     headerShown: true,
     title: '',
-    transitionSpec: getConfirmationTransitionSpec(disableOpenAnimation),
+    ...(disableOpenAnimation ? { animation: 'none' as const } : {}),
   };
 };
 
-const slideFromRightInterpolator: StackNavigationOptions['cardStyleInterpolator'] =
-  ({ current }) => ({
-    cardStyle: {
-      transform: [
-        {
-          translateX: current.progress.interpolate({
-            inputRange: [0, 1],
-            outputRange: [Dimensions.get('window').width, 0],
-          }),
-        },
-      ],
-    },
-  });
-
-const Stack = createStackNavigator<PredictNavigationParamList>();
-const ModalStack = createStackNavigator<PredictNavigationParamList>();
+const Stack = createNativeStackNavigator<PredictNavigationParamList>();
+const ModalStack = createNativeStackNavigator<PredictNavigationParamList>();
 
 const PredictModalStack = () => (
   <ModalStack.Navigator
     screenOptions={{
-      ...clearStackNavigatorOptions,
-      presentation: 'transparentModal',
+      ...clearNativeStackNavigatorOptions,
+      ...transparentModalScreenOptions,
     }}
   >
     <ModalStack.Screen
       name={Routes.PREDICT.MODALS.UNAVAILABLE}
       component={PredictUnavailableModal}
-      options={{
-        cardStyleInterpolator: ({ current }) => ({
-          cardStyle: {
-            opacity: current.progress,
-          },
-        }),
-      }}
+      options={{ animation: 'fade' }}
     />
     <ModalStack.Screen
       name={Routes.PREDICT.MODALS.GTM_MODAL}
       component={PredictGTMModal}
-      options={{
-        cardStyleInterpolator: ({ current }) => ({
-          cardStyle: {
-            opacity: current.progress,
-          },
-        }),
-      }}
+      options={{ animation: 'fade' }}
     />
     <ModalStack.Screen
       name={Routes.PREDICT.MODALS.ADD_FUNDS_SHEET}
       component={PredictAddFundsModal}
-      options={{
-        cardStyleInterpolator: ({ current }) => ({
-          cardStyle: {
-            opacity: current.progress,
-          },
-        }),
-      }}
+      options={{ animation: 'fade' }}
     />
     <ModalStack.Screen
       name={Routes.PREDICT.ACTIVITY_DETAIL}
@@ -134,7 +98,7 @@ const PredictModalStack = () => (
 
         return {
           headerShown: false,
-          transitionSpec: getConfirmationTransitionSpec(disableOpenAnimation),
+          ...(disableOpenAnimation ? { animation: 'none' as const } : {}),
         };
       }}
     />
@@ -158,7 +122,7 @@ const PredictScreenStack = () => {
           options={{
             title: strings('predict.markets.title'),
             headerShown: false,
-            animationEnabled: false,
+            animation: 'none',
           }}
         />
 
@@ -167,7 +131,7 @@ const PredictScreenStack = () => {
           component={BuyPreviewComponent}
           options={{
             headerShown: false,
-            cardStyleInterpolator: slideFromRightInterpolator,
+            animation: 'slide_from_right',
           }}
         />
 
@@ -176,7 +140,7 @@ const PredictScreenStack = () => {
           component={PredictSellPreview}
           options={{
             headerShown: false,
-            cardStyleInterpolator: slideFromRightInterpolator,
+            animation: 'slide_from_right',
           }}
         />
 
@@ -199,8 +163,7 @@ const PredictScreenStack = () => {
 
             return {
               headerShown: false,
-              transitionSpec:
-                getConfirmationTransitionSpec(disableOpenAnimation),
+              ...(disableOpenAnimation ? { animation: 'none' as const } : {}),
             };
           }}
         />
@@ -210,7 +173,7 @@ const PredictScreenStack = () => {
           component={PredictMarketDetails}
           options={{
             headerShown: false,
-            cardStyleInterpolator: slideFromRightInterpolator,
+            animation: 'slide_from_right',
           }}
         />
       </Stack.Navigator>
