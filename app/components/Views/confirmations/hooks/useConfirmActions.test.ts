@@ -26,8 +26,9 @@ jest.mock(
   }),
 );
 
+const mockOnQrTxConfirm = jest.fn().mockResolvedValue(undefined);
 jest.mock('../../../../core/HardwareWallet/hooks/useQrConfirm', () => ({
-  useQrConfirm: () => ({ onConfirm: jest.fn() }),
+  useQrConfirm: () => ({ onConfirm: mockOnQrTxConfirm }),
 }));
 
 const mockOnLedgerConfirm = jest.fn().mockResolvedValue(undefined);
@@ -113,6 +114,41 @@ describe('useConfirmAction', () => {
     await flushPromises();
     expect(mockCaptureSignatureMetrics).toHaveBeenCalledTimes(0);
     expect(clearSecurityAlertResponseSpy).toHaveBeenCalledTimes(0);
+  });
+
+  it('delegates to useQrConfirm when account is QR hardware and request is a transaction', async () => {
+    const { useIsConfirmationFromQrAccount } = jest.requireMock(
+      '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount',
+    );
+    useIsConfirmationFromQrAccount.mockReturnValue(true);
+    mockOnQrTxConfirm.mockClear();
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: stakingDepositConfirmationState,
+    });
+
+    await result?.current?.onConfirm();
+
+    expect(mockOnQrTxConfirm).toHaveBeenCalledTimes(1);
+    expect(Engine.acceptPendingApproval).not.toHaveBeenCalled();
+
+    useIsConfirmationFromQrAccount.mockReturnValue(false);
+  });
+
+  it('calls setSigningConfirmed before executeApproval on default confirm path', async () => {
+    const mockSetSigningConfirmed = jest.fn();
+    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+      isSigningQRObject: false,
+      setScannerVisible: jest.fn(),
+      setSigningConfirmed: mockSetSigningConfirmed,
+    } as unknown as QRHardwareHook.QRHardwareContextType);
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+    result?.current?.onConfirm();
+    expect(mockSetSigningConfirmed).toHaveBeenCalledTimes(1);
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
+    await flushPromises();
   });
 
   it('delegates to useLedgerConfirm when account is Ledger', async () => {
