@@ -23,8 +23,6 @@ import BadgeWrapper, {
 } from '../../../../component-library/components/Badges/BadgeWrapper';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
 import Badge from '../../../../component-library/components/Badges/Badge/Badge';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import NetworkAssetLogo from '../../NetworkAssetLogo';
 import Text, {
   TextColor,
