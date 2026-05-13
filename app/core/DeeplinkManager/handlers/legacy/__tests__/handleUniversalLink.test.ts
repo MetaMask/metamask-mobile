@@ -19,6 +19,7 @@ import handleRampReturnUrl from '../handleRampReturnUrl';
 import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
 import { handleSocialLeaderboardUrl } from '../handleSocialLeaderboardUrl';
 import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
+import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
 
@@ -44,6 +45,7 @@ jest.mock('../handleRewardsUrl');
 jest.mock('../handlePredictUrl');
 jest.mock('../handleFastOnboarding');
 jest.mock('../handleTrendingUrl');
+jest.mock('../handleWhatsHappeningUrl');
 jest.mock('../handleSocialLeaderboardUrl');
 jest.mock('../handleSocialTraderPositionUrl');
 jest.mock('../../../../redux', () => ({
@@ -858,6 +860,31 @@ describe('handleUniversalLink', () => {
 
         expect(handled).toHaveBeenCalled();
       }
+    });
+  });
+
+  describe('ACTIONS.WHATS_HAPPENING', () => {
+    it('calls _handleWhatsHappening without showing interstitial', async () => {
+      const whatsHappeningUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WHATS_HAPPENING}`;
+      const whatsHappeningUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: whatsHappeningUrl,
+        pathname: `/${ACTIONS.WHATS_HAPPENING}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: whatsHappeningUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: whatsHappeningUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith();
+      expect(handled).toHaveBeenCalled();
     });
   });
 

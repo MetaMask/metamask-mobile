@@ -683,6 +683,7 @@ enum EVENT_NAME {
 
   // Whats Happening
   WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW = 'Whats Happening Card Scrolled to View',
+  WHATS_HAPPENING_DETAILS_OPENED = 'Whats Happening Details Opened',
   WHATS_HAPPENING_DETAILS_VIEWED = 'Whats Happening Details Viewed',
   WHATS_HAPPENING_INTERACTED = 'Whats Happening Interacted',
   WHATS_HAPPENING_DETAILS_CLOSED = 'Whats Happening Details Closed',
@@ -1684,6 +1685,9 @@ const events = {
   // Whats Happening
   WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW: generateOpt(
     EVENT_NAME.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
+  ),
+  WHATS_HAPPENING_DETAILS_OPENED: generateOpt(
+    EVENT_NAME.WHATS_HAPPENING_DETAILS_OPENED,
   ),
   WHATS_HAPPENING_DETAILS_VIEWED: generateOpt(
     EVENT_NAME.WHATS_HAPPENING_DETAILS_VIEWED,

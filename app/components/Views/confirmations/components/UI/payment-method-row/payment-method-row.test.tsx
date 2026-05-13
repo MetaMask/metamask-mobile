@@ -119,4 +119,10 @@ describe('PaymentMethodRow', () => {
 
     expect(getByTestId('custom-test-id')).toBeOnTheScreen();
   });
+
+  it('renders icon slot wrapper with derived testID', () => {
+    const { getByTestId } = render(<PaymentMethodRow {...baseProps} />);
+
+    expect(getByTestId('payment-method-row-usdc-icon-slot')).toBeOnTheScreen();
+  });
 });
