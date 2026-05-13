@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -8,6 +9,7 @@ import {
 } from '@metamask/design-system-react-native';
 import type { MoneyAccount } from '@metamask/money-account-controller';
 import Engine from '../../../../core/Engine';
+import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import {
@@ -21,6 +23,7 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import {
   selectCardDelegationSettings,
   selectIsCardAuthenticated,
+  selectIsMoneyAccountDelegatedForCard,
 } from '../../../../selectors/cardController';
 import { selectMoneyEnableMoneyAccountFlag } from '../../Money/selectors/featureFlags';
 import {
@@ -49,7 +52,23 @@ export interface UseMoneyAccountCardLinkageReturn {
   isLinking: boolean;
   error: Error | null;
 
-  linkInBackground: () => Promise<boolean>;
+  /**
+   * Public entrypoint. Opens the "Spend and earn" confirmation bottom sheet
+   * when the user is eligible (`canLink`); otherwise fires the existing
+   * error toast and bails. Does NOT trigger any on-chain action — the real
+   * linkage runs from `confirmLinkInBackground`, which is dispatched by the
+   * sheet when the user presses "Link card". Views should always call this
+   * (not `confirmLinkInBackground`) so the confirmation sheet always shows.
+   */
+  openLinkCardSheet: () => void;
+  /**
+   * @internal Sheet-only confirm handler. Runs the real on-chain linkage:
+   * `canLink` re-check, pending / success / error toast flow,
+   * `UserCancelledError` silent path, `BAANX_MAX_LIMIT` delegation amount.
+   * Consumers other than `MoneyLinkCardSheet` should NOT call this
+   * directly — go through `openLinkCardSheet` instead.
+   */
+  confirmLinkInBackground: () => Promise<boolean>;
   reset: () => void;
 }
 
@@ -65,6 +84,7 @@ export const useMoneyAccountCardLinkage =
   (): UseMoneyAccountCardLinkageReturn => {
     const { toastRef } = useContext(ToastContext);
     const theme = useTheme();
+    const navigation = useNavigation();
 
     const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
     const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
@@ -73,6 +93,9 @@ export const useMoneyAccountCardLinkage =
     );
     const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
     const delegationSettings = useSelector(selectCardDelegationSettings);
+    const isAlreadyDelegated = useSelector(
+      selectIsMoneyAccountDelegatedForCard,
+    );
 
     const [status, setStatus] = useState<LinkageStatus>('idle');
     const [error, setError] = useState<Error | null>(null);
@@ -89,7 +112,10 @@ export const useMoneyAccountCardLinkage =
     });
 
     const canLink = Boolean(
-      hasRequirements && isCardAuthenticated && moneyAccountCardToken,
+      hasRequirements &&
+        isCardAuthenticated &&
+        moneyAccountCardToken &&
+        !isAlreadyDelegated,
     );
 
     const showPendingToast = useCallback(() => {
@@ -152,7 +178,33 @@ export const useMoneyAccountCardLinkage =
       });
     }, [theme.colors.error.default, theme.colors.error.muted, toastRef]);
 
-    const linkInBackground = useCallback(async (): Promise<boolean> => {
+    /**
+     * Public entrypoint. Gates the linkage behind the "Spend and earn"
+     * confirmation sheet: when the user is eligible we navigate to the
+     * sheet, which dispatches the on-chain action via
+     * `confirmLinkInBackground` only after the user presses "Link card".
+     * If the user is not eligible we fire the existing error toast and
+     * bail — keeping the previous fail-closed behaviour intact.
+     */
+    const openLinkCardSheet = useCallback((): void => {
+      if (!canLink || !primaryMoneyAccount?.address) {
+        showErrorToast();
+        return;
+      }
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.LINK_CARD_SHEET,
+      });
+    }, [canLink, primaryMoneyAccount?.address, navigation, showErrorToast]);
+
+    /**
+     * Sheet-only confirm handler. Same body as the pre-sheet linkage:
+     * `canLink` re-check (defence in depth in case state changed while the
+     * sheet was open), same status transitions, same Predict-style pending /
+     * success / error toasts, same `UserCancelledError` silent path, same
+     * `BAANX_MAX_LIMIT`. Only `MoneyLinkCardSheet` should call this — every
+     * other callsite must go through `openLinkCardSheet`.
+     */
+    const confirmLinkInBackground = useCallback(async (): Promise<boolean> => {
       if (!canLink || !primaryMoneyAccount?.address) {
         showErrorToast();
         return false;
@@ -209,7 +261,8 @@ export const useMoneyAccountCardLinkage =
       isLinking: status === 'pending',
       error,
 
-      linkInBackground,
+      openLinkCardSheet,
+      confirmLinkInBackground,
       reset,
     };
   };

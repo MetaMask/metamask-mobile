@@ -1866,6 +1866,9 @@ describe('CardController — data pass-throughs', () => {
         provider,
         messenger: handle.messenger,
       });
+      const fetchCardHomeDataSpy = jest
+        .spyOn(controller, 'fetchCardHomeData')
+        .mockResolvedValue(undefined);
 
       const linkPromise = controller.linkMoneyAccountCard({
         moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
@@ -1918,6 +1921,44 @@ describe('CardController — data pass-throughs', () => {
         }),
         mockTokenSet,
       );
+      // Refreshes cardHomeData so selectIsMoneyAccountDelegatedForCard flips
+      // to true immediately after a successful link — see the call right
+      // after `provider.approveFunding` in CardController.linkMoneyAccountCard.
+      expect(fetchCardHomeDataSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('still resolves when the post-link fetchCardHomeData refresh rejects (linkage already succeeded — refresh errors are swallowed)', async () => {
+      const mockChallenge = jest.fn().mockResolvedValue({
+        delegationToken: 'jwt-refresh',
+        nonce: 'nonce-refresh',
+        expiresAt: '2099-01-01',
+      });
+      const mockApproveFunding = jest.fn().mockResolvedValue(undefined);
+      const provider = buildMockProvider({
+        fetchDelegationChallenge: mockChallenge,
+        approveFunding: mockApproveFunding,
+        generateCardDelegationSignatureMessage: mockGenerateSiwe,
+      });
+
+      const handle = buildLinkMessenger();
+      const controller = buildLinkController({
+        provider,
+        messenger: handle.messenger,
+      });
+      jest
+        .spyOn(controller, 'fetchCardHomeData')
+        .mockRejectedValue(new Error('refresh boom'));
+
+      const linkPromise = controller.linkMoneyAccountCard({
+        moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+        delegationAmountHuman: '2199023255551',
+      });
+
+      await waitFor(() => handle.addTransactionCalls.length > 0);
+      handle.emitConfirmed();
+
+      await expect(linkPromise).resolves.toBeUndefined();
+      expect(mockApproveFunding).toHaveBeenCalledTimes(1);
     });
 
     it('subscribes to transactionConfirmed BEFORE submitting the transaction (closes the race)', async () => {
@@ -1979,6 +2020,9 @@ describe('CardController — data pass-throughs', () => {
         provider,
         messenger: handle.messenger,
       });
+      const fetchCardHomeDataSpy = jest
+        .spyOn(controller, 'fetchCardHomeData')
+        .mockResolvedValue(undefined);
 
       const linkPromise = controller.linkMoneyAccountCard({
         moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
@@ -1990,6 +2034,9 @@ describe('CardController — data pass-throughs', () => {
 
       await expect(linkPromise).rejects.toThrow('out of gas');
       expect(mockApproveFunding).not.toHaveBeenCalled();
+      // Refresh is only triggered on the success path — failed transactions
+      // must NOT refresh card home data.
+      expect(fetchCardHomeDataSpy).not.toHaveBeenCalled();
     });
 
     it('fails closed when Monad USDC is missing from delegation settings (after refetch)', async () => {

@@ -6618,7 +6618,10 @@
       "link_pending_description": "Approving spending limit…",
       "link_success_title": "Card linked successfully",
       "link_success_description": "You can now spend while you earn",
-      "link_error": "Couldn't link card"
+      "link_error": "Couldn't link card",
+      "link_card_sheet_title": "Spend and earn",
+      "link_card_sheet_description": "Link your card so you can spend your Money balance while it earns 4% APY.",
+      "link_card_sheet_cta": "Link card"
     },
     "what_you_get": {
       "title": "What you get",

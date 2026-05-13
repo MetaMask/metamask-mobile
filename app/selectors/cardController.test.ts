@@ -15,7 +15,9 @@ import {
   selectCardDelegationSettings,
   selectCardHasApprovedLineaFunding,
   selectCardLineaUsdcToken,
+  selectIsMoneyAccountDelegatedForCard,
 } from './cardController';
+import { selectPrimaryMoneyAccount } from './moneyAccountController';
 import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
 import {
   FundingAssetStatus,
@@ -28,6 +30,9 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 jest.mock('./multichainAccounts/accounts');
 jest.mock('../core/Multichain/utils');
+jest.mock('./moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: jest.fn(),
+}));
 
 const mockSelectSelectedInternalAccountByScope =
   selectSelectedInternalAccountByScope as jest.MockedFunction<
@@ -36,6 +41,10 @@ const mockSelectSelectedInternalAccountByScope =
 const mockIsEthAccount = isEthAccount as jest.MockedFunction<
   typeof isEthAccount
 >;
+const mockSelectPrimaryMoneyAccount =
+  selectPrimaryMoneyAccount as unknown as jest.MockedFunction<
+    () => { address: string } | undefined
+  >;
 
 const createMockRootState = (
   overrides: Partial<CardControllerState> = {},
@@ -534,5 +543,116 @@ describe('selectCardLineaUsdcToken', () => {
     });
 
     expect(selectCardLineaUsdcToken(state)).toBeNull();
+  });
+});
+
+describe('selectIsMoneyAccountDelegatedForCard', () => {
+  const MA_ADDRESS = '0xma000000000000000000000000000000000000aa';
+
+  const monadUsdcAsset = {
+    symbol: 'USDC',
+    name: 'USD Coin',
+    address: '0xusdc000000000000000000000000000000000005',
+    walletAddress: MA_ADDRESS,
+    decimals: 6,
+    chainId: 'eip155:143',
+    spendableBalance: '0',
+    spendingCap: '0',
+    priority: 1,
+    status: FundingAssetStatus.Active,
+  } as const;
+
+  const homeDataWithMonadUsdc = (
+    overrides: Partial<typeof monadUsdcAsset> = {},
+  ): CardHomeData => ({
+    ...mockCardHomeData,
+    fundingAssets: [{ ...monadUsdcAsset, ...overrides }],
+  });
+
+  beforeEach(() => {
+    mockSelectPrimaryMoneyAccount.mockReset();
+  });
+
+  it('returns false when there is no primary Money Account', () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
+    const state = createMockRootState({
+      cardHomeData:
+        homeDataWithMonadUsdc() as unknown as CardControllerState['cardHomeData'],
+    });
+
+    expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(false);
+  });
+
+  it('returns false when there are no funding assets', () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MA_ADDRESS });
+    const state = createMockRootState({ cardHomeData: null });
+
+    expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(false);
+  });
+
+  it('returns true when the primary Money Account has an active Monad USDC funding row', () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MA_ADDRESS });
+    const state = createMockRootState({
+      cardHomeData:
+        homeDataWithMonadUsdc() as unknown as CardControllerState['cardHomeData'],
+    });
+
+    expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(true);
+  });
+
+  it('returns true when the matching row has Limited (partial allowance) status', () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MA_ADDRESS });
+    const state = createMockRootState({
+      cardHomeData: homeDataWithMonadUsdc({
+        status: FundingAssetStatus.Limited,
+      }) as unknown as CardControllerState['cardHomeData'],
+    });
+
+    expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(true);
+  });
+
+  it('returns false when the matching row is Inactive (NotEnabled)', () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MA_ADDRESS });
+    const state = createMockRootState({
+      cardHomeData: homeDataWithMonadUsdc({
+        status: FundingAssetStatus.Inactive,
+      }) as unknown as CardControllerState['cardHomeData'],
+    });
+
+    expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(false);
+  });
+
+  it('returns false when the wallet address on the funding row does not match the Money Account', () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MA_ADDRESS });
+    const state = createMockRootState({
+      cardHomeData: homeDataWithMonadUsdc({
+        walletAddress: '0xother000000000000000000000000000000000099',
+      }) as unknown as CardControllerState['cardHomeData'],
+    });
+
+    expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(false);
+  });
+
+  it('returns false when the Money Account row is on a different chain than Monad', () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MA_ADDRESS });
+    const state = createMockRootState({
+      cardHomeData: homeDataWithMonadUsdc({
+        chainId: 'eip155:59144',
+      }) as unknown as CardControllerState['cardHomeData'],
+    });
+
+    expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(false);
+  });
+
+  it('matches addresses case-insensitively', () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({
+      address: MA_ADDRESS.toUpperCase(),
+    });
+    const state = createMockRootState({
+      cardHomeData:
+        homeDataWithMonadUsdc() as unknown as CardControllerState['cardHomeData'],
+    });
+
+    expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(true);
   });
 });

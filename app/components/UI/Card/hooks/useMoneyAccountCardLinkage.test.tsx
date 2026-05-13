@@ -8,9 +8,11 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import {
   selectCardDelegationSettings,
   selectIsCardAuthenticated,
+  selectIsMoneyAccountDelegatedForCard,
 } from '../../../../selectors/cardController';
 import { selectMoneyEnableMoneyAccountFlag } from '../../Money/selectors/featureFlags';
 import { resolveMoneyAccountCardToken } from '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
+import Routes from '../../../../constants/navigation/Routes';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { FundingStatus } from '../types';
 import { useMoneyAccountCardLinkage } from './useMoneyAccountCardLinkage';
@@ -18,6 +20,17 @@ import { useMoneyAccountCardLinkage } from './useMoneyAccountCardLinkage';
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+    }),
+  };
+});
 
 const mockLinkMoneyAccountCard = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
@@ -95,6 +108,7 @@ const buildSelectors = (
     isMoneyAccountEnabled?: boolean;
     isCardAuthenticated?: boolean;
     delegationSettings?: unknown;
+    isAlreadyDelegated?: boolean;
   } = {},
 ) => ({
   primaryMoneyAccount: { address: MONEY_ACCOUNT_ADDRESS },
@@ -102,6 +116,7 @@ const buildSelectors = (
   isMoneyAccountEnabled: true,
   isCardAuthenticated: true,
   delegationSettings: { ok: true },
+  isAlreadyDelegated: false,
   ...overrides,
 });
 
@@ -116,6 +131,8 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
       return state.isCardAuthenticated;
     if (selector === selectCardDelegationSettings)
       return state.delegationSettings;
+    if (selector === selectIsMoneyAccountDelegatedForCard)
+      return state.isAlreadyDelegated;
     return undefined;
   });
 };
@@ -184,9 +201,86 @@ describe('useMoneyAccountCardLinkage', () => {
       const { result } = renderLinkageHook();
       expect(result.current.canLink).toBe(false);
     });
+
+    it('reports canLink=false when the Money Account is already delegated for card (re-link suppressed)', () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      const { result } = renderLinkageHook();
+      expect(result.current.canLink).toBe(false);
+    });
   });
 
-  describe('linkInBackground - happy path', () => {
+  describe('openLinkCardSheet (sheet entrypoint)', () => {
+    it('navigates to the Link Card sheet and does NOT call the controller when canLink is true', () => {
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.openLinkCardSheet();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.LINK_CARD_SHEET,
+      });
+      expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(result.current.status).toBe('idle');
+    });
+
+    it('fails closed (error toast, no nav, no controller call) when canLink is false', () => {
+      applySelectorMocks(buildSelectors({ isCardAuthenticated: false }));
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.openLinkCardSheet();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast.mock.calls[0][0]).toMatchObject({
+        labelOptions: [{ label: "Couldn't link card", isBold: true }],
+      });
+    });
+
+    it('fails closed when the Monad USDC token cannot be resolved', () => {
+      mockResolveMoneyAccountCardToken.mockReturnValueOnce(null);
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.openLinkCardSheet();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('fails closed when there is no primary Money account', () => {
+      applySelectorMocks(buildSelectors({ primaryMoneyAccount: undefined }));
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.openLinkCardSheet();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('fails closed when the Money Account is already delegated (defensive guard for direct callers)', () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.openLinkCardSheet();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('confirmLinkInBackground - happy path', () => {
     it('transitions idle -> pending -> success and calls the controller once with BAANX_MAX_LIMIT and the MA address', async () => {
       mockLinkMoneyAccountCard.mockResolvedValueOnce(undefined);
 
@@ -194,7 +288,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       let returned: boolean | undefined;
       await act(async () => {
-        returned = await result.current.linkInBackground();
+        returned = await result.current.confirmLinkInBackground();
       });
 
       expect(returned).toBe(true);
@@ -205,6 +299,17 @@ describe('useMoneyAccountCardLinkage', () => {
         moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
         delegationAmountHuman: BAANX_MAX_LIMIT,
       });
+    });
+
+    it('does NOT navigate to the sheet (sheet is the caller, not the callee)', async () => {
+      mockLinkMoneyAccountCard.mockResolvedValueOnce(undefined);
+      const { result } = renderLinkageHook();
+
+      await act(async () => {
+        await result.current.confirmLinkInBackground();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('shows the Predict-style pending toast with a Spinner startAccessory before the success toast', async () => {
@@ -219,7 +324,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       let linkPromise: Promise<boolean> | undefined;
       act(() => {
-        linkPromise = result.current.linkInBackground();
+        linkPromise = result.current.confirmLinkInBackground();
       });
 
       const pendingCall = mockShowToast.mock.calls[0]?.[0];
@@ -250,7 +355,7 @@ describe('useMoneyAccountCardLinkage', () => {
     });
   });
 
-  describe('linkInBackground - failure paths', () => {
+  describe('confirmLinkInBackground - failure paths', () => {
     it('sets status=error and shows error toast on generic reject', async () => {
       mockLinkMoneyAccountCard.mockRejectedValueOnce(new Error('boom'));
 
@@ -258,7 +363,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       let returned: boolean | undefined;
       await act(async () => {
-        returned = await result.current.linkInBackground();
+        returned = await result.current.confirmLinkInBackground();
       });
 
       expect(returned).toBe(false);
@@ -283,7 +388,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       let returned: boolean | undefined;
       await act(async () => {
-        returned = await result.current.linkInBackground();
+        returned = await result.current.confirmLinkInBackground();
       });
 
       expect(returned).toBe(false);
@@ -295,13 +400,13 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(Logger.error).not.toHaveBeenCalled();
     });
 
-    it('fails closed when canLink is false: no controller call, error toast, returns false', async () => {
+    it('fails closed when canLink is false (defence in depth): no controller call, error toast, returns false', async () => {
       applySelectorMocks(buildSelectors({ isCardAuthenticated: false }));
       const { result } = renderLinkageHook();
 
       let returned: boolean | undefined;
       await act(async () => {
-        returned = await result.current.linkInBackground();
+        returned = await result.current.confirmLinkInBackground();
       });
 
       expect(returned).toBe(false);
@@ -320,7 +425,7 @@ describe('useMoneyAccountCardLinkage', () => {
       const { result } = renderLinkageHook();
 
       await act(async () => {
-        await result.current.linkInBackground();
+        await result.current.confirmLinkInBackground();
       });
       expect(result.current.status).toBe('error');
       expect(result.current.error).not.toBeNull();

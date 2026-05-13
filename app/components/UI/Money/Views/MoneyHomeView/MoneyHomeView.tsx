@@ -75,7 +75,7 @@ const MoneyHomeView = () => {
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
-  const { canLink, linkInBackground } = useMoneyAccountCardLinkage();
+  const { canLink, openLinkCardSheet } = useMoneyAccountCardLinkage();
   const geolocation = useSelector(getDetectedGeolocation);
   const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
 
@@ -136,15 +136,15 @@ const MoneyHomeView = () => {
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation]);
 
-  const handleLinkCardPress = useCallback(async () => {
+  const handleLinkCardPress = useCallback(() => {
     if (isCardholder && canLink) {
-      await linkInBackground();
+      openLinkCardSheet();
       return;
     }
     navigation.navigate(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
     });
-  }, [isCardholder, canLink, linkInBackground, navigation]);
+  }, [isCardholder, canLink, openLinkCardSheet, navigation]);
 
   const handleGetNowPress = useCallback(() => {
     navigation.navigate(Routes.CARD.ROOT);
