@@ -3,6 +3,7 @@ import { Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
+  TabEmptyState,
   Text,
   TextVariant,
   TextColor,
@@ -34,6 +35,8 @@ interface ExploreSearchResultsV2Props {
   searchQuery: string;
   sections: SearchFeedSection[];
   onViewMore: (feedId: SearchFeedId) => void;
+  /** When set, renders a "No {title} found" header above the all-results list. */
+  emptyFeedTitle?: string;
 }
 
 interface ListItemHeader {
@@ -61,6 +64,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
   searchQuery,
   sections,
   onViewMore,
+  emptyFeedTitle,
 }) => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
@@ -208,6 +212,26 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
     return `${item.feedId}-${index}`;
   }, []);
 
+  const listHeader = useMemo(() => {
+    if (!emptyFeedTitle) return null;
+    return (
+      <Box twClassName="mb-4">
+        <Box twClassName="rounded-xl bg-secondary py-6 px-4 items-center mb-4">
+          <TabEmptyState
+            description={strings('trending.no_results_for_feed', {
+              feedName: emptyFeedTitle,
+            })}
+          />
+        </Box>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {strings('trending.showing_all_results_for', {
+            query: searchQuery,
+          })}
+        </Text>
+      </Box>
+    );
+  }, [emptyFeedTitle, searchQuery]);
+
   return (
     <Box twClassName="flex-1 bg-default">
       <FlashList
@@ -220,6 +244,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
         testID="trending-search-results-list"
+        ListHeaderComponent={listHeader}
         ListFooterComponent={renderFooter}
         onScrollBeginDrag={onScrollBeginDrag}
       />

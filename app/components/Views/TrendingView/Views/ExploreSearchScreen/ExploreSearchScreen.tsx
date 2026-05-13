@@ -163,6 +163,15 @@ const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
     setActivePill(key as ActivePill);
   }, []);
 
+  const showFeedList =
+    activePill !== ALL_PILL_KEY &&
+    (activeSection?.isLoading || (activeSection?.items.length ?? 0) > 0);
+
+  const emptyFeedTitle =
+    !showFeedList && activePill !== ALL_PILL_KEY
+      ? activeSection?.title
+      : undefined;
+
   return (
     <Box twClassName="flex-1">
       <Box twClassName="px-4">
@@ -173,13 +182,7 @@ const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
           testIdPrefix="explore-search"
         />
       </Box>
-      {activePill === ALL_PILL_KEY ? (
-        <ExploreSearchResultsV2
-          searchQuery={searchQuery}
-          sections={sections}
-          onViewMore={handlePillSelect}
-        />
-      ) : (
+      {showFeedList ? (
         <FullFeedList
           feedId={activePill}
           searchQuery={searchQuery}
@@ -188,6 +191,13 @@ const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
           fetchMore={activeSection?.fetchMore}
           isFetchingMore={activeSection?.isFetchingMore}
           hasMore={activeSection?.hasMore}
+        />
+      ) : (
+        <ExploreSearchResultsV2
+          searchQuery={searchQuery}
+          sections={sections}
+          onViewMore={handlePillSelect}
+          emptyFeedTitle={emptyFeedTitle}
         />
       )}
     </Box>
