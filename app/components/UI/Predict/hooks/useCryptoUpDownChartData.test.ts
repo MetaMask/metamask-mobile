@@ -173,12 +173,12 @@ describe('useCryptoUpDownChartData', () => {
 
       act(() => {
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 51000,
           timestamp: 100,
         });
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 51500,
           timestamp: 110,
         });
@@ -206,7 +206,7 @@ describe('useCryptoUpDownChartData', () => {
 
       act(() => {
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 51000,
           timestamp: 1700000000,
         });
@@ -228,7 +228,7 @@ describe('useCryptoUpDownChartData', () => {
 
       act(() => {
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 51000,
           timestamp: 1700000000000,
         });
@@ -263,7 +263,7 @@ describe('useCryptoUpDownChartData', () => {
 
       act(() => {
         retainedLiveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 51000,
           timestamp: 100,
         });
@@ -288,7 +288,7 @@ describe('useCryptoUpDownChartData', () => {
       act(() => {
         jest.setSystemTime(new Date('2026-01-01T00:00:31.000Z'));
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 51000,
           timestamp: 100,
         });
@@ -322,7 +322,7 @@ describe('useCryptoUpDownChartData', () => {
 
       act(() => {
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 51000,
           timestamp: 100,
         });
@@ -367,7 +367,7 @@ describe('useCryptoUpDownChartData', () => {
 
       act(() => {
         retainedLiveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 51000,
           timestamp: 100,
         });
@@ -409,7 +409,7 @@ describe('useCryptoUpDownChartData', () => {
 
       act(() => {
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 51500,
           timestamp: 210,
         });
@@ -436,7 +436,7 @@ describe('useCryptoUpDownChartData', () => {
 
       act(() => {
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 51500,
           timestamp: 110,
         });
@@ -463,12 +463,12 @@ describe('useCryptoUpDownChartData', () => {
 
       act(() => {
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 51500,
           timestamp: 260,
         });
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 51600,
           timestamp: 270,
         });
@@ -494,7 +494,7 @@ describe('useCryptoUpDownChartData', () => {
 
       act(() => {
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 51500,
           timestamp: 90,
         });
@@ -522,7 +522,7 @@ describe('useCryptoUpDownChartData', () => {
 
       act(() => {
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 51500,
           timestamp: 110,
         });
@@ -571,7 +571,7 @@ describe('useCryptoUpDownChartData', () => {
 
       act(() => {
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 50000,
           timestamp: 100,
         });
@@ -580,12 +580,12 @@ describe('useCryptoUpDownChartData', () => {
       act(() => {
         jest.setSystemTime(new Date('2026-01-01T00:00:06.000Z'));
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 52000,
           timestamp: 110,
         });
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 53000,
           timestamp: 120,
         });
@@ -615,7 +615,7 @@ describe('useCryptoUpDownChartData', () => {
 
       act(() => {
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 50000,
           timestamp: 100,
         });
@@ -654,7 +654,7 @@ describe('useCryptoUpDownChartData', () => {
       act(() => {
         jest.setSystemTime(new Date('2026-01-01T00:00:06.000Z'));
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 50000,
           timestamp: 100,
         });
@@ -664,7 +664,7 @@ describe('useCryptoUpDownChartData', () => {
 
       act(() => {
         liveUpdateHandler?.({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 51000,
           timestamp: 110,
         });
@@ -711,7 +711,7 @@ describe('useCryptoUpDownChartData', () => {
       });
 
       expect(mockUseLiveCryptoPrices).toHaveBeenCalledWith(
-        'btcusdt',
+        'btc/usd',
         expect.any(Function),
       );
     });

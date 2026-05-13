@@ -176,7 +176,7 @@ export const useCryptoUpDownChartData = (
 
   const isLive = isLiveByEndDate && !hasFrozenLiveData;
 
-  const wsSymbol = isLive && symbol ? `${symbol.toLowerCase()}usdt` : '';
+  const wsSymbol = isLive && symbol ? `${symbol.toLowerCase()}/usd` : '';
 
   useLiveCryptoPrices(wsSymbol, handleLiveUpdate);
 
