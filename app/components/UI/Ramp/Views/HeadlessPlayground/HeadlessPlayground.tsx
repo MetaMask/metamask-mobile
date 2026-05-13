@@ -1288,13 +1288,13 @@ function HeadlessPlayground() {
 type AwaitStatus = 'idle' | 'awaiting' | 'terminal' | 'timed-out' | 'rejected';
 
 interface OrderTrackingPanelProps {
-  lastOrderId: string;
-  trackedOrder: RampsOrder | undefined;
-  awaitStatus: AwaitStatus;
-  awaitMessage: string | null;
-  onRefresh: () => void;
-  onAwaitTerminalState: () => void;
-  styles: ReturnType<typeof styleSheet>;
+  readonly lastOrderId: string;
+  readonly trackedOrder: RampsOrder | undefined;
+  readonly awaitStatus: AwaitStatus;
+  readonly awaitMessage: string | null;
+  readonly onRefresh: () => void;
+  readonly onAwaitTerminalState: () => void;
+  readonly styles: ReturnType<typeof styleSheet>;
 }
 
 function getAwaitBadgeColor(status: AwaitStatus): TextColor {

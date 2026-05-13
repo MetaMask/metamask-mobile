@@ -488,6 +488,28 @@ describe('useHeadlessBuy', () => {
         ).rejects.toMatchObject({ headlessBuyErrorCode: 'LIMIT_EXCEEDED' });
       });
 
+      // Second Cursor Bugbot regression — the same per-provider rule must
+      // hold for the message-regex fallback path (when providers don't
+      // return structured `code` fields). Previously this used
+      // `combinedMessage` which joined all provider messages together,
+      // so "Rate limit exceeded" from B contaminated the "Below minimum"
+      // signal from A.
+      it('classifies per provider on the message-regex path too (no SDK codes)', async () => {
+        mockGetQuotesRaw.mockResolvedValueOnce({
+          success: [],
+          sorted: [],
+          error: [
+            { provider: 'transak', error: 'Below minimum buy amount' },
+            { provider: 'moonpay', error: 'Rate limit exceeded' },
+          ],
+          customActions: [],
+        });
+        const { result } = renderHook(() => useHeadlessBuy());
+        await expect(
+          result.current.getQuotes(getQuotesParams),
+        ).rejects.toMatchObject({ headlessBuyErrorCode: 'LIMIT_EXCEEDED' });
+      });
+
       it('returns the response unchanged when both success and error are empty', async () => {
         mockGetQuotesRaw.mockResolvedValueOnce({
           success: [],
@@ -796,6 +818,50 @@ describe('useHeadlessBuy', () => {
         await expect(result.current.getQuotes(baseQuotesParams)).resolves.toBe(
           happy,
         );
+        expect(mockGetQuotesRaw).toHaveBeenCalled();
+      });
+
+      // Coverage test: catalog has SOME providers, but the caller asked for
+      // a provider that isn't among them. Exercises the unknown-provider
+      // branch inside the candidate-building loop (different from
+      // `providers: []` which short-circuits before the loop runs).
+      it('falls through when a requested providerId is missing from a non-empty catalog', async () => {
+        (useRampsController as jest.Mock).mockReturnValue({
+          ...baseControllerValue,
+          // Catalog has a different provider than the one the caller asked
+          // for. Forces the loop to take the `if (!provider)` branch and
+          // record `bounds: undefined` for each paymentMethod.
+          providers: buildProvidersWithBounds([
+            {
+              id: '/providers/moonpay',
+              currency: 'EUR',
+              paymentMethodId: '/payments/debit-credit-card',
+              minAmount: 10,
+              maxAmount: 5000,
+            },
+          ]),
+          userRegion: {
+            ...mockUserRegion,
+            country: { isoCode: 'FR', currency: 'EUR' },
+          },
+        });
+        const happy = {
+          success: [],
+          sorted: [],
+          error: [],
+          customActions: [],
+        };
+        mockGetQuotesRaw.mockResolvedValueOnce(happy);
+        const { result } = renderHook(() => useHeadlessBuy());
+        await expect(
+          result.current.getQuotes({
+            ...baseQuotesParams,
+            amount: 5,
+            // Asks for a provider the catalog doesn't have — `find`
+            // returns undefined and the loop takes the unknown branch.
+            providerIds: ['/providers/unknown'],
+          }),
+        ).resolves.toBe(happy);
         expect(mockGetQuotesRaw).toHaveBeenCalled();
       });
 
