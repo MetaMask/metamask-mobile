@@ -133,53 +133,6 @@ export class WC2Manager {
   // Milliseconds to wait between consecutive session restorations on startup.
   private static readonly SESSION_RESTORE_STAGGER_MS = 200;
 
-  private async cleanupBrokenRestoredSession(
-    session: SessionTypes.Struct,
-    error: unknown,
-  ): Promise<void> {
-    DevLogger.log(
-      `WC2::restoreSessions cleaning up broken session topic=${session.topic} pairingTopic=${session.pairingTopic}`,
-      error,
-    );
-
-    try {
-      await this.sessions[session.topic]?.removeListeners();
-      delete this.sessions[session.topic];
-    } catch (cleanupError) {
-      DevLogger.log(
-        `WC2::restoreSessions failed to cleanup local session topic=${session.topic}`,
-        cleanupError,
-      );
-    }
-
-    try {
-      const permissionsController = (
-        Engine.context as {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          PermissionController: PermissionController<any, any>;
-        }
-      ).PermissionController;
-      permissionsController.revokeAllPermissions(session.pairingTopic);
-    } catch (revokeError) {
-      DevLogger.log(
-        `WC2::restoreSessions failed to revoke permissions for pairingTopic=${session.pairingTopic}`,
-        revokeError,
-      );
-    }
-
-    try {
-      await this.web3Wallet.disconnectSession({
-        topic: session.topic,
-        reason: { code: 1, message: ERROR_MESSAGES.AUTO_REMOVE },
-      });
-    } catch (disconnectError) {
-      DevLogger.log(
-        `WC2::restoreSessions failed to disconnect stale session topic=${session.topic}`,
-        disconnectError,
-      );
-    }
-  }
-
   /**
    * Restores all active WalletConnect sessions one at a time.
    *
@@ -278,7 +231,6 @@ export class WC2Manager {
         });
       } catch (err) {
         DevLogger.log(`WC2::init can't update session ${sessionKey}`);
-        await this.cleanupBrokenRestoredSession(session, err);
       }
       await wait(WC2Manager.SESSION_RESTORE_STAGGER_MS);
     }
