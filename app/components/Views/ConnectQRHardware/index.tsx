@@ -33,6 +33,9 @@ import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import { getChecksumAddress } from '@metamask/utils';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
 import { ConnectQRHardwareSelectorsIDs } from './ConnectQRHardware.testIds';
+import { useHardwareWallet } from '../../../core/HardwareWallet/contexts/HardwareWalletContext';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { useQrScanErrorForwarding } from '../../../core/HardwareWallet/hooks/useQrScanErrorForwarding';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
@@ -95,6 +98,7 @@ const createStyles = (colors: ThemeColors) =>
 const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { setTargetWalletType, setQrScanRetryHandler } = useHardwareWallet();
   const styles = createStyles(colors);
   const hideMarketingContent = route?.params?.hideMarketingContent ?? false;
 
@@ -116,6 +120,17 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
     accounts.length <= 0
       ? INSTRUCTION_SAFE_AREA_EDGES
       : ACCOUNT_SELECTOR_SAFE_AREA_EDGES;
+
+  useEffect(() => {
+    setTargetWalletType(HardwareWalletType.Qr);
+    setQrScanRetryHandler?.(() => {
+      setIsScanning(true);
+    });
+
+    return () => {
+      setQrScanRetryHandler?.(null);
+    };
+  }, [setQrScanRetryHandler, setTargetWalletType]);
 
   useEffect(() => {
     KeyringController.getAccounts().then((value: string[]) => {
@@ -175,6 +190,12 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
     setErrorMsg(error);
     Engine.getQrKeyringScanner().rejectPendingScan(new Error(error));
   }, []);
+
+  const hideScanner = useCallback(() => {
+    setIsScanning(false);
+  }, []);
+  const { onQRHardwareScanError, handleScannerModalHide } =
+    useQrScanErrorForwarding({ hideScanner });
 
   const cancelScan = useCallback(() => {
     Engine.getQrKeyringScanner().rejectPendingScan(new Error('Scan cancelled'));
@@ -305,7 +326,10 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
         edges={safeAreaEdges}
         testID={ConnectQRHardwareSelectorsIDs.CONTAINER}
       >
-        <View style={styles.header}>
+        <View
+          style={styles.header}
+          testID={ConnectQRHardwareSelectorsIDs.HEADER}
+        >
           <Icon
             name="qrcode"
             size={42}
@@ -344,6 +368,8 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
         purpose={QrScanRequestType.PAIR}
         onScanSuccess={onScanSuccess}
         onScanError={onScanError}
+        onQRHardwareScanError={onQRHardwareScanError}
+        onModalHideComplete={handleScannerModalHide}
         hideModal={cancelScan}
       />
       <BlockingActionModal modalVisible={blockingModalVisible} isLoadingAction>
