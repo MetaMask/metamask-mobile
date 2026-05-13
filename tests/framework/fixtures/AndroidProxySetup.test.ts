@@ -35,6 +35,34 @@ function mockExecFileSuccess(stdout: string): void {
   );
 }
 
+/**
+ * Routes specific commands to different stdouts. Required because the helper
+ * now branches on `adb shell whoami` output before deciding whether to run
+ * `adb root` + `adb wait-for-device`.
+ */
+function mockExecFileBySubcommand(stdoutMap: {
+  openssl?: string;
+  whoami?: string;
+  default?: string;
+}): void {
+  execFileMock.mockImplementation(
+    (
+      cmd: string,
+      args: string[],
+      _opts: unknown,
+      cb: (err: unknown, result: { stdout: string; stderr: string }) => void,
+    ) => {
+      let stdout = stdoutMap.default ?? '';
+      if (cmd === 'openssl') {
+        stdout = stdoutMap.openssl ?? '';
+      } else if (cmd === 'adb' && args.includes('whoami')) {
+        stdout = stdoutMap.whoami ?? '';
+      }
+      cb(null, { stdout, stderr: '' });
+    },
+  );
+}
+
 function capturedCalls(): CapturedCall[] {
   return execFileMock.mock.calls.map((call: unknown[]) => ({
     cmd: call[0] as string,
@@ -69,8 +97,11 @@ describe('setupAndroidProxy', () => {
     execFileMock.mockReset();
   });
 
-  it('invokes openssl, then adb root + push + install + chmod + proxy commands in order', async () => {
-    mockExecFileSuccess('e5c3944b\n');
+  it('runs adb root + wait-for-device when the emulator is not yet root', async () => {
+    mockExecFileBySubcommand({
+      openssl: 'e5c3944b\n',
+      whoami: 'shell\n',
+    });
 
     await setupAndroidProxy({
       udid: 'emulator-5554',
@@ -88,10 +119,20 @@ describe('setupAndroidProxy', () => {
 
     expect(calls[1]).toEqual({
       cmd: 'adb',
-      args: ['-s', 'emulator-5554', 'root'],
+      args: ['-s', 'emulator-5554', 'shell', 'whoami'],
     });
 
     expect(calls[2]).toEqual({
+      cmd: 'adb',
+      args: ['-s', 'emulator-5554', 'root'],
+    });
+
+    expect(calls[3]).toEqual({
+      cmd: 'adb',
+      args: ['-s', 'emulator-5554', 'wait-for-device'],
+    });
+
+    expect(calls[4]).toEqual({
       cmd: 'adb',
       args: [
         '-s',
@@ -102,7 +143,7 @@ describe('setupAndroidProxy', () => {
       ],
     });
 
-    expect(calls[3]).toEqual({
+    expect(calls[5]).toEqual({
       cmd: 'adb',
       args: [
         '-s',
@@ -114,7 +155,7 @@ describe('setupAndroidProxy', () => {
       ],
     });
 
-    expect(calls[4]).toEqual({
+    expect(calls[6]).toEqual({
       cmd: 'adb',
       args: [
         '-s',
@@ -126,7 +167,7 @@ describe('setupAndroidProxy', () => {
       ],
     });
 
-    expect(calls[5]).toEqual({
+    expect(calls[7]).toEqual({
       cmd: 'adb',
       args: [
         '-s',
@@ -138,7 +179,7 @@ describe('setupAndroidProxy', () => {
       ],
     });
 
-    expect(calls[6]).toEqual({
+    expect(calls[8]).toEqual({
       cmd: 'adb',
       args: [
         '-s',
@@ -151,6 +192,52 @@ describe('setupAndroidProxy', () => {
         '10.0.2.2:8000',
       ],
     });
+
+    expect(calls).toHaveLength(9);
+  });
+
+  it('skips adb root + wait-for-device when the emulator is already root', async () => {
+    mockExecFileBySubcommand({
+      openssl: 'e5c3944b\n',
+      whoami: 'root\n',
+    });
+
+    await setupAndroidProxy({
+      udid: 'emulator-5554',
+      caCertPath: '/tmp/ca.pem',
+      proxyHost: '10.0.2.2',
+      proxyPort: 8000,
+    });
+
+    const calls = capturedCalls();
+    const cmdNames = calls.map((c) => `${c.cmd} ${c.args.join(' ')}`);
+
+    expect(cmdNames).not.toContain('adb -s emulator-5554 root');
+    expect(cmdNames).not.toContain('adb -s emulator-5554 wait-for-device');
+
+    expect(calls[0]).toEqual({
+      cmd: 'openssl',
+      args: ['x509', '-in', '/tmp/ca.pem', '-subject_hash_old', '-noout'],
+    });
+
+    expect(calls[1]).toEqual({
+      cmd: 'adb',
+      args: ['-s', 'emulator-5554', 'shell', 'whoami'],
+    });
+
+    // Next call after whoami should be push, not root.
+    expect(calls[2]).toEqual({
+      cmd: 'adb',
+      args: [
+        '-s',
+        'emulator-5554',
+        'push',
+        '/tmp/ca.pem',
+        '/data/local/tmp/e5c3944b.0',
+      ],
+    });
+
+    expect(calls).toHaveLength(7);
   });
 });
 

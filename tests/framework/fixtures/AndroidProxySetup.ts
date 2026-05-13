@@ -55,7 +55,18 @@ export async function setupAndroidProxy(opts: {
   const installedCertPath = `${ANDROID_USER_TRUST_DIR}/${hash}.0`;
   const stagedCertPath = `${ANDROID_TMP_DIR}/${hash}.0`;
 
-  await run('adb', ['-s', udid, 'root']);
+  // `adb root` restarts the on-device adbd, which briefly drops Detox's adb
+  // session and corrupts element references in tests already in flight
+  // (observed: `DetoxRuntimeError: waitFor() argument is invalid, got object`
+  // on the first spec after this helper ran). Skip the root call when adbd
+  // is already running as root, and `adb wait-for-device` afterwards
+  // otherwise to ensure adbd is back online before subsequent commands.
+  const whoamiOutput = await run('adb', ['-s', udid, 'shell', 'whoami']);
+  if (whoamiOutput.trim() !== 'root') {
+    await run('adb', ['-s', udid, 'root']);
+    await run('adb', ['-s', udid, 'wait-for-device']);
+  }
+
   await run('adb', ['-s', udid, 'push', caCertPath, stagedCertPath]);
   await run('adb', [
     '-s',
