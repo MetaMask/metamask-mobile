@@ -68,6 +68,7 @@ const PaymentMethodRow = ({
 }: PaymentMethodRowProps) => {
   const tw = useTailwind();
   const resolvedTestID = testID ?? `payment-method-row-${id}`;
+  const iconSlotTestID = `${resolvedTestID}-icon-slot`;
 
   const content = (
     <>
@@ -75,6 +76,7 @@ const PaymentMethodRow = ({
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
         twClassName="w-10 h-10 rounded-full bg-section"
+        testID={iconSlotTestID}
       >
         {icon}
       </Box>
