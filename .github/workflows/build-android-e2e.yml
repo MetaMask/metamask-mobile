@@ -266,6 +266,14 @@ jobs:
           # sibling "Restore Gradle dependencies from branch cache" step above.
           key: gradle-main-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
+      - name: Configure Namespace Gradle remote cache
+        id: namespace-gradle-cache
+        if: ${{ inputs.runner_provider == 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
+        run: |
+          nsc cache gradle setup --init-gradle "$RUNNER_TEMP/namespace-gradle-init.gradle"
+          echo "init-script=$RUNNER_TEMP/namespace-gradle-init.gradle" >> "$GITHUB_OUTPUT"
+        shell: bash
+
       - name: Build Android E2E APKs
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         run: |
@@ -283,6 +291,7 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
+          GRADLE_INIT_SCRIPT: ${{ steps.namespace-gradle-cache.outputs.init-script }}
           NODE_OPTIONS: '--max-old-space-size=4096'
           # Limit Metro workers to prevent OOM (each worker uses ~3GB)
           METRO_MAX_WORKERS: '4'
