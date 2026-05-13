@@ -1,4 +1,3 @@
-/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../../framework/fixtures/FixtureBuilder';
@@ -21,6 +20,7 @@ import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager';
 import {
   setupMockRequest,
   setupMockPostRequest,
+  waitForProxiedRequestsMatching,
 } from '../../../api-mocking/helpers/mockHelpers';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -40,6 +40,8 @@ const LOCALHOST_SENTINEL_URL =
   device.getPlatform() === 'android'
     ? 'https://tx-sentinel-127.0.0.1.api.cx.metamask.io'
     : 'https://tx-sentinel-localhost.api.cx.metamask.io';
+const REMOTE_FEATURE_FLAGS_URL =
+  'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=test';
 
 const SEND_ETH_TRANSACTION_MOCK = {
   data: '0x',
@@ -102,6 +104,7 @@ const SIMULATION_RESPONSE = {
           {
             maxFeePerGas: '0xf19b9f48d',
             maxPriorityFeePerGas: '0x9febc9',
+            gas: '0x5f34',
             balanceNeeded: '0x59d9d3b865ed8',
             currentBalance: '0x77f9fd8d99e7e0',
             error: '',
@@ -206,8 +209,19 @@ const localNodeOptions = [
   },
 ];
 
-const performSendTransaction = async () => {
+const performSendTransaction = async (mockServer: Mockttp) => {
   await loginToApp();
+  await waitForProxiedRequestsMatching(
+    mockServer,
+    {
+      method: 'GET',
+      urlSubstring: REMOTE_FEATURE_FLAGS_URL,
+    },
+    {
+      description: 'remote feature flags fetched',
+      timeout: 30000,
+    },
+  );
   await device.disableSynchronization();
   await WalletView.tapWalletSendButton();
   await SendView.selectEthereumToken();
@@ -215,6 +229,10 @@ const performSendTransaction = async () => {
   await SendView.pressContinueButton();
   await SendView.inputRecipientAddress(RECIPIENT_ADDRESS_MOCK);
   await SendView.pressReviewButton();
+  await Assertions.expectElementToNotBeVisible(SendView.reviewButton, {
+    description: 'Send review button dismissed',
+    timeout: 5000,
+  });
   await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails, {
     description: 'gas fees row is present on review screen',
     timeout: 30000,
@@ -237,8 +255,7 @@ const performSendTransaction = async () => {
   await TabBarComponent.tapActivity();
 };
 
-// Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778589879443169
-describe.skip(
+describe(
   SmokeConfirmations('Send native asset using EIP-7702 - Success Case'),
   () => {
     beforeAll(async () => {
@@ -287,8 +304,8 @@ describe.skip(
             });
           },
         },
-        async () => {
-          await performSendTransaction();
+        async ({ mockServer }) => {
+          await performSendTransaction(mockServer);
           await Assertions.expectTextDisplayed('Confirmed');
           await device.enableSynchronization();
         },
@@ -297,8 +314,7 @@ describe.skip(
   },
 );
 
-// Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778589879443169
-describe.skip(
+describe(
   SmokeConfirmations('Send native asset using EIP-7702 - Failure Case'),
   () => {
     beforeAll(async () => {
@@ -316,8 +332,8 @@ describe.skip(
             await setupCommonMocks(mockServer);
           },
         },
-        async () => {
-          await performSendTransaction();
+        async ({ mockServer }) => {
+          await performSendTransaction(mockServer);
           await Assertions.expectTextDisplayed('Failed');
           await device.enableSynchronization();
         },

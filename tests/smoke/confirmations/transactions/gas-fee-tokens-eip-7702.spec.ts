@@ -19,6 +19,7 @@ import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager';
 import {
   setupMockPostRequest,
   setupMockRequest,
+  waitForProxiedRequestsMatching,
 } from '../../../api-mocking/helpers/mockHelpers';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -38,6 +39,8 @@ const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 const RECIPIENT_ADDRESS_MOCK = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 const LOCALHOST_SENTINEL_URL =
   'https://tx-sentinel-localhost.api.cx.metamask.io';
+const REMOTE_FEATURE_FLAGS_URL =
+  'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=test';
 
 const SEND_ETH_TRANSACTION_MOCK = {
   data: '0x',
@@ -101,6 +104,7 @@ const SIMULATION_GAS_STATION_MOCK = {
             {
               maxFeePerGas: '0xf19b9f48d',
               maxPriorityFeePerGas: '0x9febc9',
+              gas: '0x5f34',
               balanceNeeded: '0x59d9d3b865ed8',
               currentBalance: '0x77f9fd8d99e7e0',
               error: '',
@@ -115,6 +119,8 @@ const SIMULATION_GAS_STATION_MOCK = {
                   currentBalanceToken: '0x4C4B40',
                   feeRecipient: '0xBAB951a55b61dfAe21Ff7C3501142B397367F026',
                   rateWei: '0x216FF33813A80',
+                  serviceFee: '0x0',
+                  transferEstimate: '0x5208',
                 },
                 {
                   token: {
@@ -126,6 +132,8 @@ const SIMULATION_GAS_STATION_MOCK = {
                   currentBalanceToken: '0x2710',
                   feeRecipient: '0xBAB951a55b61dfAe21Ff7C3501142B397367F026',
                   rateWei: '0x216FF33813A80',
+                  serviceFee: '0x0',
+                  transferEstimate: '0x5208',
                 },
               ],
             },
@@ -141,8 +149,7 @@ const SIMULATION_GAS_STATION_MOCK = {
   },
 };
 
-// Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778589879443169
-describe.skip(
+describe(
   SmokeConfirmations('Send native asset Gas Station using EIP-7702'),
   () => {
     beforeAll(async () => {
@@ -272,7 +279,7 @@ describe.skip(
             });
           },
         },
-        async () => {
+        async ({ mockServer }) => {
           const usdcValues = {
             fiatAmount: '$3.11',
             tokenAmount: '1.23 USDC',
@@ -284,6 +291,17 @@ describe.skip(
             balance: 'Bal: $25.25 USD',
           };
           await loginToApp();
+          await waitForProxiedRequestsMatching(
+            mockServer,
+            {
+              method: 'GET',
+              urlSubstring: REMOTE_FEATURE_FLAGS_URL,
+            },
+            {
+              description: 'remote feature flags fetched',
+              timeout: 30000,
+            },
+          );
           await device.disableSynchronization();
           await WalletView.tapWalletSendButton();
           await SendView.selectEthereumToken();
@@ -291,6 +309,11 @@ describe.skip(
           await SendView.pressContinueButton();
           await SendView.inputRecipientAddress(RECIPIENT_ADDRESS_MOCK);
           await SendView.pressReviewButton();
+
+          await Assertions.expectElementToNotBeVisible(SendView.reviewButton, {
+            description: 'Send review button dismissed',
+            timeout: 5000,
+          });
 
           await Assertions.expectElementToBeVisible(
             RowComponents.NetworkFeeGasFeeTokenArrow,

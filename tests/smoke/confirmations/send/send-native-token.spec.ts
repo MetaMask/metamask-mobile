@@ -1,4 +1,3 @@
-/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../../framework/fixtures/FixtureBuilder';
@@ -11,15 +10,19 @@ import { DappVariants, LOCAL_NODE_RPC_URL } from '../../../framework/Constants';
 import { SmokeConfirmations } from '../../../tags';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { LocalNode } from '../../../framework/types';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
+import {
+  setupMockRequest,
+  waitForProxiedRequestsMatching,
+} from '../../../api-mocking/helpers/mockHelpers';
 import { validateTransactionHashInTransactionFinalizedEvent } from './metricsValidationHelper';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
+const REMOTE_FEATURE_FLAGS_URL =
+  'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=test';
 
-describe.skip(SmokeConfirmations('Send native asset'), () => {
+describe(SmokeConfirmations('Send native asset'), () => {
   // Moved partially to cv tests (send.view.test.tsx, EVM coverage)
   it('should send MAX balance ETH to an address', async () => {
     await withFixtures(
@@ -76,14 +79,19 @@ describe.skip(SmokeConfirmations('Send native asset'), () => {
         },
         restartDevice: true,
       },
-      async ({
-        localNodes,
-        mockServer,
-      }: {
-        localNodes?: LocalNode[];
-        mockServer?: Mockttp;
-      }) => {
+      async ({ localNodes, mockServer }) => {
         await loginToApp();
+        await waitForProxiedRequestsMatching(
+          mockServer,
+          {
+            method: 'GET',
+            urlSubstring: REMOTE_FEATURE_FLAGS_URL,
+          },
+          {
+            description: 'remote feature flags fetched',
+            timeout: 30000,
+          },
+        );
         await device.disableSynchronization();
         // send Max ETH
         await WalletView.tapWalletSendButton();
@@ -92,6 +100,14 @@ describe.skip(SmokeConfirmations('Send native asset'), () => {
         await SendView.pressContinueButton();
         await SendView.inputRecipientAddress(RECIPIENT);
         await SendView.pressReviewButton();
+        await Assertions.expectElementToNotBeVisible(SendView.reviewButton, {
+          description: 'Send review button dismissed',
+          timeout: 5000,
+        });
+        await Assertions.expectElementToBeVisible(FooterActions.confirmButton, {
+          description: 'Confirm button is visible on review screen',
+          timeout: 30000,
+        });
         await FooterActions.tapConfirmButton();
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
