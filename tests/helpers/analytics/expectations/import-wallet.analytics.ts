@@ -44,7 +44,7 @@ export const importWalletWithMetricsOptInExpectations: AnalyticsExpectations = {
     },
     {
       name: onboardingEvents.WALLET_SETUP_COMPLETED,
-      containProperties: {
+      matchProperties: {
         wallet_setup_type: 'import',
         new_wallet: false,
         account_type: 'imported',
