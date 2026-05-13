@@ -25,6 +25,9 @@ const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
 const mockUseTokensWithBalance = jest.fn();
 let mockDestinationStablecoins: BridgeToken[] = [];
+let mockDestinationStablecoinsByChain: Partial<
+  Record<CaipChainId, BridgeToken[]>
+> = {};
 let mockWalletTokens: BridgeToken[] = [];
 let mockPricePercentChangesByAddress: Record<string, number | undefined> = {};
 let mockTokenMarketData: Record<
@@ -106,6 +109,9 @@ jest.mock('../../../../../selectors/networkController', () => ({
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBatchSellDestStablecoins: jest.fn(() => mockDestinationStablecoins),
+  selectBatchSellDestStablecoinsByChain: jest.fn(
+    () => mockDestinationStablecoinsByChain,
+  ),
   setBatchSellDestToken: jest.fn((token: BridgeToken | undefined) => ({
     type: 'bridge/setBatchSellDestToken',
     payload: token,
@@ -199,7 +205,9 @@ describe('filterBatchSellDestinationStablecoins', () => {
 
     const result = removeStablecoinsFromSourceTokens({
       tokens: [lowBalanceToken, stablecoinToken, highBalanceToken],
-      stablecoins: [BridgeTokenMetadata[usdcAssetId]],
+      stablecoinsByChain: {
+        ['eip155:1' as CaipChainId]: [BridgeTokenMetadata[usdcAssetId]],
+      },
     });
 
     expect(result.map((token) => token.symbol)).toEqual(['LOW', 'HIGH']);
@@ -341,6 +349,7 @@ describe('BatchSellTokenSelect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDestinationStablecoins = [];
+    mockDestinationStablecoinsByChain = {};
     mockPricePercentChangesByAddress = {};
     mockTokenMarketData = {};
     mockCurrencyRates = {
@@ -372,6 +381,9 @@ describe('BatchSellTokenSelect', () => {
   it('renders only eligible wallet tokens', () => {
     const stablecoinAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
     mockDestinationStablecoins = [BridgeTokenMetadata[usdcAssetId]];
+    mockDestinationStablecoinsByChain = {
+      ['eip155:1' as CaipChainId]: mockDestinationStablecoins,
+    };
     mockWalletTokens = [
       createToken({ symbol: 'SELL', name: 'Sell Token' }),
       createToken({
@@ -653,6 +665,74 @@ describe('BatchSellTokenSelect', () => {
     expect(
       queryByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON),
     ).not.toBeOnTheScreen();
+  });
+
+  it('shows the no sellable tokens empty state when wallet only has destination stablecoins', () => {
+    const stablecoin = BridgeTokenMetadata[usdcAssetId];
+    mockDestinationStablecoins = [stablecoin];
+    mockDestinationStablecoinsByChain = {
+      ['eip155:1' as CaipChainId]: [stablecoin],
+    };
+    mockWalletTokens = [
+      createToken({
+        symbol: 'USDC',
+        name: 'USD Coin',
+        address: stablecoin.address,
+        chainId: stablecoin.chainId as Hex,
+        tokenFiatAmount: 100,
+      }),
+    ];
+
+    const { getByTestId, queryByTestId, queryByText } = render(
+      <BatchSellTokenSelect />,
+    );
+
+    expect(
+      getByTestId(BatchSellTokenSelectSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getNetworkPillTestId('eip155:1' as CaipChainId)),
+    ).not.toBeOnTheScreen();
+    expect(queryByText('USDC')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('omits stablecoin-only network pills when another chain has a sellable token', () => {
+    const stablecoin = BridgeTokenMetadata[usdcAssetId];
+    mockDestinationStablecoinsByChain = {
+      ['eip155:1' as CaipChainId]: [stablecoin],
+    };
+    mockWalletTokens = [
+      createToken({
+        symbol: 'USDC',
+        name: 'USD Coin',
+        address: stablecoin.address,
+        chainId: stablecoin.chainId as Hex,
+        tokenFiatAmount: 100,
+      }),
+      createToken({
+        symbol: 'BASEA',
+        name: 'Base A',
+        address: '0x2222222222222222222222222222222222222222',
+        chainId: '0x2105' as Hex,
+        tokenFiatAmount: 1,
+      }),
+    ];
+
+    const { getByTestId, getByText, queryByTestId, queryByText } = render(
+      <BatchSellTokenSelect />,
+    );
+
+    expect(
+      getByTestId(getNetworkPillTestId('eip155:8453' as CaipChainId)),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getNetworkPillTestId('eip155:1' as CaipChainId)),
+    ).not.toBeOnTheScreen();
+    expect(getByText('BASEA')).toBeOnTheScreen();
+    expect(queryByText('USDC')).not.toBeOnTheScreen();
   });
 
   it('navigates to Explore Tokens from the empty state', () => {

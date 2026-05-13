@@ -45,18 +45,30 @@ export function getBatchSellDestinationToken(
 
 export function removeStablecoinsFromSourceTokens({
   tokens,
-  stablecoins,
+  stablecoinsByChain,
 }: {
   tokens: BridgeToken[];
-  stablecoins: BridgeToken[];
+  stablecoinsByChain: Partial<Record<CaipChainId, BridgeToken[]>>;
 }): BridgeToken[] {
-  const stablecoinAssetIds = new Set(
-    stablecoins
-      .map((stablecoin) => getBridgeTokenAssetId(stablecoin))
-      .filter((assetId): assetId is CaipAssetType => Boolean(assetId)),
+  const stablecoinAssetIdsByChain = new Map(
+    Object.entries(stablecoinsByChain).map(([chainId, stablecoins]) => [
+      chainId as CaipChainId,
+      new Set(
+        (stablecoins ?? [])
+          .map((stablecoin) => getBridgeTokenAssetId(stablecoin))
+          .filter((assetId): assetId is CaipAssetType => Boolean(assetId)),
+      ),
+    ]),
   );
 
   return tokens.filter((token) => {
+    const caipChainId = formatChainIdToCaip(token.chainId);
+    const stablecoinAssetIds = stablecoinAssetIdsByChain.get(caipChainId);
+
+    if (!stablecoinAssetIds) {
+      return true;
+    }
+
     const assetId = getBridgeTokenAssetId(token);
 
     if (!assetId) {

@@ -367,6 +367,41 @@ function getBridgeTokenMetadata(
   return metadataAssetId ? BridgeTokenMetadata[metadataAssetId] : undefined;
 }
 
+function getBatchSellDestStablecoinMetadata(
+  stablecoinAssetIds: CaipAssetType[],
+): BridgeToken[] {
+  return stablecoinAssetIds.reduce<BridgeToken[]>(
+    (stablecoins, stablecoinAssetId) => {
+      const tokenMetadata = getBridgeTokenMetadata(stablecoinAssetId);
+
+      if (tokenMetadata) {
+        stablecoins.push(tokenMetadata);
+      }
+
+      return stablecoins;
+    },
+    [],
+  );
+}
+
+export const selectBatchSellDestStablecoinsByChain = createSelector(
+  selectBridgeFeatureFlags,
+  (bridgeFeatureFlags): Partial<Record<CaipChainId, BridgeToken[]>> =>
+    Object.entries(bridgeFeatureFlags.chains ?? {}).reduce<
+      Partial<Record<CaipChainId, BridgeToken[]>>
+    >((stablecoinsByChain, [chainId, chainConfig]) => {
+      const stablecoins = getBatchSellDestStablecoinMetadata(
+        chainConfig.batchSellDestStablecoins ?? [],
+      );
+
+      if (stablecoins.length > 0) {
+        stablecoinsByChain[chainId as CaipChainId] = stablecoins;
+      }
+
+      return stablecoinsByChain;
+    }, {}),
+);
+
 export const selectBatchSellDestStablecoins = createSelector(
   selectBridgeFeatureFlags,
   (_state: RootState, chainId?: BridgeToken['chainId']) =>
@@ -379,18 +414,7 @@ export const selectBatchSellDestStablecoins = createSelector(
     const batchSellDestStablecoins =
       bridgeFeatureFlags.chains?.[chainId]?.batchSellDestStablecoins ?? [];
 
-    return batchSellDestStablecoins.reduce<BridgeToken[]>(
-      (stablecoins, stablecoinAssetId) => {
-        const tokenMetadata = getBridgeTokenMetadata(stablecoinAssetId);
-
-        if (tokenMetadata) {
-          stablecoins.push(tokenMetadata);
-        }
-
-        return stablecoins;
-      },
-      [],
-    );
+    return getBatchSellDestStablecoinMetadata(batchSellDestStablecoins);
   },
 );
 

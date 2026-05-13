@@ -32,6 +32,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectBatchSellDestStablecoins,
+  selectBatchSellDestStablecoinsByChain,
   setBatchSellDestToken,
   setBatchSellSourceTokens,
 } from '../../../../../core/redux/slices/bridge';
@@ -64,11 +65,20 @@ export function BatchSellTokenSelect() {
   const allWalletTokens = useTokensWithBalance({
     chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
   });
+  const stablecoinsByChain = useSelector(selectBatchSellDestStablecoinsByChain);
   const [tokenSortDirection, setTokenSortDirection] =
     useState<BatchSellTokenSortDirection>('desc');
+  const eligibleSourceTokens = useMemo(() => {
+    const sourceTokens = removeStablecoinsFromSourceTokens({
+      tokens: allWalletTokens,
+      stablecoinsByChain,
+    });
+
+    return sortBatchSellTokens(sourceTokens, tokenSortDirection);
+  }, [allWalletTokens, stablecoinsByChain, tokenSortDirection]);
   const sortedEligibleChains = useMemo(
-    () => buildBatchSellEligibleChains(allWalletTokens),
-    [allWalletTokens],
+    () => buildBatchSellEligibleChains(eligibleSourceTokens),
+    [eligibleSourceTokens],
   );
   const [selectedChainId, setSelectedChainId] = useState<
     CaipChainId | undefined
@@ -106,24 +116,15 @@ export function BatchSellTokenSelect() {
   const destinationStablecoins = useSelector((state: RootState) =>
     selectBatchSellDestStablecoins(state, activeChainId),
   );
-  const selectedChainTokens = useMemo(() => {
-    const activeChainTokens = activeChainId
-      ? allWalletTokens.filter(
-          (token) => formatChainIdToCaip(token.chainId) === activeChainId,
-        )
-      : allWalletTokens;
-    const sourceTokens = removeStablecoinsFromSourceTokens({
-      tokens: activeChainTokens,
-      stablecoins: destinationStablecoins,
-    });
-
-    return sortBatchSellTokens(sourceTokens, tokenSortDirection);
-  }, [
-    activeChainId,
-    allWalletTokens,
-    destinationStablecoins,
-    tokenSortDirection,
-  ]);
+  const selectedChainTokens = useMemo(
+    () =>
+      activeChainId
+        ? eligibleSourceTokens.filter(
+            (token) => formatChainIdToCaip(token.chainId) === activeChainId,
+          )
+        : eligibleSourceTokens,
+    [activeChainId, eligibleSourceTokens],
+  );
   const selectedTokenKeys = useMemo(
     () => new Set(selectedTokens.map(getTokenKey)),
     [selectedTokens],

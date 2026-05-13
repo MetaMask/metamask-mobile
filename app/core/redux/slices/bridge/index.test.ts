@@ -27,6 +27,7 @@ import reducer, {
   setBatchSellDestToken,
   selectBatchSellDestToken,
   selectBatchSellDestStablecoins,
+  selectBatchSellDestStablecoinsByChain,
 } from '.';
 import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
 import {
@@ -708,6 +709,54 @@ describe('bridge slice', () => {
           chainId: '0x1',
         },
       ]);
+    });
+
+    it('returns configured stablecoins by chain with local metadata', () => {
+      const mockState = cloneDeep(mockRootState);
+      const ethUsdc =
+        'eip155:1/erc20:0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48' as CaipAssetType;
+      const baseUsdc =
+        'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' as CaipAssetType;
+      const unknownStablecoin =
+        'eip155:1/erc20:0x0000000000000000000000000000000000000001' as CaipAssetType;
+
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
+        'eip155:1'
+      ] = {
+        ...mockState.engine.backgroundState.RemoteFeatureFlagController
+          .remoteFeatureFlags.bridgeConfigV2.chains['eip155:1'],
+        batchSellDestStablecoins: [unknownStablecoin, ethUsdc],
+      } as unknown as any;
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
+        'eip155:8453'
+      ] = {
+        ...mockState.engine.backgroundState.RemoteFeatureFlagController
+          .remoteFeatureFlags.bridgeConfigV2.chains['eip155:8453'],
+        isActiveSrc: true,
+        isActiveDest: true,
+        isGaslessSwapEnabled: false,
+        batchSellDestStablecoins: [baseUsdc],
+      } as unknown as any;
+
+      const expectedEthUsdc =
+        BridgeTokenMetadata[
+          'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType
+        ];
+      const expectedBaseUsdc =
+        BridgeTokenMetadata[
+          'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' as CaipAssetType
+        ];
+
+      const result = selectBatchSellDestStablecoinsByChain(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          'eip155:1': [expectedEthUsdc],
+          'eip155:8453': [expectedBaseUsdc],
+        }),
+      );
     });
 
     it('returns an empty array when no chain is selected', () => {
