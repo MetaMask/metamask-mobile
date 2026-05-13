@@ -17,7 +17,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { RiveOnboardingStepperTestIds } from './RiveOnboardingStepper.testIds';
 
-const FADE_IN_DURATION = 800;
+const FADE_IN_DURATION_MS = 800;
 
 interface StepperContentProps {
   title: string;
@@ -42,7 +42,7 @@ const StepperContent = ({
   const opacity = useSharedValue(0);
 
   useEffect(() => {
-    opacity.value = withTiming(1, { duration: FADE_IN_DURATION });
+    opacity.value = withTiming(1, { duration: FADE_IN_DURATION_MS });
     // Reset on unmount so the next step starts from invisible when remounted via `key`.
     return () => {
       opacity.value = 0;

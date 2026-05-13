@@ -1,4 +1,4 @@
-import type { StyleProp, ViewStyle } from 'react-native';
+import type { ViewStyle } from 'react-native';
 import type { Alignment, Fit } from 'rive-react-native';
 import type {
   ButtonVariant,
@@ -7,6 +7,8 @@ import type {
 } from '@metamask/design-system-react-native';
 
 export interface OnboardingStep {
+  /** How long the progress bar takes to fill for this step (ms). */
+  durationMs: number;
   /**
    * Title of the step. Keep to 1 line (~30 characters max).
    */
@@ -15,8 +17,6 @@ export interface OnboardingStep {
    * Body of the step. Keep to 2 lines (~100 characters max)
    */
   body?: string;
-  /** How long the progress bar takes to fill for this step (ms). */
-  durationMs: number;
   /**
    * Footer text of the step. Keep to 1 line (~30 characters max).
    */
@@ -62,10 +62,10 @@ export interface RiveOnboardingStepperProps {
   progressBarColor: string;
   /**
    * Style applied to the Rive animation element. Controls position within the
-   * absolute-positioned container (e.g. `{ flex: 1, top: 100 }`). Required so
-   * each consumer explicitly declares the offset for their animation's geometry.
+   * absolute-positioned container (e.g. `{ flex: 1, top: 100 }`). Provided so
+   * each consumer can explicitly declare the offset for their animation's geometry.
    */
-  riveStyle?: StyleProp<ViewStyle>;
+  riveStyle?: ViewStyle;
   buttonVariant?: ButtonVariant;
   /** When true, renders the button in inverse style (e.g. white on coloured background). */
   buttonIsInverse?: boolean;

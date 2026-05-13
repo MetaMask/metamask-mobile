@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { type StackNavigationProp } from '@react-navigation/stack';
@@ -19,6 +18,7 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useTheme } from '../../../../../util/theme';
 import { setMoneyOnboardingSeen } from '../../../../../actions/user';
 import { AppThemeKey } from '../../../../../util/theme/models';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const MoneyOnboardingAnimation = require('../../../../../animations/money_account_onboarding_animation.riv');
@@ -37,15 +37,7 @@ const GRADIENT_END = { x: 0, y: 1 };
 
 const CARD_CASHBACK_PERCENTAGE = 3;
 
-const styles = StyleSheet.create({
-  gradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  riveAnimation: {
-    flex: 1,
-    top: 100,
-  },
-});
+const RIVE_ANIMATION_STYLE = { flex: 1, top: 100 };
 
 const RIVE_CONFIG: RiveConfig = {
   source: MoneyOnboardingAnimation,
@@ -61,6 +53,8 @@ const MoneyOnboardingView = () => {
   const dispatch = useDispatch();
 
   const { colors, themeAppearance } = useTheme();
+
+  const tw = useTailwind();
 
   const isDarkTheme = themeAppearance === AppThemeKey.dark;
 
@@ -118,7 +112,7 @@ const MoneyOnboardingView = () => {
         buttonLabel: strings('money.rive_onboarding.continue'),
       },
       {
-        durationMs: 4 * 1000, // 4 seconds
+        durationMs: MONEY_ONBOARDING_STEP_DURATION_MS,
         showCloseButton: false,
       },
     ],
@@ -143,17 +137,17 @@ const MoneyOnboardingView = () => {
         colors={GRADIENT_COLORS}
         start={GRADIENT_START}
         end={GRADIENT_END}
-        style={styles.gradient}
+        style={tw`absolute inset-0`}
       />
     ),
-    [],
+    [tw],
   );
 
   return (
     <RiveOnboardingStepper
       steps={steps}
       riveConfig={RIVE_CONFIG}
-      riveStyle={styles.riveAnimation}
+      riveStyle={RIVE_ANIMATION_STYLE}
       renderBackground={renderBackground}
       titleTextColor={textColor}
       bodyTextColor={textColor}

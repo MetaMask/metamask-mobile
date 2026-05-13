@@ -37,9 +37,14 @@ const styles = StyleSheet.create({
   },
 });
 
+enum StepperProgressBarState {
+  Completed = 'completed',
+  Active = 'active',
+  Upcoming = 'upcoming',
+}
 interface SegmentProps {
   color: string;
-  state: 'completed' | 'active' | 'upcoming';
+  state: StepperProgressBarState;
   progress: SharedValue<number>;
   testID?: string;
 }
@@ -47,13 +52,12 @@ interface SegmentProps {
 const Segment = React.memo(
   ({ color, state, progress, testID }: SegmentProps) => {
     const animatedStyle = useAnimatedStyle(() => {
-      if (state === 'completed') {
+      if (state === StepperProgressBarState.Completed) {
         return { transform: [{ scaleX: 1 }], opacity: 1 };
       }
-      if (state === 'upcoming') {
+      if (state === StepperProgressBarState.Upcoming) {
         return { transform: [{ scaleX: 1 }], opacity: INACTIVE_OPACITY };
       }
-      // active — scaleX is composited on the GPU; no layout recalculation per frame.
       return {
         transform: [{ scaleX: progress.value }],
         opacity: 1,
@@ -90,10 +94,10 @@ const StepperProgressBar = ({
     {Array.from({ length: totalSteps }, (_, index) => {
       const state =
         index < currentStepIndex
-          ? 'completed'
+          ? StepperProgressBarState.Completed
           : index === currentStepIndex
-            ? 'active'
-            : 'upcoming';
+            ? StepperProgressBarState.Active
+            : StepperProgressBarState.Upcoming;
       return (
         <Segment
           key={index}

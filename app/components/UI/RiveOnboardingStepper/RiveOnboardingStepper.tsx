@@ -1,13 +1,7 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Rive, { Alignment, Fit, type RiveRef } from 'rive-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxFlexDirection,
@@ -25,27 +19,6 @@ import type { RiveOnboardingStepperProps } from './RiveOnboardingStepper.types';
 import { RiveOnboardingStepperTestIds } from './RiveOnboardingStepper.testIds';
 
 const DEFAULT_BUTTON_VARIANT = ButtonVariant.Primary;
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  backgroundAbsolute: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  content: {
-    flex: 1,
-  },
-  contentHidden: {
-    opacity: 0,
-  },
-  riveContainer: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  footer: {
-    paddingHorizontal: 16,
-  },
-});
 
 /**
  * Generic multi-step onboarding stepper driven by a single Rive animation.
@@ -82,6 +55,7 @@ const RiveOnboardingStepper = ({
   onComplete,
   autoCompleteOnLastStep = false,
 }: RiveOnboardingStepperProps) => {
+  const tw = useTailwind();
   const riveRef = useRef<RiveRef>(null);
   const hasCompletedRef = useRef(false);
   const [isRiveReady, setIsRiveReady] = useState(false);
@@ -98,11 +72,6 @@ const RiveOnboardingStepper = ({
 
   const showClose =
     onClose && currentStep?.showCloseButton !== false ? onClose : undefined;
-
-  const flatRiveStyle = useMemo(
-    () => StyleSheet.flatten(riveStyle),
-    [riveStyle],
-  );
 
   const handleRivePlay = useCallback(() => setIsRiveReady(true), []);
 
@@ -144,18 +113,18 @@ const RiveOnboardingStepper = ({
   return (
     <SafeAreaView
       edges={['top', 'bottom']}
-      style={styles.root}
+      style={tw`flex-1`}
       testID={RiveOnboardingStepperTestIds.CONTAINER}
     >
       {/* Configurable full-screen background */}
-      <View style={styles.backgroundAbsolute} pointerEvents="none">
+      <Box twClassName="absolute inset-0" pointerEvents="none">
         {renderBackground()}
-      </View>
+      </Box>
 
       {/* Main content column — hidden until Rive renders its first frame */}
       <Box
         flexDirection={BoxFlexDirection.Column}
-        style={[styles.content, !isRiveReady && styles.contentHidden]}
+        twClassName={`flex-1${!isRiveReady ? ' opacity-0' : ''}`}
       >
         {/* Progress bar */}
         <Box twClassName="px-4 pt-2">
@@ -181,10 +150,10 @@ const RiveOnboardingStepper = ({
         </Box>
 
         {/* Rive animation fills remaining space — intentionally edge-to-edge, no horizontal padding */}
-        <View style={styles.riveContainer}>
+        <Box twClassName="absolute inset-0">
           <Rive
             ref={riveRef}
-            style={flatRiveStyle}
+            style={riveStyle}
             source={riveConfig.source}
             stateMachineName={riveConfig.stateMachineName}
             fit={riveConfig.fit ?? Fit.FitWidth}
@@ -193,13 +162,10 @@ const RiveOnboardingStepper = ({
             testID={RiveOnboardingStepperTestIds.RIVE_ANIMATION}
             onPlay={handleRivePlay}
           />
-        </View>
+        </Box>
       </Box>
       <Box
-        twClassName="pb-4"
-        style={
-          (!isRiveReady || !currentStep?.footerText) && styles.contentHidden
-        }
+        twClassName={`pb-4${!isRiveReady || !currentStep?.footerText ? ' opacity-0' : ''}`}
       >
         <Text
           twClassName="text-center"
@@ -213,10 +179,7 @@ const RiveOnboardingStepper = ({
       </Box>
       {/* Footer button */}
       <Box
-        style={[
-          styles.footer,
-          (!isRiveReady || !currentStep?.buttonLabel) && styles.contentHidden,
-        ]}
+        twClassName={`px-4${!isRiveReady || !currentStep?.buttonLabel ? ' opacity-0' : ''}`}
       >
         <Button
           variant={buttonVariant}
