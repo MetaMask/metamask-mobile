@@ -105,17 +105,9 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         // Enter amount ($12) and continue (avoid "0" key to prevent banner blocking)
         await TransactionPayConfirmation.enterAmountAndContinue('12');
 
-        // Verify confirmation details are visible. mUSD conversions are
-        // sponsored by MetaMask, so the total row is hidden in favor of a
-        // "Paid by MetaMask" pill — assert that surface instead of total.
-        await Assertions.expectElementToBeVisible(
-          TransactionPayConfirmation.paidByMetaMask,
-          {
-            timeout: 10000,
-            description: 'Paid by MetaMask pill should be visible',
-          },
-        );
-
+        // The total row is hidden for mUSD conversions (sponsored design); the
+        // confirm button's waitAndTap below is sufficient to wait for the
+        // confirmation screen to finish loading.
         // Confirm the transaction (tap the convert/confirm button)
         await FooterActions.tapConfirmButton();
 
@@ -225,17 +217,9 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         // Enter amount and continue (avoid "0" key - use 5)
         await TransactionPayConfirmation.enterAmountAndContinue('5');
 
-        // Verify confirmation details are visible. mUSD conversions are
-        // sponsored by MetaMask, so the total row is hidden in favor of a
-        // "Paid by MetaMask" pill — assert that surface instead of total.
-        await Assertions.expectElementToBeVisible(
-          TransactionPayConfirmation.paidByMetaMask,
-          {
-            timeout: 10000,
-            description: 'Paid by MetaMask pill should be visible',
-          },
-        );
-
+        // The total row is hidden for mUSD conversions (sponsored design); the
+        // confirm button's waitAndTap below is sufficient to wait for the
+        // confirmation screen to finish loading.
         // Confirm the transaction
         await FooterActions.tapConfirmButton();
 

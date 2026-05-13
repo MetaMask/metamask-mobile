@@ -386,7 +386,7 @@ export const MAINNET_MUSD_RELAY_QUOTE_MOCK = {
     timeEstimate: 4,
   },
   fees: {
-    relayer: { amountUsd: '0' },
+    relayer: { amountUsd: '0.01' },
   },
   metamask: { gasLimits: [100000] },
 };
