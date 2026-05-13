@@ -100,7 +100,7 @@ describe('WhatsHappeningDetailView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRoute.mockReturnValue({
-      params: { initialIndex: 0, source: 'homepage' },
+      params: { source: 'homepage' },
     });
     mockUseNavigation.mockReturnValue({ goBack: mockGoBack });
 
@@ -457,7 +457,9 @@ describe('WhatsHappeningDetailView', () => {
   });
 
   it('scrolls to initialIndex once content is wide enough', () => {
-    mockUseRoute.mockReturnValue({ params: { initialIndex: 1 } });
+    mockUseRoute.mockReturnValue({
+      params: { initialIndex: 1, source: 'homepage' },
+    });
     mockUseWhatsHappening.mockReturnValue({
       items: [mockItem, { ...mockItem, id: 'trend-1' }],
       isLoading: false,
@@ -472,5 +474,116 @@ describe('WhatsHappeningDetailView', () => {
     expect(() =>
       fireEvent(carousel, 'contentSizeChange', 700, 600),
     ).not.toThrow();
+  });
+
+  describe('Whats Happening Details Opened event', () => {
+    it('fires once on mount during cold start when data has not resolved', () => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [],
+        isLoading: true,
+        error: null,
+        refresh: mockRefresh,
+      });
+      renderWithProvider(<WhatsHappeningDetailView />);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+          properties: expect.objectContaining({
+            source: 'homepage',
+            initial_index: 0,
+          }),
+        }),
+      );
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
+      );
+    });
+
+    it('fires with source deeplink when route params carry the deeplink source', () => {
+      mockUseRoute.mockReturnValue({
+        params: { initialIndex: 0, source: WhatsHappeningSource.Deeplink },
+      });
+      mockUseWhatsHappening.mockReturnValue({
+        items: [],
+        isLoading: true,
+        error: null,
+        refresh: mockRefresh,
+      });
+      renderWithProvider(<WhatsHappeningDetailView />);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+          properties: expect.objectContaining({
+            source: 'deeplink',
+            initial_index: 0,
+          }),
+        }),
+      );
+    });
+
+    it('fires once on mount and VIEWED also fires when data is already loaded', () => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [mockItem],
+        isLoading: false,
+        error: null,
+        refresh: mockRefresh,
+      });
+      renderWithProvider(<WhatsHappeningDetailView />);
+      const openedCalls = mockCreateEventBuilder.mock.calls.filter(
+        ([name]) =>
+          name ===
+          (MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED as unknown as string),
+      );
+      const viewedCalls = mockCreateEventBuilder.mock.calls.filter(
+        ([name]) =>
+          name ===
+          (MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED as unknown as string),
+      );
+      expect(openedCalls).toHaveLength(1);
+      expect(viewedCalls).toHaveLength(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+          properties: expect.objectContaining({ source: 'homepage' }),
+        }),
+      );
+    });
+
+    it('fires only once across re-renders', () => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [mockItem],
+        isLoading: false,
+        error: null,
+        refresh: mockRefresh,
+      });
+      const { rerender } = renderWithProvider(<WhatsHappeningDetailView />);
+      rerender(<WhatsHappeningDetailView />);
+      const openedCalls = mockCreateEventBuilder.mock.calls.filter(
+        ([name]) =>
+          name ===
+          (MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED as unknown as string),
+      );
+      expect(openedCalls).toHaveLength(1);
+    });
+
+    it('does not include trend_id or asset_symbols in the payload', () => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [mockItem],
+        isLoading: false,
+        error: null,
+        refresh: mockRefresh,
+      });
+      renderWithProvider(<WhatsHappeningDetailView />);
+      const openedCall = mockTrackEvent.mock.calls.find(
+        ([event]) =>
+          event.category === MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+      );
+      expect(openedCall).toBeDefined();
+      expect(openedCall?.[0].properties).not.toHaveProperty('trend_id');
+      expect(openedCall?.[0].properties).not.toHaveProperty('asset_symbols');
+    });
   });
 });
