@@ -21,6 +21,7 @@ import type {
   SeasonMetadataDto,
   LineaTokenRewardDto,
   CampaignDto,
+  VipDashboardDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import {
@@ -208,6 +209,10 @@ describe('RewardsDataService', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getVIPDashboard',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:postBenefitImpression',
         expect.any(Function),
       );
@@ -288,6 +293,7 @@ describe('RewardsDataService', () => {
       id: 'test-subscription-id',
       referralCode: 'test-referral-code',
       accounts: [],
+      features: { vip: { enabled: false } },
     };
 
     it('should successfully join an account to a subscription', async () => {
@@ -441,6 +447,7 @@ describe('RewardsDataService', () => {
         id: 'test-subscription-id',
         referralCode: 'test-referral-code',
         accounts: [],
+        features: { vip: { enabled: false } },
       },
     };
 
@@ -1995,6 +2002,7 @@ describe('RewardsDataService', () => {
       id: 'test-subscription-id',
       referralCode: 'test-referral-code',
       accounts: [],
+      features: { vip: { enabled: false } },
     },
   };
 
@@ -2142,6 +2150,7 @@ describe('RewardsDataService', () => {
           id: 'sub-789',
           referralCode: 'REF123',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
       };
 
@@ -2177,6 +2186,7 @@ describe('RewardsDataService', () => {
           id: 'sol-789',
           referralCode: 'REF123',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
       };
 
@@ -2218,6 +2228,7 @@ describe('RewardsDataService', () => {
           id: 'sub-789',
           referralCode: 'AUTO123',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
       };
 
@@ -4451,6 +4462,119 @@ describe('RewardsDataService', () => {
       await expect(
         service.getBenefits(mockSubscriptionId, mockLimit),
       ).rejects.toThrow('Get benefits failed: 500');
+    });
+  });
+
+  describe('getVIPDashboard', () => {
+    const mockSubscriptionId = 'sub-vip';
+    const mockToken = 'test-bearer-token';
+    const mockVIPDashboard: VipDashboardDto = {
+      program: { id: 'vip', name: 'VIP Pilot' },
+      period: {
+        start: '2026-03-31T00:00:00.000Z',
+        end: '2026-04-30T23:59:59.999Z',
+      },
+      currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
+      nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
+      progress: {
+        percent: 72,
+        remainingSwapsUsd: 800000,
+        remainingPerpsUsd: 3600000,
+        estimatedDaysToNextTier: 4,
+        status: 'on_track',
+      },
+      fees: {
+        swapsBps: 15,
+        perpsBps: 4,
+        nextTierSwapsBps: 12,
+        nextTierPerpsBps: 3,
+      },
+      volume: {
+        swapsUsd: 4100000,
+        perpsUsd: 2300000,
+      },
+      pointsAllocation: {
+        earned: 24400000,
+        max: 100000000,
+        percent: 24.4,
+      },
+      tiers: [
+        {
+          id: 'gold-fox-vip-3',
+          name: 'Gold Fox 3',
+          tier: 3,
+          swapsRequirementUsd: 7000000,
+          perpsRequirementUsd: 35000000,
+          swapsBps: 15,
+          perpsBps: 4,
+          status: 'current',
+        },
+      ],
+      localizedText: {
+        period: 'Mar 31 - Apr 30',
+        progressToNextTier: 'Subline',
+        swapsFeeTitle: 'Swaps fee',
+        perpsFeeTitle: 'Perps fee',
+        nextTierSwapsFeeDelta: '↓ 12 bps next tier',
+        nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+        volumeTitle: 'Volume',
+        statusMessage: 'On track',
+        pointsTitle: 'Points',
+        pointsAllocationTitle: 'Earn VIP allocations',
+        pointsAllocationDescription: 'Body copy',
+      },
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockVIPDashboard),
+      } as unknown as Response);
+    });
+
+    it('fetches VIP dashboard using the expected endpoint and auth headers', async () => {
+      const result = await service.getVIPDashboard(mockSubscriptionId);
+
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/me',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockVIPDashboard);
+    });
+
+    it('returns null when the user is not VIP', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+      } as Response);
+
+      await expect(service.getVIPDashboard(mockSubscriptionId)).resolves.toBe(
+        null,
+      );
+    });
+
+    it('throws when get VIP dashboard response is not ok', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      await expect(service.getVIPDashboard(mockSubscriptionId)).rejects.toThrow(
+        'Get VIP dashboard failed: 500',
+      );
     });
   });
 
