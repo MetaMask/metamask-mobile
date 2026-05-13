@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -54,7 +54,7 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
       return;
     }
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED)
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTED)
         .addProperties({
           ...getWhatsHappeningEventProps(item, cardIndex, source),
           interaction_type: WhatsHappeningInteractionType.TradePressed,
@@ -92,4 +92,4 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
   );
 };
 
-export default PerpsRow;
+export default memo(PerpsRow);

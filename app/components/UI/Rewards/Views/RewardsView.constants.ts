@@ -3,8 +3,11 @@
  */
 export const REWARDS_VIEW_SELECTORS = {
   SAFE_AREA_VIEW: 'rewards-view-safe-area',
+  TITLE: 'rewards-view-title',
   REFERRAL_BUTTON: 'rewards-view-referral-button',
   SETTINGS_BUTTON: 'rewards-view-settings-button',
+  VIP_BUTTON: 'rewards-view-vip-button',
+  VIP_VIEW: 'rewards-view-vip-view',
   SEASON_SUMMARY_PLACEHOLDER: 'rewards-view-season-summary-placeholder',
   TAB_CONTENT_ACTIVITY: 'rewards-view-tab-content-activity',
   TAB_CONTENT_OVERVIEW: 'rewards-view-tab-content-overview',

@@ -25,6 +25,7 @@
     "coverage:analyze": "node scripts/coverage-analysis.js",
     "coverage:files": "node scripts/coverage-analysis.js --files",
     "setup": "yarn clean && node scripts/setup.mjs",
+    "skills": "bash scripts/skills-sync.sh",
     "setup:ci": "yarn clean:ios && yarn clean:android && node scripts/setup.mjs",
     "setup:github-ci": "node scripts/setup.mjs --build-on-github-ci",
     "eas": "eas",
@@ -239,7 +240,7 @@
     "@metamask/authenticated-user-storage": "^1.0.0",
     "@metamask/base-controller": "^9.0.1",
     "@metamask/bitcoin-wallet-snap": "^1.10.1",
-    "@metamask/bridge-controller": "^71.0.0",
+    "@metamask/bridge-controller": "^71.1.0",
     "@metamask/bridge-status-controller": "patch:@metamask/bridge-status-controller@npm%3A71.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-71.1.0-6140a0bdf3.patch",
     "@metamask/chain-agnostic-permission": "^1.5.0",
     "@metamask/chomp-api-service": "3.0.0",
@@ -710,7 +711,7 @@
   },
   "engines": {
     "node": "^20.18.0",
-    "yarn": "^4.10.3"
+    "yarn": "^4.14.1"
   },
   "optionalDependencies": {
     "@img/sharp-darwin-arm64": "^0.34.3",
@@ -800,7 +801,7 @@
       "built": true
     }
   },
-  "packageManager": "yarn@4.10.3",
+  "packageManager": "yarn@4.14.1",
   "foundryup": {
     "binaries": [
       "anvil"

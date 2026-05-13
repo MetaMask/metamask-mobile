@@ -523,6 +523,7 @@ export interface RootStackParamList extends ParamListBase {
   Bridge: BridgeRouteParams | undefined;
   BridgeView: BridgeRouteParams | undefined;
   BridgeTokenSelector: BridgeTokenSelectorRouteParams | undefined;
+  BatchSellTokenSelect: undefined;
   BridgeModals: undefined;
   DefaultSlippageModal: DefaultSlippageModalParams | undefined;
   CustomSlippageModal: CustomSlippageModalParams | undefined;
