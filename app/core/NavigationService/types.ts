@@ -222,6 +222,8 @@ export interface NestedNavigationParams {
   [key: string]: unknown;
 }
 
+import type { SearchFeedId } from '../../components/Views/TrendingView/search/useExploreSearch';
+
 type TraderPositionViewParams =
   | {
       traderId: string;
@@ -348,6 +350,12 @@ export interface RootStackParamList extends ParamListBase {
     | undefined;
   SitesFullView: { mode?: 'favorites' } | undefined;
   ExploreSearch: undefined;
+  ExploreSectionResultsFullView: {
+    feedId: SearchFeedId;
+    title: string;
+    searchQuery: string;
+    data: unknown[];
+  };
   RewardsOnboardingFlow: undefined;
   RewardsOnboardingIntro: undefined;
   RewardsOnboarding1: undefined;

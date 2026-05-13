@@ -2980,6 +2980,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  exploreSearchV2Enabled: {
+    name: 'exploreSearchV2Enabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   forceRampsStagingEnvironment: {
     name: 'forceRampsStagingEnvironment',
     type: FeatureFlagType.Remote,

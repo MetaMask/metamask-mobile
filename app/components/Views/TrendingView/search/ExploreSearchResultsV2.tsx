@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Pressable } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -19,33 +18,28 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import SitesSearchFooter from '../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { trackExploreEvent, useScrollTracking } from './analytics';
-import {
-  useExploreSearch,
-  type SearchFeedId,
-  type SearchFeedSection,
-} from './useExploreSearch';
+import { type SearchFeedId, type SearchFeedSection } from './useExploreSearch';
+import { useExploreSearchV2 } from './useExploreSearchV2';
 import SearchFeedRow, { SearchFeedSkeleton } from './SearchFeedRow';
 
 const MAX_ITEMS_PER_SECTION = 3;
 
-interface ExploreSearchResultsProps {
+interface ExploreSearchResultsV2Props {
   searchQuery: string;
+  onViewMore: (feedId: SearchFeedId) => void;
 }
 
 interface ListItemHeader {
   type: 'header';
   feedId: SearchFeedId;
   title: string;
-  hasMore: boolean;
 }
 
 interface ListItemData {
@@ -63,12 +57,12 @@ interface ListItemSkeleton {
 
 type FlatListItem = ListItemHeader | ListItemData | ListItemSkeleton;
 
-const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
+const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
   searchQuery,
+  onViewMore,
 }) => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
-  const { sections } = useExploreSearch(searchQuery);
+  const { sections } = useExploreSearchV2(searchQuery);
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -90,14 +84,9 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         search_query: searchQuery,
         section_name: section.title,
       });
-      navigation.navigate(Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW, {
-        feedId: section.feedId,
-        title: section.title,
-        searchQuery,
-        data: section.items,
-      });
+      onViewMore(section.feedId);
     },
-    [navigation, searchQuery],
+    [onViewMore, searchQuery],
   );
 
   const renderSectionHeader = useCallback(
@@ -115,32 +104,27 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         >
           {item.title}
         </Text>
-        {item.hasMore && (
-          <Pressable
-            onPress={() => handleViewMore(section)}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={`${strings('trending.view_all')} ${item.title}`}
-            style={({ pressed }) =>
-              tw.style(
-                'flex-row items-center gap-1 rounded px-1',
-                pressed && 'opacity-50',
-              )
-            }
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('trending.view_all')}
-            </Text>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          </Pressable>
-        )}
+        <Pressable
+          onPress={() => handleViewMore(section)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={`${strings('trending.view_all')} ${item.title}`}
+          style={({ pressed }) =>
+            tw.style(
+              'flex-row items-center gap-1 rounded px-1',
+              pressed && 'opacity-50',
+            )
+          }
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('trending.view_all')}
+          </Text>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+        </Pressable>
       </Box>
     ),
     [handleViewMore, tw],
@@ -154,8 +138,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       const { feedId, title, items, isLoading } = section;
       if (!isLoading && items.length === 0) return;
 
-      const hasMore = !isLoading && items.length > MAX_ITEMS_PER_SECTION;
-      result.push({ type: 'header', feedId, title, hasMore });
+      result.push({ type: 'header', feedId, title });
 
       if (isLoading) {
         for (let i = 0; i < MAX_ITEMS_PER_SECTION; i++) {
@@ -244,4 +227,4 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   );
 };
 
-export default ExploreSearchResults;
+export default ExploreSearchResultsV2;

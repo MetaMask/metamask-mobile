@@ -11,44 +11,19 @@ import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import { useSitesFeed } from '../feeds/sites/useSitesFeed';
-
-/** Feeds that participate in the omni-search across the Explore page. */
-export type SearchFeedId =
-  | 'tokens'
-  | 'perps'
-  | 'stocks'
-  | 'predictions'
-  | 'sites';
+import type {
+  SearchFeedId,
+  SearchFeedSection,
+  ExploreSearchResult,
+} from './useExploreSearch';
 
 const DEBOUNCE_MS = 200;
-const TOP_ITEMS_WITHOUT_QUERY = 3;
-
-/** Result shape per feed so consumers can render with the right row item. */
-export type SearchFeedData =
-  | { feedId: 'tokens'; items: TrendingAsset[] }
-  | { feedId: 'stocks'; items: TrendingAsset[] }
-  | { feedId: 'perps'; items: PerpsMarketData[] }
-  | { feedId: 'predictions'; items: PredictMarketType[] }
-  | { feedId: 'sites'; items: SiteData[] };
-
-export interface SearchFeedSection<T = unknown> {
-  feedId: SearchFeedId;
-  title: string;
-  items: T[];
-  isLoading: boolean;
-}
-
-export interface ExploreSearchResult {
-  /** Ordered sections to render. Perps is omitted when the flag is disabled. */
-  sections: SearchFeedSection[];
-}
 
 /**
- * Aggregates the 5 search-relevant feeds (tokens, perps, stocks, predictions,
- * sites) and applies common search behavior: debouncing and top-N truncation
- * when no query is present.
+ * V2 variant of useExploreSearch: no top-N truncation (all results always
+ * returned) and uses search_tabs.* string keys for tab labels.
  */
-export const useExploreSearch = (query: string): ExploreSearchResult => {
+export const useExploreSearchV2 = (query: string): ExploreSearchResult => {
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
@@ -69,15 +44,11 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
   const sites = useSitesFeed({ query: debouncedQuery });
 
   return useMemo<ExploreSearchResult>(() => {
-    const showTopItems = !debouncedQuery.trim();
-    const trim = <T>(arr: T[]) =>
-      showTopItems ? arr.slice(0, TOP_ITEMS_WITHOUT_QUERY) : arr;
-
     const sections: SearchFeedSection[] = [
       {
         feedId: 'tokens',
-        title: strings('trending.crypto'),
-        items: trim(tokens.data),
+        title: strings('trending.search_tabs.crypto'),
+        items: tokens.data,
         isLoading: isDebouncing || tokens.isLoading,
       },
     ];
@@ -85,8 +56,8 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
     if (isPerpsEnabled) {
       sections.push({
         feedId: 'perps',
-        title: strings('trending.perps'),
-        items: trim(perps.data.map((d) => d.market)),
+        title: strings('trending.search_tabs.perps'),
+        items: perps.data.map((d) => d.market),
         isLoading: isDebouncing || perps.isLoading,
       });
     }
@@ -94,27 +65,26 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
     sections.push(
       {
         feedId: 'stocks',
-        title: strings('trending.stocks'),
-        items: trim(stocks.data),
+        title: strings('trending.search_tabs.stocks'),
+        items: stocks.data,
         isLoading: isDebouncing || stocks.isLoading,
       },
       {
         feedId: 'predictions',
-        title: strings('wallet.predict'),
-        items: trim(predictions.data),
+        title: strings('trending.search_tabs.predictions'),
+        items: predictions.data,
         isLoading: isDebouncing || predictions.isLoading,
       },
       {
         feedId: 'sites',
-        title: strings('trending.sites'),
-        items: trim(sites.data),
+        title: strings('trending.search_tabs.sites'),
+        items: sites.data,
         isLoading: isDebouncing || sites.isLoading,
       },
     );
 
     return { sections };
   }, [
-    debouncedQuery,
     isDebouncing,
     isPerpsEnabled,
     tokens.data,
@@ -129,3 +99,5 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
     sites.isLoading,
   ]);
 };
+
+export type { SearchFeedId, SearchFeedSection, ExploreSearchResult };
