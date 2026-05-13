@@ -460,6 +460,53 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${SCRIPT_BASE//-/:}"
             yarn "$SCRIPT_NAME"
 
+      # Prod Play–shaped Android: lint merged prodRelease manifest, then validate the AAB produced above (bundletool).
+      # Skips e2e (no AAB) and Debug dev builds. Mirrors former ci.yml android-play-store-manifest-check without a second bundle.
+      - name: Cache bundletool (Android Play bundle validation)
+        id: bundletool-cache-play-check
+        if: >-
+          success() &&
+          matrix.platform == 'android' &&
+          env.CONFIGURATION != 'Debug' &&
+          env.METAMASK_BUILD_TYPE == 'main' &&
+          env.METAMASK_ENVIRONMENT != 'e2e'
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/bundletool-all.jar
+          key: bundletool-1.18.3-jar
+
+      - name: Android Play Store lint and bundle validation (prodRelease)
+        if: >-
+          success() &&
+          matrix.platform == 'android' &&
+          env.CONFIGURATION != 'Debug' &&
+          env.METAMASK_BUILD_TYPE == 'main' &&
+          env.METAMASK_ENVIRONMENT != 'e2e'
+        shell: bash
+        env:
+          SENTRY_DISABLE_AUTO_UPLOAD: true
+        run: |
+          set -euo pipefail
+          BUNDLETOOL_JAR="${RUNNER_TEMP}/bundletool-all.jar"
+          if [[ ! -f "$BUNDLETOOL_JAR" ]]; then
+            curl -fsSL -o "$BUNDLETOOL_JAR" \
+              "https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar"
+          fi
+          cd android
+          chmod +x ./gradlew
+          ./gradlew :app:lintProdRelease --no-daemon --stacktrace
+
+          shopt -s nullglob
+          aabs=( "$GITHUB_WORKSPACE/android/app/build/outputs/bundle/prodRelease/"*.aab )
+          shopt -u nullglob
+          if [[ "${#aabs[@]}" -ne 1 ]]; then
+            echo "::error::Expected exactly one .aab under prodRelease; found ${#aabs[@]}"
+            find "$GITHUB_WORKSPACE/android/app/build/outputs/bundle/prodRelease" -maxdepth 2 -print || true
+            exit 1
+          fi
+          echo "Validating bundle: ${aabs[0]}"
+          java -jar "$BUNDLETOOL_JAR" validate --bundle="${aabs[0]}"
+
       # Rename build artifacts (ios_simulator_path / ios_ipa_path / ios_archive_path / android_*_path outputs)
       - name: Rename ${{ matrix.platform }} artifacts
         if: success()
