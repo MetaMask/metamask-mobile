@@ -23,8 +23,8 @@ import type { PerpsServiceInterruptionBannerProps } from './PerpsServiceInterrup
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    marginTop: 8,
+    marginBottom: 8,
   },
   banner: {
     borderRadius: 12,
@@ -32,12 +32,18 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 8,
   },
-  contentRow: {
-    flex: 1,
+  titleRow: {
     gap: 8,
   },
-  textContainer: {
-    flex: 1,
+  iconContainer: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  underline: {
+    textDecorationLine: 'underline',
   },
 });
 
@@ -69,39 +75,43 @@ const PerpsServiceInterruptionBanner: React.FC<
         style={styles.banner}
         backgroundColor={BoxBackgroundColor.BackgroundMuted}
       >
+        {/* Title row: icon + heading */}
         <Box
           flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Start}
-          style={styles.contentRow}
+          alignItems={BoxAlignItems.Center}
+          style={styles.titleRow}
         >
-          <Icon
-            name={IconName.FlashSlash}
-            size={IconSize.Md}
-            color={IconColor.WarningDefault}
-          />
-          <Box style={styles.textContainer}>
-            <Text
-              variant={TextVariant.HeadingSm}
-              color={TextColor.WarningDefault}
-            >
-              {strings('perps.service_interruption.title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings('perps.service_interruption.description')}{' '}
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.InfoDefault}
-                onPress={handleSupportPress}
-                testID={`${testID}-support-link`}
-              >
-                {strings('perps.service_interruption.contact_support')}
-              </Text>
-            </Text>
+          <Box
+            style={styles.iconContainer}
+            backgroundColor={BoxBackgroundColor.WarningMuted}
+          >
+            <Icon
+              name={IconName.FlashSlash}
+              size={IconSize.Md}
+              color={IconColor.WarningDefault}
+            />
           </Box>
+          <Text
+            variant={TextVariant.HeadingSm}
+            color={TextColor.WarningDefault}
+          >
+            {strings('perps.service_interruption.title')}
+          </Text>
         </Box>
+
+        {/* Description aligned to left */}
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {strings('perps.service_interruption.description')}{' '}
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            style={styles.underline}
+            onPress={handleSupportPress}
+            testID={`${testID}-support-link`}
+          >
+            {strings('perps.service_interruption.contact_support')}
+          </Text>
+        </Text>
       </Box>
     </Box>
   );
