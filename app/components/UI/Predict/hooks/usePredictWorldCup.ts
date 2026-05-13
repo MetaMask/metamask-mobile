@@ -24,6 +24,7 @@ import {
   fetchPredictWorldCupMarkets,
   PREDICT_WORLD_CUP_PAGE_SIZE,
 } from '../services/worldCup';
+import { strings } from '../../../../../locales/i18n';
 import type { PredictMarket } from '../types';
 import type { PredictWorldCupConfig } from '../types/flags';
 import type { UsePredictMarketDataResult } from './usePredictMarketData';
@@ -345,42 +346,53 @@ export const usePredictWorldCupAvailableTabs = (
     options,
   );
 
-  const tabs = useMemo<PredictWorldCupAvailableTab[]>(() => {
-    const availableKeys = getPredictWorldCupAvailableTabKeys(
-      config,
-      availability,
-    );
+  const availableTabKeys = useMemo(
+    () => getPredictWorldCupAvailableTabKeys(config, availability),
+    [availability, config],
+  );
 
-    return availableKeys.map((key) => {
-      switch (key) {
-        case PREDICT_WORLD_CUP_TAB_KEYS.ALL:
-          return { key, label: 'All' };
-        case PREDICT_WORLD_CUP_TAB_KEYS.LIVE:
-          return { key, label: 'Live', isLive: true };
-        case PREDICT_WORLD_CUP_TAB_KEYS.PROPS:
-          return { key, label: 'Props' };
-        default: {
-          const stage = config.stages.find(
-            (configuredStage) => configuredStage.key === key,
-          );
-          return {
-            key,
-            label: stage ? resolvePredictWorldCupStageLabel(stage) : key,
-          };
+  const tabs = useMemo<PredictWorldCupAvailableTab[]>(
+    () =>
+      availableTabKeys.map((key) => {
+        switch (key) {
+          case PREDICT_WORLD_CUP_TAB_KEYS.ALL:
+            return { key, label: strings('predict.world_cup.tabs.all') };
+          case PREDICT_WORLD_CUP_TAB_KEYS.LIVE:
+            return {
+              key,
+              label: strings('predict.world_cup.tabs.live'),
+              isLive: true,
+            };
+          case PREDICT_WORLD_CUP_TAB_KEYS.PROPS:
+            return { key, label: strings('predict.world_cup.tabs.props') };
+          default: {
+            const stage = config.stages.find(
+              (configuredStage) => configuredStage.key === key,
+            );
+            return {
+              key,
+              label: stage ? resolvePredictWorldCupStageLabel(stage) : key,
+            };
+          }
         }
-      }
-    });
-  }, [availability, config]);
+      }),
+    [availableTabKeys, config.stages],
+  );
+
+  const prefetchTabKeys = availableTabKeys.join(',');
 
   useEffect(() => {
     if (!enabled) {
       return;
     }
 
-    tabs.forEach((tab) =>
-      prefetchWorldCupTabMarkets({ queryClient, tabKey: tab.key, config }),
-    );
-  }, [config, enabled, queryClient, tabs]);
+    prefetchTabKeys
+      .split(',')
+      .filter(Boolean)
+      .forEach((tabKey) =>
+        prefetchWorldCupTabMarkets({ queryClient, tabKey, config }),
+      );
+  }, [config, enabled, prefetchTabKeys, queryClient]);
 
   return {
     ...availabilityQuery,

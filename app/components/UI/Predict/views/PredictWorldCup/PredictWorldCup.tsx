@@ -34,6 +34,7 @@ import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import PredictOffline from '../../components/PredictOffline';
 import type { PredictWorldCupConfig } from '../../types/flags';
+import { strings } from '../../../../../../locales/i18n';
 
 export const PREDICT_WORLD_CUP_SCREEN_TEST_IDS = {
   CONTAINER: 'predict-world-cup-screen',
@@ -173,7 +174,9 @@ const WorldCupTabContent = ({
         testID={PREDICT_WORLD_CUP_SCREEN_TEST_IDS.EMPTY_STATE}
       >
         <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryAlternative}>
-          No World Cup markets available.
+          {strings('predict.search_empty_state', {
+            category: strings('predict.world_cup.title'),
+          })}
         </Text>
       </Box>
     );
@@ -257,7 +260,11 @@ const PredictWorldCup: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={PREDICT_WORLD_CUP_SCREEN_TEST_IDS.CONTAINER}
     >
-      <HeaderStandard title="World Cup" onBack={handleBack} includesTopInset />
+      <HeaderStandard
+        title={strings('predict.world_cup.title')}
+        onBack={handleBack}
+        includesTopInset
+      />
 
       <Box twClassName="flex-1">
         <ScrollView
