@@ -461,6 +461,33 @@ describe('useHeadlessBuy', () => {
         ).rejects.toMatchObject({ headlessBuyErrorCode: 'LIMIT_EXCEEDED' });
       });
 
+      // Cursor Bugbot regression guard — classification is per-provider, not
+      // aggregate. If provider A returns a buy-limit code and provider B
+      // returns a rate-limit code, B should NOT veto A's verdict.
+      it('classifies per provider — one limit + one rate-limit still maps to LIMIT_EXCEEDED', async () => {
+        mockGetQuotesRaw.mockResolvedValueOnce({
+          success: [],
+          sorted: [],
+          error: [
+            {
+              provider: 'transak',
+              error: 'Below minimum buy amount',
+              code: 'AMOUNT_LIMIT_EXCEEDED',
+            },
+            {
+              provider: 'moonpay',
+              error: 'Provider throttled — try again later',
+              code: 'RATE_LIMIT_EXCEEDED',
+            },
+          ],
+          customActions: [],
+        });
+        const { result } = renderHook(() => useHeadlessBuy());
+        await expect(
+          result.current.getQuotes(getQuotesParams),
+        ).rejects.toMatchObject({ headlessBuyErrorCode: 'LIMIT_EXCEEDED' });
+      });
+
       it('returns the response unchanged when both success and error are empty', async () => {
         mockGetQuotesRaw.mockResolvedValueOnce({
           success: [],

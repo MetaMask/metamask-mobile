@@ -489,6 +489,15 @@ function HeadlessPlayground() {
   // refreshOrder / awaitOrderTerminalState hooks MetaMask Pay's
   // TransactionPayController will use.
   const [lastOrderId, setLastOrderId] = useState<string | null>(null);
+  // Fix #3.1: capture the `order` snapshot from `onOrderCreated`'s widened
+  // signature. The playground doubles as the reference implementation for
+  // the recommended `awaitOrderTerminalState(orderId, { walletAddress:
+  // order.walletAddress, ... })` pattern documented in the JSDoc — so it
+  // needs to actually demonstrate it. Also eliminates the Fix #3.3 race
+  // window where tapping "Await terminal state" before `addOrder` has
+  // flushed would otherwise reject with
+  // `AwaitOrderTerminalStatePrerequisitesError`.
+  const [lastOrder, setLastOrder] = useState<RampsOrder | null>(null);
   const [awaitStatus, setAwaitStatus] = useState<AwaitStatus>('idle');
   const [awaitMessage, setAwaitMessage] = useState<string | null>(null);
 
@@ -518,7 +527,7 @@ function HeadlessPlayground() {
         currency: fiatCurrency,
       };
       const session = startHeadlessBuy(params, {
-        onOrderCreated: (orderId) => {
+        onOrderCreated: (orderId, order) => {
           appendEvent(
             strings(
               'app_settings.fiat_on_ramp.headless_playground.event_log_order_created',
@@ -526,6 +535,10 @@ function HeadlessPlayground() {
             ),
           );
           setLastOrderId(orderId);
+          // Fix #3.1: persist the order snapshot so the "Await terminal
+          // state" action can pass `walletAddress: order.walletAddress`
+          // per the JSDoc-recommended pattern.
+          setLastOrder(order);
           setAwaitStatus('idle');
           setAwaitMessage(null);
           setActiveSession(null);
@@ -631,7 +644,13 @@ function HeadlessPlayground() {
     setAwaitStatus('awaiting');
     setAwaitMessage(null);
     try {
+      // Demonstrate the recommended JSDoc'd pattern: pass
+      // `walletAddress: order.walletAddress` from the `onOrderCreated`
+      // snapshot. Without it, Fix #3.3's pre-flight check would reject
+      // when the order hasn't been flushed to redux yet — see the
+      // `AwaitOrderTerminalStatePrerequisitesError` JSDoc.
       const terminal = await awaitOrderTerminalState(lastOrderId, {
+        walletAddress: lastOrder?.walletAddress,
         timeoutMs: 5 * 60 * 1000,
       });
       setAwaitStatus('terminal');
@@ -645,7 +664,7 @@ function HeadlessPlayground() {
         setAwaitMessage(error instanceof Error ? error.message : 'Unknown');
       }
     }
-  }, [awaitOrderTerminalState, lastOrderId]);
+  }, [awaitOrderTerminalState, lastOrder, lastOrderId]);
 
   // Resolve the effective ids into human-friendly labels via `useHeadlessBuy`
   // so the section also exercises the catalog data exposed by the hook.

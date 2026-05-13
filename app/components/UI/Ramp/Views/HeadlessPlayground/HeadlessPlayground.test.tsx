@@ -1373,6 +1373,57 @@ describe('HeadlessPlayground', () => {
         });
         expect(screen.getByText(/Timed out/i)).toBeOnTheScreen();
       });
+
+      // Regression guard for Cursor Bugbot finding — when the consumer's
+      // `onOrderCreated` is invoked with the Fix #3.1 widened signature
+      // `(orderId, order)`, the playground captures `order.walletAddress`
+      // and forwards it to `awaitOrderTerminalState`. Without it, Fix #3.3's
+      // pre-flight check would reject if the order hadn't yet flushed to
+      // redux when the user tapped "Await terminal state."
+      it('passes order.walletAddress from onOrderCreated to awaitOrderTerminalState (Cursor Bugbot regression)', async () => {
+        mockGetOrder.mockReturnValue({
+          providerOrderId: 'order-xyz',
+          status: 'PENDING',
+          provider: { id: '/providers/moonpay' },
+          walletAddress: '0xWALLET-LIVE',
+        });
+        mockAwaitOrderTerminalState.mockResolvedValue({
+          providerOrderId: 'order-xyz',
+          status: 'COMPLETED',
+        });
+        await renderWithQuotes();
+        fireEvent.press(
+          screen.getByTestId(`${HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}-0`),
+        );
+        // Two-arg callback shape — matches the Fix #3.1 widened type.
+        const callbacks = mockStartHeadlessBuy.mock.calls[0][1] as {
+          onOrderCreated: (orderId: string, order: unknown) => void;
+        };
+        act(() => {
+          callbacks.onOrderCreated('order-xyz', {
+            providerOrderId: 'order-xyz',
+            walletAddress: '0xWALLET-FROM-CALLBACK',
+            provider: { id: '/providers/moonpay' },
+            status: 'PENDING',
+          });
+        });
+        await act(async () => {
+          fireEvent.press(
+            screen.getByTestId(
+              HEADLESS_PLAYGROUND_ORDER_TRACKING_AWAIT_TEST_ID,
+            ),
+          );
+        });
+        // The walletAddress came from the captured `order` arg, NOT from
+        // `getOrder()` — proves the recommended pattern is wired correctly.
+        expect(mockAwaitOrderTerminalState).toHaveBeenCalledWith(
+          'order-xyz',
+          expect.objectContaining({
+            walletAddress: '0xWALLET-FROM-CALLBACK',
+            timeoutMs: 5 * 60 * 1000,
+          }),
+        );
+      });
     });
   });
 });

@@ -366,20 +366,32 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         // Prefer a structured `code` from the SDK; fall back to a
         // word-boundary regex on the combined message. Exclude rate/request
         // limit messages — those are 429-style API limits, not buy bounds.
+        //
+        // Classification is **per-provider, then aggregated**: if provider A
+        // returned a limit code and provider B returned a rate-limit code,
+        // we should NOT let B's signal veto A's verdict. Aggregating with
+        // `some()` across all errors (the previous shape) flipped this case
+        // to `QUOTE_FAILED` even when at least one provider clearly hit a
+        // buy bound — losing the actionable signal Goktug's 5 EUR scenario
+        // depends on. Per-provider classification keeps each provider's
+        // verdict scoped to its own code.
         const messageHasLimitWord = /\b(minimum|maximum|limit)\b/i.test(
           combinedMessage,
         );
         const messageHasRateRequest = /\b(rate|request)\b/i.test(
           combinedMessage,
         );
-        const sdkCodeSaysLimit = providerErrors.some(
-          (p) => p.code !== undefined && /limit/i.test(p.code),
-        );
-        const sdkCodeSaysRateRequest = providerErrors.some(
-          (p) => p.code !== undefined && /rate|request/i.test(p.code),
-        );
+        const sdkSaysLimitForAnyProvider = providerErrors.some((p) => {
+          if (p.code === undefined) return false;
+          const codeSaysLimit = /limit/i.test(p.code);
+          const codeSaysRateRequest = /rate|request/i.test(p.code);
+          // This provider counts as a buy-limit signal only when its code
+          // mentions limit AND not rate/request — verdicts don't leak
+          // across providers.
+          return codeSaysLimit && !codeSaysRateRequest;
+        });
         const isLimitExceeded =
-          (sdkCodeSaysLimit && !sdkCodeSaysRateRequest) ||
+          sdkSaysLimitForAnyProvider ||
           (messageHasLimitWord && !messageHasRateRequest);
         const code: HeadlessBuyErrorCode = isLimitExceeded
           ? 'LIMIT_EXCEEDED'
