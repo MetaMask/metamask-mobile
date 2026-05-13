@@ -36,12 +36,12 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   selectIsCardAuthenticated,
   selectCardUserLocation,
+  selectIsCardholder,
 } from '../../../../../selectors/cardController';
 import {
   CardStatus,
   FundingAssetStatus,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
@@ -59,10 +59,11 @@ import { isSpendingLimitSupportedToken } from '../../constants';
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
 import CardActionsButtons from './components/CardActionsButtons';
-import CardBalanceDisplay from './components/CardBalanceDisplay';
-import CardImageSection from './components/CardImageSection';
-import ManageCardOptions from './components/ManageCardOptions';
-import CardHomeFooter from './components/CardHomeFooter';
+import CardBalanceHeader from './components/CardBalanceHeader';
+import CardActionPills from './components/CardActionPills';
+import CardCashbackBanner from './components/CardCashbackBanner';
+import FlippableCard from './components/FlippableCard';
+import ManageCardOptionsSlim from './components/ManageCardOptionsSlim';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
@@ -78,11 +79,9 @@ const CardHome = () => {
   const { data, isLoading, isError, refetch, primaryToken } = useCardHomeData();
   const capabilities = useCardCapabilities();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const isCardholder = useSelector(selectIsCardholder);
   const userLocation = useSelector(selectCardUserLocation);
   const privacyMode = useSelector(selectPrivacyMode);
-  const isMetalCardCheckoutEnabled = useSelector(
-    selectMetalCardCheckoutFeatureFlag,
-  );
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
@@ -216,10 +215,29 @@ const CardHome = () => {
     isSpendingLimitSupportedToken(data?.primaryFundingAsset?.symbol) &&
     !hasSetupActions;
 
-  const isSpendingLimitActive =
-    data?.primaryFundingAsset?.status === FundingAssetStatus.Active;
-
   const hasPriorityTokenBalance = (primaryToken?.rawTokenBalance ?? 0) > 0;
+
+  // Logged-out cardholders still see the action/manage UI; every tap routes
+  // to auth via useCardHomeActions.
+  const isLoggedOutCardholder = !isAuthenticated && isCardholder;
+
+  const isFullySetUp =
+    !isLoading &&
+    !hasSetupActions &&
+    !hasAlertOnlyState &&
+    (!!data?.card || isLoggedOutCardholder);
+
+  const hideManageOptions = isAuthenticated && !hasPriorityTokenBalance;
+
+  // --- Action pill visibility (only after onboarding is complete) ---
+  const showActionPills = isFullySetUp && !hideManageOptions;
+  const showCashbackBanner =
+    isAuthenticated &&
+    !hasSetupActions &&
+    !hasAlertOnlyState &&
+    !!capabilities?.supportsCashback &&
+    data?.account?.verificationStatus === 'VERIFIED';
+  void userLocation; // userLocation reserved for future regional gating
 
   // --- Error state ---
   if (isError) {
@@ -273,10 +291,6 @@ const CardHome = () => {
         />
       }
     >
-      <Text style={tw.style('px-4 pt-4')} variant={TextVariant.HeadingLg}>
-        {strings('card.card_home.title')}
-      </Text>
-
       <Box twClassName="mx-4 mt-2">
         <CardAlertSection
           alerts={(data?.alerts ?? []).filter(
@@ -293,36 +307,34 @@ const CardHome = () => {
         />
       </Box>
 
-      <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
-        <Box twClassName="w-full relative">
-          <CardImageSection
-            isLoading={isLoading}
-            isCardDetailsLoading={actions.isCardDetailsLoading}
-            cardDetailsImageUrl={actions.cardDetailsImageUrl}
-            isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
-            onImageLoad={actions.onCardDetailsImageLoad}
-            onImageError={actions.onCardDetailsImageError}
-            cardType={data?.card?.type}
-            cardStatus={data?.card?.status}
-            walletAddress={
-              isAuthenticated
-                ? data?.primaryFundingAsset?.walletAddress
-                : undefined
-            }
-          />
-        </Box>
+      {!hasSetupActions && !hasAlertOnlyState && (
+        <CardBalanceHeader
+          isLoading={isLoading}
+          balanceAmount={balanceAmount}
+          privacyMode={privacyMode}
+          onTogglePrivacy={handleTogglePrivacy}
+        />
+      )}
 
-        {!hasSetupActions && !hasAlertOnlyState && (
-          <CardBalanceDisplay
-            isLoading={isLoading}
-            balanceAmount={balanceAmount}
-            privacyMode={privacyMode}
-            assetBalance={primaryToken ?? undefined}
-            onTogglePrivacy={handleTogglePrivacy}
-          />
-        )}
+      <Box twClassName="mx-4">
+        <FlippableCard
+          isLoading={isLoading}
+          cardDetailsImageUrl={actions.cardDetailsImageUrl}
+          isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
+          onImageLoad={actions.onCardDetailsImageLoad}
+          onImageError={actions.onCardDetailsImageError}
+          cardType={data?.card?.type}
+          cardStatus={data?.card?.status}
+          walletAddress={
+            isAuthenticated
+              ? data?.primaryFundingAsset?.walletAddress
+              : undefined
+          }
+        />
+      </Box>
 
-        {showSpendingLimitProgress && data?.primaryFundingAsset && (
+      {showSpendingLimitProgress && data?.primaryFundingAsset && (
+        <Box twClassName="mx-4 mt-2">
           <SpendingLimitProgressBar
             isLoading={isLoading}
             decimals={data.primaryFundingAsset.decimals ?? 6}
@@ -338,20 +350,54 @@ const CardHome = () => {
               !!data.primaryFundingAsset.originalSpendingCap
             }
           />
-        )}
+        </Box>
+      )}
 
-        {((data?.actions ?? []).length > 0 || isLoading) && (
-          <Box twClassName="w-full mt-4">
-            <CardActionsButtons
-              actions={data?.actions ?? []}
-              isLoading={isLoading}
-              isSwapEnabled={isSwapEnabled}
-              onAddFunds={actions.addFundsAction}
-              onEnableCard={actions.enableCardAction}
-            />
-          </Box>
-        )}
-      </Box>
+      {hasSetupActions && (
+        <Box twClassName="mx-4 mt-4">
+          <CardActionsButtons
+            actions={data?.actions ?? []}
+            isLoading={isLoading}
+            isSwapEnabled={isSwapEnabled}
+            onAddFunds={actions.addFundsAction}
+            onEnableCard={actions.enableCardAction}
+          />
+        </Box>
+      )}
+
+      {showActionPills && (
+        <CardActionPills
+          isLoading={isLoading}
+          showFund={
+            isLoggedOutCardholder ||
+            (data?.actions ?? []).some((a) => a.type === 'add_funds')
+          }
+          isFundDisabled={!isLoggedOutCardholder && !isSwapEnabled}
+          onFund={actions.addFundsAction}
+          showDetails={isLoggedOutCardholder || !!data?.card}
+          isDetailsLoading={
+            actions.isCardDetailsLoading || actions.isCardDetailsImageLoading
+          }
+          isDetailsShown={!!actions.cardDetailsImageUrl}
+          onDetails={actions.viewCardDetailsAction}
+          showPin={
+            isLoggedOutCardholder ||
+            (!!capabilities?.supportsPinView && !!data?.card)
+          }
+          isPinLoading={actions.isPinLoading}
+          onPin={actions.viewPinAction}
+          showFreeze={
+            isLoggedOutCardholder ||
+            (!!data?.card?.isFreezable &&
+              data?.card?.status !== CardStatus.BLOCKED)
+          }
+          isFrozen={isFrozen}
+          isFreezeLoading={
+            actions.freeze.isPending || actions.unfreeze.isPending
+          }
+          onToggleFreeze={actions.handleToggleFreeze}
+        />
+      )}
 
       {!isLoading && canAddToWallet && (
         <Box twClassName="w-full px-4 pt-4 items-center justify-center">
@@ -370,41 +416,26 @@ const CardHome = () => {
         </Box>
       )}
 
-      <ManageCardOptions
-        card={data?.card}
-        account={data?.account}
-        capabilities={capabilities}
-        isSpendingLimitActive={isSpendingLimitActive}
-        isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
-        isAuthenticated={isAuthenticated}
-        isLoading={isLoading}
-        hasSetupActions={hasSetupActions}
-        hasAlertOnlyState={hasAlertOnlyState}
-        hasSetupAlerts={hasSetupAlerts}
-        userLocation={userLocation}
-        isFrozen={isFrozen}
-        isFreezeLoading={actions.freeze.isPending || actions.unfreeze.isPending}
-        isPinLoading={actions.isPinLoading}
-        cardDetailsImageUrl={actions.cardDetailsImageUrl}
-        onViewCardDetails={actions.viewCardDetailsAction}
-        onViewPin={actions.viewPinAction}
-        onToggleFreeze={actions.handleToggleFreeze}
-        onManageSpendingLimit={actions.manageSpendingLimitAction}
-        onOrderMetalCard={actions.orderMetalCardAction}
-        onChangeAsset={actions.changeAssetAction}
-        hasPriorityTokenBalance={hasPriorityTokenBalance}
-        onCashback={actions.cashbackAction}
-        onTravel={actions.navigateToTravelPage}
-      />
+      {showCashbackBanner && (
+        <CardCashbackBanner
+          cardType={data?.card?.type}
+          privacyMode={privacyMode}
+          onPress={actions.cashbackAction}
+        />
+      )}
 
-      <CardHomeFooter
-        isAuthenticated={isAuthenticated}
-        isLoading={isLoading}
-        hasAlerts={hasAlertOnlyState}
-        hasSetupActions={hasSetupActions}
-        onNavigateToCardTos={actions.navigateToCardTosPage}
-        onLogout={actions.logoutAction}
-      />
+      {showCashbackBanner && (
+        <Box twClassName="h-px bg-border-muted mx-4 mt-6" />
+      )}
+
+      {showActionPills && (
+        <ManageCardOptionsSlim
+          primaryToken={primaryToken}
+          fundingAssetStatus={data?.primaryFundingAsset?.status}
+          onChangeAsset={actions.changeAssetAction}
+          onManageSpendingLimit={actions.manageSpendingLimitAction}
+        />
+      )}
 
       <CardScreenshotDeterrent enabled={!!actions.cardDetailsImageUrl} />
     </ScrollView>

@@ -8027,6 +8027,20 @@
         },
         "ok_button": "OK"
       },
+      "action_pills": {
+        "fund": "Fund",
+        "details": "Details",
+        "hide": "Hide",
+        "pin": "PIN",
+        "freeze": "Freeze",
+        "unfreeze": "Unfreeze"
+      },
+      "cashback_banner": {
+        "label": "Your 1% back",
+        "label_metal": "Your 3% back"
+      },
+      "manage_card_title": "Manage card",
+      "spending_limit_unlimited": "Unlimited",
       "manage_card_options": {
         "view_card_details": "View card details",
         "hide_card_details": "Hide card details",

@@ -19,7 +19,7 @@ import createStyles from './ManageCardListItem.styles';
 
 export interface ManageCardListItemProps {
   title: string;
-  description: string | React.ReactNode;
+  description?: string | React.ReactNode;
   descriptionOrientation?: 'row' | 'column';
   rightIcon?: IconName;
   rightElement?: React.ReactNode;
@@ -48,7 +48,8 @@ const ManageCardListItem: React.FC<ManageCardListItemProps> = ({
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {title}
           </Text>
-          {typeof description === 'string' ? (
+          {description == null ||
+          description === '' ? null : typeof description === 'string' ? (
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}

@@ -490,6 +490,7 @@ const Routes = {
     REVIEW_ORDER: 'ReviewOrder',
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'CardCashback',
+    MORE_OPTIONS: 'CardMoreOptions',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',

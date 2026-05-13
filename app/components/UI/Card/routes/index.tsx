@@ -32,6 +32,7 @@ import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/Spendin
 import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
+import MoreOptions from '../Views/MoreOptions';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -63,6 +64,31 @@ export const cardDefaultNavigationOptions = ({
   ),
   headerTitle: () => <View />,
   headerRight: () => <View />,
+});
+
+// Card Home gets a 3-dot menu on the right that opens the overflow screen.
+export const cardHomeNavigationOptions = ({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}): StackNavigationOptions => ({
+  headerLeft: () => (
+    <ButtonIcon
+      style={headerStyle.icon}
+      size={ButtonIconSize.Md}
+      iconName={IconName.ArrowLeft}
+      onPress={() => navigation.goBack()}
+    />
+  ),
+  headerTitle: () => <View />,
+  headerRight: () => (
+    <ButtonIcon
+      style={headerStyle.icon}
+      size={ButtonIconSize.Md}
+      iconName={IconName.MoreVertical}
+      onPress={() => navigation.navigate(Routes.CARD.MORE_OPTIONS)}
+    />
+  ),
 });
 
 export const cardSpendingLimitNavigationOptions = ({
@@ -150,6 +176,11 @@ const MainRoutes = () => {
       <Stack.Screen
         name={Routes.CARD.HOME}
         component={CardHome}
+        options={cardHomeNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.MORE_OPTIONS}
+        component={MoreOptions}
         options={cardDefaultNavigationOptions}
       />
       <Stack.Screen
