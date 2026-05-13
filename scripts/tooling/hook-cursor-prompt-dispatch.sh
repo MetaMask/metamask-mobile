@@ -19,6 +19,24 @@ _skill_name=$(printf '%s' "$_payload" \
 
 [ -z "${_skill_name:-}" ] && exit 0
 
+# Guard: only log if the name resolves to a known SKILL.md to avoid
+# misclassifying built-in Cursor slash commands as skill invocations.
+_repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+_is_known_skill=0
+for _dir in \
+  "${HOME}/.cursor/skills" \
+  "${HOME}/.cursor/skills-cursor" \
+  "${HOME}/.claude/skills" \
+  "${_repo_root}/.claude/skills" \
+  "${_repo_root}/.agents/skills" \
+  "${_repo_root}/.cursor/skills"; do
+  if [ -f "${_dir}/${_skill_name}/SKILL.md" ]; then
+    _is_known_skill=1
+    break
+  fi
+done
+[ "${_is_known_skill}" -eq 0 ] && exit 0
+
 _session_id=$(printf '%s' "$_payload" \
   | sed -n 's|.*"session_id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*|\1|p' \
   | head -1)
