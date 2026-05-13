@@ -4,10 +4,28 @@ import { TextColor } from '@metamask/design-system-react-native';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import AssetRow from './AssetRow';
+import { getRelatedAssetImageSource } from '../utils/getRelatedAssetImageSource';
 
 jest.mock('../utils/getRelatedAssetImageSource', () => ({
   getRelatedAssetImageSource: jest.fn(() => undefined),
 }));
+
+jest.mock('../../../UI/Perps/components/PerpsTokenLogo/PerpsTokenLogo', () => ({
+  __esModule: true,
+  default: ({ symbol, testID }: { symbol: string; testID?: string }) => {
+    const { View, Text: RNText } = jest.requireActual('react-native');
+    return (
+      <View testID={testID ?? 'perps-token-logo'}>
+        <RNText>{symbol}</RNText>
+      </View>
+    );
+  },
+}));
+
+const mockGetRelatedAssetImageSource =
+  getRelatedAssetImageSource as jest.MockedFunction<
+    typeof getRelatedAssetImageSource
+  >;
 
 const btcAsset: RelatedAsset = {
   sourceAssetId: 'bitcoin',
@@ -131,5 +149,40 @@ describe('AssetRow', () => {
       />,
     );
     expect(screen.queryByText('$')).toBeNull();
+  });
+
+  describe('image routing via RelatedAssetAvatar', () => {
+    it('renders PerpsTokenLogo when image kind is perps', () => {
+      mockGetRelatedAssetImageSource.mockReturnValue({
+        kind: 'perps',
+        symbol: 'xyz:TSLA',
+        primary: 'https://example.com/hip3:xyz_TSLA.svg',
+        fallback: 'https://example.com/xyz:TSLA.svg',
+      });
+
+      renderWithProvider(<AssetRow asset={btcAsset} />);
+
+      expect(screen.getByTestId('perps-token-logo')).toBeOnTheScreen();
+      expect(screen.getByText('xyz:TSLA')).toBeOnTheScreen();
+    });
+
+    it('renders AvatarToken (not PerpsTokenLogo) when image kind is bundled', () => {
+      mockGetRelatedAssetImageSource.mockReturnValue({
+        kind: 'bundled',
+        source: 100,
+      });
+
+      renderWithProvider(<AssetRow asset={btcAsset} />);
+
+      expect(screen.queryByTestId('perps-token-logo')).toBeNull();
+    });
+
+    it('renders AvatarToken (not PerpsTokenLogo) when image is undefined', () => {
+      mockGetRelatedAssetImageSource.mockReturnValue(undefined);
+
+      renderWithProvider(<AssetRow asset={btcAsset} />);
+
+      expect(screen.queryByTestId('perps-token-logo')).toBeNull();
+    });
   });
 });

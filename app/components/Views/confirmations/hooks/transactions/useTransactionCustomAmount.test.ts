@@ -641,7 +641,7 @@ describe('useTransactionCustomAmount', () => {
     it('to percentage of money account balance in USD (token total × USD rate)', async () => {
       useTokenFiatRateMock.mockReturnValue(1);
       useMoneyAccountBalanceMock.mockReturnValue({
-        tokenTotal: new BigNumber(500),
+        withdrawableMusd: new BigNumber(500),
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       const { result } = runHook({
@@ -681,7 +681,7 @@ describe('useTransactionCustomAmount', () => {
     it('to total money account balance when selecting max', async () => {
       useTokenFiatRateMock.mockReturnValue(1);
       useMoneyAccountBalanceMock.mockReturnValue({
-        tokenTotal: new BigNumber(500),
+        withdrawableMusd: new BigNumber(500),
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       const { result } = runHook({
@@ -703,7 +703,7 @@ describe('useTransactionCustomAmount', () => {
       // musdSHFvd).
       useTokenFiatRateMock.mockReturnValue(1);
       useMoneyAccountBalanceMock.mockReturnValue({
-        tokenTotal: new BigNumber(500),
+        withdrawableMusd: new BigNumber(500),
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       const { result } = runHook({
@@ -725,7 +725,7 @@ describe('useTransactionCustomAmount', () => {
 
       useTokenFiatRateMock.mockReturnValue(1);
       useMoneyAccountBalanceMock.mockReturnValue({
-        tokenTotal: new BigNumber(500),
+        withdrawableMusd: new BigNumber(500),
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       const { result } = runHook({
@@ -745,10 +745,10 @@ describe('useTransactionCustomAmount', () => {
       expect(config.isMaxAmount).toBe(false);
     });
 
-    it('returns 0 for money account withdraw when tokenTotal is undefined', async () => {
+    it('returns 0 for money account withdraw when withdrawableMusd is undefined', async () => {
       useTokenFiatRateMock.mockReturnValue(1);
       useMoneyAccountBalanceMock.mockReturnValue({
-        tokenTotal: undefined,
+        withdrawableMusd: undefined,
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       const { result } = runHook({
