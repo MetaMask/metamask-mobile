@@ -145,7 +145,7 @@ jobs:
 
       - name: Restore Xcode derived data from branch cache
         id: xcode-restore-cache
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' && inputs.runner_provider != 'namespace' }}
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -155,7 +155,7 @@ jobs:
           key: ${{ runner.os }}-xcode-${{ github.ref_name }}-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
 
       - name: Restore Xcode derived data from main cache
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' && steps.xcode-restore-cache.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' && steps.xcode-restore-cache.outputs.cache-hit != 'true' && github.ref_name != 'main' && inputs.runner_provider != 'namespace' }}
         id: xcode-restore-cache-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -164,6 +164,14 @@ jobs:
             ~/Library/Developer/Xcode/DerivedData
             ios/build
           key: ${{ runner.os }}-xcode-main-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
+
+      # Namespace's built-in cocoapods preset handles the CocoaPods cache paths upstream.
+      # Validated to work without a separate stale-state clear step (A/B tested 2026-05-11).
+      - name: Configure Namespace iOS cache
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' && inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1.4.3
+        with:
+          cache: cocoapods
 
       # Install Node.js, Xcode tools, and other iOS development dependencies.
       - name: Installing iOS Environment Setup
@@ -174,6 +182,7 @@ jobs:
           platform: ios
           setup-simulator: false
           install-foundry: false
+          runner_provider: ${{ inputs.runner_provider }}
 
       - name: Print iOS tool versions
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}

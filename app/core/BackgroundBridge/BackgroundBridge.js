@@ -38,10 +38,6 @@ import {
   multichainMethodCallValidatorMiddleware,
   MultichainSubscriptionManager,
   MultichainMiddlewareManager,
-  walletCreateSession,
-  walletGetSession,
-  walletInvokeMethod,
-  walletRevokeSession,
   MultichainApiNotifications,
 } from '@metamask/multichain-api-middleware';
 
@@ -73,8 +69,8 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import { ALLOWED_BRIDGE_CHAIN_IDS } from '@metamask/bridge-controller';
 import {
-  makeMethodMiddlewareMaker,
   UNSUPPORTED_RPC_METHODS,
+  createMultichainApiMethodMiddleware,
 } from '../RPCMethods/utils';
 import {
   getChangedAuthorization,
@@ -675,7 +671,6 @@ export class BackgroundBridge extends EventEmitter {
     if (!this.isMMSDK && !this.isWalletConnect) {
       engine.push(
         snapMethodMiddlewareBuilder(
-          Engine.context,
           Engine.controllerMessenger,
           this.url,
           // We assume that origins connecting through the BackgroundBridge are websites
@@ -747,15 +742,8 @@ export class BackgroundBridge extends EventEmitter {
 
     engine.push(multichainMethodCallValidatorMiddleware);
 
-    const middlewareMaker = makeMethodMiddlewareMaker([
-      walletRevokeSession,
-      walletGetSession,
-      walletInvokeMethod,
-      walletCreateSession,
-    ]);
-
     engine.push(
-      middlewareMaker({
+      createMultichainApiMethodMiddleware({
         findNetworkClientIdByChainId:
           NetworkController.findNetworkClientIdByChainId.bind(
             NetworkController,

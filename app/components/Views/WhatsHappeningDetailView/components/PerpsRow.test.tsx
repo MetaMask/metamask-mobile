@@ -161,11 +161,11 @@ describe('PerpsRow', () => {
     );
     fireEvent.press(screen.getByText('Trade'));
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
         properties: expect.objectContaining({
           interaction_type: 'trade_pressed',
           asset_symbol: 'TSLA',

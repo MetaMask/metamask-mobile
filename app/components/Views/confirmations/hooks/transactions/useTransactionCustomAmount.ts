@@ -253,7 +253,7 @@ function useTokenBalance(tokenUsdRate: number) {
     .multipliedBy(tokenUsdRate)
     .toNumber();
 
-  const { tokenTotal: moneyAccountTokenTotal } = useMoneyAccountBalance();
+  const { withdrawableMusd } = useMoneyAccountBalance();
 
   if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
     const perpsState = Engine.context.PerpsController?.state;
@@ -264,14 +264,12 @@ function useTokenBalance(tokenUsdRate: number) {
   if (
     hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
   ) {
-    // `tokenTotal` is mUSD-denominated (mUSD + musdSHFvd). Use mUSD's fiat rate
-    // on the canonical chain only — not the pay-token address from tx metadata.
-    if (moneyAccountTokenTotal === undefined) {
+    // Only vmUSD shares (converted via vault rate) are withdrawable through the
+    // teller — bare mUSD in the account is not part of this flow.
+    if (withdrawableMusd === undefined) {
       return 0;
     }
-    return new BigNumber(moneyAccountTokenTotal)
-      .multipliedBy(tokenUsdRate)
-      .toNumber();
+    return withdrawableMusd.multipliedBy(tokenUsdRate).toNumber();
   }
 
   return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
