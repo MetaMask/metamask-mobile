@@ -91,7 +91,7 @@ const defaultParams = {
   isPreviewCalculating: false,
   isUserInputChange: false,
   isConfirming: false,
-  totalPayForPredictBalance: 0,
+  totalPayForPredictBalance: 10.5,
   isInputFocused: false,
   hasBlockingPayAlerts: false,
 };
@@ -153,7 +153,7 @@ describe('usePredictBuyConditions', () => {
   });
 
   describe('isInsufficientBalance', () => {
-    it('returns true when currentValue exceeds maxBetAmount', () => {
+    it('returns true when available balance is below all-in cost', () => {
       mockAvailableBalance = 5;
 
       const { result } = renderHook(() =>
@@ -166,7 +166,7 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isInsufficientBalance).toBe(true);
     });
 
-    it('returns false when currentValue is within maxBetAmount', () => {
+    it('returns false when available balance covers all-in cost', () => {
       mockAvailableBalance = 100;
 
       const { result } = renderHook(() =>
@@ -179,18 +179,14 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isInsufficientBalance).toBe(false);
     });
 
-    it('returns false when currentValue equals maxBetAmount', () => {
+    it('returns false when available balance equals all-in cost', () => {
       mockAvailableBalance = 10.5;
 
       const { result } = renderHook(() =>
         usePredictBuyConditions({
           ...defaultParams,
           currentValue: 10,
-          preview: {
-            rateLimited: false,
-            maxAmountSpent: 10,
-            fees: { totalFee: 0.5, totalFeePercentage: 5 },
-          } as OrderPreview,
+          totalPayForPredictBalance: 10.5,
         }),
       );
 
@@ -204,54 +200,11 @@ describe('usePredictBuyConditions', () => {
         usePredictBuyConditions({
           ...defaultParams,
           currentValue: 0,
+          totalPayForPredictBalance: 0,
         }),
       );
 
       expect(result.current.isInsufficientBalance).toBe(false);
-    });
-  });
-
-  describe('maxBetAmount', () => {
-    it('returns balance divided by (1 + feeRate) when fees apply', () => {
-      mockAvailableBalance = 104;
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          preview: {
-            rateLimited: false,
-            fees: { totalFeePercentage: 4 },
-          } as OrderPreview,
-        }),
-      );
-
-      expect(result.current.maxBetAmount).toBe(100);
-    });
-
-    it('returns full available balance when fee rate is 0', () => {
-      mockAvailableBalance = 50;
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          preview: {
-            rateLimited: false,
-            fees: { totalFeePercentage: 0 },
-          } as OrderPreview,
-        }),
-      );
-
-      expect(result.current.maxBetAmount).toBe(50);
-    });
-
-    it('returns full available balance when preview has no fees', () => {
-      mockAvailableBalance = 50;
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions(defaultParams),
-      );
-
-      expect(result.current.maxBetAmount).toBe(50);
     });
   });
 
@@ -334,7 +287,11 @@ describe('usePredictBuyConditions', () => {
       mockAvailableBalance = 5;
 
       const { result } = renderHook(() =>
-        usePredictBuyConditions({ ...defaultParams, currentValue: 10.5 }),
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 10,
+          totalPayForPredictBalance: 10.5,
+        }),
       );
 
       expect(result.current.canPlaceBet).toBe(false);
@@ -579,13 +536,17 @@ describe('usePredictBuyConditions', () => {
       ];
 
       const { result } = renderHook(() =>
-        usePredictBuyConditions({ ...defaultParams, currentValue: 0 }),
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 0,
+          totalPayForPredictBalance: 0,
+        }),
       );
 
       expect(result.current.hasAlternativeBalance).toBe(false);
     });
 
-    it('is true when Predict balance selected and an ERC20 token covers the bet', () => {
+    it('is true when Predict balance selected and an ERC20 token covers the all-in cost', () => {
       mockIsPredictBalanceSelected = true;
       mockAvailableTokens = [
         { isSelected: false, disabled: false, fiat: { balance: 50 } },
@@ -598,7 +559,7 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.hasAlternativeBalance).toBe(true);
     });
 
-    it('is false when Predict balance selected and no ERC20 token has sufficient USD balance', () => {
+    it('is false when Predict balance selected and no ERC20 token has sufficient USD balance for all-in cost', () => {
       mockIsPredictBalanceSelected = true;
       mockAvailableTokens = [
         { isSelected: false, disabled: false, fiat: { balance: 5 } },
@@ -611,7 +572,7 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.hasAlternativeBalance).toBe(false);
     });
 
-    it('is true when external token selected and fee-adjusted Predict balance covers the bet', () => {
+    it('is true when external token selected and Predict balance covers the all-in cost', () => {
       mockIsPredictBalanceSelected = false;
       mockPredictBalance = 50;
       mockAvailableTokens = [];
@@ -623,9 +584,8 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.hasAlternativeBalance).toBe(true);
     });
 
-    it('is true when external token selected and fee-adjusted Predict balance covers the bet with fees applied', () => {
+    it('is true when external token selected and Predict balance equals the all-in cost', () => {
       mockIsPredictBalanceSelected = false;
-      // predictBalance = 10.5, feeRate = 5%, predictMaxBetAmount = floor(10.5 / 1.05 * 100) / 100 = 10
       mockPredictBalance = 10.5;
       mockAvailableTokens = [];
 
@@ -633,19 +593,15 @@ describe('usePredictBuyConditions', () => {
         usePredictBuyConditions({
           ...defaultParams,
           currentValue: 10,
-          preview: {
-            rateLimited: false,
-            fees: { totalFeePercentage: 5 },
-          } as OrderPreview,
+          totalPayForPredictBalance: 10.5,
         }),
       );
 
       expect(result.current.hasAlternativeBalance).toBe(true);
     });
 
-    it('is false when external token selected and fee-adjusted Predict balance is insufficient', () => {
+    it('is false when external token selected and Predict balance is below the all-in cost', () => {
       mockIsPredictBalanceSelected = false;
-      // predictBalance = 10, feeRate = 5%, predictMaxBetAmount = floor(10 / 1.05 * 100) / 100 = 9.52
       mockPredictBalance = 10;
       mockAvailableTokens = [];
 
@@ -653,10 +609,7 @@ describe('usePredictBuyConditions', () => {
         usePredictBuyConditions({
           ...defaultParams,
           currentValue: 10,
-          preview: {
-            rateLimited: false,
-            fees: { totalFeePercentage: 5 },
-          } as OrderPreview,
+          totalPayForPredictBalance: 10.5,
         }),
       );
 
