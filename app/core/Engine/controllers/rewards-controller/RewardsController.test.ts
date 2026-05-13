@@ -3793,7 +3793,11 @@ describe('RewardsController', () => {
         );
       });
 
-      it('returns 0 and logs when the VIP builder fee is 0 (closes 100%-discount loophole)', async () => {
+      it('returns 10000 (100% discount) when the VIP builder fee is 0 — a valid zero-fee tier', async () => {
+        // builderFeeBips=0 means zero VIP builder fee, which in the conversion
+        // formula 10000 * (1 - builderFee/baseFee) maps to a full 100%
+        // discount. Tier 0 / no-VIP is already signalled upstream by
+        // fees=null, so 0 must not be rejected as invalid here.
         buildController('0');
 
         const result = await controller.getPerpsDiscountForAccount(
@@ -3801,8 +3805,8 @@ describe('RewardsController', () => {
           BASE_FEE_BIPS,
         );
 
-        expect(result).toBe(0);
-        expect(Logger.log).toHaveBeenCalledWith(
+        expect(result).toBe(10000);
+        expect(Logger.log).not.toHaveBeenCalledWith(
           'RewardsController: VIP fees returned an invalid builderFeeBips:',
           '0',
         );
@@ -3972,6 +3976,123 @@ describe('RewardsController', () => {
         );
 
         expect(result).toBe(0);
+        expect(mockMessenger.call).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('VIP subscription fallback for non-enrolled accounts', () => {
+      const SUB_VIP = 'sub-vip-fallback';
+      const SUB_NON_VIP = 'sub-non-vip';
+      const BASE_FEE_BIPS_LOCAL = 10;
+
+      const nonVipSubscription: SubscriptionDto = {
+        id: SUB_NON_VIP,
+        referralCode: 'REF-NV',
+        accounts: [],
+        features: { vip: { enabled: false } },
+      };
+      const vipSubscriptionLocal: SubscriptionDto = {
+        id: SUB_VIP,
+        referralCode: 'REF-VIP',
+        accounts: [],
+        features: { vip: { enabled: true } },
+      };
+      const vipFeesResponse: VipFeesResponseDto = {
+        vipTier: 1,
+        fees: {
+          hyperliquid: { builderCode: '0xbuilder', builderFeeBips: '5' },
+          swaps: { feeBips: '50' },
+        },
+        updatedAt: '2026-05-01T00:00:00.000Z',
+      };
+
+      it('uses the first VIP subscription id when the caller account has no subscription', async () => {
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            accounts: {},
+            subscriptions: {
+              [SUB_NON_VIP]: nonVipSubscription,
+              [SUB_VIP]: vipSubscriptionLocal,
+            },
+          },
+          isDisabled: () => false,
+        });
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (method === 'RewardsDataService:getVipFees') {
+            return Promise.resolve(vipFeesResponse);
+          }
+          return Promise.resolve(null);
+        });
+
+        const result = await controller.getPerpsDiscountForAccount(
+          CAIP_ACCOUNT_2,
+          BASE_FEE_BIPS_LOCAL,
+        );
+
+        // builderFeeBips=5 vs base=10 → 50% discount.
+        expect(result).toBe(5000);
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:getVipFees',
+          SUB_VIP,
+        );
+      });
+
+      it('uses the caller account subscription when it is already enrolled, even with a VIP subscription in state', async () => {
+        const enrolledAccount = 'eip155:0:0xenrolled' as CaipAccountId;
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            accounts: {
+              [enrolledAccount]: {
+                account: enrolledAccount,
+                hasOptedIn: true,
+                subscriptionId: SUB_NON_VIP,
+                perpsFeeDiscount: null,
+                lastPerpsDiscountRateFetched: null,
+              } as RewardsAccountState,
+            },
+            subscriptions: {
+              [SUB_NON_VIP]: nonVipSubscription,
+              [SUB_VIP]: vipSubscriptionLocal,
+            },
+          },
+          isDisabled: () => false,
+        });
+        mockMessenger.call.mockResolvedValue(null);
+
+        const result = await controller.getPerpsDiscountForAccount(
+          enrolledAccount,
+          BASE_FEE_BIPS_LOCAL,
+        );
+
+        // Non-VIP subscription short-circuits to 0 without calling /vip/fees.
+        expect(result).toBe(0);
+        expect(mockMessenger.call).not.toHaveBeenCalledWith(
+          'RewardsDataService:getVipFees',
+          expect.anything(),
+        );
+      });
+
+      it('returns null when no VIP subscription exists and the caller is not enrolled', async () => {
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            accounts: {},
+            subscriptions: { [SUB_NON_VIP]: nonVipSubscription },
+          },
+          isDisabled: () => false,
+        });
+
+        const result = await controller.getPerpsDiscountForAccount(
+          CAIP_ACCOUNT_2,
+          BASE_FEE_BIPS_LOCAL,
+        );
+
+        expect(result).toBeNull();
         expect(mockMessenger.call).not.toHaveBeenCalled();
       });
     });

@@ -1644,6 +1644,11 @@ export class RewardsController extends BaseController<
    * when the account isn't on a VIP-enabled subscription or the fetch fails
    * — callers should treat null as "no discount" (0). Returns 0 when the
    * backend returns no builder fee (fees=null) or an invalid builderFeeBips.
+   *
+   * The discount is tied to the subscription, not the wallet, so if the
+   * caller account isn't enrolled we fall back to the first VIP subscription
+   * in state — that way a VIP user still gets their discount when trading
+   * from a non-enrolled wallet.
    */
   async #getVipPerpsDiscountBips(
     account: CaipAccountId,
@@ -1652,7 +1657,13 @@ export class RewardsController extends BaseController<
     if (!Number.isFinite(baseFeeBips) || baseFeeBips <= 0) return null;
 
     const accountState = this.#getAccountState(account);
-    const subscriptionId = accountState?.subscriptionId;
+    let subscriptionId = accountState?.subscriptionId ?? null;
+    if (!subscriptionId) {
+      const vipEntry = Object.entries(this.state.subscriptions ?? {}).find(
+        ([, sub]) => sub?.features?.vip?.enabled,
+      );
+      subscriptionId = vipEntry?.[0] ?? null;
+    }
     if (!subscriptionId) return null;
 
     const subscription = this.state.subscriptions[subscriptionId];
@@ -1696,7 +1707,11 @@ export class RewardsController extends BaseController<
     }
 
     const builderFeeBips = parseFloat(builderFeeBipsRaw);
-    if (!Number.isFinite(builderFeeBips) || builderFeeBips <= 0) {
+    // builderFeeBips = 0 is valid: it means zero VIP builder fee, i.e. a 100%
+    // discount. builderFeeBips = baseFeeBips means no discount. Only reject
+    // non-finite or negative values here; tier 0 / no-VIP is already
+    // represented upstream by fees=null.
+    if (!Number.isFinite(builderFeeBips) || builderFeeBips < 0) {
       Logger.log(
         'RewardsController: VIP fees returned an invalid builderFeeBips:',
         builderFeeBipsRaw,
