@@ -271,6 +271,27 @@ describe('LedgerBluetoothAdapter', () => {
   });
 
   describe('disconnect', () => {
+    it('forces disconnectDevice when BLE disconnect already cleared transport but deviceId remains', async () => {
+      await adapter.connect('device-123');
+      mockedTransportBLE.disconnectDevice.mockClear();
+
+      const disconnectHandler = mockTransportInstance.on.mock.calls.find(
+        (call: [string, () => void]) => call[0] === 'disconnect',
+      )?.[1];
+      expect(disconnectHandler).toBeDefined();
+      disconnectHandler?.();
+
+      expect(adapter.isConnected()).toBe(false);
+      expect(adapter.getConnectedDeviceId()).toBe('device-123');
+
+      await adapter.disconnect();
+
+      expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalledWith(
+        'device-123',
+      );
+      expect(adapter.getConnectedDeviceId()).toBeNull();
+    });
+
     it('closes transport and resets state', async () => {
       await adapter.connect('device-123');
       await adapter.disconnect();
@@ -625,6 +646,21 @@ describe('LedgerBluetoothAdapter', () => {
       },
     );
 
+    it('retries when address verification fails with message-based transient GATT error', async () => {
+      jest.mocked(connectLedgerHardware).mockResolvedValue('Ethereum');
+      const gattError = new Error('GATT server disconnected');
+      gattError.name = 'Error';
+      mockGetAddress
+        .mockRejectedValueOnce(gattError)
+        .mockResolvedValueOnce({ address: '0x1234' });
+
+      const result = await adapter.ensureDeviceReady('device-123');
+
+      expect(result).toBe(true);
+      expect(mockGetAddress).toHaveBeenCalledTimes(2);
+      expect(connectLedgerHardware).toHaveBeenCalledTimes(2);
+    });
+
     it('emits DeviceLocked when getAddress fails with Locked device message', async () => {
       jest.mocked(connectLedgerHardware).mockResolvedValue('Ethereum');
       mockGetAddress.mockRejectedValueOnce(
@@ -720,6 +756,51 @@ describe('LedgerBluetoothAdapter', () => {
 
     it('retries when error message contains "bluetooth transfer" even with generic Error name', async () => {
       const genericBleError = new Error('Bluetooth transfer interrupted');
+      genericBleError.name = 'Error';
+      jest
+        .mocked(connectLedgerHardware)
+        .mockRejectedValueOnce(genericBleError)
+        .mockResolvedValueOnce('Ethereum');
+      mockGetAddress.mockResolvedValue({ address: '0x1234' });
+
+      const result = await adapter.ensureDeviceReady('device-123');
+
+      expect(result).toBe(true);
+      expect(connectLedgerHardware).toHaveBeenCalledTimes(2);
+    });
+
+    it('retries when error message contains "connection lost" even with generic Error name', async () => {
+      const genericBleError = new Error('The connection lost unexpectedly');
+      genericBleError.name = 'Error';
+      jest
+        .mocked(connectLedgerHardware)
+        .mockRejectedValueOnce(genericBleError)
+        .mockResolvedValueOnce('Ethereum');
+      mockGetAddress.mockResolvedValue({ address: '0x1234' });
+
+      const result = await adapter.ensureDeviceReady('device-123');
+
+      expect(result).toBe(true);
+      expect(connectLedgerHardware).toHaveBeenCalledTimes(2);
+    });
+
+    it('retries when error message contains "gatt" even with generic Error name', async () => {
+      const genericBleError = new Error('GATT operation failed');
+      genericBleError.name = 'Error';
+      jest
+        .mocked(connectLedgerHardware)
+        .mockRejectedValueOnce(genericBleError)
+        .mockResolvedValueOnce('Ethereum');
+      mockGetAddress.mockResolvedValue({ address: '0x1234' });
+
+      const result = await adapter.ensureDeviceReady('device-123');
+
+      expect(result).toBe(true);
+      expect(connectLedgerHardware).toHaveBeenCalledTimes(2);
+    });
+
+    it('retries when error message contains "ble error" even with generic Error name', async () => {
+      const genericBleError = new Error('Native BLE error on channel');
       genericBleError.name = 'Error';
       jest
         .mocked(connectLedgerHardware)

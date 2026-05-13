@@ -888,5 +888,59 @@ describe('LedgerSelectAccount', () => {
 
       expect(mockGetLedgerAccountsByOperation).not.toHaveBeenCalled();
     });
+
+    it('shows inline error when ensureDeviceReady throws during nextPage without blocking modal', async () => {
+      mockEnsureDeviceReady
+        .mockResolvedValueOnce(true)
+        .mockRejectedValueOnce(new Error('Device readiness check failed'));
+
+      const { getByTestId, queryByText } = await renderAndWaitForAccounts();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(queryByText('Device readiness check failed')).toBeOnTheScreen();
+      });
+      expect(queryByText('Please wait')).not.toBeOnTheScreen();
+    });
+
+    it('shows inline error when ensureDeviceReady throws during prevPage without blocking modal', async () => {
+      mockEnsureDeviceReady
+        .mockResolvedValueOnce(true)
+        .mockRejectedValueOnce(new Error('Bluetooth adapter unavailable'));
+
+      const { getByTestId, queryByText } = await renderAndWaitForAccounts();
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(AccountSelectorSelectorsIDs.PREVIOUS_BUTTON),
+        );
+      });
+
+      await waitFor(() => {
+        expect(queryByText('Bluetooth adapter unavailable')).toBeOnTheScreen();
+      });
+      expect(queryByText('Please wait')).not.toBeOnTheScreen();
+    });
+
+    it('does not show blocking modal when ensureDeviceReady returns false on nextPage', async () => {
+      mockEnsureDeviceReady
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+
+      const { getByTestId, queryByText } = await renderAndWaitForAccounts();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalled();
+      });
+
+      expect(queryByText('Please wait')).not.toBeOnTheScreen();
+    });
   });
 });
