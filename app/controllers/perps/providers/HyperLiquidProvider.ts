@@ -994,6 +994,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         try {
           await this.#ensureBuilderFeeApproval();
         } catch (error) {
+          // Don't throw - retry is best-effort, trading continues regardless
           this.#deps.debugLogger.log(
             '[ensureReadyForTrading] Builder fee retry failed',
             error,
