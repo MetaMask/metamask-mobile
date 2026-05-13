@@ -176,24 +176,23 @@ round-trip timing is tracked by `PerpsPlaceOrder` in Trading Operations.
 
 **Purpose:** Track order execution, position management, and transaction completion.
 
-| TraceName            | Operation                 | Tags                                                                | Data Attributes                                                                                                  |
-| -------------------- | ------------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `PerpsPlaceOrder`    | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet, **payment_token** | isBuy, orderPrice, success, orderId, payment_token, **reason** (`'error'` \| `'late_success'` \| `'late_error'`) |
-| `PerpsEditOrder`     | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet                    | isBuy, orderPrice, success, orderId                                                                              |
-| `PerpsCancelOrder`   | `PerpsOrderSubmission`    | provider, market, isTestnet, **isBatch** (batch ops only)           | orderId, success, **coinCount** (batch), **successCount** (batch)                                                |
-| `PerpsClosePosition` | `PerpsPositionManagement` | provider, coin, closeSize, isTestnet, **isBatch** (batch)           | success, filledSize, **closeAll** (batch), **coinCount** (batch)                                                 |
-| `PerpsUpdateTPSL`    | `PerpsPositionManagement` | provider, market, isTestnet                                         | takeProfitPrice, stopLossPrice, success                                                                          |
-| `PerpsUpdateMargin`  | `PerpsPositionManagement` | provider, coin, action, isTestnet                                   | amount, success                                                                                                  |
-| `PerpsFlipPosition`  | `PerpsPositionManagement` | provider, coin, fromDirection, toDirection, isTestnet               | size, success                                                                                                    |
-| `PerpsWithdraw`      | `PerpsOperation`          | assetId, provider, isTestnet                                        | success, txHash, withdrawalId                                                                                    |
-| `PerpsDeposit`       | `PerpsOperation`          | assetId, provider, isTestnet                                        | success, txHash                                                                                                  |
+| TraceName            | Operation                 | Tags                                                                | Data Attributes                                                                                      |
+| -------------------- | ------------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `PerpsPlaceOrder`    | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet, **payment_token** | isBuy, orderPrice, success, orderId, payment_token, **reason** (`'error'` \| `'timeout'` on failure) |
+| `PerpsEditOrder`     | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet                    | isBuy, orderPrice, success, orderId                                                                  |
+| `PerpsCancelOrder`   | `PerpsOrderSubmission`    | provider, market, isTestnet, **isBatch** (batch ops only)           | orderId, success, **coinCount** (batch), **successCount** (batch)                                    |
+| `PerpsClosePosition` | `PerpsPositionManagement` | provider, coin, closeSize, isTestnet, **isBatch** (batch)           | success, filledSize, **closeAll** (batch), **coinCount** (batch)                                     |
+| `PerpsUpdateTPSL`    | `PerpsPositionManagement` | provider, market, isTestnet                                         | takeProfitPrice, stopLossPrice, success                                                              |
+| `PerpsUpdateMargin`  | `PerpsPositionManagement` | provider, coin, action, isTestnet                                   | amount, success                                                                                      |
+| `PerpsFlipPosition`  | `PerpsPositionManagement` | provider, coin, fromDirection, toDirection, isTestnet               | size, success                                                                                        |
+| `PerpsWithdraw`      | `PerpsOperation`          | assetId, provider, isTestnet                                        | success, txHash, withdrawalId                                                                        |
+| `PerpsDeposit`       | `PerpsOperation`          | assetId, provider, isTestnet                                        | success, txHash                                                                                      |
 
 `PerpsPlaceOrder` measures the order submission operation from controller
-handoff through provider confirmation, rejection, or exception. The 60s order
-submission threshold adds `reason: 'late_success'` or `reason: 'late_error'` to
-slow provider outcomes, but it does not fail or cancel the in-flight provider
-request. It is independent of the order screen lifecycle and should not end with
-`reason: 'unmount'` during normal optimistic navigation.
+handoff through provider confirmation, rejection, exception, or the 60s provider
+round-trip timeout. Timeout outcomes close the trace with
+`reason: 'timeout'`. The trace is independent of the order screen lifecycle and
+should not end with `reason: 'unmount'` during normal optimistic navigation.
 
 **Batch Operations Pattern:**
 

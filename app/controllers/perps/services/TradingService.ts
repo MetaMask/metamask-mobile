@@ -34,6 +34,20 @@ import type {
 import { ensureError } from '../utils/errorUtils';
 
 /**
+ * Thrown by TradingService.placeOrder when the provider does not respond within
+ * PERPS_CONSTANTS.PlaceOrderTimeoutMs. Caught in the same method so the
+ * PerpsPlaceOrder trace can be tagged with reason: 'timeout'.
+ */
+export class PerpsOrderTimeoutError extends Error {
+  constructor() {
+    super(
+      `Order submission timed out after ${PERPS_CONSTANTS.PlaceOrderTimeoutMs}ms`,
+    );
+    this.name = 'PerpsOrderTimeoutError';
+  }
+}
+
+/**
  * Controller-level dependencies for TradingService.
  * These are singletons that don't change per-call, injected once via setControllerDependencies().
  */
@@ -372,11 +386,9 @@ export class TradingService {
           success: boolean;
           error?: string;
           orderId?: string;
-          reason?: 'error' | 'late_success' | 'late_error';
+          reason?: 'error' | 'timeout';
         }
       | undefined;
-    let orderSubmissionTimeoutId: ReturnType<typeof setTimeout> | undefined;
-    let didExceedOrderSubmissionThreshold = false;
 
     const paymentToken =
       params.trackingData?.tradeWithToken === true
@@ -436,44 +448,59 @@ export class TradingService {
         },
       );
 
-      orderSubmissionTimeoutId = setTimeout(() => {
-        didExceedOrderSubmissionThreshold = true;
-        this.#deps.tracer.addBreadcrumb({
-          category: 'perps',
-          message: 'Order submission exceeded timeout threshold',
-          level: 'warning',
-          data: {
-            timeoutMs: PERPS_CONSTANTS.PlaceOrderTimeoutMs,
-            payment_token: paymentToken,
-            market: params.symbol,
-            orderType: params.orderType,
-          },
-        });
-        this.#deps.debugLogger.log(
-          'TradingService: Order submission exceeded timeout threshold',
-          {
-            timeoutMs: PERPS_CONSTANTS.PlaceOrderTimeoutMs,
-            symbol: params.symbol,
-            orderType: params.orderType,
-          },
-        );
-      }, PERPS_CONSTANTS.PlaceOrderTimeoutMs);
-
+      // Execute order with fee discount management.
+      // The timeout race lives inside the operation callback so that
+      // #withFeeDiscount's fee-discount cleanup still runs on timeout.
       const result = await this.#withFeeDiscount({
         provider,
         feeDiscountBips,
-        operation: () => provider.placeOrder(params),
+        operation: () => {
+          const providerOrderPromise = provider.placeOrder(params);
+          let orderSubmissionTimeoutId:
+            | ReturnType<typeof setTimeout>
+            | undefined;
+          const orderSubmissionTimeoutPromise = new Promise<never>(
+            (_resolve, reject) => {
+              orderSubmissionTimeoutId = setTimeout(() => {
+                this.#deps.tracer.addBreadcrumb({
+                  category: 'perps',
+                  message: 'Order submission timed out',
+                  level: 'warning',
+                  data: {
+                    timeoutMs: PERPS_CONSTANTS.PlaceOrderTimeoutMs,
+                    payment_token: paymentToken,
+                    market: params.symbol,
+                    orderType: params.orderType,
+                  },
+                });
+                this.#deps.debugLogger.log(
+                  'TradingService: Order submission timed out',
+                  {
+                    timeoutMs: PERPS_CONSTANTS.PlaceOrderTimeoutMs,
+                    symbol: params.symbol,
+                    orderType: params.orderType,
+                  },
+                );
+                reject(new PerpsOrderTimeoutError());
+              }, PERPS_CONSTANTS.PlaceOrderTimeoutMs);
+            },
+          );
+
+          return Promise.race([
+            providerOrderPromise,
+            orderSubmissionTimeoutPromise,
+          ]).finally(() => {
+            if (orderSubmissionTimeoutId !== undefined) {
+              clearTimeout(orderSubmissionTimeoutId);
+            }
+          });
+        },
       });
-      if (orderSubmissionTimeoutId !== undefined) {
-        clearTimeout(orderSubmissionTimeoutId);
-        orderSubmissionTimeoutId = undefined;
-      }
 
       this.#deps.debugLogger.log('TradingService: Provider response received', {
         success: result.success,
         orderId: result.orderId,
         error: result.error,
-        didExceedOrderSubmissionThreshold,
       });
 
       // Update state and handle success/failure
@@ -489,9 +516,6 @@ export class TradingService {
         traceData = {
           success: true,
           orderId: result.orderId ?? '',
-          ...(didExceedOrderSubmissionThreshold
-            ? { reason: 'late_success' as const }
-            : {}),
         };
 
         // Invalidate standalone caches so external hooks (e.g., usePerpsPositionForAsset) refresh
@@ -500,7 +524,7 @@ export class TradingService {
       } else {
         traceData = {
           success: false,
-          reason: didExceedOrderSubmissionThreshold ? 'late_error' : 'error',
+          reason: 'error',
           error: result.error ?? 'Unknown error',
         };
       }
@@ -546,15 +570,11 @@ export class TradingService {
 
       traceData = {
         success: false,
-        reason: didExceedOrderSubmissionThreshold ? 'late_error' : 'error',
+        reason: error instanceof PerpsOrderTimeoutError ? 'timeout' : 'error',
         error: error instanceof Error ? error.message : 'Unknown error',
       };
       throw error;
     } finally {
-      if (orderSubmissionTimeoutId !== undefined) {
-        clearTimeout(orderSubmissionTimeoutId);
-      }
-
       // Always end trace on exit (success or failure)
       this.#deps.tracer.endTrace({
         name: PerpsTraceNames.PlaceOrder,
