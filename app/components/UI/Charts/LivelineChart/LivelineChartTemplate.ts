@@ -53,6 +53,7 @@ export const createLivelineChartTemplate = (
        natural height. Using last-child covers all combinations. */
     #root>*{flex-shrink:0}
     #root>*:last-child{flex:1;min-height:0}
+    body.liveline-hide-controls #root>*:not(:last-child){display:none!important}
   </style>
 </head>
 <body>
@@ -123,21 +124,56 @@ export const createLivelineChartTemplate = (
 
     var root = createRoot(document.getElementById('root'));
     var currentProps = null;
+    var liveData = [];
+    var liveValue = 0;
+    var inLiveMode = false;
+    var lastPerfTs = 0;
+
+    function mergeLivelineData(base, incoming) {
+      var byTime = new Map();
+      (base || []).forEach(function(point) {
+        if (point && typeof point.time === 'number') {
+          byTime.set(point.time, point);
+        }
+      });
+      (incoming || []).forEach(function(point) {
+        if (point && typeof point.time === 'number') {
+          byTime.set(point.time, point);
+        }
+      });
+      return Array.from(byTime.values()).sort(function(a, b) {
+        return a.time - b.time;
+      });
+    }
+
+    function trimLivelineData(data, windowSecs) {
+      if (!windowSecs || data.length === 0) {
+        return data;
+      }
+
+      var latestTime = data[data.length - 1].time;
+      var cutoff = latestTime - windowSecs * 2;
+      return data.filter(function(point) {
+        return point.time >= cutoff;
+      });
+    }
 
     function render() {
       if (!currentProps) return;
-      // Reconstruct formatValue / formatTime from their serialised bodies.
       var formatValue = currentProps.formatValue;
       var formatTime  = currentProps.formatTime;
       var rest = Object.assign({}, currentProps);
       delete rest.formatValue;
       delete rest.formatTime;
+      var hideControls = !!rest.hideControls;
+      delete rest.hideControls;
+      document.body.classList.toggle('liveline-hide-controls', hideControls);
+      var effectiveData  = inLiveMode ? liveData : (rest.data || []);
+      var effectiveValue = inLiveMode ? liveValue : (rest.value || 0);
       var props = Object.assign({}, rest, callbacks, {
-        // width:100% ensures the canvas fills the flex item horizontally.
-        // height is intentionally omitted — the CSS flex layout gives the
-        // canvas-wrapper div flex:1 so it grows to fill all remaining space
-        // after any showValue / control-bar siblings have taken their height.
         style: { width: '100%' },
+        data: effectiveData,
+        value: effectiveValue,
       });
       if (formatValue) { props.formatValue = new Function('v', formatValue); }
       if (formatTime)  { props.formatTime  = new Function('t', formatTime);  }
@@ -149,9 +185,57 @@ export const createLivelineChartTemplate = (
         var msg = typeof event.data === 'string'
           ? JSON.parse(event.data)
           : event.data;
-        if (msg.type === 'SET_PROPS') {
-          currentProps = msg.payload;
-          render();
+        switch (msg.type) {
+          case 'SET_PROPS':
+            if (inLiveMode) {
+              var incoming = Object.assign({}, msg.payload);
+              if (Array.isArray(incoming.data) && incoming.data.length > 0) {
+                liveData = mergeLivelineData(liveData, incoming.data);
+                liveData = trimLivelineData(liveData, incoming.window);
+              }
+              delete incoming.data;
+              delete incoming.value;
+              currentProps = incoming;
+            } else {
+              currentProps = msg.payload;
+            }
+            render();
+            break;
+          case 'APPEND_POINT':
+            if (!inLiveMode) {
+              liveData = (currentProps && Array.isArray(currentProps.data))
+                ? currentProps.data.slice()
+                : [];
+            }
+            inLiveMode = true;
+            liveData = mergeLivelineData(liveData, [msg.payload.point]);
+            liveValue = msg.payload.value;
+            if (currentProps && currentProps.window) {
+              liveData = trimLivelineData(liveData, currentProps.window);
+            }
+            if (!currentProps) {
+              break;
+            }
+            var t0 = performance.now();
+            render();
+            var t1 = performance.now();
+            if (t1 - t0 > 16 && t1 - lastPerfTs > 5000) {
+              lastPerfTs = t1;
+              sendToRN('PERF', { renderMs: Math.round(t1 - t0), points: liveData.length });
+            }
+            break;
+          case 'CLEAR_DATA':
+            liveData = [];
+            liveValue = 0;
+            inLiveMode = false;
+            if (currentProps) {
+              currentProps = Object.assign({}, currentProps, {
+                data: [],
+                value: 0,
+              });
+            }
+            render();
+            break;
         }
       } catch (e) {
         sendToRN('ERROR', { message: e.message });
