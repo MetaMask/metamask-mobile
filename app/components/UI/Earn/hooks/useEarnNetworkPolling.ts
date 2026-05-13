@@ -10,7 +10,6 @@ import { selectUseTokenDetection } from '../../../../selectors/preferencesContro
 import useCurrencyRatePolling from '../../../hooks/AssetPolling/useCurrencyRatePolling';
 import useTokenBalancesPolling from '../../../hooks/AssetPolling/useTokenBalancesPolling';
 import useTokenDetectionPolling from '../../../hooks/AssetPolling/useTokenDetectionPolling';
-import useTokenListPolling from '../../../hooks/AssetPolling/useTokenListPolling';
 import useTokenRatesPolling from '../../../hooks/AssetPolling/useTokenRatesPolling';
 import { RootState } from '../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import { EVM_SCOPE } from '../constants/networks';
@@ -61,7 +60,6 @@ export const useEarnNetworkPolling = () => {
   );
   const [lendingChainIds, setLendingChainIds] = useState<Hex[]>([]);
 
-  useTokenListPolling({ chainIds: lendingChainIds });
   useTokenBalancesPolling({ chainIds: lendingChainIds });
   useCurrencyRatePolling({ chainIds: lendingChainIds });
   useTokenRatesPolling({ chainIds: lendingChainIds });

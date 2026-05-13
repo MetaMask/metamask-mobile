@@ -112,59 +112,69 @@ const useMoneyAccountBalance = (
     [musdBalanceQuery.isLoading, musdEquivalentBalanceQuery.isLoading],
   );
 
-  const { musdFiat, musdSHFvdFiat, tokenTotal, totalFiat } = useMemo(() => {
-    // mUSD balance: raw uint256 (6 decimals) → decimal BigNumber
-    const musdDecimal = musdBalanceQuery.data?.balance
-      ? new BigNumber(
-          fromTokenMinimalUnitString(
-            musdBalanceQuery.data.balance,
-            MUSD_DECIMALS,
-          ),
-        )
-      : new BigNumber(0);
+  const { musdFiat, musdSHFvdFiat, tokenTotal, totalFiat, withdrawableMusd } =
+    useMemo(() => {
+      // mUSD balance: raw uint256 (6 decimals) → decimal BigNumber
+      const musdDecimal = musdBalanceQuery.data?.balance
+        ? new BigNumber(
+            fromTokenMinimalUnitString(
+              musdBalanceQuery.data.balance,
+              MUSD_DECIMALS,
+            ),
+          )
+        : new BigNumber(0);
 
-    // musdSHFvd balance expressed in mUSD.
-    const musdSHFvdDecimal = musdEquivalentBalanceQuery.data?.balanceOfInAssets
-      ? new BigNumber(
-          fromTokenMinimalUnitString(
-            musdEquivalentBalanceQuery.data.balanceOfInAssets,
-            MUSD_DECIMALS,
-          ),
-        )
-      : new BigNumber(0);
+      // musdSHFvd balance expressed in mUSD.
+      const musdSHFvdDecimal = musdEquivalentBalanceQuery.data
+        ?.balanceOfInAssets
+        ? new BigNumber(
+            fromTokenMinimalUnitString(
+              musdEquivalentBalanceQuery.data.balanceOfInAssets,
+              MUSD_DECIMALS,
+            ),
+          )
+        : new BigNumber(0);
 
-    if (!musdFiatRate) {
+      // vmUSD shares expressed in mUSD via the vault rate — this is the withdrawable amount.
+      // Undefined while loading so callers can distinguish "loading" from a genuine zero balance.
+      const computedWithdrawableMusd = isAggregatedBalanceLoading
+        ? undefined
+        : musdSHFvdDecimal;
+
+      if (!musdFiatRate) {
+        return {
+          musdFiat: undefined,
+          musdSHFvdFiat: undefined,
+          // Undefined during loading so callers can distinguish "loading" from a genuine zero balance.
+          tokenTotal: isAggregatedBalanceLoading
+            ? undefined
+            : musdDecimal.plus(musdSHFvdDecimal),
+          totalFiat: undefined,
+          withdrawableMusd: computedWithdrawableMusd,
+        };
+      }
+
+      const computedMusdFiat = musdDecimal.times(musdFiatRate);
+      const computedMusdSHFvdFiat = musdSHFvdDecimal.times(musdFiatRate);
+
       return {
-        musdFiat: undefined,
-        musdSHFvdFiat: undefined,
+        musdFiat: computedMusdFiat,
+        musdSHFvdFiat: computedMusdSHFvdFiat,
         // Undefined during loading so callers can distinguish "loading" from a genuine zero balance.
         tokenTotal: isAggregatedBalanceLoading
           ? undefined
           : musdDecimal.plus(musdSHFvdDecimal),
-        totalFiat: undefined,
+        // Both fiat values share musdFiatRate as their sole dependency — computing
+        // them inside this guard means no null assertions are needed.
+        totalFiat: computedMusdFiat.plus(computedMusdSHFvdFiat),
+        withdrawableMusd: computedWithdrawableMusd,
       };
-    }
-
-    const computedMusdFiat = musdDecimal.times(musdFiatRate);
-    const computedMusdSHFvdFiat = musdSHFvdDecimal.times(musdFiatRate);
-
-    return {
-      musdFiat: computedMusdFiat,
-      musdSHFvdFiat: computedMusdSHFvdFiat,
-      // Undefined during loading so callers can distinguish "loading" from a genuine zero balance.
-      tokenTotal: isAggregatedBalanceLoading
-        ? undefined
-        : musdDecimal.plus(musdSHFvdDecimal),
-      // Both fiat values share musdFiatRate as their sole dependency — computing
-      // them inside this guard means no null assertions are needed.
-      totalFiat: computedMusdFiat.plus(computedMusdSHFvdFiat),
-    };
-  }, [
-    isAggregatedBalanceLoading,
-    musdBalanceQuery.data,
-    musdEquivalentBalanceQuery.data,
-    musdFiatRate,
-  ]);
+    }, [
+      isAggregatedBalanceLoading,
+      musdBalanceQuery.data,
+      musdEquivalentBalanceQuery.data,
+      musdFiatRate,
+    ]);
 
   const musdFiatFormatted = musdFiat
     ? moneyFormatFiat(musdFiat, currentCurrency)
@@ -194,6 +204,7 @@ const useMoneyAccountBalance = (
     tokenTotal,
     totalFiatFormatted,
     totalFiatRaw,
+    withdrawableMusd,
     // TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
     apyDecimal: __DEV__ ? DEV_APY.decimal : apyDecimal,
     apyPercent: __DEV__ ? DEV_APY.percent : apyPercent,
