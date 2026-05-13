@@ -393,14 +393,22 @@ const PriceAdvanced = ({
 
   // Use last bar's close price for consistent percentage calculation with chart data
   const lastBarClose = ohlcvData[ohlcvData.length - 1]?.close;
-  const displayPrice = crosshairData?.close ?? lastBarClose ?? currentPrice;
+  const realtimeClose = wsEnabled ? latestBar?.close : undefined;
+  const displayPrice =
+    crosshairData?.close ?? realtimeClose ?? lastBarClose ?? currentPrice;
   const displayDiff = useMemo(() => {
     if (dynamicComparePrice === null) return null;
     return (
-      (crosshairData?.close ?? lastBarClose ?? currentPrice) -
+      (crosshairData?.close ?? realtimeClose ?? lastBarClose ?? currentPrice) -
       dynamicComparePrice
     );
-  }, [crosshairData, lastBarClose, currentPrice, dynamicComparePrice]);
+  }, [
+    crosshairData,
+    realtimeClose,
+    lastBarClose,
+    currentPrice,
+    dynamicComparePrice,
+  ]);
 
   const displayDate = crosshairData
     ? toDateFormat(crosshairData.time)
