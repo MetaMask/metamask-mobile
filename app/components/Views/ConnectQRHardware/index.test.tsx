@@ -312,7 +312,7 @@ describe('ConnectQRHardware', () => {
     const header = getByTestId(ConnectQRHardwareSelectorsIDs.HEADER);
 
     expect(header).toBeOnTheScreen();
-    expect(StyleSheet.flatten(header?.props.style).marginTop).toBeUndefined();
+    expect(StyleSheet.flatten(header.props.style).marginTop).toBeUndefined();
   });
 
   it('excludes bottom edge from parent SafeAreaView because instruction owns bottom spacing', async () => {
