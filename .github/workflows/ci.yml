@@ -13,6 +13,12 @@ on:
     # Run the full suite "overnight," once every hour from 2:00am UTC until 6:00am UTC.
     # This helps to identy the flaky and failed tests on main branch
     - cron: '0 2-6 * * *'
+  workflow_call:
+    inputs:
+      runner_provider:
+        type: string
+        required: false
+        default: current
   workflow_dispatch:
     inputs:
       runner_provider:
