@@ -671,6 +671,34 @@ UB2's existing swallow stays in place — the existing test at [useTransakRoutin
 
 The parallel swallow in [useDepositRouting.ts:137-180](../hooks/useDepositRouting.ts) is deliberately **not** fixed here — Deposit isn't a headless route, and the "ramps work is UB2-only" rule keeps us off the Deposit tree.
 
+#### Fix B — RESET-action guard in HeadlessHost's `beforeRemove` listener (Cursor Bugbot)
+
+The chrome-strip commit added a `beforeRemove` navigation listener on HeadlessHost so the synchronous `closeSession({ reason: 'user_dismissed' })` still fires when the user backs out (no more visible Cancel/Back button to wire). The original implementation fired the close on EVERY `beforeRemove` event.
+
+Cursor Bugbot flagged that `useTransakRouting` uses `navigation.reset()` to re-pin HEADLESS_HOST at the base of the stack whenever it routes to VerifyIdentity / BasicInfo / Checkout / KycWebview. The reset action fires `beforeRemove` on the OLD HEADLESS_HOST instance before re-pinning the new one — but the session is still in flight, so the close fires prematurely with `user_dismissed`, breaking the consumer's flow.
+
+Resolution at [HeadlessHost.tsx:107-118](../Views/HeadlessHost/HeadlessHost.tsx): inspect `e.data.action.type` inside the listener and skip the close on `'RESET'`:
+
+```ts
+useEffect(() => {
+  const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+    if (e.data.action.type === 'RESET') {
+      return;
+    }
+    closeSession(headlessSessionId, { reason: 'user_dismissed' });
+  });
+  return unsubscribe;
+}, [navigation, headlessSessionId]);
+```
+
+The legitimate unmount paths (real stack reset that does NOT re-pin the Host, hot reload) stay correct because `useHeadlessSessionDismissal`'s unmount cleanup uses `isHeadlessHostStillInNavigator` to differentiate. The two layers are complementary: `beforeRemove` for synchronous user-driven dismissals (GO_BACK, POP), `useHeadlessSessionDismissal` for asynchronous unmount cleanup.
+
+A new test in [HeadlessHost.test.tsx](../Views/HeadlessHost/HeadlessHost.test.tsx) (`'does NOT close the session when beforeRemove fires for a RESET action (stack rebuild guard)'`) fires the listener with `{ data: { action: { type: 'RESET' } } }` and asserts the session stays live.
+
+#### Note on the original "Fix B" deferral
+
+The pasted-plan placeholder "Fix B (`getProviderBuyLimit` belt-and-braces pre-flight)" landed in the Phase 9 PR ([metamask-mobile#30103](https://github.com/MetaMask/metamask-mobile/pull/30103)) as `feat(ramp): pre-quote static bounds check + expose getProviderBuyLimit`, with a more comprehensive implementation than this PR originally drafted (UB2-parity skip on `amount <= 0`, conservative "all candidates reject" rule, `details.source` discriminator, plus a public `getProviderBuyLimit` re-export). Phase 9.5 doesn't duplicate it.
+
 ---
 
 ## Phase 10 — Implement deferred Phase 5b + playground polish

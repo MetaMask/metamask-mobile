@@ -104,8 +104,22 @@ function HeadlessHost() {
   // are caught by `useHeadlessSessionDismissal`'s unmount cleanup above.
   // closeSession is idempotent: Phase 6 success and Phase 7 errors clear
   // the session before `beforeRemove` and turn this into a no-op.
+  //
+  // Stack-rebuild guard (Cursor Bugbot): `useTransakRouting` calls
+  // `navigation.reset()` to re-pin HEADLESS_HOST at the base of the stack
+  // when navigating to VerifyIdentity / BasicInfo / Checkout / KycWebview.
+  // The reset action fires `beforeRemove` on the OLD HEADLESS_HOST instance
+  // before re-pinning the new one, but the session is still in flight —
+  // closing it here would prematurely fire `onClose({ reason: 'user_dismissed' })`
+  // and break the flow. Skip the close when the action is a RESET; the
+  // legitimate unmount cases (stack reset that does NOT re-pin the Host,
+  // hot reload) are caught by `useHeadlessSessionDismissal`'s unmount path
+  // with `isHeadlessHostStillInNavigator`.
   useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', () => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (e.data.action.type === 'RESET') {
+        return;
+      }
       closeSession(headlessSessionId, { reason: 'user_dismissed' });
     });
     return unsubscribe;

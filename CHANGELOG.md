@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Route swallowed `getUserLimits` infrastructure errors through `failSession` when a headless Ramp session is active, so headless consumers receive an `onError` callback instead of a silent hang (Phase 9.5 Fix A).
+- Skip the `beforeRemove` close path on `RESET` actions in the Ramp Headless Host so `useTransakRouting`'s stack rebuilds (re-pinning HEADLESS_HOST when routing to VerifyIdentity / BasicInfo / Checkout / KycWebview) no longer prematurely fire `onClose({ reason: 'user_dismissed' })` (Phase 9.5; Cursor Bugbot finding).
 
 ## [7.76.3]
 

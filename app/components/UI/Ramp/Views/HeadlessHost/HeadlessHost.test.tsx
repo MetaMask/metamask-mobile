@@ -34,7 +34,18 @@ const mockUseContinueWithQuoteOptions = jest.fn();
 // Holds the most recent 'beforeRemove' listener registered against the
 // mocked navigation object. Tests fire it directly to exercise the
 // production beforeRemove path without spinning up a real navigator.
-let registeredBeforeRemoveListener: (() => void) | null = null;
+// The listener now reads `e.data.action.type` so it can ignore RESET
+// stack-rebuilds; tests pass an event arg accordingly.
+interface BeforeRemoveEvent {
+  data: { action: { type: string } };
+}
+let registeredBeforeRemoveListener: ((e?: BeforeRemoveEvent) => void) | null =
+  null;
+// Default event passed when a test wants to simulate a user back/swipe — any
+// non-RESET action type triggers the close path.
+const DEFAULT_GO_BACK_EVENT: BeforeRemoveEvent = {
+  data: { action: { type: 'GO_BACK' } },
+};
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -164,7 +175,7 @@ describe('HeadlessHost', () => {
     __resetSessionRegistryForTests();
     registeredBeforeRemoveListener = null;
     mockAddListener.mockImplementation(
-      (eventName: string, listener: () => void) => {
+      (eventName: string, listener: (e?: BeforeRemoveEvent) => void) => {
         if (eventName === 'beforeRemove') {
           registeredBeforeRemoveListener = listener;
         }
@@ -455,13 +466,37 @@ describe('HeadlessHost', () => {
       expect(typeof registeredBeforeRemoveListener).toBe('function');
 
       // Fire the listener like React Navigation would on a back gesture.
-      registeredBeforeRemoveListener?.();
+      registeredBeforeRemoveListener?.(DEFAULT_GO_BACK_EVENT);
 
       expect(callbacks.onClose).toHaveBeenCalledTimes(1);
       expect(callbacks.onClose).toHaveBeenCalledWith({
         reason: 'user_dismissed',
       });
       expect(getSession(session.id)).toBeUndefined();
+    });
+
+    it('does NOT close the session when beforeRemove fires for a RESET action (stack rebuild guard)', () => {
+      // Cursor Bugbot — useTransakRouting calls navigation.reset() to
+      // re-pin HEADLESS_HOST at the base when moving to VerifyIdentity /
+      // BasicInfo / Checkout / KycWebview. The reset fires beforeRemove on
+      // the OLD instance, but the session is still in flight; closing it
+      // here would prematurely fire onClose({ reason: 'user_dismissed' })
+      // and break the flow.
+      const quote = buildAggregatorQuote();
+      const session = seedSession(quote);
+      const callbacks = session.callbacks;
+      renderHost({ headlessSessionId: session.id });
+      expect(typeof registeredBeforeRemoveListener).toBe('function');
+
+      registeredBeforeRemoveListener?.({
+        data: { action: { type: 'RESET' } },
+      });
+
+      expect(callbacks.onClose).not.toHaveBeenCalled();
+      // The session is still live so useTransakRouting's reset can complete
+      // and re-pin the new HEADLESS_HOST without losing the consumer's
+      // callbacks.
+      expect(getSession(session.id)).toBeDefined();
     });
 
     it('fires onClose({ reason: "user_dismissed" }) once when the host unmounts mid-flow without a terminal status', async () => {
@@ -506,7 +541,7 @@ describe('HeadlessHost', () => {
       // beforeRemove fires too (React Navigation always fires it on screen
       // removal), then unmount cleanup runs. Both find the session gone and
       // no-op.
-      registeredBeforeRemoveListener?.();
+      registeredBeforeRemoveListener?.(DEFAULT_GO_BACK_EVENT);
       unmount();
 
       expect(callbacks.onClose).toHaveBeenCalledTimes(1);
@@ -526,7 +561,7 @@ describe('HeadlessHost', () => {
       expect(callbacks.onClose).toHaveBeenCalledTimes(1);
       expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
 
-      registeredBeforeRemoveListener?.();
+      registeredBeforeRemoveListener?.(DEFAULT_GO_BACK_EVENT);
       unmount();
 
       // Both follow-up paths re-read, see nothing, no-op.
@@ -546,7 +581,7 @@ describe('HeadlessHost', () => {
       });
 
       const { unmount } = renderHost({ headlessSessionId: session.id });
-      registeredBeforeRemoveListener?.();
+      registeredBeforeRemoveListener?.(DEFAULT_GO_BACK_EVENT);
       unmount();
 
       expect(callbacks.onClose).toHaveBeenCalledTimes(1);
