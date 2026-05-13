@@ -534,12 +534,7 @@ jobs:
       - get_requirements
     uses: ./.github/workflows/setup-node-modules.yml
     with:
-      platform: ''
-      setup-command: yarn setup:github-ci --node
       artifact-name: ci-js-deps
-      use-exact-artifact-name: true
-      include-yarn-install-state: true
-      include-inpage-bridge-artifacts: false
       artifact-retention-days: 1
       runner_provider: ${{ inputs.runner_provider }}
 
@@ -559,19 +554,17 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
-      - name: Download prepared dependencies
+      - name: Download node_modules artifact
         uses: actions/download-artifact@v4
         with:
-          name: ci-js-deps
-          path: .
-      - name: Restore node_modules executable permissions
+          name: ${{ needs.prepare-ci-js-deps.outputs.artifact-name }}
+      - name: Restore executable permissions
         uses: ./.github/actions/restore-node-modules-permissions
-      - name: Validate downloaded dependency files
+      - name: Verify downloaded artifacts
         shell: bash
         run: |
           set -euo pipefail
           test -d node_modules
-          test -f .yarn/install-state.gz
           test -f app/util/termsOfUse/termsOfUseContent.ts
       - name: Prepare results directory
         run: mkdir -p tests/results
@@ -615,19 +608,17 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
-      - name: Download prepared dependencies
+      - name: Download node_modules artifact
         uses: actions/download-artifact@v4
         with:
-          name: ci-js-deps
-          path: .
-      - name: Restore node_modules executable permissions
+          name: ${{ needs.prepare-ci-js-deps.outputs.artifact-name }}
+      - name: Restore executable permissions
         uses: ./.github/actions/restore-node-modules-permissions
-      - name: Validate downloaded dependency files
+      - name: Verify downloaded artifacts
         shell: bash
         run: |
           set -euo pipefail
           test -d node_modules
-          test -f .yarn/install-state.gz
           test -f app/util/termsOfUse/termsOfUseContent.ts
       - uses: actions/download-artifact@v4
         with:
@@ -733,19 +724,17 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
-      - name: Download prepared dependencies
+      - name: Download node_modules artifact
         uses: actions/download-artifact@v4
         with:
-          name: ci-js-deps
-          path: .
-      - name: Restore node_modules executable permissions
+          name: ${{ needs.prepare-ci-js-deps.outputs.artifact-name }}
+      - name: Restore executable permissions
         uses: ./.github/actions/restore-node-modules-permissions
-      - name: Validate downloaded dependency files
+      - name: Verify downloaded artifacts
         shell: bash
         run: |
           set -euo pipefail
           test -d node_modules
-          test -f .yarn/install-state.gz
           test -f app/util/termsOfUse/termsOfUseContent.ts
       - name: Prepare results directory
         run: mkdir -p tests/results
