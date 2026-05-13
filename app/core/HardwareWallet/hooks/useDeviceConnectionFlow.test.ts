@@ -484,11 +484,10 @@ describe('useDeviceConnectionFlow', () => {
 
       const { result } = renderHook(() => useDeviceConnectionFlow(options));
 
-      let readyPromise: Promise<boolean>;
-      await act(async () => {
-        readyPromise = result.current.ensureDeviceReady();
-        await Promise.resolve();
-      });
+      const { readyPromise } = await capturePendingReadiness(
+        () => result.current.ensureDeviceReady(),
+        { flushMicrotaskInAct: false },
+      );
 
       expect(checkTransportEnabledOrShowError).not.toHaveBeenCalled();
       expect(options.updateConnectionState).toHaveBeenCalledWith({
