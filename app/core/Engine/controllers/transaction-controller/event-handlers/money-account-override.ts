@@ -6,25 +6,38 @@ import { isEvmAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 
 import Engine from '../../../../Engine';
+import { replaceAccountInNestedTransactions } from '../../../../../components/Views/confirmations/utils/transaction-pay';
 
 const MONEY_ACCOUNT_TRANSACTION_TYPES: readonly TransactionType[] = [
   TransactionType.moneyAccountDeposit,
   TransactionType.moneyAccountWithdraw,
 ];
 
-function isMoneyAccountTransaction(transaction: TransactionMeta): boolean {
+function hasMoneyAccountType(
+  transaction: TransactionMeta,
+  targetTypes: readonly TransactionType[],
+): boolean {
   const { type, nestedTransactions } = transaction;
 
-  if (type && MONEY_ACCOUNT_TRANSACTION_TYPES.includes(type)) {
+  if (type && targetTypes.includes(type)) {
     return true;
   }
 
   return (
     nestedTransactions?.some(
-      (nested) =>
-        nested.type && MONEY_ACCOUNT_TRANSACTION_TYPES.includes(nested.type),
+      (nested) => nested.type && targetTypes.includes(nested.type),
     ) ?? false
   );
+}
+
+function isMoneyAccountTransaction(transaction: TransactionMeta): boolean {
+  return hasMoneyAccountType(transaction, MONEY_ACCOUNT_TRANSACTION_TYPES);
+}
+
+function isMoneyAccountWithdraw(transaction: TransactionMeta): boolean {
+  return hasMoneyAccountType(transaction, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
 }
 
 /**
@@ -55,6 +68,15 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
 
   if (!selectedAccount || !isEvmAccountType(selectedAccount.type)) {
     return;
+  }
+
+  if (isMoneyAccountWithdraw(transaction)) {
+    replaceAccountInNestedTransactions({
+      transactionId: transaction.id,
+      nestedTransactions: transaction.nestedTransactions,
+      oldAddress: transaction.txParams?.from,
+      newAddress: selectedAccount.address,
+    });
   }
 
   TransactionPayController.setTransactionConfig(transaction.id, (config) => {

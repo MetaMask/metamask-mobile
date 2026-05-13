@@ -69,10 +69,14 @@ jest.mock('../../../../UI/Perps/Views/PerpsHomeView/PerpsHomeView', () => {
   };
 });
 
+const mockPredictFeedProps: { current: Record<string, unknown> | null } = {
+  current: null,
+};
 jest.mock('../../../../UI/Predict/views/PredictFeed', () => {
   const { View } = jest.requireActual('react-native');
   const ReactLib = jest.requireActual('react');
-  return function MockPredictFeed() {
+  return function MockPredictFeed(props: Record<string, unknown>) {
+    mockPredictFeedProps.current = props;
     return ReactLib.createElement(View, { testID: 'predict-feed' });
   };
 });
@@ -82,9 +86,16 @@ jest.mock('../../../../UI/Perps/providers/PerpsConnectionProvider', () => ({
     children,
 }));
 
+const mockPauseAllChannels = jest.fn();
+const mockResumeAllChannels = jest.fn();
+
 jest.mock('../../../../UI/Perps/providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
+  getStreamManagerInstance: () => ({
+    pauseAllChannels: mockPauseAllChannels,
+    resumeAllChannels: mockResumeAllChannels,
+  }),
 }));
 
 jest.mock('../../../../UI/Predict/contexts', () => ({
@@ -212,6 +223,43 @@ describe('HomepageDiscoveryTabs', () => {
     });
   });
 
+  describe('PredictFeed wallet header forwarding', () => {
+    beforeEach(() => {
+      mockPredictFeedProps.current = null;
+    });
+
+    it('forwards walletHeaderTranslateY and walletHeaderHeight to PredictFeed', async () => {
+      const walletHeaderTranslateY = { value: 0 } as unknown;
+      renderComponent({
+        walletHeaderTranslateY,
+        walletHeaderHeight: 120,
+      });
+      await pressTab('Predictions');
+
+      expect(mockPredictFeedProps.current).not.toBeNull();
+      expect(mockPredictFeedProps.current?.walletHeaderTranslateY).toBe(
+        walletHeaderTranslateY,
+      );
+      expect(mockPredictFeedProps.current?.walletHeaderHeight).toBe(120);
+    });
+
+    it('passes onHeaderHiddenChange to PredictFeed so discovery icons collapse', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+
+      expect(typeof mockPredictFeedProps.current?.onHeaderHiddenChange).toBe(
+        'function',
+      );
+    });
+
+    it('passes hideHeader=true to PredictFeed', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+
+      expect(mockPredictFeedProps.current?.hideHeader).toBe(true);
+    });
+  });
+
   describe('tab_viewed analytics', () => {
     it('fires trackTabViewed with portfolio on initial mount', () => {
       renderComponent();
@@ -254,6 +302,79 @@ describe('HomepageDiscoveryTabs', () => {
       await pressTab('Predictions');
       await pressTab('Portfolio');
       expect(mockTrackTabViewed).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('Perps WS pause/resume on tab switch', () => {
+    it('pauses all channels when switching from Portfolio to Predictions', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+      expect(mockPauseAllChannels).toHaveBeenCalledTimes(1);
+      expect(mockResumeAllChannels).not.toHaveBeenCalled();
+    });
+
+    it('pauses all channels when switching from Perpetuals to Predictions', async () => {
+      renderComponent();
+      await pressTab('Perpetuals');
+      mockPauseAllChannels.mockClear();
+      await pressTab('Predictions');
+      expect(mockPauseAllChannels).toHaveBeenCalledTimes(1);
+    });
+
+    it('resumes all channels when switching from Predictions back to Portfolio', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+      mockPauseAllChannels.mockClear();
+      mockResumeAllChannels.mockClear();
+      await pressTab('Portfolio');
+      expect(mockResumeAllChannels).toHaveBeenCalledTimes(1);
+      expect(mockPauseAllChannels).not.toHaveBeenCalled();
+    });
+
+    it('resumes all channels when switching from Predictions to Perpetuals', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+      mockResumeAllChannels.mockClear();
+      await pressTab('Perpetuals');
+      expect(mockResumeAllChannels).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not pause when switching between two Perps-consuming tabs', async () => {
+      renderComponent();
+      await pressTab('Perpetuals');
+      expect(mockPauseAllChannels).not.toHaveBeenCalled();
+      await pressTab('Portfolio');
+      expect(mockPauseAllChannels).not.toHaveBeenCalled();
+    });
+
+    it('does not call resumeAllChannels on unmount when tab layer never paused', async () => {
+      const { unmount } = renderComponent();
+      // Stay on Portfolio — never switched to Predictions
+      act(() => {
+        unmount();
+      });
+      expect(mockResumeAllChannels).not.toHaveBeenCalled();
+    });
+
+    it('calls resumeAllChannels on unmount when tab layer holds a pause', async () => {
+      const { unmount } = renderComponent();
+      await pressTab('Predictions');
+      mockResumeAllChannels.mockClear();
+      act(() => {
+        unmount();
+      });
+      expect(mockResumeAllChannels).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call resumeAllChannels on unmount after returning from Predictions', async () => {
+      const { unmount } = renderComponent();
+      await pressTab('Predictions');
+      await pressTab('Portfolio');
+      mockResumeAllChannels.mockClear();
+      act(() => {
+        unmount();
+      });
+      expect(mockResumeAllChannels).not.toHaveBeenCalled();
     });
   });
 });
