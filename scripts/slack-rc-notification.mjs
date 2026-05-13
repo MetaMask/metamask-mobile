@@ -36,9 +36,12 @@
  *     branch name or SHA to preview another tip without checking it out)
  *   - SLACK_RC_NOTIFICATION_DRY_RUN: Set to `1` or `true` to print the message JSON and
  *     exit without calling Slack (`SLACK_BOT_TOKEN` not required in this mode)
+ *   - ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE: Path to android-play-store-check-slack.md from CI
+ *     (PLAY_STORE_CHECK_STATUS=pass|fail on first line; fail body is appended to Slack when present)
  */
 
 import { execFileSync } from 'child_process';
+import fs from 'fs';
 
 // Configuration
 const REPO_URL = process.env.GITHUB_REPOSITORY
@@ -46,6 +49,28 @@ const REPO_URL = process.env.GITHUB_REPOSITORY
   : 'https://github.com/MetaMask/metamask-mobile';
 
 const MAX_RC_COMMIT_LINES = 10;
+
+/**
+ * Optional Android Play Store lint/bundletool report from CI (see android-play-store-check-slack.mjs).
+ * @returns {string|null} Slack mrkdwn body or null to omit
+ */
+function loadPlayStoreCheckMrkdwn() {
+  const p = process.env.ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE?.trim();
+  if (!p || !fs.existsSync(p)) {
+    return null;
+  }
+  const raw = fs.readFileSync(p, 'utf8').trim();
+  if (!raw) {
+    return null;
+  }
+  const lines = raw.split('\n');
+  const statusLine = lines[0] ?? '';
+  if (statusLine === 'PLAY_STORE_CHECK_STATUS=pass') {
+    return null;
+  }
+  const body = lines.slice(1).join('\n').trim();
+  return body || null;
+}
 
 /** Commits whose subject starts with this (version bump automation) are omitted from the RC list. */
 const SKIP_CI_BUMP_VERSION_SUBJECT = /^\[skip ci\] Bump version number to/;
@@ -208,6 +233,7 @@ function isValidUrl(url) {
 /**
  * Build the Slack message payload
  * @param {Object} options - Message options
+ * @param {string|null} [options.playStoreCheckMrkdwn] - Optional mrkdwn from Android Play Store check
  * @returns {Object} Slack message payload
  */
 function buildSlackMessage(options) {
@@ -219,6 +245,7 @@ function buildSlackMessage(options) {
     pipelineUrl,
     rcCommitsText,
     hasRcCommits,
+    playStoreCheckMrkdwn,
   } = options;
 
   const blocks = [
@@ -295,6 +322,25 @@ function buildSlackMessage(options) {
         text: fallbackMrkdwn,
       },
     });
+  }
+
+  if (playStoreCheckMrkdwn) {
+    const truncated =
+      playStoreCheckMrkdwn.length > 2800
+        ? `${playStoreCheckMrkdwn.slice(0, 2800)}\n_…truncated_`
+        : playStoreCheckMrkdwn;
+    blocks.push(
+      {
+        type: 'divider',
+      },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*⚠️ Android Play Store check (non-blocking)*\n${truncated}`,
+        },
+      },
+    );
   }
 
   // Add pipeline link
@@ -409,6 +455,7 @@ async function main() {
   }
 
   const { text: rcCommitsText, hasEntries: hasRcCommits } = extractRcCommitsFromGit();
+  const playStoreCheckMrkdwn = loadPlayStoreCheckMrkdwn();
 
   // Build and send the message
   console.log('\n📤 Posting to Slack...');
@@ -421,6 +468,7 @@ async function main() {
     pipelineUrl,
     rcCommitsText,
     hasRcCommits,
+    playStoreCheckMrkdwn,
   });
 
   if (isDryRun) {
