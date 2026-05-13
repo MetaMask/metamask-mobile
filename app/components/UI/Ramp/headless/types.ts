@@ -41,6 +41,18 @@ export interface HeadlessGetQuotesParams {
   forceRefresh?: boolean;
   /** Override the default redirect URL injected into provider quotes. */
   redirectUrl?: string;
+  /**
+   * Fiat currency code (e.g. `'EUR'`) used **only** by the pre-quote static
+   * bounds check in {@link HeadlessBuyResult.getQuotes}: when omitted, the
+   * hook falls back to the active user region's currency. Same default as
+   * `HeadlessBuyParams.currency`.
+   *
+   * The fiat currency the network call itself uses is determined by the
+   * RampsController from the active user region — passing this field here
+   * does NOT override that. It only changes which bounds row is consulted
+   * for the pre-flight check (see Fix #2 follow-up / Suggestion #2).
+   */
+  currency?: string;
 }
 
 /**
@@ -184,8 +196,7 @@ export interface HeadlessBuyCallbacks {
    * `RampsOrder.status`:
    *
    * - `RampsOrderStatus.Completed` → success path (fire downstream intent).
-   * - `RampsOrderStatus.Failed | Cancelled | IdExpired` → failure path
-   *   (surface error UI; do NOT fire downstream actions).
+   * - `RampsOrderStatus.Failed | Cancelled | IdExpired` → failure path; surface error UI, do NOT fire downstream actions.
    * - `RampsOrderStatus.Unknown` → transient, the helper keeps awaiting.
    *
    * The `order` argument is a **creation snapshot**, not authoritative

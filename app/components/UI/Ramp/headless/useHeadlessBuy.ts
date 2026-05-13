@@ -1,13 +1,17 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { CaipChainId } from '@metamask/utils';
-import type { RampsOrder } from '@metamask/ramps-controller';
+import type { Provider, RampsOrder } from '@metamask/ramps-controller';
 
 import ReduxService from '../../../../core/redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 import { getRampCallbackBaseUrl } from '../utils/getRampCallbackBaseUrl';
+import {
+  getProviderBuyLimit,
+  type ProviderBuyLimit,
+} from '../utils/providerLimits';
 import useRampsController from '../hooks/useRampsController';
 
 import {
@@ -58,6 +62,129 @@ function resolveWalletAddressForChain(chainId: CaipChainId): string | null {
     return null;
   }
   return getFormattedAddressFromInternalAccount(account);
+}
+
+/**
+ * A `(provider, paymentMethodId)` candidate that the pre-quote static bounds
+ * check inspected. `bounds` is `undefined` when the provider's catalog entry
+ * doesn't declare bounds for the given `(currency, paymentMethodId)` — we
+ * treat that as "unknown" (cannot short-circuit) rather than "rejects."
+ */
+interface BoundsCandidate {
+  providerId: string;
+  paymentMethodId: string;
+  bounds: ProviderBuyLimit | undefined;
+}
+
+/**
+ * Pre-quote (no-network) bounds check used by `getQuotes`. Returns an
+ * `Error` shaped for `toHeadlessBuyError` when **every** candidate pair
+ * `(provider × paymentMethodId)` has known bounds AND the amount falls
+ * outside those bounds. Otherwise returns `undefined` and the caller
+ * proceeds with the normal network round-trip.
+ *
+ * "Every" is deliberate: a single "passes" or "unknown" candidate keeps
+ * the network call in play, because that candidate might still produce a
+ * valid quote. This mirrors UB2's behaviour — UB2 still asks the network
+ * if it can't be certain, and only short-circuits when it's certain the
+ * answer is "rejected."
+ *
+ * Skipped entirely (returns `undefined`) when:
+ * - `amount` is `<= 0` or not finite — UB2 parity: `useProviderLimits.ts:30` returns `null` for `amount <= 0` so the UI shows no error while the user is still typing. We do the same so headless consumers can use `getQuotes` to "warm" the system without nuking a registered session.
+ * - `providerIds` is missing/empty — caller asked for "any provider," no way to enumerate candidates without a network call.
+ * - `paymentMethodIds` is missing/empty — same.
+ * - `fiatCurrency` is missing — bounds are keyed by currency.
+ * - `providers` catalog is empty — none of the requested ids are mappable.
+ */
+function buildStaticBoundsRejection(args: {
+  amount: number;
+  providerIds: readonly string[] | undefined;
+  paymentMethodIds: readonly string[] | undefined;
+  fiatCurrency: string | undefined;
+  providers: readonly Provider[];
+}):
+  | (Error & {
+      headlessBuyErrorCode: 'LIMIT_EXCEEDED';
+      details: Record<string, unknown>;
+    })
+  | undefined {
+  const { amount, providerIds, paymentMethodIds, fiatCurrency, providers } =
+    args;
+  if (
+    !Number.isFinite(amount) ||
+    amount <= 0 ||
+    !providerIds ||
+    providerIds.length === 0 ||
+    !paymentMethodIds ||
+    paymentMethodIds.length === 0 ||
+    !fiatCurrency ||
+    providers.length === 0
+  ) {
+    return undefined;
+  }
+
+  const candidates: BoundsCandidate[] = [];
+  for (const providerId of providerIds) {
+    const provider = providers.find((p) => p.id === providerId);
+    if (!provider) {
+      // Caller named a provider we don't have catalog entries for. Treat
+      // as "unknown" — preserve today's behavior of letting the network
+      // decide. (The network call will likely return an empty `success`
+      // and a provider error, which Fix #2 already surfaces.)
+      for (const paymentMethodId of paymentMethodIds) {
+        candidates.push({ providerId, paymentMethodId, bounds: undefined });
+      }
+      continue;
+    }
+    for (const paymentMethodId of paymentMethodIds) {
+      candidates.push({
+        providerId,
+        paymentMethodId,
+        bounds: getProviderBuyLimit(provider, fiatCurrency, paymentMethodId),
+      });
+    }
+  }
+
+  // Decision rule: short-circuit only when *every* candidate has bounds
+  // AND those bounds reject the amount. A single "unknown" or "passes"
+  // candidate keeps the network call alive.
+  const allReject =
+    candidates.length > 0 &&
+    candidates.every(
+      (c) =>
+        c.bounds !== undefined &&
+        (amount < c.bounds.minAmount || amount > c.bounds.maxAmount),
+    );
+  if (!allReject) {
+    return undefined;
+  }
+
+  const rejections = candidates.map((c) => ({
+    provider: c.providerId,
+    paymentMethodId: c.paymentMethodId,
+    minAmount: c.bounds?.minAmount,
+    maxAmount: c.bounds?.maxAmount,
+  }));
+  const formatted = rejections
+    .map(
+      (r) =>
+        `${r.provider}/${r.paymentMethodId}: [${r.minAmount}, ${r.maxAmount}]`,
+    )
+    .join('; ');
+  const error = new Error(
+    `useHeadlessBuy.getQuotes: ${amount} ${fiatCurrency} is outside the static bounds of every candidate (${formatted}).`,
+  ) as Error & {
+    headlessBuyErrorCode: 'LIMIT_EXCEEDED';
+    details: Record<string, unknown>;
+  };
+  error.headlessBuyErrorCode = 'LIMIT_EXCEEDED';
+  error.details = {
+    amount,
+    currency: fiatCurrency,
+    rejections,
+    source: 'static-bounds',
+  };
+  return error;
 }
 
 /**
@@ -123,6 +250,14 @@ function resolveWalletAddressForChain(chainId: CaipChainId): string | null {
  *   helper rejects immediately with `AwaitOrderTerminalStatePrerequisitesError`.
  * - `getOrder` is a synchronous read of redux state; `refreshOrder` is a
  *   network call that returns a fresh order without writing back to state.
+ * - `getQuotes` runs a no-network static bounds check before the network
+ *   call when `params.providerIds` is set: it consults
+ *   `Provider.limits.fiat[currency][paymentMethodId]` from the already-
+ *   loaded catalog and short-circuits with `LIMIT_EXCEEDED` if every
+ *   candidate `(provider, paymentMethodId)` rejects `params.amount`. The
+ *   same static lookup is exported as `getProviderBuyLimit` from
+ *   `app/components/UI/Ramp/headless` for consumers that need it
+ *   standalone (e.g. disabling a "Get quote" button as the user types).
  */
 export function useHeadlessBuy(): HeadlessBuyResult {
   const navigation = useNavigation();
@@ -159,6 +294,42 @@ export function useHeadlessBuy(): HeadlessBuyResult {
           `useHeadlessBuy: could not resolve wallet address for assetId="${params.assetId}". Pass walletAddress explicitly or ensure an account is selected for chain ${chainId ?? 'unknown'}.`,
         );
       }
+
+      // Pre-quote (no-network) static bounds check. UB2 mirrors what users
+      // would experience downstream by inspecting `Provider.limits.fiat[...]`
+      // from the already-loaded provider catalog. When every candidate
+      // `(provider × paymentMethodId)` definitively rejects `params.amount`,
+      // we short-circuit with `LIMIT_EXCEEDED` instead of paying the network
+      // round-trip. The function returns `undefined` (skip) when there's
+      // any uncertainty — preserving today's behavior of letting the
+      // network decide. See `buildStaticBoundsRejection` above for the
+      // full decision rule.
+      const fiatCurrency =
+        params.currency ?? userRegion?.country?.currency ?? undefined;
+      const staticRejection = buildStaticBoundsRejection({
+        amount: params.amount,
+        providerIds: params.providerIds,
+        paymentMethodIds: params.paymentMethodIds,
+        fiatCurrency,
+        // `providers` is typed as `Provider[]` by `useRampsController` but
+        // can be `null` while the catalog is loading; pass `[]` to keep
+        // the helper's signature non-nullable and skip the check until
+        // the catalog arrives.
+        providers: providers ?? [],
+      });
+      if (staticRejection) {
+        // Same Design B routing as the post-network rejection path: if a
+        // session is active, run the error through `failSession` so
+        // `onError` + `onClose({ reason: 'unknown' })` fire and the
+        // session is removed from the registry. Then re-throw so the
+        // consumer's `await getQuotes(...)` catch also receives it.
+        const activeId = getActiveSessionId();
+        if (activeId) {
+          failSession(activeId, staticRejection, 'LIMIT_EXCEEDED');
+        }
+        throw staticRejection;
+      }
+
       const quotesResponse = await getQuotesRaw({
         assetId: params.assetId,
         amount: params.amount,
@@ -223,6 +394,11 @@ export function useHeadlessBuy(): HeadlessBuyResult {
           providerErrors,
           successCount,
           errorCount: errorEntries.length,
+          // `source` discriminator parity with the static (pre-network) path
+          // in `buildStaticBoundsRejection`. Lets consumers branch on
+          // "which layer caught it" without sniffing for the presence of
+          // `providerErrors` vs `rejections`.
+          source: 'network-reject',
         };
 
         // Design B: if a session is active, route the error through it so
@@ -249,7 +425,7 @@ export function useHeadlessBuy(): HeadlessBuyResult {
 
       return quotesResponse;
     },
-    [getQuotesRaw],
+    [getQuotesRaw, providers, userRegion],
   );
 
   const startHeadlessBuy = useCallback(
