@@ -5979,10 +5979,9 @@ describe('HyperLiquidProvider', () => {
         createMockInfoClient({
           maxBuilderFee: jest
             .fn()
-            .mockResolvedValueOnce(0) // check: not approved
-            .mockResolvedValueOnce(0) // check: still not approved after failed attempt
-            .mockResolvedValueOnce(0) // retry check: not approved
-            .mockResolvedValueOnce(0.001), // retry verification: now approved
+            .mockResolvedValueOnce(0) // first order: check — not approved
+            .mockResolvedValueOnce(0) // second order (retry): check — not approved
+            .mockResolvedValueOnce(0.001), // second order (retry): verification — now approved
         }),
       );
 
