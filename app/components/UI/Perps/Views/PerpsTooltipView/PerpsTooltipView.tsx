@@ -4,19 +4,17 @@ import {
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
+  Box,
   ButtonSize,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
-import createStyles from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.styles';
 import { tooltipContentRegistry } from '../../components/PerpsBottomSheetTooltip/content/contentRegistry';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
-import { View } from 'react-native';
 
 interface PerpsTooltipViewRouteParams {
   contentKey: PerpsTooltipContentKey;
@@ -27,7 +25,6 @@ const PerpsTooltipView: React.FC = () => {
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<Record<string, PerpsTooltipViewRouteParams>, string>>();
-  const { styles } = useStyles(createStyles, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const { contentKey, data } = route.params || {};
@@ -76,7 +73,7 @@ const PerpsTooltipView: React.FC = () => {
           <Text variant={TextVariant.HeadingMD}>{title}</Text>
         </BottomSheetHeader>
       )}
-      <View style={styles.contentContainer}>{renderContent()}</View>
+      <Box paddingHorizontal={4}>{renderContent()}</Box>
       <BottomSheetFooter
         testID="perps-tooltip-bottom-sheet-footer"
         primaryButtonProps={{
@@ -85,7 +82,7 @@ const PerpsTooltipView: React.FC = () => {
           size: ButtonSize.Lg,
           testID: 'perps-tooltip-bottom-sheet-footer-got-it-button',
         }}
-        style={styles.footerContainer}
+        twClassName="pt-6"
       />
     </BottomSheet>
   );

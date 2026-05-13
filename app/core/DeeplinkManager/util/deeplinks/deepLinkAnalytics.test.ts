@@ -456,6 +456,7 @@ describe('deepLinkAnalytics', () => {
       [ACTIONS.DAPP, DeepLinkRoute.DAPP],
       [ACTIONS.WC, DeepLinkRoute.WC],
       [ACTIONS.CREATE_ACCOUNT, DeepLinkRoute.CREATE_ACCOUNT],
+      [ACTIONS.WHATS_HAPPENING, DeepLinkRoute.WHATS_HAPPENING],
       [ACTIONS.SOCIAL_LEADERBOARD, DeepLinkRoute.SOCIAL_LEADERBOARD],
       [ACTIONS.SOCIAL_TRADER_POSITION, DeepLinkRoute.SOCIAL_TRADER_POSITION],
     ] as const)(
@@ -527,6 +528,13 @@ describe('deepLinkAnalytics', () => {
         'https://link.metamask.io/social-trader-position?positionId=position-1',
       );
       expect(result).toBe(DeepLinkRoute.SOCIAL_TRADER_POSITION);
+    });
+
+    it('extract whats happening route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/whats-happening',
+      );
+      expect(result).toBe(DeepLinkRoute.WHATS_HAPPENING);
     });
 
     it('extract social leaderboard route', () => {
