@@ -964,7 +964,7 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
-  it('re-selects pay token when accountOverride changes', () => {
+  it('does not re-select pay token when only accountOverride changes', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
         {
@@ -994,10 +994,51 @@ describe('useAutomaticTransactionPayToken', () => {
 
     rerender(undefined);
 
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('does not re-select pay token on from change for post-quote withdraws', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          chainId: CHAIN_ID_2_MOCK,
+        },
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          chainId: CHAIN_ID_1_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
     });
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      } as unknown as ReturnType<typeof useTransactionPayToken>['payToken'],
+      setPayToken: setPayTokenMock,
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.predictWithdraw,
+      txParams: { from: '0xAddress1' },
+    } as never);
+
+    const { rerender } = runHook();
+
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.predictWithdraw,
+      txParams: { from: '0xAddress2' },
+    } as never);
+
+    rerender(undefined);
+
+    expect(setPayTokenMock).not.toHaveBeenCalled();
   });
 
   it('does not re-select on from change when disabled', () => {
