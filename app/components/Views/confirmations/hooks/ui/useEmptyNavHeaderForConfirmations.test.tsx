@@ -12,7 +12,6 @@ describe('useEmptyNavHeaderForConfirmations', () => {
     header: () => <></>,
     headerShown: true,
     gestureEnabled: false,
-    headerShadowVisible: false,
   };
 
   beforeEach(() => {

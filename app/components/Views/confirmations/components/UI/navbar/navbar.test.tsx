@@ -143,15 +143,3 @@ describe('getNavbar', () => {
     });
   });
 });
-
-describe('getEmptyNavHeader', () => {
-  it('uses a native-stack-safe header style and hides the header shadow', () => {
-    const result = getEmptyNavHeader({ theme: mockTheme });
-
-    expect(result.headerShadowVisible).toBe(false);
-    expect(result.headerShown).toBe(true);
-    expect(result.headerStyle).toEqual({
-      backgroundColor: mockTheme.colors.background.default,
-    });
-  });
-});

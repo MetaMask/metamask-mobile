@@ -74,10 +74,6 @@ export function getEmptyNavHeader() {
     ...navbarOptions,
     headerShown: true,
     gestureEnabled: false,
-    headerShadowVisible: false,
-    headerStyle: {
-      backgroundColor: theme.colors.background.default,
-    },
   };
 }
 
