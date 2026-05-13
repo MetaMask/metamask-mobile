@@ -215,7 +215,7 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_main
 
-      # BrowserStack E2E builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
+  # BrowserStack E2E builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
   # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
   main-e2e-bs-without-srp:
     github_environment: build-e2e
@@ -281,7 +281,6 @@ builds:
     code_fencing: *code_fencing_main
 
   # Test builds
-  # Test builds (QA)
   main-test:
     github_environment: build-uat
     signing: *signing_uat

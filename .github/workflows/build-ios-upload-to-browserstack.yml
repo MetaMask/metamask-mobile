@@ -42,6 +42,12 @@ on:
       without-srp-browserstack-url:
         description: 'BrowserStack URL for without-SRP version'
         value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-browserstack-url }}
+      with-srp-app-id:
+        description: 'BrowserStack App ID for with-SRP version'
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.with-srp-app-id }}
+      without-srp-app-id:
+        description: 'BrowserStack App ID for without-SRP version'
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-app-id }}
       with-srp-version:
         description: 'App version for with-SRP build'
         value: ${{ jobs.download-and-upload-to-browserstack.outputs.with-srp-version }}
