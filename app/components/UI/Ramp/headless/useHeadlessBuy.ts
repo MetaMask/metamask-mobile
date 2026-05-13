@@ -229,6 +229,17 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         // `onError` + `onClose({ reason: 'unknown' })` fire and the session
         // is removed from the registry. Then re-throw so the consumer's
         // `await getQuotes(...)` catch also receives it.
+        //
+        // Caveat: `getActiveSessionId` returns the *first non-terminal*
+        // session (sessionRegistry.ts), and `getQuotes` does NOT correlate
+        // the rejected quote request with any specific session id. The
+        // single-live-session invariant (enforced by `startHeadlessBuy`'s
+        // auto-cancel at lines 200-203 below) makes this safe in practice
+        // — there is at most one active session, so "the first" is "the
+        // only." If a consumer registers a session and then calls
+        // `getQuotes` again for an unrelated request that gets rejected,
+        // that active session WILL be torn down. Document this clearly if
+        // we ever expose a multi-session API.
         const activeId = getActiveSessionId();
         if (activeId) {
           failSession(activeId, error, code);

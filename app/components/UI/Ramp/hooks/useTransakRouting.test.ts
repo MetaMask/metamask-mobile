@@ -1663,14 +1663,11 @@ describe('useTransakRouting', () => {
       });
 
       // Fix #3.1: onOrderCreated now takes (orderId, order) — the second
-      // arg is the same `rampsOrder` we already passed to `addOrder`.
-      expect(onOrderCreated).toHaveBeenCalledWith(
-        'order-hs',
-        expect.objectContaining({
-          providerOrderId: 'order-hs',
-          status: 'Pending',
-        }),
-      );
+      // arg must be the exact `rampsOrder` reference we already passed to
+      // `addOrder` (mirrors the native-card assertion above; identity-not-
+      // shape so a future refactor that hands a derived/wrapped order would
+      // fail the test).
+      expect(onOrderCreated).toHaveBeenCalledWith('order-hs', refreshedOrder);
       expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
         reason: 'completed',
       });

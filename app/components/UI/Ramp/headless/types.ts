@@ -174,10 +174,12 @@ export interface HeadlessBuyCallbacks {
    * Fired once the provider produces an `orderId` (aggregator or native).
    *
    * **The headless API does NOT fire `onError` for a created-then-failed
-   * order.** After this callback fires, the session terminates via
-   * `onClose({ reason: 'completed' })` immediately. Subsequent failures
-   * (e.g. a 3-D Secure rejection on a card order) flip the order's
-   * `status` to `Failed` with no further callback. Consumers MUST call
+   * order.** After this callback fires, the headless *session* terminates
+   * via `onClose({ reason: 'completed' })` immediately — but the underlying
+   * *order* is independent of the session and its `status` may not yet be
+   * terminal. Subsequent failures (e.g. a 3-D Secure rejection on a card
+   * order) flip the order's `status` to `Failed` with no further callback
+   * (the session is already closed). Consumers MUST call
    * `awaitOrderTerminalState(orderId)` and branch on the resolved
    * `RampsOrder.status`:
    *

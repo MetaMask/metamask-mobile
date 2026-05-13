@@ -245,7 +245,7 @@ export function awaitOrderTerminalState(
   if (!inStateOrderAtStart && !options?.walletAddress) {
     return Promise.reject(
       new AwaitOrderTerminalStatePrerequisitesError(
-        `awaitOrderTerminalState: order "${providerOrderId}" is not in redux and no options.walletAddress was provided. Either pass options.walletAddress (recommended: order.walletAddress from your onOrderCreated handler), or call this from a context where the order has already been dispatched.`,
+        `awaitOrderTerminalState: order "${providerOrderId}" is not yet in redux and no options.walletAddress was provided. Either pass options.walletAddress (recommended: order.walletAddress from your onOrderCreated handler), or call this from a context where the order has already been dispatched.`,
       ),
     );
   }
