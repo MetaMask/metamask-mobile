@@ -15,6 +15,7 @@ import styleSheet from './Tooltip.styles';
 
 interface TooltipProps {
   content: string | ReactNode;
+  disabled?: boolean;
   iconColor?: IconColor;
   iconName?: IconName;
   iconSize?: ButtonIconSizes;
@@ -65,6 +66,7 @@ export const TooltipModal = ({
 
 const Tooltip = ({
   content,
+  disabled,
   title,
   tooltipTestId = 'info-row-tooltip',
   onPress,
@@ -76,6 +78,7 @@ const Tooltip = ({
   const [open, setOpen] = useState(false);
 
   const handlePress = () => {
+    if (disabled) return;
     setOpen(true);
     onPress?.();
   };
@@ -86,6 +89,7 @@ const Tooltip = ({
         iconColor={iconColor}
         iconName={iconName}
         onPress={handlePress}
+        disabled={disabled}
         size={iconSize}
         testID={`${tooltipTestId}-open-btn`}
         style={iconStyle}

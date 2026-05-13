@@ -8,6 +8,11 @@ import WhatsHappeningDetailView, {
   CARD_WIDTH,
 } from './WhatsHappeningDetailView';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import {
+  WhatsHappeningInteractionType,
+  WhatsHappeningSource,
+  WhatsHappeningView,
+} from '../Homepage/Sections/WhatsHappening/constants';
 
 const GAP = 12;
 const SNAP_INTERVAL_FOR_TEST = CARD_WIDTH + GAP;
@@ -94,7 +99,9 @@ const mockItem = {
 describe('WhatsHappeningDetailView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseRoute.mockReturnValue({ params: { initialIndex: 0 } });
+    mockUseRoute.mockReturnValue({
+      params: { initialIndex: 0, source: 'homepage' },
+    });
     mockUseNavigation.mockReturnValue({ goBack: mockGoBack });
 
     (WhatsHappeningExpandedCard as unknown as jest.Mock).mockImplementation(
@@ -221,17 +228,18 @@ describe('WhatsHappeningDetailView', () => {
     });
     renderWithProvider(<WhatsHappeningDetailView />);
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
         properties: expect.objectContaining({
-          event_id: mockItem.id,
+          trend_id: mockItem.id,
           card_index: 0,
-          category: 'macro',
-          impact: 'positive',
+          trend_category: 'macro',
+          trend_impact: 'positive',
           asset_symbols: [],
+          source: 'homepage',
         }),
       }),
     );
@@ -249,7 +257,7 @@ describe('WhatsHappeningDetailView', () => {
     const viewedCalls = mockCreateEventBuilder.mock.calls.filter(
       ([name]) =>
         name ===
-        (MetaMetricsEvents.WHATS_HAPPENING_VIEWED as unknown as string),
+        (MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED as unknown as string),
     );
     expect(viewedCalls).toHaveLength(1);
   });
@@ -276,16 +284,17 @@ describe('WhatsHappeningDetailView', () => {
       nativeEvent: { contentOffset: { x: SNAP_INTERVAL_FOR_TEST, y: 0 } },
     });
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
         properties: expect.objectContaining({
-          event_id: 'trend-1',
+          trend_id: 'trend-1',
           card_index: 1,
-          category: 'social',
-          impact: 'negative',
+          trend_category: 'social',
+          trend_impact: 'negative',
+          source: 'homepage',
         }),
       }),
     );
@@ -308,6 +317,63 @@ describe('WhatsHappeningDetailView', () => {
     expect(mockCreateEventBuilder).not.toHaveBeenCalled();
   });
 
+  it('tracks WHATS_HAPPENING_INTERACTED pan event when swiping to a new card', () => {
+    const secondItem = {
+      ...mockItem,
+      id: 'trend-1',
+      title: 'Second trend',
+      category: 'social' as const,
+      impact: 'negative' as const,
+    };
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem, secondItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: SNAP_INTERVAL_FOR_TEST, y: 0 } },
+    });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+        properties: expect.objectContaining({
+          interaction_type: WhatsHappeningInteractionType.Pan,
+          view: WhatsHappeningView.Expanded,
+          trend_id: secondItem.id,
+          card_index: 1,
+          source: WhatsHappeningSource.Homepage,
+        }),
+      }),
+    );
+  });
+
+  it('does not track pan event when momentum scroll resolves to the same card index', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 0, y: 0 } },
+    });
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+    );
+  });
+
   it('tracks Whats Happening Closed with the visible card when back is pressed', () => {
     mockUseWhatsHappening.mockReturnValue({
       items: [mockItem],
@@ -318,14 +384,15 @@ describe('WhatsHappeningDetailView', () => {
     renderWithProvider(<WhatsHappeningDetailView />);
     fireEvent.press(screen.getByTestId('whats-happening-detail-back-button'));
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_CLOSED,
+      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_CLOSED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_CLOSED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_CLOSED,
         properties: expect.objectContaining({
-          event_id: mockItem.id,
+          trend_id: mockItem.id,
           card_index: 0,
+          source: 'homepage',
         }),
       }),
     );

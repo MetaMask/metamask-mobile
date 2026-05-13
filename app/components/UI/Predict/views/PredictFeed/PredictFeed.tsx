@@ -66,6 +66,9 @@ import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import { PredictBalance } from '../../components/PredictBalance';
+import PredictWithdrawUnavailableSheet, {
+  type PredictWithdrawUnavailableSheetRef,
+} from '../../components/PredictWithdrawUnavailableSheet';
 import PredictOffline from '../../components/PredictOffline';
 import FeaturedCarousel from '../../components/FeaturedCarousel';
 import {
@@ -95,9 +98,13 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList as unknown as React.ComponentType<PredictFlashListProps>,
 ) as unknown as React.ComponentType<PredictFlashListProps>;
 
-const PredictFeedHeader: React.FC = () => (
+const PredictFeedHeader: React.FC<{
+  onDepositWalletWithdrawPress?: () => void;
+}> = ({ onDepositWalletWithdrawPress }) => (
   <Box twClassName="py-4">
-    <PredictBalance />
+    <PredictBalance
+      onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+    />
   </Box>
 );
 
@@ -135,13 +142,14 @@ const PredictFeedTabBar: React.FC<PredictFeedTabBarProps> = ({
 interface AnimatedHeaderProps {
   headerTranslateY: SharedValue<number>;
   headerHeight: number;
-  headerRef: React.RefObject<View>;
-  tabBarRef: React.RefObject<View>;
+  headerRef: React.RefObject<View | null>;
+  tabBarRef: React.RefObject<View | null>;
   tabs: FeedTab[];
   activeIndex: number;
   onTabPress: (index: number) => void;
   onHeaderLayout: (event: LayoutChangeEvent) => void;
   onTabBarLayout: (event: LayoutChangeEvent) => void;
+  onDepositWalletWithdrawPress?: () => void;
 }
 
 const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
@@ -154,6 +162,7 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   onTabPress,
   onHeaderLayout,
   onTabBarLayout,
+  onDepositWalletWithdrawPress,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -190,7 +199,9 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
         style={animatedBalanceStyle}
         onLayout={onHeaderLayout}
       >
-        <PredictFeedHeader />
+        <PredictFeedHeader
+          onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+        />
         {isFeaturedCarouselEnabled && (
           <Box twClassName="pb-3">
             <FeaturedCarousel />
@@ -604,11 +615,15 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
 interface PredictFeedProps {
   hideHeader?: boolean;
   onHeaderHiddenChange?: (hidden: boolean) => void;
+  walletHeaderTranslateY?: SharedValue<number>;
+  walletHeaderHeight?: number;
 }
 
 const PredictFeed: React.FC<PredictFeedProps> = ({
   hideHeader = false,
   onHeaderHiddenChange,
+  walletHeaderTranslateY,
+  walletHeaderHeight,
 }) => {
   const {
     tabs,
@@ -687,6 +702,8 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     tabBarRef,
     setActiveIndex,
     onHeaderHiddenChange,
+    walletHeaderTranslateY,
+    walletHeaderHeight,
   });
 
   const handleTabPress = useCallback(
@@ -706,6 +723,12 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     },
     [onTabSwitch, sessionManager, tabs],
   );
+
+  const withdrawUnavailableSheetRef =
+    useRef<PredictWithdrawUnavailableSheetRef>(null);
+  const handleDepositWalletWithdrawPress = useCallback(() => {
+    withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
+  }, []);
 
   return (
     <SafeAreaView
@@ -741,7 +764,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
           </Box>
         )}
 
-        <Box twClassName="flex-1 relative">
+        <Box twClassName="flex-1 relative overflow-hidden">
           <AnimatedHeader
             headerTranslateY={headerTranslateY}
             headerHeight={headerHeight}
@@ -752,6 +775,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
             onTabPress={handleTabPress}
             onHeaderLayout={onHeaderLayout}
             onTabBarLayout={onTabBarLayout}
+            onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
           />
 
           {layoutReady && (
@@ -775,6 +799,9 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
           onSearchChange={setSearchQuery}
           onClose={clearSearchAndClose}
         />
+      </Box>
+      <Box pointerEvents="box-none" twClassName="absolute inset-0 z-50">
+        <PredictWithdrawUnavailableSheet ref={withdrawUnavailableSheetRef} />
       </Box>
     </SafeAreaView>
   );

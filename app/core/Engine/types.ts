@@ -21,10 +21,7 @@ import {
   NftControllerActions,
   NftControllerEvents,
   NftDetectionController,
-  TokenListController,
-  TokenListControllerActions,
-  TokenListControllerEvents,
-  TokenListState,
+  TokenListService,
   TokensController,
   TokensControllerActions,
   TokensControllerEvents,
@@ -383,12 +380,17 @@ import {
   GatorPermissionsControllerEvents,
   GatorPermissionsControllerState,
 } from '@metamask/gator-permissions-controller';
-import { DelegationController } from '@metamask/delegation-controller';
 import {
+  DelegationController,
   DelegationControllerActions,
   DelegationControllerEvents,
-  DelegationControllerState,
-} from '@metamask/delegation-controller/dist/types.cjs';
+} from '@metamask/delegation-controller';
+// `DelegationControllerState` isn't re-exported from the package's public
+// entry, so we go through the `@metamask/delegation-controller/types` path
+// alias declared in `tsconfig.json`. Once the upstream package re-exports it
+// (or we move to Node16/NodeNext module resolution), drop both the alias and
+// this dedicated import.
+import type { DelegationControllerState } from '@metamask/delegation-controller/types';
 import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import {
@@ -417,12 +419,10 @@ type NftDetectionControllerEvents = ControllerStateChangeEvent<
 >;
 import {
   TransactionPayController,
-  TransactionPayControllerState,
-} from '@metamask/transaction-pay-controller';
-import {
   TransactionPayControllerActions,
   TransactionPayControllerEvents,
-} from '@metamask/transaction-pay-controller/dist/types.cjs';
+  TransactionPayControllerState,
+} from '@metamask/transaction-pay-controller';
 import {
   AiDigestController,
   AiDigestControllerActions,
@@ -564,7 +564,6 @@ type GlobalActions =
   | TokensControllerActions
   | TokenDetectionControllerActions
   | TokenRatesControllerActions
-  | TokenListControllerActions
   | TransactionControllerActions
   | TransactionPayControllerActions
   | SelectedNetworkControllerActions
@@ -653,7 +652,6 @@ type GlobalEvents =
   | TokensControllerEvents
   | TokenDetectionControllerEvents
   | TokenRatesControllerEvents
-  | TokenListControllerEvents
   | TransactionControllerEvents
   | TransactionPayControllerEvents
   | SelectedNetworkControllerEvents
@@ -760,7 +758,6 @@ export type MessengerClients = {
   RampsController: RampsController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
   TokenBalancesController: TokenBalancesController;
-  TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
   TokenRatesController: TokenRatesController;
   TokensController: TokensController;
@@ -844,7 +841,6 @@ export type EngineState = {
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
   NftController: NftControllerState;
-  TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
@@ -995,7 +991,6 @@ export type MessengerClientsToInitialize =
   | 'SmartTransactionsController'
   | 'TokenBalancesController'
   | 'TokenDetectionController'
-  | 'TokenListController'
   | 'TokenRatesController'
   | 'TokensController'
   | 'TokenSearchDiscoveryDataController'
@@ -1066,6 +1061,14 @@ export type MessengerClientInitRequest<
    * The token API service instance.
    */
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
+
+  /**
+   * Shared token list service instance.
+   * Owns a TanStack Query cache (4-hour stale time) so that both
+   * TokenDetectionController and TokensController share the same in-memory
+   * cache without redundant network requests.
+   */
+  tokenListService: TokenListService;
 
   /**
    * Controller messenger for the client.
@@ -1172,6 +1175,7 @@ export interface InitMessengerClientsFunctionRequest {
   initialKeyringState?: KeyringControllerState | null;
   qrKeyringScanner: QrKeyringDeferredPromiseBridge;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
+  tokenListService: TokenListService;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   removeAccount: (address: string) => Promise<void>;
   ///: END:ONLY_INCLUDE_IF

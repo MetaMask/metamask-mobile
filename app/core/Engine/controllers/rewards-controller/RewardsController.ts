@@ -49,6 +49,8 @@ import {
   type CampaignState,
   type CampaignDtoState,
   type SubscriptionBenefitsState,
+  type VipDashboardDto,
+  type VipDashboardState,
   BASE32_REGEX,
   CampaignType,
 } from './types';
@@ -111,6 +113,9 @@ const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 
 // Benefits details cache threshold
 const BENEFITS_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
+
+// VIP dashboard cache threshold — disabled while backend still serves hardcoded data
+const VIP_DASHBOARD_CACHE_THRESHOLD_MS = 0;
 
 // Active boosts cache threshold
 const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
@@ -313,6 +318,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  vipDashboard: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
 };
 
 export { defaultRewardsControllerState, getRewardsControllerDefaultState };
@@ -440,6 +451,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getSeasonOneLineaRewardTokens',
   'getSeasonStatus',
   'getUnlockedRewards',
+  'getVIPDashboard',
   'handleAuthenticationTrigger',
   'hasActiveSeason',
   'hasActivityChanged',
@@ -2273,6 +2285,7 @@ export class RewardsController extends BaseController<
     this.update((state) => {
       // Remove the failing subscription
       delete state.subscriptions[subscriptionId];
+      delete state.vipDashboard[subscriptionId];
 
       // Clear accounts linked to this subscription only
       Object.entries(state.accounts).forEach(([caipAccount, accountState]) => {
@@ -4253,6 +4266,80 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Get the VIP dashboard with caching.
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns Promise<VipDashboardState | null> - The dashboard data, or null when the user is not VIP
+   */
+  async getVIPDashboard(
+    subscriptionId: string,
+  ): Promise<VipDashboardState | null> {
+    return await wrapWithCache<VipDashboardState | null>({
+      key: subscriptionId,
+      ttl: VIP_DASHBOARD_CACHE_THRESHOLD_MS,
+      readCache: (key) => {
+        const cached = this.state.vipDashboard[key] || undefined;
+        if (!cached) return;
+        return {
+          payload: cached,
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        try {
+          Logger.log(
+            'RewardsController: Fetching fresh VIP dashboard via API call for',
+            subscriptionId,
+          );
+          const dashboard: VipDashboardDto | null = await this.#withAuthRetry(
+            () =>
+              this.messenger.call(
+                'RewardsDataService:getVIPDashboard',
+                subscriptionId,
+              ),
+            subscriptionId,
+          );
+
+          if (!dashboard) {
+            return null;
+          }
+
+          return {
+            ...dashboard,
+            lastFetched: Date.now(),
+          };
+        } catch (error) {
+          Logger.log(
+            'RewardsController: Failed to get VIP dashboard:',
+            error instanceof Error ? error.message : String(error),
+          );
+          throw error;
+        }
+      },
+      writeCache: (key, payload) => {
+        this.update((state) => {
+          if (payload) {
+            state.vipDashboard[key] = payload;
+            // A non-null dashboard means the backend considers this
+            // subscription VIP-eligible. Keep the cached subscription's
+            // feature flag in sync so consumers reading `features.vip.enabled`
+            // (e.g. the dashboard crown icon) reflect reality without needing
+            // a full subscription refetch.
+            const subscription = state.subscriptions[key];
+            if (subscription && !subscription.features?.vip?.enabled) {
+              subscription.features = {
+                ...subscription.features,
+                vip: { enabled: true },
+              };
+            }
+          } else {
+            delete state.vipDashboard[key];
+          }
+        });
+      },
+    });
+  }
+
+  /**
    * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
    * @param subscriptionId - The subscription ID for authentication
    * @param benefitId - The specific benefit ID that was impressed
@@ -4425,6 +4512,7 @@ export class RewardsController extends BaseController<
         subscriptionId,
       );
       this.update((state) => {
+        delete state.vipDashboard[subscriptionId];
         delete state.seasonStatuses[compositeKey];
         delete state.unlockedRewards[compositeKey];
         delete state.activeBoosts[compositeKey];
@@ -4453,6 +4541,7 @@ export class RewardsController extends BaseController<
     } else {
       // Invalidate all seasons for this subscription
       this.update((state) => {
+        delete state.vipDashboard[subscriptionId];
         Object.keys(state.seasonStatuses).forEach((key) => {
           if (key.includes(subscriptionId)) {
             delete state.seasonStatuses[key];
@@ -4603,7 +4692,6 @@ export class RewardsController extends BaseController<
               rank: cached.rank,
               pnl: cached.pnl,
               notionalVolume: cached.notionalVolume,
-              marginDeployed: cached.marginDeployed,
               qualified: cached.qualified,
               neighbors: cached.neighbors,
               computedAt: cached.computedAt,
@@ -4636,7 +4724,6 @@ export class RewardsController extends BaseController<
                 rank: payload.rank,
                 pnl: payload.pnl,
                 notionalVolume: payload.notionalVolume,
-                marginDeployed: payload.marginDeployed,
                 qualified: payload.qualified,
                 neighbors: payload.neighbors,
                 computedAt: payload.computedAt,
