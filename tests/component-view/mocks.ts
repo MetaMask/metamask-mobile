@@ -225,7 +225,11 @@ jest.mock('../../app/core/Engine', () => {
         trackUnifiedSwapBridgeEvent: jest.fn(),
       },
       PredictController: {
-        getMarkets: jest.fn().mockResolvedValue([]),
+        getMarkets: jest.fn().mockResolvedValue({
+          markets: [],
+          nextCursor: null,
+        }),
+        searchMarkets: jest.fn().mockResolvedValue([]),
         getMarket: jest.fn().mockResolvedValue(null),
         getBalance: jest.fn().mockResolvedValue(0),
         getPositions: jest.fn().mockResolvedValue([]),

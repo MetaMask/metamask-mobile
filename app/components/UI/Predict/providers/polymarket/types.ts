@@ -141,12 +141,14 @@ export interface PolymarketApiActivity {
   icon: string;
 }
 
-export interface PolymarketApiEventsResponse {
-  data: PolymarketApiEvent[];
-  pagination: {
-    hasMore: boolean;
-    totalResults: number;
-  };
+export interface PolymarketApiEventsKeysetResponse {
+  events: PolymarketApiEvent[];
+  next_cursor?: string | null;
+}
+
+export interface PolymarketApiMarketsKeysetResponse {
+  markets: PolymarketApiMarket[];
+  next_cursor?: string | null;
 }
 
 export interface ContractConfig {
