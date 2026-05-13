@@ -1484,6 +1484,7 @@ export type SubscriptionBenefitDto = {
   actionDate: string | null;
   chain: string;
   type: { id: number; name: string };
+  companyName?: string | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

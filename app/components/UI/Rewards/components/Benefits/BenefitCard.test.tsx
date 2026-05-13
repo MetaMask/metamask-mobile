@@ -46,7 +46,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 });
 
 const createBenefit = (
-  overrides: Partial<SubscriptionBenefitDto> = {},
+  overrides: Partial<SubscriptionBenefitDto> & {
+    companyName?: string | null;
+  } = {},
 ): SubscriptionBenefitDto => ({
   id: 1,
   longTitle: strings('rewards.benefits.test_title'),
@@ -79,6 +81,20 @@ describe('BenefitCard', () => {
       expect(
         getByText(strings('rewards.benefits.test_short_description')),
       ).toBeOnTheScreen();
+    });
+
+    it('renders company name when provided', () => {
+      const benefit = createBenefit({ companyName: 'Pudgy Penguins' });
+      const { getByText } = render(<BenefitCard benefit={benefit} />);
+
+      expect(getByText('Pudgy Penguins')).toBeOnTheScreen();
+    });
+
+    it('does not render an empty company label when companyName is null', () => {
+      const benefit = createBenefit({ companyName: null });
+      const { queryByText } = render(<BenefitCard benefit={benefit} />);
+
+      expect(queryByText('Pudgy Penguins')).toBeNull();
     });
 
     it('applies text truncation limits for title and description', () => {
