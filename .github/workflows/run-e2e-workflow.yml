@@ -130,8 +130,6 @@ jobs:
             .metamask
             .yarn/cache
             ~/Library/Detox
-            ios/vendor/bundle
-            ~/.cocoapods/repos
 
       - name: Restore .metamask folder
         if: ${{ inputs.runner_provider != 'namespace' }}
