@@ -174,8 +174,8 @@ const SearchTokenResults = ({
               </BadgeWrapper>
             </Box>
             <Box twClassName="flex-1 justify-center px-1">
-              <Text variant={TextVariant.BodyLg}>{name}</Text>
-              <Text variant={TextVariant.BodyMd}>{symbol}</Text>
+              <Text variant={TextVariant.BodyMd}>{name}</Text>
+              <Text variant={TextVariant.BodySm}>{symbol}</Text>
             </Box>
           </ListItemMultiSelect>
         );
