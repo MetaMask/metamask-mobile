@@ -8,6 +8,7 @@ import Engine from '../../../../../core/Engine';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../../hooks/transactions/useTransactionAccountOverride';
 import { hasTransactionType } from '../../utils/transaction';
+import { replaceAccountInNestedTransactions } from '../../utils/transaction-pay';
 import AccountSelector from '../AccountSelector';
 
 const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
@@ -26,16 +27,25 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
 
   const handleAccountSelected = useCallback(
     (address: string) => {
-      if (transactionId) {
-        Engine.context.TransactionPayController.setTransactionConfig(
-          transactionId,
-          (config) => {
-            config.accountOverride = address as Hex;
-          },
-        );
+      if (!transactionId) {
+        return;
       }
+
+      replaceAccountInNestedTransactions({
+        transactionId,
+        nestedTransactions: transactionMeta?.nestedTransactions,
+        oldAddress: accountOverride ?? transactionMeta?.txParams?.from,
+        newAddress: address,
+      });
+
+      Engine.context.TransactionPayController.setTransactionConfig(
+        transactionId,
+        (config) => {
+          config.accountOverride = address as Hex;
+        },
+      );
     },
-    [transactionId],
+    [accountOverride, transactionId, transactionMeta],
   );
 
   if (!isMoneyAccountDeposit && !isMoneyAccountWithdraw) {

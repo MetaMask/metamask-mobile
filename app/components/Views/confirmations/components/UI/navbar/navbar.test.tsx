@@ -1,8 +1,25 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
-import { getEmptyNavHeader, getNavbar } from './navbar';
-import { mockTheme } from '../../../../../../util/theme';
+import { getNavbar } from './navbar';
+
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const tw = (..._args: unknown[]) => ({});
+    tw.style = (...args: unknown[]) =>
+      args.reduce<Record<string, unknown>>((acc, arg) => {
+        if (typeof arg === 'object' && arg !== null) {
+          return { ...acc, ...(arg as Record<string, unknown>) };
+        }
+        return acc;
+      }, {});
+    return tw;
+  },
+}));
 
 describe('getNavbar', () => {
   const mockOnReject = jest.fn();
@@ -12,16 +29,15 @@ describe('getNavbar', () => {
   });
 
   describe('default behavior', () => {
-    it('renders the header title correctly', () => {
+    it('renders the header title', () => {
       const title = 'Test Title';
 
       const { getByText } = render(
         <>
           {getNavbar({
             onReject: mockOnReject,
-            theme: mockTheme,
             title,
-          }).headerTitle()}
+          }).header()}
         </>,
       );
 
@@ -33,43 +49,44 @@ describe('getNavbar', () => {
         <>
           {getNavbar({
             onReject: mockOnReject,
-            theme: mockTheme,
             title: 'Test Title',
-          }).headerLeft()}
+          }).header()}
         </>,
       );
 
-      const backButton = getByTestId('Test Title-navbar-back-button');
-      fireEvent.press(backButton);
+      fireEvent.press(getByTestId('Test Title-navbar-back-button'));
 
       expect(mockOnReject).toHaveBeenCalledTimes(1);
     });
 
-    it('returns center-aligned header by default', () => {
+    it('returns an object with a header render function', () => {
       const result = getNavbar({
         onReject: mockOnReject,
-        theme: mockTheme,
         title: 'Test Title',
       });
 
-      expect(result.headerTitleAlign).toBe('center');
+      expect(result.header).toBeInstanceOf(Function);
     });
 
-    it('applies theme background color to header style', () => {
-      const result = getNavbar({
-        onReject: mockOnReject,
-        theme: mockTheme,
-        title: 'Test Title',
-      });
-
-      expect(result.headerStyle.backgroundColor).toBe(
-        mockTheme.colors.background.default,
+    it('hides the back button when addBackButton is false', () => {
+      const { queryByTestId } = render(
+        <>
+          {getNavbar({
+            onReject: mockOnReject,
+            title: 'Test Title',
+            addBackButton: false,
+          }).header()}
+        </>,
       );
+
+      expect(
+        queryByTestId('Test Title-navbar-back-button'),
+      ).not.toBeOnTheScreen();
     });
   });
 
   describe('overrides', () => {
-    it('uses custom headerTitle when provided in overrides', () => {
+    it('renders custom headerTitle when provided', () => {
       const customHeaderTitle = () => (
         <Text testID="custom-header-title">Custom Title</Text>
       );
@@ -78,17 +95,16 @@ describe('getNavbar', () => {
         <>
           {getNavbar({
             onReject: mockOnReject,
-            theme: mockTheme,
             title: 'Test Title',
             overrides: { headerTitle: customHeaderTitle },
-          }).headerTitle()}
+          }).header()}
         </>,
       );
 
       expect(getByTestId('custom-header-title')).toBeOnTheScreen();
     });
 
-    it('uses custom headerLeft when provided and passes onBackPress', () => {
+    it('renders custom headerLeft and passes onBackPress', () => {
       const customHeaderLeft = (onBackPress: () => void) => (
         <View testID="custom-header-left" onTouchEnd={onBackPress} />
       );
@@ -97,10 +113,9 @@ describe('getNavbar', () => {
         <>
           {getNavbar({
             onReject: mockOnReject,
-            theme: mockTheme,
             title: 'Test Title',
             overrides: { headerLeft: customHeaderLeft },
-          }).headerLeft()}
+          }).header()}
         </>,
       );
 
@@ -111,29 +126,20 @@ describe('getNavbar', () => {
       expect(mockOnReject).toHaveBeenCalledTimes(1);
     });
 
-    it('applies custom headerTitleAlign from overrides', () => {
-      const result = getNavbar({
-        onReject: mockOnReject,
-        theme: mockTheme,
-        title: 'Test Title',
-        overrides: { headerTitleAlign: 'left' },
-      });
+    it('renders custom headerRight', () => {
+      const customHeaderRight = () => <View testID="custom-header-right" />;
 
-      expect(result.headerTitleAlign).toBe('left');
-    });
-
-    it('merges custom headerStyle with default styles', () => {
-      const result = getNavbar({
-        onReject: mockOnReject,
-        theme: mockTheme,
-        title: 'Test Title',
-        overrides: { headerStyle: { borderBottomWidth: 2 } },
-      });
-
-      expect(result.headerStyle.backgroundColor).toBe(
-        mockTheme.colors.background.default,
+      const { getByTestId } = render(
+        <>
+          {getNavbar({
+            onReject: mockOnReject,
+            title: 'Test Title',
+            overrides: { headerRight: customHeaderRight },
+          }).header()}
+        </>,
       );
-      expect(result.headerStyle.borderBottomWidth).toBe(2);
+
+      expect(getByTestId('custom-header-right')).toBeOnTheScreen();
     });
   });
 });
