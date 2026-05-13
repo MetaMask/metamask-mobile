@@ -6521,7 +6521,7 @@
       "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
       "confirm": "Confirm",
-      "convert_tooltip_description": "Convert your stablecoins and aTokens to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily. Powered by Relay.",
+      "convert_tooltip_description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily. Powered by Relay.",
       "fetching_quote": "Fetching quote...",
       "you_convert": "You convert",
       "network_fee": "Network fee",
