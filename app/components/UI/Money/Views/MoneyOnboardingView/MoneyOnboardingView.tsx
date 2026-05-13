@@ -125,7 +125,7 @@ const MoneyOnboardingView = () => {
 
   const handleComplete = useCallback(() => {
     dispatch(setMoneyOnboardingSeen(true));
-    navigation.replace(Routes.HOME_TABS, {
+    navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
