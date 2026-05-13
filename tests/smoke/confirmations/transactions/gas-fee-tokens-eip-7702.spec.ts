@@ -40,8 +40,11 @@ import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
 const TRANSACTION_UUID_MOCK = '1234-5678';
 const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 const RECIPIENT_ADDRESS_MOCK = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
+/** Match {@link gas-fee-tokens-eip-7702-sponsored.spec.ts} and {@link transaction-relay-mocks} for proxy URL matching. */
 const LOCALHOST_SENTINEL_URL =
-  'https://tx-sentinel-localhost.api.cx.metamask.io';
+  device.getPlatform() === 'android'
+    ? 'https://tx-sentinel-127.0.0.1.api.cx.metamask.io'
+    : 'https://tx-sentinel-localhost.api.cx.metamask.io';
 
 const SEND_ETH_TRANSACTION_MOCK = {
   data: '0x',
