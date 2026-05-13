@@ -61,6 +61,7 @@ const WhatsHappeningSourcesBottomSheet: React.FC<
         params: {
           newTabUrl: url,
           timestamp: Date.now(),
+          fromTrending: true,
           fromWhatsHappening: true,
         },
       });
