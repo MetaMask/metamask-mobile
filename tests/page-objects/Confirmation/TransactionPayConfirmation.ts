@@ -150,6 +150,20 @@ class TransactionPayConfirmation {
     });
   }
 
+  get paidByMetaMask(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ConfirmationRowComponentIDs.PAID_BY_METAMASK),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConfirmationRowComponentIDs.PAID_BY_METAMASK,
+          {
+            exact: true,
+          },
+        ),
+    });
+  }
+
   get transactionFee(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>

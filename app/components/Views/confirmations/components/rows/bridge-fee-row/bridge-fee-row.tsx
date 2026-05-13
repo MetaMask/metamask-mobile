@@ -134,6 +134,7 @@ function TransactionFeeRow({
           flexDirection={FlexDirection.Row}
           alignItems={AlignItems.center}
           gap={4}
+          testID={ConfirmationRowComponentIDs.PAID_BY_METAMASK}
         >
           <Icon
             name={IconName.Check}
