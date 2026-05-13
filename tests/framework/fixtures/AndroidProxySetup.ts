@@ -10,6 +10,15 @@ const ADB_TIMEOUT_MS = 20_000;
 const ANDROID_USER_TRUST_DIR = '/data/misc/user/0/cacerts-added';
 const ANDROID_TMP_DIR = '/data/local/tmp';
 
+// Hosts that must bypass the OS proxy. Detox communicates from the app's
+// Espresso instrumentation back to the host machine on 10.0.2.2; OkHttp
+// honours Android's global http_proxy, so without this exclusion Detox's
+// handshake traffic gets pushed through mockttp and the launchApp
+// connection hangs ("Detox can't seem to connect to the test app(s)").
+// 127.0.0.1 covers anything the app sends to its own loopback that adb
+// reverse maps to the host (e.g. fixture/dapp/anvil ports).
+const PROXY_EXCLUSION_LIST = '10.0.2.2,127.0.0.1,localhost';
+
 /**
  * Parses the stdout of `openssl x509 -subject_hash_old -noout`, which is a
  * single 8-character hex line. This hash is the legacy MD5-based subject hash
@@ -94,6 +103,16 @@ export async function setupAndroidProxy(opts: {
     'global',
     'http_proxy',
     `${proxyHost}:${proxyPort}`,
+  ]);
+  await run('adb', [
+    '-s',
+    udid,
+    'shell',
+    'settings',
+    'put',
+    'global',
+    'global_http_proxy_exclusion_list',
+    PROXY_EXCLUSION_LIST,
   ]);
 }
 

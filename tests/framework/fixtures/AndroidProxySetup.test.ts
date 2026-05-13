@@ -193,7 +193,21 @@ describe('setupAndroidProxy', () => {
       ],
     });
 
-    expect(calls).toHaveLength(9);
+    expect(calls[9]).toEqual({
+      cmd: 'adb',
+      args: [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'global_http_proxy_exclusion_list',
+        '10.0.2.2,127.0.0.1,localhost',
+      ],
+    });
+
+    expect(calls).toHaveLength(10);
   });
 
   it('skips adb root + wait-for-device when the emulator is already root', async () => {
@@ -237,7 +251,21 @@ describe('setupAndroidProxy', () => {
       ],
     });
 
-    expect(calls).toHaveLength(7);
+    expect(calls[7]).toEqual({
+      cmd: 'adb',
+      args: [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'global_http_proxy_exclusion_list',
+        '10.0.2.2,127.0.0.1,localhost',
+      ],
+    });
+
+    expect(calls).toHaveLength(8);
   });
 });
 
