@@ -142,35 +142,43 @@ export const selectSortedTransactions = createDeepEqualSelector(
     ),
 );
 
+function findLatestMetaMaskPayToken(
+  transactions: TransactionMeta[],
+  transactionType: string | undefined,
+  excludeTransactionId?: string,
+): MetaMaskPayToken | undefined {
+  if (!transactionType) {
+    return undefined;
+  }
+
+  const latestTransaction = [...transactions]
+    .reverse()
+    .find(
+      (transaction) =>
+        (!excludeTransactionId || transaction.id !== excludeTransactionId) &&
+        matchesTransactionType(transaction, transactionType) &&
+        transaction.metamaskPay?.tokenAddress &&
+        transaction.metamaskPay?.chainId,
+    );
+
+  const tokenAddress = latestTransaction?.metamaskPay?.tokenAddress;
+  const chainId = latestTransaction?.metamaskPay?.chainId;
+
+  if (!tokenAddress || !chainId) {
+    return undefined;
+  }
+
+  return {
+    address: tokenAddress,
+    chainId,
+  };
+}
+
 export const selectLastWithdrawTokenByType = createSelector(
   selectNonReplacedTransactions,
   (_state: RootState, transactionType?: string) => transactionType,
-  (transactions, transactionType): MetaMaskPayToken | undefined => {
-    if (!transactionType) {
-      return undefined;
-    }
-
-    const latestTransaction = [...transactions]
-      .reverse()
-      .find(
-        (transaction) =>
-          matchesTransactionType(transaction, transactionType) &&
-          transaction.metamaskPay?.tokenAddress &&
-          transaction.metamaskPay?.chainId,
-      );
-
-    const tokenAddress = latestTransaction?.metamaskPay?.tokenAddress;
-    const chainId = latestTransaction?.metamaskPay?.chainId;
-
-    if (!tokenAddress || !chainId) {
-      return undefined;
-    }
-
-    return {
-      address: tokenAddress,
-      chainId,
-    };
-  },
+  (transactions, transactionType): MetaMaskPayToken | undefined =>
+    findLatestMetaMaskPayToken(transactions, transactionType),
 );
 
 export const selectLastUsedPaymentMethod = createSelector(
@@ -185,33 +193,12 @@ export const selectLastUsedPaymentMethod = createSelector(
     transactions,
     transactionType,
     currentTransactionId,
-  ): MetaMaskPayToken | undefined => {
-    if (!transactionType) {
-      return undefined;
-    }
-
-    const latestTransaction = [...transactions]
-      .reverse()
-      .find(
-        (transaction) =>
-          transaction.id !== currentTransactionId &&
-          matchesTransactionType(transaction, transactionType) &&
-          transaction.metamaskPay?.tokenAddress &&
-          transaction.metamaskPay?.chainId,
-      );
-
-    const tokenAddress = latestTransaction?.metamaskPay?.tokenAddress;
-    const chainId = latestTransaction?.metamaskPay?.chainId;
-
-    if (!tokenAddress || !chainId) {
-      return undefined;
-    }
-
-    return {
-      address: tokenAddress,
-      chainId,
-    };
-  },
+  ): MetaMaskPayToken | undefined =>
+    findLatestMetaMaskPayToken(
+      transactions,
+      transactionType,
+      currentTransactionId,
+    ),
 );
 
 export const selectSortedEVMTransactionsForSelectedAccountGroup =
