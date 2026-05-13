@@ -668,7 +668,9 @@ describe('Ledger core', () => {
     it('throws disconnect error for DisconnectedDevice', async () => {
       const disconnectError = new Error('Disconnected during operation');
       disconnectError.name = 'DisconnectedDevice';
-      ledgerKeyring.getFirstPage.mockRejectedValueOnce(disconnectError);
+      jest
+        .mocked(ledgerKeyring.getFirstPage)
+        .mockRejectedValueOnce(disconnectError);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
@@ -678,7 +680,9 @@ describe('Ledger core', () => {
     it('throws disconnect error for DisconnectedDeviceDuringOperation', async () => {
       const disconnectError = new Error('Lost connection');
       disconnectError.name = 'DisconnectedDeviceDuringOperation';
-      ledgerKeyring.getNextPage.mockRejectedValueOnce(disconnectError);
+      jest
+        .mocked(ledgerKeyring.getNextPage)
+        .mockRejectedValueOnce(disconnectError);
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_NEXT_PAGE),
