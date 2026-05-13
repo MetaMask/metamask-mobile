@@ -194,7 +194,6 @@ export function useAutomaticTransactionPayToken({
   return automaticToken;
 }
 
-
 function getBestToken({
   isHardwareWallet,
   isQRWallet,
