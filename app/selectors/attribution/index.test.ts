@@ -33,6 +33,17 @@ describe('attribution selectors', () => {
     expect(selectAttributionRecord(state)).toBeNull();
   });
 
+  it('returns null when attribution slice is missing from root state', () => {
+    const state = {
+      security: { dataCollectionForMarketing: null },
+    } as unknown as RootState;
+
+    expect(selectAttributionRecord(state)).toBeNull();
+    expect(selectWalletSetupCompletedAttributionAnalyticsProps(state)).toEqual(
+      {},
+    );
+  });
+
   describe('selectWalletSetupCompletedAttributionAnalyticsProps', () => {
     it('merges marketing consent and persisted attribution', () => {
       const now = Date.now();

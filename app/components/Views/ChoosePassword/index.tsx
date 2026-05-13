@@ -31,7 +31,7 @@ import {
   Checkbox,
 } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import {
   passwordSet as passwordSetAction,
@@ -89,6 +89,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { isE2E } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
+import ReduxService from '../../../core/redux';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -127,10 +128,6 @@ const ChoosePassword = () => {
 
   const dispatch = useDispatch();
   const metrics = useAnalytics();
-
-  const walletSetupAttributionProps = useSelector(
-    selectWalletSetupCompletedAttributionAnalyticsProps,
-  );
 
   const [isSelected, setIsSelected] = useState(false);
   const [password, setPassword] = useState('');
@@ -492,7 +489,10 @@ const ChoosePassword = () => {
         wallet_setup_type: 'new',
         new_wallet: true,
         account_type: accountType,
-        ...walletSetupAttributionProps,
+        // Fresh getState(): OAuth sets marketing in handlePostWalletCreation before this track.
+        ...selectWalletSetupCompletedAttributionAnalyticsProps(
+          ReduxService.store.getState(),
+        ),
       });
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
@@ -509,7 +509,6 @@ const ChoosePassword = () => {
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
-    walletSetupAttributionProps,
   ]);
 
   const onPasswordChange = useCallback(

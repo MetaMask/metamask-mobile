@@ -62,6 +62,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
+import ReduxService from '../../../core/redux';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passcodeType } from '../../../util/authentication';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
@@ -113,7 +114,6 @@ const ImportFromSecretRecoveryPhrase = ({
   seedphraseBackedUp,
   saveOnboardingEvent,
   route,
-  walletSetupAttributionAnalyticsProps,
 }) => {
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
@@ -466,7 +466,9 @@ const ImportFromSecretRecoveryPhrase = ({
           wallet_setup_type: 'import',
           new_wallet: false,
           account_type: AccountType.Imported,
-          ...walletSetupAttributionAnalyticsProps,
+          ...selectWalletSetupCompletedAttributionAnalyticsProps(
+            ReduxService.store.getState(),
+          ),
         });
 
         fetchAccountsWithActivity();
@@ -891,16 +893,7 @@ ImportFromSecretRecoveryPhrase.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
-  /**
-   * Optional acquisition fields from persisted attribution for Wallet Setup Completed
-   */
-  walletSetupAttributionAnalyticsProps: PropTypes.object,
 };
-
-const mapStateToProps = (state) => ({
-  walletSetupAttributionAnalyticsProps:
-    selectWalletSetupCompletedAttributionAnalyticsProps(state),
-});
 
 const mapDispatchToProps = (dispatch) => ({
   setLockTime: (time) => dispatch(setLockTime(time)),
@@ -910,6 +903,6 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 export default connect(
-  mapStateToProps,
+  null,
   mapDispatchToProps,
 )(ImportFromSecretRecoveryPhrase);
