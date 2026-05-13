@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { renderHook } from '@testing-library/react-hooks';
 import { useMusdConversionNavbar } from './useMusdConversionNavbar';
@@ -6,14 +7,14 @@ import useNavbar from '../../../Views/confirmations/hooks/ui/useNavbar';
 import { strings } from '../../../../../locales/i18n';
 import { NavbarOverrides } from '../../../Views/confirmations/components/UI/navbar/navbar';
 import { MUSD_CONVERSION_APY } from '../constants/musd';
-import Routes from '../../../../constants/navigation/Routes';
+import { MUSD_EVENTS_CONSTANTS } from '../constants/events';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import AppConstants from '../../../../core/AppConstants';
 
-const mockNavigate = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: mockNavigate }),
-}));
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -21,12 +22,25 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 jest.mock('../../../Views/confirmations/hooks/ui/useNavbar');
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 const mockUseNavbar = useNavbar as jest.MockedFunction<typeof useNavbar>;
 const mockStrings = strings as jest.MockedFunction<typeof strings>;
 
 describe('useMusdConversionNavbar', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockBuild.mockReturnValue({ name: 'mock-built-event' });
+    mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+    }));
   });
 
   afterEach(() => {
@@ -50,6 +64,13 @@ describe('useMusdConversionNavbar', () => {
         headerRight: expect.any(Function),
       }),
     );
+  });
+
+  it('returns a TooltipNode element', () => {
+    const { result } = renderHook(() => useMusdConversionNavbar());
+
+    expect(result.current.TooltipNode).toBeDefined();
+    expect(React.isValidElement(result.current.TooltipNode)).toBe(true);
   });
 
   it('provides headerTitle override that renders the heading', () => {
@@ -130,21 +151,68 @@ describe('useMusdConversionNavbar', () => {
     expect(getByTestId('button-icon')).toBeOnTheScreen();
   });
 
-  it('navigates to the convert info sheet when info button is pressed', () => {
+  it('opens the tooltip modal when the info button is pressed', () => {
     let capturedOverrides: NavbarOverrides | undefined;
     mockUseNavbar.mockImplementation((_title, _addBackButton, overrides) => {
       capturedOverrides = overrides;
     });
 
-    renderHook(() => useMusdConversionNavbar());
+    const Harness = () => {
+      const { TooltipNode } = useMusdConversionNavbar();
+      const HeaderRight = capturedOverrides?.headerRight as React.FC;
+      return (
+        <>
+          <HeaderRight />
+          {TooltipNode}
+        </>
+      );
+    };
 
-    const HeaderRight = capturedOverrides?.headerRight as React.FC;
-    const { getByTestId } = render(<HeaderRight />);
+    const { getByTestId } = render(<Harness />);
 
     fireEvent.press(getByTestId('button-icon'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.CONVERT_INFO_SHEET,
+    expect(
+      getByTestId('musd-conversion-navbar-tooltip-terms-link'),
+    ).toBeOnTheScreen();
+  });
+
+  it('tracks the terms-of-use event and opens the URL when the terms link is pressed', () => {
+    const openUrlSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValueOnce(undefined);
+
+    let capturedOverrides: NavbarOverrides | undefined;
+    mockUseNavbar.mockImplementation((_title, _addBackButton, overrides) => {
+      capturedOverrides = overrides;
     });
+
+    const Harness = () => {
+      const { TooltipNode } = useMusdConversionNavbar();
+      const HeaderRight = capturedOverrides?.headerRight as React.FC;
+      return (
+        <>
+          <HeaderRight />
+          {TooltipNode}
+        </>
+      );
+    };
+
+    const { getByTestId } = render(<Harness />);
+
+    fireEvent.press(getByTestId('button-icon'));
+    fireEvent.press(getByTestId('musd-conversion-navbar-tooltip-terms-link'));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.CUSTOM_AMOUNT_NAVBAR,
+      url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    expect(openUrlSpy).toHaveBeenCalledWith(
+      AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+    );
   });
 });
