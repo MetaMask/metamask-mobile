@@ -412,9 +412,10 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     });
 
     useSectionPerformance({
-      sectionId: HomeSectionNames.PERPS,
-      contentReady: !isLoadingSection && !connectionError,
+      sectionId: analyticsName,
+      contentReady: !isLoadingSection,
       isEmpty: !hasItems,
+      contentStateForTrace: connectionError ? 'error' : undefined,
       isLoading: isLoadingSection,
     });
 
