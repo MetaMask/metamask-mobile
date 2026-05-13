@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useEffect } from 'react';
 import { Image } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import LinearGradient from 'react-native-linear-gradient';
@@ -20,6 +20,7 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { markPushPrePromptPerformance } from '../../../../../util/notifications/utils/push-pre-prompt-performance';
 import { NewUserSheetSelectorsIDs } from './NewUserSheet.testIds';
 import FoxImage from '../../../../../images/branding/fox.png';
 
@@ -108,6 +109,14 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
   testID,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+
+  useEffect(() => {
+    if (isVisible) {
+      markPushPrePromptPerformance('sheet.render.visible', {
+        variant: 'push_permission',
+      });
+    }
+  }, [isVisible]);
 
   const closeWithAction = useCallback((action?: () => void) => {
     const callback = () => action?.();

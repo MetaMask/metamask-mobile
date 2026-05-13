@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Json } from '@metamask/utils';
+import Routes from '../../../constants/navigation/Routes';
 
 // Import StorageWrapper mock from global testSetup - this provides StorageWrapper.getItem
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -229,7 +230,6 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import { Animated, InteractionManager } from 'react-native';
-import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -1453,7 +1453,7 @@ describe('Wallet', () => {
     });
   });
 
-  describe('Perps GTM Modal Navigation', () => {
+  describe('GTM startup navigation ownership', () => {
     let mockNavigation: NavigationProp<ParamListBase>;
 
     beforeEach(() => {
@@ -1494,10 +1494,12 @@ describe('Wallet', () => {
       jest.clearAllMocks();
     });
 
-    it('should navigate to GTM modal when both flags are enabled and modal not shown', async () => {
+    it('does not own Perps or Predict GTM startup navigation anymore', async () => {
       // Arrange
       mockPerpsEnabled = true;
       mockPerpsGTMModalEnabled = true;
+      mockPredictEnabled = true;
+      mockPredictGTMModalEnabled = true;
       jest.mocked(StorageWrapper.getItem).mockResolvedValue(null); // Modal not shown yet
 
       const state = mockInitialStateWithRemoteFeatureFlags({
@@ -1521,117 +1523,21 @@ describe('Wallet', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       // Assert
-      expect(StorageWrapper.getItem).toHaveBeenCalledWith(
-        '@MetaMask:perpsGTMModalShown',
-      );
-      expect(mockNavigate).toHaveBeenCalledWith('PerpsModals', {
-        screen: 'PerpsGTMModal',
-      });
-    });
-
-    it('should not navigate to GTM modal when already shown', async () => {
-      // Arrange
-      mockPerpsEnabled = true;
-      mockPerpsGTMModalEnabled = true;
-      jest.mocked(StorageWrapper.getItem).mockResolvedValue('true'); // Modal already shown
-
-      const state = mockInitialStateWithRemoteFeatureFlags({
-        ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
-          string,
-          Json
-        >),
-        perpsPerpTradingGTMModalEnabled: {
-          enabled: true,
-          minimumVersion: '1.0.0',
-        },
-      });
-
-      // Act
-      renderWithProvider(
-        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
-        { state },
-      );
-
-      // Wait for useEffect to complete
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      // Assert
-      expect(StorageWrapper.getItem).toHaveBeenCalledWith(
-        '@MetaMask:perpsGTMModalShown',
-      );
-      expect(mockNavigate).not.toHaveBeenCalledWith('PerpsModals', {
-        screen: 'PerpsGTMModal',
-      });
-    });
-
-    it('should not navigate to GTM modal when Perps feature is disabled', async () => {
-      // Arrange
-      mockPerpsEnabled = false;
-      mockPerpsGTMModalEnabled = true;
-      jest.mocked(StorageWrapper.getItem).mockResolvedValue(null);
-
-      const state = mockInitialStateWithRemoteFeatureFlags({
-        perpsPerpTradingEnabled: {
-          enabled: false,
-          minimumVersion: '1.0.0',
-        },
-        perpsPerpTradingGTMModalEnabled: {
-          enabled: true,
-          minimumVersion: '1.0.0',
-        },
-      });
-
-      // Act
-      renderWithProvider(
-        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
-        { state },
-      );
-
-      // Wait for useEffect to complete
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      // Assert
       expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(
         '@MetaMask:perpsGTMModalShown',
       );
-      expect(mockNavigate).not.toHaveBeenCalledWith('PerpsModals', {
-        screen: 'PerpsGTMModal',
-      });
-    });
-
-    it('should not navigate to GTM modal when GTM modal feature is disabled', async () => {
-      // Arrange
-      mockPerpsEnabled = true;
-      mockPerpsGTMModalEnabled = false;
-      jest.mocked(StorageWrapper.getItem).mockResolvedValue(null);
-
-      const state = mockInitialStateWithRemoteFeatureFlags({
-        ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
-          string,
-          Json
-        >),
-        perpsPerpTradingGTMModalEnabled: {
-          enabled: false,
-          minimumVersion: '1.0.0',
-        },
-      });
-
-      // Act
-      renderWithProvider(
-        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
-        { state },
-      );
-
-      // Wait for useEffect to complete
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      // Assert
       expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(
-        '@MetaMask:perpsGTMModalShown',
+        '@MetaMask:predictGTMModalShown',
       );
-      expect(mockNavigate).not.toHaveBeenCalledWith('PerpsModals', {
-        screen: 'PerpsGTMModal',
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.GTM_MODAL,
       });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PREDICT.MODALS.ROOT,
+        {
+          screen: Routes.PREDICT.MODALS.GTM_MODAL,
+        },
+      );
     });
   });
 });

@@ -3675,7 +3675,12 @@
       "notifications": {
         "title": "Notifications",
         "description": "Reset the push notification pre-prompt flag to re-trigger the sheet on next eligible launch.",
-        "reset_prompt": "Reset push pre-prompt"
+        "reset_prompt": "Reset push pre-prompt",
+        "log_prompt_timings": "Log push pre-prompt timings",
+        "copy_prompt_timings": "Copy push pre-prompt timings",
+        "set_marketing_consent": "Set marketing consent on",
+        "unset_marketing_consent": "Set marketing consent off",
+        "clear_prompt_timings": "Clear push pre-prompt timings"
       },
       "haptics": {
         "title": "Haptics",

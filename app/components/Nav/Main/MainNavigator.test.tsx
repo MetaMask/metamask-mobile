@@ -56,6 +56,16 @@ jest.mock('../../../selectors/featureFlagController/marketInsights', () => ({
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
+jest.mock('./StartupSurfaceCoordinator', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+jest.mock('./StartupSurfaceCoordinator/StartupSurfaces', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 const mockSelectMoneyHomeScreenEnabledFlag = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyHomeScreenEnabledFlag: (state: unknown) =>

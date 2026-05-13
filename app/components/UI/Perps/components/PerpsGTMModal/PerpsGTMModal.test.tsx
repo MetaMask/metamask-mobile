@@ -25,6 +25,13 @@ jest.mock('../../../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
 }));
 
+const mockCompleteSurface = jest.fn();
+jest.mock('../../../../Nav/Main/StartupSurfaceCoordinator/context', () => ({
+  useStartupSurface: () => ({
+    completeSurface: mockCompleteSurface,
+  }),
+}));
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -89,6 +96,7 @@ describe('PerpsGTMModal', () => {
       'true',
     );
     expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockCompleteSurface).toHaveBeenCalledWith('perps-gtm', 'decline');
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
     );
@@ -111,6 +119,7 @@ describe('PerpsGTMModal', () => {
       { emitEvent: false },
     );
     expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockCompleteSurface).toHaveBeenCalledWith('perps-gtm', 'engage');
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
     );
@@ -127,5 +136,15 @@ describe('PerpsGTMModal', () => {
     await waitFor(() => {
       expect(getByTestId('perps-gtm-modal')).toBeTruthy();
     });
+  });
+
+  it('completes the startup surface when unmounted', () => {
+    const { unmount } = renderWithProvider(<PerpsGTMModal />, {
+      state: initialState,
+    });
+
+    unmount();
+
+    expect(mockCompleteSurface).toHaveBeenCalledWith('perps-gtm', 'unmount');
   });
 });

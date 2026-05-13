@@ -33,14 +33,22 @@ export const assertIsFeatureEnabled = () => {
   }
 };
 
+export interface EnableNotificationsOptions {
+  registerPushNotifications?: boolean;
+}
+
 /**
  * Enable Notifications Switch
  * - This is used during onboarding and for the notifications settings toggle
  * - Enables wallet notifications, feature announcements, and push notifications
  */
-export const enableNotifications = async () => {
+export const enableNotifications = async (
+  options?: EnableNotificationsOptions,
+) => {
   assertIsFeatureEnabled();
-  await Engine.context.NotificationServicesController.enableMetamaskNotifications();
+  await Engine.context.NotificationServicesController.enableMetamaskNotifications(
+    options,
+  );
 };
 
 /**

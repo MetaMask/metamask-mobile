@@ -27,6 +27,7 @@ export function* backfillSocialLoginMarketingConsentSaga() {
     yield select(
       (state: RootState) => state.security?.dataCollectionForMarketing,
     );
+  let fetchedMarketingConsent = false;
 
   try {
     if (marketingConsent !== true) {
@@ -34,6 +35,7 @@ export function* backfillSocialLoginMarketingConsentSaga() {
         ReturnType<typeof OAuthService.getMarketingOptInStatus>
       > = yield call([OAuthService, OAuthService.getMarketingOptInStatus]);
       marketingConsent = marketingOptIn.is_opt_in;
+      fetchedMarketingConsent = true;
     }
 
     yield call([analytics, analytics.identify], {
@@ -55,12 +57,16 @@ export function* backfillSocialLoginMarketingConsentSaga() {
     yield call([analytics, analytics.trackEvent], event);
 
     yield call(updateDataRecordingFlag, true);
-    yield put(setPendingSocialLoginMarketingConsentBackfill(null));
     yield put(setDataCollectionForMarketing(marketingConsent));
+    yield put(setPendingSocialLoginMarketingConsentBackfill(null));
   } catch (error) {
     Logger.error(
       error as Error,
       'Failed to backfill social login marketing consent analytics',
     );
+    if (fetchedMarketingConsent) {
+      yield put(setDataCollectionForMarketing(marketingConsent));
+    }
+    yield put(setPendingSocialLoginMarketingConsentBackfill(null));
   }
 }

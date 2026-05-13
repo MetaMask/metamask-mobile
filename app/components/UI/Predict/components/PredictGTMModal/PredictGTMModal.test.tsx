@@ -26,6 +26,13 @@ jest.mock('../../../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
 }));
 
+const mockCompleteSurface = jest.fn();
+jest.mock('../../../../Nav/Main/StartupSurfaceCoordinator/context', () => ({
+  useStartupSurface: () => ({
+    completeSurface: mockCompleteSurface,
+  }),
+}));
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -100,6 +107,7 @@ describe('PredictGTMModal', () => {
       'true',
     );
     expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockCompleteSurface).toHaveBeenCalledWith('predict-gtm', 'decline');
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
     );
@@ -122,6 +130,7 @@ describe('PredictGTMModal', () => {
       { emitEvent: false },
     );
     expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockCompleteSurface).toHaveBeenCalledWith('predict-gtm', 'engage');
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
     );
@@ -142,5 +151,15 @@ describe('PredictGTMModal', () => {
     await waitFor(() => {
       expect(getByTestId('predict-gtm-modal-container')).toBeTruthy();
     });
+  });
+
+  it('completes the startup surface when unmounted', () => {
+    const { unmount } = renderWithProvider(<PredictGTMModal />, {
+      state: initialState,
+    });
+
+    unmount();
+
+    expect(mockCompleteSurface).toHaveBeenCalledWith('predict-gtm', 'unmount');
   });
 });

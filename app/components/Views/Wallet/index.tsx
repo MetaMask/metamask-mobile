@@ -45,13 +45,8 @@ import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
 } from '../../../actions/legalNotices';
-import StorageWrapper from '../../../store/storage-wrapper';
 import { HOMEPAGE_APP_SESSION_ID } from '../../../util/analytics/homepageSessionId';
 import { baseStyles } from '../../../styles/common';
-import {
-  PERPS_GTM_MODAL_SHOWN,
-  PREDICT_GTM_MODAL_SHOWN,
-} from '../../../constants/storage';
 import Tokens from '../../UI/Tokens';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
@@ -174,16 +169,10 @@ import {
 import { setIsConnectionRemoved } from '../../../actions/user';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import {
-  selectPerpsEnabledFlag,
-  selectPerpsGtmOnboardingModalEnabledFlag,
-} from '../../UI/Perps';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { PerpsAlwaysOnProvider } from '../../UI/Perps/providers/PerpsAlwaysOnProvider';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
-import {
-  selectPredictEnabledFlag,
-  selectPredictGtmOnboardingModalEnabledFlag,
-} from '../../UI/Predict/selectors/featureFlags';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
@@ -678,14 +667,8 @@ const Wallet = ({
   // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
-  const isPerpsGTMModalEnabled = useSelector(
-    selectPerpsGtmOnboardingModalEnabledFlag,
-  );
 
   const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
-  const isPredictGTMModalEnabled = useSelector(
-    selectPredictGtmOnboardingModalEnabledFlag,
-  );
 
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -931,42 +914,6 @@ const Wallet = ({
     isDataCollectionForMarketingEnabled,
     isParticipatingInMetaMetrics,
     navigate,
-  ]);
-
-  const checkAndNavigateToPerpsGTM = useCallback(async () => {
-    const hasSeenModal = await StorageWrapper.getItem(PERPS_GTM_MODAL_SHOWN);
-
-    if (hasSeenModal !== 'true') {
-      navigate(Routes.PERPS.MODALS.ROOT, {
-        screen: Routes.PERPS.MODALS.GTM_MODAL,
-      });
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    if (isPerpsFlagEnabled && isPerpsGTMModalEnabled) {
-      checkAndNavigateToPerpsGTM();
-    }
-  }, [isPerpsFlagEnabled, isPerpsGTMModalEnabled, checkAndNavigateToPerpsGTM]);
-
-  const checkAndNavigateToPredictGTM = useCallback(async () => {
-    const hasSeenModal = await StorageWrapper.getItem(PREDICT_GTM_MODAL_SHOWN);
-
-    if (hasSeenModal !== 'true') {
-      navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.GTM_MODAL,
-      });
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    if (isPredictFlagEnabled && isPredictGTMModalEnabled) {
-      checkAndNavigateToPredictGTM();
-    }
-  }, [
-    isPredictFlagEnabled,
-    isPredictGTMModalEnabled,
-    checkAndNavigateToPredictGTM,
   ]);
 
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);

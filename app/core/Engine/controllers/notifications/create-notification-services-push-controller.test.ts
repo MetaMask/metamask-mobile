@@ -32,6 +32,7 @@ describe('Notification Services Controller', () => {
         controllerIsPushEnabled: true,
         effectivePushEnabled: true,
         nativeOsPermissionEnabled: true,
+        permissionCheckSource: 'cached',
       });
 
     return {
@@ -129,6 +130,7 @@ describe('Notification Services Controller', () => {
       controllerIsPushEnabled: true,
       effectivePushEnabled: false,
       nativeOsPermissionEnabled: false,
+      permissionCheckSource: 'cached',
     });
 
     // Act

@@ -47,6 +47,13 @@ describe('helpers - enableNotificationServices()', () => {
       Engine.context.NotificationServicesController.enableMetamaskNotifications,
     ).toHaveBeenCalled();
   });
+
+  it('forwards enable notification options', async () => {
+    await enableNotifications({ registerPushNotifications: false });
+    expect(
+      Engine.context.NotificationServicesController.enableMetamaskNotifications,
+    ).toHaveBeenCalledWith({ registerPushNotifications: false });
+  });
 });
 
 describe('helpers - disableNotificationServices()', () => {

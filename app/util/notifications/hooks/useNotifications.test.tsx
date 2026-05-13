@@ -116,22 +116,59 @@ describe('useNotifications - useEnableNotifications()', () => {
 
     // Act
     const hook = renderHookWithProvider(() => useEnableNotifications());
+    let enableResult: boolean | undefined;
     await act(async () => {
-      await hook.result.current.enableNotifications();
+      enableResult = await hook.result.current.enableNotifications();
     });
     await waitFor(() =>
       expect(mocks.mockEnableNotifications).toHaveBeenCalled(),
     );
 
-    return { mocks, hook };
+    return { mocks, hook, enableResult };
   };
 
   it('successfully invokes action', async () => {
-    const { mocks } = await arrangeAct();
+    const { mocks, enableResult } = await arrangeAct();
     expect(mocks.mockUsePushNotificationsToggle).toHaveBeenCalled();
     expect(mocks.mockTogglePushNotification).toHaveBeenCalled();
+    expect(enableResult).toBe(true);
     expect(mocks.mockSelectLoading).toHaveBeenCalled();
     expect(mocks.mockSelectData).toHaveBeenCalled();
+  });
+
+  it('keeps shared notification setup before push toggling', async () => {
+    const { mocks } = await arrangeAct();
+
+    expect(
+      mocks.mockEnableNotifications.mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      mocks.mockTogglePushNotification.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('does not register push while enabling notifications without a push nudge', async () => {
+    const mocks = arrangeMocks();
+
+    const hook = renderHookWithProvider(() =>
+      useEnableNotifications({ nudgeEnablePush: false }),
+    );
+    await act(async () => {
+      await hook.result.current.enableNotifications();
+    });
+
+    expect(mocks.mockEnableNotifications).toHaveBeenCalledWith({
+      registerPushNotifications: false,
+    });
+    expect(mocks.mockTogglePushNotification).toHaveBeenCalled();
+  });
+
+  it('returns false when push enablement fails', async () => {
+    const { mocks, enableResult } = await arrangeAct((m) => {
+      m.mockTogglePushNotification.mockResolvedValue(false);
+    });
+
+    expect(enableResult).toBe(false);
+    expect(mocks.mockEnableNotifications).toHaveBeenCalled();
   });
 
   it('creates an error when fails', async () => {

@@ -139,6 +139,23 @@ describe('useRegisterAndFetchNotifications', () => {
     });
   });
 
+  it('refreshes notification registrations without prompting for push permission', async () => {
+    const mocks = arrange();
+    mocks.selectors.mockIsNotifsEnabled.mockReturnValue(true);
+    mocks.selectors.mockSelectBasicFunctionalityEnabled.mockReturnValue(true);
+    mocks.selectors.mockSelectIsUnlocked.mockReturnValue(true);
+    mocks.selectors.mockSelectIsSignedIn.mockReturnValue(true);
+
+    renderHookWithProvider(() => useRegisterAndFetchNotifications(), {});
+
+    await waitFor(() => {
+      expect(mocks.hooks.mockUseEnableNotifications).toHaveBeenCalledWith({
+        nudgeEnablePush: false,
+      });
+      expect(mocks.hooks.enableNotifications).toHaveBeenCalled();
+    });
+  });
+
   it('does not enable notifications if resubscription has not expired', async () => {
     const mocks = arrange();
     mocks.selectors.mockIsNotifsEnabled.mockReturnValue(true);

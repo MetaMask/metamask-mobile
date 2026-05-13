@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
@@ -32,11 +32,14 @@ import {
   createFontScaleHandler,
   hasNonLatinCharacters,
 } from '../../utils/textUtils';
+import { useStartupSurface } from '../../../../Nav/Main/StartupSurfaceCoordinator/context';
 
 const PerpsGTMModal = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { navigate } = useNavigation();
   const theme = useTheme();
+  const { completeSurface } = useStartupSurface();
+  const hasCompletedStartupSurface = useRef(false);
 
   const isDarkMode = useColorScheme() === 'dark';
   const [titleFontSize, setTitleFontSize] = useState<number | null>(null);
@@ -53,6 +56,25 @@ const PerpsGTMModal = () => {
     titleFontSize,
     subtitleFontSize,
     useSystemFont,
+  );
+
+  const completeStartupSurface = useCallback(
+    (reason: 'decline' | 'engage' | 'unmount') => {
+      if (hasCompletedStartupSurface.current) {
+        return;
+      }
+
+      hasCompletedStartupSurface.current = true;
+      completeSurface('perps-gtm', reason);
+    },
+    [completeSurface],
+  );
+
+  useEffect(
+    () => () => {
+      completeStartupSurface('unmount');
+    },
+    [completeStartupSurface],
   );
 
   const handleTitleLayout = createFontScaleHandler({
@@ -73,6 +95,7 @@ const PerpsGTMModal = () => {
 
   const handleClose = async () => {
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true');
+    completeStartupSurface('decline');
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.WHATS_NEW_LINK_CLICKED)
@@ -101,6 +124,7 @@ const PerpsGTMModal = () => {
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true', {
       emitEvent: false,
     });
+    completeStartupSurface('engage');
     navigate(Routes.PERPS.TUTORIAL, {
       isFromGTMModal: true,
     });

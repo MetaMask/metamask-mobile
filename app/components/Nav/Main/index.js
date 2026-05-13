@@ -67,7 +67,6 @@ import {
 import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 
 import useNotificationHandler from '../../../util/notifications/hooks';
-import PushNotificationOnboarding from '../../Views/Notifications/PushNotificationOnboarding';
 import {
   DEPRECATED_NETWORKS,
   NETWORKS_CHAIN_ID,
@@ -426,7 +425,6 @@ const Main = (props) => {
         <Notification navigation={props.navigation} />
         <RampOrders />
         <EarnTransactionMonitor />
-        <PushNotificationOnboarding />
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,

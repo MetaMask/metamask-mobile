@@ -66,14 +66,6 @@ jest.mock(
   () => () => mockReact.createElement('EarnTransactionMonitorMock'),
 );
 
-jest.mock('../../Views/Notifications/PushNotificationOnboarding', () => ({
-  __esModule: true,
-  default: () =>
-    mockReact.createElement(mockView, {
-      testID: 'mock-push-notification-onboarding',
-    }),
-}));
-
 jest.mock('../../UI/ProtectYourWalletModal', () => ({
   __esModule: true,
   default: () => mockReact.createElement('ProtectYourWalletModalMock'),
@@ -136,6 +128,5 @@ describe('Main', () => {
     });
 
     expect(getByTestId('mocked-main-navigator')).toBeOnTheScreen();
-    expect(getByTestId('mock-push-notification-onboarding')).toBeOnTheScreen();
   });
 });

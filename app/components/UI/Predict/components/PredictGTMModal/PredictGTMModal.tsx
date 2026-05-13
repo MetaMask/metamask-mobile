@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, View } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -34,11 +34,14 @@ import {
   PredictEventValues,
 } from '../../constants/eventNames';
 import { PREDICT_GTM_MODAL_TEST_IDS } from './PredictGTMModal.testIds';
+import { useStartupSurface } from '../../../../Nav/Main/StartupSurfaceCoordinator/context';
 
 const PredictGTMModal = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { navigate } = useNavigation();
   const theme = useTheme();
+  const { completeSurface } = useStartupSurface();
+  const hasCompletedStartupSurface = useRef(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const opacity = useSharedValue(0);
 
@@ -47,6 +50,18 @@ const PredictGTMModal = () => {
 
   const styles = createStyles(theme);
 
+  const completeStartupSurface = useCallback(
+    (reason: 'decline' | 'engage' | 'unmount') => {
+      if (hasCompletedStartupSurface.current) {
+        return;
+      }
+
+      hasCompletedStartupSurface.current = true;
+      completeSurface('predict-gtm', reason);
+    },
+    [completeSurface],
+  );
+
   // Animate content fade-in when image loads
   useEffect(() => {
     if (imageLoaded) {
@@ -54,12 +69,20 @@ const PredictGTMModal = () => {
     }
   }, [imageLoaded, opacity]);
 
+  useEffect(
+    () => () => {
+      completeStartupSurface('unmount');
+    },
+    [completeStartupSurface],
+  );
+
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
   }));
 
   const handleClose = async () => {
     await StorageWrapper.setItem(PREDICT_GTM_MODAL_SHOWN, 'true');
+    completeStartupSurface('decline');
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.WHATS_NEW_LINK_CLICKED)
@@ -88,6 +111,7 @@ const PredictGTMModal = () => {
     await StorageWrapper.setItem(PREDICT_GTM_MODAL_SHOWN, 'true', {
       emitEvent: false,
     });
+    completeStartupSurface('engage');
 
     navigate(Routes.WALLET.HOME);
 

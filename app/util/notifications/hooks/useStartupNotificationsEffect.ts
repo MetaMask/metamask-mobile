@@ -23,10 +23,10 @@ import {
   hasUserTurnedOffNotificationsOnce,
 } from '../constants/notification-storage-keys';
 
-const showPushNush = { nudgeEnablePush: true };
+const silentPushCheck = { nudgeEnablePush: false };
 
 const useEnableAndRefresh = () => {
-  const { enableNotifications } = useEnableNotifications(showPushNush);
+  const { enableNotifications } = useEnableNotifications(silentPushCheck);
   const { listNotifications } = useListNotifications();
   return useCallback(
     async (shouldEnable = true) => {
