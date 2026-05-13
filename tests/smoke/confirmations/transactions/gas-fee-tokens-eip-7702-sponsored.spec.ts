@@ -184,9 +184,15 @@ const performSendTransaction = async () => {
   await SendView.pressContinueButton();
   await SendView.inputRecipientAddress(RECIPIENT_ADDRESS_MOCK);
   await SendView.pressReviewButton();
-  await Assertions.expectElementToBeVisible(
-    RowComponents.NetworkFeePaidByMetaMask,
-  );
+  await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails, {
+    description: 'gas fees row is present on review screen',
+    timeout: 30000,
+  });
+  await Assertions.expectElementToBeVisible(RowComponents.NetworkFeePaidByMetaMask, {
+    description:
+      'network fee shows MetaMask-sponsored gas after relay + simulation settle',
+    timeout: 60000,
+  });
   await Utilities.waitForElementToBeVisible(FooterActions.confirmButton);
   await Utilities.waitForElementToStopMoving(FooterActions.confirmButton, {
     timeout: 5000,
