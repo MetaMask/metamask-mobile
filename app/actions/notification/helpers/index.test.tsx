@@ -69,7 +69,11 @@ describe('helpers - enableNotificationServices()', () => {
 describe('helpers - hasNotificationPreferences()', () => {
   it('returns true when AUS preferences exist', async () => {
     jest.mocked(Engine.controllerMessenger.call).mockResolvedValue({
-      walletActivity: { enabled: true, accounts: [] },
+      walletActivity: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+        accounts: [],
+      },
     });
 
     await expect(hasNotificationPreferences()).resolves.toBe(true);

@@ -12,6 +12,7 @@ import {
 import {
   getNotificationsList,
   selectIsFetchingMetamaskNotifications,
+  selectIsFeatureAnnouncementsEnabled,
   selectIsMetamaskNotificationsEnabled,
   selectIsUpdatingMetamaskNotifications,
 } from '../../../selectors/notifications';
@@ -106,21 +107,26 @@ export function useContiguousLoading(
 export function useEnableNotifications(props = { nudgeEnablePush: true }) {
   const { togglePushNotification, loading: pushLoading } =
     usePushNotificationsToggle(props);
-  const data = useSelector(selectIsMetamaskNotificationsEnabled);
+  const isMetamaskNotificationsEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
   const loading = useSelector(selectIsUpdatingMetamaskNotifications);
   const [error, setError] = useState<unknown>(null);
   const hasMarketingConsent = useSelector(selectHasMarketingConsent);
+  const isFeatureAnnouncementsEnabled = useSelector(
+    selectIsFeatureAnnouncementsEnabled,
+  );
+  const productAnnouncementEnabled = isFeatureAnnouncementsEnabled || !isMetamaskNotificationsEnabled;
   const enableNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
     setError(null);
-    await enableNotificationsHelper({ hasMarketingConsent }).catch((e) =>
-      setError(e),
-    );
+    await enableNotificationsHelper({
+      hasMarketingConsent,
+      productAnnouncementEnabled,
+    }).catch((e) => setError(e));
     await togglePushNotification(true).catch(() => {
       /* Do Nothing */
     });
     await updateNotificationSubscriptionExpiration();
-  }, [hasMarketingConsent, togglePushNotification]);
+  }, [hasMarketingConsent, productAnnouncementEnabled, togglePushNotification]);
 
   const contiguousLoading = useContiguousLoading(loading, pushLoading);
 
@@ -130,7 +136,7 @@ export function useEnableNotifications(props = { nudgeEnablePush: true }) {
     isEnablingPushNotifications: pushLoading,
     loading: loading || pushLoading || contiguousLoading,
     error,
-    data,
+    data: isMetamaskNotificationsEnabled,
   };
 }
 

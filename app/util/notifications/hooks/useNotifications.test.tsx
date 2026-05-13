@@ -132,6 +132,7 @@ describe('useNotifications - useEnableNotifications()', () => {
     expect(mocks.mockSelectData).toHaveBeenCalled();
     expect(mocks.mockEnableNotifications).toHaveBeenCalledWith({
       hasMarketingConsent: false,
+      productAnnouncementEnabled: true,
     });
   });
 
@@ -148,6 +149,7 @@ describe('useNotifications - useEnableNotifications()', () => {
 
     expect(mocks.mockEnableNotifications).toHaveBeenCalledWith({
       hasMarketingConsent: true,
+      productAnnouncementEnabled: true,
     });
   });
 
