@@ -88,7 +88,6 @@ jobs:
           path: |
             ~/.cache/yarn
             .metamask
-            node_modules
             .yarn/cache
 
       - name: Check force-builds override

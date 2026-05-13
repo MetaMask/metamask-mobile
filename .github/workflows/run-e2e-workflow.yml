@@ -129,7 +129,6 @@ jobs:
           path: |
             ~/.cache/yarn
             .metamask
-            node_modules
             .yarn/cache
             ~/Library/Detox
             ios/vendor/bundle
