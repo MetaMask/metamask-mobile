@@ -4,6 +4,7 @@
 
 import {
   createRemoteFeatureFlagsMock,
+  REMOTE_FEATURE_FLAGS_URL_REGEX,
   setupRemoteFeatureFlagsMock,
 } from './remoteFeatureFlagsHelper.ts';
 import { setupMockRequest } from './mockHelpers.ts';
@@ -254,6 +255,31 @@ describe('Remote Feature Flags Helper', () => {
       expect(result2.response).toContainEqual({
         arrayFlag: { replaced: 'with object' },
       });
+    });
+  });
+
+  describe('REMOTE_FEATURE_FLAGS_URL_REGEX', () => {
+    it('matches remote feature flags requests across distributions and environments', () => {
+      const environments = ['dev', 'test', 'prod'];
+      const distributions = ['main', 'flask'];
+
+      distributions.forEach((distribution) => {
+        environments.forEach((environment) => {
+          expect(
+            REMOTE_FEATURE_FLAGS_URL_REGEX.test(
+              `https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=${distribution}&environment=${environment}`,
+            ),
+          ).toBe(true);
+        });
+      });
+    });
+
+    it('does not match unrelated client config requests', () => {
+      expect(
+        REMOTE_FEATURE_FLAGS_URL_REGEX.test(
+          'https://client-config.api.cx.metamask.io/v1/other?client=mobile&distribution=main&environment=test',
+        ),
+      ).toBe(false);
     });
   });
 

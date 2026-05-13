@@ -22,7 +22,10 @@ import {
   waitForProxiedRequestsMatching,
 } from '../../../api-mocking/helpers/mockHelpers';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import {
+  REMOTE_FEATURE_FLAGS_URL_REGEX,
+  setupRemoteFeatureFlagsMock,
+} from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureEip7702 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import {
@@ -39,8 +42,6 @@ const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 const RECIPIENT_ADDRESS_MOCK = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 const LOCALHOST_SENTINEL_URL =
   'https://tx-sentinel-localhost.api.cx.metamask.io';
-const REMOTE_FEATURE_FLAGS_URL =
-  'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=test';
 
 const SEND_ETH_TRANSACTION_MOCK = {
   data: '0x',
@@ -295,7 +296,7 @@ describe(
             mockServer,
             {
               method: 'GET',
-              urlSubstring: REMOTE_FEATURE_FLAGS_URL,
+              urlRegex: REMOTE_FEATURE_FLAGS_URL_REGEX,
             },
             {
               description: 'remote feature flags fetched',

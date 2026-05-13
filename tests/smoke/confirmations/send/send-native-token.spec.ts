@@ -10,7 +10,10 @@ import { DappVariants, LOCAL_NODE_RPC_URL } from '../../../framework/Constants';
 import { SmokeConfirmations } from '../../../tags';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import {
+  REMOTE_FEATURE_FLAGS_URL_REGEX,
+  setupRemoteFeatureFlagsMock,
+} from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
@@ -19,8 +22,6 @@ import {
 import { validateTransactionHashInTransactionFinalizedEvent } from './metricsValidationHelper';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
-const REMOTE_FEATURE_FLAGS_URL =
-  'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=test';
 
 describe(SmokeConfirmations('Send native asset'), () => {
   // Moved partially to cv tests (send.view.test.tsx, EVM coverage)
@@ -85,7 +86,7 @@ describe(SmokeConfirmations('Send native asset'), () => {
           mockServer,
           {
             method: 'GET',
-            urlSubstring: REMOTE_FEATURE_FLAGS_URL,
+            urlRegex: REMOTE_FEATURE_FLAGS_URL_REGEX,
           },
           {
             description: 'remote feature flags fetched',

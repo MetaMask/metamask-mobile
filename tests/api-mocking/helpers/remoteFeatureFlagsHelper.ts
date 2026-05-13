@@ -65,6 +65,12 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
   },
 };
 
+const REMOTE_FEATURE_FLAGS_URL_BASE =
+  'https://client-config.api.cx.metamask.io/v1/flags';
+
+export const REMOTE_FEATURE_FLAGS_URL_REGEX =
+  /^https:\/\/client-config\.api\.cx\.metamask\.io\/v1\/flags\?client=mobile&distribution=[^&]+&environment=[^&]+$/;
+
 /**
  * Creates a remote feature flags mock with custom overrides
  * @param flagOverrides - Object containing flag overrides (e.g., { rewards: true })
@@ -118,7 +124,7 @@ export const createRemoteFeatureFlagsMock = (
   });
 
   return {
-    urlEndpoint: `https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=${distribution}&environment=${environment}`,
+    urlEndpoint: `${REMOTE_FEATURE_FLAGS_URL_BASE}?client=mobile&distribution=${distribution}&environment=${environment}`,
     response: result,
     responseCode: 200,
   };
