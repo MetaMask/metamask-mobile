@@ -14,7 +14,6 @@ import type { GeolocationControllerGetGeolocationAction } from '@metamask/geoloc
 import {
   RewardsDataServiceLoginAction,
   RewardsDataServiceEstimatePointsAction,
-  RewardsDataServiceGetPerpsDiscountAction,
   RewardsDataServiceGetSeasonStatusAction,
   RewardsDataServiceGetReferralDetailsAction,
   RewardsDataServiceMobileOptinAction,
@@ -60,6 +59,7 @@ import {
   RewardsDataServiceGetCampaignParticipantStatusAction,
   RewardsDataServiceGetBenefitsAction,
   RewardsDataServiceGetVIPDashboardAction,
+  RewardsDataServiceGetVipFeesAction,
   RewardsDataServicePostBenefitImpressionAction,
   RewardsDataServiceGetClientVersionRequirementsAction,
   RewardsDataServiceGetOndoCampaignLeaderboardAction,
@@ -90,7 +90,6 @@ type AllowedActions =
   | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceGetPointsEventsLastUpdatedAction
   | RewardsDataServiceEstimatePointsAction
-  | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
@@ -130,6 +129,7 @@ type AllowedActions =
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
   | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
   | RewardsDataServiceGetVIPDashboardAction
+  | RewardsDataServiceGetVipFeesAction
   | RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction;
 
 // Don't reexport as per guidelines
@@ -182,7 +182,6 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPointsEvents',
       'RewardsDataService:getPointsEventsLastUpdated',
       'RewardsDataService:estimatePoints',
-      'RewardsDataService:getPerpsDiscount',
       'RewardsDataService:getSeasonStatus',
       'RewardsDataService:getReferralDetails',
       'RewardsDataService:mobileOptin',
@@ -210,6 +209,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getDefaultRewardsEnvUrl',
       'RewardsDataService:getBenefits',
       'RewardsDataService:getVIPDashboard',
+      'RewardsDataService:getVipFees',
       'RewardsDataService:postBenefitImpression',
       'RewardsDataService:getClientVersionRequirements',
       'RewardsDataService:getOndoCampaignLeaderboard',
