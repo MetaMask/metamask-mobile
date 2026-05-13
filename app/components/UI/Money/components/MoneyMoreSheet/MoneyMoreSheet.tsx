@@ -15,8 +15,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
+import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import styleSheet from './MoneyMoreSheet.styles';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
@@ -68,7 +68,7 @@ const MoneyMoreSheet = () => {
     },
     {
       label: strings('money.more_sheet.what_you_get'),
-      icon: IconName.Star,
+      icon: IconName.Export,
       onPress: handleWhatYouGet,
       testID: MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION,
     },

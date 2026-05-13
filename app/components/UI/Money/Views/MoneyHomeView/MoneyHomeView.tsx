@@ -52,10 +52,6 @@ const getMoneyHomeState = (transactionCount: number): MoneyHomeState => {
   return 'filled';
 };
 
-/** Placeholder until Money home actions are implemented */
-// eslint-disable-next-line no-alert
-const displayUnderConstructionAlert = () => alert('Under construction 🚧');
-
 const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -98,7 +94,8 @@ const MoneyHomeView = () => {
       1 / 12,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
-    return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    return formatted === formattedZero ? formatted : `+${formatted}`;
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   const yearlyEarnings = useMemo(() => {
@@ -111,7 +108,8 @@ const MoneyHomeView = () => {
       1,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
-    return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    return formatted === formattedZero ? formatted : `+${formatted}`;
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   const handleMenuPress = useCallback(() => {
@@ -146,10 +144,6 @@ const MoneyHomeView = () => {
     });
   }, [isCardholder, canLink, linkInBackground, navigation]);
 
-  const handleGetNowPress = useCallback(() => {
-    navigation.navigate(Routes.CARD.ROOT);
-  }, [navigation]);
-
   const handleApyInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
@@ -163,14 +157,18 @@ const MoneyHomeView = () => {
     });
   }, [navigation]);
 
+  const handleEarnCryptoInfoPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
+    });
+  }, [navigation]);
+
   const handleMusdRowPress = useCallback(() => {
     NavigationService.navigation.navigate('Asset', {
       ...MUSD_MAINNET_ASSET_FOR_DETAILS,
       source: TokenDetailsSource.MobileTokenListPage,
     });
   }, []);
-
-  const handleHeaderPress = displayUnderConstructionAlert;
 
   const handleTokenConvertPress = useCallback(
     async (token: AssetType) => {
@@ -233,6 +231,20 @@ const MoneyHomeView = () => {
     handleAddPress,
   ]);
 
+  let metamaskCardMode: 'upsell' | 'link' | 'manage';
+  if (isCardholderWithMilestone && isUS) {
+    metamaskCardMode = 'manage';
+  } else if (isCardholderWithMilestone) {
+    metamaskCardMode = 'link';
+  } else {
+    metamaskCardMode = 'upsell';
+  }
+
+  // No selector yet for the user's card balance — fall back to a locale-
+  // formatted zero so the manage row always shows a value rather than a
+  // blank slot under "Avail. balance".
+  const cardBalance: string = formattedZero;
+
   return (
     <Box
       style={[styles.safeArea, { paddingTop: insets.top }]}
@@ -288,7 +300,11 @@ const MoneyHomeView = () => {
             <MoneyActivityList
               transactions={allTransactions}
               moneyAddress={moneyAddress}
-              onViewAllPress={handleViewAllActivityPress}
+              onViewAllPress={
+                allTransactions.length < 5
+                  ? undefined
+                  : handleViewAllActivityPress
+              }
               onHeaderPress={handleActivityHeaderPress}
               onItemPress={handleActivityItemPress}
             />
@@ -303,17 +319,20 @@ const MoneyHomeView = () => {
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}
+              onInfoPress={handleEarnCryptoInfoPress}
             />
             <Divider />
           </>
         )}
         <MoneyMetaMaskCard
-          mode={isCardholderWithMilestone ? 'link' : 'upsell'}
-          onGetNowPress={handleGetNowPress}
-          onHeaderPress={handleHeaderPress}
+          mode={metamaskCardMode}
+          onGetNowPress={handleCardPress}
+          onHeaderPress={handleCardPress}
           onLinkPress={handleLinkCardPress}
-          apy={apyPercent}
+          onManagePress={handleCardPress}
           showMetalCard={isUS}
+          cardBalance={cardBalance}
+          apy={apyPercent}
         />
         <Divider />
         {isMilestone && (
