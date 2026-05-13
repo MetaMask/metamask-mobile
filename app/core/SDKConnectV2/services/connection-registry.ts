@@ -280,6 +280,7 @@ export class ConnectionRegistry {
       await this.evictIfAtCapacity();
 
       connInfo = this.toConnectionInfo(connReq);
+
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
         connInfo,
@@ -314,7 +315,15 @@ export class ConnectionRegistry {
 
       if (conn) await this.disconnect(conn.id);
     } finally {
-      if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
+      // For direct deeplink flows from native browser / react native, the connection request will have an initial message in the session request.
+      // This means an approval will be shown to the user soon after the MWP handshake is complete, so we can safely dismiss the loading toast.
+      // For QR flow, the connection request will not have an initial message in the session request because the dapp is expected to send it separately after the MWP handshake is complete.
+      // Because there may be a longer delay until the wallet receives the initial message from the dapp directly, we should not dismiss the loading toast immediately after the MWP handshake is complete.
+
+      const isQrFlow = connReq?.sessionRequest.initialMessage === undefined;
+      if (connInfo && !isQrFlow) {
+        this.hostapp.hideConnectionLoading(connInfo);
+      }
     }
   }
 
