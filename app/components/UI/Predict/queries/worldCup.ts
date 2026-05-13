@@ -37,6 +37,15 @@ export const predictWorldCupKeys = {
       limit,
       offset,
     ] as const,
+  infiniteMarkets: (tabKey: string, queryParams: string, limit: number) =>
+    [
+      ...predictWorldCupKeys.all(),
+      'markets',
+      'infinite',
+      tabKey,
+      queryParams,
+      limit,
+    ] as const,
   tab: (queryParams: string) =>
     [...predictWorldCupKeys.all(), 'tab', queryParams] as const,
   availability: (tabKey: string, queryParams: string) =>

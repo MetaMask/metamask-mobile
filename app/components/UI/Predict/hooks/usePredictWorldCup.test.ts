@@ -1,75 +1,100 @@
-import { renderHook } from '@testing-library/react-native';
+import React from 'react';
+import { renderHook, waitFor } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import Engine from '../../../../core/Engine';
 import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../constants/flags';
-import { usePredictMarketData } from './usePredictMarketData';
+import { Recurrence, type PredictMarket } from '../types';
 import { usePredictWorldCupMarkets } from './usePredictWorldCup';
 
-jest.mock('./usePredictMarketData', () => ({
-  usePredictMarketData: jest.fn(() => ({
-    marketData: [],
-    isFetching: false,
-    isFetchingMore: false,
-    error: null,
-    hasMore: false,
-    refetch: jest.fn(),
-    fetchMore: jest.fn(),
-  })),
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      getMarkets: jest.fn(),
+    },
+  },
 }));
 
-const mockUsePredictMarketData = jest.mocked(usePredictMarketData);
+const mockGetMarkets = jest.mocked(Engine.context.PredictController.getMarkets);
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { cacheTime: Infinity, retry: false } },
+  });
+  const Wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
+  return { Wrapper, queryClient };
+};
+
+const createMarket = (
+  overrides: Partial<PredictMarket> = {},
+): PredictMarket => ({
+  id: 'market-1',
+  providerId: 'polymarket',
+  slug: 'market-1',
+  title: 'Market 1',
+  description: 'Description',
+  image: 'image.png',
+  status: 'open',
+  recurrence: Recurrence.NONE,
+  category: 'hot',
+  tags: [],
+  outcomes: [],
+  liquidity: 0,
+  volume: 0,
+  ...overrides,
+});
 
 describe('usePredictWorldCupMarkets', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUsePredictMarketData.mockReturnValue({
-      marketData: [],
-      isFetching: false,
-      isFetchingMore: false,
-      error: null,
-      hasMore: false,
-      refetch: jest.fn(),
-      fetchMore: jest.fn(),
-    });
   });
 
-  it('requests All markets with pagination enabled', () => {
-    mockUsePredictMarketData.mockReturnValue({
-      marketData: [],
-      isFetching: false,
-      isFetchingMore: false,
-      error: null,
-      hasMore: true,
-      refetch: jest.fn(),
-      fetchMore: jest.fn(),
-    });
+  it('requests All markets with a cached paginated query', async () => {
+    const { Wrapper } = createWrapper();
+    const allMarket = createMarket({ id: 'all-market' });
+    mockGetMarkets.mockResolvedValue([allMarket]);
 
-    const { result } = renderHook(() =>
-      usePredictWorldCupMarkets({
-        tabKey: 'all',
-        config: DEFAULT_PREDICT_WORLD_CUP_FLAG,
-        pageSize: 30,
-      }),
+    const { result } = renderHook(
+      () =>
+        usePredictWorldCupMarkets({
+          tabKey: 'all',
+          config: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+          pageSize: 30,
+        }),
+      { wrapper: Wrapper },
     );
 
-    expect(mockUsePredictMarketData).toHaveBeenCalledWith({
+    await waitFor(() => expect(result.current.marketData).toEqual([allMarket]));
+
+    expect(mockGetMarkets).toHaveBeenCalledWith({
       category: 'hot',
       customQueryParams:
         'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr&ascending=false',
-      pageSize: 30,
-      refine: undefined,
-      enabled: true,
+      limit: 30,
+      offset: 0,
     });
-    expect(result.current.hasMore).toBe(true);
+    expect(result.current.hasMore).toBe(false);
   });
 
-  it('requests Props markets with pagination enabled', () => {
-    renderHook(() =>
-      usePredictWorldCupMarkets({
-        tabKey: 'props',
-        config: DEFAULT_PREDICT_WORLD_CUP_FLAG,
-      }),
+  it('requests Props markets with a cached paginated query', async () => {
+    const { Wrapper } = createWrapper();
+    const propsMarket = createMarket({ id: 'props-market' });
+    mockGetMarkets.mockResolvedValue([propsMarket]);
+
+    const { result } = renderHook(
+      () =>
+        usePredictWorldCupMarkets({
+          tabKey: 'props',
+          config: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+        }),
+      { wrapper: Wrapper },
     );
 
-    expect(mockUsePredictMarketData).toHaveBeenCalledWith(
+    await waitFor(() =>
+      expect(result.current.marketData).toEqual([propsMarket]),
+    );
+
+    expect(mockGetMarkets).toHaveBeenCalledWith(
       expect.objectContaining({
         customQueryParams:
           'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&exclude_tag_id=100639&order=volume&ascending=false',
@@ -77,25 +102,25 @@ describe('usePredictWorldCupMarkets', () => {
     );
   });
 
-  it('requests Live markets without pagination', () => {
-    mockUsePredictMarketData.mockReturnValue({
-      marketData: [],
-      isFetching: false,
-      isFetchingMore: true,
-      error: null,
-      hasMore: true,
-      refetch: jest.fn(),
-      fetchMore: jest.fn(),
-    });
+  it('requests Live markets without pagination', async () => {
+    const { Wrapper } = createWrapper();
+    const liveMarket = createMarket({ id: 'live-market' });
+    mockGetMarkets.mockResolvedValue([liveMarket]);
 
-    const { result } = renderHook(() =>
-      usePredictWorldCupMarkets({
-        tabKey: 'live',
-        config: DEFAULT_PREDICT_WORLD_CUP_FLAG,
-      }),
+    const { result } = renderHook(
+      () =>
+        usePredictWorldCupMarkets({
+          tabKey: 'live',
+          config: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+        }),
+      { wrapper: Wrapper },
     );
 
-    expect(mockUsePredictMarketData).toHaveBeenCalledWith(
+    await waitFor(() =>
+      expect(result.current.marketData).toEqual([liveMarket]),
+    );
+
+    expect(mockGetMarkets).toHaveBeenCalledWith(
       expect.objectContaining({
         customQueryParams:
           'active=true&archived=false&closed=false&series_id=11433&tag_id=100639&live=true&order=startDate',
@@ -105,48 +130,88 @@ describe('usePredictWorldCupMarkets', () => {
     expect(result.current.isFetchingMore).toBe(false);
   });
 
-  it('requests stage markets with all configured event IDs and no pagination', () => {
+  it('requests stage markets with all configured event IDs and no pagination', async () => {
+    const { Wrapper } = createWrapper();
+    const stageMarket = createMarket({ id: 'stage-market' });
     const config = {
       ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
       stages: [{ key: 'group-stage', eventIds: ['123', '456'] }],
     };
+    mockGetMarkets.mockResolvedValue([stageMarket]);
 
-    const { result } = renderHook(() =>
-      usePredictWorldCupMarkets({
-        tabKey: 'group-stage',
-        config,
-      }),
+    const { result } = renderHook(
+      () =>
+        usePredictWorldCupMarkets({
+          tabKey: 'group-stage',
+          config,
+        }),
+      { wrapper: Wrapper },
     );
 
-    expect(mockUsePredictMarketData).toHaveBeenCalledWith(
+    await waitFor(() =>
+      expect(result.current.marketData).toEqual([stageMarket]),
+    );
+
+    expect(mockGetMarkets).toHaveBeenCalledWith(
       expect.objectContaining({
         customQueryParams:
           'active=true&archived=false&closed=false&id=123&id=456',
-        pageSize: 2,
-        refine: expect.any(Function),
+        limit: 2,
+        offset: 0,
       }),
     );
     expect(result.current.hasMore).toBe(false);
   });
 
   it('skips fetching for a stage without configured event IDs', () => {
+    const { Wrapper } = createWrapper();
     const config = {
       ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
       stages: [{ key: 'empty-stage', eventIds: [] }],
     };
 
-    renderHook(() =>
-      usePredictWorldCupMarkets({
-        tabKey: 'empty-stage',
-        config,
-      }),
+    const { result } = renderHook(
+      () =>
+        usePredictWorldCupMarkets({
+          tabKey: 'empty-stage',
+          config,
+        }),
+      { wrapper: Wrapper },
     );
 
-    expect(mockUsePredictMarketData).toHaveBeenCalledWith(
-      expect.objectContaining({
-        customQueryParams: '',
-        enabled: false,
-      }),
+    expect(result.current.marketData).toEqual([]);
+    expect(mockGetMarkets).not.toHaveBeenCalled();
+  });
+
+  it('returns cached data when switching back to a previously loaded tab', async () => {
+    const { Wrapper } = createWrapper();
+    const allMarket = createMarket({ id: 'all-market' });
+    const liveMarket = createMarket({ id: 'live-market' });
+    mockGetMarkets
+      .mockResolvedValueOnce([allMarket])
+      .mockResolvedValueOnce([liveMarket]);
+
+    const { result, rerender } = renderHook(
+      ({ tabKey }: { tabKey: 'all' | 'live' }) =>
+        usePredictWorldCupMarkets({
+          tabKey,
+          config: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+        }),
+      { initialProps: { tabKey: 'all' }, wrapper: Wrapper },
     );
+
+    await waitFor(() => expect(result.current.marketData).toEqual([allMarket]));
+
+    rerender({ tabKey: 'live' });
+
+    await waitFor(() =>
+      expect(result.current.marketData).toEqual([liveMarket]),
+    );
+
+    mockGetMarkets.mockClear();
+    rerender({ tabKey: 'all' });
+
+    expect(result.current.marketData).toEqual([allMarket]);
+    expect(mockGetMarkets).not.toHaveBeenCalled();
   });
 });
