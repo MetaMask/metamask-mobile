@@ -21,6 +21,7 @@ import PredictFeed from '../views/PredictFeed';
 import PredictMarketDetails from '../views/PredictMarketDetails';
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import PredictUnavailableModal from '../views/PredictUnavailableModal';
+import PredictWorldCup from '../views/PredictWorldCup';
 
 const Stack = createNativeStackNavigator<PredictNavigationParamList>();
 const ModalStack = createNativeStackNavigator<PredictNavigationParamList>();
@@ -87,6 +88,11 @@ const PredictScreenStack = () => {
             title: strings('predict.markets.title'),
             animation: 'none',
           }}
+        />
+
+        <Stack.Screen
+          name={Routes.PREDICT.WORLD_CUP}
+          component={PredictWorldCup}
         />
 
         <Stack.Screen
