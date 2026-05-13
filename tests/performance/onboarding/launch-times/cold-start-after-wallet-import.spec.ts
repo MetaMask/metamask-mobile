@@ -16,7 +16,7 @@ import TimerHelper from '../../../framework/TimerHelper';
 import WalletView from '../../../page-objects/wallet/WalletView';
 
 test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
-  test.skip(
+  test(
     'Cold Start after importing a wallet',
     { tag: '@metamask-mobile-platform' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
