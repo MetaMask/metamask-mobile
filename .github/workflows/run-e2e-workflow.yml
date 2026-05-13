@@ -118,7 +118,6 @@ jobs:
             /home/runner/_work/.gradle/caches
             /home/runner/_work/.gradle/wrapper
             /home/runner/_work/.gradle/apk-cache
-            /opt/android-sdk/system-images/android-36/google_apis/x86_64
 
       - name: Configure Namespace cache (iOS)
         if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' }}
