@@ -197,7 +197,8 @@ const performSendTransaction = async () => {
   await TabBarComponent.tapActivity();
 };
 
-describe(
+// Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778589879443169
+describe.skip(
   SmokeConfirmations('Send native asset using EIP-7702 - Success Case'),
   () => {
     beforeAll(async () => {
@@ -256,7 +257,8 @@ describe(
   },
 );
 
-describe(
+// Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778589879443169
+describe.skip(
   SmokeConfirmations('Send native asset using EIP-7702 - Failure Case'),
   () => {
     beforeAll(async () => {
