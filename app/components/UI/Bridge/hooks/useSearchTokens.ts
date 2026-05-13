@@ -2,10 +2,10 @@ import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
 import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
+import { PopularToken, IncludeAsset } from './usePopularTokens';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import Engine from '../../../../core/Engine';
 import { getBaseSemVerVersion } from '../../../../util/version';
-import type { IncludeAsset, PopularToken } from '../types';
 
 const MIN_SEARCH_LENGTH = 3;
 
@@ -21,11 +21,11 @@ interface SearchTokensResponse {
 
 interface UseSearchTokensParams {
   chainIds: CaipChainId[];
-  includeAssets: IncludeAsset[];
+  includeAssets: string; // Stringified array to prevent unnecessary re-renders
 }
 
 interface UseSearchTokensResult {
-  searchResults: (PopularToken | IncludeAsset)[];
+  searchResults: PopularToken[];
   isSearchLoading: boolean;
   isLoadingMore: boolean;
   searchCursor: string | undefined;
@@ -101,10 +101,13 @@ export const useSearchTokens = ({
         setIsSearchLoading(true);
         currentSearchQueryRef.current = query.trim();
         setCurrentSearchQuery(query.trim());
-        setSearchResults([]);
       }
 
       try {
+        const parsedIncludeAssets: IncludeAsset[] = isPagination
+          ? []
+          : JSON.parse(includeAssetsRef.current);
+
         const requestBody: {
           chainIds: CaipChainId[];
           query: string;
@@ -119,8 +122,8 @@ export const useSearchTokens = ({
           requestBody.after = cursor;
         }
 
-        if (includeAssetsRef.current && !isPagination) {
-          requestBody.includeAssets = includeAssetsRef.current;
+        if (parsedIncludeAssets) {
+          requestBody.includeAssets = parsedIncludeAssets;
         }
 
         const response = await fetch(
@@ -170,6 +173,7 @@ export const useSearchTokens = ({
         console.error('Error searching tokens:', error);
         // Reset search state on error only if it's not a pagination request
         if (!isPagination) {
+          setSearchResults([]);
           setSearchCursor(undefined);
         }
       } finally {
@@ -188,7 +192,6 @@ export const useSearchTokens = ({
   const debouncedSearch = useMemo(
     () =>
       debounce((query: string) => {
-        setSearchResults([]);
         const queryLength = query.trim().length;
         // Only search if query meets minimum length
         if (queryLength >= MIN_SEARCH_LENGTH) {
@@ -211,7 +214,7 @@ export const useSearchTokens = ({
   );
 
   return {
-    searchResults: searchResults.length > 0 ? searchResults : includeAssets,
+    searchResults,
     isSearchLoading,
     isLoadingMore,
     searchCursor,

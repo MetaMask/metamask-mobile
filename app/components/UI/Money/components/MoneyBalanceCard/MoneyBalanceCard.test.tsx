@@ -208,15 +208,7 @@ describe('MoneyBalanceCard', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
-        /4% APY/,
-      );
-    });
-
-    it('renders the mUSD currency suffix next to the APY value', () => {
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
-        /• mUSD/,
+        strings('money.apy_label', { percentage: 4 }),
       );
     });
 
@@ -349,7 +341,7 @@ describe('MoneyBalanceCard', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
-        /0% APY/,
+        strings('money.apy_label', { percentage: 0 }),
       );
     });
   });

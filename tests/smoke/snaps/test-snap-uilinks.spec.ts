@@ -15,7 +15,6 @@ describe(SmokeSnaps('UI Links Snap Test'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
-        disableSynchronization: true,
       },
       async () => {
         await loginToApp();

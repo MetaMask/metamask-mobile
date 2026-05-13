@@ -17,11 +17,9 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
-  return { useTailwind: () => tw };
-});
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -64,13 +62,14 @@ const basePosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 7,
   pnl: 1500.25,
   notionalVolume: 30_000,
+  marginDeployed: 2000,
   qualified: true,
   neighbors: [],
   computedAt: '2025-01-01T00:00:00.000Z',
 };
 
 describe('PerpsCampaignStatsSummary', () => {
-  it('renders container and three stat labels', () => {
+  it('renders container and four stat labels', () => {
     const { getByTestId, getByText } = render(
       <PerpsCampaignStatsSummary
         leaderboardPosition={basePosition}
@@ -85,6 +84,9 @@ describe('PerpsCampaignStatsSummary', () => {
     expect(getByText('rewards.perps_trading_campaign.label_pnl')).toBeDefined();
     expect(
       getByText('rewards.perps_trading_campaign.label_volume'),
+    ).toBeDefined();
+    expect(
+      getByText('rewards.perps_trading_campaign.label_margin'),
     ).toBeDefined();
     expect(getByText('07')).toBeDefined();
     expect(getByText('+$1,500.25')).toBeDefined();
@@ -119,7 +121,7 @@ describe('PerpsCampaignStatsSummary', () => {
         leaderboard={null}
       />,
     );
-    expect(getAllByText('—').length).toBeGreaterThanOrEqual(3);
+    expect(getAllByText('—').length).toBeGreaterThanOrEqual(4);
   });
 
   it('shows pending tag on rank when campaign is active and user is not qualified', () => {
@@ -182,7 +184,7 @@ describe('PerpsCampaignStatsSummary', () => {
     expect(queryByTestId(TEST_IDS.QUALIFY_FOR_RANK_CARD)).toBeNull();
   });
 
-  it('hides volume StatCell when campaign is complete (only rank and PnL remain)', () => {
+  it('hides volume and margin StatCells when campaign is complete (only rank and PnL remain)', () => {
     const { queryByTestId, getByTestId } = render(
       <PerpsCampaignStatsSummary
         leaderboardPosition={basePosition}
@@ -193,6 +195,7 @@ describe('PerpsCampaignStatsSummary', () => {
     expect(getByTestId(TEST_IDS.RANK)).toBeDefined();
     expect(getByTestId(TEST_IDS.PNL)).toBeDefined();
     expect(queryByTestId(TEST_IDS.NOTIONAL_VOLUME)).toBeNull();
+    expect(queryByTestId(TEST_IDS.MARGIN_DEPLOYED)).toBeNull();
   });
 
   it("hides You're qualified card when campaign is complete", () => {
@@ -214,6 +217,7 @@ describe('PerpsCampaignStatsSummary', () => {
           ...basePosition,
           qualified: false,
           notionalVolume: 5_000,
+          marginDeployed: 200,
         }}
         leaderboard={mockLeaderboard}
       />,
@@ -230,6 +234,7 @@ describe('PerpsCampaignStatsSummary', () => {
           ...basePosition,
           qualified: false,
           notionalVolume: 30_000,
+          marginDeployed: 2_000,
         }}
         leaderboard={mockLeaderboard}
       />,

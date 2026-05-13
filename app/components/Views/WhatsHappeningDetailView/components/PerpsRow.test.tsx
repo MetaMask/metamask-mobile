@@ -6,7 +6,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import type { PerpsPriceEntry } from '../hooks/useWhatsHappeningAssetPrices';
 
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -44,6 +43,14 @@ const perpsOnlyAsset: RelatedAsset = {
   hlPerpsMarket: ['xyz:TSLA'],
 };
 
+const dualAsset: RelatedAsset = {
+  sourceAssetId: 'bitcoin',
+  symbol: 'BTC',
+  name: 'Bitcoin',
+  caip19: ['eip155:1/slip44:0'],
+  hlPerpsMarket: ['BTC'],
+};
+
 const mockItem: WhatsHappeningItem = {
   id: 'trend-3',
   title: 'TSLA earnings',
@@ -55,48 +62,28 @@ const mockItem: WhatsHappeningItem = {
   articles: [],
 };
 
-const emptyPriceMap: Record<string, PerpsPriceEntry> = {};
-
 describe('PerpsRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders the asset name', () => {
+  it('renders the asset symbol', () => {
     renderWithProvider(
-      <PerpsRow
-        asset={perpsOnlyAsset}
-        item={mockItem}
-        cardIndex={0}
-        source="homepage"
-        perpsPriceBySymbol={emptyPriceMap}
-      />,
+      <PerpsRow asset={perpsOnlyAsset} item={mockItem} cardIndex={0} />,
     );
-    expect(screen.getByText('Tesla')).toBeOnTheScreen();
+    expect(screen.getByText('TSLA')).toBeOnTheScreen();
   });
 
   it('renders the Trade button', () => {
     renderWithProvider(
-      <PerpsRow
-        asset={perpsOnlyAsset}
-        item={mockItem}
-        cardIndex={0}
-        source="homepage"
-        perpsPriceBySymbol={emptyPriceMap}
-      />,
+      <PerpsRow asset={perpsOnlyAsset} item={mockItem} cardIndex={0} />,
     );
     expect(screen.getByText('Trade')).toBeOnTheScreen();
   });
 
   it('navigates to PerpsMarketDetails with minimal market payload on Trade press', () => {
     renderWithProvider(
-      <PerpsRow
-        asset={perpsOnlyAsset}
-        item={mockItem}
-        cardIndex={0}
-        source="homepage"
-        perpsPriceBySymbol={emptyPriceMap}
-      />,
+      <PerpsRow asset={perpsOnlyAsset} item={mockItem} cardIndex={0} />,
     );
     fireEvent.press(screen.getByText('Trade'));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
@@ -107,106 +94,64 @@ describe('PerpsRow', () => {
     });
   });
 
-  it('uses first hlPerpsMarket entry as the market symbol when multiple are present', () => {
-    const multiMarketAsset: RelatedAsset = {
-      ...perpsOnlyAsset,
-      hlPerpsMarket: ['FIRST-MARKET', 'SECOND-MARKET'],
-    };
+  it('uses first hlPerpsMarket entry as the market symbol', () => {
     renderWithProvider(
-      <PerpsRow
-        asset={multiMarketAsset}
-        item={mockItem}
-        cardIndex={0}
-        source="homepage"
-        perpsPriceBySymbol={emptyPriceMap}
-      />,
+      <PerpsRow asset={dualAsset} item={mockItem} cardIndex={0} />,
     );
     fireEvent.press(screen.getByText('Trade'));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: expect.objectContaining({
-        market: { symbol: 'FIRST-MARKET', name: 'Tesla' },
+        market: { symbol: 'BTC', name: 'Bitcoin' },
       }),
     });
   });
 
-  it('does not render Trade when hlPerpsMarket is empty', () => {
+  it('does not navigate when hlPerpsMarket is empty', () => {
     const assetNoPerps: RelatedAsset = {
       ...perpsOnlyAsset,
       hlPerpsMarket: [],
     };
     renderWithProvider(
-      <PerpsRow
-        asset={assetNoPerps}
-        item={mockItem}
-        cardIndex={0}
-        source="homepage"
-        perpsPriceBySymbol={emptyPriceMap}
-      />,
+      <PerpsRow asset={assetNoPerps} item={mockItem} cardIndex={0} />,
     );
-    expect(screen.queryByText('Trade')).toBeNull();
+    fireEvent.press(screen.getByText('Trade'));
     expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
   });
 
-  it('tracks Whats Happening Interaction on Trade press', () => {
+  it('tracks Whats Happening Interaction with interaction_type=trade_pressed and asset details on Trade press', () => {
     renderWithProvider(
-      <PerpsRow
-        asset={perpsOnlyAsset}
-        item={mockItem}
-        cardIndex={1}
-        source="homepage"
-        perpsPriceBySymbol={emptyPriceMap}
-      />,
+      <PerpsRow asset={perpsOnlyAsset} item={mockItem} cardIndex={1} />,
     );
     fireEvent.press(screen.getByText('Trade'));
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTION,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTION,
         properties: expect.objectContaining({
           interaction_type: 'trade_pressed',
           asset_symbol: 'TSLA',
           perps_market: 'xyz:TSLA',
-          trend_id: 'trend-3',
+          event_id: 'trend-3',
           card_index: 1,
-          trend_category: 'macro',
-          trend_impact: 'positive',
-          source: 'homepage',
+          category: 'macro',
+          impact: 'positive',
         }),
       }),
     );
   });
 
-  it('displays price and 24h change from perpsPriceBySymbol', () => {
-    const priceMap: Record<string, PerpsPriceEntry> = {
-      'xyz:TSLA': { price: 172.5, percentChange24h: 3.45 },
+  it('does not track Interaction when hlPerpsMarket is empty', () => {
+    const assetNoPerps: RelatedAsset = {
+      ...perpsOnlyAsset,
+      hlPerpsMarket: [],
     };
     renderWithProvider(
-      <PerpsRow
-        asset={perpsOnlyAsset}
-        item={mockItem}
-        cardIndex={0}
-        source="homepage"
-        perpsPriceBySymbol={priceMap}
-      />,
+      <PerpsRow asset={assetNoPerps} item={mockItem} cardIndex={0} />,
     );
-    expect(screen.getByText('$172.50')).toBeOnTheScreen();
-    expect(screen.getByText('+3.45%')).toBeOnTheScreen();
-  });
-
-  it('shows no price text when no price entry is available', () => {
-    renderWithProvider(
-      <PerpsRow
-        asset={perpsOnlyAsset}
-        item={mockItem}
-        cardIndex={0}
-        source="homepage"
-        perpsPriceBySymbol={emptyPriceMap}
-      />,
-    );
-    expect(screen.queryByText('$')).toBeNull();
+    fireEvent.press(screen.getByText('Trade'));
+    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
   });
 });

@@ -43,46 +43,20 @@ const getStyles = (colors) =>
 
 /**
  * PureComponent that renders scrollable content above configurable buttons
- *
- * @param {object} props
- * @param {string} [props.cancelTestID]
- * @param {string} [props.confirmTestID]
- * @param {any} [props.cancelText]
- * @param {React.ReactNode} [props.children]
- * @param {any} [props.confirmText]
- * @param {string} [props.confirmButtonMode]
- * @param {() => void} [props.onCancelPress]
- * @param {() => void} [props.onConfirmPress]
- * @param {() => void} [props.onTouchablePress]
- * @param {boolean} [props.showCancelButton]
- * @param {boolean} [props.showConfirmButton]
- * @param {boolean} [props.confirmed]
- * @param {boolean} [props.confirmDisabled]
- * @param {boolean} [props.loading]
- * @param {string} [props.keyboardShouldPersistTaps]
- * @param {any} [props.style]
- * @param {any} [props.confirmButtonState]
- * @param {string} [props.scrollViewTestID]
- * @param {object} [props.contentContainerStyle]
- * @param {object} [props.buttonContainerStyle]
- * @param {boolean} [props.enableOnAndroid]
- * @param {boolean} [props.enableAutomaticScroll]
- * @param {number} [props.extraScrollHeight]
- * @param {boolean} [props.showsVerticalScrollIndicator]
  */
 export default function ActionView({
-  cancelTestID = '',
-  confirmTestID = '',
-  cancelText = '',
+  cancelTestID,
+  confirmTestID,
+  cancelText,
   children,
-  confirmText = '',
-  confirmButtonMode = 'normal',
+  confirmText,
+  confirmButtonMode,
   onCancelPress,
   onConfirmPress,
   onTouchablePress,
-  showCancelButton = true,
-  showConfirmButton = true,
-  confirmed = false,
+  showCancelButton,
+  showConfirmButton,
+  confirmed,
   confirmDisabled,
   loading = false,
   keyboardShouldPersistTaps = 'never',
@@ -161,6 +135,18 @@ export default function ActionView({
     </View>
   );
 }
+
+ActionView.defaultProps = {
+  cancelText: '',
+  confirmButtonMode: 'normal',
+  confirmText: '',
+  confirmTestID: '',
+  confirmed: false,
+  cancelTestID: '',
+  showCancelButton: true,
+  showConfirmButton: true,
+  contentContainerStyle: undefined,
+};
 
 ActionView.propTypes = {
   /**

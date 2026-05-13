@@ -2,6 +2,7 @@ import {
   AccountTrackerControllerState,
   CurrencyRateState,
   NftControllerState,
+  TokenListState,
   TokenRatesControllerState,
   TokensControllerState,
   TokenBalancesControllerState,
@@ -27,6 +28,7 @@ export interface EngineState {
       AccountTrackerController: AccountTrackerControllerState;
       AddressBookController: AddressBookControllerState;
       NftController: NftControllerState;
+      TokenListController: TokenListState;
       CurrencyRateController: CurrencyRateState;
       KeyringController: KeyringControllerMemState;
       NetworkController: NetworkState;

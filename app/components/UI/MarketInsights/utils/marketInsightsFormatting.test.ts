@@ -1,45 +1,4 @@
-import {
-  formatRelativeTime,
-  getFaviconUrl,
-  isXSourceUrl,
-} from './marketInsightsFormatting';
-
-describe('formatRelativeTime', () => {
-  const ANCHOR = new Date('2026-05-07T12:00:00.000Z');
-
-  const minutesBeforeAnchor = (n: number) =>
-    new Date(ANCHOR.getTime() - n * 60 * 1000).toISOString();
-
-  beforeEach(() => {
-    jest.useFakeTimers({ now: ANCHOR });
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
-  it('returns empty string for an invalid date string', () => {
-    expect(formatRelativeTime('not-a-date')).toBe('');
-  });
-
-  it('returns nowLabel when diff is under 1 minute', () => {
-    expect(
-      formatRelativeTime(minutesBeforeAnchor(0), { nowLabel: 'now' }),
-    ).toBe('now');
-  });
-
-  it('returns Xm ago for diffs under 1 hour', () => {
-    expect(formatRelativeTime(minutesBeforeAnchor(5))).toBe('5m ago');
-  });
-
-  it('returns Xh ago for diffs under 1 day', () => {
-    expect(formatRelativeTime(minutesBeforeAnchor(3 * 60))).toBe('3h ago');
-  });
-
-  it('returns Xd ago for diffs of 1 day or more', () => {
-    expect(formatRelativeTime(minutesBeforeAnchor(4 * 24 * 60))).toBe('4d ago');
-  });
-});
+import { getFaviconUrl, isXSourceUrl } from './marketInsightsFormatting';
 
 describe('getFaviconUrl', () => {
   it('uses hostname when source is a full URL', () => {

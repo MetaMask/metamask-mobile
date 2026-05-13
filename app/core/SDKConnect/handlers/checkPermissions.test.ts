@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
-// Platform.OS is read-only in RN 0.81; use Object.defineProperty to override it.
+// Mock Platform first, before any imports
+jest.mock('react-native/Libraries/Utilities/Platform', () => {
+  const Platform = {
+    OS: 'ios',
+    select: jest.fn(),
+  };
+  return Platform;
+});
 
 // Mock wait util - change this part
 jest.mock('../utils/wait.util', () => {
@@ -85,11 +92,7 @@ describe('checkPermissions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Reset platform to iOS by default
-    Object.defineProperty(Platform, 'OS', {
-      value: 'ios',
-      writable: true,
-      configurable: true,
-    });
+    Platform.OS = 'ios';
     jest.useFakeTimers().setSystemTime(currentTime);
     mockGetPermittedAccounts.mockReturnValue([]);
 
@@ -177,11 +180,7 @@ describe('checkPermissions', () => {
 
   describe('platform specific behavior', () => {
     it('should add delay on iOS after permission approval', async () => {
-      Object.defineProperty(Platform, 'OS', {
-        value: 'ios',
-        writable: true,
-        configurable: true,
-      });
+      Platform.OS = 'ios';
       mockGetPermittedAccounts.mockReturnValue([]);
       permissionController.getPermission = jest.fn().mockReturnValue(null);
       requestPermissions.mockResolvedValue({});
@@ -194,11 +193,7 @@ describe('checkPermissions', () => {
     });
 
     it('should not add delay on Android after permission approval', async () => {
-      Object.defineProperty(Platform, 'OS', {
-        value: 'android',
-        writable: true,
-        configurable: true,
-      });
+      Platform.OS = 'android';
       mockGetPermittedAccounts.mockReturnValue([]);
       permissionController.getPermission = jest.fn().mockReturnValue(null);
       requestPermissions.mockResolvedValue({});

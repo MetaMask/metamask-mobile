@@ -4,6 +4,7 @@ import {
   type RewardsControllerState,
   type RewardsAccountState,
   type LoginResponseDto,
+  type PerpsDiscountData,
   type EstimatePointsDto,
   type EstimatedPointsDto,
   type SeasonDtoState,
@@ -48,10 +49,6 @@ import {
   type CampaignState,
   type CampaignDtoState,
   type SubscriptionBenefitsState,
-  type VipDashboardDto,
-  type VipDashboardState,
-  type VipFeesResponseDto,
-  type VipPerpsFeesState,
   BASE32_REGEX,
   CampaignType,
 } from './types';
@@ -100,6 +97,9 @@ export const DEFAULT_BLOCKED_REGIONS = ['UK', 'GB', 'GI'];
 
 const controllerName = 'RewardsController';
 
+// Perps discount refresh threshold
+const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
 // Season status cache threshold
 const SEASON_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
@@ -111,13 +111,6 @@ const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 
 // Benefits details cache threshold
 const BENEFITS_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
-
-// VIP dashboard cache threshold — disabled while backend still serves hardcoded data
-const VIP_DASHBOARD_CACHE_THRESHOLD_MS = 0;
-
-// VIP perps fees cache threshold — read on every perps trade UI render, so
-// cache for the same 5-minute window as the legacy public-discount path.
-const VIP_PERPS_FEES_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
 
 // Active boosts cache threshold
 const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
@@ -320,18 +313,6 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  vipDashboard: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  vipPerpsFees: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: false,
-  },
 };
 
 export { defaultRewardsControllerState, getRewardsControllerDefaultState };
@@ -459,7 +440,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'getSeasonOneLineaRewardTokens',
   'getSeasonStatus',
   'getUnlockedRewards',
-  'getVIPDashboard',
   'handleAuthenticationTrigger',
   'hasActiveSeason',
   'hasActivityChanged',
@@ -1404,6 +1384,83 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Update perps fee discount for a given address
+   * @param address - The account address in CAIP-10 format
+   */
+  async #getPerpsFeeDiscountData(
+    account: CaipAccountId,
+  ): Promise<PerpsDiscountData | null> {
+    const accountState = this.#getAccountState(account);
+
+    // Check if we have a cached discount and if threshold hasn't been reached
+    if (
+      accountState?.perpsFeeDiscount !== null &&
+      accountState?.lastPerpsDiscountRateFetched !== null &&
+      accountState?.lastPerpsDiscountRateFetched &&
+      Date.now() - accountState.lastPerpsDiscountRateFetched <
+        PERPS_DISCOUNT_CACHE_THRESHOLD_MS
+    ) {
+      return {
+        hasOptedIn: !!accountState?.hasOptedIn,
+        discountBips: accountState?.perpsFeeDiscount,
+      };
+    }
+
+    try {
+      Logger.log(
+        'RewardsController: Fetching fresh perps discount data via API call for',
+        account,
+      );
+      const perpsDiscountData = await this.messenger.call(
+        'RewardsDataService:getPerpsDiscount',
+        { account },
+      );
+
+      // Make sure all account caip indexes are stored the same way
+      let coercedAccount: CaipAccountId;
+      if (account?.startsWith('eip155') && !account?.startsWith('eip155:0')) {
+        coercedAccount =
+          `eip155:0:${account.split(':')[2]?.toLowerCase()}` as CaipAccountId;
+      } else if (account?.startsWith('eip155')) {
+        coercedAccount = account.toLowerCase() as CaipAccountId;
+      } else {
+        coercedAccount = account;
+      }
+
+      this.update((state) => {
+        // Create account state if it doesn't exist
+        if (!state.accounts[coercedAccount]) {
+          state.accounts[coercedAccount] = {
+            account: coercedAccount,
+            hasOptedIn: perpsDiscountData.hasOptedIn,
+            subscriptionId: null,
+            perpsFeeDiscount: perpsDiscountData.discountBips ?? 0,
+            lastPerpsDiscountRateFetched: Date.now(),
+          };
+        } else {
+          // Update account state
+          state.accounts[coercedAccount].hasOptedIn =
+            perpsDiscountData.hasOptedIn;
+          if (!perpsDiscountData.hasOptedIn) {
+            state.accounts[coercedAccount].subscriptionId = null;
+          }
+          state.accounts[coercedAccount].perpsFeeDiscount =
+            perpsDiscountData.discountBips ?? 0;
+          state.accounts[coercedAccount].lastPerpsDiscountRateFetched =
+            Date.now();
+        }
+      });
+      return perpsDiscountData;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to update perps fee discount:',
+        error instanceof Error ? error.message : String(error),
+      );
+      return null;
+    }
+  }
+
+  /**
    * Check if the given account (caip-10 format) has opted in to rewards
    * @param account - The account address in CAIP-10 format
    * @returns Promise<boolean> - True if the account has opted in, false otherwise
@@ -1412,7 +1469,11 @@ export class RewardsController extends BaseController<
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) return false;
     const accountState = this.#getAccountState(account);
-    return !!accountState?.hasOptedIn;
+    if (accountState?.hasOptedIn) return accountState.hasOptedIn;
+
+    // Right now we'll derive this from either cached map state or perps fee discount api call.
+    const perpsDiscountData = await this.#getPerpsFeeDiscountData(account);
+    return !!perpsDiscountData?.hasOptedIn;
   }
 
   checkOptInStatusAgainstCache(
@@ -1611,118 +1672,15 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Get perps fee discount for an account.
-   *
-   * When the account's active subscription has VIP enabled, this calls the
-   * authenticated `/vip/fees` endpoint and converts the absolute VIP builder
-   * fee into a discount fraction relative to `baseFeeBips`. Non-VIP accounts
-   * receive no discount.
-   *
+   * Get perps fee discount for an account with caching and threshold logic
    * @param account - The account address in CAIP-10 format
-   * @param baseFeeBips - The perps MetaMask builder base fee in basis points
-   * that the caller would apply absent any discount. Used to convert the VIP
-   * absolute fee into a discount fraction (caller owns the source of truth
-   * for the base fee; the controller is a pure transformer).
-   * @returns Promise resolving to the discount in basis points (0-10000), or null when we can't determine the discount.
+   * @returns Promise<number> - The discount in basis points
    */
-  async getPerpsDiscountForAccount(
-    account: CaipAccountId,
-    baseFeeBips: number,
-  ): Promise<number | null> {
+  async getPerpsDiscountForAccount(account: CaipAccountId): Promise<number> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) return null;
-
-    const vipDiscountBips = await this.#getVipPerpsDiscountBips(
-      account,
-      baseFeeBips,
-    );
-    return vipDiscountBips;
-  }
-
-  /**
-   * Resolve a VIP-driven perps discount for the given account. Returns null
-   * when the account isn't on a VIP-enabled subscription or the fetch fails
-   * — callers should treat null as "no discount" (0). Returns 0 when the
-   * backend returns no builder fee (fees=null) or an invalid builderFeeBips.
-   */
-  async #getVipPerpsDiscountBips(
-    account: CaipAccountId,
-    baseFeeBips: number,
-  ): Promise<number | null> {
-    if (!Number.isFinite(baseFeeBips) || baseFeeBips <= 0) return null;
-
-    const accountState = this.#getAccountState(account);
-    const subscriptionId = accountState?.subscriptionId;
-    if (!subscriptionId) return null;
-
-    const subscription = this.state.subscriptions[subscriptionId];
-    if (!subscription) return null;
-    if (!subscription?.features?.vip?.enabled) return 0;
-
-    let builderFeeBipsRaw: string;
-    const cached = this.state.vipPerpsFees[subscriptionId];
-    if (
-      cached &&
-      Date.now() - cached.lastFetched < VIP_PERPS_FEES_CACHE_THRESHOLD_MS
-    ) {
-      builderFeeBipsRaw = cached.hyperliquidBuilderFeeBips;
-    } else {
-      try {
-        const vipFeeResponse: VipFeesResponseDto = await this.#withAuthRetry(
-          () =>
-            this.messenger.call(
-              'RewardsDataService:getVipFees',
-              subscriptionId,
-            ),
-          subscriptionId,
-        );
-        const rawBuilderFee = vipFeeResponse?.fees?.hyperliquid?.builderFeeBips;
-        if (rawBuilderFee == null) return 0;
-        builderFeeBipsRaw = rawBuilderFee;
-        const next: VipPerpsFeesState = {
-          hyperliquidBuilderFeeBips: builderFeeBipsRaw,
-          lastFetched: Date.now(),
-        };
-        this.update((state) => {
-          state.vipPerpsFees[subscriptionId] = next;
-        });
-      } catch (error) {
-        Logger.log(
-          'RewardsController: VIP fees fetch failed; returning no discount:',
-          error instanceof Error ? error.message : String(error),
-        );
-        return null;
-      }
-    }
-
-    const builderFeeBips = parseFloat(builderFeeBipsRaw);
-    if (!Number.isFinite(builderFeeBips) || builderFeeBips <= 0) {
-      Logger.log(
-        'RewardsController: VIP fees returned an invalid builderFeeBips:',
-        builderFeeBipsRaw,
-      );
-      return 0;
-    }
-
-    // Valid range is [0, 10000]: 0 means VIP fee equals base (no discount),
-    // 10000 means VIP fee is 0 (100% discount). Anything outside that range
-    // would require a negative builder fee or one larger than the base —
-    // both indicate backend misconfig, so log and return 0.
-    const rawDiscountBips = Math.round(
-      10000 * (1 - builderFeeBips / baseFeeBips),
-    );
-    if (rawDiscountBips < 0 || rawDiscountBips > 10000) {
-      Logger.log(
-        'RewardsController: VIP builder fee out of valid range; returning no discount',
-        {
-          builderFeeBips,
-          baseFeeBips,
-          rawDiscountBips,
-        },
-      );
-      return 0;
-    }
-    return rawDiscountBips;
+    if (!rewardsEnabled) return 0;
+    const perpsDiscountData = await this.#getPerpsFeeDiscountData(account);
+    return perpsDiscountData?.discountBips || 0;
   }
 
   /**
@@ -2315,7 +2273,6 @@ export class RewardsController extends BaseController<
     this.update((state) => {
       // Remove the failing subscription
       delete state.subscriptions[subscriptionId];
-      delete state.vipDashboard[subscriptionId];
 
       // Clear accounts linked to this subscription only
       Object.entries(state.accounts).forEach(([caipAccount, accountState]) => {
@@ -4296,80 +4253,6 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Get the VIP dashboard with caching.
-   * @param subscriptionId - The subscription ID for authentication
-   * @returns Promise<VipDashboardState | null> - The dashboard data, or null when the user is not VIP
-   */
-  async getVIPDashboard(
-    subscriptionId: string,
-  ): Promise<VipDashboardState | null> {
-    return await wrapWithCache<VipDashboardState | null>({
-      key: subscriptionId,
-      ttl: VIP_DASHBOARD_CACHE_THRESHOLD_MS,
-      readCache: (key) => {
-        const cached = this.state.vipDashboard[key] || undefined;
-        if (!cached) return;
-        return {
-          payload: cached,
-          lastFetched: cached.lastFetched,
-        };
-      },
-      fetchFresh: async () => {
-        try {
-          Logger.log(
-            'RewardsController: Fetching fresh VIP dashboard via API call for',
-            subscriptionId,
-          );
-          const dashboard: VipDashboardDto | null = await this.#withAuthRetry(
-            () =>
-              this.messenger.call(
-                'RewardsDataService:getVIPDashboard',
-                subscriptionId,
-              ),
-            subscriptionId,
-          );
-
-          if (!dashboard) {
-            return null;
-          }
-
-          return {
-            ...dashboard,
-            lastFetched: Date.now(),
-          };
-        } catch (error) {
-          Logger.log(
-            'RewardsController: Failed to get VIP dashboard:',
-            error instanceof Error ? error.message : String(error),
-          );
-          throw error;
-        }
-      },
-      writeCache: (key, payload) => {
-        this.update((state) => {
-          if (payload) {
-            state.vipDashboard[key] = payload;
-            // A non-null dashboard means the backend considers this
-            // subscription VIP-eligible. Keep the cached subscription's
-            // feature flag in sync so consumers reading `features.vip.enabled`
-            // (e.g. the dashboard crown icon) reflect reality without needing
-            // a full subscription refetch.
-            const subscription = state.subscriptions[key];
-            if (subscription && !subscription.features?.vip?.enabled) {
-              subscription.features = {
-                ...subscription.features,
-                vip: { enabled: true },
-              };
-            }
-          } else {
-            delete state.vipDashboard[key];
-          }
-        });
-      },
-    });
-  }
-
-  /**
    * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
    * @param subscriptionId - The subscription ID for authentication
    * @param benefitId - The specific benefit ID that was impressed
@@ -4542,7 +4425,6 @@ export class RewardsController extends BaseController<
         subscriptionId,
       );
       this.update((state) => {
-        delete state.vipDashboard[subscriptionId];
         delete state.seasonStatuses[compositeKey];
         delete state.unlockedRewards[compositeKey];
         delete state.activeBoosts[compositeKey];
@@ -4571,7 +4453,6 @@ export class RewardsController extends BaseController<
     } else {
       // Invalidate all seasons for this subscription
       this.update((state) => {
-        delete state.vipDashboard[subscriptionId];
         Object.keys(state.seasonStatuses).forEach((key) => {
           if (key.includes(subscriptionId)) {
             delete state.seasonStatuses[key];
@@ -4722,6 +4603,7 @@ export class RewardsController extends BaseController<
               rank: cached.rank,
               pnl: cached.pnl,
               notionalVolume: cached.notionalVolume,
+              marginDeployed: cached.marginDeployed,
               qualified: cached.qualified,
               neighbors: cached.neighbors,
               computedAt: cached.computedAt,
@@ -4754,6 +4636,7 @@ export class RewardsController extends BaseController<
                 rank: payload.rank,
                 pnl: payload.pnl,
                 notionalVolume: payload.notionalVolume,
+                marginDeployed: payload.marginDeployed,
                 qualified: payload.qualified,
                 neighbors: payload.neighbors,
                 computedAt: payload.computedAt,

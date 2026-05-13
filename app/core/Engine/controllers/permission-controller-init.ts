@@ -30,7 +30,16 @@ export const permissionControllerInit: MessengerClientInitFunction<
   >,
   PermissionControllerMessenger,
   PermissionControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, persistedState }) => {
+> = ({
+  controllerMessenger,
+  initMessenger,
+  persistedState,
+  getMessengerClient,
+}) => {
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  const keyringController = getMessengerClient('KeyringController');
+  ///: END:ONLY_INCLUDE_IF
+
   const controller = new PermissionController({
     messenger: controllerMessenger,
     state: persistedState.PermissionController,
@@ -56,7 +65,9 @@ export const permissionControllerInit: MessengerClientInitFunction<
     permissionSpecifications: {
       ...getPermissionSpecifications(),
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-      ...getSnapPermissionSpecifications(initMessenger),
+      ...getSnapPermissionSpecifications(initMessenger, {
+        addNewKeyring: keyringController.addNewKeyring.bind(keyringController),
+      }),
       ///: END:ONLY_INCLUDE_IF
     },
     unrestrictedMethods,

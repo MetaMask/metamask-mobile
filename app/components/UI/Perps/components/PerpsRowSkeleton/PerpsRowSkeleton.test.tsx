@@ -3,12 +3,11 @@ import { render } from '@testing-library/react-native';
 import PerpsRowSkeleton from './PerpsRowSkeleton';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 
-// Mock Skeleton from MMDS
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
+// Mock Skeleton component
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const ReactNative = jest.requireActual('react-native');
   return {
-    ...actual,
+    __esModule: true,
     Skeleton: jest.fn(({ height, width, style, testID }) => (
       <ReactNative.View
         testID={testID || 'skeleton'}

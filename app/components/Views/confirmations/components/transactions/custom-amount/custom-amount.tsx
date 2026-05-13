@@ -11,7 +11,6 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
 } from '../../../hooks/pay/useTransactionPayData';
-import { useConfirmationContext } from '../../../context/confirmation-context';
 
 export interface CustomAmountProps {
   amountFiat: string;
@@ -26,14 +25,12 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   const {
     amountFiat,
     currency: currencyProp,
-    disabled: disabledProp = false,
+    disabled = false,
     hasAlert = false,
     isLoading,
     onPress,
   } = props;
 
-  const { isHeadlessBuyInProgress } = useConfirmationContext();
-  const disabled = disabledProp || isHeadlessBuyInProgress;
   const isMaxAmount = useTransactionPayIsMaxAmount();
   const isQuotesLoading = useIsTransactionPayLoading();
   const selectedCurrency = useSelector(selectCurrentCurrency);

@@ -11,10 +11,6 @@ import {
   selectPredictHotTabFlag,
   selectPredictUpDownEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
-  selectPredictWorldCupConfig,
-  selectPredictWorldCupMainFeedBannerEnabledFlag,
-  selectPredictWorldCupMainFeedTabEnabledFlag,
-  selectPredictWorldCupScreenEnabledFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
@@ -27,7 +23,6 @@ import {
 } from '../../../../../util/remoteFeatureFlag';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag';
-import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -1456,85 +1451,6 @@ describe('Predict Feature Flag Selectors', () => {
       const result = selectPredictBottomSheetEnabledFlag(state);
 
       expect(result).toBe(false);
-    });
-  });
-
-  describe('selectPredictWorldCupConfig', () => {
-    it('returns default disabled config when flag is missing', () => {
-      expect(selectPredictWorldCupConfig(mockedEmptyFlagsState)).toEqual(
-        DEFAULT_PREDICT_WORLD_CUP_FLAG,
-      );
-      expect(
-        selectPredictWorldCupMainFeedBannerEnabledFlag(mockedEmptyFlagsState),
-      ).toBe(false);
-      expect(
-        selectPredictWorldCupMainFeedTabEnabledFlag(mockedEmptyFlagsState),
-      ).toBe(false);
-      expect(
-        selectPredictWorldCupScreenEnabledFlag(mockedEmptyFlagsState),
-      ).toBe(false);
-    });
-
-    it('returns normalized config and gated booleans when enabled', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
-      const state = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictWorldCup: {
-                  enabled: true,
-                  minimumVersion: '1.0.0',
-                  showMainFeedBanner: true,
-                  showMainFeedTab: true,
-                  showWorldCupScreen: true,
-                  stages: [{ key: 'final', eventIds: ['10'] }],
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      expect(selectPredictWorldCupConfig(state)).toEqual({
-        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
-        enabled: true,
-        minimumVersion: '1.0.0',
-        showMainFeedBanner: true,
-        showMainFeedTab: true,
-        showWorldCupScreen: true,
-        stages: [{ key: 'final', eventIds: ['10'] }],
-      });
-      expect(selectPredictWorldCupMainFeedBannerEnabledFlag(state)).toBe(true);
-      expect(selectPredictWorldCupMainFeedTabEnabledFlag(state)).toBe(true);
-      expect(selectPredictWorldCupScreenEnabledFlag(state)).toBe(true);
-    });
-
-    it('returns default config when version requirement is not met', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(false);
-      const state = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictWorldCup: {
-                  enabled: true,
-                  minimumVersion: '99.0.0',
-                  showMainFeedBanner: true,
-                  showMainFeedTab: true,
-                  showWorldCupScreen: true,
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      expect(selectPredictWorldCupConfig(state)).toEqual(
-        DEFAULT_PREDICT_WORLD_CUP_FLAG,
-      );
     });
   });
 

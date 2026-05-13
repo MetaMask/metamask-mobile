@@ -18,7 +18,6 @@ import Engine from '../../../core/Engine';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TotalFiatBalancesCrossChains } from '../useGetTotalFiatBalanceCrossChains';
 import { isTestNet } from '../../../util/networks';
-import type { AggregatedBalance } from './useMultichainBalances.types';
 
 // Production balance calculation (EVM)
 const getEvmBalance = (
@@ -90,9 +89,7 @@ export const getShouldShowAggregatedPercentage = (
   return !isTestNet(chainId);
 };
 
-export const getAggregatedBalance = (
-  account: InternalAccount,
-): AggregatedBalance => {
+export const getAggregatedBalance = (account: InternalAccount) => {
   const balance = Engine.getTotalEvmFiatAccountBalance(account);
   return {
     ethFiat: balance?.ethFiat ?? 0,

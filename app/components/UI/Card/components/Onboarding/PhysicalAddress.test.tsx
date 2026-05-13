@@ -65,11 +65,11 @@ jest.mock('../../util/extractTokenExpiration', () => ({
 }));
 
 // Mock useTailwind
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
-  return { useTailwind: () => tw };
-});
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: jest.fn(() => ({
+    style: jest.fn((...args: string[]) => args),
+  })),
+}));
 
 // Mock Checkbox component
 jest.mock('../../../../../component-library/components/Checkbox', () => {

@@ -68,11 +68,6 @@ export const selectCurrentSubscription = createSelector(
       : null,
 );
 
-export const selectIsCurrentSubscriptionVipEnabled = createSelector(
-  selectCurrentSubscription,
-  (subscription): boolean => subscription?.features?.vip?.enabled === true,
-);
-
 export const selectCurrentSubscriptionAccounts = createSelector(
   [selectRewardsControllerState, selectCurrentSubscription],
   (rewardsState, subscription) =>

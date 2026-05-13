@@ -1,10 +1,8 @@
 import i18n from '../../../../../locales/i18n';
 import { DECIMALS_TO_SHOW } from '../../../../components/UI/Tokens/constants';
 import { formatWithThreshold } from '../../../../util/assets';
-import { renderFiat } from '../../../../util/number/bigint';
+import { renderFiat } from '../../../../util/number';
 import { TextColor } from '../../../components/Texts/Text';
-
-type RenderFiatCurrencyCode = Parameters<typeof renderFiat>[1];
 
 export const getFormattedAmountChange = (
   input: number,
@@ -12,7 +10,7 @@ export const getFormattedAmountChange = (
 ) =>
   `${input >= 0 ? '+' : ''}${renderFiat(
     input,
-    currentCurrency as RenderFiatCurrencyCode,
+    currentCurrency,
     DECIMALS_TO_SHOW,
   )} `;
 

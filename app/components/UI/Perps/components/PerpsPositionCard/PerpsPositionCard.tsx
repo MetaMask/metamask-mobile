@@ -293,9 +293,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       >
         <View style={styles.compactContent}>
           <View style={styles.compactLeft}>
-            <View style={styles.compactIcon}>
-              <PerpsTokenLogo symbol={position.symbol} size={iconSize} />
-            </View>
+            <PerpsTokenLogo
+              symbol={position.symbol}
+              size={iconSize}
+              style={styles.compactIcon}
+            />
             <View style={styles.compactInfo}>
               <View style={styles.compactNameRow}>
                 <Text

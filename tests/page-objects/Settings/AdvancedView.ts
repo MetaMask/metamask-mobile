@@ -30,9 +30,7 @@ class AdvancedSettingsView {
   }
 
   get resetConfirmButton(): DetoxElement {
-    return Matchers.getElementByID(
-      AdvancedViewSelectorsIDs.RESET_ACCOUNT_CONFIRM_BUTTON,
-    );
+    return Matchers.getElementByText(AdvancedViewSelectorsText.RESET_CONFIRMED);
   }
 
   async tapShowFiatOnTestnetsSwitch(): Promise<void> {

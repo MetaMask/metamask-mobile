@@ -21,7 +21,7 @@ import { createStyles } from './PerpsCrossMarginWarningBottomSheet.styles';
 import { useTheme } from '../../../../../util/theme';
 
 interface PerpsCrossMarginWarningBottomSheetProps {
-  sheetRef?: React.RefObject<BottomSheetRef | null>;
+  sheetRef?: React.RefObject<BottomSheetRef>;
   onClose?: () => void;
 }
 

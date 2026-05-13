@@ -4,11 +4,11 @@ import { Text, View, TouchableOpacity } from 'react-native';
 import OnboardingStep from './OnboardingStep';
 
 // Mock dependencies
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
-  return { useTailwind: () => tw };
-});
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: jest.fn(() => ({
+    style: jest.fn((...args) => args.join(' ')),
+  })),
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');

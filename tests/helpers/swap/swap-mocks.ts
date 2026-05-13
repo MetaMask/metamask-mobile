@@ -81,16 +81,6 @@ export async function setupSpotPricesMock(mockServer: Mockttp): Promise<void> {
   });
 }
 
-export const mockSwapPopularTokens = async (
-  mockServer: Mockttp,
-): Promise<void> =>
-  await setupMockRequest(mockServer, {
-    requestMethod: 'POST',
-    url: /getTokens\/popular/i,
-    response: GET_POPULAR_TOKENS_MAINNET_RESPONSE,
-    responseCode: 200,
-  });
-
 /**
  * Social leaderboard + compliance batch — used by swap `testSpecificMock` and
  * bridge/trending specs that do not use swap-mocks’ full mock bundle.
@@ -226,7 +216,12 @@ export const testSpecificMock: TestSpecificMock = async (
   });
 
   // Mock popular tokens (POST - for token selector)
-  await mockSwapPopularTokens(mockServer);
+  await setupMockRequest(mockServer, {
+    requestMethod: 'POST',
+    url: /getTokens\/popular/i,
+    response: GET_POPULAR_TOKENS_MAINNET_RESPONSE,
+    responseCode: 200,
+  });
 
   // Mock API tokens for USDC
   await setupMockRequest(mockServer, {

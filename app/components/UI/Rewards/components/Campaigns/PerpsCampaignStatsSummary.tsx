@@ -32,6 +32,7 @@ export const PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS = {
   RANK: 'perps-campaign-stats-summary-rank',
   PNL: 'perps-campaign-stats-summary-pnl',
   NOTIONAL_VOLUME: 'perps-campaign-stats-summary-notional-volume',
+  MARGIN_DEPLOYED: 'perps-campaign-stats-summary-margin-deployed',
   PENDING_TAG: 'perps-campaign-stats-summary-pending-tag',
   QUALIFIED_TAG: 'perps-campaign-stats-summary-qualified-tag',
   QUALIFIED_CARD: 'perps-campaign-stats-summary-qualified-card',
@@ -78,6 +79,10 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
 
   const volumeDisplay = leaderboardPosition
     ? formatUsd(leaderboardPosition.notionalVolume)
+    : '—';
+
+  const marginDisplay = leaderboardPosition
+    ? formatUsd(leaderboardPosition.marginDeployed)
     : '—';
 
   const notionalGap = leaderboardPosition
@@ -135,7 +140,11 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
             value={volumeDisplay}
             testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOTIONAL_VOLUME}
           />
-          <Box twClassName="flex-1" />
+          <StatCell
+            label={strings('rewards.perps_trading_campaign.label_margin')}
+            value={marginDisplay}
+            testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARGIN_DEPLOYED}
+          />
         </Box>
       )}
 

@@ -11,7 +11,7 @@ interface CommandResult {
 
 const checkerPath = path.resolve(
   __dirname,
-  '../../scripts/check-ab-testing-compliance.sh',
+  '../../.agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh',
 );
 
 const AB_TESTS_KEY = `ab_${'tests'}`;

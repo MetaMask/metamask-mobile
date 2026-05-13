@@ -28,7 +28,6 @@ export interface InfoRowProps {
   tooltip?: ReactNode;
   tooltipTitle?: string;
   tooltipColor?: IconColor;
-  tooltipDisabled?: boolean;
   style?: Record<string, unknown>;
   labelChildren?: React.ReactNode;
   testID?: string;
@@ -53,7 +52,6 @@ const InfoRow = ({
   tooltip,
   tooltipTitle,
   tooltipColor,
-  tooltipDisabled,
   testID,
   variant = TextColor.Alternative,
   copyText,
@@ -91,7 +89,6 @@ const InfoRow = ({
             {!labelChildren && tooltip && (
               <Tooltip
                 content={tooltip}
-                disabled={tooltipDisabled}
                 onPress={onTooltipPress}
                 title={tooltipTitle ?? label}
                 iconColor={tooltipColor}

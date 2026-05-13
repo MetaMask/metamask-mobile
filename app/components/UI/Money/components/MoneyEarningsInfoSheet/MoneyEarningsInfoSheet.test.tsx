@@ -88,10 +88,26 @@ describe('MoneyEarningsInfoSheet', () => {
     expect(getByText(strings('money.earnings_tooltip.body'))).toBeOnTheScreen();
   });
 
-  it('does not render a Got It footer button', () => {
-    const { queryByTestId } = renderWithProvider(<MoneyEarningsInfoSheet />);
+  it('renders the Got It footer button', () => {
+    const { getByTestId } = renderWithProvider(<MoneyEarningsInfoSheet />);
 
-    expect(queryByTestId('money-earnings-info-sheet-got-it-button')).toBeNull();
+    expect(
+      getByTestId(MoneyEarningsInfoSheetTestIds.GOT_IT_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the correct label on the Got It button', () => {
+    const { getByText } = renderWithProvider(<MoneyEarningsInfoSheet />);
+
+    expect(getByText(strings('browser.got_it'))).toBeOnTheScreen();
+  });
+
+  it('closes the sheet when the Got It button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyEarningsInfoSheet />);
+
+    fireEvent.press(getByTestId(MoneyEarningsInfoSheetTestIds.GOT_IT_BUTTON));
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
   });
 
   it('closes the sheet when the close button is pressed', () => {

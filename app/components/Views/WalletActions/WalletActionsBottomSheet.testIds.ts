@@ -4,7 +4,6 @@ export const WalletActionsBottomSheetSelectorsIDs = {
   SEND_BUTTON: 'wallet-send-button',
   RECEIVE_BUTTON: 'wallet-receive-action',
   SWAP_BUTTON: 'wallet-actions-bottom-sheet-swap-button',
-  BATCH_SELL_BUTTON: 'wallet-actions-bottom-sheet-batch-sell-button',
   BUY_BUTTON: 'wallet-buy-action',
   BUY_UNIFIED_BUTTON: 'wallet-buy-unified-action',
   SELL_BUTTON: 'wallet-sell-action',

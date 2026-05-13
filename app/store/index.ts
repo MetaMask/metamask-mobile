@@ -15,10 +15,6 @@ import { onPersistedDataLoaded } from '../actions/user';
 import { setBasicFunctionality } from '../actions/settings';
 import Logger from '../util/Logger';
 import devToolsEnhancer from 'redux-devtools-expo-dev-plugin';
-import {
-  clearAttribution,
-  expireAttributionIfStale,
-} from '../core/redux/slices/attribution';
 
 // TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
@@ -78,15 +74,6 @@ const createStoreAndPersistor = async () => {
     store.dispatch(
       setBasicFunctionality(currentState.settings.basicFunctionalityEnabled),
     );
-
-    // Clear attribution when marketing consent has not been explicitly granted.
-    // The opt-out saga handles future consent toggles, but persisted attribution
-    // can rehydrate while security.dataCollectionForMarketing is false or null.
-    if (currentState.security.dataCollectionForMarketing !== true) {
-      store.dispatch(clearAttribution());
-    } else {
-      store.dispatch(expireAttributionIfStale());
-    }
   };
 
   persistor = persistStore(store, null, onPersistComplete);

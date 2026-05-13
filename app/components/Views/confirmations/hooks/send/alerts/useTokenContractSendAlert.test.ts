@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-hooks';
 
 import {
   memoizedGetTokenStandardAndDetails,
@@ -120,12 +120,13 @@ describe('useTokenContractSendAlert', () => {
       standard: 'ERC20',
     } as Awaited<ReturnType<typeof memoizedGetTokenStandardAndDetails>>);
 
-    const { result } = renderHook(() => useTokenContractSendAlert());
+    const { result, waitForNextUpdate } = renderHook(() =>
+      useTokenContractSendAlert(),
+    );
 
-    await waitFor(() => {
-      expect(result.current.alert).not.toBeNull();
-    });
+    await waitForNextUpdate();
 
+    expect(result.current.alert).not.toBeNull();
     expect(result.current.alert?.key).toBe('tokenContract');
     expect(result.current.alert?.title).toBe('Smart contract address');
     expect(result.current.alert?.message).toBe('Token contract warning');
@@ -135,25 +136,27 @@ describe('useTokenContractSendAlert', () => {
   it('returns null alert when address is not a token contract', async () => {
     mockGetTokenDetails.mockResolvedValue({});
 
-    const { result } = renderHook(() => useTokenContractSendAlert());
+    const { result, waitForNextUpdate } = renderHook(() =>
+      useTokenContractSendAlert(),
+    );
 
-    await waitFor(() => {
-      expect(result.current.isPending).toBe(false);
-    });
+    await waitForNextUpdate();
 
     expect(result.current.alert).toBeNull();
+    expect(result.current.isPending).toBe(false);
   });
 
   it('returns null alert when token details lookup throws', async () => {
     mockGetTokenDetails.mockRejectedValue(new Error('lookup failed'));
 
-    const { result } = renderHook(() => useTokenContractSendAlert());
+    const { result, waitForNextUpdate } = renderHook(() =>
+      useTokenContractSendAlert(),
+    );
 
-    await waitFor(() => {
-      expect(result.current.isPending).toBe(false);
-    });
+    await waitForNextUpdate();
 
     expect(result.current.alert).toBeNull();
+    expect(result.current.isPending).toBe(false);
   });
 
   it('reports isPending while the token check is in progress', async () => {
@@ -193,7 +196,7 @@ describe('useTokenContractSendAlert', () => {
 
     mockGetTokenDetails.mockResolvedValueOnce({});
 
-    rerender(undefined);
+    rerender();
 
     await act(async () => {
       resolveFirst({ standard: 'ERC20' } as TokenResult);

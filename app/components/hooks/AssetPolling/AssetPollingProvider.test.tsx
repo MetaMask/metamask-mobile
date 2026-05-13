@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import useCurrencyRatePolling from './useCurrencyRatePolling';
 import useTokenRatesPolling from './useTokenRatesPolling';
 import useTokenDetectionPolling from './useTokenDetectionPolling';
+import useTokenListPolling from './useTokenListPolling';
 import useTokenBalancesPolling from './useTokenBalancesPolling';
 
 import { AssetPollingProvider } from './AssetPollingProvider';
@@ -17,6 +18,7 @@ jest.mock('react-redux', () => ({
 jest.mock('./useCurrencyRatePolling', () => jest.fn());
 jest.mock('./useTokenRatesPolling', () => jest.fn());
 jest.mock('./useTokenDetectionPolling', () => jest.fn());
+jest.mock('./useTokenListPolling', () => jest.fn());
 jest.mock('./useTokenBalancesPolling', () => jest.fn());
 jest.mock('./useAccountTrackerPolling', () => jest.fn());
 jest.mock('./useMultichainAssetsRatePolling', () => jest.fn());
@@ -32,6 +34,7 @@ describe('AssetPollingProvider', () => {
   const mockUseCurrencyRatePolling = jest.mocked(useCurrencyRatePolling);
   const mockUseTokenRatesPolling = jest.mocked(useTokenRatesPolling);
   const mockUseTokenDetectionPolling = jest.mocked(useTokenDetectionPolling);
+  const mockUseTokenListPolling = jest.mocked(useTokenListPolling);
   const mockUseTokenBalancesPolling = jest.mocked(useTokenBalancesPolling);
   const mockUseMultichainAssetsRatePolling = jest.mocked(
     useMultichainAssetsRatePolling,
@@ -54,6 +57,7 @@ describe('AssetPollingProvider', () => {
     expect(mockUseCurrencyRatePolling).toHaveBeenCalledWith(undefined);
     expect(mockUseTokenRatesPolling).toHaveBeenCalledWith(undefined);
     expect(mockUseTokenDetectionPolling).toHaveBeenCalledWith(undefined);
+    expect(mockUseTokenListPolling).toHaveBeenCalledWith(undefined);
     expect(mockUseTokenBalancesPolling).toHaveBeenCalledWith(undefined);
     expect(mockUseMultichainAssetsRatePolling).toHaveBeenCalledWith({
       accountId: 'mock-account-id',
@@ -79,6 +83,10 @@ describe('AssetPollingProvider', () => {
     expect(mockUseTokenDetectionPolling).toHaveBeenCalledWith({
       chainIds: CHAIN_IDS_MOCK,
       address: '0x1234567890abcdef',
+    });
+
+    expect(mockUseTokenListPolling).toHaveBeenCalledWith({
+      chainIds: CHAIN_IDS_MOCK,
     });
 
     expect(mockUseTokenBalancesPolling).toHaveBeenCalledWith({

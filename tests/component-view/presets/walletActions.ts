@@ -44,11 +44,6 @@ export const initialStateWalletActions = (
         backgroundState: {
           PreferencesController: {
             isIpfsGatewayEnabled: false,
-            tokenSortConfig: {
-              key: 'tokenFiatAmount',
-              order: 'dsc',
-              sortCallback: 'stringNumeric',
-            },
           },
           TokenBalancesController: { tokenBalances: {} },
           TokensController: {

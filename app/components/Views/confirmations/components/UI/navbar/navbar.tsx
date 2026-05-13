@@ -1,6 +1,16 @@
 import React, { ReactNode } from 'react';
-import { ViewStyle } from 'react-native';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import { StyleSheet, View, ViewStyle } from 'react-native';
+import { colors as importedColors } from '../../../../../../styles/common';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import {
+  default as MorphText,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
+import Device from '../../../../../../util/device';
+import { Theme } from '../../../../../../util/theme/models';
 
 /**
  * Optional overrides for navbar customization.
@@ -14,14 +24,14 @@ export interface NavbarOverrides {
   headerRight?: (onPress: () => void) => ReactNode;
   /** Additional styles to merge with header */
   headerStyle?: ViewStyle;
+  headerTitleAlign?: 'left' | 'center';
 }
 
 export interface NavbarOptions {
   title: string;
   onReject?: () => void;
   addBackButton?: boolean;
-  /** @deprecated No longer used. Theming is handled by the bg-default Tailwind token. */
-  theme?: unknown;
+  theme: Theme;
   overrides?: NavbarOverrides;
 }
 
@@ -29,46 +39,71 @@ export function getNavbar({
   title,
   onReject,
   addBackButton = true,
+  theme,
   overrides,
 }: NavbarOptions) {
+  const innerStyles = StyleSheet.create({
+    headerLeft: {
+      marginHorizontal: 16,
+      display: addBackButton ? undefined : 'none',
+    },
+    headerTitle: {
+      alignItems: 'center',
+      marginRight: Device.isAndroid() ? 60 : undefined,
+    },
+    headerStyle: {
+      backgroundColor: theme.colors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+  });
+
   function handleBackPress() {
     if (onReject) {
       onReject();
     }
   }
 
-  const customTitle = overrides?.headerTitle?.();
-  const customLeft = overrides?.headerLeft
-    ? overrides.headerLeft(handleBackPress)
-    : undefined;
-  const customRight = overrides?.headerRight
-    ? overrides.headerRight(handleBackPress)
-    : undefined;
+  const defaultHeaderTitle = () => (
+    <View style={innerStyles.headerTitle}>
+      <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
+    </View>
+  );
+
+  const defaultHeaderLeft = () => (
+    <ButtonIcon
+      size={ButtonIconSizes.Md}
+      iconName={IconName.ArrowLeft}
+      onPress={handleBackPress}
+      style={innerStyles.headerLeft}
+      testID={`${title}-navbar-back-button`}
+    />
+  );
+
+  const customHeaderLeft = overrides?.headerLeft;
+  const customHeaderRight = overrides?.headerRight;
 
   return {
-    header: () => (
-      <HeaderCompactStandard
-        title={title}
-        onBack={addBackButton ? handleBackPress : undefined}
-        backButtonProps={
-          addBackButton ? { testID: `${title}-navbar-back-button` } : undefined
-        }
-        startAccessory={customLeft}
-        endAccessory={customRight}
-        style={overrides?.headerStyle}
-        includesTopInset
-        twClassName="bg-default"
-      >
-        {customTitle}
-      </HeaderCompactStandard>
-    ),
+    headerTitleAlign: overrides?.headerTitleAlign ?? ('center' as const),
+    headerTitle: overrides?.headerTitle ?? defaultHeaderTitle,
+    headerLeft: customHeaderLeft
+      ? () => customHeaderLeft(handleBackPress)
+      : defaultHeaderLeft,
+    headerRight: customHeaderRight
+      ? () => customHeaderRight(handleBackPress)
+      : () => null,
+    headerStyle: {
+      ...innerStyles.headerStyle,
+      ...overrides?.headerStyle,
+    },
   };
 }
 
-export function getEmptyNavHeader() {
+export function getEmptyNavHeader({ theme }: { theme: Theme }) {
   const navbarOptions = getNavbar({
     title: '',
     addBackButton: false,
+    theme,
   });
   return {
     ...navbarOptions,

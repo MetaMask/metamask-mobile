@@ -14,7 +14,6 @@ describe(SmokeSnaps('Snap RPC Tests'), () => {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,
-        disableSynchronization: true,
       },
       async () => {
         await loginToApp();

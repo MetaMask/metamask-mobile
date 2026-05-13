@@ -15,8 +15,7 @@ jobs:
       github.event.label.name == 'skip-smart-e2e-selection' ||
       github.event.label.name == 'skip-e2e' ||
       github.event.label.name == 'skip-e2e-flakiness-detection' ||
-      github.event.label.name == 'pr-not-ready-for-e2e' ||
-      github.event.label.name == 'force-builds'
+      github.event.label.name == 'pr-not-ready-for-e2e'
     runs-on: ubuntu-latest
     permissions:
       actions: write

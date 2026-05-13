@@ -210,7 +210,7 @@ import type {
   WebviewParams,
   SimpleWebviewParams,
 } from '../../components/Views/Webview/Webview.types';
-import type { WhatsHappeningSourceValue } from '../../components/Views/Homepage/Sections/WhatsHappening/constants';
+import type { WhatsHappeningItem } from '../../components/Views/Homepage/Sections/WhatsHappening/types';
 
 /**
  * Generic type for nested navigation params.
@@ -346,7 +346,7 @@ export interface RootStackParamList extends ParamListBase {
   TrendingView: undefined;
   TrendingFeed: undefined;
   WhatsHappeningDetailView:
-    | { initialIndex?: number; source: WhatsHappeningSourceValue }
+    | { items: WhatsHappeningItem[]; initialIndex: number }
     | undefined;
   SitesFullView: { mode?: 'favorites' } | undefined;
   ExploreSearch: undefined;
@@ -523,7 +523,6 @@ export interface RootStackParamList extends ParamListBase {
   Bridge: BridgeRouteParams | undefined;
   BridgeView: BridgeRouteParams | undefined;
   BridgeTokenSelector: BridgeTokenSelectorRouteParams | undefined;
-  BatchSellTokenSelect: undefined;
   BridgeModals: undefined;
   DefaultSlippageModal: DefaultSlippageModalParams | undefined;
   CustomSlippageModal: CustomSlippageModalParams | undefined;

@@ -11,7 +11,6 @@ import {
   HardwareWalletAdapterOptions,
 } from '../types';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
-import { CAMERA_PERMISSION_STATUS } from '../../../constants/permissions';
 
 /**
  * Adapter for QR hardware wallets.
@@ -94,7 +93,7 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
 
   /**
    * For QR wallets, device readiness requires camera permission.
-   * This requests permission for non-granted statuses and emits an error if still denied.
+   * This checks camera permission and emits an error if denied.
    */
   async ensureDeviceReady(deviceId: string): Promise<boolean> {
     if (this.#isDestroyed) {
@@ -170,7 +169,7 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
 
   /**
    * Ensures camera permission is granted.
-   * Requests permission for non-granted statuses, then emits an error if still denied.
+   * Requests permission if not determined, emits error if denied.
    */
   async ensurePermissions(): Promise<boolean> {
     return this.#checkCameraPermission();
@@ -183,9 +182,7 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
    */
   async isTransportAvailable(): Promise<boolean> {
     try {
-      return (
-        Camera.getCameraPermissionStatus() === CAMERA_PERMISSION_STATUS.granted
-      );
+      return Camera.getCameraPermissionStatus() === 'granted';
     } catch (error) {
       DevLogger.log(
         '[QRWalletAdapter] Error checking transport availability:',
@@ -246,25 +243,28 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
   /**
    * Checks camera permission status and handles the flow:
    * - granted: returns true
-   * - non-granted: requests permission, then emits ConnectionFailed if still denied
+   * - not-determined: requests permission
+   * - denied: emits ConnectionFailed event with CameraPermissionDenied error
    */
   async #checkCameraPermission(): Promise<boolean> {
     try {
       const status = Camera.getCameraPermissionStatus();
       DevLogger.log('[QRWalletAdapter] Camera permission status:', status);
 
-      if (status === CAMERA_PERMISSION_STATUS.granted) {
+      if (status === 'granted') {
         return true;
       }
 
-      const newStatus = await Camera.requestCameraPermission();
-      DevLogger.log(
-        '[QRWalletAdapter] Camera permission after request:',
-        newStatus,
-      );
+      if (status === 'not-determined') {
+        const newStatus = await Camera.requestCameraPermission();
+        DevLogger.log(
+          '[QRWalletAdapter] Camera permission after request:',
+          newStatus,
+        );
 
-      if (newStatus === CAMERA_PERMISSION_STATUS.granted) {
-        return true;
+        if (newStatus === 'granted') {
+          return true;
+        }
       }
 
       this.#emitCameraPermissionDenied();

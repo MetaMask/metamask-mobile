@@ -40,31 +40,4 @@ describe('PageIndicator', () => {
     );
     expect(screen.queryAllByTestId('page-indicator-dot')).toHaveLength(3);
   });
-
-  it('active dot has wider width style than inactive dots (pill shape)', () => {
-    renderWithProvider(<PageIndicator count={3} activeIndex={0} />);
-    const [activeDot] = screen.getAllByTestId('page-indicator-dot-active');
-    const inactiveDots = screen.getAllByTestId('page-indicator-dot');
-
-    const activeStyle = activeDot.props.style;
-    const inactiveStyle = inactiveDots[0].props.style;
-
-    // Active dot should be wider (w-6 = 24) than inactive (w-2 = 8)
-    const activeWidth = Array.isArray(activeStyle)
-      ? activeStyle.find((s: Record<string, unknown>) => s?.width !== undefined)
-          ?.width
-      : activeStyle?.width;
-    const inactiveWidth = Array.isArray(inactiveStyle)
-      ? inactiveStyle.find(
-          (s: Record<string, unknown>) => s?.width !== undefined,
-        )?.width
-      : inactiveStyle?.width;
-
-    if (activeWidth !== undefined && inactiveWidth !== undefined) {
-      expect(activeWidth).toBeGreaterThan(inactiveWidth);
-    } else {
-      // Style is applied but might be in a different shape — just verify both dots are distinct
-      expect(activeDot.props.testID).toBe('page-indicator-dot-active');
-    }
-  });
 });

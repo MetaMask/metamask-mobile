@@ -11,10 +11,7 @@ import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { testSpecificMock } from '../../helpers/swap/bridge-mocks';
-import {
-  mockSwapPopularTokens,
-  setupSwapSocialAndComplianceMocks,
-} from '../../helpers/swap/swap-mocks';
+import { setupSwapSocialAndComplianceMocks } from '../../helpers/swap/swap-mocks';
 import { GET_QUOTE_ETH_USDC_RESPONSE } from '../../helpers/swap/constants';
 import { getDecodedProxiedURL } from '../notifications/utils/helpers';
 import { SmokeSwap } from '../../tags';
@@ -162,7 +159,6 @@ const withBridgeFixtures = async (run: () => Promise<void>) => {
         await setupSwapsTrendingTokensMock(mockServer);
         await setupTrendingTokensMock(mockServer);
         await setupQuoteFallbackMock(mockServer);
-        await mockSwapPopularTokens(mockServer);
       },
     },
     run,

@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { useCardSDK } from '../sdk';
 import {
   PhoneVerificationVerifyRequest,
@@ -106,26 +106,32 @@ describe('usePhoneVerificationVerify', () => {
     });
 
     it('sets loading state during verification process', async () => {
-      let loadingDuringCall = false;
-      mockPhoneVerificationVerify.mockImplementation(() => {
-        // Capture that the SDK method was called (hook sets isLoading=true before this)
-        loadingDuringCall = true;
-        return Promise.resolve(mockUserResponse);
-      });
+      let resolveVerification!: (value: typeof mockUserResponse) => void;
+      const verificationPromise = new Promise<typeof mockUserResponse>(
+        (resolve) => {
+          resolveVerification = resolve;
+        },
+      );
+
+      mockPhoneVerificationVerify.mockReturnValue(verificationPromise);
 
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
-      await act(async () => {
-        await result.current.verifyPhoneVerification(mockVerifyRequest);
+      act(() => {
+        result.current.verifyPhoneVerification(mockVerifyRequest);
       });
 
-      // SDK method was called (proves loading path was entered)
-      expect(loadingDuringCall).toBe(true);
-      // After completion: loading=false, success=true
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.isSuccess).toBe(true);
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isSuccess).toBe(false);
       expect(result.current.isError).toBe(false);
       expect(result.current.error).toBeNull();
+
+      await act(async () => {
+        resolveVerification(mockUserResponse);
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.isSuccess).toBe(true);
     });
 
     it('throws error when SDK is not available', async () => {
@@ -136,16 +142,12 @@ describe('usePhoneVerificationVerify', () => {
 
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
-      let thrownError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.verifyPhoneVerification(mockVerifyRequest);
-        } catch (e) {
-          thrownError = e;
-        }
-      });
+        }),
+      ).rejects.toThrow('Card SDK not initialized');
 
-      expect(thrownError).toEqual(new Error('Card SDK not initialized'));
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
       expect(result.current.isError).toBe(false);
@@ -161,16 +163,12 @@ describe('usePhoneVerificationVerify', () => {
 
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
-      let thrownError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.verifyPhoneVerification(mockVerifyRequest);
-        } catch (e) {
-          thrownError = e;
-        }
-      });
+        }),
+      ).rejects.toThrow(apiError);
 
-      expect(thrownError).toBe(apiError);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
       expect(result.current.isError).toBe(true);
@@ -184,16 +182,12 @@ describe('usePhoneVerificationVerify', () => {
 
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
-      let thrownError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.verifyPhoneVerification(mockVerifyRequest);
-        } catch (e) {
-          thrownError = e;
-        }
-      });
+        }),
+      ).rejects.toThrow(networkError);
 
-      expect(thrownError).toBe(networkError);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
       expect(result.current.isError).toBe(true);
@@ -207,16 +201,12 @@ describe('usePhoneVerificationVerify', () => {
 
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
-      let thrownError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.verifyPhoneVerification(mockVerifyRequest);
-        } catch (e) {
-          thrownError = e;
-        }
-      });
+        }),
+      ).rejects.toThrow(genericError);
 
-      expect(thrownError).toBe(genericError);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
       expect(result.current.isError).toBe(true);
@@ -235,15 +225,16 @@ describe('usePhoneVerificationVerify', () => {
 
       expect(result.current.isSuccess).toBe(true);
 
-      // Second verification also succeeds — success state is maintained
-      await act(async () => {
+      // Second verification should reset success state initially
+      const secondPromise = act(async () => {
         await result.current.verifyPhoneVerification(mockVerifyRequest);
       });
 
+      // During the call, success should be reset
+      expect(result.current.isSuccess).toBe(false);
+
+      await secondPromise;
       expect(result.current.isSuccess).toBe(true);
-      expect(result.current.isLoading).toBe(false);
-      // Verify the SDK was called twice (both verifications ran)
-      expect(mockPhoneVerificationVerify).toHaveBeenCalledTimes(2);
     });
 
     it('resets error state for new verification', async () => {
@@ -254,16 +245,12 @@ describe('usePhoneVerificationVerify', () => {
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
       // First verification with error
-      let thrownError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.verifyPhoneVerification(mockVerifyRequest);
-        } catch (e) {
-          thrownError = e;
-        }
-      });
+        }),
+      ).rejects.toThrow(error);
 
-      expect(thrownError).toBe(error);
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Mocked error message');
 
@@ -286,16 +273,12 @@ describe('usePhoneVerificationVerify', () => {
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
       // Set error state
-      let thrownError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.verifyPhoneVerification(mockVerifyRequest);
-        } catch (e) {
-          thrownError = e;
-        }
-      });
+        }),
+      ).rejects.toThrow(error);
 
-      expect(thrownError).toBe(error);
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Mocked error message');
 
@@ -342,16 +325,12 @@ describe('usePhoneVerificationVerify', () => {
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
       // Set error state
-      let thrownError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.verifyPhoneVerification(mockVerifyRequest);
-        } catch (e) {
-          thrownError = e;
-        }
-      });
+        }),
+      ).rejects.toThrow(error);
 
-      expect(thrownError).toBe(error);
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Mocked error message');
 
@@ -390,16 +369,11 @@ describe('usePhoneVerificationVerify', () => {
 
       const { result } = renderHook(() => usePhoneVerificationVerify());
 
-      let thrownError: unknown;
-      await act(async () => {
-        try {
+      await expect(
+        act(async () => {
           await result.current.verifyPhoneVerification(mockVerifyRequest);
-        } catch (e) {
-          thrownError = e;
-        }
-      });
-
-      expect(thrownError).toEqual(new Error('Card SDK not initialized'));
+        }),
+      ).rejects.toThrow('Card SDK not initialized');
     });
   });
 
@@ -440,7 +414,7 @@ describe('usePhoneVerificationVerify', () => {
         reset: result.current.reset,
       };
 
-      rerender(undefined);
+      rerender();
 
       expect(result.current.verifyPhoneVerification).toBe(
         firstRenderFunctions.verifyPhoneVerification,

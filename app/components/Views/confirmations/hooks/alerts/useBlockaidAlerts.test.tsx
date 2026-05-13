@@ -130,9 +130,7 @@ describe('useBlockaidAlerts', () => {
     const { result } = renderHook(() => useBlockaidAlerts());
 
     const selectAlert = result.current[0];
-    const onContactUsClicked = (
-      selectAlert.content?.props as { onContactUsClicked: () => void }
-    ).onContactUsClicked;
+    const onContactUsClicked = selectAlert.content?.props.onContactUsClicked;
 
     onContactUsClicked();
 

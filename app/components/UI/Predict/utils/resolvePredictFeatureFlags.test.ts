@@ -3,7 +3,6 @@ import {
   DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
-  DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
 import { resolvePredictFeatureFlags } from './resolvePredictFeatureFlags';
 
@@ -32,7 +31,6 @@ describe('resolvePredictFeatureFlags', () => {
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
       predictUpDownEnabled: false,
-      predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
     });
   });
 
@@ -187,98 +185,6 @@ describe('resolvePredictFeatureFlags', () => {
 
     expect(result.fakOrdersEnabled).toBe(true);
     expect(result.predictWithAnyTokenEnabled).toBe(false);
-  });
-
-  describe('predictWorldCup', () => {
-    it('returns default disabled config when flag is missing', () => {
-      const result = resolvePredictFeatureFlags({});
-
-      expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
-    });
-
-    it('falls back to default disabled config when version gate fails', () => {
-      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (flag && typeof flag === 'object' && 'seriesId' in flag) {
-          return false;
-        }
-        return undefined;
-      });
-
-      const result = resolvePredictFeatureFlags({
-        remoteFeatureFlags: {
-          predictWorldCup: {
-            enabled: true,
-            minimumVersion: '99.0.0',
-            showMainFeedBanner: true,
-            showMainFeedTab: true,
-            showWorldCupScreen: true,
-            stages: [{ key: 'final', eventIds: ['1'] }],
-          },
-        },
-      });
-
-      expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
-    });
-
-    it('parses config with defaults when version gate passes', () => {
-      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (flag && typeof flag === 'object' && 'seriesId' in flag) {
-          return true;
-        }
-        return undefined;
-      });
-
-      const result = resolvePredictFeatureFlags({
-        remoteFeatureFlags: {
-          predictWorldCup: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-            showMainFeedBanner: true,
-            showMainFeedTab: true,
-            showWorldCupScreen: true,
-            bannerImageUrl: 'https://example.com/banner.png',
-            stages: [
-              {
-                key: 'group_stage',
-                labelKey: 'predict.world_cup.stages.group_stage',
-                eventIds: ['100', '101'],
-              },
-            ],
-          },
-        },
-      });
-
-      expect(result.predictWorldCup).toEqual({
-        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
-        enabled: true,
-        minimumVersion: '1.0.0',
-        showMainFeedBanner: true,
-        showMainFeedTab: true,
-        showWorldCupScreen: true,
-        bannerImageUrl: 'https://example.com/banner.png',
-        stages: [
-          {
-            key: 'group_stage',
-            labelKey: 'predict.world_cup.stages.group_stage',
-            eventIds: ['100', '101'],
-          },
-        ],
-      });
-    });
-
-    it('falls back to default when schema parsing fails', () => {
-      const result = resolvePredictFeatureFlags({
-        remoteFeatureFlags: {
-          predictWorldCup: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-            showMainFeedBanner: 'yes',
-          },
-        },
-      });
-
-      expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
-    });
   });
 
   describe('extendedSportsMarketsLeagues', () => {

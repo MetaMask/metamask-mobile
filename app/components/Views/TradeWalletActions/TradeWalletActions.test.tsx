@@ -187,11 +187,6 @@ jest.mock('../../../core/AppConstants', () => {
   };
 });
 
-jest.mock('../../../constants/bridge', () => ({
-  ...jest.requireActual('../../../constants/bridge'),
-  BATCH_SELL_ENABLED: true,
-}));
-
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   fiatOrders: {
@@ -322,7 +317,7 @@ describe('TradeWalletActions', () => {
         .fn()
         .mockImplementation((callback) => callback(mockInitialState)),
     }));
-    const { getByTestId, getByText, queryByTestId } = renderScreen(
+    const { getByTestId, queryByTestId } = renderScreen(
       TradeWalletActions,
       {
         name: 'TradeWalletActions',
@@ -332,10 +327,6 @@ describe('TradeWalletActions', () => {
       },
     );
 
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
-    ).toBeDefined();
-    expect(getByText('New')).toBeOnTheScreen();
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     ).toBeDefined();
@@ -652,9 +643,6 @@ describe('TradeWalletActions', () => {
     const swapButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
     );
-    const batchSellButton = getByTestId(
-      WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON,
-    );
     const earnButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
     );
@@ -667,7 +655,6 @@ describe('TradeWalletActions', () => {
 
     // Test that disabled buttons don't execute their actions when pressed
     fireEvent.press(swapButton);
-    fireEvent.press(batchSellButton);
     fireEvent.press(earnButton);
     fireEvent.press(perpsButton);
     fireEvent.press(predictButton);

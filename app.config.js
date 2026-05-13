@@ -81,8 +81,6 @@ module.exports = {
         ],
       },
     ],
-    'expo-asset',
-    '@react-native-community/datetimepicker',
   ],
   android: {
     package:

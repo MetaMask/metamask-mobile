@@ -26,10 +26,7 @@ import {
   UnrealizedPnL,
 } from '../types';
 import { Hex } from '@metamask/utils';
-import {
-  TransactionType,
-  type TransactionMeta,
-} from '@metamask/transaction-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { PredictFeatureFlags } from '../types/flags';
 
 // Re-export shared types so existing provider-layer imports continue to work
@@ -102,26 +99,6 @@ export interface ClaimOrderParams {
   signer: Signer;
 }
 
-export interface BeforeSignClaimParams {
-  transactionMeta: TransactionMeta;
-  signer: Signer;
-  positions: PredictPosition[];
-}
-
-export interface BeforeSignClaimResult {
-  updateTransaction?: (transaction: TransactionMeta) => void;
-}
-
-export interface PublishClaimParams {
-  transactionMeta: TransactionMeta;
-  signer: Signer;
-  positions: PredictPosition[];
-}
-
-export interface PublishClaimResult {
-  transactionHash?: string;
-}
-
 export interface ClaimOrderResponse {
   chainId: number;
   transactions: {
@@ -177,10 +154,6 @@ export interface PredictProvider {
   ): Promise<OrderResult>;
 
   prepareClaim(params: ClaimOrderParams): Promise<ClaimOrderResponse>;
-  beforeSignClaim?(
-    params: BeforeSignClaimParams,
-  ): Promise<BeforeSignClaimResult | undefined>;
-  publishClaim?(params: PublishClaimParams): Promise<PublishClaimResult>;
   confirmClaim?(params: { positions: PredictPosition[]; signer: Signer }): void;
 
   isEligible(): Promise<GeoBlockResponse>;

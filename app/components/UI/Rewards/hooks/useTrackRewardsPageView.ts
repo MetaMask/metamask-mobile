@@ -5,7 +5,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 interface UseTrackRewardsPageViewParams {
   page_type: string;
   campaign_id?: string;
-  enabled?: boolean;
 }
 
 /**
@@ -16,14 +15,11 @@ interface UseTrackRewardsPageViewParams {
 const useTrackRewardsPageView = ({
   page_type,
   campaign_id,
-  enabled = true,
 }: UseTrackRewardsPageViewParams): void => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const trackedKey = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!enabled) return;
-
     const key = `${page_type}::${campaign_id ?? ''}`;
     if (trackedKey.current === key) return;
 
@@ -39,7 +35,7 @@ const useTrackRewardsPageView = ({
         .build(),
     );
     trackedKey.current = key;
-  }, [trackEvent, createEventBuilder, page_type, campaign_id, enabled]);
+  }, [trackEvent, createEventBuilder, page_type, campaign_id]);
 };
 
 export default useTrackRewardsPageView;

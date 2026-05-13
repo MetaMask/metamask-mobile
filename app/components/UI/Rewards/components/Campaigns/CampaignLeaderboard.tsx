@@ -92,7 +92,9 @@ export function CampaignLeaderboardEntryRow<
           >
             {entry.referralCode}
           </Text>
-          {showCrown && <CrownIcon name="crown" width={14} height={14} />}
+          {showCrown && entry.rank <= 5 && (
+            <CrownIcon name="crown" width={14} height={14} />
+          )}
         </Box>
         {showPendingTag && (
           <PendingTag

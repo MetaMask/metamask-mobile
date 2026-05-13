@@ -11,7 +11,7 @@ import CellMultiSelectWithMenu from '../../../components-temp/CellSelectWithMenu
 import { CellProps, CellVariant } from './Cell.types';
 import { CellComponentSelectorsIDs } from './CellComponent.testIds';
 
-const Cell = ({ variant, ...props }: CellProps) => {
+const Cell = ({ variant, hitSlop, ...props }: CellProps) => {
   switch (variant) {
     case CellVariant.Display:
       return (

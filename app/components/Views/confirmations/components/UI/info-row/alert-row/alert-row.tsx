@@ -69,9 +69,7 @@ const AlertRow = ({
 
   const alertRowProps = {
     ...props,
-    variant: alertSelected
-      ? getAlertTextColors(alertSelected.severity)
-      : props.variant,
+    variant: getAlertTextColors(alertSelected?.severity),
     tooltipColor:
       props.tooltipColor ??
       (isSmall ? getAlertIconColors(alertSelected?.severity) : undefined),

@@ -1,13 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
+import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Card,
-} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -16,6 +10,7 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -38,6 +33,7 @@ import {
 } from '../../utils/orderUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -105,12 +101,15 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   source,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
 }) => {
+  const { styles } = useStyles(styleSheet, { iconSize });
   const navigation = useNavigation();
   const { track } = usePerpsEventTracking();
   const privacyMode = useSelector(selectPrivacyMode);
 
+  // Determine which type of data we have
   const symbol = position?.symbol || order?.symbol || '';
 
+  // Get all markets data to find the specific market when navigating
   const { markets } = usePerpsMarkets();
 
   const displayData = position
@@ -119,6 +118,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       ? getOrderDisplayData(order)
       : null;
 
+  // Memoize market lookup to avoid array search on every press
   const market = useMemo(
     () => markets.find((m) => m.symbol === symbol),
     [markets, symbol],
@@ -128,7 +128,9 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     if (onPress) {
       onPress();
     } else if (market) {
+      // Track open position button click if this is a position
       if (position) {
+        // Map source to button_location
         const buttonLocation =
           source === PERPS_EVENT_VALUE.SOURCE.POSITION_TAB
             ? PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_TAB
@@ -149,6 +151,8 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       } else if (position) {
         initialTab = 'position';
       }
+      // Navigate to market details with the full market data
+      // When navigating from a tab, we need to navigate through the root stack
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
@@ -165,40 +169,34 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   }
 
   return (
-    <Card
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.7}
       onPress={handlePress}
       testID={testID}
-      touchableOpacityProps={{ activeOpacity: 0.7 }}
-      twClassName="py-3 px-0 border-0 rounded-none bg-transparent"
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
-        alignItems={BoxAlignItems.Center}
-      >
+      <View style={styles.cardContent}>
         {/* Left side: Icon and info */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="flex-1"
-        >
+        <View style={styles.cardLeft}>
           {symbol && (
-            <Box marginRight={4}>
-              <PerpsTokenLogo symbol={symbol} size={iconSize} />
-            </Box>
+            <PerpsTokenLogo
+              symbol={symbol}
+              size={iconSize}
+              style={styles.assetIcon}
+            />
           )}
-          <Box twClassName="flex-1">
+          <View style={styles.cardInfo}>
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
               {displayData?.primaryText ?? ''}
             </Text>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {displayData?.secondaryText ?? ''}
             </Text>
-          </Box>
-        </Box>
+          </View>
+        </View>
 
         {/* Right side: Value and label */}
-        <Box alignItems={BoxAlignItems.End}>
+        <View style={styles.cardRight}>
           <SensitiveText
             variant={TextVariant.BodyMDMedium}
             color={TextColor.Default}
@@ -219,9 +217,9 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           >
             {displayData?.labelText ?? ''}
           </SensitiveText>
-        </Box>
-      </Box>
-    </Card>
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 };
 

@@ -16,7 +16,6 @@ import {
   FontWeight,
   IconColor,
   IconName,
-  IconSize,
   Skeleton,
   Text,
   TextColor,
@@ -121,6 +120,7 @@ const MoneyBalanceCard = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
         >
           <Text
             variant={TextVariant.BodySm}
@@ -132,7 +132,7 @@ const MoneyBalanceCard = () => {
           </Text>
           <ButtonIcon
             iconName={IconName.Info}
-            iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
+            iconProps={{ color: IconColor.IconDefault }}
             size={ButtonIconSize.Sm}
             onPress={handleInfoPress}
             accessibilityLabel={strings('money.balance_card.info_sheet_title')}
@@ -141,7 +141,7 @@ const MoneyBalanceCard = () => {
         </Box>
         <Box
           flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.End}
+          alignItems={BoxAlignItems.Center}
           twClassName="gap-2"
         >
           {isAggregatedBalanceLoading ? (
@@ -164,24 +164,22 @@ const MoneyBalanceCard = () => {
             <Skeleton
               height={20}
               width={60}
+              twClassName="rounded-md"
               testID={MoneyBalanceCardTestIds.APY_TAG_SKELETON}
             />
           ) : (
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.SuccessDefault}
+            <Box
+              twClassName="self-center rounded-md bg-success-muted px-2 py-0.5"
               testID={MoneyBalanceCardTestIds.APY_TAG}
             >
-              {strings('money.apy_label', { percentage: apyPercent ?? 0 })}
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
+                color={TextColor.SuccessDefault}
               >
-                {strings('money.apy_currency_suffix')}
+                {strings('money.apy_label', { percentage: apyPercent ?? 0 })}
               </Text>
-            </Text>
+            </Box>
           )}
         </Box>
       </Box>

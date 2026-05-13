@@ -168,19 +168,6 @@ export const selectBenefits = (
 export const selectBenefitsLoading = (state: RootState): boolean =>
   state.rewards.benefitsLoading;
 
-// VIP dashboard selectors
-export const selectVipDashboard =
-  (subscriptionId: string | null | undefined) => (state: RootState) =>
-    subscriptionId
-      ? (state.rewards.vipDashboard?.[subscriptionId] ?? null)
-      : null;
-
-export const selectVipDashboardLoading = (state: RootState): boolean =>
-  state.rewards.vipDashboardLoading;
-
-export const selectVipDashboardError = (state: RootState): boolean =>
-  state.rewards.vipDashboardError;
-
 // Campaigns selectors
 export const selectCampaigns = (
   state: RootState,

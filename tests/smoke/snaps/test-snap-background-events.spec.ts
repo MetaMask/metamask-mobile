@@ -18,7 +18,6 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
-        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -35,7 +34,6 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
-        disableSynchronization: true,
       },
       async () => {
         const futureDate = new Date(Date.now() + 5_000).toISOString();
@@ -59,7 +57,6 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
-        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('backgroundEventDurationInput', 'PT5S');
@@ -81,7 +78,6 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
-        disableSynchronization: true,
       },
       async () => {
         // Intentionally scheduling an event for 1 hour into the future, so it
@@ -118,18 +114,26 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
-        disableSynchronization: true,
       },
       async () => {
         const pastDate = new Date(Date.now() - 5_000).toISOString();
 
         await TestSnaps.fillMessage('backgroundEventDateInput', pastDate);
         await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
-        await Assertions.expectTextDisplayed(
-          'Cannot schedule an event in the past.',
-          { timeout: 30000 },
-        );
-        await TestSnaps.dismissAlert();
+        // iOS shows the error as a native alert; Android renders it in the
+        // web-view result span as JSON with escaped quotes.
+        if (device.getPlatform() === 'ios') {
+          await Assertions.expectTextDisplayed(
+            'Cannot schedule an event in the past.',
+            { timeout: 30000 },
+          );
+        } else {
+          await TestSnaps.checkResultSpanIncludes(
+            'scheduleBackgroundEventResultSpan',
+            'Cannot schedule an event in the past.',
+            { timeout: 30000 },
+          );
+        }
       },
     );
   });

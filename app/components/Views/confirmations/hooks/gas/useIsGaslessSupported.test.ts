@@ -8,17 +8,12 @@ import { transferTransactionStateMock } from '../../__mocks__/transfer-transacti
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useIsGaslessSupported } from './useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmartTransactions';
-import { isHardwareAccount } from '../../../../../util/address';
 
 jest.mock('../../../../../util/transactions/sentinel-api');
 jest.mock('../../../../../util/transaction-controller');
 jest.mock('../../../../../util/transactions/transaction-relay');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('./useGaslessSupportedSmartTransactions');
-jest.mock('../../../../../util/address', () => ({
-  ...jest.requireActual('../../../../../util/address'),
-  isHardwareAccount: jest.fn(),
-}));
 
 const SMART_TRANSACTIONS_ENABLED_STATE = {
   swaps: {
@@ -59,7 +54,6 @@ describe('useIsGaslessSupported', () => {
   const useGaslessSupportedSmartTransactionsMock = jest.mocked(
     useGaslessSupportedSmartTransactions,
   );
-  const isHardwareAccountMock = jest.mocked(isHardwareAccount);
 
   beforeEach(() => {
     mockUseTransactionMetadataRequest.mockReturnValue({
@@ -72,7 +66,6 @@ describe('useIsGaslessSupported', () => {
       isSupported: false,
       pending: false,
     });
-    isHardwareAccountMock.mockReturnValue(false);
   });
 
   describe('Gasless Smart Transactions', () => {
@@ -95,32 +88,6 @@ describe('useIsGaslessSupported', () => {
       await waitFor(() =>
         expect(result.current).toEqual({
           isSupported: true,
-          isSmartTransaction: true,
-          pending: false,
-        }),
-      );
-    });
-
-    it('returns isSupported false when smart transactions are enabled but sender is a hardware wallet', async () => {
-      const stateWithSmartTransactionEnabled = merge(
-        {},
-        transferConfirmationState,
-        SMART_TRANSACTIONS_ENABLED_STATE,
-      );
-      useGaslessSupportedSmartTransactionsMock.mockReturnValue({
-        isSmartTransaction: true,
-        isSupported: true,
-        pending: false,
-      });
-      isHardwareAccountMock.mockReturnValue(true);
-
-      const { result } = renderHookWithProvider(() => useIsGaslessSupported(), {
-        state: stateWithSmartTransactionEnabled,
-      });
-
-      await waitFor(() =>
-        expect(result.current).toEqual({
-          isSupported: false,
           isSmartTransaction: true,
           pending: false,
         }),
@@ -180,24 +147,6 @@ describe('useIsGaslessSupported', () => {
       await waitFor(() => {
         expect(result.current).toEqual({
           isSupported: true,
-          isSmartTransaction: false,
-          pending: false,
-        });
-      });
-    });
-
-    it('returns isSupported false when the sender is a hardware wallet even if relay is supported', async () => {
-      isRelaySupportedMock.mockResolvedValue(true);
-      isHardwareAccountMock.mockReturnValue(true);
-
-      const state = merge({}, transferTransactionStateMock);
-      const { result } = renderHookWithProvider(() => useIsGaslessSupported(), {
-        state,
-      });
-
-      await waitFor(() => {
-        expect(result.current).toEqual({
-          isSupported: false,
           isSmartTransaction: false,
           pending: false,
         });

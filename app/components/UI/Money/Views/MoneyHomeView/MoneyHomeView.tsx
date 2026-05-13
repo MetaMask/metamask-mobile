@@ -36,7 +36,6 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
-import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { AssetType } from '../../../../Views/confirmations/types/token';
@@ -51,6 +50,10 @@ const getMoneyHomeState = (transactionCount: number): MoneyHomeState => {
   if (transactionCount < 10) return 'milestone';
   return 'filled';
 };
+
+/** Placeholder until Money home actions are implemented */
+// eslint-disable-next-line no-alert
+const displayUnderConstructionAlert = () => alert('Under construction 🚧');
 
 const MoneyHomeView = () => {
   const navigation = useNavigation();
@@ -71,7 +74,6 @@ const MoneyHomeView = () => {
   const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
-  const { canLink, linkInBackground } = useMoneyAccountCardLinkage();
   const geolocation = useSelector(getDetectedGeolocation);
   const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
 
@@ -94,8 +96,7 @@ const MoneyHomeView = () => {
       1 / 12,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
-    const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
-    return formatted === formattedZero ? formatted : `+${formatted}`;
+    return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   const yearlyEarnings = useMemo(() => {
@@ -108,8 +109,7 @@ const MoneyHomeView = () => {
       1,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
-    const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
-    return formatted === formattedZero ? formatted : `+${formatted}`;
+    return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   const handleMenuPress = useCallback(() => {
@@ -134,15 +134,15 @@ const MoneyHomeView = () => {
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation]);
 
-  const handleLinkCardPress = useCallback(async () => {
-    if (isCardholder && canLink) {
-      await linkInBackground();
-      return;
-    }
+  const handleLinkCardPress = useCallback(() => {
     navigation.navigate(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
     });
-  }, [isCardholder, canLink, linkInBackground, navigation]);
+  }, [navigation]);
+
+  const handleGetNowPress = useCallback(() => {
+    navigation.navigate(Routes.CARD.ROOT);
+  }, [navigation]);
 
   const handleApyInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -157,18 +157,14 @@ const MoneyHomeView = () => {
     });
   }, [navigation]);
 
-  const handleEarnCryptoInfoPress = useCallback(() => {
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
-    });
-  }, [navigation]);
-
   const handleMusdRowPress = useCallback(() => {
     NavigationService.navigation.navigate('Asset', {
       ...MUSD_MAINNET_ASSET_FOR_DETAILS,
       source: TokenDetailsSource.MobileTokenListPage,
     });
   }, []);
+
+  const handleHeaderPress = displayUnderConstructionAlert;
 
   const handleTokenConvertPress = useCallback(
     async (token: AssetType) => {
@@ -231,20 +227,6 @@ const MoneyHomeView = () => {
     handleAddPress,
   ]);
 
-  let metamaskCardMode: 'upsell' | 'link' | 'manage';
-  if (isCardholderWithMilestone && isUS) {
-    metamaskCardMode = 'manage';
-  } else if (isCardholderWithMilestone) {
-    metamaskCardMode = 'link';
-  } else {
-    metamaskCardMode = 'upsell';
-  }
-
-  // No selector yet for the user's card balance — fall back to a locale-
-  // formatted zero so the manage row always shows a value rather than a
-  // blank slot under "Avail. balance".
-  const cardBalance: string = formattedZero;
-
   return (
     <Box
       style={[styles.safeArea, { paddingTop: insets.top }]}
@@ -300,11 +282,7 @@ const MoneyHomeView = () => {
             <MoneyActivityList
               transactions={allTransactions}
               moneyAddress={moneyAddress}
-              onViewAllPress={
-                allTransactions.length < 5
-                  ? undefined
-                  : handleViewAllActivityPress
-              }
+              onViewAllPress={handleViewAllActivityPress}
               onHeaderPress={handleActivityHeaderPress}
               onItemPress={handleActivityItemPress}
             />
@@ -319,20 +297,17 @@ const MoneyHomeView = () => {
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}
-              onInfoPress={handleEarnCryptoInfoPress}
             />
             <Divider />
           </>
         )}
         <MoneyMetaMaskCard
-          mode={metamaskCardMode}
-          onGetNowPress={handleCardPress}
-          onHeaderPress={handleCardPress}
+          mode={isCardholderWithMilestone ? 'link' : 'upsell'}
+          onGetNowPress={handleGetNowPress}
+          onHeaderPress={handleHeaderPress}
           onLinkPress={handleLinkCardPress}
-          onManagePress={handleCardPress}
-          showMetalCard={isUS}
-          cardBalance={cardBalance}
           apy={apyPercent}
+          showMetalCard={isUS}
         />
         <Divider />
         {isMilestone && (

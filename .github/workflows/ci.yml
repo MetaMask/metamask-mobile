@@ -70,7 +70,7 @@ jobs:
       - name: Clean state and following up dependencies installation with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
-          timeout_minutes: 20
+          timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn setup:github-ci
@@ -83,41 +83,6 @@ jobs:
           else
             echo "No changes detected"
           fi
-
-  post-build-source-hash:
-    name: Post build-source-hash commit status
-    runs-on: ubuntu-latest
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
-    permissions:
-      contents: read
-      statuses: write
-    needs:
-      - get_requirements
-    outputs:
-      fingerprint: ${{ steps.publish.outputs.fingerprint }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-      - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Post build-source-hash commit status
-        id: publish
-        uses: ./.github/actions/post-build-source-hash
-        with:
-          github-token: ${{ github.token }}
-          # .head.sha = PR head (pull_request events); github.sha fallback = pushed/scheduled commit
-          # (push to main, merge_group, schedule) where no PR payload exists.
-          target-sha: ${{ github.event.pull_request.head.sha || github.sha }}
 
   dedupe:
     name: Dedupe
@@ -831,15 +796,12 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      actions: read
-      statuses: read
-      pull-requests: read
-    needs: [get_requirements, smart-e2e-selection, post-build-source-hash]
+    needs: [get_requirements, smart-e2e-selection]
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
-      source-fingerprint: ${{ needs.post-build-source-hash.outputs.fingerprint }}
+      keystore_target: 'qa'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
@@ -872,13 +834,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      actions: read
-      statuses: read
-      pull-requests: read
-    needs: [get_requirements, smart-e2e-selection, post-build-source-hash]
+    needs: [get_requirements, smart-e2e-selection]
     uses: ./.github/workflows/build-ios-e2e.yml
     with:
-      source-fingerprint: ${{ needs.post-build-source-hash.outputs.fingerprint }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
@@ -925,6 +883,7 @@ jobs:
       split_number: 1
       total_splits: 1
       build_type: 'main'
+      metamask_environment: 'qa'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 

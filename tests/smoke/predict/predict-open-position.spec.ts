@@ -2,6 +2,8 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import Assertions from '../../framework/Assertions';
@@ -62,8 +64,9 @@ describe(SmokePredictions('Predictions'), () => {
       },
       async ({ mockServer }) => {
         await loginToApp();
-        await WalletView.scrollAndTapPredictionsSection();
 
+        await TabBarComponent.tapActions();
+        await WalletActionsBottomSheet.tapPredictButton();
         await device.disableSynchronization();
 
         await Assertions.expectElementToBeVisible(PredictMarketList.container, {
@@ -106,7 +109,8 @@ describe(SmokePredictions('Predictions'), () => {
         await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
 
         await PredictDetailsPage.tapBackButton();
-        await WalletView.scrollAndTapPredictionsSection();
+        await TabBarComponent.tapActions();
+        await WalletActionsBottomSheet.tapPredictButton();
         await Assertions.expectTextDisplayed(positionDetails.newBalance);
       },
     );

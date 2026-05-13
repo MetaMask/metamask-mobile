@@ -30,6 +30,9 @@ const styleSheet = (params: StyleSheetParams) => {
       flex: 1,
     },
     compactIcon: {
+      width: iconSize,
+      height: iconSize,
+      borderRadius: iconSize / 2,
       marginRight: 12,
     },
     compactInfo: {

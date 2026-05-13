@@ -6,11 +6,10 @@ import {
   StyleSheet,
   TextInput,
   NativeSyntheticEvent,
+  TextInputFocusEventData,
   TouchableWithoutFeedback,
   TextInputSelectionChangeEventData,
   TextStyle,
-  type BlurEvent,
-  type FocusEvent,
 } from 'react-native';
 
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -59,7 +58,7 @@ const TextField = React.forwardRef<
     >(undefined);
 
     const onBlurHandler = useCallback(
-      (e: BlurEvent) => {
+      (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
         if (!isDisabled) {
           setIsFocused(false);
           onBlur?.(e);
@@ -72,7 +71,7 @@ const TextField = React.forwardRef<
     );
 
     const onFocusHandler = useCallback(
-      (e: FocusEvent) => {
+      (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
         if (!isDisabled) {
           setIsFocused(true);
           onFocus?.(e);

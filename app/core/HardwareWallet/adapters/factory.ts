@@ -1,7 +1,6 @@
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapter, HardwareWalletAdapterOptions } from '../types';
 import { LedgerBluetoothAdapter } from './LedgerBluetoothAdapter';
-import { QRWalletAdapter } from './QRWalletAdapter';
 import { NonHardwareAdapter } from './NonHardwareAdapter';
 
 /**
@@ -23,9 +22,6 @@ export function createAdapter(
   switch (walletType) {
     case HardwareWalletType.Ledger:
       return new LedgerBluetoothAdapter(options);
-
-    case HardwareWalletType.Qr:
-      return new QRWalletAdapter(options);
 
     default:
       return new NonHardwareAdapter(options);

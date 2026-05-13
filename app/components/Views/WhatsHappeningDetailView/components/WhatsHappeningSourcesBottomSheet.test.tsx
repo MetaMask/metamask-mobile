@@ -112,7 +112,6 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         articles={articles as never}
         item={mockItem}
         cardIndex={0}
-        source="homepage"
       />,
     );
     expect(screen.getByText('coindesk.com')).toBeOnTheScreen();
@@ -126,7 +125,6 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         articles={articles as never}
         item={mockItem}
         cardIndex={0}
-        source="homepage"
       />,
     );
     fireEvent.press(screen.getByText('coindesk.com'));
@@ -141,7 +139,6 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         articles={articles as never}
         item={mockItem}
         cardIndex={0}
-        source="homepage"
       />,
     );
     fireEvent.press(screen.getByText('coindesk.com'));
@@ -155,7 +152,6 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         articles={articles as never}
         item={mockItem}
         cardIndex={0}
-        source="homepage"
       />,
     );
     expect(screen.getByText('News sources')).toBeOnTheScreen();
@@ -168,7 +164,6 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         articles={[]}
         item={mockItem}
         cardIndex={0}
-        source="homepage"
       />,
     );
     expect(screen.queryByText('coindesk.com')).toBeNull();
@@ -181,24 +176,22 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         articles={articles as never}
         item={mockItem}
         cardIndex={3}
-        source="homepage"
       />,
     );
     fireEvent.press(screen.getByText('coindesk.com'));
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTION,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTION,
         properties: expect.objectContaining({
           interaction_type: 'source_click',
-          article_url: 'https://coindesk.com/fed-pauses',
-          source: 'homepage',
-          trend_id: 'trend-7',
+          source: 'https://coindesk.com/fed-pauses',
+          event_id: 'trend-7',
           card_index: 3,
-          trend_category: 'macro',
-          trend_impact: 'positive',
+          category: 'macro',
+          impact: 'positive',
           asset_symbols: ['BTC'],
         }),
       }),
@@ -213,12 +206,11 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         articles={articles as never}
         item={mockItem}
         cardIndex={0}
-        source="homepage"
       />,
     );
     fireEvent.press(screen.getByText('coindesk.com'));
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTION,
     );
   });
 });

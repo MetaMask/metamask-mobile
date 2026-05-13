@@ -367,7 +367,7 @@ describe('HeadlessHost', () => {
       expect(screen.getByText('Daily limit exceeded')).toBeOnTheScreen();
     });
 
-    it('does not surface a continueWithQuote rejection that arrives after unmount', async () => {
+    it('does not run the continueWithQuote rejection path after unmount', async () => {
       let rejectDeferred: ((error: Error) => void) | undefined;
       mockContinueWithQuote.mockImplementation(
         () =>
@@ -383,23 +383,12 @@ describe('HeadlessHost', () => {
         expect(mockContinueWithQuote).toHaveBeenCalledTimes(1),
       );
       unmount();
-      // Phase 8: unmount fires the dismissal close because the session
-      // had not reached a terminal status. After unmount the session is
-      // gone from the registry, so the .catch's live-session re-read
-      // short-circuits and does not produce a second onClose or an
-      // onError. (The .catch's `cancelled` flag is independent React
-      // unmount-state protection; this test does not exercise it
-      // directly.)
-      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
-      expect(callbacks.onClose).toHaveBeenCalledWith({
-        reason: 'user_dismissed',
-      });
-      expect(getSession(session.id)).toBeUndefined();
       await act(async () => {
         rejectDeferred?.(new Error('late failure'));
       });
       expect(callbacks.onError).not.toHaveBeenCalled();
-      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(getSession(session.id)?.status).toBe('continued');
     });
 
     it('forwards a nativeFlowError param as onError(AUTH_FAILED, ...), renders it, and closes the session', () => {
@@ -443,139 +432,6 @@ describe('HeadlessHost', () => {
       // Even though onError throws, the close path still runs and the
       // session is gone from the registry.
       await waitFor(() => expect(getSession(session.id)).toBeUndefined());
-    });
-  });
-
-  describe('Dismissal (Phase 8)', () => {
-    it('fires onClose({ reason: "user_dismissed" }) and navigates back when the cancel button is pressed mid-flow', async () => {
-      // Make continueWithQuote hang so the session stays non-terminal while
-      // the user taps Cancel — this is the typical dismissal path.
-      mockContinueWithQuote.mockImplementation(
-        () => new Promise(() => undefined),
-      );
-      const quote = buildAggregatorQuote();
-      const session = seedSession(quote);
-      const callbacks = session.callbacks;
-      renderHost({ headlessSessionId: session.id });
-      await waitFor(() =>
-        expect(mockContinueWithQuote).toHaveBeenCalledTimes(1),
-      );
-
-      fireEvent.press(screen.getByTestId(HEADLESS_HOST_CANCEL_BUTTON_TEST_ID));
-
-      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
-      expect(callbacks.onClose).toHaveBeenCalledWith({
-        reason: 'user_dismissed',
-      });
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(getSession(session.id)).toBeUndefined();
-    });
-
-    it('fires onClose({ reason: "user_dismissed" }) and navigates back when the header back button is pressed mid-flow', async () => {
-      mockContinueWithQuote.mockImplementation(
-        () => new Promise(() => undefined),
-      );
-      const quote = buildAggregatorQuote();
-      const session = seedSession(quote);
-      const callbacks = session.callbacks;
-      renderHost({ headlessSessionId: session.id });
-      await waitFor(() =>
-        expect(mockContinueWithQuote).toHaveBeenCalledTimes(1),
-      );
-
-      fireEvent.press(screen.getByTestId(HEADLESS_HOST_BACK_BUTTON_TEST_ID));
-
-      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
-      expect(callbacks.onClose).toHaveBeenCalledWith({
-        reason: 'user_dismissed',
-      });
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(getSession(session.id)).toBeUndefined();
-    });
-
-    it('fires onClose({ reason: "user_dismissed" }) once when the host unmounts mid-flow without a terminal status', async () => {
-      mockContinueWithQuote.mockImplementation(
-        () => new Promise(() => undefined),
-      );
-      const quote = buildAggregatorQuote();
-      const session = seedSession(quote);
-      const callbacks = session.callbacks;
-      const { unmount } = renderHost({ headlessSessionId: session.id });
-      await waitFor(() =>
-        expect(mockContinueWithQuote).toHaveBeenCalledTimes(1),
-      );
-
-      unmount();
-
-      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
-      expect(callbacks.onClose).toHaveBeenCalledWith({
-        reason: 'user_dismissed',
-      });
-      expect(getSession(session.id)).toBeUndefined();
-    });
-
-    it('does not fire a second onClose when the session was already closed by Phase 6 success before unmount', async () => {
-      mockContinueWithQuote.mockImplementation(
-        () => new Promise(() => undefined),
-      );
-      const quote = buildAggregatorQuote();
-      const session = seedSession(quote);
-      const callbacks = session.callbacks;
-      const { unmount } = renderHost({ headlessSessionId: session.id });
-      await waitFor(() =>
-        expect(mockContinueWithQuote).toHaveBeenCalledTimes(1),
-      );
-
-      // Simulate Phase 6: useTransakRouting / Checkout fires
-      // closeSession({ reason: 'completed' }) after onOrderCreated.
-      closeSession(session.id, { reason: 'completed' });
-      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
-      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'completed' });
-
-      unmount();
-
-      // Dismissal hook re-reads from the registry on cleanup, sees the
-      // session is gone, and no-ops. No second onClose.
-      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not fire a second onClose when a Phase 7 nativeFlowError already closed the session before unmount', () => {
-      const quote = buildNativeQuote();
-      const session = seedSession(quote);
-      const callbacks = session.callbacks;
-      const { unmount } = renderHost({
-        headlessSessionId: session.id,
-        nativeFlowError: 'OTP rejected',
-      });
-
-      // Phase 7: nativeFlowError handler funnels through failSession →
-      // closeSession({ reason: 'unknown' }, { terminalStatus: 'failed' }).
-      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
-      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
-
-      unmount();
-
-      // Dismissal hook re-reads, sees nothing, no-ops.
-      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
-    });
-
-    it('no-ops on unmount when the host mounted against an already-terminated session', () => {
-      const quote = buildAggregatorQuote();
-      const session = seedSession(quote);
-      const callbacks = session.callbacks;
-      // Cancel before the screen mounts; matches the existing
-      // "skips orchestration" assertion but additionally verifies the
-      // dismissal cleanup does not produce a spurious second onClose.
-      closeSession(session.id, { reason: 'consumer_cancelled' });
-      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
-      expect(callbacks.onClose).toHaveBeenCalledWith({
-        reason: 'consumer_cancelled',
-      });
-
-      const { unmount } = renderHost({ headlessSessionId: session.id });
-      unmount();
-
-      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
     });
   });
 });

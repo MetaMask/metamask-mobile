@@ -1,14 +1,17 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { WalletDevice } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { addTransactionBatch } from '../../../../util/transaction-controller';
+import {
+  addTransaction,
+  addTransactionBatch,
+} from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { selectEvmAddress } from '../../../../selectors/accountsController';
 import {
   buildMoneyAccountDepositBatch,
-  buildMoneyAccountWithdrawBatch,
+  buildMoneyAccountWithdraw,
   getMoneyAccountDepositAssetAddress,
 } from '../utils/moneyAccountTransactions';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
@@ -106,63 +109,64 @@ export function useMoneyAccountDeposit() {
 export function useMoneyAccountWithdrawal() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const recipient = useSelector(selectEvmAddress);
   const { navigateToConfirmation } = useConfirmNavigation();
 
-  const initiateWithdrawal = useCallback(async () => {
-    if (!vaultConfig) {
-      throw new Error(`${LOG_TAG} Missing vault config`);
-    }
-    if (!primaryMoneyAccount?.address) {
-      throw new Error(`${LOG_TAG} Missing money account address`);
-    }
-    if (!recipient) {
-      throw new Error(`${LOG_TAG} Missing recipient EVM address`);
-    }
+  const initiateWithdrawal = useCallback(
+    async (amount: bigint) => {
+      if (!vaultConfig) {
+        throw new Error(`${LOG_TAG} Missing vault config`);
+      }
+      if (!primaryMoneyAccount?.address) {
+        throw new Error(`${LOG_TAG} Missing money account address`);
+      }
 
-    const { chainId, tellerAddress, accountantAddress } = vaultConfig;
+      const { chainId, tellerAddress, accountantAddress } = vaultConfig;
 
-    const chainIdHex = chainId as Hex;
-    const provider = getProviderByChainId(chainIdHex);
-    if (!provider) {
-      throw new Error(`${LOG_TAG} No provider available for chain ${chainId}`);
-    }
+      const chainIdHex = chainId as Hex;
+      const provider = getProviderByChainId(chainIdHex);
+      if (!provider) {
+        throw new Error(
+          `${LOG_TAG} No provider available for chain ${chainId}`,
+        );
+      }
 
-    const networkClientId = resolveNetworkClientId(chainIdHex);
+      const networkClientId = resolveNetworkClientId(chainIdHex);
 
-    // Placeholder amount — MM Pay re-encodes both calls via
-    // `updateMoneyAccountWithdrawTokenAmount` once the user picks an amount.
-    const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
-      amount: BigInt(0),
-      chainId: chainIdHex,
-      tellerAddress: tellerAddress as Hex,
-      accountantAddress: accountantAddress as Hex,
-      moneyAccountAddress: primaryMoneyAccount.address as Hex,
-      recipient: recipient as Hex,
-      provider,
-    });
-
-    // Navigate early for better UX; recover on failure below.
-    navigateToConfirmation({
-      loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.MONEY.ROOT,
-    });
-
-    try {
-      await addTransactionBatch({
-        from: primaryMoneyAccount.address as Hex,
-        networkClientId,
-        origin: ORIGIN_METAMASK,
-        disableHook: true,
-        disableSequential: true,
-        transactions: [withdrawTx, transferTx],
+      const { params, options } = await buildMoneyAccountWithdraw({
+        amount,
+        chainId: chainIdHex,
+        tellerAddress,
+        accountantAddress,
+        toAddress: primaryMoneyAccount.address as Hex,
+        provider,
       });
-    } catch (error) {
-      Logger.error(error as Error, `${LOG_TAG} Withdrawal transaction failed`);
-      // Rethrow so the caller can roll back navigation / surface a toast.
-      throw error;
-    }
-  }, [navigateToConfirmation, primaryMoneyAccount, recipient, vaultConfig]);
+
+      // Navigate early for better UX; recover on failure below.
+      navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+        stack: Routes.MONEY.ROOT,
+      });
+
+      try {
+        await addTransaction(
+          { from: primaryMoneyAccount.address as Hex, ...params },
+          {
+            ...options,
+            networkClientId,
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          },
+        );
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          `${LOG_TAG} Withdrawal transaction failed`,
+        );
+        // Rethrow so the caller can roll back navigation / surface a toast.
+        throw error;
+      }
+    },
+    [navigateToConfirmation, primaryMoneyAccount, vaultConfig],
+  );
 
   return { initiateWithdrawal };
 }

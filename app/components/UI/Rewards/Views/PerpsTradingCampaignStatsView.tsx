@@ -47,6 +47,7 @@ export const PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS = {
   CONTAINER: 'perps-campaign-stats-view-container',
   PERFORMANCE_PNL: 'perps-campaign-stats-view-performance-pnl',
   PERFORMANCE_VOLUME: 'perps-campaign-stats-view-performance-volume',
+  PERFORMANCE_MARGIN: 'perps-campaign-stats-view-performance-margin',
   QUALIFIED_CARD: 'perps-campaign-stats-view-qualified-card',
   QUALIFY_FOR_RANK_CARD: 'perps-campaign-stats-view-qualify-for-rank-card',
   LAST_COMPUTED: 'perps-campaign-stats-view-last-computed',
@@ -95,6 +96,7 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
     : TextColor.TextDefault;
 
   const volumeValue = position ? formatUsd(position.notionalVolume) : '—';
+  const marginValue = position ? formatUsd(position.marginDeployed) : '—';
   const isQualified = position != null && position.qualified;
   const isPending = position != null && !position.qualified;
 
@@ -174,7 +176,11 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
                 valueColor={pnlColor}
                 testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_PNL}
               />
-              {!isCampaignComplete ? (
+              <Box twClassName="flex-1" />
+            </Box>
+
+            {!isCampaignComplete && (
+              <Box flexDirection={BoxFlexDirection.Row}>
                 <StatCell
                   label={strings('rewards.perps_trading_campaign.label_volume')}
                   value={volumeValue}
@@ -182,10 +188,15 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
                   suffix={isQualified ? <CheckIcon /> : undefined}
                   testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME}
                 />
-              ) : (
-                <Box twClassName="flex-1" />
-              )}
-            </Box>
+                <StatCell
+                  label={strings('rewards.perps_trading_campaign.label_margin')}
+                  value={marginValue}
+                  isLoading={isLoading}
+                  suffix={isQualified ? <CheckIcon /> : undefined}
+                  testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARGIN}
+                />
+              </Box>
+            )}
 
             {showQualifiedCard && (
               <Box

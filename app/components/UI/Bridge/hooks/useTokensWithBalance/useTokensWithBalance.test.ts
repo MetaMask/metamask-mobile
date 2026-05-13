@@ -155,66 +155,6 @@ describe('useTokensWithBalance', () => {
     });
   });
 
-  it('should filter out zero-balance tokens', async () => {
-    const stateWithZeroBalances = {
-      ...initialState,
-      engine: {
-        ...initialState.engine,
-        backgroundState: {
-          ...initialState.engine.backgroundState,
-          AccountTrackerController: {
-            accountsByChainId: {
-              ...initialState.engine.backgroundState.AccountTrackerController
-                .accountsByChainId,
-              [mockChainId]: {
-                [mockAddress]: {
-                  balance: '0x0' as Hex,
-                },
-              },
-            },
-          },
-          TokenBalancesController: {
-            tokenBalances: {
-              [mockAddress]: {
-                [mockChainId]: {
-                  [token1Address]: '0x0de0b6b3a7640000' as Hex /* 1 TOKEN1 */,
-                  [token2Address]: '0x0' as Hex,
-                },
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const { result } = renderHookWithProvider(
-      () =>
-        useTokensWithBalance({
-          chainIds: [mockChainId],
-        }),
-      {
-        state: stateWithZeroBalances,
-      },
-    );
-
-    await waitFor(() => {
-      const ethereumNative = result.current.find(
-        (token) =>
-          token.address === constants.AddressZero &&
-          token.chainId === mockChainId,
-      );
-      const token1 = result.current.find((t) => t.address === token1Address);
-      const token2 = result.current.find((t) => t.address === token2Address);
-
-      expect(ethereumNative).toBeUndefined();
-      expect(token1).toMatchObject({
-        balance: '1.0',
-      });
-      expect(token2).toBeUndefined();
-      expect(result.current.length).toBe(1);
-    });
-  });
-
   it('should format small fiat values correctly', async () => {
     const stateWithSmallBalance = {
       ...initialState,

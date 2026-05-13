@@ -99,7 +99,7 @@ describe('PriceLegacy', () => {
         priceDiff: 5,
         isLoading: false,
       }),
-      undefined,
+      expect.anything(),
     );
   });
 
@@ -142,7 +142,7 @@ describe('PriceLegacy', () => {
       expect.objectContaining({
         prices: distributeDataPoints(fourPrices),
       }),
-      undefined,
+      expect.anything(),
     );
     expect(getByTestId('price-chart-insufficient-data')).toBeOnTheScreen();
   });

@@ -6,7 +6,6 @@ import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import Engine from '../../../../Engine';
-import { replaceAccountInNestedTransactions } from '../../../../../components/Views/confirmations/utils/transaction-pay';
 import { handleUnapprovedTransactionAddedForMoneyAccount } from './money-account-override';
 
 jest.mock('../../../../Engine', () => ({
@@ -23,13 +22,6 @@ jest.mock('../../../../Engine', () => ({
     },
   },
 }));
-
-jest.mock(
-  '../../../../../components/Views/confirmations/utils/transaction-pay',
-  () => ({
-    replaceAccountInNestedTransactions: jest.fn(),
-  }),
-);
 
 const TRANSACTION_ID_MOCK = 'tx-1';
 const EVM_ADDRESS_MOCK = '0xabc0000000000000000000000000000000000001';
@@ -59,9 +51,6 @@ const setTransactionConfigMock = jest.mocked(
 );
 const getSelectedAccountMock = jest.mocked(
   Engine.context.AccountsController.getSelectedAccount,
-);
-const replaceAccountInNestedTransactionsMock = jest.mocked(
-  replaceAccountInNestedTransactions,
 );
 
 describe('money-account-override', () => {
@@ -158,68 +147,6 @@ describe('money-account-override', () => {
       handleUnapprovedTransactionAddedForMoneyAccount(buildTransactionMeta());
 
       expect(setTransactionConfigMock).not.toHaveBeenCalled();
-    });
-
-    it('calls replaceAccountInNestedTransactions for a moneyAccountWithdraw transaction', () => {
-      handleUnapprovedTransactionAddedForMoneyAccount(
-        buildTransactionMeta({ type: TransactionType.moneyAccountWithdraw }),
-      );
-
-      expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
-        transactionId: TRANSACTION_ID_MOCK,
-        nestedTransactions: undefined,
-        oldAddress: '0x123',
-        newAddress: EVM_ADDRESS_MOCK,
-      });
-    });
-
-    it('calls replaceAccountInNestedTransactions for a batch containing a nested moneyAccountWithdraw', () => {
-      const nestedTransactions = [
-        { type: TransactionType.tokenMethodApprove },
-        { type: TransactionType.moneyAccountWithdraw },
-      ];
-
-      handleUnapprovedTransactionAddedForMoneyAccount(
-        buildTransactionMeta({
-          type: TransactionType.batch,
-          nestedTransactions,
-        } as never),
-      );
-
-      expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
-        transactionId: TRANSACTION_ID_MOCK,
-        nestedTransactions,
-        oldAddress: '0x123',
-        newAddress: EVM_ADDRESS_MOCK,
-      });
-    });
-
-    it('does not call replaceAccountInNestedTransactions for a moneyAccountDeposit transaction', () => {
-      handleUnapprovedTransactionAddedForMoneyAccount(buildTransactionMeta());
-
-      expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
-    });
-
-    it('does not call replaceAccountInNestedTransactions for a batch containing only a nested moneyAccountDeposit', () => {
-      handleUnapprovedTransactionAddedForMoneyAccount(
-        buildTransactionMeta({
-          type: TransactionType.batch,
-          nestedTransactions: [
-            { type: TransactionType.tokenMethodApprove },
-            { type: TransactionType.moneyAccountDeposit },
-          ],
-        } as never),
-      );
-
-      expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
-    });
-
-    it('does not call replaceAccountInNestedTransactions when transaction is skipped', () => {
-      handleUnapprovedTransactionAddedForMoneyAccount(
-        buildTransactionMeta({ type: TransactionType.simpleSend }),
-      );
-
-      expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
     });
   });
 });

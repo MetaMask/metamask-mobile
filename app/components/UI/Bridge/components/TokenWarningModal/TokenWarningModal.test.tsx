@@ -6,7 +6,7 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import Routes from '../../../../../constants/navigation/Routes';
-import { SecurityDataType } from '../../types';
+import { SecurityDataType } from '../../hooks/usePopularTokens';
 
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',

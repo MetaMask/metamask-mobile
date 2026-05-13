@@ -112,7 +112,6 @@ export interface LivelineChartProps {
 
   // -- Feature flags --
   grid?: boolean;
-  hideControls?: boolean;
   badge?: boolean;
   badgeTail?: boolean;
   badgeVariant?: BadgeVariant;
@@ -180,31 +179,30 @@ export interface LivelineChartProps {
   onError?: (message: string) => void;
 }
 
-// ---- Ref API (imperative updates) ----
-
-export interface LivelineChartRef {
-  /** O(1) bridge cost — sends only the new point instead of the full array. */
-  appendPoint: (point: LivelinePoint, value: number) => void;
-  clearData: () => void;
-}
-
 // ---- WebView ↔ RN message protocol ----
 
-type ChartPropsPayload = Omit<
-  LivelineChartProps,
-  | 'height'
-  | 'onChartReady'
-  | 'onError'
-  | 'onHover'
-  | 'onWindowChange'
-  | 'onModeChange'
-  | 'onSeriesToggle'
->;
-
-export type RNToWebViewMessage =
-  | { type: 'SET_PROPS'; payload: ChartPropsPayload }
-  | { type: 'APPEND_POINT'; payload: { point: LivelinePoint; value: number } }
-  | { type: 'CLEAR_DATA' };
+/**
+ * Single message type sent from React Native → WebView.
+ * The full props snapshot is sent on every change; the WebView calls
+ * `root.render(createElement(Liveline, props))` on receipt.
+ *
+ * Callback props (onHover, onWindowChange, onModeChange, onSeriesToggle) are
+ * omitted — they cannot cross the JSON bridge and are wired inside the WebView,
+ * posting messages back to RN instead.
+ */
+export interface RNToWebViewMessage {
+  type: 'SET_PROPS';
+  payload: Omit<
+    LivelineChartProps,
+    | 'height'
+    | 'onChartReady'
+    | 'onError'
+    | 'onHover'
+    | 'onWindowChange'
+    | 'onModeChange'
+    | 'onSeriesToggle'
+  >;
+}
 
 /** Messages sent from WebView → React Native. */
 export type WebViewToRNMessage =
@@ -213,22 +211,7 @@ export type WebViewToRNMessage =
   | { type: 'HOVER'; payload: HoverPoint | null }
   | { type: 'WINDOW_CHANGE'; payload: { secs: number } }
   | { type: 'MODE_CHANGE'; payload: { mode: 'line' | 'candle' } }
-  | { type: 'SERIES_TOGGLE'; payload: { id: string; visible: boolean } }
-  | { type: 'PERF'; payload: { renderMs: number; points: number } };
-
-const parsePerfPayload = (payload: unknown): WebViewToRNMessage => {
-  const perfPayload = payload as
-    | { renderMs?: number; points?: number }
-    | undefined;
-
-  return {
-    type: 'PERF',
-    payload: {
-      renderMs: perfPayload?.renderMs ?? 0,
-      points: perfPayload?.points ?? 0,
-    },
-  };
-};
+  | { type: 'SERIES_TOGGLE'; payload: { id: string; visible: boolean } };
 
 /**
  * Type-safe parser for incoming WebView → RN messages.
@@ -277,8 +260,6 @@ export const parseWebViewMessage = (
         payload: { id: payload?.id ?? '', visible: payload?.visible ?? true },
       };
     }
-    case 'PERF':
-      return parsePerfPayload(obj.payload);
     default:
       return null;
   }

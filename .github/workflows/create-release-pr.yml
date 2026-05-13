@@ -187,7 +187,7 @@ jobs:
 
       - name: Setup Node for changelog tooling
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
-        uses: MetaMask/action-checkout-and-setup@v3
+        uses: ./github-tools/.github/actions/checkout-and-setup
         with:
           is-high-risk-environment: true
 

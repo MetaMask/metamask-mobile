@@ -536,19 +536,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     },
   });
 
-  // For limit orders, use the user-set limit price for calculations instead of the market price.
-  // This ensures position size, margin, and max order size correctly reflect the limit price.
-  const effectivePrice = useMemo(() => {
-    if (
-      orderForm.type === 'limit' &&
-      orderForm.limitPrice &&
-      parseFloat(orderForm.limitPrice) > 0
-    ) {
-      return parseFloat(orderForm.limitPrice);
-    }
-    return assetData.price;
-  }, [orderForm.type, orderForm.limitPrice, assetData.price]);
-
   // Real-time position size calculation - memoized to prevent recalculation
   const positionSize = useMemo(() => {
     // During loading, show '--' placeholder (consistent with other unavailable data displays)
@@ -558,34 +545,22 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
     return calculatePositionSize({
       amount: orderForm.amount,
-      price: effectivePrice,
+      price: assetData.price,
       // Defensive fallback if market data fails to load - prevents crashes
       // Real szDecimals should come from market data (varies by asset)
       szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
     });
-  }, [orderForm.amount, effectivePrice, szDecimals, isLoadingMarketData]);
+  }, [orderForm.amount, assetData.price, szDecimals, isLoadingMarketData]);
 
   const marginRequired = useMemo(() => {
     if (!isLoadingMarketData && orderForm.amount) {
-      // For limit orders with a valid limit price, use that price for margin calculation.
-      // Otherwise use markPrice (oracle price) which is the standard margin basis.
-      const hasValidLimitPrice =
-        orderForm.type === 'limit' &&
-        orderForm.limitPrice &&
-        parseFloat(orderForm.limitPrice) > 0;
-      const priceForMargin = hasValidLimitPrice
-        ? effectivePrice
-        : assetData.markPrice;
       return calculateMarginRequired({
-        amount: BigNumber(priceForMargin).times(positionSize).toString(),
+        amount: BigNumber(assetData.markPrice).times(positionSize).toString(),
         leverage: orderForm.leverage,
       });
     }
   }, [
     orderForm.amount,
-    orderForm.type,
-    orderForm.limitPrice,
-    effectivePrice,
     assetData.markPrice,
     orderForm.leverage,
     isLoadingMarketData,
@@ -677,15 +652,27 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
 
   // Memoize liquidation price params to prevent infinite recalculation
-  const liquidationPriceParams = useMemo(
-    () => ({
-      entryPrice: effectivePrice,
+  const liquidationPriceParams = useMemo(() => {
+    // Use limit price for limit orders, market price for market orders
+    const entryPrice =
+      orderForm.type === 'limit' && orderForm.limitPrice
+        ? parseFloat(orderForm.limitPrice)
+        : assetData.price;
+
+    return {
+      entryPrice,
       leverage: orderForm.leverage,
       direction: orderForm.direction,
       asset: orderForm.asset,
-    }),
-    [effectivePrice, orderForm.leverage, orderForm.direction, orderForm.asset],
-  );
+    };
+  }, [
+    assetData.price,
+    orderForm.leverage,
+    orderForm.direction,
+    orderForm.asset,
+    orderForm.type,
+    orderForm.limitPrice,
+  ]);
 
   const depositAmount = useMemo(() => {
     if (marginRequired !== undefined && marginRequired !== null) {
@@ -1073,11 +1060,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           isBuy: orderForm.direction === 'long',
           size: positionSize, // Kept for backward compatibility, provider recalculates from usdAmount
           orderType: orderForm.type,
-          currentPrice: effectivePrice,
+          currentPrice: assetData.price,
           leverage: orderForm.leverage,
           // USD as source of truth (hybrid approach)
           usdAmount: orderForm.amount, // USD amount (primary source of truth, provider calculates size from this)
-          priceAtCalculation: effectivePrice, // Price snapshot when size was calculated (for slippage validation)
+          priceAtCalculation: assetData.price, // Price snapshot when size was calculated (for slippage validation)
           maxSlippageBps:
             orderForm.type === 'limit'
               ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps // 1% for limit orders
@@ -1179,7 +1166,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       orderForm.stopLossPrice,
       orderForm.amount,
       positionSize,
-      effectivePrice,
       assetData.price,
       navigation,
       navigationMarketData,

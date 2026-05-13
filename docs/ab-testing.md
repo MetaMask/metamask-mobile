@@ -281,7 +281,7 @@ Recommended commands:
 
 ```bash
 yarn jest <changed-test-file> --collectCoverage=false
-bash scripts/check-ab-testing-compliance.sh --staged
+bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged
 ```
 
 If you changed behavior and analytics wiring, run both the relevant feature test and the relevant analytics test.
@@ -328,7 +328,7 @@ Supporting entrypoints:
 
 - Codex skill: `.agents/skills/ab-testing-implementation/SKILL.md` (`$ab-testing-implementation`)
 - Claude skill: `.claude/skills/ab-testing-implementation/SKILL.md`
-- Compliance check: `bash scripts/check-ab-testing-compliance.sh --staged`
+- Compliance check: `bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged`
 
 Agent workflow:
 

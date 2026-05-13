@@ -1,9 +1,6 @@
 import React, { forwardRef, useImperativeHandle, useEffect } from 'react';
 import { View, ViewProps } from 'react-native';
 
-/** Shared so tests can assert `fireState` across Rive remounts when props change. */
-export const __mockRiveFireState = jest.fn();
-
 export interface RiveRef {
   setInputState: jest.Mock;
   fireState: jest.Mock;
@@ -37,7 +34,7 @@ const DEFAULT_TEST_ID = 'mock-rive-animation';
 
 const createMockedMethods = (overrides?: MockedMethods): RiveRef => ({
   setInputState: jest.fn(),
-  fireState: __mockRiveFireState,
+  fireState: jest.fn(),
   reset: jest.fn(),
   play: jest.fn(),
   pause: jest.fn(),
@@ -87,10 +84,9 @@ export const __clearLastMockedMethods = (): void => {
 };
 
 export const __resetAllMocks = (): void => {
-  __mockRiveFireState.mockClear();
   if (lastMockedMethods) {
-    Object.entries(lastMockedMethods).forEach(([key, mockFn]) => {
-      if (key !== 'fireState' && jest.isMockFunction(mockFn)) {
+    Object.values(lastMockedMethods).forEach((mockFn) => {
+      if (jest.isMockFunction(mockFn)) {
         mockFn.mockClear();
       }
     });

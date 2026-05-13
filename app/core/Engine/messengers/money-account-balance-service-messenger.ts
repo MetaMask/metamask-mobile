@@ -28,9 +28,8 @@ export function getMoneyAccountBalanceServiceMessenger(
     actions: [
       'NetworkController:getNetworkConfigurationByChainId',
       'NetworkController:getNetworkClientById',
-      'RemoteFeatureFlagController:getState',
     ],
-    events: ['RemoteFeatureFlagController:stateChange'],
+    events: [],
   });
 
   return messenger;

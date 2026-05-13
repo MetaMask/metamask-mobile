@@ -27,9 +27,6 @@ import rewardsReducer, {
   setBenefits,
   setBenefitsError,
   setBenefitsLoading,
-  setVipDashboard,
-  setVipDashboardError,
-  setVipDashboardLoading,
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
@@ -78,7 +75,6 @@ import {
   OndoGmActivityEntryDto,
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
-  VipDashboardState,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
 import { brandColor } from '@metamask/design-tokens';
@@ -2073,9 +2069,6 @@ describe('rewardsReducer', () => {
         benefits: [],
         benefitsLoading: false,
         benefitsError: false,
-        vipDashboard: {},
-        vipDashboardLoading: false,
-        vipDashboardError: false,
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -2205,9 +2198,6 @@ describe('rewardsReducer', () => {
         benefits: [],
         benefitsLoading: false,
         benefitsError: false,
-        vipDashboard: {},
-        vipDashboardLoading: false,
-        vipDashboardError: false,
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -4771,121 +4761,6 @@ describe('setBenefitsError', () => {
   });
 });
 
-describe('setVipDashboard', () => {
-  const mockVipDashboard: VipDashboardState = {
-    program: { id: 'vip', name: 'VIP Pilot' },
-    period: {
-      start: '2026-03-31T00:00:00.000Z',
-      end: '2026-04-30T23:59:59.999Z',
-    },
-    currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
-    nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
-    progress: {
-      percent: 72,
-      remainingSwapsUsd: 800000,
-      remainingPerpsUsd: 3600000,
-      estimatedDaysToNextTier: 4,
-      status: 'on_track',
-    },
-    fees: {
-      swapsBps: 15,
-      perpsBps: 4,
-      nextTierSwapsBps: 12,
-      nextTierPerpsBps: 3,
-    },
-    volume: {
-      swapsUsd: 4100000,
-      perpsUsd: 2300000,
-    },
-    pointsAllocation: {
-      earned: 24400000,
-      max: 100000000,
-      percent: 24.4,
-    },
-    tiers: [
-      {
-        id: 'gold-fox-vip-3',
-        name: 'Gold Fox 3',
-        tier: 3,
-        swapsRequirementUsd: 7000000,
-        perpsRequirementUsd: 35000000,
-        swapsBps: 15,
-        perpsBps: 4,
-        status: 'current',
-      },
-    ],
-    localizedText: {
-      period: 'Mar 31 - Apr 30',
-      progressToNextTier: 'Subline',
-      swapsFeeTitle: 'Swaps fee',
-      perpsFeeTitle: 'Perps fee',
-      nextTierSwapsFeeDelta: '↓ 12 bps next tier',
-      nextTierPerpsFeeDelta: '↓ 3 bps next tier',
-      volumeTitle: 'Volume',
-      statusMessage: 'On track',
-      pointsTitle: 'Points',
-      pointsAllocationTitle: 'Earn VIP allocations',
-      pointsAllocationDescription: 'Body copy',
-    },
-    lastFetched: 1767225600000,
-  };
-
-  it('sets VIP dashboard by subscription id and clears error', () => {
-    const stateWithError: RewardsState = {
-      ...initialState,
-      vipDashboardError: true,
-      dismissedCampaignOutcomeToasts: {},
-    };
-    const action = setVipDashboard({
-      subscriptionId: 'sub-1',
-      dashboard: mockVipDashboard,
-    });
-
-    const state = rewardsReducer(stateWithError, action);
-
-    expect(state.vipDashboard['sub-1']).toEqual(mockVipDashboard);
-    expect(state.vipDashboardError).toBe(false);
-  });
-
-  it('removes VIP dashboard when payload dashboard is null', () => {
-    const stateWithDashboard: RewardsState = {
-      ...initialState,
-      vipDashboard: {
-        'sub-1': mockVipDashboard,
-      },
-      dismissedCampaignOutcomeToasts: {},
-    };
-    const action = setVipDashboard({
-      subscriptionId: 'sub-1',
-      dashboard: null,
-    });
-
-    const state = rewardsReducer(stateWithDashboard, action);
-
-    expect(state.vipDashboard['sub-1']).toBeUndefined();
-  });
-});
-
-describe('setVipDashboardLoading', () => {
-  it('sets vipDashboardLoading', () => {
-    const action = setVipDashboardLoading(true);
-
-    const state = rewardsReducer(initialState, action);
-
-    expect(state.vipDashboardLoading).toBe(true);
-  });
-});
-
-describe('setVipDashboardError', () => {
-  it('sets vipDashboardError', () => {
-    const action = setVipDashboardError(true);
-
-    const state = rewardsReducer(initialState, action);
-
-    expect(state.vipDashboardError).toBe(true);
-  });
-});
-
 const mockCampaign: CampaignDto = {
   id: 'campaign-1',
   type: 'ONDO_HOLDING' as CampaignType,
@@ -5782,6 +5657,7 @@ const mockPerpsPosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 2,
   pnl: 100,
   notionalVolume: 5000,
+  marginDeployed: 1000,
   qualified: true,
   neighbors: [],
   computedAt: '2025-08-15T12:00:00.000Z',

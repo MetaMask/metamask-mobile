@@ -139,18 +139,3 @@ ignores:
 
   # Used in Yarn plugin for preview builds
   - '@yarnpkg/core'
-
-  # Babel plugins referenced in babel.config.js by their short name (without
-  # the `babel-plugin-` prefix). Babel resolves them correctly at build time
-  # but depcheck doesn't recognize the indirect reference. See babel.config.js
-  # line 65 comment for details.
-  - 'babel-plugin-react-compiler' # used as 'react-compiler' (line 68)
-  - 'babel-plugin-transform-inline-environment-variables' # used as 'transform-inline-environment-variables' (line 81)
-  - 'babel-plugin-transform-remove-console' # used as 'transform-remove-console' (line 166, production env)
-
-  # Listed as a direct dep in package.json but no longer referenced in
-  # babel.config.js (we use babel-preset-expo) or anywhere in our source.
-  # It's still available transitively via babel-preset-expo + Metro, so
-  # removing the direct declaration should be a no-op — left for a follow-up
-  # cleanup once the RN 0.81 upgrade has settled to avoid surprises.
-  - '@react-native/babel-preset'

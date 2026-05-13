@@ -558,7 +558,7 @@ describe('useTransactionAutoScroll', () => {
 
   describe('Edge cases', () => {
     it('handles list ref being null', () => {
-      const listRef: RefObject<FlashListRef<{ id: string }> | null> = {
+      const listRef: RefObject<FlashListRef<{ id: string }>> = {
         current: null,
       };
       const keyExtractor = jest.fn((item: { id: string }) => item.id);

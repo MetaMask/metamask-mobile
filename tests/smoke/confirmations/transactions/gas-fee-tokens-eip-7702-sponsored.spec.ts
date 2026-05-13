@@ -35,11 +35,7 @@ import { RelayStatus } from '../../../../app/util/transactions/transaction-relay
 const TRANSACTION_UUID_MOCK = '1234-5678';
 const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 const RECIPIENT_ADDRESS_MOCK = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
-/** Match {@link gas-fee-tokens-eip-7702.spec.ts} and {@link transaction-relay-mocks} for proxy URL matching. */
-const LOCALHOST_SENTINEL_URL =
-  device.getPlatform() === 'android'
-    ? 'https://tx-sentinel-127.0.0.1.api.cx.metamask.io'
-    : 'https://tx-sentinel-localhost.api.cx.metamask.io';
+const SENTINEL_URL = 'https://tx-sentinel-localhost.api.cx.metamask.io';
 
 const SEND_ETH_TRANSACTION_MOCK = {
   data: '0x',
@@ -55,38 +51,9 @@ const SIMULATION_ENABLED_NETWORKS_WITH_RELAY = {
     1337: {
       ...SIMULATION_ENABLED_NETWORKS_MOCK.response[1337],
       relayTransactions: true,
-      sendBundle: true,
-    },
-    1: {
-      network: 'ethereum-mainnet',
-      confirmations: true,
-      relayTransactions: true,
-      sendBundle: true,
     },
   },
 };
-
-const SIMULATION_SPONSORED_REQUEST_BODY = {
-  jsonrpc: '2.0',
-  method: 'infura_simulateTransactions',
-  params: [
-    {
-      transactions: [SEND_ETH_TRANSACTION_MOCK],
-      suggestFees: {
-        withFeeTransfer: true,
-        withTransfer: true,
-        with7702: true,
-      },
-    },
-  ],
-};
-
-const SIMULATION_SPONSORED_IGNORE_FIELDS = [
-  'params.0.blockOverrides',
-  'id',
-  'params.0.transactions',
-  'params.0.suggestFees',
-];
 
 const SIMULATION_RESPONSE = {
   jsonrpc: '2.0',
@@ -131,22 +98,24 @@ const setupCommonMocks = async (mockServer: Mockttp) => {
     1000,
   );
 
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: `${LOCALHOST_SENTINEL_URL}/network`,
-    response: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.response,
-    responseCode: 200,
-  });
-
-  // Mock infura_simulateTransactions (align body + ignoreFields with gas-fee-tokens-eip-7702.spec.ts)
+  // Mock infura_simulateTransactions
   await setupMockPostRequest(
     mockServer,
-    LOCALHOST_SENTINEL_URL,
-    SIMULATION_SPONSORED_REQUEST_BODY,
+    SENTINEL_URL,
+    {
+      jsonrpc: '2.0',
+      method: 'infura_simulateTransactions',
+      params: [
+        {
+          transactions: [SEND_ETH_TRANSACTION_MOCK],
+          suggestFees: { withFeeTransfer: true, withTransfer: true },
+        },
+      ],
+    },
     SIMULATION_RESPONSE,
     {
       statusCode: 200,
-      ignoreFields: SIMULATION_SPONSORED_IGNORE_FIELDS,
+      ignoreFields: ['id', 'params'],
       priority: 1000,
     },
   );
@@ -215,17 +184,8 @@ const performSendTransaction = async () => {
   await SendView.pressContinueButton();
   await SendView.inputRecipientAddress(RECIPIENT_ADDRESS_MOCK);
   await SendView.pressReviewButton();
-  await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails, {
-    description: 'gas fees row is present on review screen',
-    timeout: 30000,
-  });
   await Assertions.expectElementToBeVisible(
     RowComponents.NetworkFeePaidByMetaMask,
-    {
-      description:
-        'network fee shows MetaMask-sponsored gas after relay + simulation settle',
-      timeout: 60000,
-    },
   );
   await Utilities.waitForElementToBeVisible(FooterActions.confirmButton);
   await Utilities.waitForElementToStopMoving(FooterActions.confirmButton, {
@@ -237,8 +197,7 @@ const performSendTransaction = async () => {
   await TabBarComponent.tapActivity();
 };
 
-// Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778589879443169
-describe.skip(
+describe(
   SmokeConfirmations('Send native asset using EIP-7702 - Success Case'),
   () => {
     beforeAll(async () => {
@@ -257,7 +216,7 @@ describe.skip(
             // Mock eth_sendRelayTransaction
             await setupMockPostRequest(
               mockServer,
-              LOCALHOST_SENTINEL_URL,
+              SENTINEL_URL,
               {
                 jsonrpc: '2.0',
                 method: 'eth_sendRelayTransaction',
@@ -273,7 +232,7 @@ describe.skip(
             // Status check mock
             await setupMockRequest(mockServer, {
               requestMethod: 'GET',
-              url: `${LOCALHOST_SENTINEL_URL}/smart-transactions/${TRANSACTION_UUID_MOCK}`,
+              url: `${SENTINEL_URL}/smart-transactions/${TRANSACTION_UUID_MOCK}`,
               response: {
                 transactions: [
                   {
@@ -297,8 +256,7 @@ describe.skip(
   },
 );
 
-// Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778589879443169
-describe.skip(
+describe(
   SmokeConfirmations('Send native asset using EIP-7702 - Failure Case'),
   () => {
     beforeAll(async () => {

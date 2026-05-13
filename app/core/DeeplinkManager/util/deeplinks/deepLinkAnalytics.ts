@@ -372,18 +372,6 @@ const extractTrendingProperties = (
 };
 
 /**
- * Extract properties for WHATS_HAPPENING route
- * @param urlParams - URL parameters
- * @param sensitiveProps - Object to add properties to
- */
-const extractWhatsHappeningProperties = (
-  _urlParams: UrlParamValues,
-  _sensitiveProps: Record<string, string>,
-): void => {
-  // WHATS_HAPPENING route doesn't have sensitive parameters to extract
-};
-
-/**
  * Extract properties for CARD_ONBOARDING route
  * @param urlParams - URL parameters
  * @param sensitiveProps - Object to add properties to
@@ -475,7 +463,6 @@ const routeExtractors: Record<
   [DeepLinkRoute.PREDICT]: extractPredictProperties,
   [DeepLinkRoute.SHIELD]: extractShieldProperties,
   [DeepLinkRoute.TRENDING]: extractTrendingProperties,
-  [DeepLinkRoute.WHATS_HAPPENING]: extractWhatsHappeningProperties,
   [DeepLinkRoute.SOCIAL_LEADERBOARD]: extractInvalidProperties,
   [DeepLinkRoute.SOCIAL_TRADER_POSITION]: extractInvalidProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
@@ -584,7 +571,6 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.TRANSACTION;
     case ACTIONS.BUY:
     case ACTIONS.BUY_CRYPTO:
-    case ACTIONS.ON_RAMP:
       return DeepLinkRoute.BUY;
     case ACTIONS.SELL:
     case ACTIONS.SELL_CRYPTO:
@@ -609,8 +595,6 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SHIELD;
     case ACTIONS.TRENDING:
       return DeepLinkRoute.TRENDING;
-    case ACTIONS.WHATS_HAPPENING:
-      return DeepLinkRoute.WHATS_HAPPENING;
     case ACTIONS.SOCIAL_LEADERBOARD:
       return DeepLinkRoute.SOCIAL_LEADERBOARD;
     case ACTIONS.SOCIAL_TRADER_POSITION:
@@ -669,8 +653,6 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.SHIELD;
       case 'trending':
         return DeepLinkRoute.TRENDING;
-      case 'whats-happening':
-        return DeepLinkRoute.WHATS_HAPPENING;
       case 'social-leaderboard':
         return DeepLinkRoute.SOCIAL_LEADERBOARD;
       case 'social-trader-position':

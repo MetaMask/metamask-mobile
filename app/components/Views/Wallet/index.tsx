@@ -20,7 +20,6 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet as RNStyleSheet,
-  unstable_batchedUpdates,
   View,
 } from 'react-native';
 import {
@@ -28,7 +27,6 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import Reanimated, {
-  LinearTransition,
   useSharedValue,
   useAnimatedStyle,
 } from 'react-native-reanimated';
@@ -125,7 +123,6 @@ import {
   selectDetectedTokens,
 } from '../../../selectors/tokensController';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
-import { selectShouldShowWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
@@ -142,10 +139,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { Token } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import {
-  selectHomepageSectionsV1Enabled,
-  selectWalletHomeOnboardingStepsEnabled,
-} from '../../../selectors/featureFlagController/homepage';
+import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import Homepage from '../Homepage';
 import HomepageDiscoveryTabs from '../Homepage/components/HomepageDiscoveryTabs';
 import {
@@ -180,13 +174,11 @@ import AppConstants from '../../../core/AppConstants';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
-import { suppressWalletHomeOnboardingSteps } from '../../../actions/onboarding';
-import { WALLET_HOME_POST_ONBOARDING_REVEAL_MS } from '../../UI/WalletHomeOnboardingSteps';
+import { setIsConnectionRemoved } from '../../../actions/user';
 import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { setIsConnectionRemoved } from '../../../actions/user';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import {
@@ -212,10 +204,6 @@ import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 
-/** Reanimated layout when the top cluster height changes (e.g. checklist → balance). */
-const WALLET_HOME_MAIN_BELOW_CLUSTER_LAYOUT = LinearTransition.duration(
-  WALLET_HOME_POST_ONBOARDING_REVEAL_MS,
-);
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
     base: {
@@ -243,21 +231,6 @@ const createStyles = ({ colors }: Theme) =>
     },
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
-    },
-    /** Preserves `styles.wrapper` gap between balance and actions. */
-    walletTopCluster: {
-      flexDirection: 'column',
-      gap: 16,
-      zIndex: 1,
-    },
-    /** Homepage / tokens area below the balance cluster; solid background for carousel edge cases. */
-    walletPostOnboardingMainBelowCluster: {
-      backgroundColor: colors.background.default,
-    },
-    /** Shared column for balance cluster + main content; `overflow: hidden` contains the carousel. */
-    walletPostOnboardingStage: {
-      position: 'relative',
-      overflow: 'hidden',
     },
     headerEndAccessoryContainer: {
       alignItems: 'flex-end',
@@ -463,12 +436,10 @@ const WalletTokensTabView = forwardRef<
   // Build ordered list of tab refs based on which tabs are enabled
   // Returns null for tabs without refresh (Perps uses WebSocket, DeFi uses selectors)
   const getTabRefByIndex = useCallback(
-    (index: number): React.RefObject<TabRefreshHandle | null> | null => {
+    (index: number): React.RefObject<TabRefreshHandle> | null => {
       // Build array matching tab order: [tokens, perps?, predict?, defi?, nfts?]
       // Use null for tabs without refresh functionality
-      const tabRefs: (React.RefObject<TabRefreshHandle | null> | null)[] = [
-        tokensRef,
-      ];
+      const tabRefs: (React.RefObject<TabRefreshHandle> | null)[] = [tokensRef];
 
       if (isPerpsEnabled) {
         tabRefs.push(null); // Perps uses WebSocket streaming, no refresh needed
@@ -640,28 +611,7 @@ const Wallet = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
-  const isHomepageSectionsV1Enabled = useSelector(
-    selectHomepageSectionsV1Enabled,
-  );
-  const isWalletHomeOnboardingStepsEnabled = useSelector(
-    selectWalletHomeOnboardingStepsEnabled,
-  );
-  const shouldShowWalletHomeOnboardingSteps = useSelector(
-    selectShouldShowWalletHomeOnboardingSteps,
-  );
-
-  const inWalletHomePostOnboardingFlow =
-    isHomepageSectionsV1Enabled &&
-    isWalletHomeOnboardingStepsEnabled &&
-    shouldShowWalletHomeOnboardingSteps;
-
-  const showWalletHomeMainActions = !inWalletHomePostOnboardingFlow;
-
   const [refreshing, setRefreshing] = useState(false);
-  /** Pauses checklist Rive while Wallet finishes the coordinated post-onboarding handoff. */
-  const [postOnboardingExitAnimating, setPostOnboardingExitAnimating] =
-    useState(false);
-  const walletHomePostOnboardingExitInProgressRef = useRef(false);
   const { refreshBalance } = useBalanceRefresh();
   const theme = useTheme();
 
@@ -749,12 +699,6 @@ const Wallet = ({
     sourcePage: 'MainView',
   });
 
-  const handleWalletHomeOnboardingNotificationsPrimary = useCallback(() => {
-    navigation.navigate(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.NOTIFICATIONS,
-    });
-  }, [navigation]);
-
   // Hook for handling non-EVM asset sending
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const { sendNonEvmAsset } = useSendNonEvmAsset({
@@ -767,30 +711,6 @@ const Wallet = ({
 
   const displayBuyButton = true;
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
-
-  /**
-   * After the last-step checklist fade: complete the flow and show actions. Homepage uses
-   * `WALLET_HOME_MAIN_BELOW_CLUSTER_LAYOUT` on the main column below the cluster.
-   */
-  const runWalletHomePostOnboardingComplete = useCallback(async () => {
-    if (walletHomePostOnboardingExitInProgressRef.current) {
-      return;
-    }
-    walletHomePostOnboardingExitInProgressRef.current = true;
-    setPostOnboardingExitAnimating(true);
-
-    try {
-      unstable_batchedUpdates(() => {
-        dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
-      });
-      await new Promise<void>((resolve) => {
-        requestAnimationFrame(() => resolve());
-      });
-    } finally {
-      setPostOnboardingExitAnimating(false);
-      walletHomePostOnboardingExitInProgressRef.current = false;
-    }
-  }, [dispatch]);
 
   const onReceive = useCallback(() => {
     trackActionButtonClick(trackEvent, createEventBuilder, {
@@ -1118,6 +1038,10 @@ const Wallet = ({
     accountBalanceByChainId?.balance,
   ]);
 
+  const isHomepageSectionsV1Enabled = useSelector(
+    selectHomepageSectionsV1Enabled,
+  );
+
   const { variantName: discoveryTabsVariantName } = useABTest(
     HUB_PAGE_DISCOVERY_TABS_AB_KEY,
     HUB_PAGE_DISCOVERY_TABS_VARIANTS,
@@ -1324,10 +1248,7 @@ const Wallet = ({
     assetsDefiPositionsEnabled;
 
   const scrollViewContentStyle = useMemo(
-    () => [
-      styles.wrapper,
-      { flex: undefined, flexGrow: 0, overflow: 'visible' as const },
-    ],
+    () => [styles.wrapper, { flex: undefined, flexGrow: 0 }],
     [styles.wrapper],
   );
 
@@ -1448,27 +1369,18 @@ const Wallet = ({
   const portfolioHeaderBase = (
     <>
       {bannerContent}
-      <AccountGroupBalance
-        onCoordinatedFlowExit={runWalletHomePostOnboardingComplete}
-        suspendRiveForCurtain={postOnboardingExitAnimating}
-        onTradePrimaryPress={goToSwaps}
-        onNotificationsPrimaryPress={
-          handleWalletHomeOnboardingNotificationsPrimary
-        }
+      <AccountGroupBalance />
+      <AssetDetailsActions
+        displayBuyButton={displayBuyButton}
+        displaySwapsButton={displaySwapsButton}
+        goToSwaps={goToSwaps}
+        onReceive={onReceive}
+        onSend={onSend}
+        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
       />
-      {showWalletHomeMainActions ? (
-        <AssetDetailsActions
-          displayBuyButton={displayBuyButton}
-          displaySwapsButton={displaySwapsButton}
-          goToSwaps={goToSwaps}
-          onReceive={onReceive}
-          onSend={onSend}
-          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-        />
-      ) : null}
       {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
       {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
     </>
@@ -1478,28 +1390,19 @@ const Wallet = ({
     <>
       {bannerContent}
       <View style={styles.accountGroupBalanceContainer}>
-        <AccountGroupBalance
-          onCoordinatedFlowExit={runWalletHomePostOnboardingComplete}
-          suspendRiveForCurtain={postOnboardingExitAnimating}
-          onTradePrimaryPress={goToSwaps}
-          onNotificationsPrimaryPress={
-            handleWalletHomeOnboardingNotificationsPrimary
-          }
-        />
+        <AccountGroupBalance />
       </View>
-      {showWalletHomeMainActions ? (
-        <AssetDetailsActions
-          displayBuyButton={displayBuyButton}
-          displaySwapsButton={displaySwapsButton}
-          goToSwaps={goToSwaps}
-          onReceive={onReceive}
-          onSend={onSend}
-          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-        />
-      ) : null}
+      <AssetDetailsActions
+        displayBuyButton={displayBuyButton}
+        displaySwapsButton={displaySwapsButton}
+        goToSwaps={goToSwaps}
+        onReceive={onReceive}
+        onSend={onSend}
+        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+      />
       {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
       {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
     </>
@@ -1508,83 +1411,28 @@ const Wallet = ({
   // Legacy scroll view content — used only when the sections redesign is off.
   const content = (
     <>
-      <View style={styles.banner}>
-        {!basicFunctionalityEnabled ? (
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            title={strings('wallet.banner.title')}
-            description={
-              <CustomText
-                color={TextColor.Info}
-                onPress={turnOnBasicFunctionality}
-              >
-                {strings('wallet.banner.link')}
-              </CustomText>
-            }
-          />
-        ) : null}
-        <NetworkConnectionBanner />
-      </View>
-      <View style={styles.walletPostOnboardingStage}>
-        <View
-          testID={WalletViewSelectorsIDs.WALLET_TOP_CLUSTER_INNER}
-          style={styles.walletTopCluster}
-        >
-          <AccountGroupBalance
-            onCoordinatedFlowExit={runWalletHomePostOnboardingComplete}
-            suspendRiveForCurtain={postOnboardingExitAnimating}
-            onTradePrimaryPress={goToSwaps}
-            onNotificationsPrimaryPress={
-              handleWalletHomeOnboardingNotificationsPrimary
-            }
-          />
-
-          {showWalletHomeMainActions ? (
-            <AssetDetailsActions
-              displayBuyButton={displayBuyButton}
-              displaySwapsButton={displaySwapsButton}
-              goToSwaps={goToSwaps}
-              onReceive={onReceive}
-              onSend={onSend}
-              buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-              swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-              sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-              receiveButtonActionID={
-                WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
-              }
-            />
-          ) : null}
-        </View>
-
-        <Reanimated.View
-          layout={WALLET_HOME_MAIN_BELOW_CLUSTER_LAYOUT}
-          style={styles.walletPostOnboardingMainBelowCluster}
-        >
-          {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
-
-          {isHomepageSectionsV1Enabled ? (
-            <>
-              {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
-              <HomepageScrollContext.Provider
-                value={homepageScrollContextValue}
-              >
-                <Homepage ref={homepageRef} />
-              </HomepageScrollContext.Provider>
-            </>
-          ) : (
-            <>
-              {isFocused && <AssetPollingProvider />}
-              <WalletTokensTabView
-                ref={walletTokensTabViewRef}
-                navigation={navigation}
-                onChangeTab={onChangeTab}
-                defiEnabled={defiEnabled}
-                collectiblesEnabled={collectiblesEnabled}
-              />
-            </>
-          )}
-        </Reanimated.View>
-      </View>
+      {bannerContent}
+      <AccountGroupBalance />
+      <AssetDetailsActions
+        displayBuyButton={displayBuyButton}
+        displaySwapsButton={displaySwapsButton}
+        goToSwaps={goToSwaps}
+        onReceive={onReceive}
+        onSend={onSend}
+        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+      />
+      {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+      {isFocused && <AssetPollingProvider />}
+      <WalletTokensTabView
+        ref={walletTokensTabViewRef}
+        navigation={navigation}
+        onChangeTab={onChangeTab}
+        defiEnabled={defiEnabled}
+        collectiblesEnabled={collectiblesEnabled}
+      />
     </>
   );
   const renderLoader = useCallback(

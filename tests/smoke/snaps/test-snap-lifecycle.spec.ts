@@ -15,7 +15,6 @@ describe(SmokeSnaps('Lifecycle hooks Snap Tests'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
-        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -39,7 +38,6 @@ describe(SmokeSnaps('Lifecycle hooks Snap Tests'), () => {
           .build(),
         restartDevice: true,
         skipReactNativeReload: true,
-        disableSynchronization: true,
       },
       async () => {
         try {

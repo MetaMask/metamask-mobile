@@ -76,8 +76,6 @@ const createStyles = (colors) =>
  * View that's displayed the first time imports account
  */
 class ImportPrivateKeySuccess extends PureComponent {
-  backHandlerSubscription = null;
-
   static propTypes = {
     /**
     /* navigation object required to push and pop other views
@@ -87,17 +85,16 @@ class ImportPrivateKeySuccess extends PureComponent {
 
   componentDidMount = () => {
     InteractionManager.runAfterInteractions(() => {
-      this.backHandlerSubscription = BackHandler.addEventListener(
-        'hardwareBackPress',
-        this.handleBackPress,
-      );
+      BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
     });
   };
 
   componentWillUnmount = () => {
     InteractionManager.runAfterInteractions(() => {
-      this.backHandlerSubscription?.remove?.();
-      this.backHandlerSubscription = null;
+      BackHandler.removeEventListener(
+        'hardwareBackPress',
+        this.handleBackPress,
+      );
     });
   };
 

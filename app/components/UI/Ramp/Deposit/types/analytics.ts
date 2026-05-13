@@ -401,64 +401,6 @@ interface RampsToastButtonClicked {
   ramp_type: 'UNIFIED_BUY_2';
 }
 
-interface RampsCheckoutFunnelBase {
-  checkout_session_id: string;
-  location: 'Checkout';
-  ramp_type: 'UNIFIED_BUY_2';
-  provider_name?: string;
-  ramp_routing?: UnifiedRampRoutingType;
-}
-
-interface RampsCheckoutOpened extends RampsCheckoutFunnelBase {
-  initial_url_path: string;
-  has_callback_flow: boolean;
-  order_id?: string;
-}
-
-interface RampsCheckoutUrlChanged extends RampsCheckoutFunnelBase {
-  url_path: string;
-  previous_url_path?: string;
-  step_index: number;
-  is_callback_url: boolean;
-  order_id?: string;
-}
-
-interface RampsCheckoutLoadCompleted extends RampsCheckoutFunnelBase {
-  url_path: string;
-  load_duration_ms: number;
-  load_success: boolean;
-}
-
-interface RampsCheckoutHttpErrorReceived extends RampsCheckoutFunnelBase {
-  url_path: string;
-  status_code: number;
-  is_initial_url: boolean;
-}
-
-interface RampsCheckoutCallbackDetected extends RampsCheckoutFunnelBase {
-  url_path: string;
-  order_id?: string;
-  step_index: number;
-  time_since_open_ms: number;
-}
-
-interface RampsCheckoutClosed extends RampsCheckoutFunnelBase {
-  close_source:
-    | 'user_close_button'
-    | 'callback_success'
-    | 'callback_error'
-    | 'http_error'
-    | 'background';
-  order_id?: string;
-  last_url_hostname?: string;
-  last_url_path?: string;
-  previous_url_hostname?: string;
-  previous_url_path?: string;
-  callback_reached: boolean;
-  step_index: number;
-  time_on_screen_ms: number;
-}
-
 export interface AnalyticsEvents {
   RAMPS_BUTTON_CLICKED: RampsButtonClicked;
   RAMPS_DEPOSIT_CASH_BUTTON_CLICKED: RampsDepositCashButtonClicked;
@@ -504,10 +446,4 @@ export interface AnalyticsEvents {
   RAMPS_UNSUPPORTED_TOKEN_TOOLTIP_CLICKED: RampsUnsupportedTokenTooltipClicked;
   RAMPS_INFO_TOOLTIP_CLICKED: RampsInfoTooltipClicked;
   RAMPS_TOAST_BUTTON_CLICKED: RampsToastButtonClicked;
-  RAMPS_CHECKOUT_OPENED: RampsCheckoutOpened;
-  RAMPS_CHECKOUT_URL_CHANGED: RampsCheckoutUrlChanged;
-  RAMPS_CHECKOUT_LOAD_COMPLETED: RampsCheckoutLoadCompleted;
-  RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED: RampsCheckoutHttpErrorReceived;
-  RAMPS_CHECKOUT_CALLBACK_DETECTED: RampsCheckoutCallbackDetected;
-  RAMPS_CHECKOUT_CLOSED: RampsCheckoutClosed;
 }

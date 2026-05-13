@@ -5,8 +5,8 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyMoreSheet from './MoneyMoreSheet';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import AppConstants from '../../../../../core/AppConstants';
 import Routes from '../../../../../constants/navigation/Routes';
+import AppConstants from '../../../../../core/AppConstants';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
@@ -58,7 +58,7 @@ describe('MoneyMoreSheet', () => {
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
   });
 
-  it('renders How it works, What you get, and Contact support rows', () => {
+  it('renders all three menu options', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     expect(
@@ -87,7 +87,7 @@ describe('MoneyMoreSheet', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
   });
 
-  it('opens the MUSD learn-more URL when "What you get" is pressed', () => {
+  it('opens the mUSD learn more URL when "What you get" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     fireEvent.press(getByTestId(MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION));

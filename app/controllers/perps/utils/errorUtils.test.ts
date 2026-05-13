@@ -1,4 +1,4 @@
-import { isAbortError, ensureError, isKeyringLockedError } from './errorUtils';
+import { isAbortError, ensureError } from './errorUtils';
 
 describe('errorUtils', () => {
   describe('isAbortError', () => {
@@ -69,30 +69,6 @@ describe('errorUtils', () => {
 
       expect(result).toBeInstanceOf(Error);
       expect(result.message).toContain('Unknown error');
-    });
-  });
-
-  describe('isKeyringLockedError', () => {
-    it('returns true for direct KEYRING_LOCKED errors', () => {
-      const error = new Error('KEYRING_LOCKED');
-
-      expect(isKeyringLockedError(error)).toBe(true);
-    });
-
-    it('returns true for wrapped KEYRING_LOCKED causes', () => {
-      const error = Object.assign(
-        new Error('Failed to sign typed data with viem wallet'),
-        { cause: new Error('KEYRING_LOCKED') },
-      );
-
-      expect(isKeyringLockedError(error)).toBe(true);
-    });
-
-    it('returns false for non-keyring errors with cyclic causes', () => {
-      const error = new Error('Network error') as Error & { cause?: unknown };
-      error.cause = error;
-
-      expect(isKeyringLockedError(error)).toBe(false);
     });
   });
 });

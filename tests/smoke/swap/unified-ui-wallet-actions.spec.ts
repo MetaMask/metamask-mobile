@@ -9,7 +9,6 @@ import { SmokeSwap } from '../../tags.js';
 import WalletView from '../../page-objects/wallet/WalletView';
 import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers.js';
-import { mockSwapPopularTokens } from '../../helpers/swap/swap-mocks';
 
 describe(SmokeSwap('Trade: Unified UI Wallet Actions'), () => {
   let mockServer: Mockttp | undefined;
@@ -53,9 +52,6 @@ describe(SmokeSwap('Trade: Unified UI Wallet Actions'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await mockSwapPopularTokens(mockServer);
-        },
       },
       async () => {
         await loginToApp();

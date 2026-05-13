@@ -19,6 +19,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
   },
+  tokenHeaderRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   tokenNameSkeleton: {
     marginBottom: 0,
   },
@@ -43,9 +49,17 @@ const styles = StyleSheet.create({
 const iconSize = 40;
 const TrendingTokensSkeleton: React.FC<ViewStyle> = () => (
   <View style={styles.container}>
-    <Skeleton height={iconSize} width={iconSize} style={styles.iconSkeleton} />
+    <View>
+      <Skeleton
+        height={iconSize}
+        width={iconSize}
+        style={styles.iconSkeleton}
+      />
+    </View>
     <View style={[styles.leftContainer, { minHeight: iconSize }]}>
-      <Skeleton height={20} width="60%" style={styles.tokenNameSkeleton} />
+      <View style={styles.tokenHeaderRow}>
+        <Skeleton height={20} width="60%" style={styles.tokenNameSkeleton} />
+      </View>
       <Skeleton height={18} width="80%" style={styles.marketStatsSkeleton} />
     </View>
     <View style={[styles.rightContainer, { minHeight: iconSize }]}>

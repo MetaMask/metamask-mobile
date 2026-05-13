@@ -17,7 +17,7 @@ const { mockTheme } = jest.requireActual('../../../../../../util/theme');
 const mockColors = { text: { alternative: mockTheme.colors.text.alternative } };
 
 const createHiddenInputRef = () =>
-  React.createRef<TextInput>() as unknown as React.RefObject<TextInput | null>;
+  React.createRef<TextInput>() as unknown as React.RefObject<TextInput>;
 
 const defaultProps = {
   usdAmount: '',

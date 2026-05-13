@@ -17,7 +17,6 @@ describe(SmokeSnaps('Interactive UI Snap Tests'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
-        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -34,7 +33,6 @@ describe(SmokeSnaps('Interactive UI Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
-        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('createDialogButton');
@@ -80,7 +78,6 @@ describe(SmokeSnaps('Interactive UI Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
-        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('createDialogDisabledButton');

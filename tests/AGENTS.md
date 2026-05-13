@@ -16,11 +16,11 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 
 ### E2E Tests (Detox smoke/regression)
 
-- [docs/testing/e2e-testing.md](../docs/testing/e2e-testing.md) — Canonical guide: patterns, Page Objects, assertions, gestures, prohibited patterns.
+- [.agents/skills/e2e-test/SKILL.md](../.agents/skills/e2e-test/SKILL.md) — Canonical skill for adding or fixing E2E specs: workflow, decision tree, references (writing-tests, page-objects, mocking, analytics-e2e, running-tests).
 
 ## Canonical Sources (read these, do not duplicate)
 
-- [docs/testing/e2e-testing.md](../docs/testing/e2e-testing.md) — Patterns, Page Objects, assertions, gestures, prohibited patterns.
+- [.cursor/rules/e2e-testing-guidelines.mdc](../.cursor/rules/e2e-testing-guidelines.mdc) — Patterns, Page Objects, assertions, gestures, prohibited patterns.
 - [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md) — Setup, run commands, build types, Metro, Detox, Flask; legacy Appium; Playwright.
 - [.github/guidelines/E2E_DECISION_TREE.md](../.github/guidelines/E2E_DECISION_TREE.md) — CI decision flow: when E2E runs, which labels gate it (pr-not-ready-for-e2e, skip-e2e, skip-smart-e2e-selection), AI test selection logic.
 - [tests/docs/README.md](docs/README.md) — Framework structure, withFixtures, FixtureBuilder, anti-patterns, checklist.
@@ -34,11 +34,11 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 - [AGENTS.md](../AGENTS.md) — Root index; commands, architecture.
 - [.github/guidelines/CODING_GUIDELINES.md](../.github/guidelines/CODING_GUIDELINES.md) — Coding standards.
 
-Unit tests under `tests/` (e.g. framework tests): [docs/testing/unit-testing.md](../docs/testing/unit-testing.md).
+Unit tests under `tests/` (e.g. framework tests): [.cursor/rules/unit-testing-guidelines.mdc](../.cursor/rules/unit-testing-guidelines.mdc).
 
 ## Before working
 
 - **tests/** — Use `withFixtures` + `FixtureBuilder`; Page Object methods only; no `TestHelpers.delay()`; selectors in `tests/selectors/` or page folder; import from `tests/framework/index.ts`. Commands: [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).
 - **tests/** — Framework/mocking: read tests/docs/README and MOCKING; keep exports in `tests/framework/index.ts`. Regression/smoke: same as e2e (withFixtures, Page Objects, no delay). Yarn only.
-- **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. See [docs/testing/component-view-tests.md](../docs/testing/component-view-tests.md).
+- **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. See `.agents/skills/component-view-test/SKILL.md`.
 - **wdio/** — Do not extend. New work: Detox + tests/smoke|regression or Appwright (`tests/`). If maintaining: legacy section in [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).

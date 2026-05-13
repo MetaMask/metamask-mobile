@@ -15,7 +15,6 @@ describe(SmokeSnaps('JSX Snap Tests'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
-        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -32,7 +31,6 @@ describe(SmokeSnaps('JSX Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
-        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('displayJsxButton');

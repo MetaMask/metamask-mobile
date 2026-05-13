@@ -1,16 +1,12 @@
 import {
-  BadgeCount,
-  BadgeCountSize,
   Box,
   BoxAlignItems,
-  BoxBackgroundColor,
   BoxFlexDirection,
   Icon,
   IconName,
   IconSize,
   Skeleton,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
@@ -41,17 +37,6 @@ const BenefitsPreview = () => {
   const hasBenefits = benefits.length > 0;
   const topBenefits = benefits.slice(0, 3);
 
-  const benefitsCountBadge =
-    benefits.length > 0 ? (
-      <BadgeCount
-        count={benefits.length}
-        max={99}
-        size={BadgeCountSize.Lg}
-        twClassName={`${BoxBackgroundColor.BackgroundMuted} min-w-6 h-6`}
-        textProps={{ color: TextColor.TextDefault }}
-      />
-    ) : null;
-
   const displayHeader = hasBenefits ? (
     <Pressable onPress={handleNavigateToBenefitsFullView}>
       <Box
@@ -62,7 +47,6 @@ const BenefitsPreview = () => {
         <Text variant={TextVariant.HeadingMd}>
           {strings('rewards.benefits.title')}
         </Text>
-        {benefitsCountBadge}
         <Icon name={IconName.ArrowRight} size={IconSize.Md} />
       </Box>
     </Pressable>
@@ -75,7 +59,6 @@ const BenefitsPreview = () => {
       <Text variant={TextVariant.HeadingMd}>
         {strings('rewards.benefits.title')}
       </Text>
-      {benefitsCountBadge}
     </Box>
   );
 

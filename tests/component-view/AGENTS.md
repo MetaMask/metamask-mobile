@@ -71,13 +71,16 @@ tests/component-view/
 
 ---
 
-## Canonical guide (Mandatory)
+## Canonical skill (Mandatory)
 
-Single in-repo guide consolidates the full workflow, writing patterns, navigation/mocking, and self-review:
+Links to the skill content:
 
-- [docs/testing/component-view-tests.md](../../docs/testing/component-view-tests.md) — Full workflow, golden rules, writing tests, navigation, API mocking, self-review checklist, failure diagnosis
+- [.agents/skills/component-view-test/SKILL.md](../../.agents/skills/component-view-test/SKILL.md) — Full workflow, golden rules
+- [.agents/skills/component-view-test/references/writing-tests.md](../../.agents/skills/component-view-test/references/writing-tests.md) — Test structure, renderers, presets
+- [.agents/skills/component-view-test/references/navigation-mocking.md](../../.agents/skills/component-view-test/references/navigation-mocking.md) — Navigation testing, API mocking
+- [.agents/skills/component-view-test/references/reference.md](../../.agents/skills/component-view-test/references/reference.md) — Fiat, run commands, self-review checklist, failure diagnosis
 
-Other harnesses: start prompts with `Follow docs/testing/component-view-tests.md`
+Other harnesses: start prompts with `Follow .agents/skills/component-view-test/SKILL.md`
 
 ## Run the tests {#run-the-tests}
 
@@ -93,7 +96,7 @@ Coverage for a feature folder:
 yarn test:view:coverage:folder app/components/UI/MyFeature
 ```
 
-For run-by-name, watch mode, or other options, see [docs/testing/component-view-tests.md](../../docs/testing/component-view-tests.md) (Run the Tests).
+For run-by-name, watch mode, or other options, see the skill’s [references/reference.md](../../.agents/skills/component-view-test/references/reference.md) (Run the Tests).
 
 ## Enforcement {#enforcement}
 
@@ -111,4 +114,4 @@ For run-by-name, watch mode, or other options, see [docs/testing/component-view-
 
 ## Before working
 
-- **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. Follow [docs/testing/component-view-tests.md](../../docs/testing/component-view-tests.md). Only mock Engine and allowed native modules; drive behavior through Redux state; reuse presets and renderers.
+- **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. Follow [.agents/skills/component-view-test/SKILL.md](../../.agents/skills/component-view-test/SKILL.md). Only mock Engine and allowed native modules; drive behavior through Redux state; reuse presets and renderers.

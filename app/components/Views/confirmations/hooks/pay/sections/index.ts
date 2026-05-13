@@ -1,1 +1,0 @@
-export { usePayWithCryptoSection } from './usePayWithCryptoSection';

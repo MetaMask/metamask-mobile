@@ -49,8 +49,6 @@ import {
   type QRHardwareScanError,
   QRHardwareScanErrorType,
 } from '../../../core/HardwareWallet/errors';
-import { isSameScanError } from './AnimatedQRScanner.utils';
-import usePrevious from '../../../components/hooks/usePrevious';
 
 /**
  * Builds {@link MetaMetricsEvents.HARDWARE_WALLET_ERROR} properties for QR hardware flows.
@@ -254,13 +252,11 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     onModalHideComplete,
   } = props;
 
-  const [urDecoder, setURDecoder] = useState(() => new URRegistryDecoder());
+  const [urDecoder, setURDecoder] = useState(new URRegistryDecoder());
   const [progress, setProgress] = useState(0);
   const [scanError, setScanError] = useState<QRHardwareScanError | null>(null);
 
   const scanErrorActiveRef = useRef(false);
-  const lastForwardedScanErrorRef = useRef<QRHardwareScanError | null>(null);
-  const previousVisible = usePrevious(visible);
   const onQRHardwareScanErrorRef = useRef(onQRHardwareScanError);
   onQRHardwareScanErrorRef.current = onQRHardwareScanError;
   const theme = useTheme();
@@ -325,16 +321,9 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
   const reset = useCallback(() => {
     scanErrorActiveRef.current = false;
-    lastForwardedScanErrorRef.current = null;
     resetDecoder();
     setScanError(null);
   }, [resetDecoder]);
-
-  useEffect(() => {
-    if (previousVisible === false && visible) {
-      reset();
-    }
-  }, [previousVisible, reset, visible]);
 
   // Helper to send analytics with device name
   const sendErrorAnalytics = useCallback(
@@ -397,25 +386,13 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         return;
       }
 
-      const errorCallback = onQRHardwareScanErrorRef.current;
-      const isDuplicateForwardedScanError = Boolean(
-        errorCallback &&
-          isSameScanError(lastForwardedScanErrorRef.current, error),
-      );
-
-      if (isDuplicateForwardedScanError) {
-        return;
-      }
-
       scanErrorActiveRef.current = true;
       resetDecoder();
 
+      const errorCallback = onQRHardwareScanErrorRef.current;
       if (errorCallback) {
-        lastForwardedScanErrorRef.current = error;
         errorCallback(error);
-        scanErrorActiveRef.current = false;
       } else {
-        lastForwardedScanErrorRef.current = null;
         setScanError(error);
       }
 
@@ -470,8 +447,6 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         } else if (urDecoder.isSuccess()) {
           const ur = urDecoder.resultUR();
           if (expectedURTypes.includes(ur.type)) {
-            scanErrorActiveRef.current = false;
-            lastForwardedScanErrorRef.current = null;
             onScanSuccess(ur);
             setProgress(0);
             setURDecoder(new URRegistryDecoder());

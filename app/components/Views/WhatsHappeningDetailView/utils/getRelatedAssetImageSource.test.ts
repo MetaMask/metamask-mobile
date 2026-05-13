@@ -14,7 +14,7 @@ jest.mock('../../../../images/image-icons', () => ({
 }));
 
 const PERPS_ICONS_BASE =
-  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/';
+  'https://raw.githubusercontent.com/MetaMask/metamask-perps-assets/main/icons/';
 
 jest.mock('../../../UI/Perps/utils/marketUtils', () => ({
   getAssetIconUrls: jest.fn((symbol: string) => {
@@ -42,7 +42,7 @@ jest.mock(
 
 describe('getRelatedAssetImageSource', () => {
   describe('CAIP-19 path (highest priority — regular crypto tokens)', () => {
-    it('returns bundled kind when symbol matches image-icons', () => {
+    it('uses bundled icon when symbol matches image-icons', () => {
       const result = getRelatedAssetImageSource({
         name: 'Ethereum',
         symbol: 'ETH',
@@ -51,10 +51,12 @@ describe('getRelatedAssetImageSource', () => {
         hlPerpsMarket: ['ETH'], // present but must NOT trigger Perps SVG path
       });
 
-      expect(result).toEqual({ kind: 'bundled', source: 123 });
+      expect(result).toBe(123);
+      expect(typeof result).toBe('number'); // bundled PNG, not an SVG URI object
     });
 
     it('ignores hlPerpsMarket when caip19 is populated', () => {
+      // BTC has hlPerpsMarket but also has caip19 — must use CAIP-19 path
       const result = getRelatedAssetImageSource({
         name: 'Bitcoin',
         symbol: 'BTC',
@@ -63,10 +65,12 @@ describe('getRelatedAssetImageSource', () => {
         hlPerpsMarket: ['BTC'],
       });
 
-      expect(result).toEqual({ kind: 'bundled', source: 100 });
+      // Bundled BTC icon, not a Perps SVG URI
+      expect(result).toBe(100);
+      expect(typeof result).toBe('number');
     });
 
-    it('returns png kind with wallet CDN URI when symbol has no bundled icon', () => {
+    it('returns wallet CDN URI when symbol has no bundled icon', () => {
       const result = getRelatedAssetImageSource({
         name: 'Some Token',
         symbol: 'UNKNOWN',
@@ -75,14 +79,14 @@ describe('getRelatedAssetImageSource', () => {
       });
 
       expect(result).toEqual({
-        kind: 'png',
         uri: expect.stringContaining('static.cx.metamask.io'),
       });
     });
   });
 
   describe('Perps path via hlPerpsMarket (only when caip19 is empty)', () => {
-    it('returns perps kind with symbol, primary + fallback URLs for a plain HL market id', () => {
+    it('uses Perps primary SVG for a plain HL market id', () => {
+      // Hypothetical BTC with no caip19 (purely Perps context)
       const result = getRelatedAssetImageSource({
         name: 'Bitcoin',
         symbol: 'BTC',
@@ -91,15 +95,10 @@ describe('getRelatedAssetImageSource', () => {
         hlPerpsMarket: ['BTC'],
       });
 
-      expect(result).toEqual({
-        kind: 'perps',
-        symbol: 'BTC',
-        primary: `${PERPS_ICONS_BASE}BTC.svg`,
-        fallback: `${PERPS_ICONS_BASE}BTC.svg`,
-      });
+      expect(result).toEqual({ uri: `${PERPS_ICONS_BASE}BTC.svg` });
     });
 
-    it('returns perps kind with symbol, primary + fallback URLs for HIP-3 synthetic asset (xyz:TSLA)', () => {
+    it('uses Perps primary SVG for HIP-3 synthetic asset (xyz:TSLA format)', () => {
       const result = getRelatedAssetImageSource({
         name: 'Tesla',
         symbol: 'TSLA',
@@ -109,27 +108,7 @@ describe('getRelatedAssetImageSource', () => {
       });
 
       expect(result).toEqual({
-        kind: 'perps',
-        symbol: 'xyz:TSLA',
-        primary: `${PERPS_ICONS_BASE}hip3:xyz_TSLA.svg`,
-        fallback: `${PERPS_ICONS_BASE}xyz:TSLA.svg`,
-      });
-    });
-
-    it('returns perps kind for an asset whose MM CDN would 404 (Brent Oil)', () => {
-      const result = getRelatedAssetImageSource({
-        name: 'Brent Oil',
-        symbol: 'BRENT',
-        caip19: [],
-        sourceAssetId: 'brent',
-        hlPerpsMarket: ['xyz:BRENT'],
-      });
-
-      expect(result).toEqual({
-        kind: 'perps',
-        symbol: 'xyz:BRENT',
-        primary: `${PERPS_ICONS_BASE}hip3:xyz_BRENT.svg`,
-        fallback: `${PERPS_ICONS_BASE}xyz:BRENT.svg`,
+        uri: `${PERPS_ICONS_BASE}hip3:xyz_TSLA.svg`,
       });
     });
 
@@ -142,12 +121,13 @@ describe('getRelatedAssetImageSource', () => {
         hlPerpsMarket: ['ETH'],
       });
 
-      expect(result).toEqual({ kind: 'bundled', source: 123 });
+      // Must be bundled PNG, not SVG URI
+      expect(typeof result).toBe('number');
     });
   });
 
   describe('symbol-only fallback', () => {
-    it('returns bundled kind when caip19 is empty and no hlPerpsMarket', () => {
+    it('returns bundled icon by symbol when caip19 is empty and no hlPerpsMarket', () => {
       const result = getRelatedAssetImageSource({
         name: 'Ethereum',
         symbol: 'ETH',
@@ -155,7 +135,7 @@ describe('getRelatedAssetImageSource', () => {
         sourceAssetId: 'ethereum',
       });
 
-      expect(result).toEqual({ kind: 'bundled', source: 123 });
+      expect(result).toBe(123);
     });
 
     it('returns undefined when no caip19, no hlPerpsMarket, and unknown symbol', () => {

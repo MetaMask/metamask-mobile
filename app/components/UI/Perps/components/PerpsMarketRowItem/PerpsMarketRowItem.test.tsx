@@ -4,6 +4,17 @@ import PerpsMarketRowItem from './PerpsMarketRowItem';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
 
+const { TouchableOpacity } = jest.requireActual('react-native');
+
+jest.mock('../../../../../component-library/hooks', () => ({
+  useStyles: jest.fn(() => {
+    const actualStyleSheet = jest.requireActual(
+      './PerpsMarketRowItem.styles',
+    ).default;
+    return { styles: actualStyleSheet({ vars: { compact: false } }) };
+  }),
+}));
+
 // Mock PerpsTokenLogo
 jest.mock('../PerpsTokenLogo', () => {
   const { View } = jest.requireActual('react-native');

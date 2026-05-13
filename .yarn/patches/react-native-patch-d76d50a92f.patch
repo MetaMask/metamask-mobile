@@ -1,0 +1,35 @@
+diff --git a/ReactAndroid/build.gradle.kts b/ReactAndroid/build.gradle.kts
+index f22f383eb291a415102f7501328bcc22aa2622da..3a78e18c7a80b0216944435e71dd4422b3e2ae73 100644
+--- a/ReactAndroid/build.gradle.kts
++++ b/ReactAndroid/build.gradle.kts
+@@ -573,8 +573,6 @@ android {
+           preparePrefab)
+   tasks.getByName("generateCodegenSchemaFromJavaScript").dependsOn(buildCodegenCLI)
+   prepareKotlinBuildScriptModel.dependsOn("preBuild")
+-  prepareKotlinBuildScriptModel.dependsOn(
+-      ":packages:react-native:ReactAndroid:hermes-engine:preBuild")
+ 
+   sourceSets.getByName("main") {
+     res.setSrcDirs(
+@@ -656,7 +654,7 @@ dependencies {
+ 
+   // It's up to the consumer to decide if hermes should be included or not.
+   // Therefore hermes-engine is a compileOnly dependency.
+-  compileOnly(project(":packages:react-native:ReactAndroid:hermes-engine"))
++  compileOnly("com.facebook.react:hermes-android:0.76.9")
+ 
+   testImplementation(libs.junit)
+   testImplementation(libs.assertj)
+diff --git a/settings.gradle.kts b/settings.gradle.kts
+index 283d16b5f751040c051c98f38f140b5896f4a3e0..d4ff6f54122d1c33ed871318b4550599ef9399f0 100644
+--- a/settings.gradle.kts
++++ b/settings.gradle.kts
+@@ -24,8 +24,3 @@ rootProject.name = "react-native-build-from-source"
+ include(":packages:react-native:ReactAndroid")
+ 
+ project(":packages:react-native:ReactAndroid").projectDir = file("ReactAndroid/")
+-
+-include(":packages:react-native:ReactAndroid:hermes-engine")
+-
+-project(":packages:react-native:ReactAndroid:hermes-engine").projectDir =
+-    file("ReactAndroid/hermes-engine/")

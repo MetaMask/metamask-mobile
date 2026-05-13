@@ -63,7 +63,7 @@ describe('PredictMarketDetails', () => {
       getMarketSpy.mockRestore();
     });
 
-    it('tracks geo block and navigates to unavailable modal when the user presses a bet button while ineligible', async () => {
+    it('calls trackGeoBlockTriggered when the user presses a bet button while ineligible', async () => {
       const trackGeoBlockSpy = jest.spyOn(
         Engine.context.PredictController,
         'trackGeoBlockTriggered',
@@ -74,11 +74,9 @@ describe('PredictMarketDetails', () => {
       );
       getMarketSpy.mockResolvedValue(MOCK_PREDICT_MARKET);
 
-      const { findByText, findByTestId } =
-        renderPredictMarketDetailsViewWithRoutes({
-          initialParams: { marketId: 'market-btc-1' },
-          extraRoutes: [{ name: Routes.PREDICT.MODALS.ROOT }],
-        });
+      const { findByText } = renderPredictMarketDetailsView({
+        initialParams: { marketId: 'market-btc-1' },
+      });
 
       // Bet button label is "Yes • {yesPercentage}¢"; press it while ineligible
       fireEvent.press(await findByText(/Yes.*¢/));
@@ -88,9 +86,6 @@ describe('PredictMarketDetails', () => {
           expect.objectContaining({ attemptedAction: 'predict_action' }),
         );
       });
-      expect(
-        await findByTestId(`route-${Routes.PREDICT.MODALS.ROOT}`),
-      ).toBeOnTheScreen();
 
       getMarketSpy.mockRestore();
       trackGeoBlockSpy.mockRestore();

@@ -19,7 +19,7 @@ import { validateTransactionHashInTransactionFinalizedEvent } from './metricsVal
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
-describe.skip(SmokeConfirmations('Send native asset'), () => {
+describe(SmokeConfirmations('Send native asset'), () => {
   // Moved partially to cv tests (send.view.test.tsx, EVM coverage)
   it('should send MAX balance ETH to an address', async () => {
     await withFixtures(

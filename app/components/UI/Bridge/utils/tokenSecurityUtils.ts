@@ -4,11 +4,11 @@ import { TagSeverity } from '../../../../component-library/base-components/TagBa
 import { strings } from '../../../../../locales/i18n';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import {
-  type SecurityData,
+  SecurityData,
   SecurityDataType,
-  type SecurityFeature,
-  type BridgeToken,
-} from '../types';
+  SecurityFeature,
+} from '../hooks/usePopularTokens';
+import { BridgeToken } from '../types';
 
 /**
  * Extracts security warning descriptions from a token's securityData metadata features.

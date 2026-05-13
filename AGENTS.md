@@ -99,15 +99,16 @@ scripts/                  # Build and automation scripts
 
 ## Development Guidelines
 
-**Detailed guidelines are in `docs/testing/`** (canonical, in-repo) and the `mms-*` skill set installed via `yarn skills` (Cursor / Codex / Claude harnesses):
+**Detailed guidelines are in `.cursor/rules/`** - these are automatically applied by Cursor:
 
-| Guide                                                                          | Scope                                             |
-| ------------------------------------------------------------------------------ | ------------------------------------------------- |
-| [`docs/testing/unit-testing.md`](docs/testing/unit-testing.md)                 | `*.test.*` files — test patterns, mocking, AAA    |
-| [`docs/testing/e2e-testing.md`](docs/testing/e2e-testing.md)                   | Detox smoke/regression — Page Objects, gestures   |
-| [`docs/testing/component-view-tests.md`](docs/testing/component-view-tests.md) | `*.view.test.tsx` — framework, presets, renderers |
-
-General coding, UI, deeplink-handler, and PR-creation guidance now lives in the centralized `mms-*` skill set installed via `yarn skills` (see `.agents/skills/mms-*` after sync).
+| Rule File                         | Scope                                                |
+| --------------------------------- | ---------------------------------------------------- |
+| `general-coding-guidelines.mdc`   | Always applied - coding standards, file organization |
+| `ui-development-guidelines.mdc`   | UI components - design system, Tailwind, styling     |
+| `unit-testing-guidelines.mdc`     | `*.test.*` files - test patterns, mocking, AAA       |
+| `e2e-testing-guidelines.mdc`      | Always applied - E2E patterns, Page Objects          |
+| `deeplink-handler-guidelines.mdc` | Deeplink handler implementation                      |
+| `pr-creation-guidelines.mdc`      | Pull request standards                               |
 
 ### Quick Reference
 
@@ -125,7 +126,7 @@ See detailed setup documentation:
 - **Native development**: [docs/readme/environment.md](./docs/readme/environment.md)
 - **Infura & Firebase**: [README.md](./README.md#getting-started)
 
-**Required Tools**: Node.js ^20.18.0 • Yarn ^4.14.1 • Watchman
+**Required Tools**: Node.js ^20.18.0 • Yarn ^4.10.3 • Watchman
 
 ### AI Tooling — Developer Usage Collection
 
@@ -178,6 +179,7 @@ The app supports multiple build types:
 
 - `main`: Production MetaMask
 - `flask`: Development/experimental features
+- `qa`: QA testing builds
 
 Use environment variable `METAMASK_BUILD_TYPE` to switch.
 
@@ -242,7 +244,7 @@ Harness entrypoints:
 Compliance check command:
 
 ```bash
-bash scripts/check-ab-testing-compliance.sh --staged
+bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged
 ```
 
 If no files are staged, the checker automatically falls back to changed working-tree files.

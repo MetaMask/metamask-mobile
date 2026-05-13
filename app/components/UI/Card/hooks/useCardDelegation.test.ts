@@ -52,7 +52,6 @@ jest.mock('../../../../util/address', () => ({
 
 const mockFetchDelegationChallenge = jest.fn();
 const mockApproveFunding = jest.fn();
-const mockGenerateCardDelegationSignatureMessage = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -66,8 +65,6 @@ jest.mock('../../../../core/Engine', () => ({
       fetchDelegationChallenge: (...args: unknown[]) =>
         mockFetchDelegationChallenge(...args),
       approveFunding: (...args: unknown[]) => mockApproveFunding(...args),
-      generateCardDelegationSignatureMessage: (...args: unknown[]) =>
-        mockGenerateCardDelegationSignatureMessage(...args),
     },
   },
   controllerMessenger: {
@@ -172,13 +169,6 @@ describe('useCardDelegation', () => {
     });
     mockApproveFunding.mockResolvedValue(undefined);
 
-    // Default SIWE message returned by the (provider-backed) controller.
-    // Tests that need a different shape (e.g. Solana wording) override this.
-    mockGenerateCardDelegationSignatureMessage.mockReset();
-    mockGenerateCardDelegationSignatureMessage.mockReturnValue(
-      'mocked-siwe-message',
-    );
-
     // Setup metrics mock
     mockBuild = jest.fn().mockReturnValue({ event: 'mock-event' });
     mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
@@ -219,21 +209,18 @@ describe('useCardDelegation', () => {
       ensureNetworkExists: mockEnsureNetworkExists,
     });
 
-    // Setup controllerMessenger mock to simulate transaction confirmation via
-    // the awaitTransactionConfirmed util (subscribe/unsubscribe pattern).
-    Engine.controllerMessenger.subscribe = jest
+    // Setup controllerMessenger mock to simulate transaction confirmation
+    Engine.controllerMessenger.subscribeOnceIf = jest
       .fn()
-      .mockImplementation((eventName, callback) => {
-        if (eventName === 'TransactionController:transactionConfirmed') {
-          setImmediate(() => {
-            callback({
-              id: 'transaction-meta-id-123',
-              status: TransactionStatus.confirmed,
-            });
+      .mockImplementation((_eventName, callback, _filter) => {
+        // Immediately call the callback with a confirmed transaction
+        setImmediate(() => {
+          callback({
+            id: 'transaction-meta-id-123',
+            status: TransactionStatus.confirmed,
           });
-        }
+        });
       });
-    Engine.controllerMessenger.unsubscribe = jest.fn();
 
     // Setup utility mocks
     mockToTokenMinimalUnit.mockReturnValue(100000000000000000000n);
@@ -615,8 +602,17 @@ describe('useCardDelegation', () => {
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
 
-      // Default beforeEach already emits a confirmed event on subscribe;
-      // approveFunding will reject after confirmation completes.
+      Engine.controllerMessenger.subscribeOnceIf = jest
+        .fn()
+        .mockImplementation((_eventName, callback) => {
+          // Immediately call the callback with a confirmed transaction
+          setImmediate(() => {
+            callback({
+              id: 'transaction-meta-id-123',
+              status: TransactionStatus.confirmed,
+            });
+          });
+        });
 
       const { result } = renderHook(() => useCardDelegation(mockToken));
 
@@ -876,21 +872,14 @@ describe('useCardDelegation', () => {
   });
 
   describe('generateSignatureMessage', () => {
-    it('forwards EVM args to CardController.generateCardDelegationSignatureMessage and signs the returned message', async () => {
-      const mockToken = createMockToken({ caipChainId: 'eip155:59144' });
+    it('generates multi-line SIWE message for EVM networks', async () => {
+      const mockToken = createMockToken();
       const params = createMockDelegationParams();
 
       const { result } = renderHook(() => useCardDelegation(mockToken));
 
       await act(async () => {
         await result.current.submitDelegation(params);
-      });
-
-      expect(mockGenerateCardDelegationSignatureMessage).toHaveBeenCalledWith({
-        network: params.network,
-        address: mockAddress,
-        nonce: mockNonce,
-        caipChainId: 'eip155:59144',
       });
 
       const mockSignPersonalMessage = Engine.context.KeyringController
@@ -903,10 +892,26 @@ describe('useCardDelegation', () => {
         signedMessageHex.slice(2),
         'hex',
       ).toString('utf8');
-      expect(signedMessage).toBe('mocked-siwe-message');
+
+      // Verify content
+      expect(signedMessage).toContain(`${mockAddress}`);
+      expect(signedMessage).toContain('Chain ID: 59144');
+      expect(signedMessage).toContain(`Nonce: ${mockNonce}`);
+      expect(signedMessage).toContain(
+        'metamask.app.link wants you to sign in with your Ethereum account:',
+      );
+
+      // Verify multi-line format for EVM (contains newlines)
+      expect(signedMessage).toContain('\n');
+      expect(signedMessage).toContain('\nURI:');
+      expect(signedMessage).toContain('\nVersion:');
+      expect(signedMessage).toContain('\nChain ID:');
+      expect(signedMessage).toContain('\nNonce:');
+      expect(signedMessage).toContain('\nIssued At:');
+      expect(signedMessage).toContain('\nExpiration Time:');
     });
 
-    it('forwards Solana args to CardController.generateCardDelegationSignatureMessage and signs via the Solana snap', async () => {
+    it('generates SIWE message for Solana network', async () => {
       const mockToken = createMockToken();
       const mockSolanaAddress = 'SolanaAddress123ABC';
       const mockAccountId = 'solana-account-uuid-123';
@@ -923,14 +928,12 @@ describe('useCardDelegation', () => {
         }),
       );
 
-      mockGenerateCardDelegationSignatureMessage.mockReturnValue(
-        'mocked-solana-siwe',
-      );
-
+      // Mock handleSnapRequest for both signCardMessage and approveCardAmount
       mockHandleSnapRequest
-        .mockResolvedValueOnce({ signature: 'mock-solana-signature' })
-        .mockResolvedValueOnce({ signature: mockTxSignature });
+        .mockResolvedValueOnce({ signature: 'mock-solana-signature' }) // signCardMessage
+        .mockResolvedValueOnce({ signature: mockTxSignature }); // approveCardAmount
 
+      // Mock controllerMessenger.subscribe for Solana stateChange
       (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
         (eventName: string, callback: (state: unknown) => void) => {
           if (eventName === 'MultichainTransactionsController:stateChange') {
@@ -960,22 +963,34 @@ describe('useCardDelegation', () => {
         await result.current.submitDelegation(params);
       });
 
-      expect(mockGenerateCardDelegationSignatureMessage).toHaveBeenCalledWith(
-        expect.objectContaining({
-          network: 'solana',
-          address: mockSolanaAddress,
-          nonce: mockNonce,
-        }),
-      );
-
+      // Get the message that was passed to signCardMessage
+      // handleSnapRequest is called with (controllerMessenger, requestObject)
       const signCardMessageCall = mockHandleSnapRequest.mock.calls[0];
       const requestObject = signCardMessageCall[1];
       const base64Message = requestObject.request.params.message;
+
+      // Decode from base64
       const message = Buffer.from(base64Message, 'base64').toString('utf8');
-      expect(message).toBe('mocked-solana-siwe');
+
+      // Verify content
+      expect(message).toContain(mockSolanaAddress);
+      expect(message).toContain(
+        'metamask.app.link wants you to sign in with your Solana account:',
+      );
+      expect(message).toContain(`Nonce: ${mockNonce}`);
+      expect(message).toContain('Chain ID: 1');
+      expect(message).toContain('URI: https://metamask.app.link');
+      expect(message).toContain('Version: 1');
+      expect(message).toContain('Issued At:');
+
+      // Verify multi-line format (same structure as EVM, but without Expiration Time)
+      expect(message).toContain('\nURI:');
+      expect(message).toContain('\nVersion:');
+      expect(message).toContain('\nChain ID:');
+      expect(message).not.toContain('Expiration Time:');
     });
 
-    it('forwards token caipChainId to the controller', async () => {
+    it('extracts chain ID from token caipChainId', async () => {
       const mockToken = createMockToken({ caipChainId: 'eip155:1' });
       const params = createMockDelegationParams();
 
@@ -985,12 +1000,21 @@ describe('useCardDelegation', () => {
         await result.current.submitDelegation(params);
       });
 
-      expect(mockGenerateCardDelegationSignatureMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ caipChainId: 'eip155:1' }),
-      );
+      const mockSignPersonalMessage = Engine.context.KeyringController
+        .signPersonalMessage as jest.MockedFunction<
+        typeof Engine.context.KeyringController.signPersonalMessage
+      >;
+      const signCallArgs = mockSignPersonalMessage.mock.calls[0][0];
+      const signedMessageHex = signCallArgs.data;
+      const signedMessage = Buffer.from(
+        signedMessageHex.slice(2),
+        'hex',
+      ).toString('utf8');
+
+      expect(signedMessage).toContain('Chain ID: 1');
     });
 
-    it('forwards undefined caipChainId when the token has none', async () => {
+    it('uses default chain ID when caipChainId is not provided', async () => {
       const mockToken = createMockToken({ caipChainId: undefined });
       const params = createMockDelegationParams();
 
@@ -1000,9 +1024,18 @@ describe('useCardDelegation', () => {
         await result.current.submitDelegation(params);
       });
 
-      expect(mockGenerateCardDelegationSignatureMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ caipChainId: undefined }),
-      );
+      const mockSignPersonalMessage = Engine.context.KeyringController
+        .signPersonalMessage as jest.MockedFunction<
+        typeof Engine.context.KeyringController.signPersonalMessage
+      >;
+      const signCallArgs = mockSignPersonalMessage.mock.calls[0][0];
+      const signedMessageHex = signCallArgs.data;
+      const signedMessage = Buffer.from(
+        signedMessageHex.slice(2),
+        'hex',
+      ).toString('utf8');
+
+      expect(signedMessage).toContain('Chain ID: 59144');
     });
   });
 
@@ -1061,12 +1094,9 @@ describe('useCardDelegation', () => {
         await result.current.submitDelegation(params);
       });
 
-      expect(Engine.controllerMessenger.subscribe).toHaveBeenCalledWith(
+      expect(Engine.controllerMessenger.subscribeOnceIf).toHaveBeenCalledWith(
         'TransactionController:transactionConfirmed',
         expect.any(Function),
-      );
-      expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalledWith(
-        'TransactionController:transactionConfirmed',
         expect.any(Function),
       );
     });
@@ -1079,18 +1109,16 @@ describe('useCardDelegation', () => {
         resolveConfirmation = resolve;
       });
 
-      (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
-        (eventName, callback) => {
-          if (eventName === 'TransactionController:transactionConfirmed') {
-            confirmationPromise.then(() => {
-              callback({
-                id: 'transaction-meta-id-123',
-                status: TransactionStatus.confirmed,
-              });
+      Engine.controllerMessenger.subscribeOnceIf = jest
+        .fn()
+        .mockImplementation((_eventName, callback) => {
+          confirmationPromise.then(() => {
+            callback({
+              id: 'transaction-meta-id-123',
+              status: TransactionStatus.confirmed,
             });
-          }
-        },
-      );
+          });
+        });
 
       const { result } = renderHook(() => useCardDelegation(mockToken));
 
@@ -1122,22 +1150,24 @@ describe('useCardDelegation', () => {
       expect(mockApproveFunding).toHaveBeenCalled();
     });
 
-    it('handles transaction failure via transactionFailed event', async () => {
+    it('handles transaction failure in confirmation listener', async () => {
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
 
-      (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
-        (eventName, callback) => {
-          if (eventName === 'TransactionController:transactionFailed') {
-            setImmediate(() => {
-              callback({
-                error: 'Transaction execution failed',
-                transactionMeta: { id: 'transaction-meta-id-123' },
-              });
+      Engine.controllerMessenger.subscribeOnceIf = jest
+        .fn()
+        .mockImplementation((_eventName, callback) => {
+          // Immediately call the callback with a failed transaction
+          setImmediate(() => {
+            callback({
+              id: 'transaction-meta-id-123',
+              status: TransactionStatus.failed,
+              error: {
+                message: 'Transaction execution failed',
+              },
             });
-          }
-        },
-      );
+          });
+        });
 
       const { result } = renderHook(() => useCardDelegation(mockToken));
 
@@ -1148,25 +1178,29 @@ describe('useCardDelegation', () => {
       });
 
       expect(result.current.error).toBe('Transaction execution failed');
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'Transaction failed',
+      );
       expect(mockApproveFunding).not.toHaveBeenCalled();
     });
 
-    it('handles transaction failure with generic message when no error string provided', async () => {
+    it('handles transaction failure with generic message when error details not provided', async () => {
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
 
-      (Engine.controllerMessenger.subscribe as jest.Mock).mockImplementation(
-        (eventName, callback) => {
-          if (eventName === 'TransactionController:transactionFailed') {
-            setImmediate(() => {
-              callback({
-                error: '',
-                transactionMeta: { id: 'transaction-meta-id-123' },
-              });
+      Engine.controllerMessenger.subscribeOnceIf = jest
+        .fn()
+        .mockImplementation((_eventName, callback) => {
+          // Immediately call the callback with a failed transaction without error details
+          setImmediate(() => {
+            callback({
+              id: 'transaction-meta-id-123',
+              status: TransactionStatus.failed,
+              error: undefined,
             });
-          }
-        },
-      );
+          });
+        });
 
       const { result } = renderHook(() => useCardDelegation(mockToken));
 

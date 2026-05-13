@@ -55,6 +55,28 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
+// Mock useStyles
+jest.mock('../../../../hooks/useStyles', () => ({
+  useStyles: jest.fn(() => ({
+    styles: {
+      contentContainer: { paddingHorizontal: 16 },
+      footerContainer: { paddingHorizontal: 16, paddingVertical: 24 },
+    },
+  })),
+}));
+
+// Mock styles
+jest.mock(
+  '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.styles',
+  () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+      contentContainer: { paddingHorizontal: 16 },
+      footerContainer: { paddingHorizontal: 16, paddingVertical: 24 },
+    })),
+  }),
+);
+
 // Mock tooltipContentRegistry
 jest.mock(
   '../../components/PerpsBottomSheetTooltip/content/contentRegistry',

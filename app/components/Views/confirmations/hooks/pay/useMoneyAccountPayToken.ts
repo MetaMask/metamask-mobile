@@ -38,7 +38,7 @@ export function useMoneyAccountPayToken() {
   const isAwaitingAccountSelection =
     (isMoneyAccountDeposit || isMoneyAccountWithdraw) && !accountOverride;
 
-  const initializedForAccountOverride = useRef<string | undefined>(undefined);
+  const initializedForAccountOverride = useRef<string | undefined>();
 
   useEffect(() => {
     if (

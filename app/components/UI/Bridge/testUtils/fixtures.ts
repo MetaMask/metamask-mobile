@@ -1,5 +1,6 @@
 import { CaipChainId, CaipAssetType } from '@metamask/utils';
-import { BridgeToken, PopularToken, IncludeAsset } from '../types';
+import { BridgeToken } from '../types';
+import { PopularToken, IncludeAsset } from '../hooks/usePopularTokens';
 import { BalanceData } from '../hooks/useBalancesByAssetId';
 
 export const createMockToken = (

@@ -5,8 +5,6 @@ import OnboardingNavigator from './OnboardingNavigator';
 import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
-import RewardsVipView from './Views/RewardsVipView';
-import RewardsVipTiersView from './Views/RewardsVipTiersView';
 import CampaignsView from './Views/CampaignsView';
 import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
 import OndoCampaignWinningView from './Views/OndoCampaignWinningView';
@@ -226,16 +224,6 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REWARDS_SETTINGS_VIEW}
             component={RewardsSettingsView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_VIP_VIEW}
-            component={RewardsVipView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_VIP_TIERS_VIEW}
-            component={RewardsVipTiersView}
             options={{ headerShown: false }}
           />
           <Stack.Screen

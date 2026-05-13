@@ -5,17 +5,18 @@ import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
 describe('MoneyBalanceSummary', () => {
-  it('does not render the "Your balance" heading', () => {
-    const { queryByText } = render(<MoneyBalanceSummary apy={4} />);
+  it('renders the title', () => {
+    const { getByTestId } = render(<MoneyBalanceSummary apy={4} />);
 
-    expect(queryByText(strings('money.your_balance'))).toBeNull();
+    expect(getByTestId(MoneyBalanceSummaryTestIds.TITLE)).toBeOnTheScreen();
   });
 
-  it('renders the APY label with "• mUSD" suffix', () => {
+  it('renders the APY label inside a tag', () => {
     const { getByTestId } = render(<MoneyBalanceSummary apy={5.5} />);
 
+    expect(getByTestId(MoneyBalanceSummaryTestIds.APY_TAG)).toBeOnTheScreen();
     expect(getByTestId(MoneyBalanceSummaryTestIds.APY)).toHaveTextContent(
-      '5.5% APY • mUSD',
+      strings('money.apy_label', { percentage: 5.5 }),
     );
   });
 
@@ -50,7 +51,7 @@ describe('MoneyBalanceSummary', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the APY skeleton instead of the APY text when loading', () => {
+  it('renders the APY skeleton instead of the APY tag when loading', () => {
     const { getByTestId, queryByTestId } = render(
       <MoneyBalanceSummary apy={4} isLoading />,
     );
@@ -58,7 +59,9 @@ describe('MoneyBalanceSummary', () => {
     expect(
       getByTestId(MoneyBalanceSummaryTestIds.APY_SKELETON),
     ).toBeOnTheScreen();
-    expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.APY_TAG),
+    ).not.toBeOnTheScreen();
   });
 
   it('does not render the info button when no handler is provided', () => {
@@ -80,25 +83,29 @@ describe('MoneyBalanceSummary', () => {
     expect(mockInfoPress).toHaveBeenCalledTimes(1);
   });
 
-  it('hides the APY text and tooltip button when apy is undefined', () => {
+  it('hides the APY tag and tooltip button when apy is undefined', () => {
     const mockInfoPress = jest.fn();
     const { queryByTestId } = render(
       <MoneyBalanceSummary apy={undefined} onApyInfoPress={mockInfoPress} />,
     );
 
-    expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.APY_TAG),
+    ).not.toBeOnTheScreen();
     expect(
       queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
     ).not.toBeOnTheScreen();
   });
 
-  it('hides the APY text and tooltip button when apy is zero', () => {
+  it('hides the APY tag and tooltip button when apy is zero', () => {
     const mockInfoPress = jest.fn();
     const { queryByTestId } = render(
       <MoneyBalanceSummary apy={0} onApyInfoPress={mockInfoPress} />,
     );
 
-    expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.APY_TAG),
+    ).not.toBeOnTheScreen();
     expect(
       queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
     ).not.toBeOnTheScreen();
@@ -115,13 +122,15 @@ describe('MoneyBalanceSummary', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('hides the APY text and info button when apy is negative', () => {
+  it('hides the APY tag and info button when apy is negative', () => {
     const mockInfoPress = jest.fn();
     const { queryByTestId } = render(
       <MoneyBalanceSummary apy={-1} onApyInfoPress={mockInfoPress} />,
     );
 
-    expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.APY_TAG),
+    ).not.toBeOnTheScreen();
     expect(
       queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
     ).not.toBeOnTheScreen();

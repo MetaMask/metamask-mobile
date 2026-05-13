@@ -23,9 +23,6 @@ const mockWalletModule = {
   addListener: mockAddListener,
 };
 
-// Mock the native wallet module so dynamic import() returns our mock
-jest.mock('@expensify/react-native-wallet', () => mockWalletModule);
-
 // Mock Logger
 jest.mock('../../../../../../util/Logger', () => ({
   log: jest.fn(),
@@ -46,16 +43,12 @@ jest.mock('../../constants', () => ({
  * Helper to inject mock wallet module into adapter
  * Since the adapter uses dynamic imports, we need to manually inject the mock
  */
-async function injectMockModule(adapter: GoogleWalletAdapter): Promise<void> {
-  // Wait for the constructor's module load to complete first
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const loadPromise = (adapter as any).moduleLoadPromise;
-  if (loadPromise) {
-    await loadPromise;
-  }
-  // Now override with our mock (in case the real module import set something different)
+function injectMockModule(adapter: GoogleWalletAdapter): void {
+  // Access private property using type assertion
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (adapter as any).walletModule = mockWalletModule;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (adapter as any).moduleLoadPromise = Promise.resolve();
 }
 
 describe('GoogleWalletAdapter', () => {
@@ -84,7 +77,7 @@ describe('GoogleWalletAdapter', () => {
     userAddress: mockUserAddress,
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.clearAllMocks();
     // Set platform to android for most tests
     Object.defineProperty(Platform, 'OS', {
@@ -93,7 +86,7 @@ describe('GoogleWalletAdapter', () => {
     });
     adapter = new GoogleWalletAdapter();
     // Inject mock module for tests that need it
-    await injectMockModule(adapter);
+    injectMockModule(adapter);
   });
 
   afterEach(() => {
@@ -207,7 +200,7 @@ describe('GoogleWalletAdapter', () => {
           writable: true,
         });
         const iosAdapter = new GoogleWalletAdapter();
-        await injectMockModule(iosAdapter);
+        injectMockModule(iosAdapter);
 
         const result = await iosAdapter.provisionCard(mockProvisionParams);
 
@@ -418,7 +411,7 @@ describe('GoogleWalletAdapter', () => {
         writable: true,
       });
       const iosAdapter = new GoogleWalletAdapter();
-      await injectMockModule(iosAdapter);
+      injectMockModule(iosAdapter);
 
       const result = await iosAdapter.resumeProvisioning(
         'token-123',

@@ -10,7 +10,6 @@ import {
   POLYMARKET_V2_PROTOCOL,
   type PolymarketProtocolDefinition,
 } from '../protocol/definitions';
-import { toDepositWalletCalls, type DepositWalletCall } from '../depositWallet';
 import { OperationType, type SafeTransaction } from '../safe/types';
 import { encodeErc20Transfer, encodeRedeemPositions } from '../utils';
 import {
@@ -18,10 +17,8 @@ import {
   compileAllowanceMaintenanceTransactions,
   getRawTokenBalance,
 } from './core';
-import { compileRequirementTransactions } from './compileRequirementTransactions';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
 import {
-  filterDepositWalletUnsupportedRequirements,
   getActiveV2AllowanceRequirements,
   getLegacySweepAllowanceRequirements,
   type V2AllowanceRequirement,
@@ -206,44 +203,6 @@ function compileClaimTransactions({
   }
 
   return transactions;
-}
-
-export async function planDepositWalletClaim({
-  positions,
-  walletAddress,
-  protocol = POLYMARKET_V2_PROTOCOL,
-}: {
-  positions: PredictPosition[];
-  walletAddress: string;
-  protocol?: PolymarketV2ProtocolDefinition;
-}): Promise<DepositWalletCall[]> {
-  if (!positions || positions.length === 0) {
-    throw new Error('No positions provided for deposit wallet claim');
-  }
-
-  const requirements = filterDepositWalletUnsupportedRequirements(
-    getClaimRequirements({
-      positions,
-      protocol,
-      includeLegacySweep: false,
-    }),
-  );
-
-  const missingRequirements = await inspectMissingRequirements({
-    address: walletAddress,
-    requirements,
-  });
-
-  const transactions = [
-    ...compileRequirementTransactions(missingRequirements),
-    ...buildClaimSubtransactions({ positions, protocol }),
-  ];
-
-  if (transactions.length === 0) {
-    throw new Error('No deposit wallet claim calls generated');
-  }
-
-  return toDepositWalletCalls(transactions);
 }
 
 export async function buildClaimTransaction({

@@ -16,10 +16,8 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { isHardwareAccount } from '../../../../../../util/address';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { useParams } from '../../../../../../util/navigation/navUtils';
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
-jest.mock('../../../../../../util/navigation/navUtils');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
@@ -91,13 +89,10 @@ describe('PayWithRow', () => {
     useTransactionMetadataRequest,
   );
   const useMoneyAccountPayTokenMock = jest.mocked(useMoneyAccountPayToken);
-  const useParamsMock = jest.mocked(useParams);
   const mockSetConfirmationMetric = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
-
-    useParamsMock.mockReturnValue({});
 
     useConfirmationMetricEventsMock.mockReturnValue({
       setConfirmationMetric: mockSetConfirmationMetric,

@@ -1,4 +1,4 @@
-import type { BottomSheetFooterButtonProps } from '@metamask/design-system-react-native';
+import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 
 export interface PerpsBottomSheetTooltipProps {
   /**
@@ -28,9 +28,9 @@ export interface PerpsBottomSheetTooltipProps {
   data?: Record<string, unknown>;
 
   /**
-   * Optional button config for footer buttons (primary and optionally secondary).
+   * Optional button config to pass to custom content renderers
    */
-  buttonConfig?: BottomSheetFooterButtonProps[];
+  buttonConfig?: ButtonProps[];
 
   /**
    * Analytics: screen context for button_location tracking.

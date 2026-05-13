@@ -7,8 +7,9 @@ import {
 } from '@metamask/bridge-controller';
 import { zeroAddress } from 'ethereumjs-util';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import type { BridgeToken, IncludeAsset } from '../types';
+import { BridgeToken } from '../types';
 import { DefaultSwapDestTokens } from '../constants/default-swap-dest-tokens';
+import { IncludeAsset } from '../hooks/usePopularTokens';
 import { POLYGON_NATIVE_TOKEN } from '../constants/assets';
 
 /**

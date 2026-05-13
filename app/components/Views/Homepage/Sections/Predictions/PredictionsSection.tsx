@@ -199,22 +199,20 @@ const HomepagePredictPositions = ({
 }: HomepagePredictPositionsProps) => (
   <Box gap={3}>
     {showHeader && (
-      <Box gap={1}>
-        <SectionHeader
-          title={title}
-          onPress={onViewAll}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
-        />
-        {predictHomepageUnrealizedPnl.show && (
-          <HomepageSectionUnrealizedPnlRow
-            isLoading={predictHomepageUnrealizedPnl.isLoading}
-            valueText={predictHomepageUnrealizedPnl.valueText}
-            tone={predictHomepageUnrealizedPnl.tone}
-            label={strings('predict.unrealized_pnl_label')}
-            testID="homepage-predict-unrealized-pnl"
-          />
-        )}
-      </Box>
+      <SectionHeader
+        title={title}
+        onPress={onViewAll}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
+      />
+    )}
+    {showHeader && predictHomepageUnrealizedPnl.show && (
+      <HomepageSectionUnrealizedPnlRow
+        isLoading={predictHomepageUnrealizedPnl.isLoading}
+        valueText={predictHomepageUnrealizedPnl.valueText}
+        tone={predictHomepageUnrealizedPnl.tone}
+        label={strings('predict.unrealized_pnl_label')}
+        testID="homepage-predict-unrealized-pnl"
+      />
     )}
     {isLoadingPositions ? (
       <>
@@ -454,25 +452,7 @@ const PredictionsSectionDefault = forwardRef<
       (positionsError || marketsError);
     const isEmpty =
       !isLoading && !hasAnyPositions && markets.length === 0 && !hasError;
-    const showTrendingAbove =
-      !hasPositions &&
-      !isLoadingPositions &&
-      (isLoadingMarkets || markets.length > 0);
-    const inPositionsLayout =
-      hasAnyPositions || isLoadingPositions || isLoadingClaimable;
-    /** TTC: no Predict position-row or market-card skeleton; claimable / other fetch may continue. */
-    const predictTimeToContentReady = Boolean(
-      isPredictEnabled &&
-        (hasError ||
-          (inPositionsLayout
-            ? !isLoadingPositions && (hasPositions || !isLoadingMarkets)
-            : !isLoadingMarkets)),
-    );
-    const willRender =
-      isPredictEnabled &&
-      !hasError &&
-      !isLoading &&
-      (hasAnyPositions || markets.length > 0);
+    const willRender = isPredictEnabled && !isLoading && !isEmpty && !hasError;
     const itemCount = hasPositions
       ? positions.length
       : hasClaimablePositions
@@ -490,10 +470,9 @@ const PredictionsSectionDefault = forwardRef<
     });
 
     useSectionPerformance({
-      sectionId: analyticsName,
-      contentReady: predictTimeToContentReady,
-      isEmpty: isEmpty && !hasError,
-      contentStateForTrace: hasError ? 'error' : undefined,
+      sectionId: HomeSectionNames.PREDICT,
+      contentReady: willRender,
+      isEmpty: isEmpty || !!hasError,
       isLoading,
       enabled: isPredictEnabled,
     });
@@ -514,6 +493,11 @@ const PredictionsSectionDefault = forwardRef<
     }
 
     if (hasAnyPositions || isLoadingPositions || isLoadingClaimable) {
+      const showTrendingAbove =
+        !hasPositions &&
+        !isLoadingPositions &&
+        (isLoadingMarkets || markets.length > 0);
+
       return (
         <View ref={sectionViewRef} onLayout={onLayout}>
           {showTrendingAbove && (

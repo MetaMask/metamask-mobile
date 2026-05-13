@@ -1,9 +1,17 @@
 import React from 'react';
-import { render, act, fireEvent, screen } from '@testing-library/react-native';
+import { render, act, fireEvent } from '@testing-library/react-native';
 import { Image } from 'expo-image';
 import PerpsTokenLogo from './PerpsTokenLogo';
 
-// PerpsTokenLogo now uses AvatarBase from MMDS with expo-image for image rendering
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
+
+// Note: Avatar component is no longer used in PerpsTokenLogo
+// The component now uses a simple text-based fallback instead
 
 describe('PerpsTokenLogo', () => {
   beforeEach(() => {
@@ -11,29 +19,61 @@ describe('PerpsTokenLogo', () => {
   });
 
   it('renders loading state initially', () => {
-    render(<PerpsTokenLogo symbol="BTC" testID="token-logo" />);
-    expect(screen.getByTestId('token-logo')).toBeOnTheScreen();
+    const { getByTestId } = render(
+      <PerpsTokenLogo symbol="BTC" testID="token-logo" />,
+    );
+    expect(getByTestId('token-logo')).toBeTruthy();
   });
 
-  it('applies custom size prop', () => {
-    render(<PerpsTokenLogo symbol="BTC" size={40} testID="custom-logo" />);
+  it('applies custom size and style props', () => {
+    const customStyle = { opacity: 0.5 };
+    const { getByTestId } = render(
+      <PerpsTokenLogo
+        symbol="BTC"
+        size={40}
+        style={customStyle}
+        testID="custom-logo"
+      />,
+    );
 
-    // Component renders with the correct testID (sizing is handled internally by AvatarBase)
-    expect(screen.getByTestId('custom-logo')).toBeOnTheScreen();
+    const container = getByTestId('custom-logo');
+    expect(container.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          width: 40,
+          height: 40,
+          borderRadius: 20,
+        }),
+        customStyle,
+      ]),
+    );
   });
 
   it('renders with default size when not specified', () => {
-    render(<PerpsTokenLogo symbol="ETH" testID="default-size" />);
+    const { getByTestId } = render(
+      <PerpsTokenLogo symbol="ETH" testID="default-size" />,
+    );
 
-    // Component renders with the correct testID
-    expect(screen.getByTestId('default-size')).toBeOnTheScreen();
+    const container = getByTestId('default-size');
+    expect(container.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          width: 32,
+          height: 32,
+          borderRadius: 16,
+        }),
+      ]),
+    );
   });
 
   it('shows text fallback when no symbol is provided', () => {
-    render(<PerpsTokenLogo symbol="" testID="no-symbol" />);
+    const { getByTestId } = render(
+      <PerpsTokenLogo symbol="" testID="no-symbol" />,
+    );
 
     // Should render text fallback immediately since empty symbol triggers fallback
-    expect(screen.getByTestId('no-symbol')).toBeOnTheScreen();
+    const container = getByTestId('no-symbol');
+    expect(container).toBeTruthy();
     // Empty symbol results in empty fallback text
   });
 
@@ -46,11 +86,10 @@ describe('PerpsTokenLogo', () => {
     expect(image.props.source.uri).toBe(
       'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/BTC.svg',
     );
-    // Image fills the AvatarBase container (100%/100%)
     expect(image.props.style).toEqual(
       expect.objectContaining({
-        width: '100%',
-        height: '100%',
+        width: 32,
+        height: 32,
       }),
     );
   });
@@ -100,23 +139,56 @@ describe('PerpsTokenLogo', () => {
     });
 
     // Verify text fallback is shown
-    expect(getByTestId('image-error')).toBeOnTheScreen();
+    const container = getByTestId('image-error');
+    expect(container).toBeTruthy();
     // Image component no longer rendered, text fallback shown instead
     expect(UNSAFE_queryByType(Image)).toBeNull();
   });
 
-  it('correctly renders with different size props', () => {
+  it('correctly applies size prop to container', () => {
+    // Test size 32
     const { rerender, getByTestId } = render(
       <PerpsTokenLogo symbol="" size={32} testID="size-32" />,
     );
 
-    expect(getByTestId('size-32')).toBeOnTheScreen();
+    const container32 = getByTestId('size-32');
+    expect(container32.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          width: 32,
+          height: 32,
+          borderRadius: 16,
+        }),
+      ]),
+    );
 
+    // Test size 40
     rerender(<PerpsTokenLogo symbol="" size={40} testID="size-40" />);
-    expect(getByTestId('size-40')).toBeOnTheScreen();
 
+    const container40 = getByTestId('size-40');
+    expect(container40.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          width: 40,
+          height: 40,
+          borderRadius: 20,
+        }),
+      ]),
+    );
+
+    // Test size 24
     rerender(<PerpsTokenLogo symbol="" size={24} testID="size-24" />);
-    expect(getByTestId('size-24')).toBeOnTheScreen();
+
+    const container24 = getByTestId('size-24');
+    expect(container24.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          width: 24,
+          height: 24,
+          borderRadius: 12,
+        }),
+      ]),
+    );
   });
 
   it('uses SVG format for image URLs', () => {

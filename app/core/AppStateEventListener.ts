@@ -4,8 +4,6 @@ import { MetaMetricsEvents } from './Analytics';
 import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../util/analytics/analytics';
 import { processAttribution } from './processAttribution';
-import { saveAttribution } from './redux/slices/attribution';
-import { attributionPayloadFromProcessAttribution } from './redux/slices/attributionFromSources';
 import DevLogger from './SDKConnect/utils/DevLogger';
 import ReduxService from './redux';
 import generateDeviceAnalyticsMetaData from '../util/metrics';
@@ -92,13 +90,6 @@ export class AppStateEventListener {
         currentDeeplink: this.currentDeeplink,
         store: ReduxService.store,
       });
-      if (attribution) {
-        const persistedPayload =
-          attributionPayloadFromProcessAttribution(attribution);
-        if (persistedPayload) {
-          ReduxService.store.dispatch(saveAttribution(persistedPayload));
-        }
-      }
       // Note: User identification is handled when settings change individually
       // We only track the APP_OPENED event on app state transitions
       const appOpenedEventBuilder = AnalyticsEventBuilder.createEventBuilder(
@@ -113,9 +104,6 @@ export class AppStateEventListener {
         appOpenedEventBuilder.addProperties(attribution);
       }
       analytics.trackEvent(appOpenedEventBuilder.build());
-      // One-shot use for attribution: keeping currentDeeplink causes every
-      // background→active cycle to re-save and reset capturedAt (TTL).
-      this.currentDeeplink = null;
     } catch (error) {
       Logger.error(
         error as Error,

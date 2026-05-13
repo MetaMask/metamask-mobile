@@ -97,9 +97,9 @@ jest.mock(
   }),
 );
 
-let navigationRef: React.RefObject<NavigationContainerRef<
-  Record<string, unknown>
-> | null>;
+let navigationRef: React.RefObject<
+  NavigationContainerRef<Record<string, unknown>>
+>;
 
 const renderWithNavigation = (component: React.ReactElement) =>
   render(

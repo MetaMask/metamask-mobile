@@ -177,21 +177,13 @@ export const getDescription = (status, { amount = null, type = null }) => {
 /**
  * BaseNotification component used to render in-app notifications
  */
-/**
- * @param {object} props
- * @param {string} [props.status]
- * @param {{ description?: string | null, title?: string | null }} [props.data]
- * @param {() => void} [props.onPress]
- * @param {() => void} [props.onHide]
- * @param {boolean} [props.autoDismiss]
- */
 const BaseNotification = ({
   status,
   data = null,
   data: { description = null, title = null },
   onPress,
   onHide,
-  autoDismiss = false,
+  autoDismiss,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -237,6 +229,10 @@ BaseNotification.propTypes = {
   onPress: PropTypes.func,
   onHide: PropTypes.func,
   autoDismiss: PropTypes.bool,
+};
+
+BaseNotification.defaultProps = {
+  autoDismiss: false,
 };
 
 export default BaseNotification;

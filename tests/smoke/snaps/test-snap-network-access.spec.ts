@@ -17,7 +17,6 @@ describe(SmokeSnaps('Network Access Snap Tests'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
-        disableSynchronization: true,
         localNodeOptions: [
           {
             type: LocalNodeType.anvil,
@@ -43,6 +42,12 @@ describe(SmokeSnaps('Network Access Snap Tests'), () => {
         );
 
         // Use WebSockets
+        // Disable synchronization on iOS before starting WebSocket to prevent
+        // Detox from hanging due to the open connection keeping the app "busy"
+        if (device.getPlatform() === 'ios') {
+          await device.disableSynchronization();
+        }
+
         const webSocketUrl = `ws://localhost:${getAnvilPortForTest()}`;
         await TestSnaps.fillMessage('webSocketUrlInput', webSocketUrl);
         await TestSnaps.tapButton('startWebSocket');

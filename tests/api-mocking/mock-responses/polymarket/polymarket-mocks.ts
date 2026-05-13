@@ -42,7 +42,6 @@ import { POLYMARKET_NEW_FEED } from './market-feed-responses/polymarket-new-feed
 import {
   PROXY_WALLET_ADDRESS,
   USER_WALLET_ADDRESS,
-  LEGACY_SAFE_WALLET_ADDRESS,
   SAFE_FACTORY_ADDRESS,
   USDC_CONTRACT_ADDRESS,
   POLYGON_PUSD_TOKEN_ADDRESS,
@@ -212,13 +211,8 @@ export const POLYMARKET_EVENT_DETAILS_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      // Match only /events/{numericId}, NOT /events/pagination or
-      // /events?parent_event_id=... — those have their own dedicated mocks.
-      return Boolean(
-        url && /gamma-api\.polymarket\.com\/events\/[0-9]+/.test(url),
-      );
+      return Boolean(url?.includes('gamma-api.polymarket.com/events/'));
     })
-    .asPriority(PRIORITY.BASE)
     .thenCallback((request) => {
       const url = new URL(request.url).searchParams.get('url');
       const eventIdMatch = url?.match(/\/events\/([0-9]+)$/);
@@ -659,254 +653,6 @@ export const POLYMARKET_FEE_RATE_MOCKS = async (mockServer: Mockttp) => {
     .asPriority(PRIORITY.BASE)
     .thenReply(200, JSON.stringify({ base_fee: 0 }), {
       'content-type': 'application/json',
-    });
-};
-
-/**
- * Mock for Polymarket CLOB prices-history API
- * Returns an empty history series — sufficient for predict happy-path specs
- * that render the chart (consumer treats non-array history as empty).
- */
-export const POLYMARKET_PRICES_HISTORY_MOCKS = async (mockServer: Mockttp) => {
-  await mockServer
-    .forGet('/proxy')
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
-      return Boolean(url?.includes('clob.polymarket.com/prices-history'));
-    })
-    .asPriority(PRIORITY.BASE)
-    .thenReply(200, JSON.stringify({ history: [] }), {
-      'content-type': 'application/json',
-    });
-};
-
-/**
- * Static team metadata for sports leagues used by predict E2E fixtures.
- * Covers NBA + NFL teams referenced in event slugs (see polymarket-positions-response.ts).
- *
- * The wallet's TeamsCache stores teams by abbreviation, and buildGameData
- * (gameParser.ts) returns null when either home or away team is missing —
- * which causes market.game to be undefined and the wallet to fall back to
- * the non-game market detail layout (no picks list). So returning realistic
- * team data here is required for the new PredictGameDetailsContent path.
- */
-const POLYMARKET_TEAMS_BY_LEAGUE: Record<
-  string,
-  {
-    id: string;
-    name: string;
-    logo: string;
-    abbreviation: string;
-    color: string;
-    alias: string;
-    league: string;
-  }[]
-> = {
-  nba: [
-    {
-      id: 'nba-sas',
-      name: 'San Antonio Spurs',
-      logo: '',
-      abbreviation: 'sas',
-      color: '#000000',
-      alias: 'Spurs',
-      league: 'nba',
-    },
-    {
-      id: 'nba-nop',
-      name: 'New Orleans Pelicans',
-      logo: '',
-      abbreviation: 'nop',
-      color: '#0C2340',
-      alias: 'Pelicans',
-      league: 'nba',
-    },
-    {
-      id: 'nba-bos',
-      name: 'Boston Celtics',
-      logo: '',
-      abbreviation: 'bos',
-      color: '#007A33',
-      alias: 'Celtics',
-      league: 'nba',
-    },
-    {
-      id: 'nba-bkn',
-      name: 'Brooklyn Nets',
-      logo: '',
-      abbreviation: 'bkn',
-      color: '#000000',
-      alias: 'Nets',
-      league: 'nba',
-    },
-  ],
-  nfl: [
-    {
-      id: 'nfl-buf',
-      name: 'Buffalo Bills',
-      logo: '',
-      abbreviation: 'buf',
-      color: '#00338D',
-      alias: 'Bills',
-      league: 'nfl',
-    },
-    {
-      id: 'nfl-atl',
-      name: 'Atlanta Falcons',
-      logo: '',
-      abbreviation: 'atl',
-      color: '#A71930',
-      alias: 'Falcons',
-      league: 'nfl',
-    },
-    {
-      id: 'nfl-chi',
-      name: 'Chicago Bears',
-      logo: '',
-      abbreviation: 'chi',
-      color: '#0B162A',
-      alias: 'Bears',
-      league: 'nfl',
-    },
-    {
-      id: 'nfl-was',
-      name: 'Washington Commanders',
-      logo: '',
-      abbreviation: 'was',
-      color: '#5A1414',
-      alias: 'Commanders',
-      league: 'nfl',
-    },
-    {
-      id: 'nfl-den',
-      name: 'Denver Broncos',
-      logo: '',
-      abbreviation: 'den',
-      color: '#FB4F14',
-      alias: 'Broncos',
-      league: 'nfl',
-    },
-    {
-      id: 'nfl-nyj',
-      name: 'New York Jets',
-      logo: '',
-      abbreviation: 'nyj',
-      color: '#125740',
-      alias: 'Jets',
-      league: 'nfl',
-    },
-    {
-      id: 'nfl-det',
-      name: 'Detroit Lions',
-      logo: '',
-      abbreviation: 'det',
-      color: '#0076B6',
-      alias: 'Lions',
-      league: 'nfl',
-    },
-    {
-      id: 'nfl-kc',
-      name: 'Kansas City Chiefs',
-      logo: '',
-      abbreviation: 'kc',
-      color: '#E31837',
-      alias: 'Chiefs',
-      league: 'nfl',
-    },
-    {
-      id: 'nfl-jax',
-      name: 'Jacksonville Jaguars',
-      logo: '',
-      abbreviation: 'jax',
-      color: '#006778',
-      alias: 'Jaguars',
-      league: 'nfl',
-    },
-    {
-      id: 'nfl-pit',
-      name: 'Pittsburgh Steelers',
-      logo: '',
-      abbreviation: 'pit',
-      color: '#FFB612',
-      alias: 'Steelers',
-      league: 'nfl',
-    },
-    {
-      id: 'nfl-cin',
-      name: 'Cincinnati Bengals',
-      logo: '',
-      abbreviation: 'cin',
-      color: '#FB4F14',
-      alias: 'Bengals',
-      league: 'nfl',
-    },
-    {
-      id: 'nfl-sea',
-      name: 'Seattle Seahawks',
-      logo: '',
-      abbreviation: 'sea',
-      color: '#002244',
-      alias: 'Seahawks',
-      league: 'nfl',
-    },
-    {
-      id: 'nfl-sf',
-      name: 'San Francisco 49ers',
-      logo: '',
-      abbreviation: 'sf',
-      color: '#AA0000',
-      alias: '49ers',
-      league: 'nfl',
-    },
-    {
-      id: 'nfl-tb',
-      name: 'Tampa Bay Buccaneers',
-      logo: '',
-      abbreviation: 'tb',
-      color: '#D50A0A',
-      alias: 'Buccaneers',
-      league: 'nfl',
-    },
-    {
-      id: 'nfl-dal',
-      name: 'Dallas Cowboys',
-      logo: '',
-      abbreviation: 'dal',
-      color: '#003594',
-      alias: 'Cowboys',
-      league: 'nfl',
-    },
-  ],
-};
-
-/**
- * Mock for Polymarket gamma-api /teams API
- * Returns the full list of teams for the queried league. The wallet's
- * TeamsCache filters by requested abbreviations, so returning all teams
- * for the league is safe and avoids per-test fixture maintenance.
- */
-export const POLYMARKET_TEAMS_MOCKS = async (mockServer: Mockttp) => {
-  await mockServer
-    .forGet('/proxy')
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
-      return Boolean(url?.includes('gamma-api.polymarket.com/teams'));
-    })
-    .asPriority(PRIORITY.BASE)
-    .thenCallback((request) => {
-      const proxiedUrlParam = new URL(request.url).searchParams.get('url');
-      let league = '';
-      try {
-        const polymarketUrl = new URL(proxiedUrlParam ?? '');
-        league = polymarketUrl.searchParams.get('league') ?? '';
-      } catch {
-        league = '';
-      }
-      const teams = POLYMARKET_TEAMS_BY_LEAGUE[league] ?? [];
-      return {
-        statusCode: 200,
-        json: teams,
-      };
     });
 };
 
@@ -2140,55 +1886,6 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
 };
 
 /**
- * Marks the default fixture account's computed Polymarket legacy Safe as deployed.
- * Use this for E2E flows that must exercise the legacy Safe path.
- * @param mockServer - The mockttp server instance
- */
-export const POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS = async (
-  mockServer: Mockttp,
-) => {
-  await mockServer
-    .forPost('/proxy')
-    .matching(async (request) => {
-      const urlParam = new URL(request.url).searchParams.get('url');
-      const isPolygonRPC = Boolean(
-        urlParam?.includes('polygon') || urlParam?.includes('infura'),
-      );
-
-      if (!isPolygonRPC) {
-        return false;
-      }
-
-      try {
-        const bodyText = await request.body.getText();
-        const body = bodyText ? JSON.parse(bodyText) : undefined;
-
-        return (
-          body?.method === 'eth_getCode' &&
-          body?.params?.[0]?.toLowerCase() ===
-            LEGACY_SAFE_WALLET_ADDRESS.toLowerCase()
-        );
-      } catch (error) {
-        return false;
-      }
-    })
-    .asPriority(PRIORITY.API_OVERRIDE)
-    .thenCallback(async (request) => {
-      const bodyText = await safeGetBodyText(request);
-      const body = bodyText ? JSON.parse(bodyText) : undefined;
-
-      return {
-        statusCode: 200,
-        body: JSON.stringify({
-          id: body?.id ?? 1,
-          jsonrpc: '2.0',
-          result: MOCK_RPC_RESPONSES.CONTRACT_CODE_RESULT,
-        }),
-      };
-    });
-};
-
-/**
  * Dedicated mock for loading USDC balance specifically for withdraw flow
  * This ensures balance refresh for withdraw/deposit flows doesn't interfere with cash-out
  * @param mockServer - The mockttp server instance
@@ -2517,8 +2214,6 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_EVENT_DETAILS_MOCKS(mockServer);
   await POLYMARKET_ORDER_BOOK_MOCKS(mockServer);
   await POLYMARKET_PRICES_MOCKS(mockServer); // Mock for CLOB prices API
-  await POLYMARKET_PRICES_HISTORY_MOCKS(mockServer); // Mock for CLOB prices-history API (chart series)
-  await POLYMARKET_TEAMS_MOCKS(mockServer); // Mock for gamma-api /teams (sports league team metadata)
   await POLYMARKET_FEE_RATE_MOCKS(mockServer);
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   await POLYMARKET_CLOB_AUTH_MOCKS(mockServer);

@@ -8,9 +8,6 @@ import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
  */
 export const ONDO_GM_REQUIRED_QUALIFIED_DAYS = 10;
 
-/** Maximum winners per tier for Ondo GM campaigns. */
-export const ONDO_GM_TIER_MAX_WINNERS = 5;
-
 /**
  * Returns true when the active campaign no longer has enough calendar days
  * remaining for the required qualifying-day count to be accumulated.

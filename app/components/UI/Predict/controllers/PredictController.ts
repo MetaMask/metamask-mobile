@@ -1454,7 +1454,6 @@ export class PredictController extends BaseController<
         networkClientId,
         disableHook: true,
         disableSequential: true,
-        skipInitialGasEstimate: true,
         // Temporarily breaking abstraction, can instead be abstracted via provider.
         gasFeeToken: MATIC_CONTRACTS_V2.collateral as Hex,
         transactions,
@@ -2681,62 +2680,7 @@ export class PredictController extends BaseController<
     });
   }
 
-  private getPendingClaimContext(transactionMeta: TransactionMeta):
-    | {
-        senderAddress: string;
-        matchedAddress: string;
-        pendingValue: string;
-        positions: PredictPosition[];
-        signer: Signer;
-      }
-    | undefined {
-    const isClaim = transactionMeta.nestedTransactions?.some(
-      (tx) => tx.type === TransactionType.predictClaim,
-    );
-
-    if (!isClaim) {
-      return undefined;
-    }
-
-    const senderAddress = transactionMeta.txParams.from as string | undefined;
-    if (!senderAddress) {
-      return undefined;
-    }
-
-    const normalizedAddress = senderAddress.toLowerCase();
-    const matchedAddress = Object.keys(this.state.pendingClaims).find(
-      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
-    );
-
-    if (!matchedAddress) {
-      return undefined;
-    }
-
-    const pendingValue = this.state.pendingClaims[matchedAddress];
-
-    if (
-      pendingValue !== 'pending' &&
-      transactionMeta.batchId &&
-      pendingValue !== transactionMeta.batchId
-    ) {
-      throw new Error('Pending claim batch does not match transaction batch');
-    }
-
-    const claimablePositions = this.state.claimablePositions[matchedAddress];
-    if (!claimablePositions || claimablePositions.length === 0) {
-      throw new Error('No claimable positions found for pending claim');
-    }
-
-    return {
-      senderAddress,
-      matchedAddress,
-      pendingValue,
-      positions: [...claimablePositions],
-      signer: this.getSigner(senderAddress),
-    };
-  }
-
-  private async beforeSignWithdrawIfNeeded(request: {
+  public async beforeSign(request: {
     transactionMeta: TransactionMeta;
   }): Promise<
     | {
@@ -2839,49 +2783,10 @@ export class PredictController extends BaseController<
     };
   }
 
-  public async beforeSign(request: {
-    transactionMeta: TransactionMeta;
-  }): Promise<
-    | {
-        updateTransaction?: (transaction: TransactionMeta) => void;
-      }
-    | undefined
-  > {
-    const withdrawResult = await this.beforeSignWithdrawIfNeeded(request);
-    if (withdrawResult) {
-      return withdrawResult;
-    }
-
-    const claimContext = this.getPendingClaimContext(request.transactionMeta);
-    if (!claimContext) {
-      return undefined;
-    }
-
-    return this.provider.beforeSignClaim?.({
-      transactionMeta: request.transactionMeta,
-      signer: claimContext.signer,
-      positions: claimContext.positions,
-    });
-  }
-
-  public async publish(request: {
+  public async publish(_request: {
     transactionMeta: TransactionMeta;
   }): Promise<{ transactionHash?: string }> {
-    const claimContext = this.getPendingClaimContext(request.transactionMeta);
-
-    if (!claimContext) {
-      return { transactionHash: undefined };
-    }
-
-    if (!this.provider.publishClaim) {
-      return { transactionHash: undefined };
-    }
-
-    return this.provider.publishClaim({
-      transactionMeta: request.transactionMeta,
-      signer: claimContext.signer,
-      positions: claimContext.positions,
-    });
+    return { transactionHash: undefined };
   }
 
   public clearWithdrawTransaction(): void {

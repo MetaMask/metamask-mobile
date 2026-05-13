@@ -412,10 +412,9 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     });
 
     useSectionPerformance({
-      sectionId: analyticsName,
-      contentReady: !isLoadingSection,
+      sectionId: HomeSectionNames.PERPS,
+      contentReady: !isLoadingSection && !connectionError,
       isEmpty: !hasItems,
-      contentStateForTrace: connectionError ? 'error' : undefined,
       isLoading: isLoadingSection,
     });
 
@@ -443,18 +442,16 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
-          <Box gap={1}>
-            <SectionHeader title={title} onPress={handleViewAllPerps} />
-            {showHomepageUnrealizedPnl && (
-              <HomepageSectionUnrealizedPnlRow
-                isLoading={perpsAccountLoading}
-                valueText={homepageUnrealizedPnl?.valueText}
-                tone={homepageUnrealizedPnl?.tone ?? 'neutral'}
-                label={strings('perps.unrealized_pnl')}
-                testID="homepage-perps-unrealized-pnl"
-              />
-            )}
-          </Box>
+          <SectionHeader title={title} onPress={handleViewAllPerps} />
+          {showHomepageUnrealizedPnl && (
+            <HomepageSectionUnrealizedPnlRow
+              isLoading={perpsAccountLoading}
+              valueText={homepageUnrealizedPnl?.valueText}
+              tone={homepageUnrealizedPnl?.tone ?? 'neutral'}
+              label={strings('perps.unrealized_pnl')}
+              testID="homepage-perps-unrealized-pnl"
+            />
+          )}
           {showSkeleton || pendingTrending ? (
             <SectionRow>
               <PerpsPositionSkeleton />

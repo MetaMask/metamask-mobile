@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { Image, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -29,10 +30,6 @@ import Routes from '../../../../constants/navigation/Routes.ts';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import Engine from '../../../../core/Engine';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-
-const BENEFIT_CLAIM_BUTTON_TYPE = 'claim';
 
 const BenefitFullView = () => {
   const tw = useTailwind();
@@ -40,19 +37,8 @@ const BenefitFullView = () => {
   const route = useRoute<BenefitFullViewRouteProp>();
   const { benefit } = route.params;
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const { trackEvent, createEventBuilder } = useAnalytics();
 
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.REWARDS_BENEFIT_DETAIL_VIEWED)
-        .addProperties({
-          benefit_id: benefit.id.toString(),
-          benefit_name: benefit.longTitle,
-          ...(benefit.type?.name ? { benefit_type: benefit.type.name } : {}),
-        })
-        .build(),
-    );
-  }, [benefit, createEventBuilder, trackEvent]);
+  useTrackRewardsPageView({ page_type: 'benefit_detail' });
 
   useEffect(() => {
     if (!subscriptionId) return;
@@ -67,17 +53,6 @@ const BenefitFullView = () => {
   }, [benefit, subscriptionId]);
 
   const handleClaim = () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.REWARDS_BENEFIT_BUTTON_CLICKED)
-        .addProperties({
-          button_type: BENEFIT_CLAIM_BUTTON_TYPE,
-          benefit_id: benefit.id.toString(),
-          benefit_name: benefit.longTitle,
-          ...(benefit.type?.name ? { benefit_type: benefit.type.name } : {}),
-        })
-        .build(),
-    );
-
     if (benefit.url) {
       navigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,

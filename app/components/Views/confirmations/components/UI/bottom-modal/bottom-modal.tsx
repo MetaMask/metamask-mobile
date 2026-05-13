@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactChild } from 'react';
 import Modal from 'react-native-modal';
 import { View } from 'react-native';
 
@@ -11,7 +11,7 @@ import styleSheet from './bottom-modal.styles';
 const OPAQUE_GRAY = brandColor.grey600;
 interface BottomModalProps {
   avoidKeyboard?: boolean;
-  children: ReactNode;
+  children: ReactChild;
   hideBackground?: boolean;
   isTooltip?: boolean;
   onBackButtonPress?: () => void;

@@ -7,14 +7,9 @@ import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
-  DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
 import { filterSupportedLeagues } from '../constants/sports';
-import {
-  parse,
-  PredictFeeCollectionSchema,
-  PredictWorldCupSchema,
-} from '../schemas';
+import { parse, PredictFeeCollectionSchema } from '../schemas';
 import {
   PredictExtendedSportsMarketsFlag,
   PredictFeatureFlags,
@@ -96,18 +91,6 @@ export function resolvePredictFeatureFlags(
   const predictUpDownEnabled = resolveVersionGatedBooleanFlag(
     flags.predictUpDown,
   );
-  const parsedPredictWorldCup = parse(
-    unwrapRemoteFeatureFlag<PredictFeatureFlags['predictWorldCup']>(
-      flags.predictWorldCup,
-    ),
-    PredictWorldCupSchema,
-    DEFAULT_PREDICT_WORLD_CUP_FLAG,
-  );
-  const predictWorldCup = validatedVersionGatedFeatureFlag(
-    parsedPredictWorldCup,
-  )
-    ? parsedPredictWorldCup
-    : DEFAULT_PREDICT_WORLD_CUP_FLAG;
 
   return {
     feeCollection,
@@ -117,6 +100,5 @@ export function resolvePredictFeatureFlags(
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
     predictUpDownEnabled,
-    predictWorldCup,
   };
 }

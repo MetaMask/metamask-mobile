@@ -215,14 +215,12 @@ describe('createMobileInfrastructure', () => {
       const caipAccountId =
         'eip155:42161:0x1234' as `${string}:${string}:${string}`;
 
-      const result = await infra.rewards.getPerpsDiscountForAccount(
-        caipAccountId,
-        10,
-      );
+      const result =
+        await infra.rewards.getPerpsDiscountForAccount(caipAccountId);
 
       expect(
         Engine.context.RewardsController.getPerpsDiscountForAccount,
-      ).toHaveBeenCalledWith(caipAccountId, 10);
+      ).toHaveBeenCalledWith(caipAccountId);
       expect(result).toBe(5);
     });
   });

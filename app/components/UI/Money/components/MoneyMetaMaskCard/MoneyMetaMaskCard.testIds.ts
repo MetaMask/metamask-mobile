@@ -8,10 +8,4 @@ export const MoneyMetaMaskCardTestIds = {
   LINK_BULLET_CASHBACK: 'money-metamask-card-link-bullet-cashback',
   LINK_BULLET_APY: 'money-metamask-card-link-bullet-apy',
   LINK_BUTTON: 'money-metamask-card-link-button',
-  MANAGE_CONTAINER: 'money-mm-card-manage-container',
-  MANAGE_BALANCE_ROW: 'money-mm-card-manage-balance-row',
-  MANAGE_METAL_ROW: 'money-mm-card-manage-metal-row',
-  MANAGE_BUTTON: 'money-mm-card-manage-button',
-  MANAGE_METAL_GET_NOW: 'money-mm-card-manage-metal-get-now',
-  MANAGE_BALANCE: 'money-mm-card-manage-balance',
 } as const;

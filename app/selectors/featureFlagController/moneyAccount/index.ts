@@ -33,11 +33,11 @@ export interface MoneyAccountVaultConfig {
 }
 
 export const DEV_VAULT_CONFIG: MoneyAccountVaultConfig = {
-  chainId: '0x8f',
-  boringVault: '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae',
-  tellerAddress: '0x2D49EA58A4C70b62c8B56DE971310d9e999c8117',
-  accountantAddress: '0x7382c5b8B51B8C4f127B3123C1039581BAA5A06B',
-  lensAddress: '0xA816ECd922de94c6879AD23B9A884dB257F20947',
+  chainId: '0xa4b1',
+  boringVault: '0xB5F07d769dD60fE54c97dd53101181073DDf21b2',
+  tellerAddress: '0x86821F179eaD9F0b3C79b2f8deF0227eEBFDc9f9',
+  accountantAddress: '0x800ebc3B74F67EaC27C9CCE4E4FF28b17CdCA173',
+  lensAddress: '0x846a7832022350434B5cC006d07cc9c782469660',
 };
 
 export const selectMoneyAccountVaultConfig = createSelector(

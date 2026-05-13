@@ -67,11 +67,7 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
           await ConnectedAccountsModal.tapPermissionsSummaryTab();
 
           const networkPicker = ConnectedAccountsModal.networkPicker;
-          // The picker view auto-aggregates the AvatarToken letter ("l") and
-          // the network Badge letter ("E") into one a11y label. iOS's
-          // UIAccessibility joins those with ", " (not a single space), so the
-          // expected label is "l, E".
-          await Assertions.expectElementToHaveLabel(networkPicker, 'l, E');
+          await Assertions.expectElementToHaveLabel(networkPicker, 'l E');
         },
       );
     });

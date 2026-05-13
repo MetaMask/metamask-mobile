@@ -13,24 +13,11 @@ import type { HomeSectionName } from './useHomeViewedEvent';
 interface UseSectionPerformanceConfig {
   /** Section identifier — primary Sentry tag for filtering. */
   sectionId: HomeSectionName;
-  /**
-   * True once the user can see **valuable** UI (real rows/cards/error), not a
-   * section skeleton. May flip true while `isLoading` is still true if other
-   * data continues loading in the background (see Data Fetch span).
-   */
+  /** True once meaningful content (not skeleton/spinner) is rendered. */
   contentReady: boolean;
   /** True when the section is in an empty / placeholder state. */
   isEmpty: boolean;
-  /**
-   * When set, sent as `content_state` on successful trace ends instead of
-   * deriving from `isEmpty` (e.g. `error` for connection / fetch error UI).
-   */
-  contentStateForTrace?: 'filled' | 'empty' | 'error';
-  /**
-   * When provided, tracks **full** data loading (including background work) via
-   * the first `isLoading` true→false transition per mount. Can stay true after
-   * `contentReady` if the section still fetches optional/secondary data.
-   */
+  /** When provided, a separate data-fetch latency span is tracked via loading transitions. */
   isLoading?: boolean;
   /** Skip all tracing when false. Use for feature-flagged sections that return null. @default true */
   enabled?: boolean;
@@ -47,8 +34,8 @@ const DEFAULT_RE_RENDER_WINDOW_MS = 500;
  * Reusable performance telemetry for homepage sections.
  *
  * Captures three metrics via the existing trace/endTrace Sentry integration:
- * 1. **Time to Content** — mount until `contentReady` (valuable non-skeleton UI).
- * 2. **Data Fetch Latency** — first full `isLoading` cycle per mount (opt-in; refresh excluded).
+ * 1. **Time to Content** — mount until `contentReady` flips true.
+ * 2. **Data Fetch Latency** — `isLoading` true→false transition (opt-in).
  * 3. **Re-render Monitoring** — breadcrumb when commits exceed threshold in a window (runs in `useEffect` after paint, not during render).
  *
  * Bookkeeping is ref-based; the hook does not intentionally trigger extra re-renders.
@@ -57,7 +44,6 @@ export const useSectionPerformance = ({
   sectionId,
   contentReady,
   isEmpty,
-  contentStateForTrace,
   isLoading,
   enabled = true,
   reRenderThreshold = DEFAULT_RE_RENDER_THRESHOLD,
@@ -78,8 +64,7 @@ export const useSectionPerformance = ({
   const renderTimestamps = useRef<number[]>([]);
   const hasLoggedExcessiveRenders = useRef(false);
 
-  const traceContentState =
-    contentStateForTrace ?? (isEmpty ? 'empty' : 'filled');
+  const contentState = isEmpty ? 'empty' : 'filled';
 
   // ──────────────────────────────────────────────
   // 1. Time to Content — start span on mount
@@ -127,12 +112,12 @@ export const useSectionPerformance = ({
         data: {
           success: true,
           section_id: sectionId,
-          content_state: traceContentState,
+          content_state: contentState,
         },
       });
       ttcEnded.current = true;
     }
-  }, [enabled, contentReady, sectionId, traceContentState]);
+  }, [enabled, contentReady, sectionId, contentState]);
 
   // ──────────────────────────────────────────────
   // 2. Data Fetch Latency — track isLoading transitions
@@ -143,7 +128,7 @@ export const useSectionPerformance = ({
     const wasLoading = prevIsLoading.current;
     prevIsLoading.current = isLoading;
 
-    // Start: first loading spell only (subsequent refresh cycles are not traced)
+    // Start: isLoading just became true (or was true on first observed render)
     if (isLoading && !fetchStarted.current && !fetchEnded.current) {
       fetchTraceId.current = uuidv4();
       trace({
@@ -168,13 +153,13 @@ export const useSectionPerformance = ({
         data: {
           success: true,
           section_id: sectionId,
-          content_state: traceContentState,
+          content_state: contentState,
         },
       });
       fetchStarted.current = false;
       fetchEnded.current = true;
     }
-  }, [enabled, isLoading, sectionId, traceContentState]);
+  }, [enabled, isLoading, sectionId, contentState]);
 
   // ──────────────────────────────────────────────
   // 3. Re-render Monitoring — useEffect after commit (not during render)

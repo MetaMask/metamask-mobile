@@ -4,13 +4,7 @@ import React, {
   useImperativeHandle,
   useRef,
 } from 'react';
-import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -22,12 +16,7 @@ import { SectionRefreshHandle } from '../../types';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  MAX_ITEMS_DISPLAYED,
-  WhatsHappeningInteractionType,
-  WhatsHappeningView,
-  type WhatsHappeningSourceValue,
-} from './constants';
+import { MAX_ITEMS_DISPLAYED, WhatsHappeningEntryPoint } from './constants';
 import { useWhatsHappening } from './hooks';
 import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
 import useHomeViewedEvent, {
@@ -35,8 +24,8 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import { getWhatsHappeningEventProps } from './eventProperties';
 
 const CARD_WIDTH = 280;
@@ -59,20 +48,18 @@ const styles = StyleSheet.create({
 interface WhatsHappeningSectionProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
-  source: WhatsHappeningSourceValue;
 }
 
 const WhatsHappeningSection = forwardRef<
   SectionRefreshHandle,
   WhatsHappeningSectionProps
->(({ sectionIndex, totalSectionsLoaded, source }, ref) => {
+>(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
-  const currentIndexRef = useRef<number>(0);
   const tw = useTailwind();
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const isEnabled = useSelector(selectWhatsHappeningEnabled);
   const title = strings('homepage.sections.whats_happening');
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { items, isLoading, error, refresh } =
     useWhatsHappening(MAX_ITEMS_DISPLAYED);
@@ -99,9 +86,8 @@ const WhatsHappeningSection = forwardRef<
 
   useSectionPerformance({
     sectionId: HomeSectionNames.WHATS_HAPPENING,
-    contentReady: !isLoading,
-    isEmpty: items.length === 0 && !hasError,
-    contentStateForTrace: hasError ? 'error' : undefined,
+    contentReady: willRender,
+    isEmpty: items.length === 0,
     isLoading,
     enabled: isEnabled,
   });
@@ -110,44 +96,36 @@ const WhatsHappeningSection = forwardRef<
     (initialIndex: number) => {
       navigation.navigate(Routes.WHATS_HAPPENING_DETAIL, {
         initialIndex,
-        source,
       });
     },
-    [navigation, source],
+    [navigation],
   );
 
   const handleViewAll = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_OPENED)
+        .addProperties({ entry_point: WhatsHappeningEntryPoint.ViewAll })
+        .build(),
+    );
     navigateToDetail(0);
-  }, [navigateToDetail]);
+  }, [navigateToDetail, trackEvent, createEventBuilder]);
 
   const handleCardPress = useCallback(
     (index: number) => {
+      const item = items[index];
+      if (item) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_OPENED)
+            .addProperties({
+              ...getWhatsHappeningEventProps(item, index),
+              entry_point: WhatsHappeningEntryPoint.Card,
+            })
+            .build(),
+        );
+      }
       navigateToDetail(index);
     },
-    [navigateToDetail],
-  );
-
-  const handleMomentumScrollEnd = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const offsetX = event.nativeEvent.contentOffset.x;
-      const index = Math.round(offsetX / (CARD_WIDTH + GAP));
-      if (index !== currentIndexRef.current) {
-        currentIndexRef.current = index;
-        const item = items[index];
-        if (item) {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTED)
-              .addProperties({
-                ...getWhatsHappeningEventProps(item, index, source),
-                interaction_type: WhatsHappeningInteractionType.Pan,
-                view: WhatsHappeningView.Carousel,
-              })
-              .build(),
-          );
-        }
-      }
-    },
-    [trackEvent, createEventBuilder, items, source],
+    [items, navigateToDetail, trackEvent, createEventBuilder],
   );
 
   if (!isEnabled) {
@@ -193,7 +171,6 @@ const WhatsHappeningSection = forwardRef<
         contentContainerStyle={tw.style('px-4 gap-3')}
         snapToOffsets={SNAP_OFFSETS}
         decelerationRate="fast"
-        onMomentumScrollEnd={handleMomentumScrollEnd}
         testID="homepage-whats-happening-carousel"
       >
         {isLoading ? (
@@ -205,7 +182,6 @@ const WhatsHappeningSection = forwardRef<
                 key={item.id}
                 item={item}
                 cardIndex={index}
-                source={source}
                 onPress={() => handleCardPress(index)}
               />
             ))}

@@ -43,7 +43,6 @@ jest.mock('../Engine', () => ({
     subscribe: jest.fn(),
     tryUnsubscribe: jest.fn(),
     unsubscribe: jest.fn(),
-    delegate: jest.fn(),
   },
   context: {
     AccountsController: {

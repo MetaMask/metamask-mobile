@@ -1,13 +1,7 @@
 import '../mocks';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import {
-  NavigationContext,
-  NavigationRouteContext,
-} from '@react-navigation/native';
-import renderWithProvider, {
-  type DeepPartial,
-} from '../../../app/util/test/renderWithProvider';
+import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import Routes from '../../../app/constants/navigation/Routes';
@@ -40,24 +34,6 @@ function createWrappedPredictFeed(): React.ComponentType {
   );
 }
 
-function createNavigationContextValue() {
-  return {
-    navigate: () => undefined,
-    goBack: () => undefined,
-    canGoBack: () => false,
-    dispatch: () => undefined,
-    reset: () => undefined,
-    setParams: () => undefined,
-    setOptions: () => undefined,
-    isFocused: () => true,
-    addListener: () => () => undefined,
-    removeListener: () => undefined,
-    getId: () => undefined,
-    getParent: () => undefined,
-    getState: () => ({ routes: [] }),
-  };
-}
-
 /**
  * Renders PredictFeed for component view tests.
  *
@@ -65,7 +41,7 @@ function createNavigationContextValue() {
  */
 export function renderPredictFeedView(
   options: RenderPredictFeedOptions = {},
-): ReturnType<typeof renderWithProvider> {
+): ReturnType<typeof renderComponentViewScreen> {
   const { overrides } = options;
 
   const builder = initialStatePredict();
@@ -73,19 +49,10 @@ export function renderPredictFeedView(
     builder.withOverrides(overrides);
   }
   const state = builder.build();
-  const WrappedPredictFeed = createWrappedPredictFeed();
-  const route = {
-    key: Routes.PREDICT.MARKET_LIST,
-    name: Routes.PREDICT.MARKET_LIST,
-    params: {},
-  };
 
-  return renderWithProvider(
-    <NavigationContext.Provider value={createNavigationContextValue() as never}>
-      <NavigationRouteContext.Provider value={route as never}>
-        <WrappedPredictFeed />
-      </NavigationRouteContext.Provider>
-    </NavigationContext.Provider>,
+  return renderComponentViewScreen(
+    createWrappedPredictFeed(),
+    { name: Routes.PREDICT.MARKET_LIST },
     { state },
   );
 }

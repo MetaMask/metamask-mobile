@@ -63,7 +63,11 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
 
       {/* Icon Section - Smaller size for better spacing */}
       <View style={styles.perpIcon}>
-        <PerpsTokenLogo symbol={market.symbol} size={32} />
+        <PerpsTokenLogo
+          symbol={market.symbol}
+          size={32}
+          style={styles.tokenIcon}
+        />
       </View>
 
       {/* Left Section */}

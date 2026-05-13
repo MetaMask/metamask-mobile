@@ -9,8 +9,6 @@ import {
   confirmationFeatureFlags,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
-  POLYMARKET_ACTIVITY_MOCKS,
-  POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS,
   POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS,
   POLYMARKET_POLYGON_RELAY_POLLING_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
@@ -39,9 +37,6 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     carouselBanners: false,
   }); // we need to mock the confirmations redesign Feature flag
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Sets up all RPC mocks needed for withdraw flow
-  // Keep this smoke test on the legacy Safe withdraw path.
-  await POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS(mockServer);
-  await POLYMARKET_ACTIVITY_MOCKS(mockServer);
   await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer); // needed to load the withdraw/deposit/claim screen
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings for claim flow
   await POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS(mockServer);

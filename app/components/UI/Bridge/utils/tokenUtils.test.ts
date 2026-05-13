@@ -5,7 +5,7 @@ import {
   tokenMatchesQuery,
 } from './tokenUtils';
 import { getSecurityWarnings } from './tokenSecurityUtils';
-import { BridgeToken, SecurityDataType } from '../types';
+import { BridgeToken } from '../types';
 import {
   getNativeAssetForChainId,
   isNonEvmChainId,
@@ -13,6 +13,7 @@ import {
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { DefaultSwapDestTokens } from '../constants/default-swap-dest-tokens';
 import { createMockToken } from '../testUtils/fixtures';
+import { SecurityDataType } from '../hooks/usePopularTokens';
 
 // Mock dependencies
 jest.mock('@metamask/utils', () => {

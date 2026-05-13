@@ -140,14 +140,10 @@ describe('AccountSelector', () => {
       MAINNET_DISPLAY_NAME,
       LINEA_MAINNET_DISPLAY_NAME,
       ARBITRUM_DISPLAY_NAME,
-      'Avalanche Mainnet',
       BASE_DISPLAY_NAME,
       BNB_DISPLAY_NAME,
-      'MegaETH Mainnet',
-      'Monad Mainnet',
       OPTIMISM_DISPLAY_NAME,
       POLYGON_DISPLAY_NAME,
-      'ZKsync Era',
     ]);
     expect(networkNames).not.toContain('Solana');
   });

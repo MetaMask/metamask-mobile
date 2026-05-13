@@ -43,14 +43,12 @@ const PotentialEarningsTokenRow = ({
   hasSubsidizedFee,
   apyPercent,
   onPress,
-  testID,
 }: {
   token: AssetType;
   hasSubsidizedFee: boolean;
   /** APY as a percentage (e.g. 4 for 4%). */
   apyPercent: number;
   onPress: () => void;
-  testID?: string;
 }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const networkBadgeSource = useMemo(
@@ -80,7 +78,7 @@ const PotentialEarningsTokenRow = ({
       alignItems={BoxAlignItems.Center}
       twClassName="px-4 py-3 gap-4"
     >
-      <Pressable onPress={onPress} style={styles.rowPressable} testID={testID}>
+      <Pressable onPress={onPress} style={styles.rowPressable}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}

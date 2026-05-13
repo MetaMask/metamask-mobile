@@ -171,19 +171,10 @@ export type RewardsControllerGetOptInStatusAction = {
 };
 
 /**
- * Get perps fee discount for an account.
- *
- * When the account's active subscription has VIP enabled, this calls the
- * authenticated `/vip/fees` endpoint and converts the absolute VIP builder
- * fee into a discount fraction relative to `baseFeeBips`. Non-VIP accounts
- * receive no discount.
+ * Get perps fee discount for an account with caching and threshold logic
  *
  * @param account - The account address in CAIP-10 format
- * @param baseFeeBips - The perps MetaMask builder base fee in basis points
- * that the caller would apply absent any discount. Used to convert the VIP
- * absolute fee into a discount fraction (caller owns the source of truth
- * for the base fee; the controller is a pure transformer).
- * @returns Promise resolving to the discount in basis points (0-10000), or null when we can't determine the discount.
+ * @returns Promise<number> - The discount in basis points
  */
 export type RewardsControllerGetPerpsDiscountForAccountAction = {
   type: `RewardsController:getPerpsDiscountForAccount`;
@@ -660,17 +651,6 @@ export type RewardsControllerGetBenefitsAction = {
 };
 
 /**
- * Get the VIP dashboard with caching.
- *
- * @param subscriptionId - The subscription ID for authentication
- * @returns Promise<VipDashboardState | null> - The dashboard data, or null when the user is not VIP
- */
-export type RewardsControllerGetVIPDashboardAction = {
-  type: `RewardsController:getVIPDashboard`;
-  handler: RewardsController['getVIPDashboard'];
-};
-
-/**
  * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
  *
  * @param subscriptionId - The subscription ID for authentication
@@ -850,7 +830,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerGetBenefitsAction
-  | RewardsControllerGetVIPDashboardAction
   | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction

@@ -173,6 +173,7 @@ const basePosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 4,
   pnl: 1500.25,
   notionalVolume: 30_000,
+  marginDeployed: 2000,
   qualified: true,
   neighbors: [],
   computedAt: '2025-01-01T00:00:00.000Z',
@@ -287,6 +288,9 @@ describe('PerpsTradingCampaignStatsView', () => {
     expect(
       getByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME),
     ).toBeDefined();
+    expect(
+      getByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARGIN),
+    ).toBeDefined();
   });
 
   it('shows last-computed when position has a timestamp', () => {
@@ -323,7 +327,7 @@ describe('PerpsTradingCampaignStatsView', () => {
     ).toBeNull();
   });
 
-  it('hides volume StatCell when campaign is complete (only PnL remains)', () => {
+  it('hides volume and margin StatCells when campaign is complete (only PnL remains)', () => {
     const completeCampaign = {
       ...mockCampaign,
       endDate: '2020-01-01T00:00:00Z',
@@ -341,6 +345,9 @@ describe('PerpsTradingCampaignStatsView', () => {
     ).toBeDefined();
     expect(
       queryByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME),
+    ).toBeNull();
+    expect(
+      queryByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARGIN),
     ).toBeNull();
   });
 
@@ -377,6 +384,7 @@ describe('PerpsTradingCampaignStatsView', () => {
         ...basePosition,
         qualified: false,
         notionalVolume: 5_000,
+        marginDeployed: 500,
       },
       isLoading: false,
       hasError: false,

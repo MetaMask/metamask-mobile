@@ -68,6 +68,8 @@ function getBuildTypeFeaturesFromEnv() {
   let features;
 
   switch (buildType) {
+    case 'qa':
+    case 'QA':
     case 'main':
       if (envType === 'exp') {
         features = new Set(experimentalFeatureSet);

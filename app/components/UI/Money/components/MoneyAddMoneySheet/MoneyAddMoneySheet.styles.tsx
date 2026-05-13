@@ -15,11 +15,6 @@ const styleSheet = (params: { theme: Theme }) =>
       paddingVertical: 8,
       minHeight: 59,
     },
-    rowLabelContainer: {
-      flex: 1,
-      flexDirection: 'column',
-      gap: 2,
-    },
     disabledRowContent: {
       flex: 1,
       flexDirection: 'column',

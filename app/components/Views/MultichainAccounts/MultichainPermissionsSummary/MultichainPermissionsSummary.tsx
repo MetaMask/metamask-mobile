@@ -359,47 +359,48 @@ const MultichainPermissionsSummary = ({
 
   function renderAccountPermissionsRequestInfoCard() {
     return (
-      <TouchableOpacity
-        onPress={handleEditAccountsButtonPress}
-        style={styles.accountPermissionRequestInfoCard}
-        testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}
-      >
-        <Avatar
-          variant={AvatarVariant.Icon}
-          style={styles.walletIcon}
-          name={IconName.Wallet}
-          size={AvatarSize.Md}
-          backgroundColor={colors.shadow.default}
-          iconColor={colors.icon.alternative}
-        />
-        <View style={styles.accountPermissionRequestDetails}>
-          <TextComponent variant={TextVariant.BodyMD}>
-            {strings('permissions.see_your_accounts')}
-          </TextComponent>
-          <View style={styles.permissionRequestAccountInfo}>
-            <View style={styles.permissionRequestAccountName}>
-              <TextComponent
-                testID={
-                  PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER
-                }
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                <TextComponent variant={TextVariant.BodySM}>
-                  {strings('permissions.requesting_for')}
+      <TouchableOpacity onPress={handleEditAccountsButtonPress}>
+        <View
+          style={styles.accountPermissionRequestInfoCard}
+          testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}
+        >
+          <Avatar
+            variant={AvatarVariant.Icon}
+            style={styles.walletIcon}
+            name={IconName.Wallet}
+            size={AvatarSize.Md}
+            backgroundColor={colors.shadow.default}
+            iconColor={colors.icon.alternative}
+          />
+          <View style={styles.accountPermissionRequestDetails}>
+            <TextComponent variant={TextVariant.BodyMD}>
+              {strings('permissions.see_your_accounts')}
+            </TextComponent>
+            <View style={styles.permissionRequestAccountInfo}>
+              <View style={styles.permissionRequestAccountName}>
+                <TextComponent
+                  testID={
+                    PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER
+                  }
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  <TextComponent variant={TextVariant.BodySM}>
+                    {strings('permissions.requesting_for')}
+                  </TextComponent>
                 </TextComponent>
-              </TextComponent>
-            </View>
-            <View style={styles.avatarGroup}>
-              <AvatarGroup
-                avatarPropsList={selectedAccountGroups.map((accountGroup) =>
-                  renderAccountAvatar(accountGroup),
-                )}
-              />
+              </View>
+              <View style={styles.avatarGroup}>
+                <AvatarGroup
+                  avatarPropsList={selectedAccountGroups.map((accountGroup) =>
+                    renderAccountAvatar(accountGroup),
+                  )}
+                />
+              </View>
             </View>
           </View>
+          {renderEndAccessory()}
         </View>
-        {renderEndAccessory()}
       </TouchableOpacity>
     );
   }

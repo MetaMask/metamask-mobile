@@ -32,7 +32,7 @@ interface PerpsModifyActionSheetProps {
   onClose: () => void;
   position: Position | null;
   onActionSelect: (action: ModifyAction) => void;
-  sheetRef?: React.RefObject<BottomSheetRef | null>;
+  sheetRef?: React.RefObject<BottomSheetRef>;
   testID?: string;
 }
 

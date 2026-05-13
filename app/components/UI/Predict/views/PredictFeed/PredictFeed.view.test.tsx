@@ -18,99 +18,13 @@ import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
   PredictBalanceSelectorsIDs,
-  PredictBalanceSelectorsText,
-  PredictFeedSelectorsIDs,
-  getPredictMarketListSelector,
-  getPredictFeedSelector,
   getPredictSearchSelector,
 } from '../../Predict.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MOCK_PREDICT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
-import { PREDICT_OFFLINE_TEST_IDS } from '../../components/PredictOffline/PredictOffline.testIds';
-import type { PredictMarket } from '../../types';
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const CANCEL_TEXT = 'Cancel';
-const RETRY_TEXT = 'Retry';
-
-const createPredictMarket = ({
-  id,
-  category,
-  title,
-  yesPrice,
-  noPrice,
-  volume,
-}: {
-  id: string;
-  category: PredictMarket['category'];
-  title: string;
-  yesPrice: number;
-  noPrice: number;
-  volume: number;
-}): PredictMarket => ({
-  ...MOCK_PREDICT_MARKET,
-  id,
-  slug: id,
-  title,
-  category,
-  volume,
-  outcomes: [
-    {
-      ...MOCK_PREDICT_MARKET.outcomes[0],
-      id: `${id}-outcome`,
-      marketId: id,
-      title,
-      volume,
-      tokens: [
-        { id: `${id}-yes`, title: 'Yes', price: yesPrice },
-        { id: `${id}-no`, title: 'No', price: noPrice },
-      ],
-    },
-  ],
-});
-
-const TRENDING_MARKETS = [
-  createPredictMarket({
-    id: 'market-btc-100k',
-    category: 'trending',
-    title: 'Will Bitcoin reach $100k?',
-    yesPrice: 0.65,
-    noPrice: 0.35,
-    volume: 1_000_000,
-  }),
-  createPredictMarket({
-    id: 'market-eth-10k',
-    category: 'trending',
-    title: 'Will Ethereum reach $10k?',
-    yesPrice: 0.42,
-    noPrice: 0.58,
-    volume: 250_000,
-  }),
-] as const;
-
-const NEW_MARKET = createPredictMarket({
-  id: 'market-new-fed-rate',
-  category: 'new',
-  title: 'Will the Fed cut rates this month?',
-  yesPrice: 0.51,
-  noPrice: 0.49,
-  volume: 125_000,
-});
-
-const layoutPredictFeed = async ({
-  findByTestId,
-}: Pick<ReturnType<typeof renderPredictFeedView>, 'findByTestId'>) => {
-  fireEvent(await findByTestId(PredictFeedSelectorsIDs.HEADER), 'layout', {
-    nativeEvent: { layout: { height: 160 } },
-  });
-  fireEvent(
-    await findByTestId(PredictFeedSelectorsIDs.TAB_BAR_CONTAINER),
-    'layout',
-    {
-      nativeEvent: { layout: { height: 48 } },
-    },
-  );
-};
 
 describe('PredictFeed', () => {
   describe('search interaction', () => {
@@ -272,163 +186,6 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('market feed error recovery', () => {
-    it('shows the offline state without market cards when all feed fetch retries fail', async () => {
-      const getMarketsSpy = jest.spyOn(
-        Engine.context.PredictController,
-        'getMarkets',
-      );
-      getMarketsSpy.mockRejectedValue(new Error('Network error'));
-
-      const { findByTestId, queryByTestId } = renderPredictFeedView();
-
-      await layoutPredictFeed({ findByTestId });
-
-      expect(
-        await findByTestId(
-          PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
-          {},
-          { timeout: 10000 },
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(
-          getPredictMarketListSelector.marketCardByCategory('trending', 2),
-        ),
-      ).not.toBeOnTheScreen();
-
-      getMarketsSpy.mockRestore();
-    });
-
-    it('loads market cards when the user retries after a feed error', async () => {
-      const getMarketsSpy = jest.spyOn(
-        Engine.context.PredictController,
-        'getMarkets',
-      );
-      getMarketsSpy.mockRejectedValue(new Error('Network error'));
-
-      const { findByTestId, findByText, queryByTestId } =
-        renderPredictFeedView();
-
-      await layoutPredictFeed({ findByTestId });
-      await findByTestId(
-        PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
-        {},
-        { timeout: 10000 },
-      );
-      const callCountBeforeRetry = getMarketsSpy.mock.calls.length;
-      getMarketsSpy.mockResolvedValue([...TRENDING_MARKETS]);
-
-      fireEvent.press(await findByText(RETRY_TEXT));
-
-      await waitFor(() => {
-        expect(getMarketsSpy.mock.calls.length).toBeGreaterThan(
-          callCountBeforeRetry,
-        );
-      });
-      expect(
-        await findByTestId(
-          getPredictMarketListSelector.marketCardByCategory('trending', 1),
-        ),
-      ).toBeOnTheScreen();
-      expect(queryByTestId(PREDICT_OFFLINE_TEST_IDS.ERROR_STATE)).toBeNull();
-
-      getMarketsSpy.mockRestore();
-    });
-  });
-
-  describe('market feed data', () => {
-    it('shows complete market data for every loaded trending market', async () => {
-      const getMarketsSpy = jest.spyOn(
-        Engine.context.PredictController,
-        'getMarkets',
-      );
-      getMarketsSpy.mockImplementation(({ category }) =>
-        Promise.resolve(category === 'trending' ? [...TRENDING_MARKETS] : []),
-      );
-
-      const { findByTestId } = renderPredictFeedView();
-
-      await layoutPredictFeed({ findByTestId });
-
-      const bitcoinCard = await findByTestId(
-        getPredictMarketListSelector.marketCardByCategory('trending', 1),
-      );
-      expect(
-        within(bitcoinCard).getByText(TRENDING_MARKETS[0].title),
-      ).toBeOnTheScreen();
-      expect(within(bitcoinCard).getByText('65%')).toBeOnTheScreen();
-      expect(within(bitcoinCard).getByText('Yes')).toBeOnTheScreen();
-      expect(within(bitcoinCard).getByText('No')).toBeOnTheScreen();
-      expect(within(bitcoinCard).getByText('$1M Vol.')).toBeOnTheScreen();
-
-      const ethereumCard = await findByTestId(
-        getPredictMarketListSelector.marketCardByCategory('trending', 2),
-      );
-      expect(
-        within(ethereumCard).getByText(TRENDING_MARKETS[1].title),
-      ).toBeOnTheScreen();
-      expect(within(ethereumCard).getByText('42%')).toBeOnTheScreen();
-      expect(within(ethereumCard).getByText('Yes')).toBeOnTheScreen();
-      expect(within(ethereumCard).getByText('No')).toBeOnTheScreen();
-      expect(within(ethereumCard).getByText('$250k Vol.')).toBeOnTheScreen();
-
-      getMarketsSpy.mockRestore();
-    });
-
-    it('loads the selected category after the user switches tabs', async () => {
-      const getMarketsSpy = jest.spyOn(
-        Engine.context.PredictController,
-        'getMarkets',
-      );
-      getMarketsSpy.mockImplementation(({ category }) => {
-        if (category === 'trending') {
-          return Promise.resolve([...TRENDING_MARKETS]);
-        }
-        if (category === 'new') {
-          return Promise.resolve([NEW_MARKET]);
-        }
-        return Promise.resolve([]);
-      });
-
-      const { findByTestId, getByTestId } = renderPredictFeedView();
-
-      await layoutPredictFeed({ findByTestId });
-      await findByTestId(
-        getPredictMarketListSelector.marketCardByCategory('trending', 1),
-      );
-
-      fireEvent.press(getByTestId(getPredictFeedSelector.tab(2)));
-
-      const newMarketCard = await findByTestId(
-        getPredictMarketListSelector.marketCardByCategory('new', 1),
-      );
-      const newTabPage = getByTestId(getPredictFeedSelector.tabPage('new'));
-      const newTabScope = within(newTabPage);
-
-      expect(
-        within(newMarketCard).getByText(NEW_MARKET.title),
-      ).toBeOnTheScreen();
-      expect(
-        newTabScope.queryByTestId(
-          getPredictMarketListSelector.marketCardByCategory('trending', 1),
-        ),
-      ).not.toBeOnTheScreen();
-      expect(
-        newTabScope.queryByTestId(
-          getPredictMarketListSelector.marketCardByCategory('new', 2),
-        ),
-      ).not.toBeOnTheScreen();
-      await waitFor(() => {
-        expect(getMarketsSpy).toHaveBeenCalledWith(
-          expect.objectContaining({ category: 'new' }),
-        );
-      });
-
-      getMarketsSpy.mockRestore();
-    });
-  });
-
   describe('back navigation', () => {
     it('navigates to the wallet when the user presses back from the root feed', async () => {
       const { getByTestId, findByTestId } = renderPredictFeedViewWithRoutes({
@@ -462,38 +219,13 @@ describe('PredictFeed', () => {
       getBalanceSpy.mockRestore();
     });
 
-    it('uses PredictController balance response to display available balance amount', async () => {
-      const getBalanceSpy = jest.spyOn(
-        Engine.context.PredictController,
-        'getBalance',
-      );
-      getBalanceSpy.mockResolvedValue(28.16);
-
-      const { findByTestId, findByText } = renderPredictFeedView();
-
-      expect(
-        await findByTestId(PredictBalanceSelectorsIDs.BALANCE_CARD),
-      ).toBeOnTheScreen();
-      await waitFor(() => {
-        expect(getBalanceSpy).toHaveBeenCalledTimes(1);
-      });
-      expect(
-        await findByText(PredictBalanceSelectorsText.AVAILABLE_BALANCE),
-      ).toBeOnTheScreen();
-      expect(await findByText('$28.16')).toBeOnTheScreen();
-
-      getBalanceSpy.mockRestore();
-    });
-
     it('calls trackGeoBlockTriggered when the user presses Add Funds while ineligible', async () => {
       const trackGeoBlockSpy = jest.spyOn(
         Engine.context.PredictController,
         'trackGeoBlockTriggered',
       );
 
-      const { findByTestId, findByText } = renderPredictFeedViewWithRoutes({
-        extraRoutes: [{ name: Routes.PREDICT.MODALS.ROOT }],
-      });
+      const { findByTestId, findByText } = renderPredictFeedView();
 
       await findByTestId(PredictBalanceSelectorsIDs.BALANCE_CARD);
       fireEvent.press(await findByText('Add funds'));
@@ -503,9 +235,6 @@ describe('PredictFeed', () => {
           expect.objectContaining({ attemptedAction: 'deposit' }),
         );
       });
-      expect(
-        await findByTestId(`route-${Routes.PREDICT.MODALS.ROOT}`),
-      ).toBeOnTheScreen();
 
       trackGeoBlockSpy.mockRestore();
     });
@@ -529,7 +258,7 @@ describe('PredictFeed', () => {
       // findByTestId waits until the error state appears after all retries exhaust.
       expect(
         await findByTestId(
-          PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
+          PredictSearchSelectorsIDs.ERROR_STATE,
           {},
           { timeout: 10000 },
         ),
@@ -552,7 +281,7 @@ describe('PredictFeed', () => {
       await findByPlaceholderText(SEARCH_PLACEHOLDER);
 
       await findByTestId(
-        PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
+        PredictSearchSelectorsIDs.ERROR_STATE,
         {},
         { timeout: 10000 },
       );

@@ -44,7 +44,7 @@ export function useAutomaticTransactionPayToken({
   disable?: boolean;
   preferredToken?: SetPayTokenRequest;
 } = {}) {
-  const isUpdated = useRef<string | undefined>(undefined);
+  const isUpdated = useRef<string | undefined>();
   const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
   const { availableTokens } = useTransactionPayAvailableTokens();
@@ -135,8 +135,6 @@ export function useAutomaticTransactionPayToken({
     ],
   );
 
-  const automaticToken = useMemo(() => selectBestToken(), [selectBestToken]);
-
   useEffect(() => {
     if (
       disable ||
@@ -146,6 +144,8 @@ export function useAutomaticTransactionPayToken({
     ) {
       return;
     }
+
+    const automaticToken = selectBestToken();
 
     if (!automaticToken) {
       log('No automatic pay token found');
@@ -161,10 +161,10 @@ export function useAutomaticTransactionPayToken({
 
     log('Automatically selected pay token', automaticToken);
   }, [
-    automaticToken,
     disable,
     payToken,
     requiredTokens,
+    selectBestToken,
     setPayToken,
     tokens,
     transactionId,
@@ -182,6 +182,7 @@ export function useAutomaticTransactionPayToken({
     }
     prevAccountKeyRef.current = accountKey;
 
+    const automaticToken = selectBestToken();
     if (automaticToken) {
       setPayToken({
         address: automaticToken.address,
@@ -189,9 +190,7 @@ export function useAutomaticTransactionPayToken({
       });
       log('Re-selected pay token after account change', automaticToken);
     }
-  }, [accountOverride, automaticToken, disable, from, setPayToken]);
-
-  return automaticToken;
+  }, [accountOverride, disable, from, selectBestToken, setPayToken]);
 }
 
 function getBestToken({

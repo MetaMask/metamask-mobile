@@ -1,7 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useShouldRenderGasSponsoredBanner } from './index';
 import { useIsNetworkGasSponsored } from '../useIsNetworkGasSponsored';
-import { useIsHardwareWalletForBridge } from '../useIsHardwareWalletForBridge';
 import { useSelector } from 'react-redux';
 import {
   selectSourceToken,
@@ -9,7 +8,6 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 
 jest.mock('../useIsNetworkGasSponsored');
-jest.mock('../useIsHardwareWalletForBridge');
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -17,10 +15,6 @@ jest.mock('react-redux', () => ({
 const mockUseIsNetworkGasSponsored =
   useIsNetworkGasSponsored as jest.MockedFunction<
     typeof useIsNetworkGasSponsored
-  >;
-const mockUseIsHardwareWalletForBridge =
-  useIsHardwareWalletForBridge as jest.MockedFunction<
-    typeof useIsHardwareWalletForBridge
   >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
@@ -57,7 +51,6 @@ describe('useShouldRenderGasSponsoredBanner', () => {
     jest.clearAllMocks();
     mockTokens({});
     mockUseIsNetworkGasSponsored.mockReturnValue(false);
-    mockUseIsHardwareWalletForBridge.mockReturnValue(false);
   });
 
   describe('returns true when quoteGasSponsored is true', () => {
@@ -153,43 +146,6 @@ describe('useShouldRenderGasSponsoredBanner', () => {
   });
 
   describe('returns false', () => {
-    it('returns false when quote is sponsored but source account is a hardware wallet', () => {
-      // Arrange
-      mockUseIsHardwareWalletForBridge.mockReturnValue(true);
-
-      // Act
-      const { result } = renderHook(() =>
-        useShouldRenderGasSponsoredBanner({
-          quoteGasSponsored: true,
-          hasInsufficientBalance: false,
-        }),
-      );
-
-      // Assert
-      expect(result.current).toBe(false);
-    });
-
-    it('returns false when insufficient balance and network is sponsored but source account is a hardware wallet', () => {
-      // Arrange
-      mockTokens({
-        sourceChainId: SOURCE_CHAIN_ID,
-        destChainId: SAME_CHAIN_DEST_CHAIN_ID,
-      });
-      mockUseIsNetworkGasSponsored.mockReturnValue(true);
-      mockUseIsHardwareWalletForBridge.mockReturnValue(true);
-
-      // Act
-      const { result } = renderHook(() =>
-        useShouldRenderGasSponsoredBanner({
-          quoteGasSponsored: false,
-          hasInsufficientBalance: true,
-        }),
-      );
-
-      // Assert
-      expect(result.current).toBe(false);
-    });
-
     it('returns false when quoteGasSponsored is false and balance is sufficient', () => {
       // Arrange
       mockUseIsNetworkGasSponsored.mockReturnValue(false);

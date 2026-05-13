@@ -283,7 +283,7 @@ describe('BrowserUrlBar', () => {
   });
 
   describe('useImperativeHandle methods', () => {
-    let urlBarRef: React.RefObject<BrowserUrlBarRef | null>;
+    let urlBarRef: React.RefObject<BrowserUrlBarRef>;
 
     beforeEach(() => {
       // Arrange - Create ref for each test

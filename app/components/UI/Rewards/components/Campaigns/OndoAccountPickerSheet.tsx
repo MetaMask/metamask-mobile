@@ -34,7 +34,7 @@ import { strings } from '../../../../../../locales/i18n';
 
 interface OndoAccountPickerSheetProps {
   pendingPicker: AccountPickerConfig;
-  sheetRef: React.RefObject<BottomSheetRef | null>;
+  sheetRef: React.RefObject<BottomSheetRef>;
   onClose: () => void;
   onGroupSelect: (group: AccountGroupObject) => void;
 }

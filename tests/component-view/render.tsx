@@ -8,7 +8,7 @@ import renderWithProvider, {
 
 export function renderComponentViewScreen(
   Component: React.ComponentType,
-  options: Parameters<typeof renderScreen>[1],
+  options: { name: string },
   providerValues?: ProviderValues,
   initialParams?: Record<string, unknown>,
 ) {

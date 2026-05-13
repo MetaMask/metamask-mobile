@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, TextStyle } from 'react-native';
+import { TouchableOpacity, TextStyle } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Transaction } from '@metamask/keyring-api';
 import { capitalize } from 'lodash';
@@ -60,14 +60,6 @@ const TransactionDetailRow = {
   NetworkFee: strings('transactions.network_fee'),
   PriorityFee: strings('transactions.multichain_priority_fee'),
 } as const;
-
-const styles = StyleSheet.create({
-  blockExplorerLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-});
 
 const MultichainTransactionDetailsSheet: React.FC = () => {
   const navigation = useNavigation();
@@ -133,18 +125,21 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
         alignItems={BoxAlignItems.Center}
       >
         {isLink ? (
-          <TouchableOpacity
-            onPress={() => viewOnBlockExplorer(label)}
-            style={styles.blockExplorerLink}
-          >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-              {formatAddress(value, 'short')}
-            </Text>
-            <Icon
-              name={IconName.Export}
-              size={IconSize.Sm}
-              color={IconColor.Primary}
-            />
+          <TouchableOpacity onPress={() => viewOnBlockExplorer(label)}>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-1"
+            >
+              <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+                {formatAddress(value, 'short')}
+              </Text>
+              <Icon
+                name={IconName.Export}
+                size={IconSize.Sm}
+                color={IconColor.Primary}
+              />
+            </Box>
           </TouchableOpacity>
         ) : label === TransactionDetailRow.Status ? (
           <StatusText

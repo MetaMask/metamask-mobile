@@ -58,20 +58,6 @@ const Default = () => {
 /**
  * View that renders a warning for existing user in a modal
  */
-/**
- * @param {object} props
- * @param {boolean} [props.warningModalVisible]
- * @param {() => void} [props.onCancelPress]
- * @param {boolean} [props.cancelButtonDisabled]
- * @param {() => void} [props.onRequestClose]
- * @param {() => void} [props.onConfirmPress]
- * @param {React.ReactNode} [props.children]
- * @param {string} [props.cancelText]
- * @param {string} [props.confirmText]
- * @param {string} [props.confirmTestID]
- * @param {string} [props.cancelTestID]
- * @param {string} [props.cancelButtonMode]
- */
 export default function WarningExistingUserModal({
   warningModalVisible,
   onCancelPress,

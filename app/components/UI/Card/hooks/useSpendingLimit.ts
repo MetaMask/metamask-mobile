@@ -328,7 +328,7 @@ const useSpendingLimit = ({
         ? notEnabledTokens
         : buildDelegationTokenList({
             delegationSettings,
-            getSupportedTokensByChainId: getSdkTokens ?? (() => []),
+            getSupportedTokensByChainId: getSdkTokens,
           });
 
     if (tokensToSearch.length > 0) {
@@ -644,4 +644,7 @@ const useSpendingLimit = ({
 export default useSpendingLimit;
 
 // Re-export for backwards compatibility
-export { LINEA_CAIP_CHAIN_ID } from '../util/buildTokenList';
+export {
+  QUICK_SELECT_TOKENS,
+  LINEA_CAIP_CHAIN_ID,
+} from '../util/buildTokenList';

@@ -4,7 +4,7 @@ import { useMemo, useRef } from 'react';
  * Custom hook for stable array reference
  */
 export function useStableArray<T>(array: T[]): T[] {
-  const ref = useRef<T[] | undefined>(undefined);
+  const ref = useRef<T[]>();
 
   return useMemo(() => {
     if (

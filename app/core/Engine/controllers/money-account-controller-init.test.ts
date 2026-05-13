@@ -73,7 +73,7 @@ function publishStateChange(
 ) {
   baseMessenger.publish(
     'RemoteFeatureFlagController:stateChange',
-    { remoteFeatureFlags: {}, localOverrides: {}, cacheTimestamp: 0 },
+    { remoteFeatureFlags: {}, cacheTimestamp: 0 },
     [],
   );
 }

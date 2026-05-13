@@ -5,10 +5,6 @@ import * as ReactRedux from 'react-redux';
 // eslint-disable-next-line import-x/no-namespace
 import * as Selectors from '../../../selectors/notifications';
 // eslint-disable-next-line import-x/no-namespace
-import * as HomepageFeatureSelectors from '../../../selectors/featureFlagController/homepage';
-// eslint-disable-next-line import-x/no-namespace
-import * as OnboardingSelectors from '../../../selectors/onboarding';
-// eslint-disable-next-line import-x/no-namespace
 import * as KeyringSelectors from '../../../selectors/keyringController';
 // eslint-disable-next-line import-x/no-namespace
 import * as SettingsSelectors from '../../../selectors/settings';
@@ -342,15 +338,6 @@ describe('useEnableNotificationsByDefaultEffect', () => {
     const mockGetIsNotificationEnabledByDefaultFeatureFlag = jest
       .spyOn(Selectors, 'getIsNotificationEnabledByDefaultFeatureFlag')
       .mockReturnValue(true);
-    const mockSelectHomepageSectionsV1Enabled = jest
-      .spyOn(HomepageFeatureSelectors, 'selectHomepageSectionsV1Enabled')
-      .mockReturnValue(false);
-    const mockSelectWalletHomeOnboardingStepsEnabled = jest
-      .spyOn(HomepageFeatureSelectors, 'selectWalletHomeOnboardingStepsEnabled')
-      .mockReturnValue(false);
-    const mockSelectShouldShowWalletHomeOnboardingSteps = jest
-      .spyOn(OnboardingSelectors, 'selectShouldShowWalletHomeOnboardingSteps')
-      .mockReturnValue(false);
 
     return {
       mockIsNotifsEnabled,
@@ -358,9 +345,6 @@ describe('useEnableNotificationsByDefaultEffect', () => {
       mockSelectIsUnlocked,
       mockSelectIsSignedIn,
       mockGetIsNotificationEnabledByDefaultFeatureFlag,
-      mockSelectHomepageSectionsV1Enabled,
-      mockSelectWalletHomeOnboardingStepsEnabled,
-      mockSelectShouldShowWalletHomeOnboardingSteps,
     };
   };
 
@@ -463,24 +447,6 @@ describe('useEnableNotificationsByDefaultEffect', () => {
   it('does not enable notifications when basic functionality is disabled', async () => {
     const mocks = arrange();
     mocks.selectors.mockSelectBasicFunctionalityEnabled.mockReturnValue(false); // Basic functionality disabled
-
-    renderHookWithProvider(() => useEnableNotificationsByDefaultEffect(), {});
-
-    await waitFor(() => {
-      expect(mocks.hooks.enableNotifications).not.toHaveBeenCalled();
-      expect(mocks.hooks.listNotifications).not.toHaveBeenCalled();
-    });
-  });
-
-  it('does not enable notifications when wallet home post-onboarding checklist is active', async () => {
-    const mocks = arrange();
-    mocks.selectors.mockSelectHomepageSectionsV1Enabled.mockReturnValue(true);
-    mocks.selectors.mockSelectWalletHomeOnboardingStepsEnabled.mockReturnValue(
-      true,
-    );
-    mocks.selectors.mockSelectShouldShowWalletHomeOnboardingSteps.mockReturnValue(
-      true,
-    );
 
     renderHookWithProvider(() => useEnableNotificationsByDefaultEffect(), {});
 

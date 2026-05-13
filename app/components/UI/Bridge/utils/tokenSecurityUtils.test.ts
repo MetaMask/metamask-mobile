@@ -2,7 +2,7 @@ import { TokenSecurityData } from '@metamask/assets-controllers';
 import { IconColor, IconName } from '@metamask/design-system-react-native';
 import { TagSeverity } from '../../../../component-library/base-components/TagBase';
 import { strings } from '../../../../../locales/i18n';
-import { SecurityDataType } from '../types';
+import { SecurityDataType } from '../hooks/usePopularTokens';
 import { createMockToken } from '../testUtils/fixtures';
 import {
   adaptTokenSecurityData,

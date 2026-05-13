@@ -13,8 +13,6 @@ import Alert, { AlertType } from '../../../../Base/Alert';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../../hooks/useStyles';
-import { useHardwareWallet } from '../../../../../core/HardwareWallet/contexts';
-import { useQrScanErrorForwarding } from '../../../../../core/HardwareWallet/hooks/useQrScanErrorForwarding';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
 import styleSheet from './qr-info.styles';
@@ -28,7 +26,6 @@ const QRInfo = () => {
     setRequestCompleted,
     setScannerVisible,
   } = useQRHardwareContext();
-  const { setQrScanRetryHandler } = useHardwareWallet();
   const { createEventBuilder, trackEvent } = useAnalytics();
   const { styles } = useStyles(styleSheet, {});
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
@@ -39,16 +36,6 @@ const QRInfo = () => {
       setErrorMessage(undefined);
     }
   }, [scannerVisible, setErrorMessage]);
-
-  useEffect(() => {
-    setQrScanRetryHandler?.(() => {
-      setScannerVisible(true);
-    });
-
-    return () => {
-      setQrScanRetryHandler?.(null);
-    };
-  }, [setQrScanRetryHandler, setScannerVisible]);
 
   const onScanSuccess = useCallback(
     (ur: UR) => {
@@ -92,12 +79,6 @@ const QRInfo = () => {
     },
     [setScannerVisible],
   );
-
-  const hideScanner = useCallback(() => {
-    setScannerVisible(false);
-  }, [setScannerVisible]);
-  const { onQRHardwareScanError, handleScannerModalHide } =
-    useQrScanErrorForwarding({ hideScanner });
 
   return (
     <View testID={ConfirmationInfoComponentIDs.QR_INFO}>
@@ -143,9 +124,7 @@ const QRInfo = () => {
         purpose={QrScanRequestType.SIGN}
         onScanSuccess={onScanSuccess}
         onScanError={onScanError}
-        onQRHardwareScanError={onQRHardwareScanError}
-        onModalHideComplete={handleScannerModalHide}
-        hideModal={hideScanner}
+        hideModal={() => setScannerVisible(false)}
       />
     </View>
   );

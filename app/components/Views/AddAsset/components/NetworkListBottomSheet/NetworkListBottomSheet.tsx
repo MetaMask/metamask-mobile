@@ -38,7 +38,7 @@ export default function NetworkListBottomSheet({
   selectedNetwork: SupportedCaipChainId | Hex | null;
   setSelectedNetwork: (network: SupportedCaipChainId | Hex) => void;
   setOpenNetworkSelector: (open: boolean) => void;
-  sheetRef: React.RefObject<BottomSheetRef | null>;
+  sheetRef: React.RefObject<BottomSheetRef>;
   displayEvmNetworksOnly?: boolean;
 }) {
   const tw = useTailwind();

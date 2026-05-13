@@ -19,11 +19,9 @@ const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const tw = (..._args: unknown[]) => ({});
-    tw.style = jest.fn(() => ({}));
-    return tw;
-  },
+  useTailwind: () => ({
+    style: (...args: string[]) => args,
+  }),
 }));
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({

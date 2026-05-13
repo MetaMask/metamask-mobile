@@ -8,12 +8,7 @@ import React, {
   useRef,
 } from 'react';
 import type { TabRefreshHandle } from '../../Views/Wallet/types';
-import {
-  InteractionManager,
-  ScrollView,
-  View,
-  type RefreshControlProps,
-} from 'react-native';
+import { InteractionManager, ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -69,7 +64,7 @@ interface TokensProps {
    * refreshers. Applied to both the FlashList-backed list and the empty-state
    * ScrollView.
    */
-  refreshControl?: React.ReactElement<RefreshControlProps>;
+  refreshControl?: React.ReactElement;
   /**
    * When true, suppress the internal TokenListSkeleton. Useful when the parent
    * already handles its own loading state (e.g. CashTokensFullView).

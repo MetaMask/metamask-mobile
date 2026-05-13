@@ -110,6 +110,9 @@ function renameAndroid() {
     case 'flask':
       appFlavor = 'flask';
       break;
+    case 'qa':
+      appFlavor = 'qa';
+      break;
     default:
       console.error(`❌ Unknown build type: ${buildType}`);
       process.exit(1);
@@ -233,6 +236,9 @@ function renameIos() {
       break;
     case 'flask':
       appName = 'MetaMask-Flask';
+      break;
+    case 'qa':
+      appName = 'MetaMask-QA';
       break;
     default:
       console.error(`❌ Unknown build type: ${buildType}`);

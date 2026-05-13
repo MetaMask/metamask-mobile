@@ -9,6 +9,8 @@ import {
   IconColor,
   IconName,
   Skeleton,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -45,6 +47,16 @@ const MoneyBalanceSummary = ({
   onApyInfoPress,
 }: MoneyBalanceSummaryProps) => (
   <Box twClassName="pt-3" testID={MoneyBalanceSummaryTestIds.CONTAINER}>
+    <Box twClassName="px-4">
+      <Text
+        variant={TextVariant.HeadingLg}
+        fontWeight={FontWeight.Bold}
+        testID={MoneyBalanceSummaryTestIds.TITLE}
+      >
+        {strings('money.your_balance')}
+      </Text>
+    </Box>
+
     <Box twClassName="px-4 pt-2">
       {isLoading ? (
         <Skeleton
@@ -77,21 +89,19 @@ const MoneyBalanceSummary = ({
           />
         ) : (
           isPositiveNumber(apy) && (
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.SuccessDefault}
-              testID={MoneyBalanceSummaryTestIds.APY}
+            <Tag
+              severity={TagSeverity.Success}
+              testID={MoneyBalanceSummaryTestIds.APY_TAG}
             >
-              {strings('money.apy_label', { percentage: apy })}
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
+                color={TextColor.SuccessDefault}
+                testID={MoneyBalanceSummaryTestIds.APY}
               >
-                {strings('money.apy_currency_suffix')}
+                {strings('money.apy_label', { percentage: apy })}
               </Text>
-            </Text>
+            </Tag>
           )
         )}
         {onApyInfoPress && isPositiveNumber(apy) && !isLoading && (

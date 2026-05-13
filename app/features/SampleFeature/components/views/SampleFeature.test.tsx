@@ -199,7 +199,7 @@ describe('SampleFeature', () => {
           name: expectedNetworkName,
           imageSource: expectedImageSource,
         },
-        undefined,
+        expect.anything(),
       );
     });
 

@@ -32,6 +32,7 @@ jobs:
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
+      keystore_target: 'qa'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 

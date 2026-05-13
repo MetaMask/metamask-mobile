@@ -5,7 +5,6 @@ import {
   selectRewardsActiveAccountAddress,
   selectRewardsActiveAccountSubscriptionId,
   selectCurrentSubscriptionAccounts,
-  selectIsCurrentSubscriptionVipEnabled,
 } from './index';
 // Mock rewards controller state
 const createMockRewardsControllerState = (overrides = {}) => ({
@@ -377,74 +376,6 @@ describe('Rewards Selectors', () => {
 
       // Assert
       expect(result).toBe(expectedAddress);
-    });
-  });
-
-  describe('VIP subscription selectors', () => {
-    it('returns true when VIP is enabled', () => {
-      const state = createMockRootState({
-        activeAccount: { subscriptionId: 'sub-1' },
-        subscriptions: {
-          'sub-1': {
-            id: 'sub-1',
-            referralCode: 'ABC123',
-            accounts: [],
-            features: { vip: { enabled: true } },
-          },
-        },
-      });
-
-      expect(selectIsCurrentSubscriptionVipEnabled(state)).toBe(true);
-    });
-
-    it('returns false when VIP is disabled', () => {
-      const state = createMockRootState({
-        activeAccount: { subscriptionId: 'sub-1' },
-        subscriptions: {
-          'sub-1': {
-            id: 'sub-1',
-            referralCode: 'ABC123',
-            accounts: [],
-            features: { vip: { enabled: false } },
-          },
-        },
-      });
-
-      expect(selectIsCurrentSubscriptionVipEnabled(state)).toBe(false);
-    });
-
-    it('returns false when persisted subscription features are missing', () => {
-      const state = createMockRootState({
-        activeAccount: { subscriptionId: 'sub-1' },
-        subscriptions: {
-          'sub-1': {
-            id: 'sub-1',
-            referralCode: 'ABC123',
-            accounts: [],
-          },
-        },
-      });
-
-      expect(selectIsCurrentSubscriptionVipEnabled(state)).toBe(false);
-    });
-
-    it('uses candidate subscription fallback for VIP state', () => {
-      const state = createMockRootState(
-        {
-          activeAccount: null,
-          subscriptions: {
-            'candidate-subscription-id': {
-              id: 'candidate-subscription-id',
-              referralCode: 'ABC123',
-              accounts: [],
-              features: { vip: { enabled: true } },
-            },
-          },
-        },
-        { candidateSubscriptionId: 'candidate-subscription-id' },
-      );
-
-      expect(selectIsCurrentSubscriptionVipEnabled(state)).toBe(true);
     });
   });
 

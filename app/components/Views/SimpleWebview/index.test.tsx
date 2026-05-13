@@ -50,7 +50,7 @@ describe('SimpleWebview', () => {
           expect.objectContaining({ onPress: expect.any(Function) }),
         ]),
       }),
-      undefined,
+      expect.anything(),
     );
   });
 

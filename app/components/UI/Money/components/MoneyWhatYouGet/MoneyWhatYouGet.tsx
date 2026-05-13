@@ -45,14 +45,17 @@ const BenefitRow = ({ children }: { children: React.ReactNode }) => (
   </Box>
 );
 
-const MoneyWhatYouGet = ({ apy, onLearnMorePress }: MoneyWhatYouGetProps) => (
+const MoneyWhatYouGet = ({
+  apy,
+  onLearnMorePress = () => undefined,
+}: MoneyWhatYouGetProps) => (
   <Box twClassName="px-4 py-3" testID={MoneyWhatYouGetTestIds.CONTAINER}>
     <MoneySectionHeader title={strings('money.what_you_get.title')} />
 
     <Box twClassName="mt-3 mb-3 gap-3">
       <BenefitRow>
         <Text variant={TextVariant.BodyMd}>
-          {`${strings('money.what_you_get.benefit_auto_earn')} `}
+          {strings('money.what_you_get.benefit_auto_earn')}
           {isPositiveNumber(apy) && (
             <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
               {strings('money.apy_label', { percentage: apy })}
@@ -95,19 +98,17 @@ const MoneyWhatYouGet = ({ apy, onLearnMorePress }: MoneyWhatYouGetProps) => (
       </BenefitRow>
     </Box>
 
-    {onLearnMorePress ? (
-      <Box twClassName="py-3">
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={onLearnMorePress}
-          testID={MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON}
-        >
-          {strings('money.what_you_get.learn_more')}
-        </Button>
-      </Box>
-    ) : null}
+    <Box twClassName="py-3">
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        isFullWidth
+        onPress={onLearnMorePress}
+        testID={MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON}
+      >
+        {strings('money.what_you_get.learn_more')}
+      </Button>
+    </Box>
   </Box>
 );
 

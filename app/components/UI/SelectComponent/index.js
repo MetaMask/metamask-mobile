@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Keyboard,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +10,7 @@ import {
 import { fontStyles, baseStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
+import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -120,7 +120,7 @@ export default class SelectComponent extends PureComponent {
   };
 
   showPicker = () => {
-    Keyboard.dismiss();
+    dismissKeyboard();
     this.setState({ pickerVisible: true });
     // If there are more options than 13 (number of items
     // that should fit in a normal screen)

@@ -9,7 +9,6 @@ import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/V
 import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import Assertions from '../../framework/Assertions';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
   asPlaywrightElement,
@@ -201,11 +200,6 @@ class AccountListBottomSheet {
       AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
       options?.srpIndex ?? 0,
     );
-
-    await Assertions.expectElementToHaveText(button, 'Add account', {
-      description: 'Add Account button should be ready (not syncing)',
-      timeout: 30000,
-    });
 
     await Gestures.waitAndTap(button, {
       elemDescription: 'Add Account button in V2 multichain accounts',

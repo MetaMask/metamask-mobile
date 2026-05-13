@@ -90,6 +90,17 @@ describe('useSpendingLimitData', () => {
   });
 
   describe('Initial State', () => {
+    it('returns tokens from delegation settings even when SDK is not available', () => {
+      mockUseCardSDK.mockReturnValue({
+        sdk: null,
+      } as ReturnType<typeof useCardSDK>);
+
+      const { result } = renderHook(() => useSpendingLimitData());
+
+      expect(result.current.availableTokens.length).toBeGreaterThan(0);
+      expect(result.current.availableTokens[0].symbol).toBe('USDC');
+    });
+
     it('returns empty tokens when delegation settings are not available', () => {
       mockUseGetDelegationSettings.mockReturnValue({
         data: null,
@@ -295,6 +306,7 @@ describe('useSpendingLimitData', () => {
       const { result } = renderHook(() => useSpendingLimitData());
 
       expect(result.current.availableTokens).toHaveLength(1);
+      expect(result.current.availableTokens[0].symbol).toBe('USDC');
     });
 
     it('skips duplicate tokens with same address and chainId', () => {
@@ -321,6 +333,32 @@ describe('useSpendingLimitData', () => {
       const { result } = renderHook(() => useSpendingLimitData());
 
       expect(result.current.availableTokens).toHaveLength(1);
+    });
+
+    it('uppercases symbol when SDK metadata is not available', () => {
+      mockUseGetDelegationSettings.mockReturnValue({
+        data: createMockDelegationSettings({
+          networks: [
+            {
+              network: 'base',
+              environment: 'production',
+              chainId: '8453',
+              delegationContract: '0xbaseDelegation',
+              tokens: {
+                usdc: { symbol: 'usdc', decimals: 6, address: '0xbaseUsdc' },
+              },
+            },
+          ],
+        }),
+        isLoading: false,
+        error: null,
+        fetchData: mockFetchDelegationSettings,
+      });
+
+      const { result } = renderHook(() => useSpendingLimitData());
+
+      expect(result.current.availableTokens[0].symbol).toBe('USDC');
+      expect(result.current.availableTokens[0].name).toBe('USDC');
     });
 
     it('uses SDK metadata for symbol and name when available', () => {

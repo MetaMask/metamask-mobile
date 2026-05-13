@@ -1,6 +1,7 @@
 import { SnapId } from '@metamask/snaps-sdk';
-import { Json } from '@metamask/utils';
+import { Json, JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
 import ObjectMultiplex from '@metamask/object-multiplex';
+import { JsonRpcEngineNextCallback } from '@metamask/json-rpc-engine';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
 import SnapBridge from './SnapBridge';
@@ -12,9 +13,7 @@ jest.mock('../Engine/Engine', () => ({
   ...jest.requireActual('../Engine/Engine'),
   controllerMessenger: {
     call: jest.fn().mockImplementation((action) => {
-      if (action === 'PermissionController:hasUnrestrictedMethod') {
-        return true;
-      } else if (action === 'AccountsController:listAccounts') {
+      if (action === 'AccountsController:listAccounts') {
         return [
           {
             address: '0x1234567890123456789012345678901234567890',
@@ -29,16 +28,6 @@ jest.mock('../Engine/Engine', () => ({
           },
         ];
       }
-    }),
-    delegate: jest.fn().mockImplementation((options) => {
-      options.messenger.call = jest.fn().mockImplementation((action) => {
-        if (action === 'KeyringController:getState') {
-          return {
-            isUnlocked: true,
-            keyrings: [],
-          };
-        }
-      });
     }),
   },
   context: {
@@ -70,6 +59,9 @@ jest.mock('../Engine/Engine', () => ({
         },
       ]),
     },
+    ApprovalController: {
+      addAndShowApprovalRequest: jest.fn(),
+    },
     SelectedNetworkController: {
       getProviderAndBlockTracker: jest.fn().mockReturnValue({
         blockTracker: {},
@@ -91,6 +83,15 @@ jest.mock('../Engine/Engine', () => ({
       }),
     },
     PermissionController: {
+      createPermissionMiddleware: jest
+        .fn()
+        .mockReturnValue(
+          (
+            _req: JsonRpcRequest,
+            _res: PendingJsonRpcResponse,
+            next: JsonRpcEngineNextCallback,
+          ) => next(),
+        ),
       getPermissions: jest.fn().mockReturnValue({
         'endowment:ethereum-provider': {},
         'endowment:multichain-provider': {},
