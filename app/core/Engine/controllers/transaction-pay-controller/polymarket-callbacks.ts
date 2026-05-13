@@ -1,8 +1,8 @@
-import type {
-  PersonalMessageParams,
-  TypedMessageParams,
+import {
+  SignTypedDataVersion,
+  type PersonalMessageParams,
+  type TypedMessageParams,
 } from '@metamask/keyring-controller';
-import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import type { PolymarketCallbacks } from '@metamask/transaction-pay-controller';
 import type { Hex } from '@metamask/utils';
 
@@ -15,7 +15,7 @@ import type { TransactionPayControllerInitMessenger } from '../../messengers/tra
 
 const WALLET_BUSY_RETRY_ATTEMPTS = 5;
 const WALLET_BUSY_RETRY_DELAY_MS = 3000;
-const WALLET_BUSY_ERROR_MARKER = 'wallet action';
+const WALLET_BUSY_ERROR_MARKER = 'wallet busy';
 
 export function createPolymarketCallbacks(
   initMessenger: TransactionPayControllerInitMessenger,
@@ -64,11 +64,7 @@ function createSigner(
       params: TypedMessageParams,
       version: SignTypedDataVersion,
     ) =>
-      initMessenger.call(
-        'KeyringController:signTypedMessage',
-        params,
-        version,
-      ),
+      initMessenger.call('KeyringController:signTypedMessage', params, version),
     signPersonalMessage: (params: PersonalMessageParams) =>
       initMessenger.call('KeyringController:signPersonalMessage', params),
   };
