@@ -1192,6 +1192,15 @@ export class TradingService {
           },
         );
 
+        this.#deps.logger.error(
+          ensureError(result.error, 'TradingService.cancelOrder'),
+          this.#getErrorContext('cancelOrder', {
+            symbol: params.symbol,
+            orderId: params.orderId,
+            providerError: result.error ?? 'Unknown error',
+          }),
+        );
+
         traceData = { success: false, error: result.error ?? 'Unknown error' };
       }
 
@@ -1367,6 +1376,31 @@ export class TradingService {
         };
       }, ['orders']); // Disconnect orders stream during operation
 
+      if (
+        provider.cancelOrders &&
+        operationResult &&
+        operationResult.failureCount > 0
+      ) {
+        const failureSummary = operationResult.results
+          .filter((result) => !result.success)
+          .map(
+            (result) =>
+              `${result.symbol}/${result.orderId}: ${result.error ?? 'Unknown error'}`,
+          )
+          .join('; ');
+
+        this.#deps.logger.error(
+          new Error(
+            `cancelOrders batch failure: ${operationResult.failureCount}/${operationResult.results.length} failed - ${failureSummary}`,
+          ),
+          this.#getErrorContext('cancelOrders', {
+            successCount: operationResult.successCount,
+            failureCount: operationResult.failureCount,
+            cancelAll: params.cancelAll,
+          }),
+        );
+      }
+
       return operationResult;
     } catch (error) {
       operationError =
@@ -1485,6 +1519,14 @@ export class TradingService {
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       } else {
         traceData = { success: false, error: result.error ?? 'Unknown error' };
+
+        this.#deps.logger.error(
+          ensureError(result.error, 'TradingService.closePosition'),
+          this.#getErrorContext('closePosition', {
+            symbol: params.symbol,
+            providerError: result.error ?? 'Unknown error',
+          }),
+        );
       }
 
       // Track analytics (success or failure, includes partial fills)
@@ -1671,6 +1713,31 @@ export class TradingService {
         };
       }
 
+      if (
+        provider.closePositions &&
+        operationResult &&
+        operationResult.failureCount > 0
+      ) {
+        const failureSummary = operationResult.results
+          .filter((result) => !result.success)
+          .map(
+            (result) => `${result.symbol}: ${result.error ?? 'Unknown error'}`,
+          )
+          .join('; ');
+
+        this.#deps.logger.error(
+          new Error(
+            `closePositions batch failure: ${operationResult.failureCount}/${operationResult.results.length} failed - ${failureSummary}`,
+          ),
+          this.#getErrorContext('closePositions', {
+            successCount: operationResult.successCount,
+            failureCount: operationResult.failureCount,
+            symbols: params.symbols?.length ?? 0,
+            closeAll: params.closeAll,
+          }),
+        );
+      }
+
       return operationResult;
     } catch (error) {
       operationError =
@@ -1791,6 +1858,16 @@ export class TradingService {
     } catch (error) {
       errorMessage = error instanceof Error ? error.message : 'Unknown error';
       traceData = { success: false, error: errorMessage };
+
+      this.#deps.logger.error(
+        ensureError(error, 'TradingService.updatePositionTPSL'),
+        this.#getErrorContext('updatePositionTPSL', {
+          symbol: params.symbol,
+          hasTakeProfit: Boolean(params.takeProfitPrice),
+          hasStopLoss: Boolean(params.stopLossPrice),
+        }),
+      );
+
       throw error;
     } finally {
       const completionDuration = this.#deps.performance.now() - startTime;
