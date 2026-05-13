@@ -25,6 +25,7 @@ jest.mock('../../../hooks/usePredictPaymentToken', () => ({
 jest.mock(
   '../../../../../Views/confirmations/hooks/pay/useTransactionPayData',
   () => ({
+    useTransactionPayQuotes: () => [],
     useTransactionPayTotals: () => mockPayTotals,
   }),
 );
@@ -174,7 +175,7 @@ describe('usePredictBuyInfo', () => {
       expect(result.current.depositFee).toBe(2.0);
     });
 
-    it('returns 0 when there is an insufficient pay token balance alert', () => {
+    it('includes depositFee in total when there is an insufficient pay token balance alert', () => {
       mockIsPredictBalanceSelected = false;
       mockPayTotals = {
         fees: {
@@ -189,10 +190,12 @@ describe('usePredictBuyInfo', () => {
 
       const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
 
-      expect(result.current.depositFee).toBe(0);
+      expect(result.current.hasBlockingPayAlerts).toBe(true);
+      expect(result.current.depositFee).toBe(5);
+      expect(result.current.total).toBe(110);
     });
 
-    it('keeps the last accepted deposit fee while confirming', () => {
+    it('returns 0 while confirming when pay totals no longer include fees', () => {
       mockIsPredictBalanceSelected = false;
       mockPayTotals = {
         fees: {
@@ -215,10 +218,10 @@ describe('usePredictBuyInfo', () => {
 
       rerender({ ...defaultParams, isConfirming: true });
 
-      expect(result.current.depositFee).toBe(5);
+      expect(result.current.depositFee).toBe(0);
     });
 
-    it('clears the accepted deposit fee after confirming ends', () => {
+    it('returns 0 after confirming ends when pay totals no longer include fees', () => {
       mockIsPredictBalanceSelected = false;
       mockPayTotals = {
         fees: {
@@ -242,6 +245,34 @@ describe('usePredictBuyInfo', () => {
       rerender({ ...defaultParams, isConfirming: false });
 
       expect(result.current.depositFee).toBe(0);
+    });
+
+    it('does not show stale deposit fee when switching back to Predict balance while confirming', () => {
+      mockIsPredictBalanceSelected = false;
+      mockPayTotals = {
+        fees: {
+          provider: { usd: 1.5 },
+          sourceNetwork: { estimate: { usd: 2.5 } },
+          targetNetwork: { usd: 1.0 },
+        },
+      };
+
+      const { result, rerender } = renderHook(
+        (params: typeof defaultParams) => usePredictBuyInfo(params),
+        {
+          initialProps: { ...defaultParams, isConfirming: true },
+        },
+      );
+
+      expect(result.current.depositFee).toBe(5);
+      expect(result.current.total).toBe(110);
+
+      mockIsPredictBalanceSelected = true;
+
+      rerender({ ...defaultParams, isConfirming: true });
+
+      expect(result.current.depositFee).toBe(0);
+      expect(result.current.total).toBe(105);
     });
   });
 
