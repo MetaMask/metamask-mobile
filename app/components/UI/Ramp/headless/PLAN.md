@@ -648,6 +648,29 @@ This is the same pattern MainNavigator already uses for `BridgeModals`, `EarnMod
 
 Safety net for the unverified `beforeRemove` + `transparentModal` interaction: Phase 8's `useHeadlessSessionDismissal` fires `closeSession({ reason: 'user_dismissed' })` on unmount when `HEADLESS_HOST` is no longer in the navigator tree. `closeSession` idempotency means both paths can fire without producing duplicate `onClose` callbacks.
 
+#### Fix A — `getUserLimits` swallow → `failSession` (conditional rethrow)
+
+[useTransakRouting.ts:241-256](../hooks/useTransakRouting.ts) (`checkUserLimits`) catches errors from `getUserLimits`, rethrows `LimitExceededError`, and **swallows everything else** (network blips, malformed responses, etc.). In headless mode the consumer got no callback when this fired.
+
+Resolution: gate the new behavior on `headlessSessionId`:
+
+```ts
+} catch (error) {
+  if (error instanceof LimitExceededError) {
+    throw error;
+  }
+  if (headlessSessionId) {
+    failSession(headlessSessionId, error);
+    throw error;
+  }
+  Logger.error(error as Error, 'Failed to check user limits');
+}
+```
+
+UB2's existing swallow stays in place — the existing test at [useTransakRouting.test.ts:957-982](../hooks/useTransakRouting.test.ts) (`'logs error and returns when getUserLimits throws a non-limit error'`) encodes the swallow as intent and continues to pass. Two new tests cover the headless paths (`failSession` invoked + rethrow propagates; `LimitExceededError` short-circuits before `failSession`).
+
+The parallel swallow in [useDepositRouting.ts:137-180](../hooks/useDepositRouting.ts) is deliberately **not** fixed here — Deposit isn't a headless route, and the "ramps work is UB2-only" rule keeps us off the Deposit tree.
+
 ---
 
 ## Phase 10 — Implement deferred Phase 5b + playground polish

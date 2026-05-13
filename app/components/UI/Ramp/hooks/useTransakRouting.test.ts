@@ -980,6 +980,95 @@ describe('useTransakRouting', () => {
 
       expect(mockRequestOtt).toHaveBeenCalled();
     });
+
+    it('routes getUserLimits infrastructure errors through failSession when headlessSessionId is set', async () => {
+      const mockFailSession = jest.requireMock('../headless/sessionRegistry')
+        .failSession as jest.Mock;
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      const networkError = new Error('Network failure');
+      mockGetUserLimits.mockRejectedValue(networkError);
+      mockRequestOtt.mockResolvedValue({ ott: 'test-ott' });
+      mockGeneratePaymentWidgetUrl.mockReturnValue(
+        'https://payment.example.com',
+      );
+
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'headless-buy-fixa' },
+        }),
+      );
+
+      // The rethrow propagates through the outer `case 'APPROVED'` catch,
+      // which re-wraps as `parseUserFacingError`. We catch the rejection
+      // inside act so all microtasks settle before the assertion.
+      let caught: unknown;
+      await act(async () => {
+        try {
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
+        } catch (e) {
+          caught = e;
+        }
+      });
+      expect(caught).toBeInstanceOf(Error);
+
+      expect(mockFailSession).toHaveBeenCalledWith(
+        'headless-buy-fixa',
+        networkError,
+      );
+      // The rethrow unwinds the flow before reaching OTT generation.
+      expect(mockRequestOtt).not.toHaveBeenCalled();
+    });
+
+    it('does not call failSession when LimitExceededError fires in headless mode (early rethrow wins)', async () => {
+      const mockFailSession = jest.requireMock('../headless/sessionRegistry')
+        .failSession as jest.Mock;
+      mockFailSession.mockReset();
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      // Returning daily remaining=0 forces the inner code path to throw
+      // LimitExceededError before the generic catch sees it.
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 0, '30': 50000, '365': 200000 },
+      });
+
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'headless-buy-fixa-limit' },
+        }),
+      );
+
+      await expect(
+        act(async () => {
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
+        }),
+      ).rejects.toThrow();
+
+      // LimitExceededError takes the early rethrow path — failSession isn't
+      // invoked because the limit error is a user-actionable condition that
+      // the outer flow handles directly.
+      expect(mockFailSession).not.toHaveBeenCalled();
+    });
   });
 
   describe('navigateToVerifyIdentity', () => {

@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Made the Ramp Headless Host invisible so consumer-rendered loading UI is visible during a headless buy; added a transparent `RAMP.HEADLESS_ENTRY` outer route so the headless flow no longer renders an opaque V2 stack card on top of the consumer screen (Phase 9.5).
 
+### Fixed
+
+- Route swallowed `getUserLimits` infrastructure errors through `failSession` when a headless Ramp session is active, so headless consumers receive an `onError` callback instead of a silent hang (Phase 9.5 Fix A).
+
 ## [7.76.3]
 
 ### Added
