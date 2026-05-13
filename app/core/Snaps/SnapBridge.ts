@@ -177,7 +177,6 @@ export default class SnapBridge {
 
     engine.push(
       snapMethodMiddlewareBuilder(
-        context,
         controllerMessenger,
         this.#snapId,
         SubjectType.Snap,
