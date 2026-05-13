@@ -66,6 +66,9 @@ const createInfuraMocks = () => {
     'starknet-sepolia.infura.io',
     'ipfs.infura.io',
     'sei-mainnet.infura.io',
+    'zksync-mainnet.infura.io',
+    'monad-mainnet.infura.io',
+    'megaeth-mainnet.infura.io',
   ];
 
   endpoints.forEach((endpoint) => {
