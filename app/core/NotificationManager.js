@@ -1,7 +1,7 @@
 'use strict';
 
 import Engine from './Engine';
-import { hexToBN, renderFromWei } from '../util/number';
+import { hexToBN } from '../util/number';
 import Device from '../util/device';
 import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';
@@ -20,6 +20,7 @@ import {
 } from '@metamask/transaction-controller';
 import { endTrace, trace, TraceName } from '../util/trace';
 import { hasTransactionType } from '../components/Views/confirmations/utils/transaction';
+import TransactionTypes from './TransactionTypes';
 
 export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
   TransactionType.musdClaim,
@@ -549,7 +550,11 @@ class NotificationManager {
     const { transactions } = TransactionController.state;
 
     if (
-      hasTransactionType(transactionMeta, SKIP_NOTIFICATION_TRANSACTION_TYPES)
+      hasTransactionType(
+        transactionMeta,
+        SKIP_NOTIFICATION_TRANSACTION_TYPES,
+      ) ||
+      transactionMeta.origin === TransactionTypes.MMM_CARD
     ) {
       return true;
     }
