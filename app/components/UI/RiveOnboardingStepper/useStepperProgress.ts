@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   cancelAnimation,
   useSharedValue,
@@ -30,10 +30,7 @@ export const useStepperProgress = (
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const progress = useSharedValue(0);
 
-  const isLastStep = useMemo(
-    () => currentStepIndex === steps.length - 1,
-    [currentStepIndex, steps.length],
-  );
+  const isLastStep = currentStepIndex === steps.length - 1;
 
   const startProgress = useCallback(
     (stepIndex: number) => {
@@ -47,7 +44,7 @@ export const useStepperProgress = (
         return;
       }
 
-      const duration = steps[stepIndex]?.durationMs ?? 3000;
+      const duration = steps[stepIndex].durationMs;
       progress.value = 0;
       progress.value = withTiming(1, { duration });
     },
@@ -70,7 +67,7 @@ export const useStepperProgress = (
   useEffect(() => {
     if (currentStepIndex === 0) return;
 
-    const duration = steps[currentStepIndex]?.durationMs ?? 3000;
+    const duration = steps[currentStepIndex].durationMs;
     setIsButtonDisabled(true);
     const timer = setTimeout(() => {
       setIsButtonDisabled(false);

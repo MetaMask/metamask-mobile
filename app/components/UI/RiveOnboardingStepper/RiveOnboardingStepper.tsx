@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { StyleSheet, View } from 'react-native';
 import Rive, { Alignment, Fit, type RiveRef } from 'rive-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -70,6 +76,13 @@ const RiveOnboardingStepper = ({
   const showClose =
     onClose && currentStep?.showCloseButton !== false ? onClose : undefined;
 
+  const flatRiveStyle = useMemo(
+    () => StyleSheet.flatten(riveStyle),
+    [riveStyle],
+  );
+
+  const handleRivePlay = useCallback(() => setIsRiveReady(true), []);
+
   useEffect(() => {
     if (!autoCompleteOnLastStep || !isLastStep) return;
     const timer = setTimeout(onComplete, currentStep.durationMs);
@@ -136,16 +149,14 @@ const RiveOnboardingStepper = ({
         <View style={styles.riveContainer}>
           <Rive
             ref={riveRef}
-            style={StyleSheet.flatten(riveStyle)}
+            style={flatRiveStyle}
             source={riveConfig.source}
             stateMachineName={riveConfig.stateMachineName}
             fit={riveConfig.fit ?? Fit.FitWidth}
             alignment={riveConfig.alignment ?? Alignment.Center}
             autoplay
             testID={RiveOnboardingStepperTestIds.RIVE_ANIMATION}
-            onPlay={() => {
-              setIsRiveReady(true);
-            }}
+            onPlay={handleRivePlay}
           />
         </View>
       </Box>

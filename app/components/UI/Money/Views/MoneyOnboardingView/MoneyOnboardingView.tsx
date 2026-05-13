@@ -2,18 +2,22 @@ import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, useColorScheme } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import { type StackNavigationProp } from '@react-navigation/stack';
+import { useDispatch } from 'react-redux';
 import {
   ButtonVariant,
   IconColor,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import RiveOnboardingStepper, {
   type OnboardingStep,
   type RiveConfig,
 } from '../../../RiveOnboardingStepper';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useTheme } from '../../../../../util/theme';
+import { setMoneyOnboardingSeen } from '../../../../../actions/user';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const MoneyOnboardingAnimation = require('../../../../../animations/money_account_onboarding_animation.riv');
@@ -49,7 +53,9 @@ const RIVE_CONFIG: RiveConfig = {
 };
 
 const MoneyOnboardingView = () => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const dispatch = useDispatch();
 
   const { colors } = useTheme();
 
@@ -111,8 +117,12 @@ const MoneyOnboardingView = () => {
   }, [navigation]);
 
   const handleComplete = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+    dispatch(setMoneyOnboardingSeen(true));
+    navigation.replace(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  }, [dispatch, navigation]);
 
   const renderBackground = useCallback(
     () => (

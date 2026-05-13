@@ -7,8 +7,6 @@ import Animated, {
 import {
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
   IconColor,

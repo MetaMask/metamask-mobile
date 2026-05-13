@@ -25,10 +25,11 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectMusdConversionEducationSeen } from '../../../../../reducers/user/selectors';
+import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
+import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 
 const EMPTY_BALANCE_DISPLAY = '$0.00';
 
@@ -43,10 +44,11 @@ const MoneyBalanceCard = () => {
     isAggregatedBalanceLoading,
     vaultApyQuery,
   } = useMoneyAccountBalance();
-  const hasSeenOnboarding = useSelector(selectMusdConversionEducationSeen);
+  const { navigateToMoneyHome } = useMoneyNavigation();
+  const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
 
   const isEmpty = totalFiatRaw === undefined || totalFiatRaw === '0';
-  const isNewUser = isEmpty && !hasSeenOnboarding;
+  const isNewUser = isEmpty && !hasSeenMoneyOnboarding;
 
   let balanceText: string;
   let buttonVariant: ButtonVariant;
@@ -74,14 +76,8 @@ const MoneyBalanceCard = () => {
   }
 
   const handleCardPress = useCallback(() => {
-    // TODO: Replace hardcoded navigation to MoneyOnboardingView after testing.
-    navigation.navigate(Routes.MONEY.ONBOARDING);
-    return;
-
-    navigation.navigate(Routes.MONEY.ROOT, {
-      screen: Routes.MONEY.HOME,
-    });
-  }, [navigation]);
+    navigateToMoneyHome();
+  }, [navigateToMoneyHome]);
 
   const handleAddPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -90,16 +86,8 @@ const MoneyBalanceCard = () => {
   }, [navigation]);
 
   const handleGetStartedPress = useCallback(() => {
-    navigation.navigate(Routes.EARN.ROOT, {
-      screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-      params: {
-        returnTo: {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
-        },
-      },
-    });
-  }, [navigation]);
+    navigateToMoneyHome();
+  }, [navigateToMoneyHome]);
 
   const handleButtonPress = isNewUser ? handleGetStartedPress : handleAddPress;
 

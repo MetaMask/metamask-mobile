@@ -44,32 +44,38 @@ interface SegmentProps {
   testID?: string;
 }
 
-const Segment = ({ color, state, progress, testID }: SegmentProps) => {
-  const animatedStyle = useAnimatedStyle(() => {
-    if (state === 'completed') {
-      return { transform: [{ scaleX: 1 }], opacity: 1 };
-    }
-    if (state === 'upcoming') {
-      return { transform: [{ scaleX: 1 }], opacity: INACTIVE_OPACITY };
-    }
-    // active — scaleX is composited on the GPU; no layout recalculation per frame.
-    return {
-      transform: [{ scaleX: progress.value }],
-      opacity: 1,
-    };
-  });
+const Segment = React.memo(
+  ({ color, state, progress, testID }: SegmentProps) => {
+    const animatedStyle = useAnimatedStyle(() => {
+      if (state === 'completed') {
+        return { transform: [{ scaleX: 1 }], opacity: 1 };
+      }
+      if (state === 'upcoming') {
+        return { transform: [{ scaleX: 1 }], opacity: INACTIVE_OPACITY };
+      }
+      // active — scaleX is composited on the GPU; no layout recalculation per frame.
+      return {
+        transform: [{ scaleX: progress.value }],
+        opacity: 1,
+      };
+    });
 
-  return (
-    <View
-      style={[styles.segmentTrack, { backgroundColor: `${color}4D` }]}
-      testID={testID}
-    >
-      <Animated.View
-        style={[styles.segmentFill, { backgroundColor: color }, animatedStyle]}
-      />
-    </View>
-  );
-};
+    return (
+      <View
+        style={[styles.segmentTrack, { backgroundColor: `${color}4D` }]}
+        testID={testID}
+      >
+        <Animated.View
+          style={[
+            styles.segmentFill,
+            { backgroundColor: color },
+            animatedStyle,
+          ]}
+        />
+      </View>
+    );
+  },
+);
 
 const StepperProgressBar = ({
   totalSteps,

@@ -8,13 +8,11 @@ import type {
 
 export interface OnboardingStep {
   /**
-   * Title of the step. Keep to 1 line (~30 characters max at HeadingLg,
-   * center-aligned with px-4 padding).
+   * Title of the step. Keep to 1 line (~30 characters max).
    */
   title?: string;
   /**
-   * Body of the step. Keep to 2 lines (~100 characters max at BodyMd,
-   * center-aligned with px-4 padding).
+   * Body of the step. Keep to 2 lines (~100 characters max)
    */
   body?: string;
   /** How long the progress bar takes to fill for this step (ms). */
@@ -59,9 +57,8 @@ export interface RiveOnboardingStepperProps {
    * absolute-positioned container (e.g. `{ flex: 1, top: 100 }`). Required so
    * each consumer explicitly declares the offset for their animation's geometry.
    */
-  riveStyle: StyleProp<ViewStyle>;
+  riveStyle?: StyleProp<ViewStyle>;
   buttonVariant?: ButtonVariant;
-  // TODO: Determine if this is needed or if ButtonVariant is enough.
   /** When true, renders the button in inverse style (e.g. white on coloured background). */
   buttonIsInverse?: boolean;
   /**
