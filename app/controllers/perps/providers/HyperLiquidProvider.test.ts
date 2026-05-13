@@ -5963,7 +5963,7 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       // PR #25334: Builder fee approval is now non-blocking (fire-and-forget)
-      // to prevent QR popup spam for hardware wallets.
+      // to prevent repeated signing prompts for hardware wallets.
       // Order should proceed even if builder fee approval fails.
       expect(result.success).toBe(true);
       expect(result.orderId).toBeDefined();
@@ -9054,8 +9054,8 @@ describe('HyperLiquidProvider', () => {
     //
     // Some transitions require an EIP-712 prompt, so software-wallet users
     // migrate during initial setup to ensure the first trade sees unified
-    // collateral. Hardware wallets remain deferred to avoid QR / Ledger prompt
-    // spam while browsing.
+    // collateral. Hardware wallets remain deferred to avoid repeated signing
+    // prompts while browsing.
     // ─────────────────────────────────────────────────
 
     it('calls userSetAbstraction on init for software-wallet dexAbstraction users', async () => {

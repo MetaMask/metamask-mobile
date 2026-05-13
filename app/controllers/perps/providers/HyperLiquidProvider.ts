@@ -628,7 +628,8 @@ export class HyperLiquidProvider implements PerpsProvider {
     const network = this.#clientService.isTestnetMode() ? 'testnet' : 'mainnet';
 
     // Check global cache first to avoid repeated signing requests
-    // This is CRITICAL for hardware wallets to prevent QR popup spam
+    // This is CRITICAL for hardware wallets to prevent repeated signing prompts
+    // while browsing.
     const cachedStatus = TradingReadinessCache.get(network, userAddress);
     if (cachedStatus?.attempted) {
       this.#deps.debugLogger.log(
@@ -932,7 +933,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       // blocked when they try to trade. Software wallets can complete the
       // signing-backed migration during initial setup so the first trade sees
       // the unified balance. Hardware wallets remain deferred to action time to
-      // avoid QR / Ledger prompt spam while browsing.
+      // avoid repeated signing prompts while browsing.
       await this.#ensureUnifiedAccountEnabled({
         allowUserSigning: !this.#walletService.isSelectedHardwareWallet(),
       });
@@ -965,7 +966,7 @@ export class HyperLiquidProvider implements PerpsProvider {
    * - Builder fee approval (required for orders)
    * - Referral code setup (attribution)
    *
-   * These operations are DEFERRED from ensureReady() to avoid QR popup spam
+   * These operations are DEFERRED from ensureReady() to avoid hardware wallet prompt spam
    * when users are just viewing the Perps section (critical for hardware wallets).
    *
    * Call this method before any trading operation (placeOrder, cancelOrder, etc.)
@@ -2544,11 +2545,12 @@ export class HyperLiquidProvider implements PerpsProvider {
     const cacheKey = this.#getCacheKey(network, userAddress);
 
     // Check GLOBAL cache first to avoid repeated signing requests across reconnections
-    // This is CRITICAL for hardware wallets to prevent QR popup spam
+    // This is CRITICAL for hardware wallets to prevent repeated signing prompts
+    // while browsing.
     const globalCached = PerpsSigningCache.getBuilderFee(network, userAddress);
     if (globalCached?.attempted) {
       this.#deps.debugLogger.log(
-        '[ensureBuilderFeeApproval] Using global cache (prevents QR popup spam)',
+        '[ensureBuilderFeeApproval] Using global cache (prevents hardware wallet prompt spam)',
         { network, success: globalCached.success },
       );
       if (globalCached.success) {
@@ -8380,7 +8382,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     const globalCached = PerpsSigningCache.getReferral(network, userAddress);
     if (globalCached?.attempted) {
       this.#deps.debugLogger.log(
-        '[ensureReferralSet] Using global cache (prevents QR popup spam)',
+        '[ensureReferralSet] Using global cache (prevents hardware wallet prompt spam)',
         { network, success: globalCached.success },
       );
       return;
