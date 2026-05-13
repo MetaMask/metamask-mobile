@@ -12,27 +12,10 @@ import { TabBarProps } from './TabBar.types';
 const TabBar = (props: TabBarProps) => {
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
-  const tabCount = props.tabs?.length ?? 1;
-  const hasContainerWidth = typeof props.containerWidth === 'number';
-  const activeTab = props.activeTab ?? 0;
-  const tabWidth =
-    hasContainerWidth && tabCount > 0 ? props.containerWidth / tabCount : 0;
-
-  const underlinePlacementStyle =
-    hasContainerWidth && tabWidth > 0
-      ? {
-          width: tabWidth,
-          transform: [{ translateX: activeTab * tabWidth }],
-        }
-      : undefined;
 
   return (
     <DefaultTabBar
-      underlineStyle={[
-        styles.tabUnderlineStyle,
-        underlinePlacementStyle,
-        props.underlineStyle,
-      ]}
+      underlineStyle={styles.tabUnderlineStyle}
       activeTextColor={colors.text.default}
       inactiveTextColor={colors.text.alternative}
       backgroundColor={colors.background.default}
