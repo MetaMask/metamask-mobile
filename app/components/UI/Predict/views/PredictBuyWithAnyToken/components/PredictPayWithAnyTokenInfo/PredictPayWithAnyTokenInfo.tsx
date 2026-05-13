@@ -10,10 +10,7 @@ import { MINIMUM_BET } from '../../../../constants/transactions';
 import { OrderPreview } from '../../../../types';
 import { Hex } from '@metamask/utils';
 import EngineService from '../../../../../../../core/EngineService';
-import {
-  getPredictExchangeFee,
-  roundUpToCents,
-} from '../../../../utils/orders';
+import { getPredictBuyAllInCost } from '../../../../utils/orders';
 
 interface PredictPayWithAnyTokenInfoProps {
   currentValue: number;
@@ -60,11 +57,8 @@ function PredictPayWithAnyTokenInfoInner({
   const fees = preview?.fees;
 
   const totalPayForPredictBalance = useMemo(
-    () =>
-      roundUpToCents(
-        currentValue + (fees?.metamaskFee ?? 0) + getPredictExchangeFee(fees),
-      ),
-    [currentValue, fees],
+    () => getPredictBuyAllInCost(preview),
+    [preview],
   );
 
   const canTriggerDepositAmountCalculation = useMemo(
