@@ -567,7 +567,9 @@ const PerpsHomeView = ({
 
         {/* What's Happening Section */}
         {isWhatsHappeningEnabled && (
-          <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
+          <View style={styles.whatsHappeningSection}>
+            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
+          </View>
         )}
 
         {/* Crypto Markets List */}

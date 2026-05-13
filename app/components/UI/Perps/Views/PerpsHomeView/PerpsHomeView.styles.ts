@@ -129,6 +129,12 @@ const styleSheet = (params: { theme: Theme }) => {
     positionsOrdersContainer: {
       paddingHorizontal: 16,
     },
+    whatsHappeningSection: {
+      borderTopWidth: 1,
+      borderTopColor: colors.border.muted,
+      paddingTop: 24,
+      marginBottom: 24,
+    },
   });
 };
 
