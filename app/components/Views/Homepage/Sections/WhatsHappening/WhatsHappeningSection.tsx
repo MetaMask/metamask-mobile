@@ -101,8 +101,9 @@ const WhatsHappeningSection = forwardRef<
 
   useSectionPerformance({
     sectionId: HomeSectionNames.WHATS_HAPPENING,
-    contentReady: willRender,
-    isEmpty: items.length === 0,
+    contentReady: !isLoading,
+    isEmpty: items.length === 0 && !hasError,
+    contentStateForTrace: hasError ? 'error' : undefined,
     isLoading,
     enabled: isEnabled,
   });
