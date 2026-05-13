@@ -527,19 +527,21 @@ jobs:
         run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
 
+  # Producer: warms the CI JS deps cache once per run so that downstream test
+  # shards skip the 2-min `yarn install` + setup. On a warm cache (yarn.lock
+  # unchanged) this job itself is near-instant. On a cold cache it pays the
+  # install cost once, on behalf of all consumers.
   prepare-ci-js-deps:
     name: Prepare CI JS dependencies
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
-    permissions:
-      contents: read
-      id-token: write
     needs:
       - get_requirements
-    uses: ./.github/workflows/setup-node-modules.yml
-    with:
-      artifact-name: ci-js-deps
-      artifact-retention-days: 1
-      runner_provider: ${{ inputs.runner_provider }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-ci-js-deps
+        with:
+          runner_provider: ${{ inputs.runner_provider }}
 
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
@@ -553,22 +555,9 @@ jobs:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: ./.github/actions/setup-ci-js-deps
         with:
-          node-version-file: '.nvmrc'
-          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
-      - name: Download node_modules artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.prepare-ci-js-deps.outputs.artifact-name }}
-      - name: Restore executable permissions
-        uses: ./.github/actions/restore-node-modules-permissions
-      - name: Verify downloaded artifacts
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -d node_modules
-          test -f app/util/termsOfUse/termsOfUseContent.ts
+          runner_provider: ${{ inputs.runner_provider }}
       - name: Prepare results directory
         run: mkdir -p tests/results
       # The "10" in this command is the total number of shards. It must be kept
@@ -607,22 +596,9 @@ jobs:
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: ./.github/actions/setup-ci-js-deps
         with:
-          node-version-file: '.nvmrc'
-          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
-      - name: Download node_modules artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.prepare-ci-js-deps.outputs.artifact-name }}
-      - name: Restore executable permissions
-        uses: ./.github/actions/restore-node-modules-permissions
-      - name: Verify downloaded artifacts
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -d node_modules
-          test -f app/util/termsOfUse/termsOfUseContent.ts
+          runner_provider: ${{ inputs.runner_provider }}
       - uses: actions/download-artifact@v4
         with:
           pattern: coverage-*
@@ -723,22 +699,9 @@ jobs:
         shard: [1, 2]
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: ./.github/actions/setup-ci-js-deps
         with:
-          node-version-file: '.nvmrc'
-          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
-      - name: Download node_modules artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.prepare-ci-js-deps.outputs.artifact-name }}
-      - name: Restore executable permissions
-        uses: ./.github/actions/restore-node-modules-permissions
-      - name: Verify downloaded artifacts
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -d node_modules
-          test -f app/util/termsOfUse/termsOfUseContent.ts
+          runner_provider: ${{ inputs.runner_provider }}
       - name: Prepare results directory
         run: mkdir -p tests/results
       - run: |

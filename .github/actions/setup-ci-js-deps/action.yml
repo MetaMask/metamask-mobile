@@ -1,0 +1,76 @@
+name: 'Setup CI JS dependencies'
+description: >
+  Restore node_modules from a runner-scoped cache; only run yarn install + setup
+  if the cache is cold. Used by the prepare-ci-js-deps producer (which warms
+  the cache) and by unit-tests / component-view-tests / merge-unit-and-component-view-tests
+  consumers (which read from it). Mirrors the install + setup behaviour on main
+  when the cache is missing, so CI never blocks on a cache miss.
+
+inputs:
+  runner_provider:
+    description: 'Runner provider (`namespace` mounts a persistent volume; anything else uses actions/cache).'
+    required: false
+    default: 'current'
+
+runs:
+  using: 'composite'
+  steps:
+    # Namespace mounts node_modules / .yarn/cache as a persistent volume, so a
+    # warm volume makes `yarn install --immutable` near-instant in the cold path.
+    - name: Configure Namespace cache
+      if: ${{ inputs.runner_provider == 'namespace' }}
+      uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+      with:
+        path: |
+          ~/.cache/yarn
+          .metamask
+          node_modules
+          .yarn/cache
+
+    # On GitHub-hosted runners we use a per-yarn.lock cache. The producer job
+    # writes it on cold runs; consumers restore it. Subsequent saves from
+    # consumers are no-ops because the key already exists.
+    - name: Restore CI JS deps cache
+      if: ${{ inputs.runner_provider != 'namespace' }}
+      id: cache-ci-js-deps
+      uses: actions/cache@v4
+      with:
+        path: |
+          node_modules
+          .yarn/install-state.gz
+          app/util/termsOfUse/termsOfUseContent.ts
+        key: ${{ runner.os }}-ci-js-deps-${{ hashFiles('yarn.lock', 'patches/**', '.yarnrc.yml') }}
+
+    - uses: actions/setup-node@v6
+      with:
+        node-version-file: '.nvmrc'
+        cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
+
+    # We don't trust cache-hit alone: a partial restore (e.g. node_modules
+    # present but termsOfUseContent.ts missing) should still fall through to
+    # install + setup. Checking files is the source of truth.
+    - name: Determine if install is needed
+      id: check-deps
+      shell: bash
+      run: |
+        if [ -d node_modules ] && [ -f app/util/termsOfUse/termsOfUseContent.ts ]; then
+          echo "needs-install=false" >> "$GITHUB_OUTPUT"
+          echo "✅ node_modules + setup outputs present; skipping install"
+        else
+          echo "needs-install=true" >> "$GITHUB_OUTPUT"
+          echo "⚠️ node_modules or setup outputs missing; will install + setup"
+        fi
+
+    - name: Install Yarn dependencies with retry
+      if: ${{ steps.check-deps.outputs.needs-install == 'true' }}
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+      with:
+        timeout_minutes: 10
+        max_attempts: 3
+        retry_wait_seconds: 30
+        command: yarn install --immutable
+
+    - name: Run project setup
+      if: ${{ steps.check-deps.outputs.needs-install == 'true' }}
+      shell: bash
+      run: yarn setup:github-ci --node
