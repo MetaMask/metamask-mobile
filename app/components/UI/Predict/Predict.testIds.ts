@@ -48,11 +48,14 @@ export const getPredictMarketListSelector = {
 // ========================================
 
 export const PredictFeedSelectorsIDs = {
+  HEADER: 'predict-feed-header',
+  TAB_BAR_CONTAINER: 'predict-feed-tab-bar-container',
   TABS: 'predict-feed-tabs',
   PAGER: 'predict-feed-pager',
 } as const;
 
 export const getPredictFeedSelector = {
+  tab: (index: number) => `${PredictFeedSelectorsIDs.TABS}-tab-${index}`,
   tabPage: (key: string) => `predict-feed-tab-page-${key}`,
   emptyState: (category: string) => `predict-empty-state-${category}`,
   skeletonLoading: (category: string, index: number) =>

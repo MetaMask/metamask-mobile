@@ -76,6 +76,28 @@ describe('useSectionPerformance', () => {
       );
     });
 
+    it('tags content_state from contentStateForTrace when provided', () => {
+      const { rerender } = renderHook(
+        ({ contentReady }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady,
+            contentStateForTrace: 'error',
+            isEmpty: false,
+          }),
+        { initialProps: { contentReady: false } },
+      );
+
+      rerender({ contentReady: true });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({ content_state: 'error' }),
+        }),
+      );
+    });
+
     it('tags content_state as empty when isEmpty is true', () => {
       const { rerender } = renderHook(
         ({ contentReady }) =>
