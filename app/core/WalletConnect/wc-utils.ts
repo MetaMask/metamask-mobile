@@ -256,26 +256,24 @@ export const getScopedPermissions = async ({
   const evmChains = permittedChains.filter((chain) =>
     chain.startsWith(`${KnownCaipNamespace.Eip155}:`),
   );
-  DevLogger.log(
-    `WC::getScopedPermissions eip155 accounts=${JSON.stringify(approvedAccounts)} chains=${JSON.stringify(evmChains)}`,
-  );
+
   namespaces[KnownCaipNamespace.Eip155] = {
     chains: evmChains,
     methods: EVM_APPROVED_METHODS,
     events: ['chainChanged', 'accountsChanged'],
     accounts: evmChains.flatMap((chain) =>
+      // TODO approvedAccounts are not filtered by namescpae
       approvedAccounts.map((account) => `${chain}:${account}`),
     ),
   };
 
+  // Non EVM namespaces
   const adapterNamespaces = buildAdapterScopedPermissionsNamespaces({
     channelId,
     permittedChains,
   });
-  Object.assign(namespaces, adapterNamespaces);
 
-  DevLogger.log(`WC::getScopedPermissions final namespaces`, namespaces);
-  return namespaces;
+  return { ...namespaces, ...adapterNamespaces };
 };
 
 export const isSwitchingChainRequest = (

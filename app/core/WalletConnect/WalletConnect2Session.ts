@@ -12,7 +12,6 @@ import {
   CaipChainId,
   Hex,
   KnownCaipNamespace,
-  parseCaipAccountId,
   parseCaipChainId,
 } from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
@@ -50,18 +49,15 @@ import {
   isEIP155Scope,
 } from './wc-utils';
 import {
-  buildAdapterNamespaces,
+  proposalReferencedAdapterNamespaces,
   callMultichainRoutingService,
   mapRequestInbound,
   mapRequestOutbound,
-  proposalReferencedAdapterNamespaces,
   normalizeCaipChainIdInbound,
   normalizeCaipAccountIdInbound,
-  type NamespaceConfig,
 } from './multichain';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { errorCodes, providerErrors, rpcErrors } from '@metamask/rpc-errors';
-import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import { updateWC2Metadata } from '../../actions/sdk';
 import AppConstants from '../AppConstants';
@@ -369,6 +365,20 @@ class WalletConnect2Session {
     this.needsRedirect(id);
   };
 
+  /**
+   * Syncs the WalletConnect session with the wallet's current state and emits
+   * a `chainChanged` event to the dapp.
+   *
+   * `accounts` and `chainId` are used only as guards and fallbacks:
+   * - `accounts`: if absent or empty, the function bails out or falls back to
+   *   `getPermittedAccounts`. The list itself is NOT forwarded to WalletConnect.
+   * - `chainId`: if 0, falls back to the currently selected network. Used only
+   *   as a fallback value for the `chainChanged` emission.
+   *
+   * The actual session payload (namespaces + accounts) is always rebuilt from
+   * scratch by {@link getScopedPermissions}, which reads live permissions from
+   * the PermissionController.
+   */
   updateSession = async ({
     chainId,
     accounts,
@@ -377,7 +387,6 @@ class WalletConnect2Session {
     accounts?: string[];
   }) => {
     try {
-      const sessionTopic = this.session.topic;
       if (!accounts) {
         DevLogger.log(
           `Invalid accounts --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
@@ -398,20 +407,10 @@ class WalletConnect2Session {
           );
           accounts = approvedAccounts;
         } else {
-          const referencedAdapterNamespaces =
-            proposalReferencedAdapterNamespaces({
-              requiredNamespaces: this.session.requiredNamespaces,
-              optionalNamespaces: this.session.optionalNamespaces,
-            });
           DevLogger.log(
-            `WC2::updateSession no permitted accounts found for sessionTopic=${sessionTopic} and channelId=${this.channelId} selfReportedUrl=${this.selfReportedUrl}`,
+            `WC2::updateSession no permitted accounts found for topic=${this.session.topic} selfReportedUrl=${this.selfReportedUrl}`,
           );
-          // Keep legacy behavior for EVM-only sessions: do not update a session
-          // with empty account lists. Non-EVM adapter sessions may still build
-          // valid namespaces from adapter-managed permissions/accounts.
-          if (referencedAdapterNamespaces.length === 0) {
-            return;
-          }
+          return;
         }
       }
 
@@ -425,82 +424,36 @@ class WalletConnect2Session {
         );
       }
 
-      const currentNamespaces = this.session.namespaces;
       const namespaces = await getScopedPermissions({
         channelId: this.channelId,
       });
+
       DevLogger.log(
-        `🔴🔴 WC2::updateSession updating with namespaces`,
+        `🔴🔴 WC2::updateSession available namespaces`,
         namespaces,
       );
 
-      // Preserve already-approved namespaces (e.g. tron) if the freshly
-      // computed permissions payload is temporarily partial (e.g. only eip155).
-      const mergedNamespaces = {
-        ...currentNamespaces,
-        ...namespaces,
-      };
-
-      // Keep non-EVM namespaces aligned with what the dapp requested at
-      // session-proposal time. Per WC spec, approved chains MUST be a
-      // subset of the original required+optional, and some dapp adapters
-      // crash when they hit unexpected chain ids. Delegate the slice
-      // construction to each adapter.
-      const adapterSlices = buildAdapterNamespaces({
-        proposal: {
-          requiredNamespaces: this.session.requiredNamespaces,
-          optionalNamespaces: this.session.optionalNamespaces,
-        },
-        existingNamespaces: mergedNamespaces as Record<
-          string,
-          Partial<NamespaceConfig>
-        >,
-      });
-      Object.assign(mergedNamespaces, adapterSlices);
-
-      // If the original proposal referenced any non-EVM namespace but no
-      // adapter slice was produced (e.g. wallet has no Tron account), do
-      // not emit a chainChanged with an EVM fallback. Non-EVM dapps don't
-      // recognise EVM hex chain ids and WalletKit may reject the emit.
-      const requiredAdapterNamespaces = proposalReferencedAdapterNamespaces({
-        requiredNamespaces: this.session.requiredNamespaces,
-        optionalNamespaces: {},
-      });
-      const missingRequiredAdapterNamespaces = requiredAdapterNamespaces.filter(
-        (ns) => !mergedNamespaces[ns]?.chains?.length,
-      );
-      if (missingRequiredAdapterNamespaces.length > 0) {
-        DevLogger.log(
-          `WC2::updateSession missing required non-EVM adapter namespaces`,
-          missingRequiredAdapterNamespaces,
-        );
-        return;
-      }
-
-      // Filter out namespaces the dapp never requested. See rationale in
-      // WalletConnectV2._handleSessionProposal. Chain-specific dapp providers
-      // (e.g. Tron-only) crash when they see unexpected namespace keys on
-      // session update/rehydration.
-      const allowedNamespaceKeys = new Set<string>([
-        ...Object.keys(this.session.requiredNamespaces ?? {}),
-        ...Object.keys(this.session.optionalNamespaces ?? {}),
-      ]);
-      // Preserve whatever was in the currently-approved session as well
-      // (a session previously approved eip155 should keep eip155 on update).
-      Object.keys(currentNamespaces).forEach((key) =>
-        allowedNamespaceKeys.add(key),
-      );
-      if (allowedNamespaceKeys.size > 0) {
-        for (const key of Object.keys(mergedNamespaces)) {
-          if (!allowedNamespaceKeys.has(key)) {
-            delete mergedNamespaces[key];
-          }
+      // Filter out namespaces the dapp never requested.
+      const requiredOrOptionalNamespacesKeys = [
+        ...Object.keys(this.session.requiredNamespaces),
+        ...Object.keys(this.session.optionalNamespaces),
+      ];
+      const onlyRequiredOrOptionalNamespaces = requiredOrOptionalNamespacesKeys.reduce((acc, key) => {
+        if (namespaces[key]) {
+          acc[key] = namespaces[key];
         }
-      }
+        return acc;
+      }, {} as SessionTypes.Namespaces);
+
+
+      DevLogger.log(
+        `🔴🔴 WC2::updateSession updating with namespaces`,
+        onlyRequiredOrOptionalNamespaces,
+      );
 
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
-        namespaces: mergedNamespaces,
+        namespaces: onlyRequiredOrOptionalNamespaces,
       });
 
       // Keep local session in sync with WalletConnect's canonical active session,
@@ -510,6 +463,10 @@ class WalletConnect2Session {
       if (activeSession) {
         this.session = activeSession;
       }
+
+      // Since MetaMask has removed the network selector
+      // We decided not to support chain switching for non-EVM
+      // We still keep the chainChanged emission logic for EVM though
 
       const chainChangedEmission = getChainChangedEmissionForWalletConnect({
         namespaces: this.session.namespaces,

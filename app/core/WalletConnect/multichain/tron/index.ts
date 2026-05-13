@@ -13,7 +13,6 @@
  */
 
 import { TrxAccountType, TrxScope } from '@metamask/keyring-api';
-import Logger from '../../../../util/Logger';
 import {
   type CaipChainId,
   type CaipAccountId,
@@ -29,7 +28,7 @@ import {
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 
 import Engine from '../../../Engine';
-import { addPermittedAccounts } from '../../../Permissions';
+import { addPermittedAccounts, sortMultichainAccountsByLastSelected } from '../../../Permissions';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import type {
   ChainAdapter,
@@ -85,16 +84,14 @@ const normalizeCaipChainIdOutbound = (
   return caipChainId;
 };
 
-const getCompatibleTronCaipChainIdsForWalletConnect = (
-  caipChainId: CaipChainId,
-): CaipChainId[] =>
-  Array.from(
-    new Set([
-      caipChainId,
-      normalizeCaipChainIdInbound(caipChainId),
-      normalizeCaipChainIdOutbound(caipChainId),
-    ]),
-  );
+/**
+ * Normalize a CAIP account ID to wallet connect shape before sending it back to the dapp.
+ */
+const normalizeTronAccountIdOutbound = (caipAccountId: CaipAccountId): CaipAccountId => {
+  const { address, chainId } = parseCaipAccountId(caipAccountId);
+  const normalizedCaipChainId = normalizeCaipChainIdOutbound(chainId);
+  return `${normalizedCaipChainId}:${address}`;
+};
 
 /**
  * Minimal shape of the relevant parts of a WalletConnect session
@@ -128,83 +125,51 @@ const buildScopedPermissionsNamespace = ({
   permittedChains: CaipChainId[];
 }): NamespaceConfig | undefined => {
   const tronChains = permittedChains
-    .filter((chain) => chain.startsWith(`${KnownCaipNamespace.Tron}:`))
-    .flatMap((chain) => getCompatibleTronCaipChainIdsForWalletConnect(chain));
-  const uniqueTronChains = Array.from(new Set(tronChains));
+    .filter((chain) => chain.startsWith(`${KnownCaipNamespace.Tron}:`));
 
-  let permittedTronAccountStrings: string[] = [];
+  if (tronChains.length === 0) {
+    return undefined;
+  }
+
+  let permittedTronAccounts: CaipAccountId[] = [];
   try {
-    const tronPermissionCaveat = Engine.context.PermissionController?.getCaveat(
+    const permissionCaveat = Engine.context.PermissionController?.getCaveat(
       channelId,
       Caip25EndowmentPermissionName,
       Caip25CaveatType,
     );
-    if (tronPermissionCaveat) {
-      permittedTronAccountStrings = getCaipAccountIdsFromCaip25CaveatValue(
-        tronPermissionCaveat.value as Parameters<
+    if (permissionCaveat) {
+      permittedTronAccounts = getCaipAccountIdsFromCaip25CaveatValue(
+        permissionCaveat.value as Parameters<
           typeof getCaipAccountIdsFromCaip25CaveatValue
         >[0],
       )
         .filter((account) => account.startsWith(`${KnownCaipNamespace.Tron}:`))
-        .flatMap((account) => {
-          try {
-            const parsedAccount = parseCaipAccountId(account);
-            if (parsedAccount.chain.namespace !== KnownCaipNamespace.Tron) {
-              return [account];
-            }
-            const chainId =
-              `${parsedAccount.chain.namespace}:${parsedAccount.chain.reference}` as CaipChainId;
-            return getCompatibleTronCaipChainIdsForWalletConnect(chainId).map(
-              (compatibleChainId) =>
-                `${compatibleChainId}:${parsedAccount.address}`,
-            );
-          } catch {
-            return [account];
-          }
-        });
     }
   } catch (error) {
     if (!(error instanceof PermissionDoesNotExistError)) {
       DevLogger.log(
-        '[wc][multichain/tron] failed to read tron permission caveat',
+        '[wc][multichain/tron] failed to read permission caveat',
         error,
       );
     }
   }
 
-  const tronAccounts = listTronEoaAddresses();
-  if (uniqueTronChains.length > 0) {
-    const discoveredTronAccountStrings = tronAccounts.flatMap((address) =>
-      uniqueTronChains.map((tronChainId) => `${tronChainId}:${address}`),
-    );
-    return {
-      chains: uniqueTronChains,
-      methods: [...TRON_METHODS],
-      events: [...TRON_EVENTS],
-      accounts: Array.from(
-        new Set([
-          ...permittedTronAccountStrings,
-          ...discoveredTronAccountStrings,
-        ]),
-      ) as `${string}:${string}:${string}`[],
-    };
+  if (permittedTronAccounts.length === 0) {
+    return undefined;
   }
 
-  if (tronAccounts.length > 0) {
-    const tronChainIds = getCompatibleTronCaipChainIdsForWalletConnect(
-      TrxScope.Mainnet,
-    );
-    return {
-      chains: tronChainIds,
-      methods: [...TRON_METHODS],
-      events: [...TRON_EVENTS],
-      accounts: tronAccounts.flatMap((address) =>
-        tronChainIds.map((tronChainId) => `${tronChainId}:${address}`),
-      ) as `${string}:${string}:${string}`[],
-    };
-  }
+  // @TODO Doesn't seems to work as expected ...
+  const sortedPermittedTronAccounts = sortMultichainAccountsByLastSelected(
+    permittedTronAccounts,
+  );
 
-  return undefined;
+  return {
+    chains: tronChains.map((chain) => normalizeCaipChainIdOutbound(chain)),
+    methods: [...TRON_METHODS],
+    events: [...TRON_EVENTS],
+    accounts: sortedPermittedTronAccounts.map((account) => normalizeTronAccountIdOutbound(account)),
+  };
 };
 
 const extractTronRawDataHex = (value: unknown): string | undefined => {
@@ -310,22 +275,22 @@ const mapRequestInbound = ({
   if (method === 'tron_signTransaction') {
     const transaction =
       firstParam &&
-      typeof firstParam === 'object' &&
-      'transaction' in firstParam
+        typeof firstParam === 'object' &&
+        'transaction' in firstParam
         ? (firstParam.transaction as
-            | {
-                raw_data_hex?: string;
-                rawDataHex?: string;
-                type?: string;
-              }
-            | undefined)
+          | {
+            raw_data_hex?: string;
+            rawDataHex?: string;
+            type?: string;
+          }
+          | undefined)
         : (firstParam as
-            | {
-                raw_data_hex?: string;
-                rawDataHex?: string;
-                type?: string;
-              }
-            | undefined);
+          | {
+            raw_data_hex?: string;
+            rawDataHex?: string;
+            type?: string;
+          }
+          | undefined);
 
     const rawDataHex = extractTronRawDataHex(firstParam ?? transaction);
     const type = extractTronType(firstParam ?? transaction);
@@ -408,16 +373,16 @@ const mapRequestOutbound = ({
 
   const originalTransaction =
     typeof transactionContainer === 'object' &&
-    transactionContainer !== null &&
-    !Array.isArray(transactionContainer) &&
-    typeof (transactionContainer as Record<string, unknown>).transaction ===
+      transactionContainer !== null &&
+      !Array.isArray(transactionContainer) &&
+      typeof (transactionContainer as Record<string, unknown>).transaction ===
       'object' &&
-    (transactionContainer as Record<string, unknown>).transaction !== null
+      (transactionContainer as Record<string, unknown>).transaction !== null
       ? ((transactionContainer as Record<string, unknown>)
-          .transaction as Record<string, unknown>)
+        .transaction as Record<string, unknown>)
       : typeof transactionContainer === 'object' &&
-          transactionContainer !== null &&
-          !Array.isArray(transactionContainer)
+        transactionContainer !== null &&
+        !Array.isArray(transactionContainer)
         ? (transactionContainer as Record<string, unknown>)
         : undefined;
 
