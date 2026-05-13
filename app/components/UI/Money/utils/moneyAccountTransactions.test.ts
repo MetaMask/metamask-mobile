@@ -88,7 +88,7 @@ const mockSelectMoneyAccountVaultConfig = jest.mocked(
   selectMoneyAccountVaultConfig,
 );
 
-const MOCK_CHAIN_ID = '0x1' as Hex;
+const MOCK_CHAIN_ID = '0x8f' as Hex;
 const MOCK_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
 const MOCK_BORING_VAULT = '0xB5F07d769dD60fE54c97dd53101181073DDf21b2' as Hex;
 const MOCK_TELLER = '0x86821F179eaD9F0b3C79b2f8deF0227eEBFDc9f9' as Hex;
@@ -97,7 +97,7 @@ const MOCK_LENS = '0x846a7832022350434B5cC006d07cc9c782469660' as Hex;
 const MOCK_PROVIDER = {} as ethers.providers.Provider;
 
 const MOCK_VAULT_CONFIG: MoneyAccountVaultConfig = {
-  chainId: '0xa4b1',
+  chainId: MOCK_CHAIN_ID,
   boringVault: MOCK_BORING_VAULT,
   tellerAddress: MOCK_TELLER,
   accountantAddress: MOCK_ACCOUNTANT,
