@@ -21,10 +21,12 @@ const styleSheet = (params: { theme: Theme }) => {
   return {
     tabUnderlineStyle: {
       height: 2,
-      backgroundColor: colors.primary.default,
+      backgroundColor: colors.icon.default,
     },
     tabStyle: {
+      paddingBottom: 8,
       paddingVertical: 8,
+      paddingHorizontal: 32,
     },
     tabBar: {
       borderColor: colors.background.default,
