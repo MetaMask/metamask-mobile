@@ -82,7 +82,7 @@ jobs:
           mkdir -p "$GRADLE_USER_HOME/init.d"
           REF="${GITHUB_REF_NAME}"
           PUSH=true
-          if [[ "$REF" != "main" && "$REF" != release/* && "$REF" != stable/* && "$REF" != "phase5/cache-and-artifacts" ]]; then
+          if [[ "$REF" != "main" && "$REF" != release/* && "$REF" != stable/* ]]; then
             PUSH=false
           fi
           nsc cache gradle setup --push="$PUSH" --init-gradle "$GRADLE_USER_HOME/init.d/namespace-cache.init.gradle"
@@ -120,7 +120,7 @@ jobs:
 
       - name: Check Namespace E2E APK cache
         id: namespace-apk-cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ inputs.runner_provider == 'namespace' && steps.force-builds.outputs.force != 'true' }}
         shell: bash
         env:
           APK_TARGET: ${{ steps.determine-target-paths.outputs.apk-target-path }}
