@@ -298,9 +298,7 @@ export class PredictAnalytics {
 
     if (configKey === 'feedViewed') {
       analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.ASSET_VIEWED,
-        )
+        AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
           .addProperties(
             mergeAssetViewedProperties(
               'Predict',

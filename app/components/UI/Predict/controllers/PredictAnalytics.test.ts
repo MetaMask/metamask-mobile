@@ -459,7 +459,8 @@ describe('PredictAnalytics', () => {
       expect(getTrackEventMock()).toHaveBeenCalledTimes(2);
 
       const feedEvent = getTrackEventMock().mock.calls[0][0] as TrackedEvent;
-      const assetViewedEvent = getTrackEventMock().mock.calls[1][0] as TrackedEvent;
+      const assetViewedEvent = getTrackEventMock().mock
+        .calls[1][0] as TrackedEvent;
 
       expect(feedEvent.name).toBe(
         MetaMetricsEvents.PREDICT_FEED_VIEWED.category,

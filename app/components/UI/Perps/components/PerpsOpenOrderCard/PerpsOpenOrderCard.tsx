@@ -159,7 +159,9 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
       );
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
-          .addProperties(mergeAssetViewedProperties('Perps', geoBlockProperties))
+          .addProperties(
+            mergeAssetViewedProperties('Perps', geoBlockProperties),
+          )
           .build(),
       );
       setIsEligibilityModalVisible(true);
