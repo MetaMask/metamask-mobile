@@ -671,7 +671,6 @@ export class BackgroundBridge extends EventEmitter {
     if (!this.isMMSDK && !this.isWalletConnect) {
       engine.push(
         snapMethodMiddlewareBuilder(
-          Engine.context,
           Engine.controllerMessenger,
           this.url,
           // We assume that origins connecting through the BackgroundBridge are websites

@@ -171,6 +171,12 @@ function Tooltip({
     message = strings('confirm.tooltip.musd_conversion.transaction_fee');
   }
 
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
+  ) {
+    message = strings('confirm.tooltip.money_account_withdraw.transaction_fee');
+  }
+
   switch (transactionMeta.type) {
     case TransactionType.perpsDeposit:
       message = strings('confirm.tooltip.perps_deposit.transaction_fee');

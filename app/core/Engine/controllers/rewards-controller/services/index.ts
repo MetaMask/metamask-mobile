@@ -4,7 +4,6 @@ export type {
   RewardsDataServiceGetPointsEventsAction,
   RewardsDataServiceLoginAction,
   RewardsDataServiceEstimatePointsAction,
-  RewardsDataServiceGetPerpsDiscountAction,
   RewardsDataServiceMessenger,
   RewardsDataServiceGetSeasonStatusAction,
   RewardsDataServiceGetReferralDetailsAction,
@@ -18,6 +17,8 @@ export type {
   RewardsDataServiceOptOutAction,
   RewardsDataServiceGetUnlockedRewardsAction,
   RewardsDataServiceClaimRewardAction,
+  RewardsDataServiceGetVIPDashboardAction,
+  RewardsDataServiceGetVipFeesAction,
 } from './rewards-data-service';
 
 export { RewardsDataService } from './rewards-data-service';
