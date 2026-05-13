@@ -7,7 +7,10 @@ import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { Interface } from 'ethers/lib/utils';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
+import {
+  DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_PREDICT_WORLD_CUP_FLAG,
+} from '../../constants/flags';
 import type { OrderPreview } from '../types';
 import { Side, type PredictPosition } from '../../types';
 import type { PredictFeatureFlags } from '../../types/flags';
@@ -305,6 +308,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   fakOrdersEnabled: false,
   predictWithAnyTokenEnabled: false,
   predictUpDownEnabled: false,
+  predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
 };
 
 function createProvider(featureFlags?: Partial<PredictFeatureFlags>) {

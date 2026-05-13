@@ -8,6 +8,8 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   accounts: {},
   subscriptions: {},
   subscriptionBenefits: {},
+  vipDashboard: {},
+  vipPerpsFees: {},
   seasons: {},
   subscriptionReferralDetails: {},
   seasonStatuses: {},
