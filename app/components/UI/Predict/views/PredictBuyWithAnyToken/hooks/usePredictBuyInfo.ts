@@ -1,5 +1,5 @@
 import { BigNumber } from 'bignumber.js';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTransactionPayTotals } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
@@ -43,14 +43,12 @@ export const usePredictBuyInfo = ({
     [blockingPayAlerts],
   );
 
-  const [acceptedDepositFee, setAcceptedDepositFee] = useState(0);
-
   const totalPayForPredictBalance = useMemo(
     () => getPredictBuyAllInCost(preview),
     [preview],
   );
 
-  const computedDepositFee = useMemo(() => {
+  const depositFee = useMemo(() => {
     if (isPredictBalanceSelected || !payTotals?.fees) return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
     return new BigNumber(provider?.usd ?? 0)
@@ -58,22 +56,6 @@ export const usePredictBuyInfo = ({
       .plus(targetNetwork?.usd ?? 0)
       .toNumber();
   }, [isPredictBalanceSelected, payTotals?.fees]);
-
-  useEffect(() => {
-    if (computedDepositFee > 0) {
-      setAcceptedDepositFee(computedDepositFee);
-    }
-  }, [computedDepositFee]);
-
-  useEffect(() => {
-    if (!isConfirming) {
-      setAcceptedDepositFee(0);
-    }
-  }, [isConfirming]);
-
-  const fallbackDepositFee = isConfirming ? acceptedDepositFee : 0;
-  const depositFee =
-    computedDepositFee > 0 ? computedDepositFee : fallbackDepositFee;
 
   const rewardsFeeAmount =
     isPlacingOrder || previewError ? undefined : (fees?.totalFee ?? 0);

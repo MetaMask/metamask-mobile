@@ -996,7 +996,7 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.canPlaceBet).toBe(false);
     });
 
-    it('resets settling when switching back to Predict balance', () => {
+    it('keeps the same token settled when switching through Predict balance without changing amount', () => {
       mockIsPredictBalanceSelected = false;
       mockSelectedPaymentToken = { address: '0xUSDC', chainId: '1' };
       mockIsPayQuoteLoading = true;
@@ -1016,7 +1016,7 @@ describe('usePredictBuyConditions', () => {
       rerender({});
       expect(result.current.isPaySystemSettling).toBe(false);
 
-      // Switch back to Predict balance — resets lastSettledTokenKey
+      // Switch back to Predict balance — keeps the settled payment key.
       act(() => {
         mockIsPredictBalanceSelected = true;
         mockSelectedPaymentToken = null;
@@ -1024,13 +1024,59 @@ describe('usePredictBuyConditions', () => {
       rerender({});
       expect(result.current.isPaySystemSettling).toBe(false);
 
-      // Re-select USDC — must settle again (quotes may need re-fetching)
+      // Re-select USDC for the same amount — can reuse the existing quote state.
       act(() => {
         mockIsPredictBalanceSelected = false;
         mockSelectedPaymentToken = { address: '0xUSDC', chainId: '1' };
       });
       rerender({});
+      expect(result.current.isPaySystemSettling).toBe(false);
+      expect(result.current.canPlaceBet).toBe(true);
+    });
+
+    it('settles again when the same token is re-selected after the amount changes', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xUSDC', chainId: '1' };
+      mockIsPayQuoteLoading = true;
+      mockIsPayTotalsLoading = true;
+      mockQuotes = [];
+
+      const { result, rerender } = renderHook(
+        ({
+          totalPayForPredictBalance,
+        }: {
+          totalPayForPredictBalance: number;
+        }) =>
+          usePredictBuyConditions({
+            ...defaultParams,
+            currentValue: 1,
+            totalPayForPredictBalance,
+          }),
+        { initialProps: { totalPayForPredictBalance: 10.5 } },
+      );
+
+      act(() => {
+        mockIsPayQuoteLoading = false;
+        mockIsPayTotalsLoading = false;
+        mockQuotes = [{ id: 'q1' }];
+      });
+      rerender({ totalPayForPredictBalance: 10.5 });
+      expect(result.current.isPaySystemSettling).toBe(false);
+
+      act(() => {
+        mockIsPredictBalanceSelected = true;
+        mockSelectedPaymentToken = null;
+      });
+      rerender({ totalPayForPredictBalance: 10.5 });
+
+      act(() => {
+        mockIsPredictBalanceSelected = false;
+        mockSelectedPaymentToken = { address: '0xUSDC', chainId: '1' };
+      });
+      rerender({ totalPayForPredictBalance: 11 });
+
       expect(result.current.isPaySystemSettling).toBe(true);
+      expect(result.current.canPlaceBet).toBe(false);
     });
   });
 

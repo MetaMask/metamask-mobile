@@ -150,21 +150,29 @@ export const usePredictBuyConditions = ({
     return `${selectedPaymentToken.chainId.toLowerCase()}:${selectedPaymentToken.address.toLowerCase()}`;
   }, [selectedPaymentToken?.address, selectedPaymentToken?.chainId]);
 
-  // Tracks the chain/token pair for which a full quote-loading cycle has
-  // completed. Compared synchronously each render to derive
-  // `isPaySystemSettling` — true from the very first render after the token
-  // identity changes, with no one-frame gap (Bug 1).
-  const [lastSettledTokenKey, setLastSettledTokenKey] = useState<string | null>(
-    null,
-  );
+  const selectedPaymentSettlingKey = useMemo(() => {
+    if (!selectedPaymentTokenKey) {
+      return null;
+    }
+
+    return `${selectedPaymentTokenKey}:${totalPayForPredictBalance}`;
+  }, [selectedPaymentTokenKey, totalPayForPredictBalance]);
+
+  // Tracks the token/amount pair for which a full quote-loading cycle has
+  // completed. Keeping the amount in the key makes same-token amount changes
+  // settle again, while preserving same-token same-amount quotes across a brief
+  // Predict-balance selection.
+  const [lastSettledPaymentKey, setLastSettledPaymentKey] = useState<
+    string | null
+  >(null);
 
   // Synchronous derivation: true from the very first render after the selected
-  // token changes. No effects needed to flip a boolean flag, so there is no
-  // one-frame window where the CTA flashes incorrectly (Bug 1 fixed).
+  // token or amount changes. No effects needed to flip a boolean flag, so there
+  // is no one-frame window where the CTA flashes incorrectly (Bug 1 fixed).
   const isPaySystemSettling =
     !isPredictBalanceSelected &&
-    selectedPaymentTokenKey !== null &&
-    selectedPaymentTokenKey !== lastSettledTokenKey;
+    selectedPaymentSettlingKey !== null &&
+    selectedPaymentSettlingKey !== lastSettledPaymentKey;
 
   const isBalancePulsing = useMemo(
     () => isDepositPending && isPredictBalanceSelected,
@@ -238,23 +246,22 @@ export const usePredictBuyConditions = ({
     const quotesPresent = (quotes?.length ?? 0) > 0;
     if (quotesPresent || !isPayFeesLoading) {
       hasSeenLoadingRef.current = false;
-      setLastSettledTokenKey(selectedPaymentTokenKey);
+      setLastSettledPaymentKey(selectedPaymentSettlingKey);
     }
   }, [
     isPaySystemSettling,
     isPayQuoteLoading,
     isPayFeesLoading,
     quotes,
-    selectedPaymentTokenKey,
+    selectedPaymentSettlingKey,
   ]);
 
-  // Effect 3 — reset when switching back to Predict balance so that returning
-  // to any ERC20 always requires a fresh settling cycle (quotes may need
-  // re-fetching).
+  // Effect 3 — stop any in-flight settling observation when switching back to
+  // Predict balance. Keep the settled payment key so selecting the same token
+  // for the same amount can reuse the existing quote state immediately.
   useEffect(() => {
     if (isPredictBalanceSelected) {
       hasSeenLoadingRef.current = false;
-      setLastSettledTokenKey(null);
     }
   }, [isPredictBalanceSelected]);
 

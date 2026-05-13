@@ -201,7 +201,7 @@ describe('usePredictBuyError', () => {
       );
     });
 
-    it('returns the generic try-token message for external payment tokens', () => {
+    it('returns the pay token balance alert for external payment tokens', () => {
       mockActiveOrder = { error: 'order failed' };
       mockIsPredictBalanceSelected = false;
 
@@ -213,9 +213,7 @@ describe('usePredictBuyError', () => {
       );
 
       expect(mockGetPlaceOrderErrorOutcome).not.toHaveBeenCalled();
-      expect(result.current.errorMessage).toBe(
-        'Not enough funds. Try a different token.',
-      );
+      expect(result.current.errorMessage).toBe('Pay token balance alert');
       expect(result.current.errorMessageSource).toBe('blocking_pay_alert');
     });
 
@@ -299,9 +297,7 @@ describe('usePredictBuyError', () => {
         }),
       );
 
-      expect(result.current.errorMessage).toBe(
-        'Not enough funds. You can use up to $50.00, or try a different token.',
-      );
+      expect(result.current.errorMessage).toBe('Not enough funds.');
       expect(result.current.errorMessageSource).toBe('insufficient_balance');
     });
 
@@ -375,7 +371,7 @@ describe('usePredictBuyError', () => {
       );
     });
 
-    it('returns generic try-token errorMessage when external token has blockingPayAlertMessage', () => {
+    it('returns pay alert errorMessage when external token has blockingPayAlertMessage', () => {
       mockActiveOrder = { error: 'something broke' };
       mockIsPredictBalanceSelected = false;
       mockGetPlaceOrderErrorOutcome.mockReturnValue({
@@ -390,9 +386,7 @@ describe('usePredictBuyError', () => {
         }),
       );
 
-      expect(result.current.errorMessage).toBe(
-        'Not enough funds. Try a different token.',
-      );
+      expect(result.current.errorMessage).toBe('Pay token balance alert');
       expect(result.current.errorMessageSource).toBe('blocking_pay_alert');
       expect(result.current.buyErrorBanner).toBeNull();
     });
@@ -749,9 +743,7 @@ describe('usePredictBuyError', () => {
         }),
       );
 
-      expect(result.current.errorMessage).toBe(
-        'Not enough funds. Try a different token.',
-      );
+      expect(result.current.errorMessage).toBe('Pay token balance alert');
       expect(result.current.buyErrorBanner).toBeNull();
     });
 

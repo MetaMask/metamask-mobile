@@ -88,8 +88,11 @@ function PredictPayWithAnyTokenInfoInner({
   }, [canTriggerDepositAmountCalculation, computedDepositAmount]);
 
   const hasValidDepositAmount = useMemo(
-    () => depositAmount !== '' && Boolean(transactionMeta),
-    [depositAmount, transactionMeta],
+    () =>
+      !isPredictBalanceSelected &&
+      depositAmount !== '' &&
+      Boolean(transactionMeta),
+    [depositAmount, isPredictBalanceSelected, transactionMeta],
   );
 
   const emissionKey = useMemo(() => {
