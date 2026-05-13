@@ -18,6 +18,9 @@ import { findEvmAccount, getSelectedEvmAccount } from '../utils/accountUtils';
 // service portable between mobile and the core monorepo.
 const HARDWARE_KEYRING_TYPES = new Set<string>([
   'Ledger Hardware',
+  'Trezor Hardware',
+  'OneKey Hardware',
+  'Lattice Hardware',
   'QR Hardware Wallet Device',
 ]);
 
@@ -55,7 +58,7 @@ export class HyperLiquidWalletService {
   /**
    * Check whether the selected EVM account is backed by hardware.
    *
-   * @returns True for Ledger / QR hardware keyrings; false for software accounts.
+   * @returns True for MetaMask hardware keyrings; false for software accounts.
    */
   public isSelectedHardwareWallet(): boolean {
     const selectedEvmAccount = findEvmAccount(
