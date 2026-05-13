@@ -140,6 +140,7 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
         screen: 'BrowserView',
         params: expect.objectContaining({
           newTabUrl: 'https://coindesk.com/fed-pauses',
+          fromWhatsHappening: true,
         }),
       }),
     );
