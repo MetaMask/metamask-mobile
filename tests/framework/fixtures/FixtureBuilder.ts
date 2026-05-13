@@ -2161,7 +2161,7 @@ class FixtureBuilder {
 
   /**
    * Preloads persisted attribution + marketing consent for E2E coverage of
-   * `Wallet Setup Completed` acquisition properties (TO-718).
+   * `Wallet Setup Completed` acquisition properties.
    * @param attributionFields - Acquisition fields (capturedAt defaults to Date.now()).
    * @returns - The FixtureBuilder instance for method chaining.
    */
