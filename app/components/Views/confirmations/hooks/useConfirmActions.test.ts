@@ -36,6 +36,10 @@ jest.mock('../../../../core/HardwareWallet/hooks/useQrConfirm', () => ({
   useQrConfirm: () => ({ onConfirm: mockOnQrConfirm }),
 }));
 
+const mockIsConfirmationFromQrAccount = jest.requireMock(
+  '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount',
+).useIsConfirmationFromQrAccount;
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
@@ -117,10 +121,7 @@ describe('useConfirmAction', () => {
   });
 
   it('delegates to useQrConfirm when account is QR hardware and request is a transaction', async () => {
-    const { useIsConfirmationFromQrAccount } = jest.requireMock(
-      '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount',
-    );
-    useIsConfirmationFromQrAccount.mockReturnValue(true);
+    mockIsConfirmationFromQrAccount.mockReturnValue(true);
     mockOnQrConfirm.mockClear();
 
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
@@ -132,7 +133,7 @@ describe('useConfirmAction', () => {
     expect(mockOnQrConfirm).toHaveBeenCalledTimes(1);
     expect(Engine.acceptPendingApproval).not.toHaveBeenCalled();
 
-    useIsConfirmationFromQrAccount.mockReturnValue(false);
+    mockIsConfirmationFromQrAccount.mockReturnValue(false);
   });
 
   it('calls setSigningConfirmed before executeApproval on default confirm path', async () => {
