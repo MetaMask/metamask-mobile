@@ -1,5 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
-import { Image, ImageSourcePropType, Pressable } from 'react-native';
+import {
+  Image,
+  ImageSourcePropType,
+  Pressable,
+  useWindowDimensions,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -9,6 +14,11 @@ import type { PredictWorldCupConfig } from '../../types/flags';
 import { PredictWorldCupMainFeedBannerSelectorsIDs } from './PredictWorldCupMainFeedBanner.testIds';
 
 import worldCupMainFeedBannerImage from '../../assets/world-cup-main-feed-banner.png';
+
+const WORLD_CUP_BANNER_ASPECT_RATIO = 360 / 177;
+const WORLD_CUP_BANNER_HORIZONTAL_MARGIN = 16;
+const WORLD_CUP_BANNER_HORIZONTAL_MARGIN_TOTAL =
+  WORLD_CUP_BANNER_HORIZONTAL_MARGIN * 2;
 
 export const getPredictWorldCupBannerSource = (
   bannerImageUrl?: string,
@@ -40,8 +50,14 @@ const PredictWorldCupMainFeedBanner: React.FC<
   PredictWorldCupMainFeedBannerProps
 > = ({ fallbackImageSource }) => {
   const tw = useTailwind();
+  const { width: windowWidth } = useWindowDimensions();
   const navigation = useNavigation();
   const predictWorldCupConfig = useSelector(selectPredictWorldCupConfig);
+  const bannerWidth = Math.max(
+    windowWidth - WORLD_CUP_BANNER_HORIZONTAL_MARGIN_TOTAL,
+    0,
+  );
+  const bannerHeight = bannerWidth / WORLD_CUP_BANNER_ASPECT_RATIO;
 
   const resolvedFallbackImageSource =
     fallbackImageSource === undefined
@@ -78,7 +94,7 @@ const PredictWorldCupMainFeedBanner: React.FC<
         source={imageSource}
         resizeMode="cover"
         testID={PredictWorldCupMainFeedBannerSelectorsIDs.IMAGE}
-        style={tw.style('w-full rounded-xl')}
+        style={tw.style('w-full rounded-xl', { height: bannerHeight })}
       />
     </Pressable>
   );
