@@ -133,7 +133,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
       paddingTop: 24,
-      marginBottom: 24,
+      marginBottom: 36,
     },
   });
 };
