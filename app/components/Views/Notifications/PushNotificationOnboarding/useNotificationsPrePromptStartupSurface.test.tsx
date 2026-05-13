@@ -10,16 +10,14 @@ jest.mock(
   }),
 );
 
-jest.mock(
-  '../../../../util/notifications/utils/push-pre-prompt-performance',
-  () => ({
-    markPushPrePromptPerformance: jest.fn(),
-  }),
-);
-
 const mockUsePushPrePromptVariant = jest.mocked(usePushPrePromptVariant);
 const mockDismiss = jest.fn();
 const mockMarkShown = jest.fn();
+
+interface RenderedSurfaceProps {
+  onComplete: (reason: 'engage') => void;
+  onPendingActionStart: (variant: 'push_permission') => void;
+}
 
 describe('useNotificationsPrePromptStartupSurface', () => {
   beforeEach(() => {
@@ -43,7 +41,7 @@ describe('useNotificationsPrePromptStartupSurface', () => {
 
     const renderedSurface = result.current.render?.({
       completeSurface,
-    }) as ReactElement;
+    }) as ReactElement<RenderedSurfaceProps>;
 
     act(() => {
       renderedSurface?.props.onPendingActionStart('push_permission');
@@ -61,7 +59,7 @@ describe('useNotificationsPrePromptStartupSurface', () => {
 
     const pendingRenderedSurface = result.current.render?.({
       completeSurface,
-    }) as ReactElement;
+    }) as ReactElement<RenderedSurfaceProps>;
 
     act(() => {
       pendingRenderedSurface?.props.onComplete('engage');

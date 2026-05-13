@@ -5,10 +5,6 @@ import {
   TRUE,
 } from '../../../constants/storage';
 import storageWrapper from '../../../store/storage-wrapper';
-import {
-  markPushPrePromptPerformance,
-  measurePushPrePromptPerformance,
-} from '../utils/push-pre-prompt-performance';
 
 /**
  * Used to track when/how often we should re-subscribe users to notifications.
@@ -56,55 +52,14 @@ export const setUserHasTurnedOffNotificationsOnce = async () => {
  * user sees at most one pre-prompt on this install.
  */
 export const hasPushPrePromptBeenShown = () => {
-  const startedAt = Date.now();
-  markPushPrePromptPerformance('storage.has_shown.start');
-
-  const readStartedAt = Date.now();
-  markPushPrePromptPerformance('storage.local.get_sync.start', {
-    key: 'PUSH_PRE_PROMPT_SHOWN',
-  });
   const localShown = storageWrapper.getItemSync(PUSH_PRE_PROMPT_SHOWN);
-  markPushPrePromptPerformance('storage.local.get_sync.end', {
-    durationMs: Date.now() - readStartedAt,
-    key: 'PUSH_PRE_PROMPT_SHOWN',
-    success: true,
-  });
-
-  const hasShown = localShown === TRUE;
-  markPushPrePromptPerformance(
-    hasShown ? 'storage.has_shown.local_hit' : 'storage.has_shown.local_miss',
-  );
-
-  markPushPrePromptPerformance('storage.has_shown.end', {
-    durationMs: Date.now() - startedAt,
-    result: hasShown,
-    source: 'local',
-  });
-  return hasShown;
+  return localShown === TRUE;
 };
 
 export const setPushPrePromptShown = async () => {
-  const startedAt = Date.now();
-  markPushPrePromptPerformance('storage.mark_shown.start');
-  await measurePushPrePromptPerformance(
-    'storage.local.set_mark_shown',
-    () => storageWrapper.setItem(PUSH_PRE_PROMPT_SHOWN, TRUE),
-    { key: 'PUSH_PRE_PROMPT_SHOWN' },
-  );
-  markPushPrePromptPerformance('storage.mark_shown.end', {
-    durationMs: Date.now() - startedAt,
-  });
+  await storageWrapper.setItem(PUSH_PRE_PROMPT_SHOWN, TRUE);
 };
 
 export const resetPushPrePromptShown = async () => {
-  const startedAt = Date.now();
-  markPushPrePromptPerformance('storage.reset_shown.start');
-  await measurePushPrePromptPerformance(
-    'storage.local.remove_mark_shown',
-    () => storageWrapper.removeItem(PUSH_PRE_PROMPT_SHOWN),
-    { key: 'PUSH_PRE_PROMPT_SHOWN' },
-  );
-  markPushPrePromptPerformance('storage.reset_shown.end', {
-    durationMs: Date.now() - startedAt,
-  });
+  await storageWrapper.removeItem(PUSH_PRE_PROMPT_SHOWN);
 };

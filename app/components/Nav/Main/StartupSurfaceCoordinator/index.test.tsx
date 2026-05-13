@@ -12,13 +12,6 @@ import { useStartupSurface } from './context';
 const mockPerpsPresent = jest.fn();
 const mockPredictPresent = jest.fn();
 
-jest.mock(
-  '../../../../util/notifications/utils/push-pre-prompt-performance',
-  () => ({
-    markPushPrePromptPerformance: jest.fn(),
-  }),
-);
-
 const SurfaceControls = ({
   initialPerpsStatus = 'eligible',
   initialPredictStatus = 'ineligible',

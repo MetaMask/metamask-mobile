@@ -5,7 +5,6 @@ import React, {
   useReducer,
   useRef,
 } from 'react';
-import { markPushPrePromptPerformance } from '../../../../util/notifications/utils/push-pre-prompt-performance';
 import {
   getDefaultStartupSurfaceState,
   startupSurfaceReducer,
@@ -53,14 +52,6 @@ export const StartupSurfaceOrchestrator = ({
 
   useEffect(() => {
     if (!activeSurface?.present) {
-      if (
-        activeSurface?.render &&
-        presentedSurfaceIdRef.current !== activeSurface.id
-      ) {
-        markPushPrePromptPerformance('startup_surface.render.start', {
-          surfaceId: activeSurface.id,
-        });
-      }
       presentedSurfaceIdRef.current = activeSurfaceId;
       return;
     }
@@ -70,10 +61,6 @@ export const StartupSurfaceOrchestrator = ({
     }
 
     presentedSurfaceIdRef.current = activeSurface.id;
-
-    markPushPrePromptPerformance('startup_surface.navigation.start', {
-      surfaceId: activeSurface.id,
-    });
     activeSurface.present({ completeSurface });
   }, [activeSurface, activeSurfaceId, completeSurface]);
 
@@ -91,26 +78,6 @@ const StartupSurfaceCoordinator = ({
     startupSurfaceReducer,
     getDefaultStartupSurfaceState(),
   );
-  const activeSurfaceIdRef = useRef<StartupSurfaceId | null>(null);
-  const surfaceStatusesRef = useRef<
-    Partial<Record<StartupSurfaceId, StartupSurfaceStatus>>
-  >({});
-
-  useEffect(() => {
-    state.surfaceOrder.forEach((surfaceId) => {
-      const status = state.surfaces[surfaceId];
-
-      if (surfaceStatusesRef.current[surfaceId] === status) {
-        return;
-      }
-
-      surfaceStatusesRef.current[surfaceId] = status;
-      markPushPrePromptPerformance('startup_surface.candidate_status.changed', {
-        status,
-        surfaceId,
-      });
-    });
-  }, [state.surfaceOrder, state.surfaces]);
 
   const updateSurfaces = useCallback((surfaces: StartupSurfaceCandidate[]) => {
     dispatch({ surfaces, type: 'updateSurfaces' });
@@ -119,12 +86,8 @@ const StartupSurfaceCoordinator = ({
   const completeSurface = useCallback(
     (
       surfaceId: StartupSurfaceId,
-      reason: CompleteSurfaceReason = 'complete',
+      _reason: CompleteSurfaceReason = 'complete',
     ) => {
-      markPushPrePromptPerformance('startup_surface.completed', {
-        reason,
-        surfaceId,
-      });
       dispatch({ surfaceId, type: 'complete' });
     },
     [],
@@ -134,17 +97,6 @@ const StartupSurfaceCoordinator = ({
     (surfaceId: StartupSurfaceId) => state.activeSurfaceId === surfaceId,
     [state.activeSurfaceId],
   );
-
-  useEffect(() => {
-    if (activeSurfaceIdRef.current === state.activeSurfaceId) {
-      return;
-    }
-
-    activeSurfaceIdRef.current = state.activeSurfaceId;
-    markPushPrePromptPerformance('startup_surface.active.changed', {
-      surfaceId: state.activeSurfaceId ?? 'null',
-    });
-  }, [state.activeSurfaceId]);
 
   const contextValue = useMemo(
     () => ({

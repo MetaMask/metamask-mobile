@@ -12,7 +12,6 @@ import { PushPrePromptVariant } from '../../../../util/notifications/hooks/usePu
 import { usePushPrePromptAnalytics } from '../../../../util/notifications/hooks/usePushPrePromptAnalytics';
 import ExistingUserSheet from './ExistingUserSheet';
 import NewUserSheet from './NewUserSheet';
-import { markPushPrePromptPerformance } from '../../../../util/notifications/utils/push-pre-prompt-performance';
 import type { CompleteSurfaceReason } from '../../../Nav/Main/StartupSurfaceCoordinator/context';
 
 interface PushNotificationOnboardingProps {
@@ -51,20 +50,6 @@ const PushNotificationOnboarding = ({
   } = usePushPrePromptAnalytics();
 
   useEffect(() => {
-    markPushPrePromptPerformance('component.mounted');
-
-    return () => {
-      markPushPrePromptPerformance('component.unmounted');
-    };
-  }, []);
-
-  useEffect(() => {
-    markPushPrePromptPerformance('component.variant.changed', {
-      variant: prePromptVariant ?? 'null',
-    });
-  }, [prePromptVariant]);
-
-  useEffect(() => {
     if (
       !isVisible ||
       !prePromptVariant ||
@@ -74,21 +59,7 @@ const PushNotificationOnboarding = ({
     }
 
     viewedPrePromptVariant.current = prePromptVariant;
-    markPushPrePromptPerformance('component.variant.viewed', {
-      variant: prePromptVariant,
-    });
-    markPrePromptShown()
-      .then(() => {
-        markPushPrePromptPerformance('component.mark_shown.resolved', {
-          variant: prePromptVariant,
-        });
-      })
-      .catch((error) => {
-        markPushPrePromptPerformance('component.mark_shown.failed', {
-          error: error instanceof Error ? error.message : String(error),
-          variant: prePromptVariant,
-        });
-      });
+    markPrePromptShown().catch(() => undefined);
     trackPrePromptViewed(prePromptVariant);
   }, [isVisible, markPrePromptShown, prePromptVariant, trackPrePromptViewed]);
 
@@ -118,38 +89,13 @@ const PushNotificationOnboarding = ({
   );
 
   const handlePushPermissionYes = useCallback(async () => {
-    const startedAt = Date.now();
     let nativePermissionEnabled = false;
-    markPushPrePromptPerformance('push_pre_prompt.yes.start');
     onPendingActionStart('push_permission');
     trackPrePromptButtonClicked('push_permission', 'yes');
     try {
       if (!hasMarketingConsent) {
         dispatch(setDataCollectionForMarketing(true));
-        const identifyStartedAt = Date.now();
-        markPushPrePromptPerformance(
-          'push_pre_prompt.marketing_identify.start',
-        );
-        void identifyMarketingConsent(true)
-          .then(() => {
-            markPushPrePromptPerformance(
-              'push_pre_prompt.marketing_identify.end',
-              {
-                durationMs: Date.now() - identifyStartedAt,
-                success: true,
-              },
-            );
-          })
-          .catch((error) => {
-            markPushPrePromptPerformance(
-              'push_pre_prompt.marketing_identify.end',
-              {
-                durationMs: Date.now() - identifyStartedAt,
-                error: error instanceof Error ? error.message : String(error),
-                success: false,
-              },
-            );
-          });
+        identifyMarketingConsent(true).catch(() => undefined);
       }
 
       trackOsPromptShown('push_permission');
@@ -167,10 +113,6 @@ const PushNotificationOnboarding = ({
           : strings('notifications.push_onboarding.toast_settings_hint'),
       );
     } finally {
-      markPushPrePromptPerformance('push_pre_prompt.yes.end', {
-        durationMs: Date.now() - startedAt,
-        nativePermissionEnabled,
-      });
       onComplete('engage');
       dismissPrePrompt();
       enableNotificationsInBackground(nativePermissionEnabled);

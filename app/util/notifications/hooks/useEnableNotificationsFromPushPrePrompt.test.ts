@@ -27,10 +27,6 @@ jest.mock('../utils/push-notification-status', () => ({
   setCachedNativePermissionEnabled: jest.fn(),
 }));
 
-jest.mock('../utils/push-pre-prompt-performance', () => ({
-  markPushPrePromptPerformance: jest.fn(),
-}));
-
 jest.mock('../../Logger', () => ({
   error: jest.fn(),
 }));

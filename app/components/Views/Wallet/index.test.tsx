@@ -1,6 +1,5 @@
 import React from 'react';
 import type { Json } from '@metamask/utils';
-import Routes from '../../../constants/navigation/Routes';
 
 // Import StorageWrapper mock from global testSetup - this provides StorageWrapper.getItem
 import StorageWrapper from '../../../store/storage-wrapper';

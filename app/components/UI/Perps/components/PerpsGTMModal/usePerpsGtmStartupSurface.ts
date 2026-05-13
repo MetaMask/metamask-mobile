@@ -8,7 +8,6 @@ import { useSelector } from 'react-redux';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import Routes from '../../../../../constants/navigation/Routes';
 import StorageWrapper from '../../../../../store/storage-wrapper';
-import { markPushPrePromptPerformance } from '../../../../../util/notifications/utils/push-pre-prompt-performance';
 import type {
   StartupSurfaceDescriptor,
   StartupSurfaceStatus,
@@ -31,13 +30,6 @@ export const usePerpsGtmStartupSurface = (): StartupSurfaceDescriptor => {
     let cancelled = false;
 
     if (!isEnabled) {
-      markPushPrePromptPerformance('startup_surface.candidate.resolved', {
-        isPerpsEnabled,
-        isPerpsGtmEnabled,
-        reason: 'feature_disabled',
-        status: 'ineligible',
-        surfaceId: 'perps-gtm',
-      });
       setStatus('resolving');
       return undefined;
     }
@@ -51,35 +43,20 @@ export const usePerpsGtmStartupSurface = (): StartupSurfaceDescriptor => {
         }
 
         const nextStatus = hasSeenModal === 'true' ? 'ineligible' : 'eligible';
-        markPushPrePromptPerformance('startup_surface.candidate.resolved', {
-          hasSeenModal,
-          reason: hasSeenModal === 'true' ? 'already_seen' : 'not_seen',
-          status: nextStatus,
-          surfaceId: 'perps-gtm',
-        });
         setStatus(nextStatus);
       })
-      .catch((error) => {
+      .catch(() => {
         if (cancelled) {
           return;
         }
 
-        markPushPrePromptPerformance('startup_surface.candidate.error', {
-          error: error instanceof Error ? error.message : String(error),
-          surfaceId: 'perps-gtm',
-        });
-        markPushPrePromptPerformance('startup_surface.candidate.resolved', {
-          reason: 'storage_error',
-          status: 'ineligible',
-          surfaceId: 'perps-gtm',
-        });
         setStatus('ineligible');
       });
 
     return () => {
       cancelled = true;
     };
-  }, [isEnabled, isPerpsEnabled, isPerpsGtmEnabled]);
+  }, [isEnabled]);
 
   const present = useCallback(() => {
     navigation.navigate(Routes.PERPS.MODALS.ROOT, {

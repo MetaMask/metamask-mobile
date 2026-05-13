@@ -5,7 +5,6 @@ import {
   PushPrePromptVariant,
   usePushPrePromptVariant,
 } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
-import { markPushPrePromptPerformance } from '../../../../util/notifications/utils/push-pre-prompt-performance';
 import PushNotificationOnboarding from '.';
 
 type VisiblePushPrePromptVariant = Exclude<PushPrePromptVariant, null>;
@@ -30,10 +29,6 @@ export const useNotificationsPrePromptStartupSurface =
 
     const handlePendingActionStart = useCallback(
       (nextVariant: VisiblePushPrePromptVariant) => {
-        markPushPrePromptPerformance('startup_surface.pending_action.start', {
-          surfaceId: 'push-pre-prompt',
-          variant: nextVariant,
-        });
         setPendingActionVariant(nextVariant);
       },
       [],
@@ -49,16 +44,6 @@ export const useNotificationsPrePromptStartupSurface =
               isVisible
               markPrePromptShown={markPrePromptShown}
               onComplete={(reason: CompleteSurfaceReason) => {
-                if (pendingActionVariant) {
-                  markPushPrePromptPerformance(
-                    'startup_surface.pending_action.end',
-                    {
-                      reason,
-                      surfaceId: 'push-pre-prompt',
-                      variant: pendingActionVariant,
-                    },
-                  );
-                }
                 completeSurface('push-pre-prompt', reason);
                 setPendingActionVariant(null);
               }}
@@ -72,7 +57,6 @@ export const useNotificationsPrePromptStartupSurface =
         dismissPrePrompt,
         handlePendingActionStart,
         markPrePromptShown,
-        pendingActionVariant,
         status,
         visibleVariant,
       ],

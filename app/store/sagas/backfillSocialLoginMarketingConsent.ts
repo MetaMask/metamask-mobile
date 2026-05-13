@@ -38,15 +38,17 @@ export function* backfillSocialLoginMarketingConsentSaga() {
       fetchedMarketingConsent = true;
     }
 
+    const resolvedMarketingConsent = Boolean(marketingConsent);
+
     yield call([analytics, analytics.identify], {
-      [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(marketingConsent),
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: resolvedMarketingConsent,
     });
     const event = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
     )
       .setSaveDataRecording(true)
       .addProperties({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(marketingConsent),
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: resolvedMarketingConsent,
         is_metrics_opted_in: true,
         location: 'saga_backfill_marketing_consent',
         updated_after_onboarding: true,
@@ -57,7 +59,7 @@ export function* backfillSocialLoginMarketingConsentSaga() {
     yield call([analytics, analytics.trackEvent], event);
 
     yield call(updateDataRecordingFlag, true);
-    yield put(setDataCollectionForMarketing(marketingConsent));
+    yield put(setDataCollectionForMarketing(resolvedMarketingConsent));
     yield put(setPendingSocialLoginMarketingConsentBackfill(null));
   } catch (error) {
     Logger.error(
@@ -65,7 +67,7 @@ export function* backfillSocialLoginMarketingConsentSaga() {
       'Failed to backfill social login marketing consent analytics',
     );
     if (fetchedMarketingConsent) {
-      yield put(setDataCollectionForMarketing(marketingConsent));
+      yield put(setDataCollectionForMarketing(Boolean(marketingConsent)));
     }
     yield put(setPendingSocialLoginMarketingConsentBackfill(null));
   }

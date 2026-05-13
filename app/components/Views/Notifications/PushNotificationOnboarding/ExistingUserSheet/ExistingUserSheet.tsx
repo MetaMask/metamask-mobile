@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useRef, useCallback } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -12,7 +12,6 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { markPushPrePromptPerformance } from '../../../../../util/notifications/utils/push-pre-prompt-performance';
 import { ExistingUserSheetSelectorsIDs } from './ExistingUserSheet.testIds';
 
 export interface ExistingUserSheetProps {
@@ -31,14 +30,6 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
   testID,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-
-  useEffect(() => {
-    if (isVisible) {
-      markPushPrePromptPerformance('sheet.render.visible', {
-        variant: 'marketing_consent',
-      });
-    }
-  }, [isVisible]);
 
   const closeWithAction = useCallback((action?: () => void) => {
     const callback = () => action?.();
