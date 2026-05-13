@@ -219,8 +219,9 @@ const UnifiedTransactionsView = ({
           return false;
         }
 
-        const relatedChainIds = relatedChainIdsByTransactionId.get(tx.id) ?? [];
-
+        const relatedChainIds = relatedChainIdsByTransactionId.get(tx.id) ?? [
+          String(_chainId ?? '').toLowerCase(),
+        ];
         if (!relatedChainIds.some((id) => enabledEvmSet.has(id))) {
           return false;
         }
