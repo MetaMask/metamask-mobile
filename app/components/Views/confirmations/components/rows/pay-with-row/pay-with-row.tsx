@@ -40,8 +40,14 @@ import {
 } from '../../../ConfirmationView.testIds';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { type PaymentMethod } from '@metamask/ramps-controller';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
+
+interface PayWithRouteParams {
+  preferredPaymentToken?: SetPayTokenRequest;
+}
 
 export function PayWithRow() {
   const navigation = useNavigation();
@@ -53,9 +59,7 @@ export function PayWithRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
-  // Local dev override: set MM_DEV_PAY_WITH_BOTTOM_SHEET=true in `.js.env` to
-  // preview the redesigned picker. Routes to the existing PayWithModal.
-  // Remove once the first section of the redesign is complete.
+  const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
   const isPayWithBottomSheetEnabled =
     process.env.MM_DEV_PAY_WITH_BOTTOM_SHEET === 'true';
 
@@ -75,15 +79,19 @@ export function PayWithRow() {
         mm_pay_token_list_opened: true,
       },
     });
-    navigation.navigate(
-      isPayWithBottomSheetEnabled
-        ? Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET
-        : Routes.CONFIRMATION_PAY_WITH_MODAL,
-    );
+    if (isPayWithBottomSheetEnabled) {
+      navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
+        preferredPaymentToken,
+      });
+      return;
+    }
+
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [
     isDisabled,
     isPayWithBottomSheetEnabled,
     navigation,
+    preferredPaymentToken,
     setConfirmationMetric,
   ]);
 

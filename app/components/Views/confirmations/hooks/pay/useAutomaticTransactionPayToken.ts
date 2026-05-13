@@ -135,6 +135,8 @@ export function useAutomaticTransactionPayToken({
     ],
   );
 
+  const automaticToken = useMemo(() => selectBestToken(), [selectBestToken]);
+
   useEffect(() => {
     if (
       disable ||
@@ -144,8 +146,6 @@ export function useAutomaticTransactionPayToken({
     ) {
       return;
     }
-
-    const automaticToken = selectBestToken();
 
     if (!automaticToken) {
       log('No automatic pay token found');
@@ -161,10 +161,10 @@ export function useAutomaticTransactionPayToken({
 
     log('Automatically selected pay token', automaticToken);
   }, [
+    automaticToken,
     disable,
     payToken,
     requiredTokens,
-    selectBestToken,
     setPayToken,
     tokens,
     transactionId,
@@ -187,7 +187,6 @@ export function useAutomaticTransactionPayToken({
     }
     prevAccountKeyRef.current = accountKey;
 
-    const automaticToken = selectBestToken();
     if (automaticToken) {
       setPayToken({
         address: automaticToken.address,
@@ -197,12 +196,14 @@ export function useAutomaticTransactionPayToken({
     }
   }, [
     accountOverride,
+    automaticToken,
     disable,
     from,
     postQuoteTransactionType,
-    selectBestToken,
     setPayToken,
   ]);
+
+  return automaticToken;
 }
 
 function getBestToken({
