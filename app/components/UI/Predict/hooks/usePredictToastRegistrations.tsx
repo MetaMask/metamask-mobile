@@ -27,7 +27,11 @@ import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
-import { isPredictSheetProviderMounted } from '../contexts/PredictPreviewSheetContext';
+import {
+  getPredictLastBuyParams,
+  isPredictBuySheetVisible,
+  reopenPredictBuySheet,
+} from '../contexts/PredictPreviewSheetContext';
 
 const showPendingToast = ({
   showToast,
@@ -367,12 +371,35 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'failed') {
-          // When the BottomSheet flow is on AND the provider is mounted,
-          // the provider auto-reopens the buy sheet with an inline error
-          // banner so we suppress the toast to avoid duplicate UI.
-          if (bottomSheetEnabled && isPredictSheetProviderMounted()) {
+          // When the bet slip is currently visible (e.g. user reopened it
+          // manually), the inline order_failed banner inside the slip already
+          // surfaces the error, so suppress the toast to avoid duplicate UI.
+          if (bottomSheetEnabled && isPredictBuySheetVisible()) {
             return;
           }
+
+          // When the bottom-sheet flow is on and we have remembered params
+          // from a previous openBuySheet, surface a "Try again" link in the
+          // toast that reopens the bet slip with the same market context.
+          // The slip will render the inline order_failed banner because
+          // activeOrder.error is still set.
+          const lastBuyParams = bottomSheetEnabled
+            ? getPredictLastBuyParams()
+            : null;
+
+          if (lastBuyParams) {
+            showErrorToast({
+              showToast,
+              title: strings('predict.order.prediction_failed'),
+              description: strings('predict.order.order_failed_generic'),
+              retryLabel: strings('predict.order.try_again'),
+              onRetry: reopenPredictBuySheet,
+              backgroundColor: theme.colors.accent04.normal,
+              iconColor: theme.colors.error.default,
+            });
+            return;
+          }
+
           showErrorToast({
             showToast,
             title: strings('predict.order.prediction_failed'),
