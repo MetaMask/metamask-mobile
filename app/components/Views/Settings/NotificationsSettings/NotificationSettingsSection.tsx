@@ -22,6 +22,36 @@ import {
 import { AccountsList } from './AccountsList';
 import { strings } from '../../../../../locales/i18n';
 
+type NotificationSettingsStyles = ReturnType<typeof styleSheet>;
+
+interface SectionContentProps {
+  styles: NotificationSettingsStyles;
+}
+
+const WalletActivitySectionContent = ({ styles }: SectionContentProps) => (
+  <>
+    <View style={styles.line} />
+    <View style={styles.setting}>
+      <Text color={TextColor.TextDefault} variant={TextVariant.BodyMd}>
+        {strings('app_settings.notifications_opts.select_accounts_title')}
+      </Text>
+      <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
+        {strings('app_settings.notifications_opts.select_accounts_desc')}
+      </Text>
+    </View>
+    <AccountsList />
+  </>
+);
+
+const SECTION_CONTENT_BY_TYPE: Partial<
+  Record<
+    NotificationStoragePreferenceType,
+    React.ComponentType<SectionContentProps>
+  >
+> = {
+  walletActivity: WalletActivitySectionContent,
+};
+
 export interface NotificationSettingsSectionProps {
   navigation: NavigationProp<ParamListBase>;
   route: RouteProp<
@@ -30,7 +60,6 @@ export interface NotificationSettingsSectionProps {
         type: NotificationStoragePreferenceType;
         title: string;
         description: string;
-        showAccountsList?: boolean;
       };
     },
     'params'
@@ -43,7 +72,7 @@ const NotificationSettingsSection = ({
 }: NotificationSettingsSectionProps) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
-  const { type, title, description, showAccountsList } = route.params;
+  const { type, title, description } = route.params;
 
   const { preferences, updatePreference } = useNotificationStoragePreferences();
 
@@ -52,6 +81,7 @@ const NotificationSettingsSection = ({
   }
 
   const sectionPrefs = preferences[type];
+  const SectionContent = SECTION_CONTENT_BY_TYPE[type];
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -112,27 +142,7 @@ const NotificationSettingsSection = ({
           />
         </View>
 
-        {showAccountsList && (
-          <>
-            <View style={styles.line} />
-            <View style={styles.setting}>
-              <Text color={TextColor.TextDefault} variant={TextVariant.BodyMd}>
-                {strings(
-                  'app_settings.notifications_opts.select_accounts_title',
-                )}
-              </Text>
-              <Text
-                color={TextColor.TextAlternative}
-                variant={TextVariant.BodyMd}
-              >
-                {strings(
-                  'app_settings.notifications_opts.select_accounts_desc',
-                )}
-              </Text>
-            </View>
-            <AccountsList />
-          </>
-        )}
+        {SectionContent ? <SectionContent styles={styles} /> : null}
       </ScrollView>
     </SafeAreaView>
   );

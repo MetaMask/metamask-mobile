@@ -102,13 +102,11 @@ const NotificationsSettings = ({ navigation }: Props) => {
     type: NotificationStoragePreferenceType,
     title: string,
     description: string,
-    showAccountsList = false,
   ) => {
     navigation.navigate(Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION, {
       type,
       title,
       description,
-      showAccountsList,
     });
   };
 
@@ -138,7 +136,6 @@ const NotificationsSettings = ({ navigation }: Props) => {
                   strings(
                     'app_settings.notifications_opts.wallet_activity_desc',
                   ),
-                  true,
                 )
               }
             />
