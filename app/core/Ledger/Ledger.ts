@@ -218,8 +218,8 @@ export const getLedgerAccountsByOperation = async (
       e instanceof Error
         ? e.message
         : e && typeof e === 'object' && 'message' in e
-        ? String(e.message)
-        : '';
+          ? String(e.message)
+          : '';
 
     if (
       isDisconnectError(e) ||
