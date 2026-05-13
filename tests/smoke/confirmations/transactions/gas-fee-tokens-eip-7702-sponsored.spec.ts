@@ -38,8 +38,8 @@ const RECIPIENT_ADDRESS_MOCK = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 /** Match {@link gas-fee-tokens-eip-7702.spec.ts} and {@link transaction-relay-mocks} for proxy URL matching. */
 const LOCALHOST_SENTINEL_URL =
   device.getPlatform() === 'android'
-    ? 'https://tx-sentinel-127.0.0.1.api.cx.metamask.io/'
-    : 'https://tx-sentinel-localhost.api.cx.metamask.io/';
+    ? 'https://tx-sentinel-127.0.0.1.api.cx.metamask.io'
+    : 'https://tx-sentinel-localhost.api.cx.metamask.io';
 
 const SEND_ETH_TRANSACTION_MOCK = {
   data: '0x',
