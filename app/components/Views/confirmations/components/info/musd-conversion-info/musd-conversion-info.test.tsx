@@ -53,7 +53,7 @@ describe('MusdConversionInfo', () => {
       chainId: '0x1' as Hex,
     };
     mockUseParams.mockReturnValue(mockParams);
-    mockUseMusdConversionNavbar.mockReturnValue({ TooltipNode: null });
+    mockUseMusdConversionNavbar.mockReturnValue({ TooltipNode: <></> });
   });
 
   afterEach(() => {
