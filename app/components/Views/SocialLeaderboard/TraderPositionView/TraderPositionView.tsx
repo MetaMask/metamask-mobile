@@ -103,6 +103,7 @@ const TraderPositionView = () => {
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
+    playImpact(ImpactMoment.PullToRefresh);
     try {
       // Both hooks rethrow after logging; allSettled keeps one failure from
       // taking down the other refetch and prevents an unhandled rejection

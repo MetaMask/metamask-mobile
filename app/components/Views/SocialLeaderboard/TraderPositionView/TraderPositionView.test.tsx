@@ -574,6 +574,8 @@ describe('TraderPositionView', () => {
 
     expect(mockRefetchPosition).toHaveBeenCalledTimes(1);
     expect(mockRefreshProfile).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PullToRefresh);
   });
 
   it('refreshes profile on pull even when name and image came via nav params', async () => {
@@ -595,6 +597,8 @@ describe('TraderPositionView', () => {
 
     expect(mockRefetchPosition).toHaveBeenCalledTimes(1);
     expect(mockRefreshProfile).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PullToRefresh);
   });
 
   it('does not render the refresh control in the fallback state', () => {

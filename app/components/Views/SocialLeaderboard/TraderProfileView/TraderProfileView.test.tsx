@@ -5,6 +5,7 @@ import type {
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import Routes from '../../../../constants/navigation/Routes';
+import { ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
 import type { UseTraderProfileResult } from './hooks/useTraderProfile';
@@ -16,10 +17,12 @@ const mockNavigate = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockRefresh = jest.fn();
 const mockRefetchPositions = jest.fn();
+const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../../../util/haptics', () => ({
   ...jest.requireActual('../../../../util/haptics'),
+  playImpact: (...args: unknown[]) => mockPlayImpact(...args),
   playSelection: (...args: unknown[]) => mockPlaySelection(...args),
 }));
 
@@ -415,6 +418,8 @@ describe('TraderProfileView', () => {
 
       expect(mockRefresh).toHaveBeenCalledTimes(1);
       expect(mockRefetchPositions).toHaveBeenCalledTimes(1);
+      expect(mockPlayImpact).toHaveBeenCalledTimes(1);
+      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PullToRefresh);
     });
   });
 

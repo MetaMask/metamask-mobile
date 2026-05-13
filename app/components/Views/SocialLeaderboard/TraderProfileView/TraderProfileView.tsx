@@ -1,7 +1,11 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { RefreshControl, TouchableOpacity } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { playSelection } from '../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
 import {
   useNavigation,
   useRoute,
@@ -146,6 +150,7 @@ const TraderProfileView = () => {
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
+    playImpact(ImpactMoment.PullToRefresh);
     try {
       // Both hooks rethrow after logging; allSettled keeps one failure from
       // taking down the other refetch and prevents an unhandled rejection
