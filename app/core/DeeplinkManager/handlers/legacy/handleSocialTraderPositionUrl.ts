@@ -1,6 +1,7 @@
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import ReactQueryService from '../../../ReactQueryService';
 
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;
@@ -60,6 +61,24 @@ export const handleSocialTraderPositionUrl = ({
       );
       navigateToFallback();
       return;
+    }
+
+    // Defense-in-depth: invalidate cached positions for this trader so the
+    // profile view fetches fresh data the next time it mounts. Failures
+    // here must not block navigation.
+    try {
+      const fetchOptions = { addressOrId: traderId };
+      ReactQueryService.queryClient.invalidateQueries({
+        queryKey: ['SocialService:fetchOpenPositions', fetchOptions],
+      });
+      ReactQueryService.queryClient.invalidateQueries({
+        queryKey: ['SocialService:fetchClosedPositions', fetchOptions],
+      });
+    } catch (invalidationError) {
+      DevLogger.log(
+        '[handleSocialTraderPositionUrl] Failed to invalidate position queries:',
+        invalidationError,
+      );
     }
 
     NavigationService.navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
