@@ -41,3 +41,5 @@ export const BRIDGE_API_BASE_URL =
   process.env.BRIDGE_USE_DEV_APIS === 'true'
     ? BRIDGE_DEV_API_BASE_URL
     : BRIDGE_PROD_API_BASE_URL;
+
+export const BATCH_SELL_ENABLED = process.env.MM_BATCH_SELL_ENABLED === 'true';
