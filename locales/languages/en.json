@@ -7030,7 +7030,11 @@
     "confirm": "Confirm",
     "pay_with_bottom_sheet": {
       "title": "Pay with",
-      "last_used": "Last used"
+      "last_used": "Last used",
+      "crypto": "Crypto",
+      "available_balance": "{{balance}} available",
+      "other_assets": "Other assets",
+      "other_assets_description": "Select from your tokens"
     },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
@@ -7114,6 +7118,9 @@
       },
       "musd_conversion": {
         "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
+      },
+      "money_account_withdraw": {
+        "transaction_fee": "MetaMask will swap your mUSD for your desired token. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Fees"
