@@ -15,7 +15,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
+import {
+  useNotificationStoragePreferences,
+  type NotificationStoragePreferenceType,
+} from './hooks/useNotificationStoragePreferences';
 import { AccountsList } from './AccountsList';
 import { strings } from '../../../../../locales/i18n';
 
@@ -24,7 +27,7 @@ export interface NotificationSettingsSectionProps {
   route: RouteProp<
     {
       params: {
-        type: string;
+        type: NotificationStoragePreferenceType;
         title: string;
         description: string;
         showAccountsList?: boolean;
@@ -43,10 +46,12 @@ const NotificationSettingsSection = ({
   const { type, title, description, showAccountsList } = route.params;
 
   const { preferences, updatePreference } = useNotificationStoragePreferences();
-  const sectionPrefs = preferences[type] || {
-    pushNotificationsEnabled: false,
-    inAppNotificationsEnabled: false,
-  };
+
+  if (!preferences) {
+    return null;
+  }
+
+  const sectionPrefs = preferences[type];
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -66,7 +71,7 @@ const NotificationSettingsSection = ({
             {strings('app_settings.notifications_opts.push_recommended')}
           </Text>
           <Switch
-            value={sectionPrefs.pushNotificationsEnabled ?? false}
+            value={sectionPrefs.pushNotificationsEnabled}
             onChange={() =>
               updatePreference(
                 type,
@@ -89,7 +94,7 @@ const NotificationSettingsSection = ({
             {strings('app_settings.notifications_opts.in_app')}
           </Text>
           <Switch
-            value={sectionPrefs.inAppNotificationsEnabled ?? false}
+            value={sectionPrefs.inAppNotificationsEnabled}
             onChange={() =>
               updatePreference(
                 type,

@@ -18,7 +18,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useSwitchNotificationLoadingText } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { MainNotificationToggle } from './MainNotificationToggle';
 import styleSheet from './NotificationsSettings.styles';
-import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
+import {
+  useNotificationStoragePreferences,
+  type NotificationStoragePreferences,
+  type NotificationStoragePreferenceType,
+} from './hooks/useNotificationStoragePreferences';
 
 import {
   Box,
@@ -69,7 +73,10 @@ const NotificationRow = ({
   );
 };
 
-const getStatusText = (prefs: Record<string, boolean>) => {
+type NotificationPreferenceStatus =
+  NotificationStoragePreferences[NotificationStoragePreferenceType];
+
+const getStatusText = (prefs?: NotificationPreferenceStatus | null) => {
   const active = [];
   if (prefs?.pushNotificationsEnabled) {
     active.push('Push');
@@ -92,7 +99,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
   const { preferences } = useNotificationStoragePreferences();
 
   const navigateToSection = (
-    type: string,
+    type: NotificationStoragePreferenceType,
     title: string,
     description: string,
     showAccountsList = false,
@@ -120,7 +127,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
               title={strings(
                 'app_settings.notifications_opts.wallet_activity_title',
               )}
-              status={getStatusText(preferences.walletActivity)}
+              status={getStatusText(preferences?.walletActivity)}
               iconName={IconName.Clock}
               onPress={() =>
                 navigateToSection(
@@ -138,7 +145,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
 
             <NotificationRow
               title={strings('app_settings.notifications_opts.perps_title')}
-              status={getStatusText(preferences.perps)}
+              status={getStatusText(preferences?.perps)}
               iconName={IconName.Global}
               onPress={() =>
                 navigateToSection(
@@ -165,7 +172,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
 
             <NotificationRow
               title={strings('app_settings.notifications_opts.marketing_title')}
-              status={getStatusText(preferences.marketing)}
+              status={getStatusText(preferences?.marketing)}
               iconName={IconName.Campaign}
               onPress={() =>
                 navigateToSection(
