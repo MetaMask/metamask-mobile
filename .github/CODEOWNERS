@@ -148,6 +148,9 @@ app/components/UI/Bridge                                 @MetaMask/swaps-enginee
 app/core/Engine/controllers/bridge-controller            @MetaMask/swaps-engineers
 app/core/Engine/controllers/bridge-status-controller     @MetaMask/swaps-engineers
 
+# Notifications Team
+app/components/Nav/Main/StartupSurfaceCoordinator/             @MetaMask/notifications
+
 # Engagement Team
 **/*Braze*/ @MetaMask/engagement
 **/*Braze* @MetaMask/engagement

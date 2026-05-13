@@ -37,22 +37,36 @@ interface PushPrePromptEligibility {
   isNotificationFeatureFlagOn: boolean;
   isPushEnabled: boolean;
   isUnlocked: boolean;
+  marketingConsent: boolean | null;
   notificationsFlagEnabled: boolean;
   pendingSocialLoginMarketingConsentBackfill: string | null;
 }
 
-const isEligibleForPrePrompt = ({
+type EligibilityBlockReason =
+  | 'wallet_locked'
+  | 'basic_functionality_disabled'
+  | 'onboarding_incomplete'
+  | 'notifications_enabled_by_default_flag_disabled'
+  | 'notifications_feature_flag_disabled';
+
+const PUSH_STATUS_SOURCE = 'pre_prompt_eligibility';
+
+const getEligibilityBlockReason = ({
   completedOnboarding,
   isBasicFunctionalityEnabled,
   isNotificationFeatureFlagOn,
   isUnlocked,
   notificationsFlagEnabled,
-}: PushPrePromptEligibility): boolean =>
-  isUnlocked &&
-  isBasicFunctionalityEnabled &&
-  completedOnboarding &&
-  isNotificationFeatureFlagOn &&
-  notificationsFlagEnabled;
+}: PushPrePromptEligibility): EligibilityBlockReason | null => {
+  if (!isUnlocked) return 'wallet_locked';
+  if (!isBasicFunctionalityEnabled) return 'basic_functionality_disabled';
+  if (!completedOnboarding) return 'onboarding_incomplete';
+  if (!isNotificationFeatureFlagOn) {
+    return 'notifications_enabled_by_default_flag_disabled';
+  }
+  if (!notificationsFlagEnabled) return 'notifications_feature_flag_disabled';
+  return null;
+};
 
 const getResolutionKey = ({
   completedOnboarding,
@@ -61,6 +75,7 @@ const getResolutionKey = ({
   isNotificationFeatureFlagOn,
   isPushEnabled,
   isUnlocked,
+  marketingConsent,
   notificationsFlagEnabled,
   pendingSocialLoginMarketingConsentBackfill,
 }: PushPrePromptEligibility) =>
@@ -71,6 +86,7 @@ const getResolutionKey = ({
     `isNotificationFeatureFlagOn:${isNotificationFeatureFlagOn}`,
     `isPushEnabled:${isPushEnabled}`,
     `isUnlocked:${isUnlocked}`,
+    `marketingConsent:${marketingConsent ?? 'null'}`,
     `notificationsFlagEnabled:${notificationsFlagEnabled}`,
     `pendingSocialLoginMarketingConsentBackfill:${
       pendingSocialLoginMarketingConsentBackfill ?? 'null'
@@ -86,7 +102,7 @@ const getResolvingState = (key: string): PushPrePromptResolutionState => ({
 const resolvePrePromptVariant = async (
   eligibility: PushPrePromptEligibility,
 ): Promise<PushPrePromptVariant> => {
-  if (!isEligibleForPrePrompt(eligibility)) {
+  if (getEligibilityBlockReason(eligibility)) {
     return null;
   }
 
@@ -100,6 +116,7 @@ const resolvePrePromptVariant = async (
 
   const pushStatus = await resolvePushNotificationStatus({
     controllerIsPushEnabled: eligibility.isPushEnabled,
+    source: PUSH_STATUS_SOURCE,
   });
 
   if (!pushStatus.effectivePushEnabled) {
@@ -142,9 +159,10 @@ export function usePushPrePromptVariant(): {
     getIsNotificationEnabledByDefaultFeatureFlag,
   );
   const notificationsFlagEnabled = isNotificationsFeatureEnabled();
-  const hasMarketingConsent = useSelector(
-    (state: RootState) => state.security?.dataCollectionForMarketing === true,
+  const marketingConsent = useSelector(
+    (state: RootState) => state.security?.dataCollectionForMarketing ?? null,
   );
+  const hasMarketingConsent = marketingConsent === true;
   const pendingSocialLoginMarketingConsentBackfill = useSelector(
     selectPendingSocialLoginMarketingConsentBackfill,
   );
@@ -157,6 +175,7 @@ export function usePushPrePromptVariant(): {
       isNotificationFeatureFlagOn,
       isPushEnabled,
       isUnlocked,
+      marketingConsent,
       notificationsFlagEnabled,
       pendingSocialLoginMarketingConsentBackfill,
     }),
@@ -167,6 +186,7 @@ export function usePushPrePromptVariant(): {
       isNotificationFeatureFlagOn,
       isPushEnabled,
       isUnlocked,
+      marketingConsent,
       notificationsFlagEnabled,
       pendingSocialLoginMarketingConsentBackfill,
     ],

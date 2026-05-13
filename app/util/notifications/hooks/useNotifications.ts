@@ -110,10 +110,9 @@ export function useEnableNotifications(props = { nudgeEnablePush: true }) {
     assertIsFeatureEnabled();
     setError(null);
     await enableNotificationsHelper().catch((e) => setError(e));
-    await togglePushNotification(true).catch(() => {
-      /* Do Nothing */
-    });
+    const isPushEnabled = await togglePushNotification(true).catch(() => false);
     await updateNotificationSubscriptionExpiration();
+    return Boolean(isPushEnabled);
   }, [togglePushNotification]);
 
   const contiguousLoading = useContiguousLoading(loading, pushLoading);
