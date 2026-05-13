@@ -7,14 +7,16 @@ import renderWithProvider, {
   type ProviderValues,
 } from '../../app/util/test/renderWithProvider';
 
-const testQueryClient = new QueryClient({
-  defaultOptions: { queries: { retry: false } },
-});
+function createQueryClient() {
+  return new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+}
 
 function withQueryClient(Component: React.ComponentType): React.ComponentType {
   return function WrappedWithQueryClient(props) {
     return (
-      <QueryClientProvider client={testQueryClient}>
+      <QueryClientProvider client={createQueryClient()}>
         <Component {...props} />
       </QueryClientProvider>
     );
@@ -56,7 +58,7 @@ export function renderScreenWithRoutes(
     () => <Text testID={`route-${routeName}`}>{routeName}</Text>;
 
   const stackTree = (
-    <QueryClientProvider client={testQueryClient}>
+    <QueryClientProvider client={createQueryClient()}>
       <Stack.Navigator>
         <Stack.Screen
           name={options.name}
