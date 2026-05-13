@@ -12,7 +12,7 @@ import { ToastSelectorsIDs } from './ToastModal.testIds';
 
 // Mock safe area context
 describe('Toast', () => {
-  let toastRef: React.RefObject<ToastRef>;
+  let toastRef: React.RefObject<ToastRef | null>;
 
   beforeEach(() => {
     toastRef = createRef<ToastRef>();

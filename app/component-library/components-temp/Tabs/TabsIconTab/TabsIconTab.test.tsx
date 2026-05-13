@@ -4,6 +4,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies.
 import TabsIconTab from './TabsIconTab';
+import { TabIconAnimationContext } from './TabsIconAnimationContext';
 import { IconName } from '../../../components/Icons/Icon/Icon.types';
 
 describe('TabsIconTab', () => {
@@ -119,6 +120,41 @@ describe('TabsIconTab', () => {
           ),
         ).not.toThrow();
       });
+    });
+  });
+
+  describe('Icon collapse animation context', () => {
+    it('renders without throwing when iconCollapseProgress SharedValue is provided', () => {
+      const iconCollapseProgress = { value: 0 } as never;
+      expect(() =>
+        render(
+          <TabIconAnimationContext.Provider value={{ iconCollapseProgress }}>
+            <TabsIconTab {...defaultProps} testID="tab" />
+          </TabIconAnimationContext.Provider>,
+        ),
+      ).not.toThrow();
+    });
+
+    it('renders without throwing when no SharedValue is provided (icons full size)', () => {
+      expect(() =>
+        render(
+          <TabIconAnimationContext.Provider value={{}}>
+            <TabsIconTab {...defaultProps} testID="tab" />
+          </TabIconAnimationContext.Provider>,
+        ),
+      ).not.toThrow();
+    });
+
+    it('renders the label text regardless of collapse progress value', () => {
+      const fullyCollapsed = { value: 1 } as never;
+      const { getByText } = render(
+        <TabIconAnimationContext.Provider
+          value={{ iconCollapseProgress: fullyCollapsed }}
+        >
+          <TabsIconTab {...defaultProps} />
+        </TabIconAnimationContext.Provider>,
+      );
+      expect(getByText('Portfolio')).toBeOnTheScreen();
     });
   });
 });

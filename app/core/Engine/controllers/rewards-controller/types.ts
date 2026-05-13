@@ -17,6 +17,16 @@ export interface LoginResponseDto {
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipFeatureDto = {
+  enabled: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionFeaturesDto = {
+  vip: VipFeatureDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SubscriptionDto = {
   id: string;
   referralCode: string;
@@ -24,6 +34,107 @@ export type SubscriptionDto = {
     address: string;
     chainId: number;
   }[];
+  features: SubscriptionFeaturesDto;
+};
+
+export type VipStringKey = keyof VipLocalizedTextDto;
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipProgramDto = {
+  id: string;
+  name: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipPeriodDto = {
+  start: string;
+  end: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTierRefDto = {
+  id: string;
+  name: string;
+  tier: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipProgressDto = {
+  percent: number;
+  remainingSwapsUsd: number;
+  remainingPerpsUsd: number;
+  estimatedDaysToNextTier: number;
+  status: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipFeesDto = {
+  swapsBps: number;
+  perpsBps: number;
+  nextTierSwapsBps: number;
+  nextTierPerpsBps: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipVolumeDto = {
+  swapsUsd: number;
+  perpsUsd: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipPointsAllocationDto = {
+  earned: number;
+  max: number;
+  percent: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTierDto = {
+  id: string;
+  name: string;
+  tier: number;
+  swapsRequirementUsd: number;
+  perpsRequirementUsd: number;
+  swapsBps: number;
+  perpsBps: number;
+  status: string;
+};
+
+// Exact spec from the rewards API (see consensys-vertical-apps/va-mmcx-rewards
+// PR #546). The backend guarantees every key is populated, so the UI can rely
+// on these strings without a local i18n fallback.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipLocalizedTextDto = {
+  period: string;
+  progressToNextTier: string;
+  swapsFeeTitle: string;
+  perpsFeeTitle: string;
+  nextTierSwapsFeeDelta: string;
+  nextTierPerpsFeeDelta: string;
+  volumeTitle: string;
+  statusMessage: string;
+  pointsTitle: string;
+  pointsAllocationTitle: string;
+  pointsAllocationDescription: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipDashboardDto = {
+  program: VipProgramDto;
+  period: VipPeriodDto;
+  currentTier: VipTierRefDto;
+  nextTier: VipTierRefDto;
+  progress: VipProgressDto;
+  fees: VipFeesDto;
+  volume: VipVolumeDto;
+  pointsAllocation: VipPointsAllocationDto;
+  tiers: VipTierDto[];
+  localizedText: VipLocalizedTextDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipDashboardState = VipDashboardDto & {
+  lastFetched: number;
 };
 
 export interface MobileLoginDto {
@@ -725,7 +836,7 @@ export interface PerpsTradingCampaignLeaderboardEntry {
   referralCode: string;
   /** Signed USD PnL for the campaign window */
   pnl: number;
-  /** true when notional volume ≥ $25k AND margin deployed ≥ $1k */
+  /** true when notional volume ≥ $25k */
   qualified: boolean;
 }
 
@@ -749,8 +860,6 @@ export interface PerpsTradingCampaignLeaderboardPositionDto {
   pnl: number;
   /** Cumulative notional volume traded during the competition window (USD) */
   notionalVolume: number;
-  /** Cumulative initial margin deployed during the competition window (USD) */
-  marginDeployed: number;
   qualified: boolean;
   neighbors: PerpsTradingCampaignLeaderboardEntry[];
   computedAt: string;
@@ -783,7 +892,6 @@ export type PerpsTradingCampaignLeaderboardPositionFoundState = {
   rank: number;
   pnl: number;
   notionalVolume: number;
-  marginDeployed: number;
   qualified: boolean;
   neighbors: {
     rank: number;
@@ -1930,6 +2038,9 @@ export type RewardsControllerState = {
   };
   subscriptionBenefits: {
     [subscriptionId: string]: SubscriptionBenefitsState;
+  };
+  vipDashboard: {
+    [subscriptionId: string]: VipDashboardState;
   };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };

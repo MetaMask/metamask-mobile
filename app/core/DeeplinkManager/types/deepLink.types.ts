@@ -22,6 +22,7 @@ export interface DeeplinkUrlParams {
   originatorInfo?: string;
   request?: string;
   attributionId?: string;
+  attribution_id?: string;
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
@@ -138,6 +139,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.CARD_HOME,
   ACTIONS.SHIELD,
   ACTIONS.NFT,
+  ACTIONS.ON_RAMP,
 ] as const satisfies readonly ACTIONS[];
 
 export type SupportedAction = (typeof SUPPORTED_ACTIONS)[number];
