@@ -46,8 +46,7 @@ interface IConnectQRHardwareProps {
   route?: any;
 }
 
-const INSTRUCTION_SAFE_AREA_EDGES: Edge[] = ['top', 'left', 'right'];
-const ACCOUNT_SELECTOR_SAFE_AREA_EDGES: Edge[] = ['top', 'left', 'right'];
+const SAFE_AREA_EDGES: Edge[] = ['top', 'left', 'right'];
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
@@ -111,10 +110,7 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
   }, []);
 
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
-  const safeAreaEdges =
-    accounts.length <= 0
-      ? INSTRUCTION_SAFE_AREA_EDGES
-      : ACCOUNT_SELECTOR_SAFE_AREA_EDGES;
+  const safeAreaEdges = SAFE_AREA_EDGES;
 
   useEffect(() => {
     setTargetWalletType(HardwareWalletType.Qr);
