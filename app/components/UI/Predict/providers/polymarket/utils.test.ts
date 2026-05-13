@@ -687,4 +687,28 @@ describe('polymarket utils', () => {
       }),
     ).resolves.toBe(false);
   });
+
+  it('preserves parent market id when parsing Polymarket events', () => {
+    const event: PolymarketApiEvent = {
+      id: 'child-event',
+      slug: 'child-event',
+      title: 'Child Event',
+      description: 'Child event description',
+      icon: '',
+      closed: false,
+      series: [],
+      markets: [],
+      tags: [],
+      liquidity: 0,
+      volume: 0,
+      parentEventId: 'parent-market',
+    };
+
+    expect(parsePolymarketEvents([event], 'trending')).toEqual([
+      expect.objectContaining({
+        id: 'child-event',
+        parentMarketId: 'parent-market',
+      }),
+    ]);
+  });
 });
