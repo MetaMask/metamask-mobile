@@ -180,6 +180,70 @@ const ERC20_TRANSFER_INTERFACE = new Interface([
   'function transfer(address to, uint256 value)',
 ]);
 
+type ChainlinkCandleInterval = '1m' | '5m' | '15m' | '1h';
+type ChainlinkCandleLimit = 15 | 30 | 60;
+
+interface ChainlinkCandle {
+  time?: number;
+  close?: number;
+}
+
+interface ChainlinkCandlesResponse {
+  candles?: ChainlinkCandle[];
+}
+
+const DEFAULT_CHAINLINK_CANDLE_CONFIG: {
+  interval: ChainlinkCandleInterval;
+  limit: ChainlinkCandleLimit;
+} = {
+  interval: '1m',
+  limit: 60,
+};
+
+const CHAINLINK_CANDLE_CONFIG_BY_VARIANT: Record<
+  string,
+  { interval: ChainlinkCandleInterval; limit: ChainlinkCandleLimit }
+> = {
+  fiveminute: { interval: '1m', limit: 15 },
+  fifteen: { interval: '1m', limit: 30 },
+  hourly: { interval: '1m', limit: 60 },
+  fourhour: { interval: '5m', limit: 60 },
+  daily: { interval: '1h', limit: 30 },
+};
+
+const toUnixSeconds = (timestamp?: string): number | undefined => {
+  const trimmedTimestamp = timestamp?.trim();
+  if (!trimmedTimestamp) {
+    return undefined;
+  }
+
+  const numericTimestamp = Number(trimmedTimestamp);
+  if (Number.isFinite(numericTimestamp)) {
+    return numericTimestamp > 9999999999
+      ? Math.floor(numericTimestamp / 1000)
+      : Math.floor(numericTimestamp);
+  }
+
+  const timeMs = new Date(trimmedTimestamp).getTime();
+  if (!Number.isFinite(timeMs)) {
+    return undefined;
+  }
+
+  return Math.floor(timeMs / 1000);
+};
+
+const isWithinWindow = ({
+  timestamp,
+  startSeconds,
+  endSeconds,
+}: {
+  timestamp: number;
+  startSeconds?: number;
+  endSeconds?: number;
+}) =>
+  (startSeconds === undefined || timestamp >= startSeconds) &&
+  (endSeconds === undefined || timestamp <= endSeconds);
+
 export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
   readonly name = 'Polymarket';
@@ -1056,23 +1120,23 @@ export class PolymarketProvider implements PredictProvider {
     const { symbol, eventStartTime, variant, endDate } = params;
 
     try {
-      if (!symbol) {
+      const normalizedSymbol = symbol.trim().toUpperCase();
+      if (!normalizedSymbol) {
         throw new Error('symbol parameter is required');
       }
 
-      const { CRYPTO_PRICE_HISTORY_ENDPOINT } = getPolymarketEndpoints();
+      const { CHAINLINK_CANDLES_ENDPOINT } = getPolymarketEndpoints();
+      const { interval, limit } =
+        CHAINLINK_CANDLE_CONFIG_BY_VARIANT[variant] ??
+        DEFAULT_CHAINLINK_CANDLE_CONFIG;
       const searchParams = new URLSearchParams({
-        symbol,
-        eventStartTime,
-        variant,
+        symbol: normalizedSymbol,
+        interval,
+        limit: String(limit),
       });
 
-      if (endDate) {
-        searchParams.set('endDate', endDate);
-      }
-
       const response = await fetch(
-        `${CRYPTO_PRICE_HISTORY_ENDPOINT}?${searchParams.toString()}`,
+        `${CHAINLINK_CANDLES_ENDPOINT}?${searchParams.toString()}`,
         { method: 'GET' },
       );
 
@@ -1080,28 +1144,37 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to get crypto price history');
       }
 
-      const data = (await response.json()) as {
-        timestamp?: number;
-        value?: number;
-      }[];
+      const data = (await response.json()) as ChainlinkCandlesResponse;
 
-      if (!Array.isArray(data)) {
+      if (!Array.isArray(data?.candles)) {
         return [];
       }
 
-      return data
+      const startSeconds = toUnixSeconds(eventStartTime);
+      const endSeconds = toUnixSeconds(endDate);
+
+      return data.candles
         .filter(
-          (entry): entry is { timestamp: number; value: number } =>
-            typeof entry?.timestamp === 'number' &&
-            typeof entry?.value === 'number',
+          (entry): entry is { time: number; close: number } =>
+            typeof entry?.time === 'number' &&
+            Number.isFinite(entry.time) &&
+            typeof entry?.close === 'number' &&
+            Number.isFinite(entry.close),
+        )
+        .filter((entry) =>
+          isWithinWindow({
+            timestamp: entry.time,
+            startSeconds,
+            endSeconds,
+          }),
         )
         .map((entry) => ({
-          timestamp: entry.timestamp,
-          value: entry.value,
+          timestamp: entry.time,
+          value: entry.close,
         }));
     } catch (error) {
       DevLogger.log(
-        'Error getting crypto price history via Polymarket API:',
+        'Error getting crypto price history via Polymarket Chainlink candles API:',
         error,
       );
 

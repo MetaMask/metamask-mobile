@@ -182,7 +182,6 @@ export const useCryptoUpDownChartData = (
 
   const historyEndDate = isLive ? undefined : market.endDate;
 
-  // TODO: Explore alternate price history sources when Polymarket's Binance-backed history endpoint is unavailable.
   const historicalQuery = useQuery({
     ...predictQueries.cryptoPriceHistory.options({
       symbol: symbol ?? '',

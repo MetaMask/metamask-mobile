@@ -1,6 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image, Pressable } from 'react-native';
-import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
+import Svg, {
+  Circle,
+  Defs,
+  LinearGradient,
+  Line as SvgLine,
+  Stop,
+} from 'react-native-svg';
 import { curveCatmullRom } from 'd3-shape';
 import {
   Box,
@@ -19,15 +25,15 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { useQuery } from '@tanstack/react-query';
 import { AreaChart, LineChart } from 'react-native-svg-charts';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
+import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { usePredictSeries } from '../../hooks/usePredictSeries';
-import { predictQueries } from '../../queries';
 import {
   OPEN_PREDICT_OUTCOME_STATUS,
   PredictMarketStatus,
@@ -41,8 +47,8 @@ import type {
   PredictNavigationParamList,
 } from '../../types/navigation';
 import {
-  getCryptoSymbol,
   getEventStartTime,
+  getCryptoSymbol,
   getVariant,
   RECURRENCE_TO_DURATION_SECS,
 } from '../../utils/cryptoUpDown';
@@ -59,8 +65,13 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 const DEFAULT_DURATION_MS = 5 * 60 * 1000;
 const MARKET_WINDOW_LOOKBACK = 3;
 const MARKET_WINDOW_LOOKAHEAD = 10;
-const SPARKLINE_POINT_LIMIT = 24;
+const SPARKLINE_POINT_LIMIT = 48;
 const SPARKLINE_HEIGHT = 126;
+const SPARKLINE_RANGE_PADDING_RATIO = 0.12;
+const SPARKLINE_CONTENT_INSET = { top: 6, bottom: 0, left: 0, right: 0 };
+const TARGET_LABEL_OFFSET = 12;
+const TARGET_LABEL_MIN_TOP = 12;
+const TARGET_LABEL_MAX_TOP = 68;
 const PROGRESS_RING_SIZE = 54;
 const PROGRESS_RING_STROKE_WIDTH = 4;
 const PROGRESS_RING_RADIUS =
@@ -133,6 +144,9 @@ const formatCents = (price?: number) => {
   return `${Math.round(price * 100)}¢`;
 };
 
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(Math.max(value, min), max);
+
 const formatCountdown = (endDate?: string, nowMs = Date.now()) => {
   if (!endDate) {
     return '--:--';
@@ -189,13 +203,97 @@ const resolveSelectedMarket = (
   );
 };
 
-const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
-  const tw = useTailwind();
+const getSparklineDisplayData = (data: number[]) =>
+  data.length >= 2 ? data : FALLBACK_SPARKLINE_DATA;
+
+const getSparklineRange = (data: number[], targetPrice?: number) => {
   const displayData = data.length >= 2 ? data : FALLBACK_SPARKLINE_DATA;
-  const minValue = Math.min(...displayData);
-  const maxValue = Math.max(...displayData);
-  const yMin = minValue === maxValue ? minValue - 1 : minValue;
-  const yMax = minValue === maxValue ? maxValue + 1 : maxValue;
+  const values =
+    typeof targetPrice === 'number' && Number.isFinite(targetPrice)
+      ? [...displayData, targetPrice]
+      : displayData;
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  const valueRange = maxValue - minValue;
+  const rangePadding =
+    valueRange === 0 ? 1 : valueRange * SPARKLINE_RANGE_PADDING_RATIO;
+
+  return {
+    yMin: minValue - rangePadding,
+    yMax: maxValue + rangePadding,
+  };
+};
+
+const getTargetLineTop = ({
+  targetPrice,
+  yMin,
+  yMax,
+}: {
+  targetPrice?: number;
+  yMin: number;
+  yMax: number;
+}) => {
+  if (
+    typeof targetPrice !== 'number' ||
+    !Number.isFinite(targetPrice) ||
+    yMax === yMin
+  ) {
+    return 43;
+  }
+
+  const drawableHeight =
+    SPARKLINE_HEIGHT -
+    SPARKLINE_CONTENT_INSET.top -
+    SPARKLINE_CONTENT_INSET.bottom;
+
+  return (
+    SPARKLINE_CONTENT_INSET.top +
+    ((yMax - targetPrice) / (yMax - yMin)) * drawableHeight
+  );
+};
+
+const TargetLine = ({
+  targetPrice,
+  color,
+  y,
+}: {
+  targetPrice?: number;
+  color: string;
+  y?: (value: number) => number;
+}) => {
+  if (
+    typeof targetPrice !== 'number' ||
+    !Number.isFinite(targetPrice) ||
+    typeof y !== 'function'
+  ) {
+    return null;
+  }
+
+  return (
+    <SvgLine
+      x1="56%"
+      x2="82%"
+      y1={y(targetPrice)}
+      y2={y(targetPrice)}
+      stroke={color}
+      strokeOpacity={0.7}
+      strokeWidth={1}
+    />
+  );
+};
+
+const Sparkline = ({
+  data,
+  color,
+  targetPrice,
+}: {
+  data: number[];
+  color: string;
+  targetPrice?: number;
+}) => {
+  const tw = useTailwind();
+  const displayData = getSparklineDisplayData(data);
+  const { yMin, yMax } = getSparklineRange(data, targetPrice);
 
   return (
     <Box
@@ -206,7 +304,7 @@ const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
         style={tw.style(`h-[${SPARKLINE_HEIGHT}px] w-full`)}
         data={displayData}
         svg={{ fill: 'url(#cryptoFeedSparklineGradient)' }}
-        contentInset={{ top: 8, bottom: 0, left: 0, right: 0 }}
+        contentInset={SPARKLINE_CONTENT_INSET}
         yMin={yMin}
         yMax={yMax}
         numberOfTicks={2}
@@ -220,7 +318,9 @@ const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
             x2="0"
             y2="1"
           >
-            <Stop offset="0" stopColor={color} stopOpacity={0.45} />
+            <Stop offset="0" stopColor={color} stopOpacity={0.42} />
+            <Stop offset="0.42" stopColor={color} stopOpacity={0.22} />
+            <Stop offset="0.82" stopColor={color} stopOpacity={0.04} />
             <Stop offset="1" stopColor={color} stopOpacity={0} />
           </LinearGradient>
         </Defs>
@@ -229,12 +329,14 @@ const Sparkline = ({ data, color }: { data: number[]; color: string }) => {
         style={tw.style(`absolute inset-0 h-[${SPARKLINE_HEIGHT}px] w-full`)}
         data={displayData}
         svg={{ stroke: color, strokeWidth: 3 }}
-        contentInset={{ top: 8, bottom: 0, left: 0, right: 0 }}
+        contentInset={SPARKLINE_CONTENT_INSET}
         yMin={yMin}
         yMax={yMax}
         numberOfTicks={2}
         curve={SPARKLINE_CURVE}
-      />
+      >
+        <TargetLine targetPrice={targetPrice} color={color} />
+      </LineChart>
     </Box>
   );
 };
@@ -243,10 +345,12 @@ const ProgressLogo = ({
   imageUrl,
   progress,
   color,
+  trackColor,
 }: {
   imageUrl?: string;
   progress: number;
   color: string;
+  trackColor: string;
 }) => {
   const tw = useTailwind();
   const strokeDashoffset = PROGRESS_RING_CIRCUMFERENCE * (1 - progress);
@@ -263,8 +367,8 @@ const ProgressLogo = ({
             cx={PROGRESS_RING_SIZE / 2}
             cy={PROGRESS_RING_SIZE / 2}
             r={PROGRESS_RING_RADIUS}
-            stroke={color}
-            strokeOpacity={0.25}
+            stroke={trackColor}
+            strokeOpacity={0.7}
             strokeWidth={PROGRESS_RING_STROKE_WIDTH}
             fill="transparent"
           />
@@ -418,30 +522,56 @@ const PredictCryptoUpDownMarketCard: React.FC<
   const symbol = getCryptoSymbol(selectedMarket);
   const accentColor =
     CRYPTO_ACCENT_BY_SYMBOL[symbol ?? ''] ?? CRYPTO_ACCENT_DEFAULT;
-  const eventStartTime = getEventStartTime(
+  const targetPriceEventStartTime = getEventStartTime(
     selectedMarket.endDate,
     selectedMarket.series.recurrence,
   );
-  const variant = getVariant(selectedMarket.series.recurrence);
-  const historyQuery = useQuery({
-    ...predictQueries.cryptoPriceHistory.options({
-      symbol: symbol ?? '',
-      eventStartTime: eventStartTime ?? '',
-      variant,
-      endDate: selectedMarket.endDate,
-    }),
-    enabled: Boolean(symbol && eventStartTime),
-    staleTime: 10_000,
+  const { data: targetPrice } = useCryptoTargetPrice({
+    eventId: selectedMarket.id,
+    symbol: symbol ?? '',
+    eventStartTime: targetPriceEventStartTime ?? '',
+    variant: getVariant(selectedMarket.series.recurrence),
+    endDate: selectedMarket.endDate ?? '',
+    enabled:
+      Boolean(symbol) &&
+      Boolean(targetPriceEventStartTime) &&
+      Boolean(selectedMarket.endDate),
   });
+  const validatedTargetPrice =
+    typeof targetPrice === 'number' && targetPrice > 0
+      ? targetPrice
+      : undefined;
+  const chartData = useCryptoUpDownChartData(
+    selectedMarket,
+    undefined,
+    validatedTargetPrice,
+  );
   const sparklineData = useMemo(
     () =>
-      (historyQuery.data ?? [])
+      chartData.data
         .slice(-SPARKLINE_POINT_LIMIT)
         .map((point) => point.value)
         .filter((value) => Number.isFinite(value)),
-    [historyQuery.data],
+    [chartData.data],
   );
-  const latestPrice = historyQuery.data?.at(-1)?.value;
+  const latestPrice =
+    chartData.data.at(-1)?.value ??
+    (chartData.value > 0 ? chartData.value : undefined);
+  const targetLineTop = getTargetLineTop({
+    targetPrice: validatedTargetPrice,
+    ...getSparklineRange(sparklineData, validatedTargetPrice),
+  });
+  const targetLabelTop = clamp(
+    targetLineTop - TARGET_LABEL_OFFSET,
+    TARGET_LABEL_MIN_TOP,
+    TARGET_LABEL_MAX_TOP,
+  );
+  const targetDirectionIcon =
+    typeof latestPrice === 'number' &&
+    typeof validatedTargetPrice === 'number' &&
+    latestPrice > validatedTargetPrice
+      ? IconName.ArrowDown
+      : IconName.ArrowUp;
   const countdown = formatCountdown(selectedMarket.endDate, nowMs);
   const progressRemaining = getProgressRemaining(
     selectedMarket.endDate,
@@ -450,9 +580,9 @@ const PredictCryptoUpDownMarketCard: React.FC<
   );
   const cardTitle = selectedMarket.series.title || selectedMarket.title;
   const imageUrl = selectedMarket.image || market.image;
-  const displayPrice =
-    typeof latestPrice === 'number'
-      ? formatPrice(latestPrice, { maximumDecimals: 0 })
+  const displayTargetPrice =
+    typeof validatedTargetPrice === 'number'
+      ? formatPrice(validatedTargetPrice, { maximumDecimals: 0 })
       : undefined;
 
   const handleCardPress = useCallback(() => {
@@ -520,39 +650,59 @@ const PredictCryptoUpDownMarketCard: React.FC<
         style={tw.style('absolute inset-0')}
       >
         <Box twClassName="absolute left-[-2px] right-[-2px] top-0 opacity-100">
-          <Sparkline data={sparklineData} color={accentColor} />
+          <Sparkline
+            data={sparklineData}
+            color={accentColor}
+            targetPrice={validatedTargetPrice}
+          />
         </Box>
-        <Box twClassName="absolute left-0 right-[82px] top-[43px] h-[1px] bg-alternative opacity-45" />
         <Box
-          twClassName="absolute right-2 top-[31px] rounded-md bg-section px-2 py-0"
-          style={tw.style({ backgroundColor: colors.background.section })}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="absolute right-2 rounded-md bg-section px-2 py-0"
+          style={tw.style(
+            { top: targetLabelTop },
+            { backgroundColor: colors.background.section },
+          )}
         >
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
           >
-            Target⌃
+            Target
           </Text>
+          <Icon
+            name={targetDirectionIcon}
+            size={IconSize.Xs}
+            color={IconColor.IconAlternative}
+            style={tw.style('ml-1')}
+          />
         </Box>
-        <Box
-          twClassName="absolute right-2 top-[61px] rounded bg-section px-1 py-0.5"
-          style={tw.style({ backgroundColor: colors.background.section })}
-        >
-          <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Bold}
-            style={tw.style({ color: accentColor })}
+        {displayTargetPrice ? (
+          <Box
+            twClassName="absolute right-2 rounded bg-section px-1 py-0.5"
+            style={tw.style(
+              { top: targetLabelTop + 30 },
+              { backgroundColor: colors.background.section },
+            )}
           >
-            {displayPrice}
-          </Text>
-        </Box>
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Bold}
+              style={tw.style({ color: accentColor })}
+            >
+              {displayTargetPrice}
+            </Text>
+          </Box>
+        ) : null}
 
         <Box twClassName="absolute left-0 right-0 top-[112px] items-center px-4">
           <ProgressLogo
             imageUrl={imageUrl}
             progress={progressRemaining}
             color={accentColor}
+            trackColor={colors.border.muted}
           />
         </Box>
 
@@ -629,7 +779,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
         <Icon
           name={IconName.Refresh}
           size={IconSize.Md}
-          color={IconColor.Alternative}
+          color={IconColor.IconAlternative}
         />
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           Resets every {Math.round(durationMs / 60_000)} min

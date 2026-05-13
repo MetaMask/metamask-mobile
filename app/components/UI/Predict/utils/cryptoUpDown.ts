@@ -26,7 +26,7 @@ export function isCryptoUpDown(
 }
 
 /**
- * Map of Polymarket tag slugs to crypto trading symbols used by the price-history API.
+ * Map of Polymarket tag slugs to crypto trading symbols used by crypto price history sources.
  */
 const CRYPTO_TAG_TO_SYMBOL: Record<string, string> = {
   bitcoin: 'BTC',
@@ -65,7 +65,7 @@ export function getCryptoSymbol(market: PredictMarket): string | undefined {
 }
 
 /**
- * Map of series recurrence values to Polymarket crypto price-history API variant values.
+ * Map of series recurrence values to Polymarket crypto price history variant values.
  */
 const RECURRENCE_TO_VARIANT: Record<string, string> = {
   '5m': 'fiveminute',
@@ -76,7 +76,7 @@ const RECURRENCE_TO_VARIANT: Record<string, string> = {
 };
 
 /**
- * Converts a series recurrence (e.g., '5m') to the Polymarket price-history API variant.
+ * Converts a series recurrence (e.g., '5m') to the Polymarket price history variant.
  */
 export function getVariant(recurrence: string): string {
   return RECURRENCE_TO_VARIANT[recurrence] ?? 'hourly';

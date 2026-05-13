@@ -14,7 +14,8 @@ import {
 import PredictCryptoUpDownMarketCard from './PredictCryptoUpDownMarketCard';
 import { usePredictSeries } from '../../hooks/usePredictSeries';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import { useQuery } from '@tanstack/react-query';
+import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
+import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -24,13 +25,16 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('@tanstack/react-query', () => ({
-  ...jest.requireActual('@tanstack/react-query'),
-  useQuery: jest.fn(),
-}));
-
 jest.mock('../../hooks/usePredictSeries', () => ({
   usePredictSeries: jest.fn(),
+}));
+
+jest.mock('../../hooks/useCryptoUpDownChartData', () => ({
+  useCryptoUpDownChartData: jest.fn(),
+}));
+
+jest.mock('../../hooks/useCryptoTargetPrice', () => ({
+  useCryptoTargetPrice: jest.fn(),
 }));
 
 jest.mock('../../hooks/useLiveMarketPrices', () => ({
@@ -134,8 +138,8 @@ const renderCard = (market = createMarket()) =>
 describe('PredictCryptoUpDownMarketCard', () => {
   const mockUsePredictSeries = usePredictSeries as jest.Mock;
   const mockUseLiveMarketPrices = useLiveMarketPrices as jest.Mock;
-  // eslint-disable-next-line @typescript-eslint/no-deprecated
-  const mockUseQuery = useQuery as jest.Mock;
+  const mockUseCryptoUpDownChartData = useCryptoUpDownChartData as jest.Mock;
+  const mockUseCryptoTargetPrice = useCryptoTargetPrice as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -157,11 +161,18 @@ describe('PredictCryptoUpDownMarketCard', () => {
           ? { tokenId, price: 0.4, bestBid: 0.39, bestAsk: 0.4 }
           : { tokenId, price: 0.6, bestBid: 0.59, bestAsk: 0.6 },
     });
-    mockUseQuery.mockReturnValue({
+    mockUseCryptoUpDownChartData.mockReturnValue({
       data: [
         { time: 1, value: 69000 },
         { time: 2, value: 69198 },
       ],
+      value: 69198,
+      loading: false,
+      isLive: true,
+      window: 300,
+    });
+    mockUseCryptoTargetPrice.mockReturnValue({
+      data: 69000,
       isFetching: false,
     });
   });
@@ -263,9 +274,12 @@ describe('PredictCryptoUpDownMarketCard', () => {
   });
 
   it('renders a fallback sparkline when price history is missing', () => {
-    mockUseQuery.mockReturnValue({
+    mockUseCryptoUpDownChartData.mockReturnValue({
       data: [],
-      isFetching: false,
+      value: 0,
+      loading: true,
+      isLive: true,
+      window: 300,
     });
 
     renderCard();
