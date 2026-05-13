@@ -8,8 +8,6 @@ on:
       - opened
       - reopened
       - synchronize
-    branches-ignore:
-      - stable
   merge_group:
   schedule:
     # Run the full suite "overnight," once every hour from 2:00am UTC until 6:00am UTC.
