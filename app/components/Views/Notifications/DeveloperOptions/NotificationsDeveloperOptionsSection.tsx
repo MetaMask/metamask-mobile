@@ -9,16 +9,14 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
-import styleSheet from './DeveloperOptions.styles';
+import styleSheet from './NotificationsDeveloperOptionsSection.styles';
 import { setDataCollectionForMarketing } from '../../../../actions/security';
 import { resetPushPrePromptShown } from '../../../../util/notifications/constants/notification-storage-keys';
 
 export default function NotificationsDeveloperOptionsSection() {
   const dispatch = useDispatch();
-  const theme = useTheme();
-  const { styles } = useStyles(styleSheet, { theme });
+  const { styles } = useStyles(styleSheet);
 
   const onResetPrompt = useCallback(async () => {
     await resetPushPrePromptShown();
