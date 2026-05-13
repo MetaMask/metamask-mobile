@@ -2546,13 +2546,6 @@ export class HyperLiquidProvider implements PerpsProvider {
     const globalCached = PerpsSigningCache.getBuilderFee(network, userAddress);
     if (globalCached?.attempted) {
       this.#deps.debugLogger.log(
-        `[TAT-3040] BUG_MARKER: global cache returns early on attempted=${ 
-          globalCached.attempted 
-          } success=${ 
-          globalCached.success 
-          } — failed approvals never retried`,
-      );
-      this.#deps.debugLogger.log(
         '[ensureBuilderFeeApproval] Using global cache (prevents QR popup spam)',
         { network, success: globalCached.success },
       );
