@@ -4,7 +4,6 @@ import {
   Box,
   Text,
   TextVariant,
-  AvatarToken,
   FontWeight,
   TextColor,
 } from '@metamask/design-system-react-native';
