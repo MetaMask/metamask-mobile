@@ -67,6 +67,16 @@ const attributionSlice = createSlice({
       if (!hasAny) {
         return;
       }
+      // Expire stale record before the dedup check so that the same campaign
+      // arriving after the TTL restarts the attribution window instead of
+      // keeping an indefinitely stale capturedAt.
+      if (
+        state.attribution !== null &&
+        Date.now() - state.attribution.capturedAt > ATTRIBUTION_DEFAULT_TTL_MS
+      ) {
+        state.attribution = null;
+      }
+
       if (
         state.attribution !== null &&
         savePayloadMatchesExistingRecord(state.attribution, p)

@@ -37,28 +37,6 @@ describe('WatchAssetApproval', () => {
     jest.clearAllMocks();
   });
 
-  it('renders', () => {
-    mockApprovalRequest({
-      type: ApprovalTypes.WATCH_ASSET,
-      requestData: {
-        asset: {
-          address: '0x0000000000000000000000000000000000000001',
-          symbol: 'TEST',
-          decimals: 18,
-        },
-        interactingAddress: '0x0000000000000000000000000000000000000002',
-      },
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
-
-    const { toJSON } = renderWithProvider(<WatchAssetApproval />, {
-      state: { engine: { backgroundState } },
-    });
-
-    expect(toJSON()).not.toBeNull();
-  });
-
   it('returns null if no request data', () => {
     mockApprovalRequest({
       type: ApprovalTypes.WATCH_ASSET,

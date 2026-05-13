@@ -8,9 +8,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   return { ...actual };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 jest.mock('../../../AssetOverview/Balance/Balance', () => ({
   NetworkBadgeSource: jest.fn(() => ({ uri: 'https://mock.icon' })),
@@ -104,6 +106,18 @@ describe('OndoActivityRow', () => {
     expect(getByText('—')).toBeDefined();
   });
 
+  it('renders rebalance entry USD without a plus sign for positive amounts', () => {
+    const { getByText } = render(
+      <OndoActivityRow
+        entry={createEntry({ type: 'REBALANCE', usdAmount: '5000.000000' })}
+      />,
+    );
+
+    expect(getByText('Rebalance')).toBeDefined();
+    // formatUsd (rebalance) has no '+'; deposit/withdraw still use mocked formatSignedUsd
+    expect(getByText(/^\$5,000/)).toBeDefined();
+  });
+
   it('renders external outflow entry with shortened destAddress', () => {
     const { getByText } = render(
       <OndoActivityRow
@@ -123,7 +137,7 @@ describe('OndoActivityRow', () => {
   it('renders token symbols in detail line', () => {
     const { getByText } = render(<OndoActivityRow entry={createEntry()} />);
 
-    expect(getByText('USDC → AAPLon')).toBeDefined();
+    expect(getByText('USDC → AAPLON')).toBeDefined();
   });
 
   it('renders only source token when destToken is null', () => {

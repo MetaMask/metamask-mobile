@@ -2,6 +2,8 @@ import {
   Messenger,
   MessengerActions,
   MessengerEvents,
+  type ActionConstraint,
+  type EventConstraint,
 } from '@metamask/messenger';
 
 import {
@@ -57,6 +59,7 @@ import {
   RewardsDataServiceOptInToCampaignAction,
   RewardsDataServiceGetCampaignParticipantStatusAction,
   RewardsDataServiceGetBenefitsAction,
+  RewardsDataServiceGetVIPDashboardAction,
   RewardsDataServicePostBenefitImpressionAction,
   RewardsDataServiceGetClientVersionRequirementsAction,
   RewardsDataServiceGetOndoCampaignLeaderboardAction,
@@ -66,6 +69,10 @@ import {
   RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction,
   RewardsDataServiceGetOndoCampaignDepositsAction,
   RewardsDataServiceGetOndoCampaignParticipantOutcomeAction,
+  RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction,
+  RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction,
+  RewardsDataServiceGetPerpsTradingCampaignVolumeAction,
+  RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -118,7 +125,12 @@ type AllowedActions =
   | RewardsDataServiceGetOndoCampaignActivityAction
   | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
   | RewardsDataServiceGetOndoCampaignDepositsAction
-  | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction;
+  | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction
+  | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
+  | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
+  | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
+  | RewardsDataServiceGetVIPDashboardAction
+  | RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -144,8 +156,21 @@ export function getRewardsControllerMessenger(
     parent: rootMessenger,
   });
 
+  // Widen `messenger` to a generic `Messenger<...>` for the delegate call only.
+  // `delegate`'s constraint is `DelegatedActions extends (MessengerActions<Delegatee> & Action)['type'][]`,
+  // which performs an intersection between the delegatee's action union and the
+  // root messenger's action union. With ~46 actions on each side, this hits
+  // TypeScript's union-type-complexity ceiling (TS2590). Erasing the delegatee's
+  // specific action union to the open `ActionConstraint` short-circuits the
+  // intersection without affecting the runtime behavior — `delegate` only
+  // inspects the action/event name strings at runtime.
   rootMessenger.delegate({
-    messenger,
+    messenger: messenger as Messenger<
+      typeof name,
+      ActionConstraint,
+      EventConstraint,
+      RootMessenger
+    >,
     actions: [
       'AccountsController:getSelectedMultichainAccount',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
@@ -184,6 +209,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:setRewardsEnvUrl',
       'RewardsDataService:getDefaultRewardsEnvUrl',
       'RewardsDataService:getBenefits',
+      'RewardsDataService:getVIPDashboard',
       'RewardsDataService:postBenefitImpression',
       'RewardsDataService:getClientVersionRequirements',
       'RewardsDataService:getOndoCampaignLeaderboard',
@@ -193,12 +219,16 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getOndoCampaignActivityLastUpdated',
       'RewardsDataService:getOndoCampaignDeposits',
       'RewardsDataService:getOndoCampaignParticipantOutcome',
+      'RewardsDataService:getPerpsTradingCampaignLeaderboard',
+      'RewardsDataService:getPerpsTradingCampaignLeaderboardPosition',
+      'RewardsDataService:getPerpsTradingCampaignVolume',
+      'RewardsDataService:getPerpsTradingCampaignParticipantOutcome',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',
       'KeyringController:unlock',
     ],
-  });
+  } as Parameters<RootMessenger['delegate']>[0]);
 
   return messenger;
 }

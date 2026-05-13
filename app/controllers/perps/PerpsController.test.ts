@@ -438,7 +438,8 @@ describe('PerpsController', () => {
     // Add default mock return values for all provider methods
     mockProvider.getPositions.mockResolvedValue([]);
     mockProvider.getAccountState.mockResolvedValue({
-      availableBalance: '10000',
+      spendableBalance: '10000',
+      withdrawableBalance: '10000',
       totalBalance: '10000',
       marginUsed: '0',
       unrealizedPnl: '0',
@@ -1068,7 +1069,8 @@ describe('PerpsController', () => {
   describe('getAccountState', () => {
     it('gets account state successfully', async () => {
       const mockAccountState = {
-        availableBalance: '1000',
+        spendableBalance: '1000',
+        withdrawableBalance: '1000',
         marginUsed: '500',
         unrealizedPnl: '100',
         returnOnEquity: '20.0',
@@ -2130,7 +2132,8 @@ describe('PerpsController', () => {
       controller.subscribeToAccount({ callback: originalCallback });
 
       const accountState = {
-        availableBalance: '5000',
+        spendableBalance: '5000',
+        withdrawableBalance: '5000',
         totalBalance: '5000',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -4344,7 +4347,8 @@ describe('PerpsController', () => {
       // Complete AccountState mock with all required fields
       const createMockAccountState = (overrides = {}) => ({
         totalBalance: '50000',
-        availableBalance: '45000',
+        spendableBalance: '45000',
+        withdrawableBalance: '45000',
         marginUsed: '5000',
         unrealizedPnl: '1000',
         returnOnEquity: '20',
@@ -4385,7 +4389,8 @@ describe('PerpsController', () => {
         // Arrange - no activeProviderInstance set (pre-initialization)
         const mockAccountState = createMockAccountState({
           totalBalance: '25000',
-          availableBalance: '20000',
+          spendableBalance: '20000',
+          withdrawableBalance: '20000',
         });
         const tempMockProvider = createMockHyperLiquidProvider();
         tempMockProvider.getAccountState.mockResolvedValue(mockAccountState);
@@ -5258,7 +5263,8 @@ describe('PerpsController', () => {
             orders: [],
             accountState: {
               totalBalance: '5000',
-              availableBalance: '4000',
+              spendableBalance: '4000',
+              withdrawableBalance: '4000',
               marginUsed: '1000',
               unrealizedPnl: '0',
               returnOnEquity: '0',
@@ -5317,7 +5323,8 @@ describe('PerpsController', () => {
         orders: [],
         accountState: {
           totalBalance: '5000',
-          availableBalance: '4000',
+          spendableBalance: '4000',
+          withdrawableBalance: '4000',
           marginUsed: '1000',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -5664,7 +5671,8 @@ describe('PerpsController', () => {
       preloadMockProvider = createMockHyperLiquidProvider();
       preloadMockProvider.getPositions.mockResolvedValue([]);
       preloadMockProvider.getAccountState.mockResolvedValue({
-        availableBalance: '10000',
+        spendableBalance: '10000',
+        withdrawableBalance: '10000',
         totalBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -5706,7 +5714,8 @@ describe('PerpsController', () => {
       ];
       const mockAccountState: AccountState = {
         totalBalance: '50000',
-        availableBalance: '45000',
+        spendableBalance: '45000',
+        withdrawableBalance: '45000',
         marginUsed: '5000',
         unrealizedPnl: '1000',
         returnOnEquity: '20',
@@ -5766,7 +5775,8 @@ describe('PerpsController', () => {
       ];
       const mockAccountState: AccountState = {
         totalBalance: '50000',
-        availableBalance: '45000',
+        spendableBalance: '45000',
+        withdrawableBalance: '45000',
         marginUsed: '5000',
         unrealizedPnl: '1000',
         returnOnEquity: '20',
@@ -5871,7 +5881,8 @@ describe('PerpsController', () => {
       preloadMockProvider.getPositions.mockResolvedValue([]);
       preloadMockProvider.getOpenOrders.mockResolvedValue([]);
       preloadMockProvider.getAccountState.mockResolvedValue({
-        availableBalance: '100',
+        spendableBalance: '100',
+        withdrawableBalance: '100',
         totalBalance: '100',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -6168,7 +6179,8 @@ describe('PerpsController', () => {
           orders: [],
           accountState: {
             totalBalance: '50000',
-            availableBalance: '45000',
+            spendableBalance: '45000',
+            withdrawableBalance: '45000',
             marginUsed: '5000',
             unrealizedPnl: '1000',
             returnOnEquity: '20',
@@ -6204,7 +6216,8 @@ describe('PerpsController', () => {
           orders: [],
           accountState: {
             totalBalance: '50000',
-            availableBalance: '45000',
+            spendableBalance: '45000',
+            withdrawableBalance: '45000',
             marginUsed: '5000',
             unrealizedPnl: '1000',
             returnOnEquity: '20',

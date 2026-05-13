@@ -1,9 +1,6 @@
 import { expectSaga } from 'redux-saga-test-plan';
-import {
-  ActionType,
-  setDataCollectionForMarketing,
-} from '../../actions/security';
 import { CLEAR_ONBOARDING } from '../../actions/onboarding';
+import { setDataCollectionForMarketing } from '../../actions/security';
 import { clearAttribution } from '../../core/redux/slices/attribution';
 import {
   watchMarketingAttributionOnClearOnboarding,
@@ -12,30 +9,27 @@ import {
 
 describe('marketingAttribution sagas', () => {
   describe('watchMarketingAttributionOnConsentChange', () => {
-    it('dispatches clearAttribution when marketing consent becomes false', async () => {
+    it('puts clearAttribution when marketing data collection is disabled', async () => {
       await expectSaga(watchMarketingAttributionOnConsentChange)
+        .dispatch(setDataCollectionForMarketing(false))
         .put(clearAttribution())
-        .dispatch({
-          type: ActionType.SET_DATA_COLLECTION_FOR_MARKETING,
-          enabled: false,
-        })
-        .silentRun();
+        .silentRun(50);
     });
 
-    it('does not dispatch clearAttribution when marketing consent becomes true', async () => {
+    it('does not put clearAttribution when marketing data collection is enabled', async () => {
       await expectSaga(watchMarketingAttributionOnConsentChange)
-        .not.put(clearAttribution())
         .dispatch(setDataCollectionForMarketing(true))
-        .silentRun();
+        .not.put(clearAttribution())
+        .silentRun(50);
     });
   });
 
   describe('watchMarketingAttributionOnClearOnboarding', () => {
-    it('dispatches clearAttribution when onboarding is cleared', async () => {
+    it('puts clearAttribution when onboarding is cleared', async () => {
       await expectSaga(watchMarketingAttributionOnClearOnboarding)
-        .put(clearAttribution())
         .dispatch({ type: CLEAR_ONBOARDING })
-        .silentRun();
+        .put(clearAttribution())
+        .silentRun(50);
     });
   });
 });

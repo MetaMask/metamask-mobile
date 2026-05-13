@@ -45,9 +45,18 @@ import {
 import { TokenI } from '../../components/UI/Tokens/types';
 import { createSelector } from 'reselect';
 import { selectSelectedAccountGroupInternalAccounts } from '../multichainAccounts/accountTreeController';
-import { selectAccountTokensAcrossChains } from '../multichain';
+import { selectAccountTokensAcrossChainsForAddress } from './evm';
+import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
+import { EVM_SCOPE } from '../../components/UI/Earn/constants/networks';
 import { MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET } from '../../core/Multichain/constants';
 import { isTronSpecialAsset } from '../../core/Multichain/utils';
+import {
+  getMultiChainAssetsControllerAccountsAssets,
+  getMultiChainAssetsControllerAllIgnoredAssets,
+  getMultiChainAssetsControllerAssetsMetadata,
+  getMultiChainBalancesControllerBalances,
+  getMultichainAssetsRatesControllerConversionRates,
+} from '../assets/assets-migration';
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
   selectIsEvmNetworkSelected,
@@ -80,19 +89,7 @@ export const selectMultichainIsMainnet = createDeepEqualSelector(
   },
 );
 
-/**
- *
- * @param state - Root redux state
- * @returns - MultichainBalancesController state
- */
-const selectMultichainBalancesControllerState = (state: RootState) =>
-  state.engine.backgroundState.MultichainBalancesController;
-
-export const selectMultichainBalances = createDeepEqualSelector(
-  selectMultichainBalancesControllerState,
-  (multichainBalancesControllerState) =>
-    multichainBalancesControllerState.balances,
-);
+export { getMultiChainBalancesControllerBalances as selectMultichainBalances };
 
 export const selectMultichainShouldShowFiat = createDeepEqualSelector(
   selectMultichainIsMainnet,
@@ -123,7 +120,7 @@ const getNonEvmCachedBalance = (
 
 export const selectNonEvmCachedBalance = createDeepEqualSelector(
   selectSelectedInternalAccount,
-  selectMultichainBalances,
+  getMultiChainBalancesControllerBalances,
   selectSelectedNonEvmNetworkChainId,
   (selectedInternalAccount, multichainBalances, nonEvmChainId) => {
     if (!selectedInternalAccount) {
@@ -155,54 +152,40 @@ export const selectMultichainSelectedAccountCachedBalance =
  */
 const selectMultichainTransactionsControllerState = (state: RootState) =>
   state.engine.backgroundState.MultichainTransactionsController;
-
 export const selectMultichainTransactions = createDeepEqualSelector(
   selectMultichainTransactionsControllerState,
   (multichainTransactionsControllerState) =>
     multichainTransactionsControllerState.nonEvmTransactions,
 );
 
-const selectMultichainAssetsControllerState = (state: RootState) =>
-  state.engine.backgroundState.MultichainAssetsController;
+export { getMultiChainAssetsControllerAccountsAssets as selectMultichainAssets };
 
-export const selectMultichainAssets = createDeepEqualSelector(
-  selectMultichainAssetsControllerState,
-  (multichainAssetsControllerState) =>
-    multichainAssetsControllerState.accountsAssets,
-);
+export { getMultiChainAssetsControllerAssetsMetadata as selectMultichainAssetsMetadata };
 
-export const selectMultichainAssetsMetadata = createDeepEqualSelector(
-  selectMultichainAssetsControllerState,
-  (multichainAssetsControllerState) =>
-    multichainAssetsControllerState.assetsMetadata,
-);
+export { getMultiChainAssetsControllerAllIgnoredAssets as selectMultichainAssetsAllIgnoredAssets };
 
-export const selectMultichainAssetsAllIgnoredAssets = createDeepEqualSelector(
-  selectMultichainAssetsControllerState,
-  (multichainAssetsControllerState) =>
-    multichainAssetsControllerState.allIgnoredAssets ?? {},
-);
-
-function selectMultichainAssetsRatesState(state: RootState) {
-  return state.engine.backgroundState.MultichainAssetsRatesController
-    .conversionRates;
-}
+export { getMultichainAssetsRatesControllerConversionRates as selectMultichainAssetsRatesState };
 
 export const selectMultichainAssetsRates = createDeepEqualSelector(
-  selectMultichainAssetsRatesState,
+  getMultichainAssetsRatesControllerConversionRates,
   (conversionRates) => conversionRates,
   { devModeChecks: { identityFunctionCheck: 'never' } },
 );
 
+/**
+ * @deprecated
+ * This selector accesses deprecated AssetsController state directly.
+ * It is only used in the useTokenHistoricalPrices hook.
+ */
 export function selectMultichainHistoricalPrices(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsRatesController
     .historicalPrices;
 }
 
 export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
-  selectMultichainBalances,
-  selectMultichainAssets,
-  selectMultichainAssetsMetadata,
+  getMultiChainBalancesControllerBalances,
+  getMultiChainAssetsControllerAccountsAssets,
+  getMultiChainAssetsControllerAssetsMetadata,
   selectMultichainAssetsRates,
   selectSelectedNonEvmNetworkChainId,
   (_: RootState, accountId: string | undefined) => accountId,
@@ -273,9 +256,9 @@ export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
 
 export const selectMultichainTokenListForAccountsAnyChain =
   createDeepEqualSelector(
-    selectMultichainBalances,
-    selectMultichainAssets,
-    selectMultichainAssetsMetadata,
+    getMultiChainBalancesControllerBalances,
+    getMultiChainAssetsControllerAccountsAssets,
+    getMultiChainAssetsControllerAssetsMetadata,
     selectMultichainAssetsRates,
     (_: RootState, accounts: InternalAccount[] | undefined) => accounts,
     (multichainBalances, assets, assetsMetadata, assetsRates, accounts) => {
@@ -341,12 +324,27 @@ export const selectMultichainTokenListForAccountsAnyChain =
   );
 
 /**
+ * EVM tokens resolved from the EVM-scoped account within the selected account
+ * group, regardless of the currently active network. This prevents non-EVM
+ * active networks (e.g. TRON) from causing `selectSelectedInternalAccount` to
+ * resolve to a non-EVM address that has no EVM balance data.
+ */
+const selectAccountTokensAcrossChainsForEvmScope = createSelector(
+  (state: RootState) => state,
+  selectSelectedInternalAccountByScope,
+  (state, accountByScope) => {
+    const evmAddress = accountByScope(EVM_SCOPE)?.address;
+    return selectAccountTokensAcrossChainsForAddress(state, evmAddress);
+  },
+);
+
+/**
  * Unified selector: EVM tokens (native + ERC20) for the selected EVM address
  * plus non-EVM tokens (e.g., TRX) across all accounts in the selected account group.
  * Returns a map keyed by chainId (hex for EVM, CAIP-2 for non-EVM) to TokenI[].
  */
 export const selectAccountTokensAcrossChainsUnified = createDeepEqualSelector(
-  selectAccountTokensAcrossChains,
+  selectAccountTokensAcrossChainsForEvmScope,
   selectSelectedAccountGroupInternalAccounts,
   (state: RootState) => state,
   (evmTokensByChain, selectedGroupAccounts, state) => {
@@ -476,8 +474,8 @@ export const getMultichainNetworkAggregatedBalance = (
 export const selectSelectedAccountMultichainNetworkAggregatedBalance =
   createDeepEqualSelector(
     selectSelectedInternalAccount,
-    selectMultichainBalances,
-    selectMultichainAssets,
+    getMultiChainBalancesControllerBalances,
+    getMultiChainAssetsControllerAccountsAssets,
     selectMultichainAssetsRates,
     (
       selectedAccount,
@@ -509,8 +507,8 @@ interface MultichainNetworkAggregatedBalanceForAllAccounts {
 export const selectMultichainNetworkAggregatedBalanceForAllAccounts =
   createDeepEqualSelector(
     selectInternalAccounts,
-    selectMultichainBalances,
-    selectMultichainAssets,
+    getMultiChainBalancesControllerBalances,
+    getMultiChainAssetsControllerAccountsAssets,
     selectMultichainAssetsRates,
     (
       internalAccounts,
@@ -656,8 +654,8 @@ export const makeSelectNonEvmAssetById = () =>
   createSelector(
     [
       selectIsEvmNetworkSelected,
-      selectMultichainBalances,
-      selectMultichainAssetsMetadata,
+      getMultiChainBalancesControllerBalances,
+      getMultiChainAssetsControllerAssetsMetadata,
       selectMultichainAssetsRates,
       (_: RootState, params: { accountId?: string; assetId: string }) =>
         params.accountId,
@@ -723,7 +721,7 @@ export const makeSelectNonEvmAssetById = () =>
 
 export const selectAccountsWithNativeBalanceByChainId = createDeepEqualSelector(
   selectInternalAccounts,
-  selectMultichainBalances,
+  getMultiChainBalancesControllerBalances,
   (_: RootState, params: { chainId: string }) => params.chainId,
   (
     internalAccounts,

@@ -45,6 +45,7 @@ describe('useBridgeQuoteEvents', () => {
             hasTxAlert: false,
             isSubmitDisabled: false,
             isPriceImpactWarningVisible: false,
+            hasInsufficientNativeReserveError: false,
           }),
         { state: testState },
       );
@@ -86,6 +87,7 @@ describe('useBridgeQuoteEvents', () => {
             hasTxAlert: false,
             isSubmitDisabled: false,
             isPriceImpactWarningVisible: false,
+            hasInsufficientNativeReserveError: false,
             ...hookArgs,
           }),
         { state: testState },

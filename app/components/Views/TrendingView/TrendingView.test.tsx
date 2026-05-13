@@ -39,6 +39,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectExplorePageV2EnabledFlag } from '../../../selectors/featureFlagController/explorePageV2';
 import { useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -128,6 +129,7 @@ describe('TrendingView', () => {
       overrides: {
         browserTabsCount?: number;
         basicFunctionalityEnabled?: boolean;
+        explorePageV2Enabled?: boolean;
       } = {},
     ) =>
     (selector: unknown) => {
@@ -171,6 +173,9 @@ describe('TrendingView', () => {
       }
       if (selector === selectBasicFunctionalityEnabled) {
         return overrides.basicFunctionalityEnabled ?? true;
+      }
+      if (selector === selectExplorePageV2EnabledFlag) {
+        return overrides.explorePageV2Enabled ?? true;
       }
       if (selector === selectSelectedInternalAccountByScope) {
         return (_scope: string) => null;
@@ -380,6 +385,23 @@ describe('TrendingView', () => {
       );
 
       expect(getByTestId('basic-functionality-empty-state')).toBeOnTheScreen();
+    });
+
+    it('renders Explore Page V1 when Explore Page V2 flag is disabled', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectorImplementation({
+          explorePageV2Enabled: false,
+          basicFunctionalityEnabled: true,
+        }),
+      );
+
+      const { getByTestId } = render(
+        <NavigationContainer>
+          <TrendingView />
+        </NavigationContainer>,
+      );
+
+      expect(getByTestId('explore-page-v1')).toBeOnTheScreen();
     });
   });
 });

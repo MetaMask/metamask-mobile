@@ -1,15 +1,47 @@
 import React, { ComponentType } from 'react';
 import { RefreshControl } from 'react-native';
-import { TransactionStatus } from '@metamask/transaction-controller';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { V1TransactionByHashResponse } from '@metamask/core-backend';
+import {
+  TransactionStatus,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import UnifiedTransactionsView from './UnifiedTransactionsView';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import _renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
+import { useTransactionsQuery } from './useTransactionsQuery';
+import { selectTransactions } from './helpers/transformations';
 
 // Type helper for UNSAFE_queryByType with mocked string components
 const asComponentType = (name: string) => name as unknown as ComponentType;
+
+type TransactionsQueryData = ReturnType<ReturnType<typeof selectTransactions>>;
+
+const emptyTransactionsQueryData: TransactionsQueryData = {
+  pageParams: [],
+  pages: [],
+};
+
+const createUseTransactionsQueryResult = (
+  data: TransactionsQueryData = emptyTransactionsQueryData,
+) => ({
+  data,
+  fetchNextPage: jest.fn(),
+  hasNextPage: false,
+  isFetchingNextPage: false,
+  refetch: jest.fn().mockResolvedValue(undefined),
+});
+
+const mockUseTransactionsQuery = (
+  data: TransactionsQueryData = emptyTransactionsQueryData,
+) => {
+  (useTransactionsQuery as jest.Mock).mockReturnValue(
+    createUseTransactionsQueryResult(data),
+  );
+};
 
 const mockNavigate = jest.fn();
 
@@ -75,6 +107,10 @@ const mockDefaultUnifiedTxActionsReturn = {
 
 jest.mock('./useUnifiedTxActions', () => ({
   useUnifiedTxActions: jest.fn(() => mockDefaultUnifiedTxActionsReturn),
+}));
+
+jest.mock('./useTransactionsQuery', () => ({
+  useTransactionsQuery: jest.fn(() => createUseTransactionsQueryResult()),
 }));
 
 jest.mock('./useTransactionAutoScroll', () => ({
@@ -185,6 +221,33 @@ jest.mock(
   }),
 );
 
+const renderWithProvider = (
+  component: React.ReactElement,
+  providerValues?: Parameters<typeof _renderWithProvider>[1],
+  includeNavigationContainer?: Parameters<typeof _renderWithProvider>[2],
+  includeFeatureFlagOverrideProvider?: Parameters<
+    typeof _renderWithProvider
+  >[3],
+) =>
+  _renderWithProvider(
+    <QueryClientProvider
+      client={
+        new QueryClient({
+          defaultOptions: {
+            queries: {
+              retry: false,
+            },
+          },
+        })
+      }
+    >
+      {component}
+    </QueryClientProvider>,
+    providerValues,
+    includeNavigationContainer,
+    includeFeatureFlagOverrideProvider,
+  );
+
 describe('UnifiedTransactionsView', () => {
   const initialState = {
     engine: {
@@ -194,6 +257,7 @@ describe('UnifiedTransactionsView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseTransactionsQuery();
     (useUnifiedTxActions as jest.Mock).mockImplementation(
       () => mockDefaultUnifiedTxActionsReturn,
     );
@@ -319,6 +383,13 @@ describe('UnifiedTransactionsView', () => {
 });
 
 describe('UnifiedTransactionsView with transactions', () => {
+  const ACTIVE_EVM_ADDRESS = '0x0000000000000000000000000000000000000abc';
+  const BRIDGE_TX_HASH =
+    '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+  const OTHER_TX_HASH =
+    '0x1111111111111111111111111111111111111111111111111111111111111111';
+  const BRIDGE_TX_ID = 'bridge-tx-id';
+
   const stateWithTransactions = {
     engine: {
       backgroundState: {
@@ -344,8 +415,154 @@ describe('UnifiedTransactionsView with transactions', () => {
     },
   };
 
+  const stateWithConfirmedBridgeTransaction = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        AccountsController: {
+          ...backgroundState.AccountsController,
+          internalAccounts: {
+            accounts: {
+              'evm-account-id': {
+                id: 'evm-account-id',
+                type: 'eip155:eoa' as const,
+                address: ACTIVE_EVM_ADDRESS,
+                options: {},
+                methods: [],
+                metadata: {
+                  name: 'Account 1',
+                  keyring: { type: 'HD Key Tree' },
+                },
+              },
+            },
+            selectedAccount: 'evm-account-id',
+          },
+        },
+        TransactionController: {
+          ...backgroundState.TransactionController,
+          transactions: [
+            {
+              id: BRIDGE_TX_ID,
+              chainId: '0x1' as const,
+              hash: BRIDGE_TX_HASH,
+              status: TransactionStatus.confirmed,
+              time: Date.now(),
+              txParams: {
+                from: ACTIVE_EVM_ADDRESS,
+                to: '0x1111111111111111111111111111111111111111',
+                value: '0x0',
+                nonce: '0x1',
+              },
+            },
+          ],
+        },
+      },
+    },
+  };
+
+  const createConfirmedEvmQueryData = (
+    transactions: V1TransactionByHashResponse[] = [],
+  ) =>
+    selectTransactions({
+      address: ACTIVE_EVM_ADDRESS,
+    })({
+      pageParams: [undefined],
+      pages: [
+        {
+          data: transactions,
+          unprocessedNetworks: [],
+          pageInfo: {
+            count: transactions.length,
+            endCursor: undefined,
+            hasNextPage: false,
+          },
+        },
+      ],
+    });
+
+  const createConfirmedBridgeTransaction = (hash = BRIDGE_TX_HASH) =>
+    createConfirmedEvmQueryData([
+      {
+        accountId: `eip155:1:${ACTIVE_EVM_ADDRESS}`,
+        blockHash: '0xblock',
+        blockNumber: 1,
+        chainId: 1,
+        cumulativeGasUsed: 21000,
+        effectiveGasPrice: '1',
+        from: ACTIVE_EVM_ADDRESS,
+        gas: 21000,
+        gasPrice: '1',
+        gasUsed: 21000,
+        hash,
+        isError: false,
+        logs: [],
+        methodId: '0x',
+        nonce: 1,
+        readable: 'Transfer',
+        timestamp: '2026-04-29T19:28:41.000Z',
+        to: '0x1111111111111111111111111111111111111111',
+        transactionCategory: 'TRANSFER',
+        transactionType: 'SIMPLE_SEND',
+        value: '1',
+        valueTransfers: [],
+      } as V1TransactionByHashResponse,
+    ]);
+
+  const bridgeHistory = {
+    [BRIDGE_TX_ID]: {
+      txMetaId: BRIDGE_TX_ID,
+      account: ACTIVE_EVM_ADDRESS,
+      quote: {
+        srcChainId: 1,
+        destChainId: 8453,
+        srcAsset: {
+          symbol: 'ETH',
+          chainId: 1,
+          decimals: 18,
+          address: 'native',
+        },
+        destAsset: {
+          symbol: 'ETH',
+          chainId: 8453,
+          decimals: 18,
+          address: 'native',
+        },
+      },
+      status: {
+        srcChain: {
+          txHash: BRIDGE_TX_HASH,
+          chainId: 1,
+          amount: '1',
+        },
+        destChain: {
+          txHash:
+            '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+          chainId: 8453,
+          amount: '1',
+        },
+        status: 'COMPLETE',
+      },
+      estimatedProcessingTimeInSeconds: 60,
+      slippagePercentage: 0,
+      completionTime: Date.now(),
+      startTime: Date.now() - 60000,
+    },
+  };
+
+  const getRenderedTransactionIds = (
+    queryAllByType: ReturnType<
+      typeof renderWithProvider
+    >['UNSAFE_queryAllByType'],
+  ) =>
+    queryAllByType(asComponentType('TransactionElement')).map(
+      ({ props }) => props.tx.id,
+    );
+
+  const apiBridgeTransactionId = `${BRIDGE_TX_HASH}-1`;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseTransactionsQuery();
     (useUnifiedTxActions as jest.Mock).mockImplementation(
       () => mockDefaultUnifiedTxActionsReturn,
     );
@@ -366,6 +583,311 @@ describe('UnifiedTransactionsView with transactions', () => {
     );
     expect(transactionElements.length).toBeGreaterThanOrEqual(0);
   });
+
+  it('uses the Accounts API bridge transaction when the source hash matches bridge history', () => {
+    mockUseTransactionsQuery(createConfirmedBridgeTransaction());
+    mockSelectBridgeHistoryForAccount.mockReturnValue(bridgeHistory);
+
+    const { UNSAFE_queryAllByType } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      {
+        state: stateWithConfirmedBridgeTransaction,
+      },
+    );
+
+    const transactionIds = getRenderedTransactionIds(UNSAFE_queryAllByType);
+
+    expect(transactionIds).toContain(apiBridgeTransactionId);
+    expect(transactionIds).not.toContain(BRIDGE_TX_ID);
+  });
+
+  it('keeps the local bridge transaction when Accounts API only has a nonce collision', () => {
+    mockUseTransactionsQuery(createConfirmedBridgeTransaction(OTHER_TX_HASH));
+    mockSelectBridgeHistoryForAccount.mockReturnValue(bridgeHistory);
+
+    const { UNSAFE_queryAllByType } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      {
+        state: stateWithConfirmedBridgeTransaction,
+      },
+    );
+
+    const transactionIds = getRenderedTransactionIds(UNSAFE_queryAllByType);
+
+    expect(transactionIds).toContain(BRIDGE_TX_ID);
+  });
+});
+
+describe('UnifiedTransactionsView - EVM network filter for unified list', () => {
+  const WALLET = '0xabc';
+
+  /** Required so selectLocalTransactions includes pending txs for UnifiedTransactionsView filtering. */
+  const accountsControllerForWallet = {
+    ...backgroundState.AccountsController,
+    internalAccounts: {
+      accounts: {
+        'wallet-evm-id': {
+          id: 'wallet-evm-id',
+          type: 'eip155:eoa' as const,
+          address: WALLET,
+          options: {},
+          methods: [],
+          metadata: {
+            name: 'Account 1',
+            keyring: { type: 'HD Key Tree' },
+          },
+        },
+      },
+      selectedAccount: 'wallet-evm-id',
+    },
+  };
+
+  const emptyEvmChainsState = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        AccountsController: accountsControllerForWallet,
+        NetworkEnablementController: {
+          ...backgroundState.NetworkEnablementController,
+          enabledNetworkMap: {
+            ...backgroundState.NetworkEnablementController.enabledNetworkMap,
+            eip155: {},
+          },
+        },
+      },
+    },
+  };
+
+  const stateOnlyOptimism = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        AccountsController: accountsControllerForWallet,
+        NetworkEnablementController: {
+          ...backgroundState.NetworkEnablementController,
+          enabledNetworkMap: {
+            ...backgroundState.NetworkEnablementController.enabledNetworkMap,
+            eip155: { '0xa': true },
+          },
+        },
+      },
+    },
+  };
+
+  const stateOnlyMainnet = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        AccountsController: accountsControllerForWallet,
+        NetworkEnablementController: {
+          ...backgroundState.NetworkEnablementController,
+          enabledNetworkMap: {
+            ...backgroundState.NetworkEnablementController.enabledNetworkMap,
+            eip155: { '0x1': true },
+          },
+        },
+      },
+    },
+  };
+
+  const createOutgoingMainnetConfirmed = (): V1TransactionByHashResponse =>
+    ({
+      accountId: `eip155:1:${WALLET}`,
+      blockHash: '0xblock',
+      blockNumber: 1,
+      chainId: 1,
+      cumulativeGasUsed: 21000,
+      effectiveGasPrice: '1',
+      from: WALLET,
+      gas: 21000,
+      gasPrice: '1',
+      gasUsed: 21000,
+      hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      isError: false,
+      logs: [],
+      methodId: '0x',
+      nonce: 1,
+      readable: 'Transfer',
+      timestamp: '2026-04-29T19:28:41.000Z',
+      to: '0x1111111111111111111111111111111111111111',
+      transactionCategory: 'TRANSFER',
+      transactionType: 'SIMPLE_SEND',
+      value: '1',
+      valueTransfers: [],
+    }) as V1TransactionByHashResponse;
+
+  const queryDataMainnetConfirmed = selectTransactions({
+    address: WALLET,
+  })({
+    pageParams: [undefined],
+    pages: [
+      {
+        data: [createOutgoingMainnetConfirmed()],
+        unprocessedNetworks: [],
+        pageInfo: {
+          count: 1,
+          endCursor: undefined,
+          hasNextPage: false,
+        },
+      },
+    ],
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseTransactionsQuery();
+    (useUnifiedTxActions as jest.Mock).mockImplementation(
+      () => mockDefaultUnifiedTxActionsReturn,
+    );
+  });
+
+  it('hides confirmed EVM rows when no EVM chains are enabled', () => {
+    mockUseTransactionsQuery(queryDataMainnetConfirmed);
+
+    const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: emptyEvmChainsState,
+    });
+
+    expect(getByText('You have no transactions')).toBeOnTheScreen();
+  });
+
+  it('hides confirmed EVM rows when their chain is not in the enabled filter', () => {
+    mockUseTransactionsQuery(queryDataMainnetConfirmed);
+
+    const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: stateOnlyOptimism,
+    });
+
+    expect(getByText('You have no transactions')).toBeOnTheScreen();
+  });
+
+  it('shows confirmed EVM rows when their chain matches the enabled filter', () => {
+    mockUseTransactionsQuery(queryDataMainnetConfirmed);
+
+    const { UNSAFE_queryAllByType } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      { state: stateOnlyMainnet },
+    );
+
+    expect(
+      UNSAFE_queryAllByType(asComponentType('TransactionElement')).length,
+    ).toBeGreaterThanOrEqual(1);
+  });
+
+  it('hides pending EVM transactions when their chain is not in the enabled filter', () => {
+    mockUseTransactionsQuery(emptyTransactionsQueryData);
+
+    const stateWithPendingMainnet = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountsController: accountsControllerForWallet,
+          NetworkEnablementController:
+            stateOnlyOptimism.engine.backgroundState
+              .NetworkEnablementController,
+          TransactionController: {
+            ...backgroundState.TransactionController,
+            transactions: [
+              {
+                id: 'pending-mainnet',
+                chainId: '0x1' as const,
+                status: TransactionStatus.submitted,
+                time: Date.now(),
+                txParams: {
+                  from: WALLET,
+                  to: '0x1111111111111111111111111111111111111111',
+                  value: '0x0',
+                  nonce: '0x1',
+                },
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: stateWithPendingMainnet,
+    });
+
+    expect(getByText('You have no transactions')).toBeOnTheScreen();
+  });
+
+  it('hides pending EVM transactions when no EVM chains are enabled', () => {
+    mockUseTransactionsQuery(emptyTransactionsQueryData);
+
+    const stateWithPendingButNoEvmNetworks = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountsController: accountsControllerForWallet,
+          NetworkEnablementController:
+            emptyEvmChainsState.engine.backgroundState
+              .NetworkEnablementController,
+          TransactionController: {
+            ...backgroundState.TransactionController,
+            transactions: [
+              {
+                id: 'pending-no-enabled-evm',
+                chainId: '0x1' as const,
+                status: TransactionStatus.submitted,
+                time: Date.now(),
+                txParams: {
+                  from: WALLET,
+                  to: '0x1111111111111111111111111111111111111111',
+                  value: '0x0',
+                  nonce: '0x1',
+                },
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: stateWithPendingButNoEvmNetworks,
+    });
+
+    expect(getByText('You have no transactions')).toBeOnTheScreen();
+  });
+
+  it('hides pending EVM transactions when chainId is missing', () => {
+    mockUseTransactionsQuery(emptyTransactionsQueryData);
+
+    const pendingWithoutChainId = {
+      id: 'pending-missing-chain',
+      status: TransactionStatus.submitted,
+      time: Date.now(),
+      txParams: {
+        from: WALLET,
+        to: '0x1111111111111111111111111111111111111111',
+        value: '0x0',
+        nonce: '0x1',
+      },
+    } as unknown as TransactionMeta;
+
+    const stateWithPendingMissingChainId = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountsController: accountsControllerForWallet,
+          NetworkEnablementController:
+            stateOnlyMainnet.engine.backgroundState.NetworkEnablementController,
+          TransactionController: {
+            ...backgroundState.TransactionController,
+            transactions: [pendingWithoutChainId],
+          },
+        },
+      },
+    };
+
+    const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: stateWithPendingMissingChainId,
+    });
+
+    expect(getByText('You have no transactions')).toBeOnTheScreen();
+  });
 });
 
 describe('UnifiedTransactionsView - Speed up / Cancel modal', () => {
@@ -377,6 +899,7 @@ describe('UnifiedTransactionsView - Speed up / Cancel modal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseTransactionsQuery();
     (useUnifiedTxActions as jest.Mock).mockImplementation(
       () => mockDefaultUnifiedTxActionsReturn,
     );
@@ -433,6 +956,7 @@ describe('UnifiedTransactionsView - refresh', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseTransactionsQuery();
     (useUnifiedTxActions as jest.Mock).mockImplementation(
       () => mockDefaultUnifiedTxActionsReturn,
     );
@@ -454,135 +978,125 @@ describe('UnifiedTransactionsView - refresh', () => {
 });
 
 describe('UnifiedTransactionsView - token poisoning protection', () => {
-  const {
-    buildTrustedAddressSet: mockBuildTrustedAddressSet,
-    filterByAddress: mockFilterByAddress,
-    isTransactionOnChains: mockIsTransactionOnChains,
-  } = jest.requireMock('../../../util/activity');
-
   const FRIEND_ADDRESS = '0x1234000000000000000000000000000000000001';
+  const ACTIVE_EVM_ADDRESS = '0xabc';
 
   const baseState = { engine: { backgroundState } };
 
-  // State with a single incoming ERC-20 transfer from an unknown sender
-  const stateWithIncomingTransfer = {
-    engine: {
-      backgroundState: {
-        ...backgroundState,
-        TransactionController: {
-          ...backgroundState.TransactionController,
-          transactions: [
-            {
-              id: 'tx-erc20',
-              chainId: '0x1' as const,
-              status: TransactionStatus.confirmed,
-              time: Date.now(),
-              isTransfer: true,
-              transferInformation: {
-                contractAddress: '0x3333333333333333333333333333333333333333',
-                decimals: 18,
-                symbol: 'TKN',
-              },
-              txParams: {
-                from: '0x9999999999999999999999999999999999999999',
-                to: '0xabc',
-                value: '0x0',
-                nonce: '0x1',
-              },
-            },
-          ],
+  const createConfirmedEvmTransaction = (
+    overrides: Partial<V1TransactionByHashResponse> = {},
+  ) =>
+    ({
+      accountId: `eip155:1:${ACTIVE_EVM_ADDRESS}`,
+      blockHash: '0xblock',
+      blockNumber: 1,
+      chainId: 1,
+      cumulativeGasUsed: 21000,
+      effectiveGasPrice: '1',
+      from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      gas: 21000,
+      gasPrice: '1',
+      gasUsed: 21000,
+      hash: '0xhash',
+      isError: false,
+      logs: [],
+      methodId: '0x',
+      nonce: 1,
+      readable: 'Transfer',
+      timestamp: '2026-04-29T19:28:41.000Z',
+      to: ACTIVE_EVM_ADDRESS,
+      transactionCategory: 'TRANSFER',
+      transactionType: 'SIMPLE_SEND',
+      value: '1',
+      valueTransfers: [],
+      ...overrides,
+    }) as V1TransactionByHashResponse;
+
+  const createConfirmedEvmQueryData = (
+    transactions: V1TransactionByHashResponse[] = [],
+  ) =>
+    selectTransactions({
+      address: ACTIVE_EVM_ADDRESS,
+    })({
+      pageParams: [undefined],
+      pages: [
+        {
+          data: transactions,
+          unprocessedNetworks: [],
+          pageInfo: {
+            count: transactions.length,
+            endCursor: undefined,
+            hasNextPage: false,
+          },
         },
-      },
-    },
-  };
+      ],
+    });
+
+  // State with a single incoming ERC-20 transfer from an unknown sender
+  const stateWithIncomingTransfer = createConfirmedEvmQueryData([
+    createConfirmedEvmTransaction({
+      hash: '0xpoison-erc20',
+      transactionType: 'TOKEN_TRANSFER',
+      valueTransfers: [
+        {
+          amount: '1',
+          contractAddress: '0x3333333333333333333333333333333333333333',
+          decimal: 18,
+          from: '0x9999999999999999999999999999999999999999',
+          name: 'Test Token',
+          symbol: 'TKN',
+          to: ACTIVE_EVM_ADDRESS,
+          transferType: 'ERC20',
+        },
+      ],
+    }),
+  ]);
+
+  const stateWithIncomingNativeTransfer = createConfirmedEvmQueryData([
+    createConfirmedEvmTransaction({
+      hash: '0xpoison-native',
+      valueTransfers: [
+        {
+          amount: '1',
+          contractAddress: '',
+          decimal: 18,
+          from: '0x9999999999999999999999999999999999999999',
+          name: 'Ether',
+          symbol: 'ETH',
+          to: ACTIVE_EVM_ADDRESS,
+          transferType: 'NATIVE',
+        },
+      ],
+    }),
+  ]);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseTransactionsQuery();
     (useUnifiedTxActions as jest.Mock).mockImplementation(
       () => mockDefaultUnifiedTxActionsReturn,
     );
-    // Re-set implementations after any prior resetAllMocks() calls
-    (mockBuildTrustedAddressSet as jest.Mock).mockReturnValue(
-      new Set<string>(),
-    );
-    (mockFilterByAddress as jest.Mock).mockReturnValue(true);
-    // isTransactionOnChains gates the second chain filter at line 252 of the
-    // component; restore it so confirmed transactions aren't silently dropped
-    (mockIsTransactionOnChains as jest.Mock).mockReturnValue(true);
-  });
-
-  it('calls buildTrustedAddressSet on every render', () => {
-    renderWithProvider(<UnifiedTransactionsView />, { state: baseState });
-
-    expect(mockBuildTrustedAddressSet).toHaveBeenCalled();
-  });
-
-  it('calls buildTrustedAddressSet with the addressBook from state and an array of account addresses', () => {
-    const mockAddressBook = {
-      '0x1': {
-        [FRIEND_ADDRESS]: {
-          address: FRIEND_ADDRESS,
-          name: 'Friend',
-          chainId: '0x1' as Hex,
-          memo: '',
-          isEns: false,
-        },
-      },
-    };
-    const stateWithAddressBook = {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          AddressBookController: { addressBook: mockAddressBook },
-        },
-      },
-    };
-
-    renderWithProvider(<UnifiedTransactionsView />, {
-      state: stateWithAddressBook,
-    });
-
-    expect(mockBuildTrustedAddressSet).toHaveBeenCalledWith(
-      mockAddressBook,
-      expect.any(Array),
-    );
-  });
-
-  it('passes a pre-built Set to filterByAddress (not the raw addressBook)', () => {
-    renderWithProvider(<UnifiedTransactionsView />, {
-      state: stateWithIncomingTransfer,
-    });
-
-    expect(mockFilterByAddress).toHaveBeenCalled();
-    (mockFilterByAddress as jest.Mock).mock.calls.forEach((args) => {
-      // arg[5] is trustedAddresses — must be a Set, not a plain object
-      expect(args[5]).toBeInstanceOf(Set);
-      // There is no arg[6]; the old addressBook + internalAccountAddresses
-      // params have been replaced by a single Set
-      expect(args[6]).toBeUndefined();
-    });
   });
 
   it('hides incoming ERC-20 transfer when filterByAddress returns false (unknown sender)', () => {
-    (mockFilterByAddress as jest.Mock).mockReturnValue(false);
+    mockUseTransactionsQuery(stateWithIncomingTransfer);
 
     const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
-      state: stateWithIncomingTransfer,
+      state: baseState,
     });
 
     // Transaction is filtered out → data is empty → empty state is shown
     expect(getByText('You have no transactions')).toBeOnTheScreen();
   });
 
-  it('shows incoming ERC-20 transfer when filterByAddress returns true (trusted sender)', () => {
-    (mockFilterByAddress as jest.Mock).mockReturnValue(true);
+  it('hides incoming native transfer when sender is unknown', () => {
+    mockUseTransactionsQuery(stateWithIncomingNativeTransfer);
 
-    const { queryByText } = renderWithProvider(<UnifiedTransactionsView />, {
-      state: stateWithIncomingTransfer,
+    const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: baseState,
     });
 
-    // Transaction passes filter → data is non-empty → empty state is absent
-    expect(queryByText('You have no transactions')).not.toBeOnTheScreen();
+    expect(getByText('You have no transactions')).toBeOnTheScreen();
   });
 });
 
@@ -644,6 +1158,7 @@ describe('UnifiedTransactionsView - cross-chain bridge visibility', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseTransactionsQuery();
     (useUnifiedTxActions as jest.Mock).mockImplementation(
       () => mockDefaultUnifiedTxActionsReturn,
     );
