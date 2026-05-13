@@ -621,6 +621,33 @@ Driver: [May 6 2026 design thread](https://consensys.slack.com/archives/C0AK3NXR
 
 Deliverable: HeadlessHost is invisible (or bottom-sheet) and MMPay's TPC renders the only user-visible loading UI during a headless buy. Phase 8's dismissal contract continues to work unchanged.
 
+### Phase 9.5 follow-ups (driven by Goktug's May 12 2026 testing feedback)
+
+Goktug tested the chrome-stripped Host on May 12 and filed three complaints in the [follow-up thread](https://consensys.slack.com/archives/C0AK3NXRM7W/p1778577403631269).
+
+#### Fix #1 — Transparent stack wrapper (`RAMP.HEADLESS_ENTRY`)
+
+After the chrome strip, the user still saw a solid-white screen because [MainNavigator.js:1172-1175](../../Nav/Main/MainNavigator.js) mounts the headless flow under `RAMP.TOKEN_SELECTION`, an opaque V2 stack card. The card sits between the consumer screen and the transparent Host.
+
+Resolution: add a new outer slot `RAMP.HEADLESS_ENTRY` (in [Routes.ts](../../../../constants/navigation/Routes.ts)) that mounts the same `TokenListRoutes` component but with the JS-stack transparent-overlay preset:
+
+```js
+<Stack.Screen
+  name={Routes.RAMP.HEADLESS_ENTRY}
+  component={TokenListRoutes}
+  options={{
+    ...clearStackNavigatorOptionsWithTransitionAnimation,
+    presentation: 'transparentModal',
+  }}
+/>
+```
+
+This is the same pattern MainNavigator already uses for `BridgeModals`, `EarnModals`, `MoneyModals`, `StakeModals`, and `PerpsModals`. UB2's entry through `RAMP.TOKEN_SELECTION` stays untouched.
+
+`useHeadlessBuy.startHeadlessBuy` now navigates to `RAMP.HEADLESS_ENTRY` instead of `RAMP.TOKEN_SELECTION`; the nested-screen descriptor (`{ screen: TOKEN_SELECTION, params: { screen: HEADLESS_HOST, ... } }`) is unchanged so it still lands directly on the Host.
+
+Safety net for the unverified `beforeRemove` + `transparentModal` interaction: Phase 8's `useHeadlessSessionDismissal` fires `closeSession({ reason: 'user_dismissed' })` on unmount when `HEADLESS_HOST` is no longer in the navigator tree. `closeSession` idempotency means both paths can fire without producing duplicate `onClose` callbacks.
+
 ---
 
 ## Phase 10 — Implement deferred Phase 5b + playground polish
