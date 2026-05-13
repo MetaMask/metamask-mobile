@@ -9,10 +9,17 @@ import Logger from '../../../../../../util/Logger';
 import { useFollowToggleMany } from '../../../../../hooks/useFollowToggle';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import type { TopTrader } from '../types';
+import {
+  addSocialBreadcrumb,
+  buildSocialErrorExtras,
+  categoriseSocialError,
+  extractHttpStatus,
+} from '../../../../../../util/social/socialServiceTelemetry';
 
 export interface UseTopTradersResult {
   traders: TopTrader[];
   isLoading: boolean;
+  isFetching: boolean;
   error: string | null;
   refresh: () => Promise<void>;
   toggleFollow: (addressOrId: string) => void;
@@ -37,10 +44,11 @@ export const useTopTraders = (
     fetchOptions,
   ];
 
-  const { data, isLoading, error, refetch } = useQuery<LeaderboardResponse>({
-    queryKey,
-    enabled: (options?.enabled ?? true) && isUnlocked,
-  });
+  const { data, isLoading, isFetching, error, refetch } =
+    useQuery<LeaderboardResponse>({
+      queryKey,
+      enabled: (options?.enabled ?? true) && isUnlocked,
+    });
 
   const { isFollowing, toggleFollow } = useFollowToggleMany();
 
@@ -66,20 +74,43 @@ export const useTopTraders = (
     try {
       await refetch();
     } catch (err) {
-      Logger.error(err as Error, 'useTopTraders: refresh failed');
+      Logger.error(
+        err as Error,
+        buildSocialErrorExtras({
+          legacyMessage: 'useTopTraders: refresh failed',
+          endpoint: 'leaderboard',
+          error: err,
+          queryParams: { limit: options?.limit ?? 0 },
+        }),
+      );
       throw err;
     }
-  }, [refetch]);
+  }, [refetch, options?.limit]);
 
   useEffect(() => {
     if (error) {
-      Logger.error(error as Error, 'useTopTraders: leaderboard fetch failed');
+      Logger.error(
+        error as Error,
+        buildSocialErrorExtras({
+          legacyMessage: 'useTopTraders: leaderboard fetch failed',
+          endpoint: 'leaderboard',
+          error,
+          queryParams: { limit: options?.limit ?? 0 },
+        }),
+      );
+      addSocialBreadcrumb({
+        endpoint: 'leaderboard',
+        errorCategory: categoriseSocialError(error),
+        httpStatus: extractHttpStatus(error),
+        queryParams: { limit: options?.limit ?? 0 },
+      });
     }
-  }, [error]);
+  }, [error, options?.limit]);
 
   return {
     traders,
     isLoading,
+    isFetching,
     error:
       error instanceof Error ? error.message : error ? String(error) : null,
     refresh,

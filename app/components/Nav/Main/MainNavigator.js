@@ -51,6 +51,7 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
+import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import ExploreSectionResultsFullView from '../../Views/TrendingView/Views/ExploreSectionResultsFullView/ExploreSectionResultsFullView';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
@@ -101,7 +102,7 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
-import { MoneyScreenStack, MoneyModalStack } from '../../UI/Money/routes';
+import { MoneyAccountStackGate, MoneyModalStack } from '../../UI/Money/routes';
 import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
@@ -866,9 +867,9 @@ const HomeTabs = () => {
       {/* Activity Tab (replaced by Money when feature flag is on) */}
       {isMoneyHomeScreenEnabled ? (
         <Tab.Screen
-          name={Routes.MONEY.HOME}
+          name={Routes.MONEY.ROOT}
           options={options.money}
-          component={WalletTabModalFlow}
+          component={MoneyAccountStackGate}
         />
       ) : (
         <Tab.Screen
@@ -891,7 +892,7 @@ const HomeTabs = () => {
 };
 
 const Webview = () => (
-  <Stack.Navigator>
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="SimpleWebview" component={SimpleWebview} />
   </Stack.Navigator>
 );
@@ -1224,7 +1225,7 @@ const MainNavigator = () => {
         <>
           <Stack.Screen
             name={Routes.MONEY.ROOT}
-            component={MoneyScreenStack}
+            component={MoneyAccountStackGate}
             options={{ headerShown: false, ...slideFromRightAnimation }}
           />
           <Stack.Screen
@@ -1366,6 +1367,11 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SITES_FULL_VIEW}
           component={SitesFullView}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+        <Stack.Screen
+          name={Routes.WHATS_HAPPENING_DETAIL}
+          component={WhatsHappeningDetailView}
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
         <Stack.Screen

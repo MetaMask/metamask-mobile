@@ -1,9 +1,10 @@
 import React from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import MusdCalculatorTab from '../components/Tabs/MusdCalculatorTab/MusdCalculatorTab';
 import { strings } from '../../../../../locales/i18n';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
@@ -20,11 +21,19 @@ const MusdCalculatorView: React.FC = () => {
         edges={{ top: 'additive' }}
         style={tw.style('flex-1 bg-default')}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('rewards.musd.page_title')}
           onBack={() => navigation.goBack()}
+          backButtonProps={{ testID: 'header-back-button' }}
         />
-        <MusdCalculatorTab />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+          style={tw.style('flex-1')}
+          testID="musd-calculator-keyboard-avoiding-view"
+        >
+          <MusdCalculatorTab />
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </ErrorBoundary>
   );

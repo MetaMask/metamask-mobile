@@ -28,9 +28,11 @@ import Logger from '../../../../../util/Logger';
 // at evaluation time inside this module.
 import {
   closeSession,
+  failSession,
   getSession,
   setStatus,
 } from '../../headless/sessionRegistry';
+import { useHeadlessSessionDismissal } from '../../headless/useHeadlessSessionDismissal';
 import { getChainIdFromAssetId } from '../../headless/useHeadlessBuy';
 import useContinueWithQuote, {
   type ContinueWithQuoteContext,
@@ -85,6 +87,14 @@ function HeadlessHost() {
     useParams<HeadlessHostParams>();
   const session = getSession(headlessSessionId);
 
+  // Phase 8: when the Host unmounts (= user unwound the entire headless
+  // stack) without a terminal status, fire `onClose({ reason:
+  // 'user_dismissed' })`. Phase 6 success and Phase 7 errors remove the
+  // session from the registry beforehand, so the cleanup no-ops in those
+  // cases. Wiring lives on the Host because it is the stack base for the
+  // headless flow and stays mounted while child screens are pushed on top.
+  useHeadlessSessionDismissal(headlessSessionId);
+
   const { userRegion } = useRampsUserRegion();
   const { paymentMethods } = useRampsPaymentMethods();
 
@@ -117,8 +127,15 @@ function HeadlessHost() {
   }, [headlessSessionId]);
 
   const handleBack = useCallback(() => {
+    // Fire dismissal close synchronously at the moment of intent. The
+    // unmount cleanup in `useHeadlessSessionDismissal` is a defense-in-depth
+    // fallback for paths that don't go through this handler (back-gesture,
+    // programmatic navigation). `closeSession` is idempotent — when the
+    // session is already terminal (Phase 6/7 cleared it before the user
+    // tapped Back), this is a no-op.
+    closeSession(headlessSessionId, { reason: 'user_dismissed' });
     navigation.goBack();
-  }, [navigation]);
+  }, [headlessSessionId, navigation]);
 
   // Auth-loop error path: OtpCode resets back to the Host with
   // `nativeFlowError` set when post-OTP routing fails. Forward to the
@@ -132,26 +149,17 @@ function HeadlessHost() {
     if (!nativeFlowError) {
       return;
     }
-    const liveSession = getSession(headlessSessionId);
-    if (!liveSession) {
-      return;
-    }
-    setErrorMessage(nativeFlowError);
-    try {
-      liveSession.callbacks.onError({
+    const headlessError = failSession(
+      headlessSessionId,
+      {
         code: 'AUTH_FAILED',
         message: nativeFlowError,
-      });
-    } catch (e) {
-      Logger.error(e as Error, 'HeadlessHost: onError callback threw');
-    }
-    closeSession(
-      headlessSessionId,
-      { reason: 'unknown' },
-      {
-        terminalStatus: 'failed',
       },
+      'AUTH_FAILED',
     );
+    if (headlessError) {
+      setErrorMessage(headlessError.message ?? nativeFlowError);
+    }
   }, [nativeFlowError, headlessSessionId]);
 
   // Process the session. Uses `useEffect` (not `useFocusEffect`) so that
@@ -202,25 +210,11 @@ function HeadlessHost() {
     if (!chainId) {
       const message = `HeadlessHost: invalid assetId "${currentSession.params.assetId}"`;
       Logger.error(new Error(message));
-      try {
-        currentSession.callbacks.onError({
-          code: 'UNKNOWN',
-          message,
-        });
-      } catch (e) {
-        Logger.error(e as Error, 'HeadlessHost: onError callback threw');
-      }
       // closeSession alone does not trigger a re-render; without setState the
       // render-time `session` ref stays truthy and the loader would spin
       // forever. Surface the same message in UI as other error paths.
       setErrorMessage(message);
-      closeSession(
-        headlessSessionId,
-        { reason: 'unknown' },
-        {
-          terminalStatus: 'failed',
-        },
-      );
+      failSession(headlessSessionId, { code: 'UNKNOWN', message });
       return;
     }
     // Defer until walletAddress resolves — avoids calling continueWithQuote
@@ -270,22 +264,8 @@ function HeadlessHost() {
       if (!liveSession) {
         return;
       }
-      setErrorMessage(message);
-      try {
-        liveSession.callbacks.onError({
-          code: 'UNKNOWN',
-          message,
-        });
-      } catch (e) {
-        Logger.error(e as Error, 'HeadlessHost: onError callback threw');
-      }
-      closeSession(
-        headlessSessionId,
-        { reason: 'unknown' },
-        {
-          terminalStatus: 'failed',
-        },
-      );
+      const headlessError = failSession(headlessSessionId, error);
+      setErrorMessage(headlessError?.message ?? message);
     });
     return () => {
       cancelled = true;

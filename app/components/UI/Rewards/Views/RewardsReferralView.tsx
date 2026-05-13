@@ -10,10 +10,10 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ReferralDetails from '../components/ReferralDetails/ReferralDetails';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -66,7 +66,7 @@ const ReferralRewardsView: React.FC = () => {
         edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('rewards.referral_title')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}

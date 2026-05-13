@@ -26,10 +26,8 @@ import {
   speedUpTransaction as speedUpTx,
 } from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
-import {
-  LedgerReplacementTxTypes,
-  type ReplacementTxParams,
-} from '../../UI/LedgerModals/LedgerTransactionModal';
+import { LedgerReplacementTxTypes } from '../../UI/LedgerModals/LedgerTransactionModal';
+import { type ReplacementTxParams } from '../../../core/HardwareWallet/transactionReplacementParams';
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
 import {
   useHardwareWallet,

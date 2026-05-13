@@ -123,6 +123,7 @@ import giftSVG from './assets/gift.svg';
 import globalsearchSVG from './assets/global-search.svg';
 import globalSVG from './assets/global.svg';
 import graphSVG from './assets/graph.svg';
+import groupSVG from './assets/group.svg';
 import hardwareSVG from './assets/hardware.svg';
 import hashtagSVG from './assets/hash-tag.svg';
 import heartfilledSVG from './assets/heart-filled.svg';
@@ -166,6 +167,8 @@ import monitorSVG from './assets/monitor.svg';
 import morehorizontalSVG from './assets/more-horizontal.svg';
 import moreverticalSVG from './assets/more-vertical.svg';
 import mountainflagSVG from './assets/mountain-flag.svg';
+import musdfilledSVG from './assets/musd-filled.svg';
+import musdSVG from './assets/musd.svg';
 import musicnoteSVG from './assets/music-note.svg';
 import nophotographySVG from './assets/no-photography.svg';
 import notificationSVG from './assets/notification.svg';
@@ -175,11 +178,13 @@ import passwordcheckSVG from './assets/password-check.svg';
 import pendingSVG from './assets/pending.svg';
 import peopleSVG from './assets/people.svg';
 import personcancelSVG from './assets/person-cancel.svg';
+import piechartSVG from './assets/pie-chart.svg';
 import pinSVG from './assets/pin.svg';
 import plantSVG from './assets/plant.svg';
 import plugSVG from './assets/plug.svg';
 import plusandminusSVG from './assets/plus-and-minus.svg';
 import policyalertSVG from './assets/policy-alert.svg';
+import predictionsSVG from './assets/predictions.svg';
 import printSVG from './assets/print.svg';
 import priorityhighSVG from './assets/priority-high.svg';
 import privacytipSVG from './assets/privacy-tip.svg';
@@ -407,6 +412,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.GlobalSearch]: globalsearchSVG,
   [IconName.Global]: globalSVG,
   [IconName.Graph]: graphSVG,
+  [IconName.Group]: groupSVG,
   [IconName.Hardware]: hardwareSVG,
   [IconName.HashTag]: hashtagSVG,
   [IconName.HeartFilled]: heartfilledSVG,
@@ -450,6 +456,8 @@ export const assetByIconName: AssetByIconName = {
   [IconName.MoreHorizontal]: morehorizontalSVG,
   [IconName.MoreVertical]: moreverticalSVG,
   [IconName.MountainFlag]: mountainflagSVG,
+  [IconName.MusdFilled]: musdfilledSVG,
+  [IconName.Musd]: musdSVG,
   [IconName.MusicNote]: musicnoteSVG,
   [IconName.NoPhotography]: nophotographySVG,
   [IconName.Notification]: notificationSVG,
@@ -459,11 +467,13 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Pending]: pendingSVG,
   [IconName.People]: peopleSVG,
   [IconName.PersonCancel]: personcancelSVG,
+  [IconName.PieChart]: piechartSVG,
   [IconName.Pin]: pinSVG,
   [IconName.Plant]: plantSVG,
   [IconName.Plug]: plugSVG,
   [IconName.PlusAndMinus]: plusandminusSVG,
   [IconName.PolicyAlert]: policyalertSVG,
+  [IconName.Predictions]: predictionsSVG,
   [IconName.Print]: printSVG,
   [IconName.PriorityHigh]: priorityhighSVG,
   [IconName.PrivacyTip]: privacytipSVG,
