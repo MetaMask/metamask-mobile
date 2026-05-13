@@ -651,6 +651,17 @@ export type RewardsControllerGetBenefitsAction = {
 };
 
 /**
+ * Get the VIP dashboard with caching.
+ *
+ * @param subscriptionId - The subscription ID for authentication
+ * @returns Promise<VipDashboardState | null> - The dashboard data, or null when the user is not VIP
+ */
+export type RewardsControllerGetVIPDashboardAction = {
+  type: `RewardsController:getVIPDashboard`;
+  handler: RewardsController['getVIPDashboard'];
+};
+
+/**
  * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
  *
  * @param subscriptionId - The subscription ID for authentication
@@ -830,6 +841,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerGetBenefitsAction
+  | RewardsControllerGetVIPDashboardAction
   | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
