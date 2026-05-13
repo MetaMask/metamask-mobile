@@ -187,7 +187,7 @@ pipelines:
         - bump_version_code
       upload_ios_main_to_testflight:
         depends_on:
-        - build_ios_main_exp
+        - build_ios_main_exp    
   rc_builds_to_testflight_pipeline:
     workflows:
       bump_version_code: {}
@@ -383,8 +383,8 @@ stages:
       # - run_tag_smoke_accounts_android: {}
       # - run_tag_smoke_performance_ios: {}
       # - run_tag_smoke_performance_android: {}
-      - run_tag_smoke_card_ios: {}
-      # - run_tag_smoke_card_android: {}
+      - run_tag_smoke_money_ios: {}
+      # - run_tag_smoke_money_android: {}
   # The entire workflow is disabled as Android runs on GHA and iOS was already skipped due to a regression
   # run_smoke_e2e_performance_ios_android_stage:
     # workflows:
@@ -450,8 +450,8 @@ stages:
       - run_tag_smoke_multichain_api_ios: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_card_ios: {}
-      - run_tag_smoke_card_android: {}
+      - run_tag_smoke_money_ios: {}
+      - run_tag_smoke_money_android: {}
   build_regression_e2e_ios_gns_disabled_stage:
     abort_on_fail: true
     workflows:
@@ -1128,7 +1128,7 @@ workflows:
       - android_e2e_test
   run_trade_swimlane_ios_smoke:
     envs:
-      - TEST_SUITE_TAG: '.*SmokeTrade.*'
+      - TEST_SUITE_TAG: '.*(SmokeSwap|SmokeStake).*'
     after_run:
       - ios_e2e_test
   run_trade_swimlane_android_smoke:
@@ -1137,7 +1137,7 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_TAG: '.*SmokeTrade.*'
+      - TEST_SUITE_TAG: '.*(SmokeSwap|SmokeStake).*'
     after_run:
       - android_e2e_test
   run_ios_api_specs:
@@ -1227,18 +1227,18 @@ workflows:
       - TEST_SUITE_TAG: 'SmokeAccounts'
     after_run:
       - android_e2e_test
-  run_tag_smoke_card_ios:
+  run_tag_smoke_money_ios:
     envs:
-      - TEST_SUITE_TAG: 'SmokeCard'
+      - TEST_SUITE_TAG: '.*SmokeMoney.*'
     after_run:
       - ios_e2e_test
-  run_tag_smoke_card_android:
+  run_tag_smoke_money_android:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_TAG: 'SmokeCard'
+      - TEST_SUITE_TAG: '.*SmokeMoney.*'
     after_run:
       - android_e2e_test
   android_e2e_build:
@@ -1814,15 +1814,15 @@ workflows:
                 echo "║  Phase 1.5: Parallel Validation                            ║"
                 echo "║  Comparing Bitrise env vars with builds.yml config         ║"
                 echo "╚════════════════════════════════════════════════════════════╝"
-
+                
                 # Set defaults if not already set
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'e2e'}
-
+                
                 # Run verification (auto-detects build from env vars)
                 # Using --verbose to see all checks in build logs
                 node scripts/verify-build-config.js --verbose || true
-
+                
                 # Note: Currently running without --strict
                 # Once verified, change to: node scripts/verify-build-config.js --strict
       - script@1:
@@ -2286,15 +2286,15 @@ workflows:
                 echo "║  Phase 1.5: Parallel Validation                            ║"
                 echo "║  Comparing Bitrise env vars with builds.yml config         ║"
                 echo "╚════════════════════════════════════════════════════════════╝"
-
+                
                 # Set defaults if not already set
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'production'}
-
+                
                 # Run verification (auto-detects build from env vars)
                 # Using --verbose to see all checks in build logs
                 node scripts/verify-build-config.js --verbose || true
-
+                
                 # Note: Currently running without --strict
                 # Once verified, change to: node scripts/verify-build-config.js --strict
       - script@1:
@@ -2503,15 +2503,15 @@ workflows:
                 echo "║  Phase 1.5: Parallel Validation                            ║"
                 echo "║  Comparing Bitrise env vars with builds.yml config         ║"
                 echo "╚════════════════════════════════════════════════════════════╝"
-
+                
                 # Set defaults if not already set
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'e2e'}
-
+                
                 # Run verification (auto-detects build from env vars)
                 # Using --verbose to see all checks in build logs
                 node scripts/verify-build-config.js --verbose || true
-
+                
                 # Note: Currently running without --strict
                 # Once verified, change to: node scripts/verify-build-config.js --strict
       - script@1:
@@ -2987,15 +2987,15 @@ workflows:
                 echo "║  Phase 1.5: Parallel Validation                            ║"
                 echo "║  Comparing Bitrise env vars with builds.yml config         ║"
                 echo "╚════════════════════════════════════════════════════════════╝"
-
+                
                 # Set defaults if not already set
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'production'}
-
+                
                 # Run verification (auto-detects build from env vars)
                 # Using --verbose to see all checks in build logs
                 node scripts/verify-build-config.js --verbose || true
-
+                
                 # Note: Currently running without --strict
                 # Once verified, change to: node scripts/verify-build-config.js --strict
       - script@1:
@@ -3441,7 +3441,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -e
-
+                
                 ./scripts/setup-app-store-connect-api-key.sh \
                   "$BITRISE_APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
                   "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID" \
@@ -3453,7 +3453,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -e
-
+                
                 bash ./scripts/upload-to-testflight.sh \
                   "${BITRISEIO_PIPELINE_TITLE:-Unknown}" \
                   "${BITRISE_GIT_BRANCH:-Unknown}" \
@@ -3555,16 +3555,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.75.1
+      VERSION_NAME: 7.76.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 4809
+      VERSION_NUMBER: 4866
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.75.1
+      FLASK_VERSION_NAME: 7.76.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 4809
+      FLASK_VERSION_NUMBER: 4866
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

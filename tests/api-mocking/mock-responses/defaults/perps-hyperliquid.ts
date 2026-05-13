@@ -2,8 +2,15 @@ import { MockEventsObject } from '../../../framework';
 
 const hyperliquidInfoEndpoint = 'https://api.hyperliquid.xyz/info';
 
+const hyperliquidExchangeEndpoint = 'https://api.hyperliquid.xyz/exchange';
+
 export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
   POST: [
+    {
+      urlEndpoint: hyperliquidExchangeEndpoint,
+      responseCode: 200,
+      response: { status: 'ok' },
+    },
     {
       urlEndpoint: hyperliquidInfoEndpoint,
       requestBody: { type: 'allMids' },

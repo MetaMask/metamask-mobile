@@ -141,7 +141,13 @@ const convertToRampsTokens = (tokens: typeof mockTokens) =>
 describe('TokenSelection Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSearchTokenResults as jest.Mock).mockReturnValue(mockTokens);
+    // Return tokens with tokenSupported set so that items are not disabled.
+    // In React 19, fireEvent.press does not fire on disabled TouchableOpacity
+    // elements; without tokenSupported the isDisabled prop becomes true and
+    // press events are silently dropped.
+    (useSearchTokenResults as jest.Mock).mockReturnValue(
+      convertToRampsTokens(mockTokens),
+    );
     mockGetNetworkName.mockReturnValue('Ethereum Mainnet');
     mockUseRampsUnifiedV2Enabled.mockReturnValue(false); // Default to V1 behavior
 

@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "Нет доступных средств. Используйте другой счет."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "Кошелек не поддерживается",
       "message": "Аппаратные кошельки не поддерживаются.\nЧтобы продолжить, смените кошелек."
     },
@@ -7868,8 +7868,6 @@
         "manage_spending_limit": "Управление лимитом",
         "manage_spending_limit_description_restricted": "Активирован лимит расходов",
         "manage_spending_limit_description_full": "Активирован полный доступ",
-        "manage_card": "Управление картой",
-        "advanced_card_management_description": "Смотрите статистику активности, получайте кэшбек, выполняйте блокировку карты и делайте многое другое",
         "travel_title": "Путешествия MetaMask",
         "travel_description": "Бронируйте отели со скидками до 70%",
         "card_tos_title": "Положения и условия",
@@ -8429,7 +8427,6 @@
       "empty": "У вас нет никаких позиций",
       "empty_description": "Начните зарабатывать вознаграждения, открыв позицию в токенизированных активах реального мира.",
       "empty_cta": "Открыть позицию",
-      "position_units": "{{units}} акции(-ий)",
       "positions_title": "Позиции",
       "activity_title": "Деятельность",
       "view_activity": "Смотреть активность",
@@ -8665,7 +8662,7 @@
   },
   "trending": {
     "title": "Обзор",
-    "trending_tokens": "Популярные токены",
+    "trending_tokens": "Тренды",
     "stocks": "Акции",
     "price_change": "Изменение цены",
     "all_networks": "Все сети",
@@ -8822,7 +8819,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFT",
-      "trending_tokens": "Популярные токены",
+      "trending_tokens": "Тренды",
       "trending_perpetuals": "Популярные перпы",
       "trending_predictions": "Популярные прогнозы",
       "import_nfts": "Импорт NFT",

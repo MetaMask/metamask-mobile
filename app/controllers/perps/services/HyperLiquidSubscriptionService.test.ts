@@ -283,12 +283,6 @@ describe('HyperLiquidSubscriptionService', () => {
         }, 0);
         return Promise.resolve(mockSubscription);
       }),
-      spotState: jest.fn((_params: any, _callback: any) =>
-        // Default: subscribe resolves but never emits. Tests that need the
-        // push-driven path call mockSubscriptionClient.spotState.mock.calls[0][1]
-        // manually to drive the handler.
-        Promise.resolve(mockSubscription),
-      ),
       l2Book: jest.fn((_params: any, callback: any) => {
         // Simulate l2Book data
         setTimeout(() => {
@@ -375,6 +369,9 @@ describe('HyperLiquidSubscriptionService', () => {
         return Promise.resolve(mockSubscription);
       }),
       assetCtxs: jest.fn(() => Promise.resolve(mockSubscription)),
+      spotState: jest.fn((_params: any, _callback: any) =>
+        Promise.resolve(mockSubscription),
+      ),
     };
 
     mockWalletAdapter = {
@@ -3723,9 +3720,6 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     it('re-notifies account subscribers when a spotState push arrives', async () => {
-      // Seed aggregation with a perps tick so #dexAccountCache is non-empty,
-      // which is the guard the handler uses before calling
-      // #aggregateAndNotifySubscribers.
       const firstCallback = jest.fn();
       const firstUnsubscribe = service.subscribeToAccount({
         callback: firstCallback,
@@ -3855,7 +3849,6 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     it('ignores spotState events for a different user', async () => {
-      // First seed perps state so the handler's re-aggregate guard could fire.
       const unsubscribe = service.subscribeToAccount({
         callback: jest.fn(),
       });
@@ -4546,6 +4539,7 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     // TODO: Refactor to test restoreSubscriptions through public disconnect/reconnect API
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('restores webData3 subscription when user data subscribers exist', async () => {
       const positionCallback = jest.fn();
       const mockUnsubscribe = jest.fn().mockResolvedValue(undefined);
@@ -4591,6 +4585,7 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     // TODO: Refactor to test through public disconnect/reconnect API
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('restores activeAsset subscriptions for all market data subscribers', async () => {
       const marketDataCallback = jest.fn();
       const mockUnsubscribe = jest.fn();
@@ -4643,6 +4638,7 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     // TODO: Refactor to test through public disconnect/reconnect API
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('clears BBO subscriptions during restoration', async () => {
       const mockUnsubscribe = jest.fn().mockResolvedValue(undefined);
       const mockSubscription = { unsubscribe: mockUnsubscribe };
@@ -4744,6 +4740,7 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     // TODO: Refactor to test through public disconnect/reconnect API
+    // eslint-disable-next-line jest/no-disabled-tests
     it.skip('restores all subscription types when multiple subscriber types exist', async () => {
       const priceCallback = jest.fn();
       const positionCallback = jest.fn();

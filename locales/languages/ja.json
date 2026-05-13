@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "利用可能な資金がありません。別のアカウントをお試しください。"
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "未対応のウォレットです",
       "message": "ハードウェアウォレットには対応していません。\n続行するにはウォレットを切り替えてください。"
     },
@@ -7868,8 +7868,6 @@
         "manage_spending_limit": "利用限度額の管理",
         "manage_spending_limit_description_restricted": "利用制限がオンになっています",
         "manage_spending_limit_description_full": "フルアクセスがオンになっています",
-        "manage_card": "カードの管理",
-        "advanced_card_management_description": "アクティビティやキャッシュバックの確認、カードの凍結など",
         "travel_title": "MetaMask Travel",
         "travel_description": "最大70%割引でホテルを予約",
         "card_tos_title": "利用規約",
@@ -8429,7 +8427,6 @@
       "empty": "ポジションがありません",
       "empty_description": "RWAトークンのポジションをオープンして、報酬の獲得を始めましょう。",
       "empty_cta": "ポジションをオープン",
-      "position_units": "{{units}}株",
       "positions_title": "ポジション",
       "activity_title": "アクティビティ",
       "view_activity": "アクティビティを表示",
@@ -8665,7 +8662,7 @@
   },
   "trending": {
     "title": "閲覧",
-    "trending_tokens": "流行のトークン",
+    "trending_tokens": "トレンド",
     "stocks": "株式",
     "price_change": "価格変動",
     "all_networks": "すべてのネットワーク",
@@ -8822,7 +8819,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFT",
-      "trending_tokens": "流行のトークン",
+      "trending_tokens": "トレンド",
       "trending_perpetuals": "人気のパーペチュアル",
       "trending_predictions": "人気の予測",
       "import_nfts": "NFTをインポート",

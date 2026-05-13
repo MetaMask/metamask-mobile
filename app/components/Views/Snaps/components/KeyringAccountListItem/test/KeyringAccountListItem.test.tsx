@@ -12,10 +12,6 @@ import {
   createMockSnapInternalAccount,
 } from '../../../../../../util/test/accountsControllerTestUtils';
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-}));
-
 describe('KeyringAccountListItem', () => {
   const mockInternalAccount = createMockSnapInternalAccount(
     MOCK_ADDRESS_1,

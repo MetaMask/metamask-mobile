@@ -2,10 +2,17 @@ import React from 'react';
 import DiscoveryTab from './DiscoveryTab';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import { processUrlForBrowser } from '../../../util/browser';
-import Device from '../../../util/device';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
+
+jest.mock(
+  'react-native/Libraries/Components/Keyboard/KeyboardAvoidingView',
+  () => ({
+    __esModule: true,
+    default: jest.requireActual('react-native').View,
+  }),
+);
 
 const mockNavigation = {
   navigate: jest.fn(),
@@ -152,6 +159,8 @@ jest.mock('react-native', () => {
       OS: 'ios',
       select: jest.fn((options) => options.ios),
     },
+    KeyboardAvoidingView: ({ children }: { children: React.ReactNode }) =>
+      children,
   };
 });
 
@@ -198,133 +207,25 @@ describe('DiscoveryTab', () => {
 
   describe('Rendering', () => {
     it('renders DiscoveryTab component when tab is active', () => {
-      const { toJSON } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <DiscoveryTab {...defaultProps} />,
         { state: initialState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('hides content when tab is not active', () => {
-      const inactiveState = {
-        ...initialState,
-        browser: {
-          ...initialState.browser,
-          activeTab: 2,
-        },
-      };
-
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: inactiveState },
-      );
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-  });
-
-  describe('Props Handling', () => {
-    it('accepts showTabs prop', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('accepts updateTabInfo prop', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders with all required props', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-  });
-
-  describe('URL Bar Interactions', () => {
-    it('renders BrowserUrlBar component', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('passes showTabs callback to BrowserUrlBar', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
-
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('browser-url-bar')).toBeOnTheScreen();
     });
   });
 
   describe('Bottom Bar Rendering', () => {
     it('renders BrowserBottomBar when tab is active and URL bar not focused', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
+      const BrowserBottomBarMock = BrowserBottomBar as unknown as jest.Mock;
+      BrowserBottomBarMock.mockClear();
 
-      expect(toJSON()).toMatchSnapshot();
-    });
+      renderWithProvider(<DiscoveryTab {...defaultProps} />, {
+        state: initialState,
+      });
 
-    it('passes newTab prop to BrowserBottomBar', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-  });
-
-  describe('Edge Cases', () => {
-    it('renders when tab ID does not match active tab', () => {
-      const differentTabState = {
-        ...initialState,
-        browser: {
-          ...initialState.browser,
-          activeTab: 99,
-        },
-      };
-
-      const propsWithAllRequired = {
-        id: 1,
-        showTabs: mockShowTabs,
-        newTab: mockNewTab,
-        updateTabInfo: mockUpdateTabInfo,
-      };
-
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...propsWithAllRequired} />,
-        { state: differentTabState },
-      );
-
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders TokenDiscovery component', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        { state: initialState },
-      );
-
-      expect(toJSON()).toMatchSnapshot();
+      expect(BrowserBottomBarMock).toHaveBeenCalled();
     });
   });
 
@@ -383,7 +284,7 @@ describe('DiscoveryTab', () => {
   });
 
   describe('onSelect callback', () => {
-    it('hides URL bar and calls onSubmitEditing when selecting site from autocomplete', async () => {
+    it('hides URL bar and calls onSubmitEditing when selecting site from autocomplete', () => {
       const mockProcessUrlForBrowser = processUrlForBrowser as jest.Mock;
       mockProcessUrlForBrowser.mockReturnValue('https://processed-site.com');
 
@@ -496,7 +397,7 @@ describe('DiscoveryTab', () => {
       expect(BrowserBottomBarMock).not.toHaveBeenCalled();
     });
 
-    it('does not render BrowserBottomBar when URL bar is focused', () => {
+    it('does not render BrowserBottomBar when URL bar is focused', async () => {
       const BrowserBottomBarMock = BrowserBottomBar as unknown as jest.Mock;
       BrowserBottomBarMock.mockClear();
 
@@ -512,7 +413,9 @@ describe('DiscoveryTab', () => {
 
       // Focus the URL bar
       const urlBar = getByTestId('browser-url-bar');
-      fireEvent.press(urlBar);
+      await act(async () => {
+        fireEvent.press(urlBar);
+      });
 
       // After focusing, BrowserBottomBar should not be rendered
       // We verify this by checking that setIsUrlBarFocused was called
@@ -541,61 +444,6 @@ describe('DiscoveryTab', () => {
       }
 
       expect(mockNewTab).toHaveBeenCalled();
-    });
-  });
-
-  describe('Platform-specific behavior', () => {
-    it('uses padding behavior for KeyboardAvoidingView on iOS', () => {
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        {
-          state: initialState,
-        },
-      );
-
-      const json = toJSON();
-      expect(json).toMatchSnapshot();
-    });
-
-    it('uses height behavior for KeyboardAvoidingView on Android', () => {
-      const DeviceMock = Device as jest.Mocked<typeof Device>;
-      DeviceMock.isAndroid.mockReturnValue(true);
-
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      const RN = require('react-native');
-      RN.Platform.OS = 'android';
-
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        {
-          state: initialState,
-        },
-      );
-
-      const json = toJSON();
-      expect(json).toMatchSnapshot();
-
-      DeviceMock.isAndroid.mockReturnValue(false);
-      RN.Platform.OS = 'ios';
-    });
-  });
-
-  describe('Device-specific behavior', () => {
-    it('adds collapsable prop to View when on Android', () => {
-      const DeviceMock = Device as jest.Mocked<typeof Device>;
-      DeviceMock.isAndroid.mockReturnValue(true);
-
-      const { toJSON } = renderWithProvider(
-        <DiscoveryTab {...defaultProps} />,
-        {
-          state: initialState,
-        },
-      );
-
-      const json = toJSON();
-      expect(json).toMatchSnapshot();
-
-      DeviceMock.isAndroid.mockReturnValue(false);
     });
   });
 

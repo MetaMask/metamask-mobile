@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "无可用资金。请使用其他账户。"
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "钱包不获支持",
       "message": "暂不支持硬件钱包。请切换钱包继续操作。"
     },
@@ -7868,8 +7868,6 @@
         "manage_spending_limit": "管理限额",
         "manage_spending_limit_description_restricted": "限额消费已开启",
         "manage_spending_limit_description_full": "全部权限已开启",
-        "manage_card": "管理卡片",
-        "advanced_card_management_description": "查看活动、返现、冻结卡等",
         "travel_title": "MetaMask Travel",
         "travel_description": "预订酒店享高达 70% 折扣",
         "card_tos_title": "条款和条件",
@@ -8429,7 +8427,6 @@
       "empty": "您暂无任何持仓",
       "empty_description": "通过开立代币化现实世界资产的仓位，开始赚取奖励。",
       "empty_cta": "开仓",
-      "position_units": "{{units}} 份额",
       "positions_title": "头寸",
       "activity_title": "活动",
       "view_activity": "查看活动",
@@ -8665,7 +8662,7 @@
   },
   "trending": {
     "title": "探索",
-    "trending_tokens": "热门代币",
+    "trending_tokens": "热门",
     "stocks": "股票",
     "price_change": "价格变化",
     "all_networks": "所有网络",
@@ -8822,7 +8819,7 @@
       },
       "defi": "DeFi",
       "nfts": "NFT",
-      "trending_tokens": "热门代币",
+      "trending_tokens": "热门",
       "trending_perpetuals": "热门永续合约",
       "trending_predictions": "热门预测",
       "import_nfts": "导入 NFT",

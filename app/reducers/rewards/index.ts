@@ -168,6 +168,9 @@ export interface RewardsState {
   // Pending deeplink navigation intent, stored in Redux so it survives the
   // UnmountOnBlur remount of RewardsHome when navigating from outside the tab.
   pendingDeeplink: PendingDeeplink | null;
+
+  // Dismissed outcome toasts (keyed by `${campaignId}:${subscriptionId}:${variant}`)
+  dismissedCampaignOutcomeToasts: Record<string, boolean>;
 }
 
 /**
@@ -276,6 +279,8 @@ export const initialState: RewardsState = {
   ondoCampaignDepositsError: false,
 
   pendingDeeplink: null,
+
+  dismissedCampaignOutcomeToasts: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -438,6 +443,7 @@ const rewardsSlice = createSlice({
             state.hideCurrentAccountNotOptedInBanner,
           hideUnlinkedAccountsBanner: state.hideUnlinkedAccountsBanner,
           bulkLink: state.bulkLink,
+          dismissedCampaignOutcomeToasts: state.dismissedCampaignOutcomeToasts,
           versionGuardMinimumMobileVersion:
             state.versionGuardMinimumMobileVersion,
           versionGuardLoading: state.versionGuardLoading,
@@ -653,7 +659,7 @@ const rewardsSlice = createSlice({
     },
 
     setBenefits: (state, action: PayloadAction<SubscriptionBenefitsState>) => {
-      state.benefits = action.payload.benefits;
+      state.benefits = action.payload.benefits ?? [];
     },
 
     setBenefitsLoading: (state, action: PayloadAction<boolean>) => {
@@ -760,6 +766,18 @@ const rewardsSlice = createSlice({
     ) => {
       state.pendingDeeplink = action.payload;
     },
+
+    dismissCampaignOutcomeToast: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        subscriptionId: string;
+        variant: 'winner_verify' | 'participant_no_winner';
+      }>,
+    ) => {
+      const key = `${action.payload.campaignId}:${action.payload.subscriptionId}:${action.payload.variant}`;
+      state.dismissedCampaignOutcomeToasts[key] = true;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -785,9 +803,10 @@ const rewardsSlice = createSlice({
               seasonName: action.payload.rewards.seasonName,
               seasonStartDate: action.payload.rewards.seasonStartDate,
               seasonEndDate: action.payload.rewards.seasonEndDate,
-              seasonTiers: action.payload.rewards.seasonTiers,
-              seasonActivityTypes: action.payload.rewards.seasonActivityTypes,
-              seasonWaysToEarn: action.payload.rewards.seasonWaysToEarn,
+              seasonTiers: action.payload.rewards.seasonTiers ?? [],
+              seasonActivityTypes:
+                action.payload.rewards.seasonActivityTypes ?? [],
+              seasonWaysToEarn: action.payload.rewards.seasonWaysToEarn ?? [],
               referralCode: action.payload.rewards.referralCode,
               refereeCount: action.payload.rewards.refereeCount,
               currentTier: action.payload.rewards.currentTier,
@@ -800,7 +819,7 @@ const rewardsSlice = createSlice({
               activeBoosts: action.payload.rewards.activeBoosts,
               pointsEvents: action.payload.rewards.pointsEvents,
               unlockedRewards: action.payload.rewards.unlockedRewards,
-              campaigns: action.payload.rewards.campaigns,
+              campaigns: action.payload.rewards.campaigns ?? [],
               campaignParticipantStatuses:
                 action.payload.rewards.campaignParticipantStatuses ?? {},
               ondoCampaignLeaderboardPositions:
@@ -813,6 +832,9 @@ const rewardsSlice = createSlice({
                 action.payload.rewards.hideUnlinkedAccountsBanner,
               hideCurrentAccountNotOptedInBanner:
                 action.payload.rewards.hideCurrentAccountNotOptedInBanner,
+
+              dismissedCampaignOutcomeToasts:
+                action.payload.rewards.dismissedCampaignOutcomeToasts ?? {},
 
               // Bulk link state - preserve interrupted status for resume capability
               bulkLink: {
@@ -897,6 +919,7 @@ export const {
   bulkLinkReset,
   bulkLinkResumed,
   setPendingDeeplink,
+  dismissCampaignOutcomeToast,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

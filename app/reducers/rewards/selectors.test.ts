@@ -46,6 +46,7 @@ import {
   selectBulkLinkFailedAccounts,
   selectBulkLinkWasInterrupted,
   selectBulkLinkAccountProgress,
+  selectBenefits,
   selectCampaigns,
   selectCampaignsLoading,
   selectCampaignsError,
@@ -70,6 +71,7 @@ import {
   selectOndoCampaignPortfolio,
   selectOndoCampaignPortfolioById,
   selectOndoCampaignActivityById,
+  selectDismissedCampaignOutcomeToasts,
 } from './selectors';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
@@ -83,6 +85,7 @@ import {
   SeasonWayToEarnDto,
   PointsEventDto,
   OndoGmActivityEntryDto,
+  SubscriptionBenefitDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
 import { RewardsState, AccountOptInBannerInfoStatus } from '.';
@@ -548,6 +551,16 @@ describe('Rewards selectors', () => {
       expect(result.current).toEqual([]);
     });
 
+    it('returns empty array when season tiers are undefined', () => {
+      const mockState = {
+        rewards: { seasonTiers: undefined },
+      } as unknown as RootState;
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonTiers));
+      expect(result.current).toEqual([]);
+    });
+
     it('returns season tiers when set', () => {
       const mockTiers: SeasonTierDto[] = [
         {
@@ -603,6 +616,18 @@ describe('Rewards selectors', () => {
       expect(result.current).toEqual([]);
     });
 
+    it('returns empty array when season activity types are undefined', () => {
+      const mockState = {
+        rewards: { seasonActivityTypes: undefined },
+      } as unknown as RootState;
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonActivityTypes),
+      );
+      expect(result.current).toEqual([]);
+    });
+
     it('returns season activity types when set', () => {
       const mockActivityTypes: SeasonActivityTypeDto[] = [
         {
@@ -631,6 +656,16 @@ describe('Rewards selectors', () => {
   describe('selectSeasonWaysToEarn', () => {
     it('returns empty array when season ways to earn are not set', () => {
       const mockState = { rewards: { seasonWaysToEarn: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonWaysToEarn));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns empty array when season ways to earn are undefined', () => {
+      const mockState = {
+        rewards: { seasonWaysToEarn: undefined },
+      } as unknown as RootState;
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
       const { result } = renderHook(() => useSelector(selectSeasonWaysToEarn));
@@ -1029,6 +1064,18 @@ describe('Rewards selectors', () => {
       );
       expect(result.current).toEqual([]);
       expect(result.current).toHaveLength(0);
+    });
+
+    it('returns empty array when account banner config is undefined', () => {
+      const mockState = {
+        rewards: { hideCurrentAccountNotOptedInBanner: undefined },
+      } as unknown as RootState;
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual([]);
     });
 
     it('returns single account configuration when set', () => {
@@ -3115,11 +3162,53 @@ describe('Rewards selectors', () => {
     excludedRegions: [],
     details: null,
     featured: false,
+    showUpcomingDate: false,
   };
+
+  describe('selectBenefits', () => {
+    const mockBenefit: SubscriptionBenefitDto = {
+      id: 101,
+      longTitle: 'Premium Access',
+      shortDescription: 'Get premium perks',
+      longDescription: 'Unlock premium partner benefits.',
+      thumbnail: 'https://example.com/benefits/premium.png',
+      validFrom: '2026-01-01T00:00:00.000Z',
+      validTo: '2026-12-31T00:00:00.000Z',
+      actionDate: '2026-06-01T00:00:00.000Z',
+      url: 'https://example.com/claim',
+      chain: 'ethereum',
+      type: {
+        id: 1,
+        name: 'Partner',
+      },
+    };
+
+    it('returns empty array when benefits are undefined', () => {
+      const state = createMockRootState({
+        benefits: undefined as unknown as SubscriptionBenefitDto[],
+      });
+      expect(selectBenefits(state)).toEqual([]);
+    });
+
+    it('returns benefits when they exist', () => {
+      const state = createMockRootState({ benefits: [mockBenefit] });
+      expect(selectBenefits(state)).toEqual([mockBenefit]);
+    });
+  });
 
   describe('selectCampaigns', () => {
     it('returns empty array when campaigns is empty', () => {
       const mockState = { rewards: { campaigns: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaigns));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns empty array when campaigns is undefined', () => {
+      const mockState = {
+        rewards: { campaigns: undefined },
+      } as unknown as RootState;
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
       const { result } = renderHook(() => useSelector(selectCampaigns));
@@ -3137,6 +3226,13 @@ describe('Rewards selectors', () => {
     describe('Direct selector calls', () => {
       it('returns empty array when campaigns is empty', () => {
         const state = createMockRootState({ campaigns: [] });
+        expect(selectCampaigns(state)).toEqual([]);
+      });
+
+      it('returns empty array when campaigns is undefined', () => {
+        const state = createMockRootState({
+          campaigns: undefined as unknown as CampaignDto[],
+        });
         expect(selectCampaigns(state)).toEqual([]);
       });
 
@@ -3816,6 +3912,52 @@ describe('Rewards selectors', () => {
       expect(
         selectOndoCampaignActivityById('sub-1', 'campaign-1')(state),
       ).toEqual(mockEntries);
+    });
+  });
+
+  describe('selectDismissedCampaignOutcomeToasts', () => {
+    it('returns empty object when no toasts have been dismissed', () => {
+      const state = createMockRootState({ dismissedCampaignOutcomeToasts: {} });
+      expect(selectDismissedCampaignOutcomeToasts(state)).toEqual({});
+    });
+
+    it('returns empty object when dismissed toasts are undefined', () => {
+      const state = createMockRootState({
+        dismissedCampaignOutcomeToasts: undefined as unknown as Record<
+          string,
+          boolean
+        >,
+      });
+      expect(selectDismissedCampaignOutcomeToasts(state)).toEqual({});
+    });
+
+    it('returns the dismissed toasts map', () => {
+      const dismissed = {
+        'campaign-1:sub-1:winner_verify': true,
+        'campaign-2:sub-1:participant_no_winner': true,
+      };
+      const state = createMockRootState({
+        dismissedCampaignOutcomeToasts: dismissed,
+      });
+      expect(selectDismissedCampaignOutcomeToasts(state)).toEqual(dismissed);
+    });
+
+    it('returns true for a dismissed toast key', () => {
+      const state = createMockRootState({
+        dismissedCampaignOutcomeToasts: {
+          'campaign-1:sub-1:winner_verify': true,
+        },
+      });
+      const result = selectDismissedCampaignOutcomeToasts(state);
+      expect(result['campaign-1:sub-1:winner_verify']).toBe(true);
+    });
+
+    it('returns undefined for a key that has not been dismissed', () => {
+      const state = createMockRootState({
+        dismissedCampaignOutcomeToasts: {},
+      });
+      const result = selectDismissedCampaignOutcomeToasts(state);
+      expect(result['campaign-1:sub-1:winner_verify']).toBeUndefined();
     });
   });
 });

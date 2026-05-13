@@ -1,5 +1,12 @@
 import { test as base, type FullProject } from '@playwright/test';
-import { WebDriverConfig } from '../types.ts';
+import {
+  WebDriverConfig,
+  Platform,
+  ProviderName,
+  type DeviceConfig,
+  type EmulatorConfig,
+} from '../types.ts';
+import { applyResolvedAndroidAdbToDevice } from '../services/providers/emulator/android/resolveAndroidAdbUdid.ts';
 import { DEFAULT_IMPLICIT_WAIT_MS } from '../Constants.ts';
 import { createServiceProvider, type ServiceProvider } from '../services';
 import {
@@ -24,9 +31,14 @@ declare global {
 export interface CurrentDeviceDetails {
   platform: 'android' | 'ios';
   deviceName: string;
+  /**
+   * Android: adb serial (e.g. `emulator-5554`) after AVD name resolution. Omitted on iOS.
+   */
+  udid?: string;
   packageName?: string;
   appId?: string;
   launchableActivity?: string;
+  /** Derived from `use.device.provider === ProviderName.BROWSERSTACK` in Playwright config. */
   isBrowserstack: boolean;
 }
 
@@ -69,16 +81,24 @@ export const test = base.extend<TestLevelFixtures>({
   currentDeviceDetails: async ({}, use, testInfo) => {
     const project = testInfo.project as FullProject<WebDriverConfig>;
     const platform = project.use.platform;
-    const deviceName = project.use.device?.name;
+    const emulatorDevice = project.use.device as EmulatorConfig | undefined;
+    const deviceNameField = emulatorDevice?.name;
+    const deviceUdid = emulatorDevice?.udid;
     const packageName = project.use.app?.packageName;
     const appId = project.use.app?.appId;
     const launchableActivity = project.use.app?.launchableActivity;
-    const buildPath = project.use.buildPath;
-    const isBrowserstack = buildPath?.startsWith('bs://') ?? false;
+    const deviceConfig = project.use.device as DeviceConfig | undefined;
+    const isBrowserstack = deviceConfig?.provider === ProviderName.BROWSERSTACK;
+
+    const hasLocalDeviceId =
+      Boolean(deviceNameField) ||
+      (platform === Platform.ANDROID && Boolean(deviceUdid));
 
     const missingFields = [
       ...(!platform ? ['"use.platform"'] : []),
-      ...(!deviceName ? ['"use.device.name"'] : []),
+      ...(!hasLocalDeviceId
+        ? ['"use.device.name" and/or (Android) "use.device.udid"']
+        : []),
     ];
 
     if (missingFields.length > 0) {
@@ -87,9 +107,21 @@ export const test = base.extend<TestLevelFixtures>({
       );
     }
 
+    const isLocalEmulator =
+      emulatorDevice?.provider === ProviderName.EMULATOR ||
+      emulatorDevice?.provider === ProviderName.SIMULATOR;
+
+    if (platform === Platform.ANDROID && isLocalEmulator && emulatorDevice) {
+      await applyResolvedAndroidAdbToDevice(emulatorDevice, {
+        setAndroidSerialEnv: true,
+      });
+    }
+
+    const displayName = deviceNameField ?? deviceUdid ?? 'unknown';
     const deviceDetails: CurrentDeviceDetails = {
       platform: platform as 'android' | 'ios',
-      deviceName: deviceName as string,
+      deviceName: displayName,
+      udid: emulatorDevice?.udid,
       packageName,
       appId,
       launchableActivity,

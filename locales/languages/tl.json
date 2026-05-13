@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "Walang available na mga pondo. Gumamit ng ibang account."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "Hindi sinusuportahan ang wallet",
       "message": "Hindi pa sinusuportahan ang mga wallet na hardware.\nMagpalit ng wallet para magpatuloy."
     },
@@ -7868,8 +7868,6 @@
         "manage_spending_limit": "Pamahalaan ang limit",
         "manage_spending_limit_description_restricted": "Naka-on ang limitadong paggastos",
         "manage_spending_limit_description_full": "Naka-on ang buong pag-access",
-        "manage_card": "Pamahalaan ang card",
-        "advanced_card_management_description": "Tingnan ang aktibidad, cashback, freeze card, at higit pa",
         "travel_title": "MetaMask Travel",
         "travel_description": "Mag-book ng mga hotel na may hanggang 70% diskuwento",
         "card_tos_title": "Mga tuntunin at kundisyon",
@@ -8429,7 +8427,6 @@
       "empty": "Wala kang anumang posisyon",
       "empty_description": "Simulang kumita ng mga reward sa pamamagitan ng pagbubukas ng posisyon sa naka-token na mga asset sa totoong mundo.",
       "empty_cta": "Magbukas ng posisyon",
-      "position_units": "{{units}} (na) share",
       "positions_title": "Mga Posisyon",
       "activity_title": "Aktibidad",
       "view_activity": "Tingnan ang aktibidad",
@@ -8665,7 +8662,7 @@
   },
   "trending": {
     "title": "Tuklasin",
-    "trending_tokens": "Mga trending na token",
+    "trending_tokens": "Trending",
     "stocks": "Stocks",
     "price_change": "Pagbabago ng presyo",
     "all_networks": "Lahat ng network",
@@ -8822,7 +8819,7 @@
       },
       "defi": "DeFi",
       "nfts": "Mga NFT",
-      "trending_tokens": "Mga trending na token",
+      "trending_tokens": "Trending",
       "trending_perpetuals": "Mga trending na perpetual",
       "trending_predictions": "Mga trending na prediksyon",
       "import_nfts": "Mag-import ng mga NFT",
