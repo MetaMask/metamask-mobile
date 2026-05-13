@@ -146,6 +146,7 @@ app/core/Engine/controllers/bridge-controller            @MetaMask/swaps-enginee
 app/core/Engine/controllers/bridge-status-controller     @MetaMask/swaps-engineers
 
 # Notifications Team
+app/components/Nav/Main/StartupSurfaceCoordinator/ @MetaMask/notifications
 app/components/Views/Notifications @MetaMask/notifications
 app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
 **/Notifications/** @MetaMask/notifications
