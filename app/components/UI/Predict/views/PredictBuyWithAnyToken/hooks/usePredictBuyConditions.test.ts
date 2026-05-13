@@ -119,7 +119,6 @@ const defaultParams = {
   isUserInputChange: false,
   isConfirming: false,
   totalPayForPredictBalance: 10.5,
-  isInputFocused: false,
   hasBlockingPayAlerts: false,
 };
 
@@ -1118,8 +1117,8 @@ describe('usePredictBuyConditions', () => {
     });
   });
 
-  describe('selected payment token reset effect', () => {
-    it('resets the selected token when predict balance covers the total and input is not focused', () => {
+  describe('manual payment token selection', () => {
+    it('does not reset the selected token after initialization, even when Predict balance covers the total', () => {
       mockPredictBalance = 20;
       mockIsPredictBalanceSelected = false;
 
@@ -1127,37 +1126,6 @@ describe('usePredictBuyConditions', () => {
         usePredictBuyConditions({
           ...defaultParams,
           totalPayForPredictBalance: 20,
-          isInputFocused: false,
-        }),
-      );
-
-      expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not reset the selected token while the input is focused', () => {
-      mockPredictBalance = 20;
-      mockIsPredictBalanceSelected = false;
-
-      renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          totalPayForPredictBalance: 20,
-          isInputFocused: true,
-        }),
-      );
-
-      expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
-    });
-
-    it('does not reset the selected token when predict balance is already selected', () => {
-      mockPredictBalance = 20;
-      mockIsPredictBalanceSelected = true;
-
-      renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          totalPayForPredictBalance: 20,
-          isInputFocused: false,
         }),
       );
 
@@ -1172,7 +1140,6 @@ describe('usePredictBuyConditions', () => {
         usePredictBuyConditions({
           ...defaultParams,
           totalPayForPredictBalance: 20,
-          isInputFocused: false,
         }),
       );
 
@@ -1187,7 +1154,6 @@ describe('usePredictBuyConditions', () => {
         usePredictBuyConditions({
           ...defaultParams,
           totalPayForPredictBalance: 0,
-          isInputFocused: false,
         }),
       );
 

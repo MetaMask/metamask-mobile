@@ -239,7 +239,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isUserInputChange,
     isConfirming,
     totalPayForPredictBalance,
-    isInputFocused,
     hasBlockingPayAlerts,
   });
 

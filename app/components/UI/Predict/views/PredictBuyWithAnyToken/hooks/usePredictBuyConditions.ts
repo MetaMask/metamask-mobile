@@ -25,7 +25,6 @@ interface UsePredictBuyConditionsParams {
   isUserInputChange: boolean;
   isConfirming: boolean;
   totalPayForPredictBalance: number;
-  isInputFocused: boolean;
   hasBlockingPayAlerts: boolean;
 }
 
@@ -36,7 +35,6 @@ export const usePredictBuyConditions = ({
   isUserInputChange,
   isConfirming,
   totalPayForPredictBalance,
-  isInputFocused,
   hasBlockingPayAlerts,
 }: UsePredictBuyConditionsParams) => {
   const navigation = useNavigation();
@@ -46,11 +44,8 @@ export const usePredictBuyConditions = ({
   const isPayQuoteLoading = useIsTransactionPayQuoteLoading();
   const quotes = useTransactionPayQuotes();
   const { isDepositPending } = usePredictDeposit();
-  const {
-    isPredictBalanceSelected,
-    selectedPaymentToken,
-    resetSelectedPaymentToken,
-  } = usePredictPaymentToken();
+  const { isPredictBalanceSelected, selectedPaymentToken } =
+    usePredictPaymentToken();
   const { data: predictBalance = 0 } = usePredictBalance();
   const { availableTokens } = useTransactionPayAvailableTokens();
 
@@ -337,23 +332,6 @@ export const usePredictBuyConditions = ({
     () => isPreviewCalculating && isUserInputChange,
     [isPreviewCalculating, isUserInputChange],
   );
-
-  useEffect(() => {
-    if (
-      !isPredictBalanceSelected &&
-      !isInputFocused &&
-      totalPayForPredictBalance > 0 &&
-      predictBalance >= totalPayForPredictBalance
-    ) {
-      resetSelectedPaymentToken();
-    }
-  }, [
-    isInputFocused,
-    isPredictBalanceSelected,
-    predictBalance,
-    resetSelectedPaymentToken,
-    totalPayForPredictBalance,
-  ]);
 
   return {
     isBelowMinimum,
