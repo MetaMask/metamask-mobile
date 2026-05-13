@@ -68,7 +68,8 @@ export function TransactionDetailsSummary() {
   const hasDepositTransactions =
     (requiredTransactionIds?.length ?? 0) > 0 || batchTransactionIds.length > 0;
 
-  const { sourceHash, fiatOrderId } = metamaskPay ?? {};
+  const { sourceHash, fiat } = metamaskPay ?? {};
+  const { orderId: fiatOrderId } = fiat ?? {};
 
   return (
     <Box gap={12}>
