@@ -372,21 +372,24 @@ export const priceValid = (price: number, tickSize: TickSize): boolean =>
 
 export const getClobMarketInfo = async ({
   conditionId,
+  clobVersion = 'v1',
+  clobBaseUrl,
 }: {
   conditionId: string;
+  clobVersion?: 'v1' | 'v2';
+  clobBaseUrl?: string;
 }): Promise<ClobMarketInfo> => {
-  const cachedMarketInfo = clobMarketInfoCache.get(conditionId);
+  const clobEndpoint = getClobEndpoint({ clobVersion, clobBaseUrl });
+  const cacheKey = `${clobEndpoint}:${conditionId}`;
+  const cachedMarketInfo = clobMarketInfoCache.get(cacheKey);
 
   if (cachedMarketInfo) {
     return cachedMarketInfo;
   }
 
-  const response = await fetch(
-    `${getClobEndpoint()}/clob-markets/${conditionId}`,
-    {
-      method: 'GET',
-    },
-  );
+  const response = await fetch(`${clobEndpoint}/clob-markets/${conditionId}`, {
+    method: 'GET',
+  });
 
   if (!response.ok) {
     throw new Error('Failed to get CLOB market info');
@@ -398,25 +401,31 @@ export const getClobMarketInfo = async ({
     throw new Error('Invalid CLOB market info response');
   }
 
-  clobMarketInfoCache.set(conditionId, marketInfo);
-  reportedClobMarketInfoFailures.delete(conditionId);
+  clobMarketInfoCache.set(cacheKey, marketInfo);
+  reportedClobMarketInfoFailures.delete(cacheKey);
   return marketInfo;
 };
 
 export const getClobMarketInfoSafe = async ({
   conditionId,
+  clobVersion = 'v1',
+  clobBaseUrl,
 }: {
   conditionId: string;
+  clobVersion?: 'v1' | 'v2';
+  clobBaseUrl?: string;
 }): Promise<ClobMarketInfo | undefined> => {
+  const failureKey = `${getClobEndpoint({ clobVersion, clobBaseUrl })}:${conditionId}`;
+
   try {
-    return await getClobMarketInfo({ conditionId });
+    return await getClobMarketInfo({ conditionId, clobVersion, clobBaseUrl });
   } catch (error) {
-    if (!reportedClobMarketInfoFailures.has(conditionId)) {
+    if (!reportedClobMarketInfoFailures.has(failureKey)) {
       Logger.error(
         ensureClobMarketInfoError(error),
         getClobMarketInfoFailureContext(conditionId),
       );
-      reportedClobMarketInfoFailures.add(conditionId);
+      reportedClobMarketInfoFailures.add(failureKey);
     }
 
     return undefined;
@@ -2065,7 +2074,11 @@ export const previewOrder = async (
     }),
     Promise.resolve('0'),
     side === Side.BUY
-      ? getClobMarketInfoSafe({ conditionId: outcomeId })
+      ? getClobMarketInfoSafe({
+          conditionId: outcomeId,
+          clobVersion: isV2 ? 'v2' : 'v1',
+          clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+        })
       : Promise.resolve(undefined),
   ]);
   if (!book) {
