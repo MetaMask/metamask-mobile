@@ -18,10 +18,12 @@ import {
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { Json } from '@metamask/utils';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../hooks/pay/useIsPaidByMetaMask');
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: () => ({
     trackInlineAlertClicked: jest.fn(),
@@ -52,6 +54,7 @@ describe('BridgeFeeRow', () => {
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
+  const useIsPaidByMetaMaskMock = jest.mocked(useIsPaidByMetaMask);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -70,6 +73,8 @@ describe('BridgeFeeRow', () => {
     useTransactionPayQuotesMock.mockReturnValue([
       {} as TransactionPayQuote<Json>,
     ]);
+
+    useIsPaidByMetaMaskMock.mockReturnValue(false);
   });
 
   it('renders transaction fee', async () => {
@@ -199,6 +204,7 @@ describe('BridgeFeeRow', () => {
 
     it('renders paid by MetaMask label for musd conversion with all-zero fees and quotes', () => {
       useTransactionTotalsMock.mockReturnValue(zeroFeesTotals);
+      useIsPaidByMetaMaskMock.mockReturnValue(true);
 
       const { getByText, queryByTestId } = render({
         type: TransactionType.musdConversion,
@@ -210,6 +216,7 @@ describe('BridgeFeeRow', () => {
 
     it('hides the tooltip icon when paid by MetaMask is shown', () => {
       useTransactionTotalsMock.mockReturnValue(zeroFeesTotals);
+      useIsPaidByMetaMaskMock.mockReturnValue(true);
 
       const { queryByTestId } = render({
         type: TransactionType.musdConversion,
@@ -287,6 +294,7 @@ describe('BridgeFeeRow', () => {
           metaMask: { fiat: '0' },
         },
       } as TransactionPayTotals);
+      useIsPaidByMetaMaskMock.mockReturnValue(true);
 
       const { getByText, queryByTestId } = render({
         type: TransactionType.musdConversion,

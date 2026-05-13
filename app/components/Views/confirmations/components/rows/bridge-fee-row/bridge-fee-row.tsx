@@ -25,6 +25,7 @@ import {
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
 import { BigNumber } from 'bignumber.js';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import AlertRow from '../../UI/info-row/alert-row';
@@ -45,6 +46,7 @@ export function BridgeFeeRow() {
   const isLoading = useIsTransactionPayLoading();
   const quotes = useTransactionPayQuotes();
   const totals = useTransactionPayTotals();
+  const paidByMetaMask = useIsPaidByMetaMask();
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
   const { isHeadlessBuyInProgress } = useConfirmationContext();
@@ -56,6 +58,7 @@ export function BridgeFeeRow() {
       transactionMeta={transactionMetadata}
       hasAlert={hasAlert}
       isLoading={isLoading}
+      paidByMetaMask={paidByMetaMask}
       tooltipDisabled={isHeadlessBuyInProgress}
       isDisabled={isHeadlessBuyInProgress}
     />
@@ -68,6 +71,7 @@ function TransactionFeeRow({
   quotes,
   totals,
   isLoading,
+  paidByMetaMask,
   tooltipDisabled,
   isDisabled,
 }: {
@@ -76,6 +80,7 @@ function TransactionFeeRow({
   quotes?: TransactionPayQuote<Json>[];
   totals?: TransactionPayTotals;
   isLoading: boolean;
+  paidByMetaMask: boolean;
   tooltipDisabled?: boolean;
   isDisabled?: boolean;
 }) {
@@ -98,12 +103,6 @@ function TransactionFeeRow({
         .plus(targetNetwork),
     );
   }, [totals, formatFiat]);
-
-  const paidByMetaMask = isPaidByMetaMask({
-    totals,
-    transactionMeta,
-    hasQuotes,
-  });
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
 
@@ -169,31 +168,6 @@ function getNetworkFeeUsdBN({
   if (sourceNetworkUsd == null || targetNetworkUsd == null) return undefined;
 
   return new BigNumber(sourceNetworkUsd).plus(targetNetworkUsd);
-}
-
-function isPaidByMetaMask({
-  totals,
-  transactionMeta,
-  hasQuotes,
-}: {
-  totals?: TransactionPayTotals;
-  transactionMeta: TransactionMeta;
-  hasQuotes: boolean;
-}): boolean {
-  if (!hasQuotes || !totals?.fees) return false;
-  if (!hasTransactionType(transactionMeta, [TransactionType.musdConversion]))
-    return false;
-
-  const sourceNetwork = new BigNumber(totals.fees.sourceNetwork.estimate.usd);
-  const targetNetwork = new BigNumber(totals.fees.targetNetwork.usd);
-  const provider = new BigNumber(totals.fees.provider.usd);
-  const metaMask = new BigNumber(totals.fees.metaMask.usd ?? 0);
-
-  return (
-    sourceNetwork.plus(targetNetwork).isZero() &&
-    provider.isZero() &&
-    metaMask.isZero()
-  );
 }
 
 function Tooltip({
