@@ -529,53 +529,19 @@ jobs:
 
   prepare-ci-js-deps:
     name: Prepare CI JS dependencies
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
-    steps:
-      - uses: actions/checkout@v6
-      - name: Configure Namespace cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
-        with:
-          path: |
-            ~/.cache/yarn
-            .metamask
-            node_modules
-            .yarn/cache
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
-      - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
-      - name: Validate prepared dependency files
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -d node_modules
-          test -f .yarn/install-state.gz
-          test -f app/util/termsOfUse/termsOfUseContent.ts
-      - name: Upload prepared dependencies
-        uses: actions/upload-artifact@v4.5.0
-        with:
-          name: ci-js-deps
-          path: |
-            node_modules
-            .yarn/install-state.gz
-            app/util/termsOfUse/termsOfUseContent.ts
-          retention-days: 1
-          compression-level: 1
-          if-no-files-found: error
-          include-hidden-files: true
+    uses: ./.github/workflows/setup-node-modules.yml
+    with:
+      platform: ''
+      setup-command: yarn setup:github-ci --node
+      artifact-name: ci-js-deps
+      use-exact-artifact-name: true
+      include-yarn-install-state: true
+      include-inpage-bridge-artifacts: false
+      artifact-retention-days: 1
+      runner_provider: ${{ inputs.runner_provider }}
 
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
@@ -593,8 +559,20 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
-      - name: Restore prepared CI JS dependencies
-        uses: ./.github/actions/consume-ci-js-deps
+      - name: Download prepared dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: ci-js-deps
+          path: .
+      - name: Restore node_modules executable permissions
+        uses: ./.github/actions/restore-node-modules-permissions
+      - name: Validate downloaded dependency files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d node_modules
+          test -f .yarn/install-state.gz
+          test -f app/util/termsOfUse/termsOfUseContent.ts
       - name: Prepare results directory
         run: mkdir -p tests/results
       # The "10" in this command is the total number of shards. It must be kept
@@ -637,8 +615,20 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
-      - name: Restore prepared CI JS dependencies
-        uses: ./.github/actions/consume-ci-js-deps
+      - name: Download prepared dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: ci-js-deps
+          path: .
+      - name: Restore node_modules executable permissions
+        uses: ./.github/actions/restore-node-modules-permissions
+      - name: Validate downloaded dependency files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d node_modules
+          test -f .yarn/install-state.gz
+          test -f app/util/termsOfUse/termsOfUseContent.ts
       - uses: actions/download-artifact@v4
         with:
           pattern: coverage-*
@@ -743,8 +733,20 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
-      - name: Restore prepared CI JS dependencies
-        uses: ./.github/actions/consume-ci-js-deps
+      - name: Download prepared dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: ci-js-deps
+          path: .
+      - name: Restore node_modules executable permissions
+        uses: ./.github/actions/restore-node-modules-permissions
+      - name: Validate downloaded dependency files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d node_modules
+          test -f .yarn/install-state.gz
+          test -f app/util/termsOfUse/termsOfUseContent.ts
       - name: Prepare results directory
         run: mkdir -p tests/results
       - run: |

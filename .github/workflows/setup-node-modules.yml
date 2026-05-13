@@ -53,11 +53,31 @@ on:
         required: false
         type: string
         default: 'node-modules'
+      use-exact-artifact-name:
+        description: 'When true, use artifact-name exactly (no node/os suffix for generic platform).'
+        required: false
+        type: boolean
+        default: false
       artifact-retention-days:
         description: 'Number of days to retain the artifact'
         required: false
         type: number
         default: 1
+      setup-command:
+        description: "Optional setup command override for generic platform (platform=''). If empty, defaults to 'yarn setup:github-ci'."
+        required: false
+        type: string
+        default: ''
+      include-yarn-install-state:
+        description: 'Include .yarn/install-state.gz in zip artifact payload.'
+        required: false
+        type: boolean
+        default: false
+      include-inpage-bridge-artifacts:
+        description: 'Include InpageBridgeWeb3.js and scripts/inpage-bridge/dist in zip artifact payload.'
+        required: false
+        type: boolean
+        default: true
       runner_provider:
         description: Runner provider forwarded from the caller
         required: false
@@ -118,7 +138,7 @@ jobs:
       - name: Set artifact name
         id: set-artifact-name
         run: |
-          if [ -n "${{ inputs.platform }}" ]; then
+          if [ -n "${{ inputs.platform }}" ] || [ "${{ inputs.use-exact-artifact-name }}" = "true" ]; then
             echo "artifact-name=${{ inputs.artifact-name }}" >> "$GITHUB_OUTPUT"
             echo "📦 Artifact name: ${{ inputs.artifact-name }}"
           else
@@ -170,7 +190,12 @@ jobs:
         if: inputs.platform == ''
         run: |
           echo "🔧 Running setup for GitHub CI..."
-          yarn setup:github-ci
+          if [ -n "${{ inputs.setup-command }}" ]; then
+            echo "Using setup override: ${{ inputs.setup-command }}"
+            ${{ inputs.setup-command }}
+          else
+            yarn setup:github-ci
+          fi
 
       - name: Verify setup completed
         run: |
@@ -223,16 +248,30 @@ jobs:
           compression-level: 0
           if-no-files-found: error
 
+      - name: Build zip artifact path list
+        id: build-zip-paths
+        if: inputs.upload-artifact && !inputs.use-tarball
+        shell: bash
+        run: |
+          paths=$'node_modules\napp/util/termsOfUse/termsOfUseContent.ts'
+          if [ "${{ inputs.include-yarn-install-state }}" = "true" ]; then
+            paths+=$'\n.yarn/install-state.gz'
+          fi
+          if [ "${{ inputs.include-inpage-bridge-artifacts }}" = "true" ]; then
+            paths+=$'\napp/core/InpageBridgeWeb3.js\nscripts/inpage-bridge/dist'
+          fi
+          {
+            echo "paths<<EOF"
+            printf "%s\n" "$paths"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Upload node_modules artifact (zip)
         if: inputs.upload-artifact && !inputs.use-tarball
         uses: actions/upload-artifact@v4.5.0
         with:
           name: ${{ steps.set-artifact-name.outputs.artifact-name }}
-          path: |
-            node_modules
-            app/util/termsOfUse/termsOfUseContent.ts
-            app/core/InpageBridgeWeb3.js
-            scripts/inpage-bridge/dist
+          path: ${{ steps.build-zip-paths.outputs.paths }}
           retention-days: ${{ inputs.artifact-retention-days }}
           compression-level: 1
           if-no-files-found: warn
