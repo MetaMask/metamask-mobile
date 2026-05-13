@@ -1731,7 +1731,7 @@ describe('App', () => {
       const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(getByTestId('mock-onboarding')).toBeTruthy();
+        expect(getByTestId('mock-onboarding')).toBeOnTheScreen();
       });
     });
 
@@ -1767,7 +1767,7 @@ describe('App', () => {
       await waitFor(() => {
         expect(
           getByTestId('mock-onboarding-interest-questionnaire'),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
 
