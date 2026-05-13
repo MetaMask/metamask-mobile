@@ -7,6 +7,7 @@ const mockHideAwaitingConfirmation = jest.fn();
 const mockShowHardwareWalletError = jest.fn();
 const mockIsUserCancellation = jest.fn().mockReturnValue(false);
 const mockSetScannerVisible = jest.fn();
+const mockSetSigningConfirmed = jest.fn();
 const mockExecuteHardwareWalletOperation = jest.fn();
 
 jest.mock('..', () => ({
@@ -48,6 +49,7 @@ jest.mock(
     useQRHardwareContext: () => ({
       isSigningQRObject: mockIsSigningQRObject.current,
       setScannerVisible: mockSetScannerVisible,
+      setSigningConfirmed: mockSetSigningConfirmed,
     }),
   }),
 );
@@ -81,6 +83,7 @@ describe('useQrConfirm', () => {
       await result.current.onConfirm();
     });
 
+    expect(mockSetSigningConfirmed).toHaveBeenCalled();
     expect(mockSetScannerVisible).toHaveBeenCalledWith(true);
     expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
   });
