@@ -43,7 +43,7 @@ export const useSendActions = () => {
       // so we use the passed recipientAddress or fall back to the context value
       const toAddress = recipientAddress || to;
       if (isEvmSendType) {
-        submitEvmTransaction({
+        await submitEvmTransaction({
           asset: asset as AssetType,
           chainId: chainId as Hex,
           from: from as Hex,

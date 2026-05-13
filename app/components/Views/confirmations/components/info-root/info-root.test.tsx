@@ -173,9 +173,10 @@ describe('Info', () => {
     ).toBeDefined();
   });
 
-  it('renders QRInfo if user is signing using QR hardware', () => {
+  it('renders QRInfo if user is signing using QR hardware and has confirmed', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       isSigningQRObject: true,
+      signingConfirmed: true,
     } as unknown as QRHardwareHook.QRHardwareContextType);
     const { getByTestId } = renderWithProvider(<Info />, {
       state: personalSignatureConfirmationState,

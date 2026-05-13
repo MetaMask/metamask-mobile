@@ -22,6 +22,7 @@ import ContractDeployment from '../info/contract-deployment';
 import { PerpsDepositInfo } from '../info/perps-deposit-info';
 import { PredictDepositInfo } from '../info/predict-deposit-info';
 import { hasTransactionType } from '../../utils/transaction';
+import { isSignatureRequest } from '../../utils/confirm';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
 import { PerpsWithdrawInfo } from '../info/perps-withdraw-info';
@@ -87,8 +88,9 @@ interface InfoProps {
 const Info = ({ route }: InfoProps) => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
-  const { isSigningQRObject } = useQRHardwareContext();
+  const { isSigningQRObject, signingConfirmed } = useQRHardwareContext();
   const { isDowngrade, isUpgradeOnly } = use7702TransactionType();
+  const isSignatureReq = isSignatureRequest(approvalRequest?.type ?? '');
   // Refresh STX liveness for the transaction's network
   useRefreshSmartTransactionsLiveness(transactionMetadata?.chainId);
 
@@ -100,7 +102,7 @@ const Info = ({ route }: InfoProps) => {
     return <SwitchAccountType />;
   }
 
-  if (isSigningQRObject) {
+  if (isSigningQRObject && signingConfirmed && isSignatureReq) {
     return <QRInfo />;
   }
 
