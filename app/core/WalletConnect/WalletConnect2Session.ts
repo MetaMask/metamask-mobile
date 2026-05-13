@@ -92,40 +92,6 @@ class WalletConnect2Session {
 
   public session: SessionTypes.Struct;
 
-  private normalizeSessionNamespaces(
-    namespaces: SessionTypes.Namespaces | undefined,
-  ): SessionTypes.Namespaces {
-    const normalizedNamespaces: SessionTypes.Namespaces = {};
-
-    Object.entries(namespaces ?? {}).forEach(([namespace, config]) => {
-      const accounts = Array.isArray(config?.accounts) ? config.accounts : [];
-      const derivedChains = Array.from(
-        new Set(
-          accounts.flatMap((account) => {
-            try {
-              return [parseCaipAccountId(account as CaipAccountId).chainId];
-            } catch {
-              return [];
-            }
-          }),
-        ),
-      );
-      const chains =
-        Array.isArray(config?.chains) && config.chains.length > 0
-          ? config.chains
-          : derivedChains;
-
-      normalizedNamespaces[namespace] = {
-        chains,
-        methods: Array.isArray(config?.methods) ? config.methods : [],
-        events: Array.isArray(config?.events) ? config.events : [],
-        accounts,
-      };
-    });
-
-    return normalizedNamespaces;
-  }
-
   constructor({
     web3Wallet,
     session,
@@ -147,10 +113,7 @@ class WalletConnect2Session {
     this.channelId = channelId;
     this.web3Wallet = web3Wallet;
     this.deeplink = deeplink;
-    this.session = {
-      ...session,
-      namespaces: this.normalizeSessionNamespaces(session.namespaces),
-    };
+    this.session = session;
     this.navigation = navigation;
 
     DevLogger.log(
@@ -462,12 +425,10 @@ class WalletConnect2Session {
         );
       }
 
-      const currentNamespaces = this.normalizeSessionNamespaces(
-        this.session.namespaces,
-      );
-      const namespaces = this.normalizeSessionNamespaces(
-        await getScopedPermissions({ channelId: this.channelId }),
-      );
+      const currentNamespaces = this.session.namespaces;
+      const namespaces = await getScopedPermissions({
+        channelId: this.channelId,
+      });
       DevLogger.log(
         `🔴🔴 WC2::updateSession updating with namespaces`,
         namespaces,
@@ -547,10 +508,7 @@ class WalletConnect2Session {
       const activeSession =
         this.web3Wallet.getActiveSessions?.()?.[this.session.topic];
       if (activeSession) {
-        this.session = {
-          ...activeSession,
-          namespaces: this.normalizeSessionNamespaces(activeSession.namespaces),
-        };
+        this.session = activeSession;
       }
 
       const chainChangedEmission = getChainChangedEmissionForWalletConnect({
