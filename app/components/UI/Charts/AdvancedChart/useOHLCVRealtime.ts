@@ -123,6 +123,7 @@ export function useOHLCVRealtime({
 
   useEffect(() => {
     if (!enabled || !assetId || !interval || !currency) {
+      setLatestBar(null);
       return;
     }
 

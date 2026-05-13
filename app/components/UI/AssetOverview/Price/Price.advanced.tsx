@@ -329,7 +329,7 @@ const PriceAdvanced = ({
   // https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Datafeed.Bar/
   // OHLCVService delivers bars with `timestamp` in Unix seconds — multiply by 1000
   const realtimeBar = useMemo(() => {
-    if (!latestBar) return undefined;
+    if (!wsEnabled || !latestBar) return undefined;
     return {
       time: latestBar.timestamp * 1000,
       open: latestBar.open,
@@ -338,7 +338,7 @@ const PriceAdvanced = ({
       close: latestBar.close,
       volume: latestBar.volume,
     };
-  }, [latestBar]);
+  }, [wsEnabled, latestBar]);
 
   const ohlcvPagination = useMemo(
     () => ({
