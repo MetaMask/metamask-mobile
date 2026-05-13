@@ -13,7 +13,12 @@ import {
   renderPredictFeedView,
   renderPredictFeedViewWithRoutes,
 } from '../../../../../../tests/component-view/renderers/predict';
-import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import {
+  cleanup,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
@@ -113,6 +118,19 @@ const layoutPredictFeed = async ({
 };
 
 describe('PredictFeed', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  beforeEach(() => {
+    (
+      Engine.context.PredictController.getMarkets as jest.Mock
+    ).mockResolvedValue({ markets: [], nextCursor: null });
+    (
+      Engine.context.PredictController.searchMarkets as jest.Mock
+    ).mockResolvedValue([]);
+  });
+
   describe('search interaction', () => {
     it('opens the search overlay when the user presses the search icon', async () => {
       const { getByTestId, findByPlaceholderText } = renderPredictFeedView();

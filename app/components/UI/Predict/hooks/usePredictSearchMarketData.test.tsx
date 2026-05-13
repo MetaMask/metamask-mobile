@@ -1,10 +1,16 @@
+import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react-native';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { PredictMarket, Recurrence } from '../types';
 import { usePredictSearchMarketData } from './usePredictSearchMarketData';
 
-jest.mock('../../../../core/SDKConnect/utils/DevLogger');
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
 
 const mockGetMarkets = jest.fn();
 const mockSearchMarkets = jest.fn();
@@ -17,6 +23,20 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, cacheTime: 0 } },
+    logger: {
+      log: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    },
+  });
+  const Wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
+  return { Wrapper, queryClient };
+};
 
 const mockMarketData: PredictMarket[] = [
   {
@@ -39,7 +59,6 @@ const mockMarketData: PredictMarket[] = [
 describe('usePredictSearchMarketData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (DevLogger.log as jest.Mock).mockImplementation(() => undefined);
     mockGetMarkets.mockResolvedValue({
       markets: mockMarketData,
       nextCursor: null,
@@ -48,14 +67,20 @@ describe('usePredictSearchMarketData', () => {
   });
 
   it('does not fetch when disabled', () => {
-    renderHook(() => usePredictSearchMarketData({ q: '', enabled: false }));
+    const { Wrapper } = createWrapper();
+    renderHook(() => usePredictSearchMarketData({ q: '', enabled: false }), {
+      wrapper: Wrapper,
+    });
 
     expect(mockGetMarkets).not.toHaveBeenCalled();
     expect(mockSearchMarkets).not.toHaveBeenCalled();
   });
 
   it('fetches trending markets for an empty query', async () => {
-    const { result } = renderHook(() => usePredictSearchMarketData({ q: '' }));
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => usePredictSearchMarketData({ q: '' }), {
+      wrapper: Wrapper,
+    });
 
     await waitFor(() => expect(result.current.isFetching).toBe(false));
 
@@ -68,8 +93,10 @@ describe('usePredictSearchMarketData', () => {
   });
 
   it('trims and searches non-empty queries', async () => {
-    const { result } = renderHook(() =>
-      usePredictSearchMarketData({ q: ' bitcoin ', pageSize: 10 }),
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(
+      () => usePredictSearchMarketData({ q: ' bitcoin ', pageSize: 10 }),
+      { wrapper: Wrapper },
     );
 
     await waitFor(() => expect(result.current.isFetching).toBe(false));
@@ -86,8 +113,10 @@ describe('usePredictSearchMarketData', () => {
   it('sets error and clears data when search throws', async () => {
     mockSearchMarkets.mockRejectedValue(new Error('Search failed'));
 
-    const { result } = renderHook(() =>
-      usePredictSearchMarketData({ q: 'bitcoin' }),
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(
+      () => usePredictSearchMarketData({ q: 'bitcoin' }),
+      { wrapper: Wrapper },
     );
 
     await waitFor(() => expect(result.current.isFetching).toBe(false), {
