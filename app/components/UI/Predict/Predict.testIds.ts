@@ -146,6 +146,17 @@ export const PredictCryptoUpDownDetailsSelectorsIDs = {
   PRICE_SUMMARY: 'predict-crypto-up-down-details-price-summary',
 } as const;
 
+export const PredictCryptoUpDownMarketCardSelectorsIDs = {
+  CARD: 'predict-crypto-up-down-market-card',
+  SKELETON: 'predict-crypto-up-down-market-card-skeleton',
+  LIVE_BADGE: 'predict-crypto-up-down-market-card-live-badge',
+  PROBABILITY: 'predict-crypto-up-down-market-card-probability',
+  SPARKLINE: 'predict-crypto-up-down-market-card-sparkline',
+  SPARKLINE_EMPTY: 'predict-crypto-up-down-market-card-sparkline-empty',
+  UP_BUTTON: 'predict-crypto-up-down-market-card-up-button',
+  DOWN_BUTTON: 'predict-crypto-up-down-market-card-down-button',
+} as const;
+
 export const PredictMarketDetailsSelectorsText = {
   // Tab content containers
   ABOUT_TAB_TEXT: 'About',
