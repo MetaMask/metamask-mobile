@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
+import { BackHandler, Platform } from 'react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import OnboardingInterestQuestionnaire from './OnboardingInterestQuestionnaire';
 import { OnboardingInterestQuestionnaireTestIds } from './OnboardingInterestQuestionnaire.testIds';
@@ -128,6 +129,36 @@ describe('OnboardingInterestQuestionnaire', () => {
     });
   });
 
+  describe('hardware back', () => {
+    it('subscribes to hardware back and consumes the back press', () => {
+      const spy = jest.spyOn(BackHandler, 'addEventListener');
+
+      renderComponent();
+
+      expect(spy).toHaveBeenCalledWith(
+        'hardwareBackPress',
+        expect.any(Function),
+      );
+      const call = spy.mock.calls.find((c) => c[0] === 'hardwareBackPress');
+      const handler = call?.[1] as () => boolean;
+      expect(handler()).toBe(true);
+
+      spy.mockRestore();
+    });
+  });
+
+  describe('layout on Android', () => {
+    afterEach(() => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+    });
+
+    it('renders when Platform OS is Android', () => {
+      jest.replaceProperty(Platform, 'OS', 'android');
+
+      expect(() => renderComponent()).not.toThrow();
+    });
+  });
+
   describe('analytics on mount', () => {
     it('fires Viewed event on mount', () => {
       renderComponent();
@@ -136,6 +167,16 @@ describe('OnboardingInterestQuestionnaire', () => {
         MetaMetricsEvents.ONBOARDING_INTEREST_QUESTION_VIEWED,
       );
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('omits account_type from Viewed when route has no accountType', () => {
+      delete mockInterestQuestionnaireRouteParams.accountType;
+
+      renderComponent();
+
+      const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
+
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith({});
     });
 
     it('includes account_type in Viewed event when route supplies accountType', () => {

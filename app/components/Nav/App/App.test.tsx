@@ -1735,6 +1735,42 @@ describe('App', () => {
       });
     });
 
+    it('renders OnboardingInterestQuestionnaire when it is the active OnboardingNav route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingRootNav',
+            state: {
+              index: 0,
+              routes: [
+                {
+                  name: 'OnboardingNav',
+                  state: {
+                    index: 0,
+                    routes: [
+                      {
+                        name: Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+                        params: { onComplete: jest.fn() },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId('mock-onboarding-interest-questionnaire'),
+        ).toBeTruthy();
+      });
+    });
+
     it('renders VaultRecoveryFlow', async () => {
       const routeState = {
         index: 0,

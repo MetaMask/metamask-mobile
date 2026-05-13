@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-native';
 import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
 import { useOnboardingInterestQuestionnaireEligibility } from './useOnboardingInterestQuestionnaireEligibility';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';

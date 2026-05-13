@@ -9,6 +9,7 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
 import { analytics } from '../../../util/analytics/analytics';
+import Logger from '../../../util/Logger';
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
@@ -232,6 +233,44 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
           expect.objectContaining({
             routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
           }),
+        );
+      });
+    });
+
+    it('logs Error rejections from the eligibility check', async () => {
+      mockGetShouldShow.mockRejectedValue(new Error('eligibility failed'));
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.objectContaining({ message: 'eligibility failed' }),
+          'OptinMetrics: interest questionnaire eligibility check failed',
+        );
+      });
+    });
+
+    it('wraps non-Error rejections before logging', async () => {
+      mockGetShouldShow.mockRejectedValue('string failure');
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.objectContaining({ message: 'string failure' }),
+          'OptinMetrics: interest questionnaire eligibility check failed',
         );
       });
     });
