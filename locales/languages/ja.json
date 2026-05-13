@@ -3521,12 +3521,6 @@
         "event_log_error": "onError → {{code}}{{messageSuffix}}",
         "event_log_close": "onClose → {{reason}}",
         "event_log_cancelled": "消費者によりキャンセルされたセッション{{sessionId}}"
-      },
-      "headless_host": {
-        "title": "ヘッドレス購入",
-        "loading": "購入フローを準備中…",
-        "no_session": "ヘッドレスセッションがアクティブでなくなりました。",
-        "cancel": "キャンセル"
       }
     },
     "request_feature": "機能のリクエスト",

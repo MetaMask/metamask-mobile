@@ -1,15 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  Button,
-  ButtonVariant,
-  HeaderStandard,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
 import type { CaipChainId } from '@metamask/utils';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -44,11 +35,12 @@ import { getQuoteProviderName } from '../../types';
 
 import styleSheet from './HeadlessHost.styles';
 
-export const HEADLESS_HOST_HEADER_TEST_ID = 'headless-host-header';
-export const HEADLESS_HOST_BACK_BUTTON_TEST_ID = 'headless-host-back-button';
-export const HEADLESS_HOST_LOADER_TEST_ID = 'headless-host-loader';
-export const HEADLESS_HOST_NO_SESSION_TEST_ID = 'headless-host-no-session';
-export const HEADLESS_HOST_CANCEL_BUTTON_TEST_ID = 'headless-host-cancel';
+/**
+ * Test-only anchor for the Host's transparent placeholder. The Host renders
+ * no user-visible chrome after Phase 9.5 — every loading / error / cancel
+ * surface is owned by the consumer (MetaMask Pay's `TransactionPayController`).
+ */
+export const HEADLESS_HOST_CONTAINER_TEST_ID = 'headless-host-container';
 
 export interface HeadlessHostParams {
   /** Session id created by `useHeadlessBuy().startHeadlessBuy(...)`. */
@@ -73,12 +65,22 @@ export const createHeadlessHostNavDetails =
 /**
  * Headless Host screen.
  *
- * Acts as the (stable) stack base for the headless buy flow:
- * - On focus, picks up the live session by `headlessSessionId`.
- * - Derives a `ContinueWithQuoteContext` directly from `session.params.quote` (no controller selections needed).
- * - Calls `useContinueWithQuote().continueWithQuote(...)` exactly once, using the session status as a guard so re-focuses caused by the Transak auth loop don't re-trigger the flow.
- * - Surfaces `nativeFlowError` (set by OtpCode on routing failure) as `onError('AUTH_FAILED', ...)` and closes the session.
- * - When no session is found (e.g. consumer cancelled meanwhile), shows a passive "no session" message with a cancel/back affordance.
+ * After Phase 9.5 the Host is intentionally **invisible** — it renders a
+ * transparent placeholder so React Navigation has a stack base for resets,
+ * but the consumer (TPC / MMPay) renders the only user-visible loading UI
+ * for a headless buy. The Host still picks up the live session by
+ * `headlessSessionId` and calls `useContinueWithQuote().continueWithQuote(...)`
+ * exactly once on mount (status guard prevents re-entry on the post-OTP auth
+ * loop), surfaces `nativeFlowError` (set by OtpCode on routing failure) as
+ * `onError('AUTH_FAILED', ...)` and closes the session, and fires
+ * `onClose({ reason: 'user_dismissed' })` from two paths.
+ *
+ * Dismissal: `navigation.addListener('beforeRemove', ...)` catches synchronous
+ * user-driven pops of the Host itself (hardware back / iOS swipe-back when the
+ * Host is the focused screen, or a programmatic pop targeting it).
+ * `useHeadlessSessionDismissal` (Phase 8) catches any other unmount path:
+ * stack resets that bypass `beforeRemove`, hot reloads, parent navigator
+ * pops, etc. `closeSession` is idempotent so the two are safe to coexist.
  */
 function HeadlessHost() {
   const navigation = useNavigation();
@@ -87,13 +89,27 @@ function HeadlessHost() {
     useParams<HeadlessHostParams>();
   const session = getSession(headlessSessionId);
 
-  // Phase 8: when the Host unmounts (= user unwound the entire headless
-  // stack) without a terminal status, fire `onClose({ reason:
-  // 'user_dismissed' })`. Phase 6 success and Phase 7 errors remove the
-  // session from the registry beforehand, so the cleanup no-ops in those
-  // cases. Wiring lives on the Host because it is the stack base for the
-  // headless flow and stays mounted while child screens are pushed on top.
+  // Phase 8: defense-in-depth dismissal. The `beforeRemove` listener below
+  // fires the synchronous close on every user-driven exit, so this hook's
+  // unmount cleanup is effectively a no-op in production. Kept because some
+  // flows (hot reload, programmatic stack reset) skip `beforeRemove`.
   useHeadlessSessionDismissal(headlessSessionId);
+
+  // Phase 9.5: replace the old visible Cancel/Back-button handlers with a
+  // navigation listener. `beforeRemove` only fires when *this* screen is
+  // being popped (the listener is per-screen). It catches the common case:
+  // hardware back / iOS swipe-back while the Host is focused, or a
+  // programmatic pop targeting the Host. Other unmount paths
+  // (stack reset, parent pop while a child screen has focus, hot reload)
+  // are caught by `useHeadlessSessionDismissal`'s unmount cleanup above.
+  // closeSession is idempotent: Phase 6 success and Phase 7 errors clear
+  // the session before `beforeRemove` and turn this into a no-op.
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      closeSession(headlessSessionId, { reason: 'user_dismissed' });
+    });
+    return unsubscribe;
+  }, [navigation, headlessSessionId]);
 
   const { userRegion } = useRampsUserRegion();
   const { paymentMethods } = useRampsPaymentMethods();
@@ -118,25 +134,6 @@ function HeadlessHost() {
     : null;
   const walletAddress = useRampAccountAddress(chainId ?? ('' as CaipChainId));
 
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // Reset UI state whenever a new session is wired up, so the second (and
-  // subsequent) headless buy starts with a clean slate.
-  useEffect(() => {
-    setErrorMessage(null);
-  }, [headlessSessionId]);
-
-  const handleBack = useCallback(() => {
-    // Fire dismissal close synchronously at the moment of intent. The
-    // unmount cleanup in `useHeadlessSessionDismissal` is a defense-in-depth
-    // fallback for paths that don't go through this handler (back-gesture,
-    // programmatic navigation). `closeSession` is idempotent — when the
-    // session is already terminal (Phase 6/7 cleared it before the user
-    // tapped Back), this is a no-op.
-    closeSession(headlessSessionId, { reason: 'user_dismissed' });
-    navigation.goBack();
-  }, [headlessSessionId, navigation]);
-
   // Auth-loop error path: OtpCode resets back to the Host with
   // `nativeFlowError` set when post-OTP routing fails. Forward to the
   // consumer once and close the session.
@@ -144,12 +141,12 @@ function HeadlessHost() {
   // Re-reads from the registry rather than using the render-time `session`
   // reference so that if the processing effect's .catch already closed the
   // session (both paths firing simultaneously), this becomes a no-op and the
-  // consumer's onError is not called a second time (Bug 1 / Bug 2 fix).
+  // consumer's onError is not called a second time.
   useEffect(() => {
     if (!nativeFlowError) {
       return;
     }
-    const headlessError = failSession(
+    failSession(
       headlessSessionId,
       {
         code: 'AUTH_FAILED',
@@ -157,9 +154,6 @@ function HeadlessHost() {
       },
       'AUTH_FAILED',
     );
-    if (headlessError) {
-      setErrorMessage(headlessError.message ?? nativeFlowError);
-    }
   }, [nativeFlowError, headlessSessionId]);
 
   // Process the session. Uses `useEffect` (not `useFocusEffect`) so that
@@ -176,24 +170,21 @@ function HeadlessHost() {
   // `walletAddress` begins as null while `useRampAccountAddress` resolves
   // async. The effect body validates chainId before deferring on wallet:
   // a null chainId also yields walletAddress === null (falsy chain id), so
-  // the invalid-assetId branch must run first or the host would spin forever.
-  // After chainId is valid, defer (leave status as 'pending') until
+  // the invalid-assetId branch must run first or the host would defer
+  // forever. After chainId is valid, defer (leave status as 'pending') until
   // walletAddress settles — a non-null value is a required input for
   // widget/order URLs.
-  // When it resolves the effect re-fires (walletAddress is a dep) and
-  // proceeds with the real address. The status guard prevents a second
-  // invocation once continued.
   //
   // `session` is intentionally excluded from deps and re-read inside via
   // `getSession(headlessSessionId)`. This removes the fragile object-reference
   // dep and lets the .catch handler confirm the session is still live before
   // firing onError (preventing duplicate callbacks when nativeFlowError and
-  // the promise rejection race — see previous fixes).
+  // the promise rejection race).
   //
   // `continueWithQuote` is async with no cancellation API; on unmount (or when
   // deps change after this run has started the promise) we must not call
-  // `setErrorMessage`, consumer callbacks, or `closeSession` from a late
-  // rejection — avoids setState-on-unmounted warnings and spurious `onClose`.
+  // consumer callbacks or `closeSession` from a late rejection — avoids
+  // spurious `onClose`/`onError` after the consumer already moved on.
   useEffect(() => {
     let cancelled = false;
     const currentSession = getSession(headlessSessionId);
@@ -206,14 +197,10 @@ function HeadlessHost() {
     // Invalid assetId must run before the wallet deferral: when chainId is
     // null we still call useRampAccountAddress with a falsy chain id, which
     // yields walletAddress === null. If we deferred on wallet first, we'd
-    // spin forever and never surface the UNKNOWN invalid-assetId error.
+    // never surface the UNKNOWN invalid-assetId error.
     if (!chainId) {
       const message = `HeadlessHost: invalid assetId "${currentSession.params.assetId}"`;
       Logger.error(new Error(message));
-      // closeSession alone does not trigger a re-render; without setState the
-      // render-time `session` ref stays truthy and the loader would spin
-      // forever. Surface the same message in UI as other error paths.
-      setErrorMessage(message);
       failSession(headlessSessionId, { code: 'UNKNOWN', message });
       return;
     }
@@ -256,16 +243,19 @@ function HeadlessHost() {
       }
       const message =
         error?.message ?? strings('deposit.buildQuote.unexpectedError');
+      Logger.error(
+        error,
+        `HeadlessHost: continueWithQuote rejected: ${message}`,
+      );
       // Re-read from the registry: the nativeFlowError effect may have already
       // closed this session if auth failure arrived via params simultaneously
       // with the promise rejection. If so, bail — the consumer already got
-      // onError from the nativeFlowError path (Bug 1 fix).
+      // onError from the nativeFlowError path.
       const liveSession = getSession(headlessSessionId);
       if (!liveSession) {
         return;
       }
-      const headlessError = failSession(headlessSessionId, error);
-      setErrorMessage(headlessError?.message ?? message);
+      failSession(headlessSessionId, error);
     });
     return () => {
       cancelled = true;
@@ -280,55 +270,12 @@ function HeadlessHost() {
     continueWithQuote,
   ]);
 
+  // The View is intentionally empty — Phase 9.5 hands all visible UI to the
+  // consumer. We do NOT set `accessibilityElementsHidden` here because there
+  // are no descendants to hide; it would only confuse screen readers about
+  // an already-empty stack base.
   return (
-    <SafeAreaView edges={['top']} style={styles.container}>
-      <HeaderStandard
-        testID={HEADLESS_HOST_HEADER_TEST_ID}
-        title={strings('app_settings.fiat_on_ramp.headless_host.title')}
-        onBack={handleBack}
-        backButtonProps={{ testID: HEADLESS_HOST_BACK_BUTTON_TEST_ID }}
-      />
-      <View style={styles.body}>
-        {errorMessage ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.ErrorDefault}
-            style={styles.text}
-          >
-            {errorMessage}
-          </Text>
-        ) : session ? (
-          <>
-            <ActivityIndicator
-              size="large"
-              style={styles.spinner}
-              testID={HEADLESS_HOST_LOADER_TEST_ID}
-            />
-            <Text variant={TextVariant.BodyMd} style={styles.text}>
-              {strings('app_settings.fiat_on_ramp.headless_host.loading')}
-            </Text>
-          </>
-        ) : (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            style={styles.text}
-            testID={HEADLESS_HOST_NO_SESSION_TEST_ID}
-          >
-            {strings('app_settings.fiat_on_ramp.headless_host.no_session')}
-          </Text>
-        )}
-        <View style={styles.cancelRow}>
-          <Button
-            variant={ButtonVariant.Tertiary}
-            onPress={handleBack}
-            testID={HEADLESS_HOST_CANCEL_BUTTON_TEST_ID}
-          >
-            {strings('app_settings.fiat_on_ramp.headless_host.cancel')}
-          </Button>
-        </View>
-      </View>
-    </SafeAreaView>
+    <View testID={HEADLESS_HOST_CONTAINER_TEST_ID} style={styles.container} />
   );
 }
 

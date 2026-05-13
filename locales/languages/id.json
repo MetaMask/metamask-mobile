@@ -3521,12 +3521,6 @@
         "event_log_error": "onError → {{code}}{{messageSuffix}}",
         "event_log_close": "onClose → {{reason}}",
         "event_log_cancelled": "sesi yang dibatalkan konsumen {{sessionId}}"
-      },
-      "headless_host": {
-        "title": "Headless buy",
-        "loading": "Mempersiapkan alur pembelian…",
-        "no_session": "Sesi headless sudah tidak aktif lagi.",
-        "cancel": "Batalkan"
       }
     },
     "request_feature": "Minta fitur",
