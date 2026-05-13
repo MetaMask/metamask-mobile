@@ -39,6 +39,7 @@ import type {
   PerpsTradingCampaignLeaderboardPositionDto,
   PerpsTradingCampaignVolumeDto,
   PerpsTradingCampaignParticipantOutcomeDto,
+  VipDashboardDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -311,6 +312,11 @@ export interface RewardsDataServiceGetBenefitsAction {
   handler: RewardsDataService['getBenefits'];
 }
 
+export interface RewardsDataServiceGetVIPDashboardAction {
+  type: `${typeof SERVICE_NAME}:getVIPDashboard`;
+  handler: RewardsDataService['getVIPDashboard'];
+}
+
 export interface RewardsDataServicePostBenefitImpressionAction {
   type: `${typeof SERVICE_NAME}:postBenefitImpression`;
   handler: RewardsDataService['postBenefitImpression'];
@@ -348,6 +354,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
   | RewardsDataServiceGetBenefitsAction
+  | RewardsDataServiceGetVIPDashboardAction
   | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
@@ -571,6 +578,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getBenefits`,
       this.getBenefits.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getVIPDashboard`,
+      this.getVIPDashboard.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:postBenefitImpression`,
@@ -1554,6 +1565,33 @@ export class RewardsDataService {
     }
     const data = await response.json();
     return data.results as SubscriptionBenefitDto[];
+  }
+
+  /**
+   * Get the VIP dashboard for the current subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The VIP dashboard, or null when the user is not VIP.
+   */
+  async getVIPDashboard(
+    subscriptionId: string,
+  ): Promise<VipDashboardDto | null> {
+    const response = await this.makeRequest(
+      '/vip/me',
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Get VIP dashboard failed: ${response.status}`);
+    }
+
+    return (await response.json()) as VipDashboardDto;
   }
 
   /**
