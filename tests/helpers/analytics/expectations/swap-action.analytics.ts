@@ -102,11 +102,7 @@ const completedProperties: Record<
  *
  * Note: these expectations are run against events captured during the first swap only.
  * The `validate` callback handles the Input Changed events which require advanced checks
- * (count = 11 without custom slippage; chain_source, token_destination).
- *
- * Slippage `INPUT_CHANGED` assertion is disabled: swap-action smoke no longer opens the
- * slippage modal until https://github.com/MetaMask/metamask-mobile/issues/29615 is fixed,
- * so that event is not emitted and the count is 11 instead of 12.
+ * (count = 12 with custom slippage; chain_source, token_destination, slippage).
  */
 export const swapActionExpectations: AnalyticsExpectations = {
   eventNames: expectedEventNames,
@@ -130,8 +126,7 @@ export const swapActionExpectations: AnalyticsExpectations = {
   validate: async ({ events }) => {
     const inputChanged = filterEvents(events, INPUT_CHANGED);
 
-    // 11 while custom slippage is skipped (bug #29615); was 12 with slippage modal.
-    await Assertions.checkIfArrayHasLength(inputChanged, 11);
+    await Assertions.checkIfArrayHasLength(inputChanged, 12);
 
     for (const event of inputChanged) {
       await Assertions.checkIfValueIsDefined(event.properties.input);
@@ -150,11 +145,10 @@ export const swapActionExpectations: AnalyticsExpectations = {
         `Expected input=token_destination in Input Changed events. Found: ${inputs.join(', ')}`,
       );
     }
-    // Re-enable when swap-action smoke sets custom slippage again (bug #29615).
-    // if (!inputs.includes('slippage')) {
-    //   throw new Error(
-    //     `Expected input=slippage in Input Changed events. Found: ${inputs.join(', ')}`,
-    //   );
-    // }
+    if (!inputs.includes('slippage')) {
+      throw new Error(
+        `Expected input=slippage in Input Changed events. Found: ${inputs.join(', ')}`,
+      );
+    }
   },
 };
