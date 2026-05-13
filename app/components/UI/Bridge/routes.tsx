@@ -1,8 +1,9 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../constants/navigation/Routes';
 import { BridgeTokenSelector } from './components/BridgeTokenSelector';
 import BridgeView from './Views/BridgeView';
+import { BatchSellTokenSelect } from './Views/BatchSellTokenSelect';
 import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
@@ -12,44 +13,43 @@ import { CustomSlippageModal } from './components/SlippageModal/CustomSlippageMo
 import NetworkListModal from './components/BridgeTokenSelector/NetworkListModal';
 import { QuoteSelectorView } from './components/QuoteSelectorView';
 import { PriceImpactModal } from './components/PriceImpactModal';
-import { clearStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
 import { TokenWarningModal } from './components/TokenWarningModal';
 import { MissingPriceModal } from './components/MissingPriceModal';
+import { HighRateAlertModal } from './components/HighRateAlertModal';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 export const BridgeScreenStack = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: true,
-    }}
-  >
-    <Stack.Screen
-      name={Routes.BRIDGE.BRIDGE_VIEW}
-      component={BridgeView}
-      options={{ title: '' }}
-    />
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name={Routes.BRIDGE.BRIDGE_VIEW} component={BridgeView} />
     <Stack.Screen
       name={Routes.BRIDGE.TOKEN_SELECTOR}
       component={BridgeTokenSelector}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT}
+      component={BatchSellTokenSelect}
       options={{ title: '' }}
     />
     <Stack.Screen
       name={Routes.BRIDGE.QUOTE_SELECTOR_VIEW}
       component={QuoteSelectorView}
-      options={{ title: '' }}
     />
   </Stack.Navigator>
 );
 
-const ModalStack = createStackNavigator();
+const ModalStack = createNativeStackNavigator();
 export const BridgeModalStack = () => (
   <ModalStack.Navigator
     screenOptions={{
-      ...clearStackNavigatorOptions,
-      presentation: 'transparentModal',
+      ...clearNativeStackNavigatorOptions,
+      ...transparentModalScreenOptions,
     }}
   >
     <ModalStack.Screen
@@ -91,6 +91,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL}
       component={TokenWarningModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.HIGH_RATE_ALERT_MODAL}
+      component={HighRateAlertModal}
     />
   </ModalStack.Navigator>
 );

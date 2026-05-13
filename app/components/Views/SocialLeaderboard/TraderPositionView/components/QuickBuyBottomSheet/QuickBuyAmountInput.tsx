@@ -15,7 +15,6 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
-import { strings } from '../../../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
   amountText: { fontSize: 48, lineHeight: 50 },
@@ -28,8 +27,7 @@ interface QuickBuyAmountInputProps {
   estimatedReceiveAmount: string | undefined;
   isQuoteLoading: boolean;
   hasValidAmount: boolean;
-  hasError: boolean;
-  hiddenInputRef: React.RefObject<TextInput>;
+  hiddenInputRef: React.RefObject<TextInput | null>;
   onAmountAreaPress: () => void;
   onAmountChange: (text: string) => void;
   colors: { text: { alternative: string } };
@@ -41,7 +39,6 @@ const QuickBuyAmountInput: React.FC<QuickBuyAmountInputProps> = ({
   estimatedReceiveAmount,
   isQuoteLoading,
   hasValidAmount,
-  hasError,
   hiddenInputRef,
   onAmountAreaPress,
   onAmountChange,
@@ -76,9 +73,7 @@ const QuickBuyAmountInput: React.FC<QuickBuyAmountInputProps> = ({
         >
           {estimatedReceiveAmount
             ? `${estimatedReceiveAmount} ${position.tokenSymbol}`
-            : hasError && hasValidAmount
-              ? strings('social_leaderboard.quick_buy.no_quotes')
-              : `0 ${position.tokenSymbol}`}
+            : `0 ${position.tokenSymbol}`}
         </Text>
       )}
 

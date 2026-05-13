@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../../framework/fixtures/FixtureBuilder';
@@ -196,7 +197,8 @@ const performSendTransaction = async () => {
   await TabBarComponent.tapActivity();
 };
 
-describe(
+// Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778589879443169
+describe.skip(
   SmokeConfirmations('Send native asset using EIP-7702 - Success Case'),
   () => {
     beforeAll(async () => {
@@ -255,13 +257,15 @@ describe(
   },
 );
 
-describe(
+// Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778589879443169
+describe.skip(
   SmokeConfirmations('Send native asset using EIP-7702 - Failure Case'),
   () => {
     beforeAll(async () => {
       jest.setTimeout(2500000);
     });
 
+    // Also implemented in cv tests (eip-7702-sponsored-relay-api-failure.view.test.tsx)
     it('fails transaction if error occurs on API', async () => {
       await withFixtures(
         {

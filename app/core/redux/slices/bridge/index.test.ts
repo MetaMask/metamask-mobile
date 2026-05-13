@@ -8,6 +8,7 @@ import reducer, {
   setSlippage,
   setBridgeViewMode,
   selectBridgeViewMode,
+  setSourceToken,
   setDestToken,
   setIsDestTokenManuallySet,
   selectIsDestTokenManuallySet,
@@ -20,12 +21,17 @@ import reducer, {
   selectVisiblePillChainIds,
   setSelectedQuoteRequestId,
   selectSelectedQuoteRequestId,
+  selectIsRwaSwap,
+  setBatchSellSourceTokens,
+  selectBatchSellSourceTokens,
+  selectBatchSellDestStablecoinsByChain,
 } from '.';
+import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
 import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
-import { CaipChainId, Hex } from '@metamask/utils';
+import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 
@@ -52,6 +58,15 @@ describe('bridge slice', () => {
     balanceFiat: '100',
   };
 
+  const polygonNativeToken: BridgeToken = {
+    address: '0x0000000000000000000000000000000000001010',
+    symbol: 'POL',
+    decimals: 18,
+    image: '',
+    chainId: '0x89' as Hex,
+    name: 'POL',
+  };
+
   describe('initial state', () => {
     it('has correct initial state', () => {
       expect(initialState).toEqual({
@@ -75,6 +90,7 @@ describe('bridge slice', () => {
         visiblePillChainIds: undefined,
         selectedQuoteRequestId: undefined,
         abTestContext: undefined,
+        batchSellSourceTokens: [],
       });
     });
   });
@@ -185,6 +201,14 @@ describe('bridge slice', () => {
   });
 
   describe('setDestToken', () => {
+    it('normalizes Polygon native token address', () => {
+      const state = reducer(initialState, setDestToken(polygonNativeToken));
+
+      expect(state.destToken?.address).toBe(
+        '0x0000000000000000000000000000000000000000',
+      );
+    });
+
     it('sets the destination token and updates selectedDestChainId', () => {
       const action = setDestToken(mockDestToken);
       const state = reducer(initialState, action);
@@ -203,6 +227,49 @@ describe('bridge slice', () => {
       const state = reducer(stateWithManualFlag, action);
 
       expect(state.isDestTokenManuallySet).toBe(true);
+    });
+  });
+
+  describe('setSourceToken', () => {
+    it('normalizes Polygon native token address', () => {
+      const state = reducer(initialState, setSourceToken(polygonNativeToken));
+
+      expect(state.sourceToken?.address).toBe(
+        '0x0000000000000000000000000000000000000000',
+      );
+    });
+  });
+
+  describe('batch sell state', () => {
+    it('sets final Batch Sell source tokens for handoff', () => {
+      const state = reducer(
+        initialState,
+        setBatchSellSourceTokens([mockToken]),
+      );
+
+      expect(state.batchSellSourceTokens).toEqual([mockToken]);
+    });
+
+    it('normalizes Batch Sell source token addresses', () => {
+      const state = reducer(
+        initialState,
+        setBatchSellSourceTokens([polygonNativeToken]),
+      );
+
+      expect(state.batchSellSourceTokens[0].address).toBe(
+        '0x0000000000000000000000000000000000000000',
+      );
+    });
+
+    it('selects final Batch Sell source tokens', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          batchSellSourceTokens: [mockToken],
+        },
+      } as RootState;
+
+      expect(selectBatchSellSourceTokens(mockState)).toEqual([mockToken]);
     });
   });
 
@@ -577,6 +644,30 @@ describe('bridge slice', () => {
     });
   });
 
+  describe('selectBatchSellDestStablecoinsByChain', () => {
+    it('returns valid batch sell destination stablecoin config by chain', () => {
+      const mockState = cloneDeep(mockRootState);
+      const ethUsdc =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
+        'eip155:1'
+      ] = {
+        ...mockState.engine.backgroundState.RemoteFeatureFlagController
+          .remoteFeatureFlags.bridgeConfigV2.chains['eip155:1'],
+        batchSellDestStablecoins: [ethUsdc],
+      } as unknown as any;
+
+      expect(
+        selectBatchSellDestStablecoinsByChain(
+          mockState as unknown as RootState,
+        ),
+      ).toEqual({
+        'eip155:1': [ethUsdc],
+      });
+    });
+  });
+
   describe('setTokenSelectorNetworkFilter', () => {
     it('should set the network filter to a chain ID', () => {
       const chainId = 'eip155:1';
@@ -752,6 +843,89 @@ describe('bridge slice', () => {
       const newState = reducer(stateWithSelection, resetBridgeState());
 
       expect(newState.selectedQuoteRequestId).toBeUndefined();
+    });
+  });
+
+  describe('selectIsRwaSwap', () => {
+    const stockToken: BridgeToken = {
+      address: '0xstock',
+      symbol: 'STOCK',
+      decimals: 18,
+      image: '',
+      chainId: '0x1' as Hex,
+      name: 'Stock Token',
+      rwaData: { instrumentType: 'stock' } as BridgeToken['rwaData'],
+    };
+
+    const nonRwaToken: BridgeToken = {
+      address: '0xusdc',
+      symbol: 'USDC',
+      decimals: 6,
+      image: '',
+      chainId: '0x1' as Hex,
+      name: 'USDC',
+    };
+
+    const buildState = (
+      sourceToken: BridgeToken | undefined,
+      destToken: BridgeToken | undefined,
+      rwaEnabled: boolean,
+    ) => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        sourceToken,
+        destToken,
+      };
+      (
+        mockState as any
+      ).engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags[
+        FEATURE_FLAG_NAME
+      ] = rwaEnabled;
+      return mockState as unknown as RootState;
+    };
+
+    it('returns false when source and dest chains differ (bridge, not a swap)', () => {
+      const state = buildState(
+        { ...stockToken, chainId: '0x1' as Hex },
+        { ...nonRwaToken, chainId: '0xa' as Hex },
+        true,
+      );
+      expect(selectIsRwaSwap(state)).toBe(false);
+    });
+
+    it('returns false when it is an EVM swap but no token has RWA data', () => {
+      const state = buildState(nonRwaToken, nonRwaToken, true);
+      expect(selectIsRwaSwap(state)).toBe(false);
+    });
+
+    it('returns false when source token is a stock RWA but the RWA flag is disabled', () => {
+      const state = buildState(stockToken, nonRwaToken, false);
+      expect(selectIsRwaSwap(state)).toBe(false);
+    });
+
+    it('returns true when source token is a stock RWA and the RWA flag is enabled', () => {
+      const state = buildState(stockToken, nonRwaToken, true);
+      expect(selectIsRwaSwap(state)).toBe(true);
+    });
+
+    it('returns true when dest token is a stock RWA and the RWA flag is enabled', () => {
+      const state = buildState(nonRwaToken, stockToken, true);
+      expect(selectIsRwaSwap(state)).toBe(true);
+    });
+
+    it('returns true when both tokens are stock RWA and the RWA flag is enabled', () => {
+      const state = buildState(stockToken, stockToken, true);
+      expect(selectIsRwaSwap(state)).toBe(true);
+    });
+
+    it('returns false when source token instrument type is not stock', () => {
+      const bondToken: BridgeToken = {
+        ...stockToken,
+        rwaData: { instrumentType: 'bond' } as BridgeToken['rwaData'],
+      };
+      const state = buildState(bondToken, nonRwaToken, true);
+      expect(selectIsRwaSwap(state)).toBe(false);
     });
   });
 

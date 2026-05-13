@@ -108,11 +108,11 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockMetaMetricsAndDataCollectionSection).toHaveBeenCalledWith(
         expect.objectContaining({ hideMarketingSection: true }),
-        expect.anything(),
+        undefined,
       );
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -127,11 +127,11 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockMetaMetricsAndDataCollectionSection).toHaveBeenCalledWith(
         expect.objectContaining({ hideMarketingSection: true }),
-        expect.anything(),
+        undefined,
       );
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -189,7 +189,7 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockMetaMetricsAndDataCollectionSection).toHaveBeenCalledWith(
         expect.objectContaining({ hideMarketingSection: true }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -198,7 +198,7 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -207,7 +207,7 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: expect.any(Boolean) }),
-        expect.anything(),
+        undefined,
       );
     });
   });
@@ -260,7 +260,7 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -273,7 +273,7 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: true }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -300,7 +300,7 @@ describe('OnboardingSecuritySettings', () => {
       expect(mockIsEnabled).toHaveBeenCalled();
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: true }),
-        expect.anything(),
+        undefined,
       );
     });
   });

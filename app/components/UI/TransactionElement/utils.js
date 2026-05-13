@@ -55,6 +55,8 @@ const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
 ];
 
 function getTokenTransfer(args) {
@@ -837,15 +839,7 @@ function decodeConfirmTx(args) {
 
   const renderFrom = renderFullAddress(from);
   const renderTo = renderFullAddress(to);
-  const chainId = txChainId;
 
-  const tokenList =
-    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
-      ?.data || [];
-  let symbol;
-  if (renderTo in tokenList) {
-    symbol = tokenList[renderTo].symbol;
-  }
   let transactionType;
   if (actionKey === strings('transactions.approve'))
     transactionType = TRANSACTION_TYPES.APPROVE;
@@ -874,7 +868,7 @@ function decodeConfirmTx(args) {
   const transactionElement = {
     renderTo,
     renderFrom,
-    actionKey: symbol ? `${symbol} ${actionKey}` : actionKey,
+    actionKey,
     value: renderTotalEth,
     fiatValue: renderTotalEthFiat,
     transactionType,
@@ -1058,6 +1052,8 @@ export default async function decodeTransaction(args) {
       case strings('transactions.tx_review_perps_withdraw'):
       case strings('transactions.tx_review_predict_deposit'):
       case strings('transactions.tx_review_predict_withdraw'):
+      case strings('transactions.money_account_deposit'):
+      case strings('transactions.money_account_withdraw'):
         [transactionElement, transactionDetails] = await decodeTransferTx({
           ...args,
           actionKey,

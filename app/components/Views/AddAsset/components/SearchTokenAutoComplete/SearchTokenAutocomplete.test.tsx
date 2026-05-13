@@ -320,7 +320,7 @@ describe('SearchTokenAutocomplete', () => {
     fireEvent.press(tokenResult);
 
     const nextButton = getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
-    expect(nextButton).toBeEnabled();
+    expect(nextButton).not.toBeDisabled();
   });
 
   it('shows clear button when search has text and clears on press', () => {
@@ -354,7 +354,9 @@ describe('SearchTokenAutocomplete', () => {
     );
 
     fireEvent.press(tokenResult);
-    expect(getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON)).toBeEnabled();
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON),
+    ).not.toBeDisabled();
 
     fireEvent.press(tokenResult);
     expect(getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON)).toBeDisabled();

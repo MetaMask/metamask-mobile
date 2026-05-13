@@ -234,7 +234,6 @@ jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectMusdConversionCTATokens: jest.fn(() => ({})),
   selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
-  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
   selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
 
@@ -452,9 +451,9 @@ describe('Homepage', () => {
         calls.find((c) => c[0]?.sectionName === name)?.[0];
 
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
-      expect(callBySectionName('top_traders')?.sectionIndex).toBe(1);
-      expect(callBySectionName('perps')?.sectionIndex).toBe(2);
-      expect(callBySectionName('predict')?.sectionIndex).toBe(3);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(2);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
       expect(callBySectionName('whats_happening')?.sectionIndex).toBe(4);
       expect(callBySectionName('defi')?.sectionIndex).toBe(5);
       expect(callBySectionName('nfts')?.sectionIndex).toBe(6);
@@ -596,9 +595,9 @@ describe('Homepage', () => {
         calls.find((c) => c[0]?.sectionName === name)?.[0];
 
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
-      expect(callBySectionName('top_traders')?.sectionIndex).toBe(1);
-      expect(callBySectionName('perps')?.sectionIndex).toBe(2);
-      expect(callBySectionName('predict')?.sectionIndex).toBe(3);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(2);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
       expect(callBySectionName('defi')?.sectionIndex).toBe(4);
       expect(callBySectionName('trending_tokens')?.sectionIndex).toBe(5);
       expect(callBySectionName('trending_perps')?.sectionIndex).toBe(6);
@@ -608,6 +607,34 @@ describe('Homepage', () => {
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(9);
       });
+    });
+  });
+
+  describe('perpsProvidersHoisted + Perps feature flag', () => {
+    it('does not render PerpsSection when perpsProvidersHoisted=true and Perps flag is disabled', () => {
+      jest
+        .requireMock('../../UI/Perps')
+        .selectPerpsEnabledFlag.mockReturnValue(false);
+
+      renderWithProvider(<Homepage perpsProvidersHoisted />, {
+        state: stateWithPreferences,
+      });
+
+      const calls = getUseHomeViewedEventCalls();
+      expect(calls.some((c) => c[0]?.sectionName === 'perps')).toBe(false);
+    });
+
+    it('renders PerpsSection when perpsProvidersHoisted=true and Perps flag is enabled', () => {
+      jest
+        .requireMock('../../UI/Perps')
+        .selectPerpsEnabledFlag.mockReturnValue(true);
+
+      renderWithProvider(<Homepage perpsProvidersHoisted />, {
+        state: stateWithPreferences,
+      });
+
+      const calls = getUseHomeViewedEventCalls();
+      expect(calls.some((c) => c[0]?.sectionName === 'perps')).toBe(true);
     });
   });
 });

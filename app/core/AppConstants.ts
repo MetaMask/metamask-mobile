@@ -177,6 +177,7 @@ export default {
     DEFAULT_SLIPPAGE_STABLECOINS: 0.5,
     DEFAULT_SLIPPAGE_BRIDGE: 2,
     DEFAULT_SLIPPAGE_SOLANA: undefined,
+    DEFAULT_SLIPPAGE_RWA: undefined,
     CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000,
@@ -298,7 +299,6 @@ export default {
   NETWORK_STATE_CHANGE_EVENT: 'NetworkController:stateChange',
   NETWORK_DID_CHANGE_EVENT: 'NetworkController:networkDidChange',
   KEYRING_STATE_CHANGE_EVENT: 'KeyringController:stateChange',
-  TOKEN_LIST_STATE_CHANGE_EVENT: 'TokenListController:stateChange',
   TERMS_OF_USE: {
     TERMS_DISPLAYED: 'ToU Displayed',
     TERMS_ACCEPTED: 'ToU Accepted',

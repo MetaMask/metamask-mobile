@@ -1,4 +1,6 @@
 import React from 'react';
+import { TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
@@ -9,6 +11,10 @@ import {
   BoxAlignItems,
   AvatarToken,
   AvatarTokenSize,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
@@ -21,40 +27,65 @@ export interface TraderTokenInfoRowProps {
   marketCap: number | undefined;
   pricePercentChange: number | undefined;
   activeTimePeriodLabel: string;
+  onCopyTokenAddress?: () => void;
+  copyTokenAddressTestID?: string;
 }
 
-const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
+interface TraderTokenIdentityProps {
+  symbol: string;
+  position?: Position;
+  pricePercentChange: number | undefined;
+  activeTimePeriodLabel: string;
+  onCopyTokenAddress?: () => void;
+  copyTokenAddressTestID?: string;
+}
+
+const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
   symbol,
   position,
-  marketCap,
   pricePercentChange,
   activeTimePeriodLabel,
-}) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="px-4 py-3"
-  >
+  onCopyTokenAddress,
+  copyTokenAddressTestID,
+}) => {
+  const tw = useTailwind();
+  const canCopyTokenAddress = Boolean(
+    position?.tokenAddress && onCopyTokenAddress,
+  );
+
+  const content = (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={4}
-      twClassName="flex-1 min-w-0 mr-3"
     >
       {position ? (
-        <PositionTokenAvatar position={position} />
+        <PositionTokenAvatar position={position} showChainBadge />
       ) : (
         <AvatarToken name={symbol} size={AvatarTokenSize.Lg} />
       )}
       <Box twClassName="flex-1 min-w-0">
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
         >
-          {symbol}
-        </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+          >
+            {symbol}
+          </Text>
+          {canCopyTokenAddress ? (
+            <Icon
+              name={IconName.Copy}
+              size={IconSize.Sm}
+              color={IconColor.PrimaryDefault}
+            />
+          ) : null}
+        </Box>
         {pricePercentChange != null ? (
           <Text
             variant={TextVariant.BodySm}
@@ -80,19 +111,68 @@ const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
         )}
       </Box>
     </Box>
+  );
 
-    <Box alignItems={BoxAlignItems.End}>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
-      >
-        {marketCap != null ? formatCompactUsd(marketCap) : '\u2014'}
-      </Text>
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {strings('social_leaderboard.trader_position.market_cap')}
-      </Text>
-    </Box>
+  if (!canCopyTokenAddress) {
+    return <Box twClassName="flex-1 min-w-0 mr-3">{content}</Box>;
+  }
+
+  return (
+    <TouchableOpacity
+      onPress={onCopyTokenAddress}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      testID={copyTokenAddressTestID}
+      accessibilityRole="button"
+      accessibilityLabel={`Copy ${symbol} token address`}
+      style={tw.style('flex-1 min-w-0 mr-3')}
+    >
+      {content}
+    </TouchableOpacity>
+  );
+};
+
+interface TraderMarketCapProps {
+  marketCap: number | undefined;
+}
+
+const TraderMarketCap: React.FC<TraderMarketCapProps> = ({ marketCap }) => (
+  <Box alignItems={BoxAlignItems.End}>
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextDefault}
+    >
+      {marketCap != null ? formatCompactUsd(marketCap) : '\u2014'}
+    </Text>
+    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+      {strings('social_leaderboard.trader_position.market_cap')}
+    </Text>
+  </Box>
+);
+
+const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
+  symbol,
+  position,
+  marketCap,
+  pricePercentChange,
+  activeTimePeriodLabel,
+  onCopyTokenAddress,
+  copyTokenAddressTestID,
+}) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    twClassName="px-4 py-3"
+  >
+    <TraderTokenIdentity
+      symbol={symbol}
+      position={position}
+      pricePercentChange={pricePercentChange}
+      activeTimePeriodLabel={activeTimePeriodLabel}
+      onCopyTokenAddress={onCopyTokenAddress}
+      copyTokenAddressTestID={copyTokenAddressTestID}
+    />
+    <TraderMarketCap marketCap={marketCap} />
   </Box>
 );
 

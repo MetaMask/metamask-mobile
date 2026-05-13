@@ -47,6 +47,8 @@ jest.mock(
 );
 
 const mockAppRedirectUri = 'metamask://oauth-redirect';
+const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG.main_prod;
+
 describe('OAuth Constants', () => {
   describe('AppRedirectUri', () => {
     it('should generate correct redirect URI', () => {
@@ -55,8 +57,6 @@ describe('OAuth Constants', () => {
   });
 
   describe('Environment-based constants', () => {
-    const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG.main_prod;
-
     it('should have web3AuthNetwork from jest config', () => {
       expect(web3AuthNetwork).toBe('sapphire_mainnet');
     });
@@ -65,9 +65,13 @@ describe('OAuth Constants', () => {
       expect(AuthServerUrl).toBe(CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL);
     });
 
-    it('should have Android configuration from jest config', () => {
-      expect(GoogleWebGID).toBe('androidGoogleWebClientId');
-      expect(AppleWebClientId).toBe('AppleClientId');
+    it('should have Android configuration from config', () => {
+      expect(GoogleWebGID).toBe(
+        CURRENT_OAUTH_CONFIG.ANDROID_GOOGLE_SERVER_CLIENT_ID,
+      );
+      expect(AppleWebClientId).toBe(
+        CURRENT_OAUTH_CONFIG.ANDROID_APPLE_CLIENT_ID,
+      );
     });
 
     it('should generate correct Apple server redirect URI', () => {
@@ -142,8 +146,8 @@ describe('getIosGoogleConfig', () => {
     const config = getIosGoogleConfig();
 
     expect(config).toEqual({
-      clientId: 'iosGoogleClientId',
-      redirectUri: 'iosGoogleRedirectUri',
+      clientId: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_CLIENT_ID,
+      redirectUri: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_REDIRECT_URI,
     });
   });
 
@@ -155,8 +159,8 @@ describe('getIosGoogleConfig', () => {
     const config = getIosGoogleConfig();
 
     expect(config).toEqual({
-      clientId: 'iosGoogleClientId',
-      redirectUri: 'iosGoogleRedirectUri',
+      clientId: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_CLIENT_ID,
+      redirectUri: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_REDIRECT_URI,
     });
   });
 
@@ -166,7 +170,9 @@ describe('getIosGoogleConfig', () => {
 
     const config = getIosGoogleConfig();
 
-    expect(config.clientId).toBe('androidGoogleWebClientId');
+    expect(config.clientId).toBe(
+      CURRENT_OAUTH_CONFIG.ANDROID_GOOGLE_SERVER_CLIENT_ID,
+    );
     expect(config.redirectUri).toContain('link.metamask.io');
   });
 
@@ -188,7 +194,9 @@ describe('getIosGoogleConfig', () => {
 
     const config = getIosGoogleConfig();
 
-    expect(config.clientId).toBe('androidGoogleWebClientId');
+    expect(config.clientId).toBe(
+      CURRENT_OAUTH_CONFIG.ANDROID_GOOGLE_SERVER_CLIENT_ID,
+    );
     expect(config.redirectUri).toContain('link.metamask.io');
   });
 
@@ -200,8 +208,8 @@ describe('getIosGoogleConfig', () => {
     const config = getIosGoogleConfig();
 
     expect(config).toEqual({
-      clientId: 'iosGoogleClientId',
-      redirectUri: 'iosGoogleRedirectUri',
+      clientId: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_CLIENT_ID,
+      redirectUri: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_REDIRECT_URI,
     });
   });
 });

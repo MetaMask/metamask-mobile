@@ -16,7 +16,6 @@ import {
   type PredictMarket,
   type PredictPosition,
   PredictActivity,
-  Result,
   PredictOutcome,
   PredictOutcomeGroup,
   PredictOutcomeToken,
@@ -31,6 +30,7 @@ import {
 } from '../../utils/gameParser';
 import {
   isDrawCapableLeague,
+  isMoneylineLikeMarketType,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
 import type {
@@ -47,7 +47,7 @@ import {
   GROUP_ORDER,
   SPORTS_MARKET_TYPE_PRIORITIES,
   HASH_ZERO_BYTES32,
-  MATIC_CONTRACTS,
+  MATIC_CONTRACTS_V2,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
@@ -56,16 +56,12 @@ import {
   SLIPPAGE_SELL,
   SPORTS_MARKET_TYPE_TO_GROUP,
 } from './constants';
-import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
   ClobHeaders,
-  ClobOrderObject,
   COLLATERAL_TOKEN_DECIMALS,
   ContractConfig,
   L2HeaderArgs,
-  OrderData,
-  OrderResponse,
   OrderSummary,
   PolymarketApiEvent,
   PolymarketApiActivity,
@@ -79,6 +75,34 @@ import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PredictFeeCollection } from '../../types/flags';
 
 export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
+
+/**
+ * Parse a fetch `Response` body as JSON, raising a contextual error when the
+ * body is not valid JSON. Without this wrapper the bare
+ * `await response.json()` call only surfaces "JSON Parse error: Unexpected
+ * character: <" with no clue which endpoint returned HTML, which masks the
+ * underlying problem (e.g. an upstream proxy/error page reaching the client).
+ */
+async function parseJsonOrThrow<T>(
+  response: Response,
+  url: string,
+): Promise<T> {
+  const text = await response.text();
+  try {
+    return JSON.parse(text) as T;
+  } catch (parseError) {
+    const snippet = text.slice(0, 200).replace(/\s+/gu, ' ');
+    DevLogger.log('Polymarket: non-JSON response from endpoint', {
+      url,
+      status: response.status,
+      contentType: response.headers.get('content-type'),
+      bodySnippet: snippet,
+    });
+    throw new Error(
+      `Polymarket fetch returned non-JSON (status ${response.status}) from ${url}: ${snippet}`,
+    );
+  }
+}
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
@@ -202,85 +226,46 @@ export const getL2Headers = async ({
   return headers;
 };
 
-function getClobEndpoint({
-  clobVersion = 'v1',
-  clobBaseUrl,
-}: {
-  clobVersion?: 'v1' | 'v2';
-  clobBaseUrl?: string;
-}): string {
+function getClobEndpoint(): string {
   const { CLOB_ENDPOINT } = getPolymarketEndpoints();
-
-  if (clobVersion === 'v2') {
-    return clobBaseUrl ?? CLOB_ENDPOINT;
-  }
-
   return CLOB_ENDPOINT;
 }
 
-export const deriveApiKey = async ({
-  address,
-  clobVersion = 'v1',
-  clobBaseUrl,
-}: {
-  address: string;
-  clobVersion?: 'v1' | 'v2';
-  clobBaseUrl?: string;
-}) => {
+export const deriveApiKey = async ({ address }: { address: string }) => {
   const headers = await getL1Headers({ address });
-  const response = await fetch(
-    `${getClobEndpoint({ clobVersion, clobBaseUrl })}/auth/derive-api-key`,
-    {
-      method: 'GET',
-      headers,
-    },
-  );
+  const url = `${getClobEndpoint()}/auth/derive-api-key`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers,
+  });
   if (!response.ok) {
     throw new Error('Failed to derive API key');
   }
-  const apiKeyRaw = await response.json();
-  return apiKeyRaw as ApiKeyCreds;
+  const apiKeyRaw = await parseJsonOrThrow<ApiKeyCreds>(response, url);
+  return apiKeyRaw;
 };
 
-export const createApiKey = async ({
-  address,
-  clobVersion = 'v1',
-  clobBaseUrl,
-}: {
-  address: string;
-  clobVersion?: 'v1' | 'v2';
-  clobBaseUrl?: string;
-}) => {
+export const createApiKey = async ({ address }: { address: string }) => {
   const headers = await getL1Headers({ address });
-  const response = await fetch(
-    `${getClobEndpoint({ clobVersion, clobBaseUrl })}/auth/api-key`,
-    {
-      method: 'POST',
-      headers,
-      body: '',
-    },
-  );
+  const url = `${getClobEndpoint()}/auth/api-key`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: '',
+  });
   if (response.status === 400) {
-    return await deriveApiKey({ address, clobVersion, clobBaseUrl });
+    return await deriveApiKey({ address });
   }
-  const apiKeyRaw = await response.json();
-  return apiKeyRaw as ApiKeyCreds;
+  const apiKeyRaw = await parseJsonOrThrow<ApiKeyCreds>(response, url);
+  return apiKeyRaw;
 };
 
 export const priceValid = (price: number, tickSize: TickSize): boolean =>
   price >= parseFloat(tickSize) && price <= 1 - parseFloat(tickSize);
 
-export const getOrderBook = async ({
-  tokenId,
-  clobVersion = 'v1',
-  clobBaseUrl,
-}: {
-  tokenId: string;
-  clobVersion?: 'v1' | 'v2';
-  clobBaseUrl?: string;
-}) => {
+export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
   const response = await fetch(
-    `${getClobEndpoint({ clobVersion, clobBaseUrl })}/book?token_id=${tokenId}`,
+    `${getClobEndpoint()}/book?token_id=${tokenId}`,
     {
       method: 'GET',
     },
@@ -298,120 +283,17 @@ export const getOrderBook = async ({
   return responseData;
 };
 
-interface FeeRateResponse {
-  base_fee?: number;
-}
-
-const DEFAULT_FEE_RATE_BPS = '0';
-
-export const getFeeRateBps = async ({
-  tokenId,
-}: {
-  tokenId: string;
-}): Promise<string> => {
-  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
-
-  try {
-    const response = await fetch(
-      `${CLOB_ENDPOINT}/fee-rate?token_id=${tokenId}`,
-      {
-        method: 'GET',
-      },
-    );
-
-    if (!response.ok) {
-      let errorMessage = `Request failed with status ${response.status}`;
-      const responseData = (await response.json().catch(() => undefined)) as
-        | { error?: string }
-        | undefined;
-      if (responseData?.error) {
-        errorMessage = responseData.error;
-      }
-
-      DevLogger.log('Polymarket fee-rate request failed, using zero fee', {
-        tokenId,
-        status: response.status,
-        errorMessage,
-      });
-      return DEFAULT_FEE_RATE_BPS;
-    }
-
-    const responseData = (await response.json()) as FeeRateResponse;
-    const baseFee = responseData.base_fee;
-    if (
-      typeof baseFee !== 'number' ||
-      !Number.isFinite(baseFee) ||
-      baseFee < 0
-    ) {
-      DevLogger.log('Polymarket fee-rate response invalid, using zero fee', {
-        tokenId,
-        baseFee,
-      });
-      return DEFAULT_FEE_RATE_BPS;
-    }
-
-    return Math.round(baseFee).toString();
-  } catch (error) {
-    DevLogger.log('Polymarket fee-rate request threw, using zero fee', {
-      tokenId,
-      error,
-    });
-    return DEFAULT_FEE_RATE_BPS;
-  }
-};
-
 export const generateSalt = (): Hex =>
   `0x${BigInt(Math.floor(Math.random() * 1000000)).toString(16)}`;
 
 export const getContractConfig = (chainID: number): ContractConfig => {
   switch (chainID) {
     case POLYGON_MAINNET_CHAIN_ID:
-      return MATIC_CONTRACTS;
+      return MATIC_CONTRACTS_V2;
     default:
-      throw new Error(
-        'MetaMask Predict is only supported on Polygon mainnet and Amoy testnet',
-      );
+      throw new Error('MetaMask Predict is only supported on Polygon mainnet');
   }
 };
-
-export const getOrderTypedData = ({
-  order,
-  chainId,
-  verifyingContract,
-}: {
-  order: OrderData & { salt: string };
-  chainId: number;
-  verifyingContract: string;
-}) => ({
-  primaryType: 'Order',
-  domain: {
-    name: 'Polymarket CTF Exchange',
-    version: '1',
-    chainId,
-    verifyingContract,
-  },
-  types: {
-    EIP712Domain: [
-      ...EIP712Domain,
-      { name: 'verifyingContract', type: 'address' },
-    ],
-    Order: [
-      { name: 'salt', type: 'uint256' },
-      { name: 'maker', type: 'address' },
-      { name: 'signer', type: 'address' },
-      { name: 'taker', type: 'address' },
-      { name: 'tokenId', type: 'uint256' },
-      { name: 'makerAmount', type: 'uint256' },
-      { name: 'takerAmount', type: 'uint256' },
-      { name: 'expiration', type: 'uint256' },
-      { name: 'nonce', type: 'uint256' },
-      { name: 'feeRateBps', type: 'uint256' },
-      { name: 'side', type: 'uint8' },
-      { name: 'signatureType', type: 'uint8' },
-    ],
-  },
-  message: order,
-});
 
 export const encodeApprove = ({
   spender,
@@ -449,82 +331,6 @@ export const encodeErc20Transfer = ({
 function replaceAll(s: string, search: string, replace: string) {
   return s.split(search).join(replace);
 }
-
-export const submitClobOrder = async ({
-  headers,
-  clobOrder,
-  feeAuthorization,
-  executor,
-  allowancesTx,
-}: {
-  headers: ClobHeaders;
-  clobOrder: ClobOrderObject;
-  feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
-  executor?: string;
-  allowancesTx?: { to: string; data: string };
-}): Promise<Result<OrderResponse>> => {
-  const { CLOB_RELAYER } = getPolymarketEndpoints();
-  const url = `${CLOB_RELAYER}/order`;
-  const body: ClobOrderObject & {
-    feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
-    executor?: string;
-    allowancesTx?: { to: string; data: string };
-  } = {
-    ...clobOrder,
-    feeAuthorization,
-    ...(executor && { executor }),
-    ...(allowancesTx && { allowancesTx }),
-  };
-
-  // For our relayer, we need to replace the underscores with dashes
-  // since underscores are not standardly allowed in headers
-  headers = {
-    ...headers,
-    ...Object.entries(headers)
-      .map(([key, value]) => ({
-        [key.replace(/_/g, '-')]: value,
-      }))
-      .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
-  };
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-    });
-
-    if (response.status === 403) {
-      return {
-        success: false,
-        error: 'You are unable to access this provider.',
-      };
-    }
-
-    let responseData;
-    try {
-      responseData = (await response.json()) as OrderResponse;
-    } catch (error) {
-      responseData = undefined;
-    }
-
-    if (!response.ok || !responseData || responseData?.success === false) {
-      const error = responseData?.errorMsg ?? response.statusText;
-      return {
-        success: false,
-        error,
-      };
-    }
-
-    return { success: true, response: responseData };
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Unknown error';
-    return {
-      success: false,
-      error: `Failed to submit CLOB order: ${msg}`,
-    };
-  }
-};
 
 const normalizeSportsMarketType = (type: string): string => {
   const lower = type.toLowerCase();
@@ -627,8 +433,9 @@ export function buildOutcomeGroups(
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
 
-export const isMoneylineMarket = (market: PolymarketApiMarket): boolean =>
-  market.sportsMarketType?.toLowerCase() === 'moneyline';
+const isMoneylineLikeMarket = (market: PolymarketApiMarket): boolean =>
+  isMoneylineLikeMarketType(market.sportsMarketType);
+
 /**
  * Sort markets within a sports market type group by liquidity + volume (descending)
  */
@@ -648,7 +455,7 @@ const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
     return market.groupItemTitle.replace(/-(?=\d)/, '');
   }
 
-  if (isMoneylineMarket(market)) {
+  if (isMoneylineLikeMarket(market)) {
     return market.groupItemTitle || market.question;
   }
   return market.groupItemTitle;
@@ -750,7 +557,11 @@ const sortOutcomeTokens = (
 const getNegRiskYesTokenTitle = (
   market: PolymarketApiMarket,
 ): string | undefined => {
-  if (!market.negRisk || !isMoneylineMarket(market) || !market.groupItemTitle) {
+  if (
+    !market.negRisk ||
+    !isMoneylineLikeMarket(market) ||
+    !market.groupItemTitle
+  ) {
     return undefined;
   }
   return market.groupItemTitle.toLowerCase().startsWith('draw')
@@ -762,7 +573,11 @@ const resolveNegRiskShortTitles = (
   market: PolymarketApiMarket,
   game: PredictMarketGame,
 ): { yesShort?: string; noShort?: string } => {
-  if (!market.negRisk || !isMoneylineMarket(market) || !market.groupItemTitle) {
+  if (
+    !market.negRisk ||
+    !isMoneylineLikeMarket(market) ||
+    !market.groupItemTitle
+  ) {
     return {};
   }
 
@@ -983,7 +798,7 @@ export const parsePolymarketEvents = (
   const parsedMarkets: PredictMarket[] = events.map(
     (event: PolymarketApiEvent) => {
       const tags = Array.isArray(event.tags) ? event.tags : [];
-      const eventLeague = getEventLeague(event);
+      const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
 
       const predictTeamLookup: TeamLookup | undefined = teamLookup
         ? (league, abbr) => {
@@ -1191,6 +1006,9 @@ export const fetchEventsFromPolymarketApi = async (
 
     queryParamsEvents = `${limitParam}&${active}&${archived}&${closed}&${ascending}&${offsetParam}&${liquidity}&${volume}`;
     queryParamsEvents += categoryTagMap[category];
+    if (customQueryParams) {
+      queryParamsEvents += `&${customQueryParams}`;
+    }
   }
 
   const limitPerType = `limit_per_type=${limit}`;
@@ -1318,6 +1136,46 @@ export const getMarketDetailsFromGammaApi = async ({
 
   const responseData = await response.json();
   return responseData as PolymarketApiEvent;
+};
+
+export const fetchChildEventsFromGammaApi = async ({
+  parentEventId,
+}: {
+  parentEventId: string | number;
+}): Promise<PolymarketApiEvent[]> => {
+  const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+  const response = await fetch(
+    `${GAMMA_API_ENDPOINT}/events?parent_event_id=${parentEventId}&include_children=true`,
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch child events');
+  }
+
+  const responseData = await response.json();
+  return responseData as PolymarketApiEvent[];
+};
+
+export const mergeChildEventsIntoParent = (
+  events: PolymarketApiEvent[],
+): PolymarketApiEvent => {
+  if (events.length === 0) {
+    throw new Error('No events to merge');
+  }
+
+  const parent = events.find((e) => !e.parentEventId) ?? events[0];
+  const children = events.filter((e) => e !== parent);
+
+  if (children.length === 0) {
+    return parent;
+  }
+
+  const childMarkets = children.flatMap((child) => child.markets ?? []);
+
+  return {
+    ...parent,
+    markets: [...(parent.markets ?? []), ...childMarkets],
+  };
 };
 
 export const getPredictPositionStatus = ({
@@ -1613,6 +1471,14 @@ export const getAllowanceCalls = (params: { address: string }) => {
   return calls;
 };
 
+const parseNumericRpcResult = (res: string): bigint => {
+  if (res === '0x') {
+    return 0n;
+  }
+
+  return BigInt(res);
+};
+
 export const getAllowance = async ({
   tokenAddress,
   owner,
@@ -1643,8 +1509,8 @@ export const getAllowance = async ({
     },
   ]);
 
-  // Decode the result
-  const allowance = BigInt(res);
+  // Treat empty hex responses as zero to avoid breaking on sparse/mock RPCs.
+  const allowance = parseNumericRpcResult(res);
   return allowance;
 };
 
@@ -1679,7 +1545,7 @@ export const getIsApprovedForAll = async ({
   ]);
 
   // Decode the result - convert hex to boolean
-  const isApproved = BigInt(res) !== 0n;
+  const isApproved = parseNumericRpcResult(res) !== 0n;
   return isApproved;
 };
 
@@ -1730,7 +1596,7 @@ export const getRawBalance = async ({
     },
   ]);
 
-  return BigInt(res);
+  return parseNumericRpcResult(res);
 };
 
 export const getBalance = async ({
@@ -1886,27 +1752,15 @@ export const roundOrderAmount = ({
 export const previewOrder = async (
   params: Omit<PreviewOrderParams, 'providerId'> & {
     feeCollection?: PredictFeeCollection;
-    isV2?: boolean;
-    clobBaseUrl?: string;
   },
 ): Promise<OrderPreview> => {
-  const {
-    marketId,
-    outcomeId,
-    outcomeTokenId,
-    side,
-    size,
-    feeCollection,
-    isV2,
-    clobBaseUrl,
-  } = params;
+  const { marketId, outcomeId, outcomeTokenId, side, size, feeCollection } =
+    params;
   const [book, feeRateBps] = await Promise.all([
     getOrderBook({
       tokenId: outcomeTokenId,
-      clobVersion: isV2 ? 'v2' : 'v1',
-      clobBaseUrl: isV2 ? clobBaseUrl : undefined,
     }),
-    isV2 ? Promise.resolve('0') : getFeeRateBps({ tokenId: outcomeTokenId }),
+    Promise.resolve('0'),
   ]);
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);

@@ -27,6 +27,10 @@ interface PredictMarketSportCardProps {
   entryPoint?: PredictEntryPoint;
   onDismiss?: () => void;
   isCarousel?: boolean;
+  /** Called synchronously before the card's navigation press fires. */
+  onCardPress?: () => void;
+  /** Called when the user taps a buy button (before betslip opens). */
+  onBuyButtonPress?: (marketId: string) => void;
 }
 
 const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
@@ -35,6 +39,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   entryPoint: propEntryPoint,
   onDismiss,
   isCarousel,
+  onCardPress,
+  onBuyButtonPress,
 }) => {
   const tw = useTailwind();
   const contextEntryPoint = usePredictEntryPoint();
@@ -57,6 +63,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
       style={tw.style(isCarousel ? '' : 'my-[8px]')}
       testID={testID}
       onPress={() => {
+        onCardPress?.();
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {
@@ -102,6 +109,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
             entryPoint={resolvedEntryPoint}
             testID={testID ? `${testID}-footer` : undefined}
             isCarousel={isCarousel}
+            onBuyButtonPress={onBuyButtonPress}
           />
         </Box>
       </Box>

@@ -15,7 +15,10 @@ import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
 import handleBrowserUrl from '../handleBrowserUrl';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
+import handleRampReturnUrl from '../handleRampReturnUrl';
 import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
+import { handleSocialLeaderboardUrl } from '../handleSocialLeaderboardUrl';
+import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
 
@@ -31,6 +34,7 @@ jest.mock('../../../../NativeModules', () => ({
 }));
 jest.mock('../handleDeepLinkModalDisplay');
 jest.mock('../handleRampUrl');
+jest.mock('../handleRampReturnUrl');
 jest.mock('../handleHomeUrl');
 jest.mock('../handleSwapUrl');
 jest.mock('../handleBrowserUrl');
@@ -40,6 +44,8 @@ jest.mock('../handleRewardsUrl');
 jest.mock('../handlePredictUrl');
 jest.mock('../handleFastOnboarding');
 jest.mock('../handleTrendingUrl');
+jest.mock('../handleSocialLeaderboardUrl');
+jest.mock('../handleSocialTraderPositionUrl');
 jest.mock('../../../../redux', () => ({
   __esModule: true,
   default: {
@@ -199,6 +205,32 @@ describe('handleUniversalLink', () => {
         source: 'test-source',
       });
 
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.ON_RAMP', () => {
+    it('calls handleRampReturnUrl with the path after the action', async () => {
+      const onRampPath = '/return?orderId=order-99';
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.ON_RAMP}${onRampPath}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.ON_RAMP}${onRampPath}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(handleRampReturnUrl).toHaveBeenCalledWith({
+        rampReturnPath: onRampPath,
+      });
       expect(handled).toHaveBeenCalled();
     });
   });
@@ -659,7 +691,7 @@ describe('handleUniversalLink', () => {
 
   describe('ACTIONS.SHIELD', () => {
     it('calls _handleBrowserUrl when action is SHIELD', async () => {
-      const mockHandleBrowserUrl = handleBrowserUrl as jest.MockedFunction<
+      const shieldHandleBrowserUrl = handleBrowserUrl as jest.MockedFunction<
         typeof handleBrowserUrl
       >;
       const shieldUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SHIELD}`;
@@ -680,7 +712,7 @@ describe('handleUniversalLink', () => {
       });
 
       expect(handled).toHaveBeenCalled();
-      expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
+      expect(shieldHandleBrowserUrl).toHaveBeenCalledWith({
         url: SHIELD_WEBSITE_URL,
         callback: mockBrowserCallBack,
       });
@@ -826,6 +858,62 @@ describe('handleUniversalLink', () => {
 
         expect(handled).toHaveBeenCalled();
       }
+    });
+  });
+
+  describe('ACTIONS.SOCIAL_TRADER_POSITION', () => {
+    it('calls _handleSocialTraderPosition when action is SOCIAL_TRADER_POSITION', async () => {
+      const positionUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER_POSITION}?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy`;
+      const positionUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: positionUrl,
+        pathname: `/${ACTIONS.SOCIAL_TRADER_POSITION}`,
+        search:
+          '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: positionUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: positionUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleSocialTraderPositionUrl).toHaveBeenCalledWith({
+        actionPath:
+          '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy',
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.SOCIAL_LEADERBOARD', () => {
+    it('navigates to social leaderboard without showing interstitial', async () => {
+      const leaderboardUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_LEADERBOARD}?ignored=true`;
+      const leaderboardUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: leaderboardUrl,
+        pathname: `/${ACTIONS.SOCIAL_LEADERBOARD}`,
+        search: '?ignored=true',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: leaderboardUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: leaderboardUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleSocialLeaderboardUrl).toHaveBeenCalledTimes(1);
+      expect(handled).toHaveBeenCalled();
     });
   });
 

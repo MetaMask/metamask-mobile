@@ -46,10 +46,13 @@ export enum ACTIONS {
   PREDICT = 'predict',
   ONBOARDING = 'onboarding',
   TRENDING = 'trending',
+  SOCIAL_LEADERBOARD = 'social-leaderboard',
+  SOCIAL_TRADER_POSITION = 'social-trader-position',
   EARN_MUSD = 'earn-musd',
   NFT = 'nft',
   CLI_LOGIN = 'cli-login',
   CLI_APPROVE = 'cli-approve',
+  ON_RAMP = 'on-ramp',
 }
 
 export const PREFIXES = {
@@ -82,9 +85,12 @@ export const PREFIXES = {
   [ACTIONS.CARD_HOME]: '',
   [ACTIONS.CARD_KYC_NOTIFICATION]: '',
   [ACTIONS.TRENDING]: '',
+  [ACTIONS.SOCIAL_LEADERBOARD]: '',
+  [ACTIONS.SOCIAL_TRADER_POSITION]: '',
   [ACTIONS.EARN_MUSD]: '',
   [ACTIONS.NFT]: '',
   [ACTIONS.CLI_LOGIN]: '',
   [ACTIONS.CLI_APPROVE]: '',
+  [ACTIONS.ON_RAMP]: '',
   METAMASK: 'metamask://',
 };

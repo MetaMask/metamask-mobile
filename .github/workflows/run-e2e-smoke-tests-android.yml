@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       selected_tags:
-        description: 'JSON array of selected tags from Smart E2E selection (e.g., ["SmokeAccounts", "SmokeTrade"])'
+        description: 'JSON array of selected tags from Smart E2E selection (e.g., ["SmokeAccounts", "SmokeSwap"])'
         required: false
         type: string
         default: '["ALL"]'
@@ -13,26 +13,49 @@ on:
         required: false
         type: string
         default: ''
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  trade-android-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeTrade')
+  swap-android-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeSwap')
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: swap-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: 'SmokeSwap'
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  stake-android-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeStake')
     strategy:
       matrix:
         split: [1]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: trade-android-smoke-${{ matrix.split }}
+      test-suite-name: stake-android-smoke-${{ matrix.split }}
       platform: android
-      test_suite_tag: 'SmokeTrade'
+      test_suite_tag: 'SmokeStake'
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   perps-android-smoke:
@@ -49,6 +72,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   wallet-platform-android-smoke:
@@ -65,6 +89,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 3
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   identity-android-smoke:
@@ -81,6 +106,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 2
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   accounts-android-smoke:
@@ -97,6 +123,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   network-abstraction-android-smoke:
@@ -113,6 +140,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 2
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   network-expansion-android-smoke:
@@ -129,6 +157,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 2
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   confirmations-android-smoke:
@@ -145,6 +174,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 4
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   prediction-market-android-smoke:
@@ -161,38 +191,24 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  card-android-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeCard')
+  money-android-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeMoney')
     strategy:
       matrix:
         split: [1]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: card-android-smoke-${{ matrix.split }}
+      test-suite-name: money-android-smoke-${{ matrix.split }}
       platform: android
-      test_suite_tag: 'SmokeCard'
+      test_suite_tag: 'SmokeMoney'
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
-    secrets: inherit
-
-  ramps-android-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeRamps')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: ramps-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'SmokeRamps'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   multichain-api-android-smoke:
@@ -209,6 +225,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   seedless-onboarding-android-smoke:
@@ -225,6 +242,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   browser-android-smoke:
@@ -241,14 +259,33 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  snaps-android-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeSnaps')
+    strategy:
+      matrix:
+        split: [1, 2, 3, 4]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: snaps-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: 'SmokeSnaps'
+      split_number: ${{ matrix.split }}
+      total_splits: 4
+      changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   report-android-smoke-tests:
     name: Report Android Smoke Tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
     needs:
-      - trade-android-smoke
+      - swap-android-smoke
+      - stake-android-smoke
       - perps-android-smoke
       - wallet-platform-android-smoke
       - identity-android-smoke
@@ -257,17 +294,17 @@ jobs:
       - network-expansion-android-smoke
       - confirmations-android-smoke
       - prediction-market-android-smoke
-      - card-android-smoke
-      - ramps-android-smoke
+      - money-android-smoke
       - multichain-api-android-smoke
       - seedless-onboarding-android-smoke
       - browser-android-smoke
+      - snaps-android-smoke
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 

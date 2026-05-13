@@ -1,3 +1,5 @@
+import { saveAttribution } from '../../../redux/slices/attribution';
+import { attributionPayloadFromDeeplink } from '../../../redux/slices/attributionFromSources';
 import { checkForDeeplink } from '../../../../actions/user';
 import Logger from '../../../../util/Logger';
 import { AppStateEventProcessor } from '../../../AppStateEventListener';
@@ -32,6 +34,15 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
       // eslint-disable-next-line no-console -- TEMP debug — remove before commit
       console.log('[Deeplink:received]', uri, 'source=', source);
       AppStateEventProcessor.setCurrentDeeplink(uri, source);
+      if (
+        ReduxService.store.getState().security.dataCollectionForMarketing ===
+        true
+      ) {
+        const payload = attributionPayloadFromDeeplink(uri);
+        if (payload) {
+          ReduxService.store.dispatch(saveAttribution(payload));
+        }
+      }
       dispatch(checkForDeeplink());
     }
   } catch (e) {

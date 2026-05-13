@@ -32,11 +32,16 @@ import { strings } from '../../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { fireEvent } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
-import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { useConfirmActions } from '../../../hooks/useConfirmActions';
+import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
+import Engine from '../../../../../../core/Engine';
+import Logger from '../../../../../../util/Logger';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
@@ -52,7 +57,7 @@ jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayHasSourceAmount');
 jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
-jest.mock('../../../hooks/transactions/useTransactionConfirm');
+jest.mock('../../../hooks/useConfirmActions');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
   useTransactionPayWithdraw: jest.fn(() => ({
@@ -60,28 +65,26 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
     canSelectWithdrawToken: false,
   })),
 }));
-jest.mock('../../../../../../util/transaction-controller', () => ({
-  updateEditableParams: jest.fn(),
+jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
+jest.mock('../../../../../../util/transaction-controller', () => ({}));
+jest.mock('../../../../../../util/Logger');
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    TransactionPayController: {
+      updateFiatPayment: jest.fn(),
+    },
+  },
 }));
-jest.mock('../../AccountSelector', () => {
-  const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
+jest.mock('../../PayAccountSelector', () => {
+  const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({
-      onAccountSelected,
-    }: {
-      onAccountSelected: (address: string) => void;
-      selectedAddress?: string;
-    }) => (
-      <TouchableOpacity
-        testID="account-selector"
-        onPress={() => onAccountSelected('0xTestRecipient')}
-      >
-        <Text>Select account</Text>
-      </TouchableOpacity>
-    ),
+    default: () => <View testID="pay-account-selector" />,
   };
 });
+jest.mock('../../projected-five-year-balance', () => ({
+  ProjectedFiveYearBalance: () => null,
+}));
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: () => ({
     trackInlineAlertClicked: jest.fn(),
@@ -166,7 +169,7 @@ describe('CustomAmountInfo', () => {
   const useConfirmationContextMock = jest.mocked(useConfirmationContext);
   const useAlertsMock = jest.mocked(useAlerts);
   const useAccountTokensMock = jest.mocked(useAccountTokens);
-  const useTransactionConfirmMock = jest.mocked(useTransactionConfirm);
+  const useConfirmActionsMock = jest.mocked(useConfirmActions);
 
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
@@ -200,9 +203,14 @@ describe('CustomAmountInfo', () => {
 
   const useTokenFiatRatesMock = jest.mocked(useTokenFiatRates);
   const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
+  const useTransactionAccountOverrideMock = jest.mocked(
+    useTransactionAccountOverride,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useTransactionAccountOverrideMock.mockReturnValue(undefined);
 
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: false,
@@ -231,7 +239,7 @@ describe('CustomAmountInfo', () => {
       isInputChanged: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
-      updateTokenAmount: noop,
+      updateTokenAmount: jest.fn(),
     });
 
     useConfirmationContextMock.mockReturnValue({
@@ -255,7 +263,10 @@ describe('CustomAmountInfo', () => {
       hasTokens: true,
     });
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
-    useTransactionConfirmMock.mockReturnValue({} as never);
+    useConfirmActionsMock.mockReturnValue({
+      onConfirm: jest.fn(),
+      onReject: jest.fn(),
+    });
     useIsTransactionPayLoadingMock.mockReturnValue(false);
     useTransactionPayQuotesMock.mockReturnValue([]);
     useTransactionPayHasSourceAmountMock.mockReturnValue(false);
@@ -297,6 +308,56 @@ describe('CustomAmountInfo', () => {
   it('renders keyboard', () => {
     const { getByTestId } = render();
     expect(getByTestId('deposit-keyboard')).toBeDefined();
+  });
+
+  describe('hasExtraBottomPadding', () => {
+    const originalPlatformOS = Platform.OS;
+
+    afterEach(() => {
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatformOS,
+        writable: true,
+      });
+    });
+
+    it('applies 56dp paddingBottom to the bottom block on Android when hasExtraBottomPadding is true', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+
+      const { getByTestId } = render({ hasExtraBottomPadding: true });
+
+      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toHaveStyle({
+        paddingBottom: 56,
+      });
+    });
+
+    it('does not apply paddingBottom to the bottom block when hasExtraBottomPadding is false (Android)', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+
+      const { getByTestId } = render({ hasExtraBottomPadding: false });
+
+      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).not.toHaveStyle(
+        { paddingBottom: 56 },
+      );
+    });
+
+    it('does not apply paddingBottom to the bottom block on iOS even when hasExtraBottomPadding is true', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'ios',
+        writable: true,
+      });
+
+      const { getByTestId } = render({ hasExtraBottomPadding: true });
+
+      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).not.toHaveStyle(
+        { paddingBottom: 56 },
+      );
+    });
   });
 
   it('renders footerText when passed in', () => {
@@ -400,47 +461,70 @@ describe('CustomAmountInfo', () => {
     expect(mockOnAmountSubmit).toHaveBeenCalledTimes(1);
   });
 
-  it('does not render AccountSelector for non-moneyAccountWithdraw transactions', () => {
-    const { queryByTestId } = render();
-
-    expect(queryByTestId('account-selector')).toBeNull();
-  });
-
-  it('renders AccountSelector for moneyAccountWithdraw transactions', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.moneyAccountWithdraw,
-      txParams: { from: '0x123' },
-    } as never);
-
-    const { getByTestId } = render({
-      transactionType: TransactionType.moneyAccountWithdraw,
+  it('calls updateTokenAmount when Done is pressed', async () => {
+    const updateTokenAmountMock = jest.fn();
+    useTransactionCustomAmountMock.mockReturnValue({
+      amountFiat: '123.45',
+      amountHuman: '0',
+      amountHumanDebounced: '0',
+      hasInput: true,
+      isInputChanged: false,
+      updatePendingAmount: noop,
+      updatePendingAmountPercentage: noop,
+      updateTokenAmount: updateTokenAmountMock,
     });
 
-    expect(getByTestId('account-selector')).toBeOnTheScreen();
-  });
-
-  it('calls updateEditableParams when recipient account is selected', async () => {
-    const { updateEditableParams } = jest.requireMock(
-      '../../../../../../util/transaction-controller',
-    );
-
-    useTransactionMetadataRequestMock.mockReturnValue({
-      id: 'mock-tx-id',
-      type: TransactionType.moneyAccountWithdraw,
-      txParams: { from: '0x123' },
-    } as never);
-
-    const { getByTestId } = render({
-      transactionType: TransactionType.moneyAccountWithdraw,
-    });
+    const { getByText } = render();
 
     await act(async () => {
-      fireEvent.press(getByTestId('account-selector'));
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
     });
 
-    expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
-      to: '0xTestRecipient',
+    expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('still runs UI cleanup and logs the error when updateTokenAmount rejects on Done', async () => {
+    const error = new Error('update failed');
+    const updateTokenAmountMock = jest.fn().mockRejectedValue(error);
+    const mockOnAmountSubmit = jest.fn();
+    const loggerErrorMock = jest.mocked(Logger.error);
+    loggerErrorMock.mockClear();
+
+    useTransactionCustomAmountMock.mockReturnValue({
+      amountFiat: '123.45',
+      amountHuman: '0',
+      amountHumanDebounced: '0',
+      hasInput: true,
+      isInputChanged: false,
+      updatePendingAmount: noop,
+      updatePendingAmountPercentage: noop,
+      updateTokenAmount: updateTokenAmountMock,
     });
+
+    const { getByText } = render({ onAmountSubmit: mockOnAmountSubmit });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    expect(mockOnAmountSubmit).toHaveBeenCalledTimes(1);
+    expect(loggerErrorMock).toHaveBeenCalledWith(
+      error,
+      expect.stringContaining('Failed to apply custom amount on Done press'),
+    );
+  });
+
+  it('renders PayAccountSelector when supportAccountSelection is true', () => {
+    const { getByTestId } = render({ supportAccountSelection: true });
+
+    expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
+  });
+
+  it('does not render PayAccountSelector when supportAccountSelection is false', () => {
+    const { queryByTestId } = render({ supportAccountSelection: false });
+
+    expect(queryByTestId('pay-account-selector')).toBeNull();
   });
 
   it('renders no funds alert message for moneyAccountDeposit when alert is present', () => {
@@ -483,54 +567,18 @@ describe('CustomAmountInfo', () => {
     ).toBeNull();
   });
 
-  it('renders AccountSelector for moneyAccountDeposit transactions', () => {
+  it('renders PayAccountSelector for moneyAccountDeposit when supportAccountSelection is true', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
       txParams: { from: '0x123' },
     } as never);
 
     const { getByTestId } = render({
+      supportAccountSelection: true,
       transactionType: TransactionType.moneyAccountDeposit,
     });
 
-    expect(getByTestId('account-selector')).toBeOnTheScreen();
-  });
-
-  it('renders AccountSelector for moneyAccountDeposit when txParams.from is undefined', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.moneyAccountDeposit,
-      txParams: {},
-    } as never);
-
-    const { getByTestId } = render({
-      transactionType: TransactionType.moneyAccountDeposit,
-    });
-
-    expect(getByTestId('account-selector')).toBeOnTheScreen();
-  });
-
-  it('calls updateEditableParams with from key when deposit account is selected', async () => {
-    const { updateEditableParams } = jest.requireMock(
-      '../../../../../../util/transaction-controller',
-    );
-
-    useTransactionMetadataRequestMock.mockReturnValue({
-      id: 'mock-tx-id',
-      type: TransactionType.moneyAccountDeposit,
-      txParams: { from: '0x123' },
-    } as never);
-
-    const { getByTestId } = render({
-      transactionType: TransactionType.moneyAccountDeposit,
-    });
-
-    await act(async () => {
-      fireEvent.press(getByTestId('account-selector'));
-    });
-
-    expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
-      from: '0xTestRecipient',
-    });
+    expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
   });
 
   describe('hasMax percentage button', () => {
@@ -544,7 +592,7 @@ describe('CustomAmountInfo', () => {
         isInputChanged: false,
         updatePendingAmount: noop,
         updatePendingAmountPercentage: noop,
-        updateTokenAmount: noop,
+        updateTokenAmount: jest.fn(),
       });
     });
 
