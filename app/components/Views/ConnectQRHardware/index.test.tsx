@@ -268,6 +268,52 @@ describe('ConnectQRHardware', () => {
     expect(StyleSheet.flatten(header?.props.style).marginTop).toBeUndefined();
   });
 
+  it('excludes bottom edge from parent SafeAreaView because instruction owns bottom spacing', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+
+    const { getByTestId } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    await waitFor(() => {
+      expect(mockKeyringController.getAccounts).toHaveBeenCalledTimes(1);
+    });
+
+    const safeAreaContainer = getByTestId(
+      ConnectQRHardwareSelectorsIDs.CONTAINER,
+    );
+
+    expect(safeAreaContainer.props.edges).toStrictEqual([
+      'top',
+      'left',
+      'right',
+    ]);
+  });
+
+  it('keeps bottom edge on parent SafeAreaView when account selector is rendered', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+
+    const { getByTestId } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
+
+    await act(async () => {
+      fireEvent.press(button);
+    });
+
+    await waitFor(() => {
+      expect(mockQrKeyring.getFirstPage).toHaveBeenCalledTimes(1);
+    });
+
+    expect(
+      getByTestId(ConnectQRHardwareSelectorsIDs.CONTAINER).props.edges,
+    ).toStrictEqual(['top', 'left', 'right', 'bottom']);
+  });
+
   it('renders first page correctly when user clicks `continue` button', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
 

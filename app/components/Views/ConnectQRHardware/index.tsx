@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import Engine from '../../../core/Engine';
 import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
 import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
@@ -32,6 +32,7 @@ import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import { getChecksumAddress } from '@metamask/utils';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
+import { ConnectQRHardwareSelectorsIDs } from './ConnectQRHardware.testIds';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
@@ -41,6 +42,14 @@ interface IConnectQRHardwareProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   route?: any;
 }
+
+const INSTRUCTION_SAFE_AREA_EDGES: Edge[] = ['top', 'left', 'right'];
+const ACCOUNT_SELECTOR_SAFE_AREA_EDGES: Edge[] = [
+  'top',
+  'left',
+  'right',
+  'bottom',
+];
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
@@ -103,6 +112,10 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
   }, []);
 
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
+  const safeAreaEdges =
+    accounts.length <= 0
+      ? INSTRUCTION_SAFE_AREA_EDGES
+      : ACCOUNT_SELECTOR_SAFE_AREA_EDGES;
 
   useEffect(() => {
     KeyringController.getAccounts().then((value: string[]) => {
@@ -287,7 +300,11 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
 
   return (
     <Fragment>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={safeAreaEdges}
+        testID={ConnectQRHardwareSelectorsIDs.CONTAINER}
+      >
         <View style={styles.header}>
           <Icon
             name="qrcode"
