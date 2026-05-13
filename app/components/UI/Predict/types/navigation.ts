@@ -100,6 +100,7 @@ export interface PredictNavigationParamList extends ParamListBase {
   Predict: undefined;
   PredictMarketList: PredictMarketListParams;
   PredictMarketDetails: PredictMarketDetailsParams;
+  PredictWorldCup: undefined;
   PredictSellPreview: PredictSellPreviewParams;
   PredictBuyPreview: PredictBuyPreviewParams;
   PredictActivityDetail: PredictActivityDetailParams;

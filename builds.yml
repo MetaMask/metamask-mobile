@@ -36,6 +36,7 @@ _public_envs: &public_envs # Servers (production)
   RAMPS_ENVIRONMENT: 'production'
   RAMP_DEV_BUILD: 'false'
   BRIDGE_USE_DEV_APIS: 'false'
+  MM_BATCH_SELL_ENABLED: 'false'
   RAMP_INTERNAL_BUILD: 'false'
   IS_TEST: 'false'
   SEEDLESS_ONBOARDING_ENABLED: 'true'
