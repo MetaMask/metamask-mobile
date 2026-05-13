@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import { ButtonVariant, TextColor } from '@metamask/design-system-react-native';
 import RiveOnboardingStepper from './RiveOnboardingStepper';
 import { RiveOnboardingStepperTestIds } from './RiveOnboardingStepper.testIds';
@@ -17,8 +17,8 @@ jest.mock('../../../util/Logger', () => ({
 }));
 
 jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaView: jest.requireActual('react-native').View,
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-  SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 jest.mock('react-native-reanimated', () => {
@@ -50,6 +50,7 @@ const STEPS = [
     title: 'Step two title',
     body: 'Step two body text.',
     durationMs: 3000,
+    buttonLabel: 'Continue',
   },
   {
     title: 'Step three title',
@@ -233,6 +234,7 @@ describe('RiveOnboardingStepper', () => {
     });
 
     it('shows the correct button label for each step', () => {
+      jest.useFakeTimers();
       const { getByTestId, getByText } = render(
         <RiveOnboardingStepper {...defaultProps} />,
       );
@@ -240,13 +242,16 @@ describe('RiveOnboardingStepper', () => {
       // Step 0 — custom label "Next"
       expect(getByText('Next')).toBeOnTheScreen();
 
-      // Advance to step 1 — no custom label, should fall back to "Continue"
+      // Advance to step 1 — label "Continue"
       fireEvent.press(getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON));
+      act(() => jest.advanceTimersByTime(3000));
       expect(getByText('Continue')).toBeOnTheScreen();
 
       // Advance to step 2 — custom label "Get Started"
       fireEvent.press(getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON));
       expect(getByText('Get Started')).toBeOnTheScreen();
+
+      jest.useRealTimers();
     });
 
     it('does not advance past the last step', () => {

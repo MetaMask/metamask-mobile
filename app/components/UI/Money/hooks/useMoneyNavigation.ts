@@ -3,6 +3,18 @@ import { selectMoneyOnboardingSeen } from '../../../../reducers/user/selectors';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 
+/**
+ * Why NavigationService instead of useNavigation():
+ *
+ * This hook is consumed by TabBar, which is rendered via the `tabBar` render prop on Tab.Navigator (a plain function)
+ * not a screen component. No navigator-scoped NavigationContext exists at that call site,
+ * so useNavigation() isn't available.
+ *
+ * NavigationService holds a module-level ref to the root NavigationContainerRef,
+ * bypassing the context requirement entirely.
+ *
+ * See: https://github.com/react-navigation/react-navigation/issues/6472
+ */
 export const useMoneyNavigation = () => {
   const hasSeenOnboarding = useSelector(selectMoneyOnboardingSeen);
 

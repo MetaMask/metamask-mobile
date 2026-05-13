@@ -52,6 +52,8 @@ const RIVE_CONFIG: RiveConfig = {
   triggerName: RIVE_TRIGGER_NAME,
 };
 
+export const MONEY_ONBOARDING_STEP_DURATION_MS = 4 * 1000; // 4 seconds
+
 const MoneyOnboardingView = () => {
   const navigation =
     useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
@@ -81,13 +83,13 @@ const MoneyOnboardingView = () => {
         body: strings('money.rive_onboarding.step1_body', {
           percentage: apyPercent,
         }),
-        durationMs: 4 * 1000, // 4 seconds
+        durationMs: MONEY_ONBOARDING_STEP_DURATION_MS,
         buttonLabel: strings('money.rive_onboarding.continue'),
       },
       {
         title: strings('money.rive_onboarding.step2_title'),
         body: strings('money.rive_onboarding.step2_body'),
-        durationMs: 4 * 1000, // 4 seconds
+        durationMs: MONEY_ONBOARDING_STEP_DURATION_MS,
         buttonLabel: strings('money.rive_onboarding.continue'),
       },
       {
@@ -95,13 +97,13 @@ const MoneyOnboardingView = () => {
         body: strings('money.rive_onboarding.step3_body', {
           percentage: CARD_CASHBACK_PERCENTAGE,
         }),
-        durationMs: 4 * 1000, // 4 seconds
+        durationMs: MONEY_ONBOARDING_STEP_DURATION_MS,
         buttonLabel: strings('money.rive_onboarding.continue'),
       },
       {
         title: strings('money.rive_onboarding.step4_title'),
         body: strings('money.rive_onboarding.step4_body'),
-        durationMs: 4 * 1000, // 4 seconds
+        durationMs: MONEY_ONBOARDING_STEP_DURATION_MS,
         buttonLabel: strings('money.rive_onboarding.continue'),
       },
       {

@@ -1,10 +1,7 @@
 import React, { useEffect } from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  clearNativeStackNavigatorOptions,
-  transparentModalScreenOptions,
-} from '../../../../constants/navigation/clearStackNavigatorOptions';
+import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { useTheme } from '../../../../util/theme';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
 import { upgradeMoneyAccount } from '../../../../actions/money';
@@ -22,8 +19,8 @@ import MoneyEarnCryptoInfoSheet from '../components/MoneyEarnCryptoInfoSheet';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 
-const Stack = createNativeStackNavigator();
-const ModalStack = createNativeStackNavigator();
+const Stack = createStackNavigator();
+const ModalStack = createStackNavigator();
 
 const MoneyScreenStack = () => {
   const { colors } = useTheme();
@@ -34,7 +31,7 @@ const MoneyScreenStack = () => {
       initialRouteName={Routes.MONEY.HOME}
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: colors.background.default },
+        cardStyle: { backgroundColor: colors.background.default },
       }}
     >
       <Stack.Screen name={Routes.MONEY.HOME} component={MoneyHomeView} />
@@ -62,8 +59,8 @@ const MoneyScreenStack = () => {
 const MoneyModalStack = () => (
   <ModalStack.Navigator
     screenOptions={{
-      ...clearNativeStackNavigatorOptions,
-      ...transparentModalScreenOptions,
+      ...clearStackNavigatorOptions,
+      presentation: 'transparentModal',
     }}
   >
     <ModalStack.Screen
