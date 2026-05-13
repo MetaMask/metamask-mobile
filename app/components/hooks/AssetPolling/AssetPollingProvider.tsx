@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import useCurrencyRatePolling from './useCurrencyRatePolling';
 import useTokenRatesPolling from './useTokenRatesPolling';
 import useTokenDetectionPolling from './useTokenDetectionPolling';
-import useTokenListPolling from './useTokenListPolling';
 import useTokenBalancesPolling from './useTokenBalancesPolling';
 import useMultichainAssetsRatePolling from './useMultichainAssetsRatePolling';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
@@ -29,7 +28,6 @@ export const AssetPollingProvider = memo(
     useCurrencyRatePolling(chainParams);
     useTokenRatesPolling(chainParams);
     useTokenDetectionPolling(tokenDetectionParams);
-    useTokenListPolling(chainParams);
     useTokenBalancesPolling(chainParams);
 
     useMultichainAssetsRatePolling(
