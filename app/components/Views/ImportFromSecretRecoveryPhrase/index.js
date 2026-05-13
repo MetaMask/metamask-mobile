@@ -68,6 +68,7 @@ import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import Checkbox from '../../../component-library/components/Checkbox';
 import OldButton, {
   ButtonVariants,
@@ -112,6 +113,7 @@ const ImportFromSecretRecoveryPhrase = ({
   seedphraseBackedUp,
   saveOnboardingEvent,
   route,
+  walletSetupAttributionAnalyticsProps,
 }) => {
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
@@ -464,6 +466,7 @@ const ImportFromSecretRecoveryPhrase = ({
           wallet_setup_type: 'import',
           new_wallet: false,
           account_type: AccountType.Imported,
+          ...walletSetupAttributionAnalyticsProps,
         });
 
         fetchAccountsWithActivity();
@@ -889,9 +892,15 @@ ImportFromSecretRecoveryPhrase.propTypes = {
    */
   route: PropTypes.object,
   /**
-   * Action to save onboarding event
+   * Optional acquisition fields from persisted attribution for Wallet Setup Completed
    */
+  walletSetupAttributionAnalyticsProps: PropTypes.object,
 };
+
+const mapStateToProps = (state) => ({
+  walletSetupAttributionAnalyticsProps:
+    selectWalletSetupCompletedAttributionAnalyticsProps(state),
+});
 
 const mapDispatchToProps = (dispatch) => ({
   setLockTime: (time) => dispatch(setLockTime(time)),
@@ -901,6 +910,6 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 export default connect(
-  null,
+  mapStateToProps,
   mapDispatchToProps,
 )(ImportFromSecretRecoveryPhrase);
