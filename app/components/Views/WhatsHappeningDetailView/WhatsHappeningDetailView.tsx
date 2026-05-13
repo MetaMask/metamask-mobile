@@ -101,9 +101,24 @@ const WhatsHappeningDetailView = () => {
   const handleSourcesClose = useCallback(() => {
     setSourcesContext(null);
   }, []);
+  const hasTrackedOpenedRef = useRef(false);
   const hasTrackedViewRef = useRef(false);
   const previousIndexRef = useRef(initialIndex);
   const { trackEvent, createEventBuilder } = useAnalytics();
+
+  useEffect(() => {
+    if (hasTrackedOpenedRef.current) return;
+    hasTrackedOpenedRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED)
+        .addProperties({
+          source,
+          initial_index: initialIndex,
+        })
+        .build(),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCarouselLayout = useCallback((e: LayoutChangeEvent) => {
     const { height } = e.nativeEvent.layout;
