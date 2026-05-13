@@ -130,6 +130,16 @@ export class RewardsIntegrationService {
         BUILDER_FEE_CONFIG.MaxFeeDecimal * BASIS_POINTS_DIVISOR,
       );
 
+      // null = subscription state not hydrated yet; surface as undefined so
+      // callers don't treat it as a definitive "no discount" answer.
+      if (discountBips === null) {
+        this.#deps.debugLogger.log(
+          'RewardsIntegrationService: Fee discount unavailable (subscription state not hydrated)',
+          { address: evmAccount.address, caipAccountId },
+        );
+        return undefined;
+      }
+
       this.#deps.debugLogger.log(
         'RewardsIntegrationService: Fee discount calculated',
         {

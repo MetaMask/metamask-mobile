@@ -1589,7 +1589,9 @@ export type PerpsPlatformDependencies = {
   rewards: {
     /**
      * Get fee discount for an account from the RewardsController.
-     * Returns discount in basis points (e.g., 6500 = 65% discount).
+     * Returns discount in basis points (e.g., 6500 = 65% discount), or null
+     * when subscription state hasn't hydrated yet — callers should skip
+     * caching null results and retry on the next fee calculation.
      *
      * Pass the perps MetaMask builder base fee in bips so the rewards
      * controller can convert an absolute VIP fee into a discount fraction.
@@ -1597,7 +1599,7 @@ export type PerpsPlatformDependencies = {
     getPerpsDiscountForAccount(
       caipAccountId: `${string}:${string}:${string}`,
       baseFeeBips: number,
-    ): Promise<number>;
+    ): Promise<number | null>;
   };
 };
 

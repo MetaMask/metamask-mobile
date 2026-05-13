@@ -3542,7 +3542,7 @@ describe('RewardsController', () => {
   });
 
   describe('getPerpsDiscountForAccount', () => {
-    it('returns 0 when disabled via isDisabled callback', async () => {
+    it('returns null when disabled via isDisabled callback', async () => {
       const isDisabled = () => true;
       const disabledController = new RewardsController({
         messenger: mockMessenger,
@@ -3555,19 +3555,19 @@ describe('RewardsController', () => {
         10,
       );
 
-      expect(result).toBe(0);
+      expect(result).toBeNull();
     });
 
-    it('returns 0 for accounts the controller has never seen', async () => {
+    it('returns null for accounts the controller has never seen (unhydrated)', async () => {
       const result = await controller.getPerpsDiscountForAccount(
         CAIP_ACCOUNT_2,
         10,
       );
-      expect(result).toBe(0);
+      expect(result).toBeNull();
       expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
-    it('returns 0 when the account has no linked subscription', async () => {
+    it('returns null when the account has no linked subscription (unhydrated)', async () => {
       const accountState = {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
@@ -3590,7 +3590,7 @@ describe('RewardsController', () => {
         10,
       );
 
-      expect(result).toBe(0);
+      expect(result).toBeNull();
       expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
@@ -3778,8 +3778,8 @@ describe('RewardsController', () => {
         );
       });
 
-      it('returns 0 and logs when the VIP builder fee is negative (discount > 10000)', async () => {
-        buildController('-5'); // negative backend value → discount would be 15000
+      it('returns 0 and logs when the VIP builder fee is negative', async () => {
+        buildController('-5'); // caught by the <= 0 guard before range check
 
         const result = await controller.getPerpsDiscountForAccount(
           VIP_COERCED_ACCOUNT,
@@ -3788,16 +3788,12 @@ describe('RewardsController', () => {
 
         expect(result).toBe(0);
         expect(Logger.log).toHaveBeenCalledWith(
-          'RewardsController: VIP builder fee out of valid range; returning no discount',
-          expect.objectContaining({
-            builderFeeBips: -5,
-            baseFeeBips: 10,
-            rawDiscountBips: 15000,
-          }),
+          'RewardsController: VIP fees returned an invalid builderFeeBips:',
+          '-5',
         );
       });
 
-      it('returns 10000 when the VIP builder fee is 0 (full discount, boundary)', async () => {
+      it('returns 0 and logs when the VIP builder fee is 0 (closes 100%-discount loophole)', async () => {
         buildController('0');
 
         const result = await controller.getPerpsDiscountForAccount(
@@ -3805,7 +3801,41 @@ describe('RewardsController', () => {
           BASE_FEE_BIPS,
         );
 
-        expect(result).toBe(10000);
+        expect(result).toBe(0);
+        expect(Logger.log).toHaveBeenCalledWith(
+          'RewardsController: VIP fees returned an invalid builderFeeBips:',
+          '0',
+        );
+      });
+
+      it('returns 0 and logs when the VIP builder fee is an empty string', async () => {
+        buildController('');
+
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        expect(result).toBe(0);
+        expect(Logger.log).toHaveBeenCalledWith(
+          'RewardsController: VIP fees returned an invalid builderFeeBips:',
+          '',
+        );
+      });
+
+      it('returns 0 and logs when the VIP builder fee is non-numeric', async () => {
+        buildController('abc');
+
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        expect(result).toBe(0);
+        expect(Logger.log).toHaveBeenCalledWith(
+          'RewardsController: VIP fees returned an invalid builderFeeBips:',
+          'abc',
+        );
       });
 
       it('returns 0 with no warning when the VIP builder fee equals the base (boundary)', async () => {
@@ -3823,7 +3853,7 @@ describe('RewardsController', () => {
         );
       });
 
-      it('returns 0 when /vip/fees errors (no legacy fallback)', async () => {
+      it('returns null when /vip/fees errors (so callers skip caching and retry)', async () => {
         controller = new RewardsController({
           messenger: mockMessenger,
           state: {
@@ -3848,10 +3878,10 @@ describe('RewardsController', () => {
           BASE_FEE_BIPS,
         );
 
-        expect(result).toBe(0);
+        expect(result).toBeNull();
       });
 
-      it('returns 0 when /vip/fees returns tier 0 (fees=null)', async () => {
+      it('returns 0 when /vip/fees returns no builder fee (fees=null)', async () => {
         controller = new RewardsController({
           messenger: mockMessenger,
           state: {
@@ -3881,6 +3911,35 @@ describe('RewardsController', () => {
         );
 
         expect(result).toBe(0);
+      });
+
+      it('returns null when accountState references a subscriptionId that is not in state', async () => {
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            accounts: {
+              [VIP_COERCED_ACCOUNT]: {
+                account: VIP_COERCED_ACCOUNT,
+                hasOptedIn: true,
+                subscriptionId: SUB_VIP,
+                perpsFeeDiscount: null,
+                lastPerpsDiscountRateFetched: null,
+              } as RewardsAccountState,
+            },
+            // subscriptions intentionally empty — covers the defensive
+            // `if (!subscription) return null` branch in #getVipPerpsDiscountBips.
+          },
+          isDisabled: () => false,
+        });
+
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        expect(result).toBeNull();
+        expect(mockMessenger.call).not.toHaveBeenCalled();
       });
 
       it('returns 0 when the subscription is not VIP-enabled', async () => {

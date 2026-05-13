@@ -1623,27 +1623,27 @@ export class RewardsController extends BaseController<
    * that the caller would apply absent any discount. Used to convert the VIP
    * absolute fee into a discount fraction (caller owns the source of truth
    * for the base fee; the controller is a pure transformer).
-   * @returns Promise<number> - The discount in basis points (0-10000)
+   * @returns Promise resolving to the discount in basis points (0-10000), or null when we can't determine the discount.
    */
   async getPerpsDiscountForAccount(
     account: CaipAccountId,
     baseFeeBips: number,
-  ): Promise<number> {
+  ): Promise<number | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) return 0;
+    if (!rewardsEnabled) return null;
 
     const vipDiscountBips = await this.#getVipPerpsDiscountBips(
       account,
       baseFeeBips,
     );
-    return vipDiscountBips ?? 0;
+    return vipDiscountBips;
   }
 
   /**
    * Resolve a VIP-driven perps discount for the given account. Returns null
-   * when the account isn't on a VIP-enabled subscription, the backend returns
-   * tier 0 (no fees), or the fetch fails — callers should treat null as "no
-   * discount" (0).
+   * when the account isn't on a VIP-enabled subscription or the fetch fails
+   * — callers should treat null as "no discount" (0). Returns 0 when the
+   * backend returns no builder fee (fees=null) or an invalid builderFeeBips.
    */
   async #getVipPerpsDiscountBips(
     account: CaipAccountId,
@@ -1656,7 +1656,8 @@ export class RewardsController extends BaseController<
     if (!subscriptionId) return null;
 
     const subscription = this.state.subscriptions[subscriptionId];
-    if (!subscription?.features?.vip?.enabled) return null;
+    if (!subscription) return null;
+    if (!subscription?.features?.vip?.enabled) return 0;
 
     let builderFeeBipsRaw: string;
     const cached = this.state.vipPerpsFees[subscriptionId];
@@ -1675,9 +1676,9 @@ export class RewardsController extends BaseController<
             ),
           subscriptionId,
         );
-        // Tier 0 returns fees=null; treat as no discount.
-        if (!vipFeeResponse?.fees?.hyperliquid?.builderFeeBips) return null;
-        builderFeeBipsRaw = vipFeeResponse.fees.hyperliquid.builderFeeBips;
+        const rawBuilderFee = vipFeeResponse?.fees?.hyperliquid?.builderFeeBips;
+        if (rawBuilderFee == null) return 0;
+        builderFeeBipsRaw = rawBuilderFee;
         const next: VipPerpsFeesState = {
           hyperliquidBuilderFeeBips: builderFeeBipsRaw,
           lastFetched: Date.now(),
@@ -1695,12 +1696,12 @@ export class RewardsController extends BaseController<
     }
 
     const builderFeeBips = parseFloat(builderFeeBipsRaw);
-    if (!Number.isFinite(builderFeeBips)) {
+    if (!Number.isFinite(builderFeeBips) || builderFeeBips <= 0) {
       Logger.log(
-        'RewardsController: VIP fees returned a non-numeric builderFeeBips:',
+        'RewardsController: VIP fees returned an invalid builderFeeBips:',
         builderFeeBipsRaw,
       );
-      return null;
+      return 0;
     }
 
     // Valid range is [0, 10000]: 0 means VIP fee equals base (no discount),

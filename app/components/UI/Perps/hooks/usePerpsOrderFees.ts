@@ -188,6 +188,13 @@ export function usePerpsOrderFees({
           caipAccountId,
           BUILDER_FEE_CONFIG.MaxFeeDecimal * BASIS_POINTS_DIVISOR,
         );
+        if (discountBips === null) {
+          DevLogger.log('Rewards: No fee discount available', {
+            address,
+            caipAccountId,
+          });
+          return { discountBips: undefined };
+        }
         const feeDiscountDuration = performance.now() - feeDiscountStartTime;
 
         // Measure fee discount API call performance

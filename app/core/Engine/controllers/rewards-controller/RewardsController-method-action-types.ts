@@ -183,7 +183,7 @@ export type RewardsControllerGetOptInStatusAction = {
  * that the caller would apply absent any discount. Used to convert the VIP
  * absolute fee into a discount fraction (caller owns the source of truth
  * for the base fee; the controller is a pure transformer).
- * @returns Promise<number> - The discount in basis points (0-10000)
+ * @returns Promise resolving to the discount in basis points (0-10000), or null when we can't determine the discount.
  */
 export type RewardsControllerGetPerpsDiscountForAccountAction = {
   type: `RewardsController:getPerpsDiscountForAccount`;
