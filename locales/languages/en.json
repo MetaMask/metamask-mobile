@@ -7337,6 +7337,8 @@
     "batch_sell_review_title": "Batch Sell Review",
     "batch_sell_select_stablecoin": "Select a stablecoin",
     "batch_sell_total_received": "Total received",
+    "batch_sell_minimum_received": "Minimum received",
+    "batch_sell_quote_details_row": "{{tokenSymbol}} • {{slippage}} slippage",
     "batch_sell_review": "Review",
     "batch_sell_customize_token": "Customize {{tokenSymbol}}",
     "batch_sell_remove_token": "Remove {{tokenSymbol}}",

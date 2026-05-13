@@ -195,6 +195,36 @@ describe('BatchSellReview', () => {
     });
   });
 
+  it('opens the quote details modal from the total received info button', () => {
+    const { getByTestId } = render(<BatchSellReview />);
+
+    fireEvent.press(
+      getByTestId(BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_INFO_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_QUOTE_DETAILS_MODAL,
+      params: {
+        tokenData: [
+          {
+            key: '0x1:0x1111111111111111111111111111111111111111',
+            tokenSymbol: 'ETH',
+            slippage: '2%',
+            receivedAmount: '-- USDC',
+          },
+          {
+            key: '0x1:0x2222222222222222222222222222222222222222',
+            tokenSymbol: 'UNI',
+            slippage: '2%',
+            receivedAmount: '-- USDC',
+          },
+        ],
+        totalReceived: '-- USDC',
+        minimumReceived: '-- USDC',
+      },
+    });
+  });
+
   it('opens the slippage modal for a selected token row', () => {
     const { getByTestId } = render(<BatchSellReview />);
 

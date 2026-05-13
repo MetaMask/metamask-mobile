@@ -324,6 +324,7 @@ const Routes = {
       HIGH_RATE_ALERT_MODAL: 'HighRateAlertModal',
       BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL:
         'BatchSellDestinationTokenSelectorModal',
+      BATCH_SELL_QUOTE_DETAILS_MODAL: 'BatchSellQuoteDetailsModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },

@@ -12,3 +12,16 @@ export function getBatchSellInitialSlippage(
     ? batchSellSlippages[batchSellAssetId]
     : DEFAULT_BATCH_SELL_SLIPPAGE;
 }
+
+export function getBatchSellSlippageValue(
+  batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>,
+  batchSellAssetId?: CaipAssetType,
+) {
+  return batchSellAssetId
+    ? getBatchSellInitialSlippage(batchSellSlippages, batchSellAssetId)
+    : DEFAULT_BATCH_SELL_SLIPPAGE;
+}
+
+export function getSlippageDisplayValue(slippage?: string) {
+  return slippage === undefined ? 'Auto' : `${slippage}%`;
+}

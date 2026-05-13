@@ -12,14 +12,14 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
   HeaderStandard,
-  Icon,
   IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -41,7 +41,11 @@ import {
 import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
 import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
-import { getBatchSellInitialSlippage } from '../../components/SlippageModal/utils';
+import {
+  getBatchSellInitialSlippage,
+  getBatchSellSlippageValue,
+  getSlippageDisplayValue,
+} from '../../components/SlippageModal/utils';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
 
@@ -50,6 +54,7 @@ const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
 // TODO(SWAPS-4439): When Batch Sell quote fetching is wired, pass
 // batchSellSlippages[assetId] into each token's BridgeController quote request.
 const HAS_QUOTES = false;
+const QUOTE_DETAILS_PLACEHOLDER_AMOUNT = '--';
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
 
@@ -153,6 +158,39 @@ export function BatchSellReview() {
     });
   }, [navigation]);
 
+  const handleOpenQuoteDetails = useCallback(() => {
+    const destinationTokenSymbol =
+      selectedDestinationToken?.symbol ?? UNKNOWN_DESTINATION_TOKEN_SYMBOL;
+    const placeholderAmount = `${QUOTE_DETAILS_PLACEHOLDER_AMOUNT} ${destinationTokenSymbol}`;
+
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_QUOTE_DETAILS_MODAL,
+      params: {
+        tokenData: selectedTokens.map((token) => {
+          const assetId = getBridgeTokenAssetId(token);
+          const slippage = getBatchSellSlippageValue(
+            batchSellSlippages,
+            assetId,
+          );
+
+          return {
+            key: getTokenKey(token),
+            tokenSymbol: token.symbol,
+            slippage: getSlippageDisplayValue(slippage),
+            receivedAmount: placeholderAmount,
+          };
+        }),
+        totalReceived: placeholderAmount,
+        minimumReceived: placeholderAmount,
+      },
+    });
+  }, [
+    batchSellSlippages,
+    navigation,
+    selectedDestinationToken?.symbol,
+    selectedTokens,
+  ]);
+
   const handleSlippagePress = useCallback(
     (token: BridgeToken) => {
       const assetId = getBridgeTokenAssetId(token);
@@ -208,10 +246,12 @@ export function BatchSellReview() {
             >
               {strings('bridge.batch_sell_total_received')}
             </Text>
-            <Icon
-              name={IconName.Info}
-              size={IconSize.Sm}
-              color={IconColor.IconDefault}
+            <ButtonIcon
+              iconName={IconName.Info}
+              iconProps={{ color: IconColor.IconDefault }}
+              size={ButtonIconSize.Sm}
+              onPress={handleOpenQuoteDetails}
+              testID={BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_INFO_BUTTON}
             />
           </Box>
           <Box
