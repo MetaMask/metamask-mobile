@@ -7,4 +7,5 @@ export const RiveOnboardingStepperTestIds = {
   BODY: 'rive-onboarding-stepper-body',
   RIVE_ANIMATION: 'rive-onboarding-stepper-animation',
   FOOTER_BUTTON: 'rive-onboarding-stepper-footer-button',
+  FOOTER_TEXT: 'rive-onboarding-stepper-footer-text',
 } as const;

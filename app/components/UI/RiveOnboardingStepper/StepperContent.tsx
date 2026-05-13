@@ -21,16 +21,18 @@ const FADE_IN_DURATION = 800;
 
 interface StepperContentProps {
   title: string;
+  titleTextColor: TextColor;
   body: string;
-  textColor: TextColor;
+  bodyTextColor: TextColor;
   onClose?: () => void;
   closeButtonIconColor?: IconColor;
 }
 
 const StepperContent = ({
   title,
+  titleTextColor,
   body,
-  textColor,
+  bodyTextColor,
   onClose,
   closeButtonIconColor,
 }: StepperContentProps) => {
@@ -68,7 +70,7 @@ const StepperContent = ({
       <Text
         variant={TextVariant.HeadingLg}
         twClassName="text-center mb-1"
-        color={textColor}
+        color={titleTextColor}
         numberOfLines={1}
         testID={RiveOnboardingStepperTestIds.TITLE}
       >
@@ -78,7 +80,7 @@ const StepperContent = ({
       <Text
         variant={TextVariant.BodyMd}
         twClassName="text-center"
-        color={textColor}
+        color={bodyTextColor}
         numberOfLines={2}
         testID={RiveOnboardingStepperTestIds.BODY}
       >

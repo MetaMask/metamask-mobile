@@ -68,7 +68,9 @@ const defaultProps = {
     triggerName: mockTriggerName,
   },
   renderBackground: () => <View testID="mock-background" />,
-  textColor: TextColor.PrimaryDefault,
+  titleTextColor: TextColor.PrimaryDefault,
+  bodyTextColor: TextColor.PrimaryDefault,
+  footerTextColor: TextColor.PrimaryDefault,
   // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   progressBarColor: '#ffffff',
   onComplete: jest.fn(),
@@ -154,6 +156,28 @@ describe('RiveOnboardingStepper', () => {
     it('renders the custom button label for the first step', () => {
       const { getByText } = render(<RiveOnboardingStepper {...defaultProps} />);
       expect(getByText('Next')).toBeOnTheScreen();
+    });
+
+    it('renders footer text when the current step has footerText', () => {
+      const stepsWithFooter = [
+        { ...STEPS[0], footerText: 'Step one footer' },
+        STEPS[1],
+      ];
+      const { getByTestId } = render(
+        <RiveOnboardingStepper {...defaultProps} steps={stepsWithFooter} />,
+      );
+      expect(
+        getByTestId(RiveOnboardingStepperTestIds.FOOTER_TEXT),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides footer text when the current step has no footerText', () => {
+      const { getByTestId } = render(
+        <RiveOnboardingStepper {...defaultProps} />,
+      );
+      expect(
+        getByTestId(RiveOnboardingStepperTestIds.FOOTER_TEXT),
+      ).not.toBeVisible();
     });
   });
 

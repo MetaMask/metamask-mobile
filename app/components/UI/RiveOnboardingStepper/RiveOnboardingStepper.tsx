@@ -14,6 +14,8 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import Logger from '../../../util/Logger';
 import StepperProgressBar from './StepperProgressBar';
@@ -52,25 +54,6 @@ const styles = StyleSheet.create({
  * machine, so you only need one `.riv` file regardless of how many steps your
  * flow has.
  *
- * **Quick-start**
- * ```tsx
- * <RiveOnboardingStepper
- *   steps={[
- *     { title: 'Step 1', body: 'Description.', durationMs: 3000, buttonLabel: 'Continue' },
- *     { title: 'Step 2', body: 'Description.', durationMs: 3000, buttonLabel: 'Get started' },
- *   ]}
- *   riveConfig={{
- *     source: require('./my-animation.riv'),
- *     stateMachineName: 'MyStateMachine',
- *     triggerName: 'Next',         // fired on every "Continue" button press
- *   }}
- *   renderBackground={() => <MyGradientBackground />}
- *   textColor={TextColor.PrimaryInverse}
- *   progressBarColor="#FFFFFF"
- *   onComplete={() => navigation.navigate(Routes.HOME)}
- * />
- * ```
- *
  * **Rive file requirements**
  * - One state machine with a trigger input whose name matches `riveConfig.triggerName`.
  * - Each trigger fire should transition the animation to the next visual segment.
@@ -79,6 +62,7 @@ const styles = StyleSheet.create({
  * @see {@link OnboardingStep} for per-step configuration options.
  * @see {@link RiveConfig} for animation wiring options.
  *
+ * **Example**
  * See existing MoneyOnboardingView for an example of how to use this component.
  */
 const RiveOnboardingStepper = ({
@@ -86,7 +70,9 @@ const RiveOnboardingStepper = ({
   riveConfig,
   riveStyle,
   renderBackground,
-  textColor,
+  titleTextColor,
+  bodyTextColor,
+  footerTextColor,
   progressBarColor,
   buttonVariant = DEFAULT_BUTTON_VARIANT,
   buttonIsInverse = false,
@@ -97,6 +83,7 @@ const RiveOnboardingStepper = ({
   autoCompleteOnLastStep = false,
 }: RiveOnboardingStepperProps) => {
   const riveRef = useRef<RiveRef>(null);
+  const hasCompletedRef = useRef(false);
   const [isRiveReady, setIsRiveReady] = useState(false);
 
   const {
@@ -119,11 +106,22 @@ const RiveOnboardingStepper = ({
 
   const handleRivePlay = useCallback(() => setIsRiveReady(true), []);
 
+  const safeAutoComplete = useCallback(() => {
+    if (hasCompletedRef.current) return;
+    hasCompletedRef.current = true;
+    onComplete();
+  }, [onComplete]);
+
   useEffect(() => {
     if (!autoCompleteOnLastStep || !isLastStep) return;
-    const timer = setTimeout(onComplete, currentStep.durationMs);
+    const timer = setTimeout(safeAutoComplete, currentStep.durationMs);
     return () => clearTimeout(timer);
-  }, [autoCompleteOnLastStep, isLastStep, currentStep?.durationMs, onComplete]);
+  }, [
+    autoCompleteOnLastStep,
+    isLastStep,
+    currentStep?.durationMs,
+    safeAutoComplete,
+  ]);
 
   const handleContinue = useCallback(() => {
     if (isLastStep) {
@@ -175,7 +173,8 @@ const RiveOnboardingStepper = ({
             key={currentStepIndex}
             title={currentStep?.title ?? ''}
             body={currentStep?.body ?? ''}
-            textColor={textColor}
+            titleTextColor={titleTextColor}
+            bodyTextColor={bodyTextColor}
             onClose={showClose}
             closeButtonIconColor={closeButtonIconColor}
           />
@@ -195,6 +194,22 @@ const RiveOnboardingStepper = ({
             onPlay={handleRivePlay}
           />
         </View>
+      </Box>
+      <Box
+        twClassName="pb-4"
+        style={
+          (!isRiveReady || !currentStep?.footerText) && styles.contentHidden
+        }
+      >
+        <Text
+          twClassName="text-center"
+          variant={TextVariant.BodyXs}
+          color={footerTextColor}
+          numberOfLines={1}
+          testID={RiveOnboardingStepperTestIds.FOOTER_TEXT}
+        >
+          {currentStep.footerText}
+        </Text>
       </Box>
       {/* Footer button */}
       <Box

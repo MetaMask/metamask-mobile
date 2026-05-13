@@ -18,6 +18,7 @@ import RiveOnboardingStepper, {
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useTheme } from '../../../../../util/theme';
 import { setMoneyOnboardingSeen } from '../../../../../actions/user';
+import { AppThemeKey } from '../../../../../util/theme/models';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const MoneyOnboardingAnimation = require('../../../../../animations/money_account_onboarding_animation.riv');
@@ -61,13 +62,18 @@ const MoneyOnboardingView = () => {
 
   const { colors, themeAppearance } = useTheme();
 
-  const isDarkTheme = themeAppearance === 'dark';
+  const isDarkTheme = themeAppearance === AppThemeKey.dark;
 
   const progressBarColor = isDarkTheme
     ? colors.primary.default
     : colors.primary.inverse;
 
+  // Title and text color
   const textColor = isDarkTheme
+    ? TextColor.TextDefault
+    : TextColor.PrimaryInverse;
+
+  const footerTextColor = isDarkTheme
     ? TextColor.TextDefault
     : TextColor.PrimaryInverse;
 
@@ -86,12 +92,14 @@ const MoneyOnboardingView = () => {
         body: strings('money.rive_onboarding.step1_body', {
           percentage: apyPercent,
         }),
+        footerText: strings('money.rive_onboarding.step1_footer_text'),
         durationMs: MONEY_ONBOARDING_STEP_DURATION_MS,
         buttonLabel: strings('money.rive_onboarding.continue'),
       },
       {
         title: strings('money.rive_onboarding.step2_title'),
         body: strings('money.rive_onboarding.step2_body'),
+        footerText: strings('money.rive_onboarding.step2_footer_text'),
         durationMs: MONEY_ONBOARDING_STEP_DURATION_MS,
         buttonLabel: strings('money.rive_onboarding.continue'),
       },
@@ -147,7 +155,9 @@ const MoneyOnboardingView = () => {
       riveConfig={RIVE_CONFIG}
       riveStyle={styles.riveAnimation}
       renderBackground={renderBackground}
-      textColor={textColor}
+      titleTextColor={textColor}
+      bodyTextColor={textColor}
+      footerTextColor={footerTextColor}
       progressBarColor={progressBarColor}
       buttonVariant={ButtonVariant.Primary}
       buttonIsInverse={buttonIsInverse}

@@ -18,6 +18,10 @@ export interface OnboardingStep {
   /** How long the progress bar takes to fill for this step (ms). */
   durationMs: number;
   /**
+   * Footer text of the step. Keep to 1 line (~30 characters max).
+   */
+  footerText?: string;
+  /**
    * When provided, shown as the footer button text. When omitted, the footer
    * button is hidden for this step.
    */
@@ -49,7 +53,11 @@ export interface RiveOnboardingStepperProps {
   /** Renders the full-screen background (gradient, image, solid color, etc.). */
   renderBackground: () => React.ReactNode;
   /** Text color applied to the title and body across all steps. */
-  textColor: TextColor;
+  titleTextColor: TextColor;
+  /** Text color applied to the body across all steps. */
+  bodyTextColor: TextColor;
+  /** Footer text color. */
+  footerTextColor: TextColor;
   /** Color of the filled progress bar segments (and active indicator). */
   progressBarColor: string;
   /**

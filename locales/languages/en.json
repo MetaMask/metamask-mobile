@@ -6608,8 +6608,10 @@
     "rive_onboarding": {
       "step1_title": "Money accounts are here",
       "step1_body": "Earn up to {{percentage}}% APY on your balance, available across your entire wallet.",
+      "step1_footer_text": "APY is variable and may change at any time.",
       "step2_title": "Earn automatically",
       "step2_body": "Move stablecoins with no exchange fees. Funds start earning right away.",
+      "step2_footer_text": "APY is variable and may change at any time.",
       "step3_title": "Spend anywhere",
       "step3_body": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask card.",
       "step4_title": "Trade and earn in one place",
