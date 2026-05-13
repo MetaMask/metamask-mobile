@@ -565,13 +565,6 @@ const PerpsHomeView = ({
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
         />
 
-        {/* What's Happening Section */}
-        {isWhatsHappeningEnabled && (
-          <View style={styles.whatsHappeningSection}>
-            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
-          </View>
-        )}
-
         {/* Crypto Markets List */}
         <View onLayout={handleSectionLayout('explore_crypto')}>
           <PerpsMarketTypeSection
@@ -593,6 +586,13 @@ const PerpsHomeView = ({
           isLoading={isLoading.markets}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
         />
+
+        {/* What's Happening Section */}
+        {isWhatsHappeningEnabled && (
+          <View style={styles.whatsHappeningSection}>
+            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
+          </View>
+        )}
 
         {/* Stocks Markets List */}
         <View onLayout={handleSectionLayout('explore_stocks')}>
