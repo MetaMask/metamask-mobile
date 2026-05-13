@@ -249,7 +249,7 @@ function getClobEndpoint({
 }: {
   clobVersion?: 'v1' | 'v2';
   clobBaseUrl?: string;
-}): string {
+} = {}): string {
   const { CLOB_ENDPOINT } = getPolymarketEndpoints();
 
   if (clobVersion === 'v2') {
