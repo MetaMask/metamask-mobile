@@ -478,6 +478,7 @@
 				FFED9AB1AACD0DA25EAA971D /* [CP] Copy Pods Resources */,
 				9F2FDF243A79F1A3A790828C /* [CP-User] [RNFB] Core Configuration */,
 				B04B18D52D8B340C00C5C2CE /* Strip Bitcode */,
+				CFA75A7C2F1A5E0000000001 /* Configure ATS for environment */,
 			);
 			buildRules = (
 			);
@@ -894,6 +895,25 @@
 			shellPath = /bin/sh;
 			shellScript = "# Script for stripping bitcode when building using Xcode 16+ and uploading to the App Store\n# Reference - https://discuss.bitrise.io/t/xcode-16-known-issues/24484\n# This script should be last to ensure that all bitcode is stripped after dependencies are installed\n\nfind \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}\" -name 'OpenSSL' -exec xcrun bitcode_strip {} -r -o {} \\;\n";
 		};
+		CFA75A7C2F1A5E0000000001 /* Configure ATS for environment */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Configure ATS for environment";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Define script\nCONFIGURE_ATS=\"../scripts/ios/configure-ats.sh\"\n\n# Give permissions to script\nchmod +x $CONFIGURE_ATS\n\n# Run script\n$CONFIGURE_ATS\n";
+		};
 		E6DF8EB7C7F8301263C260CE /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -990,7 +1010,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 4823;
+				CURRENT_PROJECT_VERSION = 4906;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1059,7 +1079,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 4823;
+				CURRENT_PROJECT_VERSION = 4906;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 48XVW22RCG;
@@ -1125,7 +1145,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 4823;
+				CURRENT_PROJECT_VERSION = 4906;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1192,7 +1212,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 4823;
+				CURRENT_PROJECT_VERSION = 4906;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 48XVW22RCG;
