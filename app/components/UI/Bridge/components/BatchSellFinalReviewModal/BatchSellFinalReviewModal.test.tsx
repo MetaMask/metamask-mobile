@@ -131,7 +131,7 @@ describe('BatchSellFinalReviewModal', () => {
     expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
   });
 
-  it('swaps to the minimum received info modal when the info button is pressed', () => {
+  it('switches to the minimum received info modal when the info button is pressed', () => {
     const { getByTestId } = renderModal();
 
     fireEvent.press(
@@ -142,6 +142,26 @@ describe('BatchSellFinalReviewModal', () => {
 
     expect(mockReplace).toHaveBeenCalledWith(
       Routes.BRIDGE.MODALS.BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL,
+      {
+        sourceModal: {
+          screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
+          params: defaultParams,
+        },
+      },
+    );
+  });
+
+  it('switches to the network fee info modal when the info button is pressed', () => {
+    const { getByTestId } = renderModal();
+
+    fireEvent.press(
+      getByTestId(
+        BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_INFO_BUTTON,
+      ),
+    );
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.BATCH_SELL_NETWORK_FEE_INFO_MODAL,
       {
         sourceModal: {
           screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,

@@ -133,9 +133,11 @@ function YouSellRow({
 function NetworkFeeRow({
   networkFee,
   networkFeeFiat,
+  onInfoPress,
 }: {
   networkFee: string;
   networkFeeFiat: string;
+  onInfoPress: () => void;
 }) {
   return (
     <Box
@@ -158,11 +160,17 @@ function NetworkFeeRow({
         >
           {strings('bridge.network_fee')}
         </Text>
-        <Icon
-          name={IconName.Info}
-          size={IconSize.Sm}
-          color={IconColor.IconAlternative}
-        />
+        <Pressable
+          onPress={onInfoPress}
+          testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_INFO_BUTTON}
+          accessibilityRole="button"
+        >
+          <Icon
+            name={IconName.Info}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+        </Pressable>
       </Box>
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -214,6 +222,15 @@ export function BatchSellFinalReviewModal() {
     );
   };
 
+  const handleOpenNetworkFeeInfo = () => {
+    navigation.replace(Routes.BRIDGE.MODALS.BATCH_SELL_NETWORK_FEE_INFO_MODAL, {
+      sourceModal: {
+        screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
+        params,
+      },
+    });
+  };
+
   return (
     <BottomSheet
       testID={BatchSellFinalReviewModalSelectorsIDs.SHEET}
@@ -244,6 +261,7 @@ export function BatchSellFinalReviewModal() {
       <NetworkFeeRow
         networkFee={params.networkFee}
         networkFeeFiat={params.networkFeeFiat}
+        onInfoPress={handleOpenNetworkFeeInfo}
       />
       <Box paddingHorizontal={4} paddingTop={4} paddingBottom={4} gap={2}>
         <Button

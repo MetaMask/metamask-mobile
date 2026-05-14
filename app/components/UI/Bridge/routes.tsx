@@ -26,6 +26,7 @@ import { HighRateAlertModal } from './components/HighRateAlertModal';
 import { BatchSellDestinationTokenSelectorModal } from './components/BatchSellDestinationTokenSelectorModal';
 import { BatchSellQuoteDetailsModal } from './components/BatchSellQuoteDetailsModal';
 import { BatchSellFinalReviewModal } from './components/BatchSellFinalReviewModal';
+import { BatchSellNetworkFeeInfoModal } from './components/BatchSellNetworkFeeInfoModal';
 import { BatchSellMinimumReceivedInfoModal } from './components/BatchSellMinimumReceivedInfoModal';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -127,6 +128,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL}
       component={BatchSellFinalReviewModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.BATCH_SELL_NETWORK_FEE_INFO_MODAL}
+      component={BatchSellNetworkFeeInfoModal}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL}

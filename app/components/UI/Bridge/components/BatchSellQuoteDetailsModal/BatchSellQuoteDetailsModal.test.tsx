@@ -173,7 +173,7 @@ describe('BatchSellQuoteDetailsModal', () => {
     expect(onMinimumReceivedInfoPress).toHaveBeenCalledTimes(1);
   });
 
-  it('swaps to the minimum received info modal when the info button is pressed', () => {
+  it('switches to the minimum received info modal when the info button is pressed', () => {
     const { getByTestId } = renderModal();
 
     fireEvent.press(
