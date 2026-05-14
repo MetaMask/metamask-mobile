@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import type { MarketOverview } from '@metamask/ai-controllers';
-import Engine from '../../../../../../core/Engine';
-import { selectWhatsHappeningEnabled } from '../../../../../../selectors/featureFlagController/whatsHappening';
+import Engine from '../../../../core/Engine';
+import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 import type { WhatsHappeningItem } from '../types';
 
 /**
@@ -31,7 +31,7 @@ const mapTrendsToItems = (
   }));
 
 /**
- * Hook to fetch trending "What's Happening" items for the homepage carousel.
+ * Hook to fetch trending "What's Happening" items for the carousel.
  *
  * Calls `AiDigestController.fetchMarketOverview()` (which handles caching
  * internally) and maps the returned `MarketOverviewTrend` entries to
