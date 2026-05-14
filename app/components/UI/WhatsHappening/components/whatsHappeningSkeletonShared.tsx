@@ -2,12 +2,12 @@ import React from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 type Tw = ReturnType<typeof useTailwind>;
 
 /**
- * Single place for What's Happening skeleton shimmer colors (homepage card +
+ * Single place for What's Happening skeleton shimmer colors (carousel card +
  * detail expanded card).
  */
 export const WhatsHappeningSkeletonShimmer: React.FC<{
