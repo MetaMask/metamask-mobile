@@ -15,6 +15,7 @@ describe(SmokeSnaps('Get Entropy Snap Tests'), () => {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -31,6 +32,7 @@ describe(SmokeSnaps('Get Entropy Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('entropyMessageInput', '1234');
@@ -63,6 +65,7 @@ describe(SmokeSnaps('Get Entropy Snap Tests'), () => {
         {
           fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
           skipReactNativeReload: true,
+          disableSynchronization: true,
         },
         async () => {
           await TestSnaps.selectInDropdown('getEntropyDropDown', entropySource);
@@ -86,6 +89,7 @@ describe(SmokeSnaps('Get Entropy Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('getEntropyDropDown', 'Invalid');
