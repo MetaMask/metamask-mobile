@@ -349,6 +349,7 @@ const EarnWithdrawInputView = () => {
       ? `${strings('earn.withdraw')} ${tokenLabel}`
       : `${strings('stake.unstake')} ${tokenLabel}`;
 
+    //TODO: replace this with HeaderStandard
     navigation.setOptions(
       getStakingNavbar(
         title,
