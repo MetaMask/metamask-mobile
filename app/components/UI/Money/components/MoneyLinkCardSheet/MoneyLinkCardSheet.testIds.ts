@@ -4,4 +4,5 @@ export const MoneyLinkCardSheetTestIds = {
   TITLE: 'money-link-card-sheet-title',
   DESCRIPTION: 'money-link-card-sheet-description',
   CTA_BUTTON: 'money-link-card-sheet-cta-button',
+  CLOSE_BUTTON: 'money-link-card-sheet-close-button',
 } as const;

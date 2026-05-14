@@ -58,7 +58,10 @@ const MoneyLinkCardSheet = () => {
       testID={MoneyLinkCardSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={handleClose} />
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{ testID: MoneyLinkCardSheetTestIds.CLOSE_BUTTON }}
+      />
       <Box twClassName="px-4 pb-2 gap-2 items-center">
         <Box
           alignItems={BoxAlignItems.Center}

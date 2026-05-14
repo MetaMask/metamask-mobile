@@ -495,12 +495,20 @@ describe('useMoneyAccountCardLinkage', () => {
       });
 
       expect(returned).toBe(false);
+      // The pending toast WAS shown — we cleared the sync gate, so the
+      // UI side-effect ran. But the in-progress catch branch must NOT
+      // surface a success or error toast.
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       const onlyToast = mockShowToast.mock.calls[0]?.[0];
       expect(onlyToast).toMatchObject({ hasNoTimeout: true });
       // Not an error: must not be logged or transitioned to error state.
       expect(Logger.error).not.toHaveBeenCalled();
-      expect(result.current.status).not.toBe('error');
+      // Critical cleanup: the catch branch must roll back the local UI
+      // state so the second hook instance does NOT get stuck in a
+      // `pending` / `isLinking=true` shape. The first call's eventual
+      // success/error toast will replace the pending spinner toast.
+      expect(result.current.status).toBe('idle');
+      expect(result.current.isLinking).toBe(false);
       expect(result.current.error).toBeNull();
     });
   });

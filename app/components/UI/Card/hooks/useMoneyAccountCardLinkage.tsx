@@ -206,6 +206,8 @@ export const useMoneyAccountCardLinkage =
         }
 
         if (linkageError instanceof CardLinkageInProgressError) {
+          setStatus('idle');
+          setError(null);
           return false;
         }
 

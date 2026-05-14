@@ -34,7 +34,7 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactActual = jest.requireActual('react');
-  const { View, Text: RNText, Pressable } = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
 
   const MockBottomSheet = ReactActual.forwardRef(
     (
@@ -49,28 +49,9 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
   );
 
-  const MockBottomSheetHeader = ({
-    children,
-    onClose,
-  }: {
-    children: React.ReactNode;
-    onClose?: () => void;
-  }) =>
-    ReactActual.createElement(
-      View,
-      { testID: 'bottom-sheet-header' },
-      ReactActual.createElement(
-        Pressable,
-        { testID: 'bottom-sheet-close-button', onPress: onClose },
-        ReactActual.createElement(RNText, {}, 'close'),
-      ),
-      children,
-    );
-
   return {
     ...actual,
     BottomSheet: MockBottomSheet,
-    BottomSheetHeader: MockBottomSheetHeader,
   };
 });
 
@@ -173,7 +154,7 @@ describe('MoneyLinkCardSheet', () => {
   it('dismisses the sheet without dispatching the linkage when the close button is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyLinkCardSheet />);
 
-    fireEvent.press(getByTestId('bottom-sheet-close-button'));
+    fireEvent.press(getByTestId(MoneyLinkCardSheetTestIds.CLOSE_BUTTON));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockConfirmLinkInBackground).not.toHaveBeenCalled();
