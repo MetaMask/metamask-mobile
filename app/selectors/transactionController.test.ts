@@ -343,7 +343,6 @@ describe('TransactionController Selectors', () => {
         expect.objectContaining({ id: 'outgoing' }),
       ]);
     });
-
   });
 
   describe('selectTransactionMetadataById', () => {
