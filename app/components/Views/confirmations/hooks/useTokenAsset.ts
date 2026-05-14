@@ -52,19 +52,21 @@ export const useTokenAsset = () => {
       ({ address }) => address.toLowerCase() === tokenAddress,
     ) as TokenI;
 
+    if (isMusdClaim && !asset?.image) {
+      // if the token is mUSD and has no image, return the mUSD constants
+      return {
+        asset: {
+          symbol: MUSD_TOKEN.symbol,
+          name: MUSD_TOKEN.name,
+          decimals: MUSD_TOKEN.decimals,
+          address: MUSD_TOKEN_ADDRESS,
+          image: MUSD_TOKEN.image,
+        } as Partial<TokenI>,
+        displayName: MUSD_TOKEN.symbol,
+      };
+    }
+
     if (!asset) {
-      // For musdClaim, fall back to known mUSD constants when token isn't in user's wallet
-      if (isMusdClaim) {
-        return {
-          asset: {
-            symbol: MUSD_TOKEN.symbol,
-            name: MUSD_TOKEN.name,
-            decimals: MUSD_TOKEN.decimals,
-            address: MUSD_TOKEN_ADDRESS,
-          } as Partial<TokenI>,
-          displayName: MUSD_TOKEN.symbol,
-        };
-      }
       return { asset: {}, displayName: strings('token.unknown') };
     }
 
