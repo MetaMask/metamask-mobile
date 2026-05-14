@@ -95,31 +95,31 @@ const HomepageSectionUnrealizedPnlRow: React.FC<
   }
 
   return (
-    <Box marginTop={marginTop} testID={testID}>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        flexWrap={BoxFlexWrap.Wrap}
-        paddingHorizontal={paddingHorizontal}
-        gap={2}
+    <Box
+      marginTop={marginTop}
+      testID={testID}
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      flexWrap={BoxFlexWrap.Wrap}
+      paddingHorizontal={paddingHorizontal}
+      gap={2}
+    >
+      <Text
+        variant={TextVariant.BodySm}
+        color={resolvedValueColor}
+        fontWeight={FontWeight.Medium}
+        testID={valueTestID}
       >
-        <Text
-          variant={TextVariant.BodySm}
-          color={resolvedValueColor}
-          fontWeight={FontWeight.Medium}
-          testID={valueTestID}
-        >
-          {valueText}
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          fontWeight={FontWeight.Medium}
-          testID={labelTestID}
-        >
-          {label}
-        </Text>
-      </Box>
+        {valueText}
+      </Text>
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        fontWeight={FontWeight.Medium}
+        testID={labelTestID}
+      >
+        {label}
+      </Text>
     </Box>
   );
 };
