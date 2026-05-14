@@ -493,6 +493,8 @@ generateAndroidBinary() {
 	local testBuildTypeArg=""
 	# Define Gradle logging flags for E2E builds
 	local gradleLoggingFlags=""
+	# Optional Gradle init script used by Namespace remote build cache trials.
+	local -a gradleInitScriptArg=()
 
 	# Check if configuration is valid
 	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
@@ -508,6 +510,10 @@ generateAndroidBinary() {
 		exit 1
 	fi
 
+	if [ -n "${GRADLE_INIT_SCRIPT:-}" ] ; then
+		gradleInitScriptArg=(--init-script "$GRADLE_INIT_SCRIPT")
+	fi
+
 	if [ "$configuration" = "Debug" ] || [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
 		# Define assemble test APK task
 		assembleTestApkTask="app:assemble${flavor}${configuration}AndroidTest"
@@ -515,7 +521,8 @@ generateAndroidBinary() {
 		testBuildTypeArg="-DtestBuildType=${lowercaseConfiguration}"
 
 		# Memory optimization for E2E builds (Keep an eye out if this breaks outside of E2E CI builds)
-		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
+		# BrowserStack builds target real ARM devices, so skip x86_64-only restriction.
+		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] && [ "${IS_BROWSERSTACK_BUILD:-false}" != "true" ] ; then
 			# CI uses x86_64 emulators only; local macOS (Apple Silicon) also needs arm64-v8a
 			if [ "${CI:-false}" = "true" ] ; then
 				reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
@@ -533,7 +540,7 @@ generateAndroidBinary() {
 
 	# Generate Android APKs
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
-	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleLoggingFlags $exUpdatesArgs
+	./gradlew "${gradleInitScriptArg[@]}" $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleLoggingFlags $exUpdatesArgs
 
 	# Skip AAB bundle for E2E environments - AAB cannot be installed on emulators
 	# and is only needed for Play Store distribution
@@ -927,10 +934,18 @@ if [ "$PLATFORM" != "expo-update" ]; then
 fi
 
 if [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-	# Build for simulator
-	export IS_SIM_BUILD="true"
+	if [ "${IS_BROWSERSTACK_BUILD:-false}" != "true" ]; then
+		# Build for simulator (local/CI emulator). BrowserStack builds target real devices, so skip this.
+		export IS_SIM_BUILD="true"
+	fi
 	# Ignore Boxlogs for E2E builds
 	export IGNORE_BOXLOGS_DEVELOPMENT="true"
+fi
+
+# BrowserStack builds target real devices: override IS_SIM_BUILD=true that loadBuildConfig may
+# have set from the generic main-e2e config (which uses IS_SIM_BUILD=true for emulators).
+if [ "${IS_BROWSERSTACK_BUILD:-false}" = "true" ]; then
+	export IS_SIM_BUILD="false"
 fi
 
 if [ "$METAMASK_ENVIRONMENT" == "production" ]; then

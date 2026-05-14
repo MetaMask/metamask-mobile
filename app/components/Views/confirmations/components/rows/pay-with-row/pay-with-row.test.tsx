@@ -5,7 +5,6 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
-import { useMoneyAccountPayToken } from '../../../hooks/pay/useMoneyAccountPayToken';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
@@ -29,7 +28,6 @@ jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
-jest.mock('../../../hooks/pay/useMoneyAccountPayToken');
 jest.mock('../../../../../../util/address');
 jest.mock('../../../hooks/metrics/useConfirmationMetricEvents');
 jest.mock('@react-navigation/native', () => ({
@@ -87,10 +85,6 @@ describe('PayWithRow', () => {
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
-  const useTransactionMetadataRequestMock = jest.mocked(
-    useTransactionMetadataRequest,
-  );
-  const useMoneyAccountPayTokenMock = jest.mocked(useMoneyAccountPayToken);
   const useParamsMock = jest.mocked(useParams);
   const mockSetConfirmationMetric = jest.fn();
 
@@ -109,13 +103,6 @@ describe('PayWithRow', () => {
     });
 
     useTransactionPayRequiredTokensMock.mockReturnValue(undefined as never);
-
-    useMoneyAccountPayTokenMock.mockReturnValue({
-      displayToken: undefined,
-      isAwaitingAccountSelection: false,
-      isMoneyAccountDeposit: false,
-      isMoneyAccountWithdraw: false,
-    });
 
     jest
       .mocked(useTransactionPaySelectedFiatPaymentMethod)
@@ -140,13 +127,6 @@ describe('PayWithRow', () => {
     } as never);
 
     isHardwareAccountMock.mockReturnValue(false);
-
-    useMoneyAccountPayTokenMock.mockReturnValue({
-      displayToken: undefined,
-      isAwaitingAccountSelection: false,
-      isMoneyAccountDeposit: false,
-      isMoneyAccountWithdraw: false,
-    });
   });
 
   it('renders selected pay token', async () => {

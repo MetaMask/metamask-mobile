@@ -337,6 +337,7 @@ jest.mock('@segment/analytics-react-native', () => {
       IdentifyEvent: 'identify',
     },
     Plugin,
+    EventPlugin: Plugin,
     CountFlushPolicy,
     TimerFlushPolicy,
   };

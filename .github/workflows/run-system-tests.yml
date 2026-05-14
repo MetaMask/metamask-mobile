@@ -53,6 +53,7 @@ jobs:
             && !inputs.browserstack_clean_app_url_android)
     with:
       branch_name: ${{ github.ref_name }}
+      build_variant: 'rc'
     secrets: inherit
 
   trigger-ios-dual-versions:
@@ -64,6 +65,7 @@ jobs:
             && !inputs.browserstack_clean_app_url_ios)
     with:
       branch_name: ${{ github.ref_name }}
+      build_variant: 'rc'
     secrets: inherit
 
   run-android-login-tests:
