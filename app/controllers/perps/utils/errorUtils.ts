@@ -88,6 +88,8 @@ export function ensureError(error: unknown, context?: string): Error {
  * @returns True if the error matches the Hyperliquid "user not on chain yet" rejection.
  */
 export function isHyperLiquidUserNotFoundError(error: unknown): boolean {
-  const { message } = ensureError(error);
-  return /User or API Wallet .* does not exist\.?/iu.test(message);
+  const lower = ensureError(error).message.toLowerCase();
+  return (
+    lower.includes('user or api wallet') && lower.includes('does not exist')
+  );
 }
