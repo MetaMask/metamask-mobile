@@ -75,6 +75,7 @@ import {
   OrderBook,
 } from './types';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
+import { PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG } from '../../constants/flags';
 import { PredictFeeCollection } from '../../types/flags';
 import { roundToFiveDecimals } from '../../utils/orders';
 import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
@@ -1194,6 +1195,11 @@ export interface FetchEventsResult {
   isSearch: boolean;
 }
 
+const EXACT_QUERY_PARAM_CATEGORIES: readonly PredictCategory[] = [
+  'hot',
+  'world-cup',
+];
+
 export const fetchEventsFromPolymarketApi = async (
   params?: GetParsedMarketsOptions,
 ): Promise<FetchEventsResult> => {
@@ -1222,10 +1228,13 @@ export const fetchEventsFromPolymarketApi = async (
 
   let queryParamsEvents: string;
 
-  const isHotTabWithCustomQuery = category === 'hot' && customQueryParams;
+  const isExactQueryTabWithCustomQuery =
+    EXACT_QUERY_PARAM_CATEGORIES.includes(category) && customQueryParams;
 
-  if (isHotTabWithCustomQuery) {
+  if (isExactQueryTabWithCustomQuery) {
     queryParamsEvents = `${limitParam}&${offsetParam}&${customQueryParams}`;
+  } else if (category === 'world-cup') {
+    queryParamsEvents = `${limitParam}&${offsetParam}&active=true&archived=false&closed=false&tag_slug=${PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG}&order=volume24hr`;
   } else {
     const active = `active=true`;
     const archived = `archived=false`;
@@ -1235,7 +1244,10 @@ export const fetchEventsFromPolymarketApi = async (
     const volume = `volume_min=${10000.0}`;
     const liquidity = `liquidity_min=${10000.0}`;
 
-    const categoryTagMap: Record<PredictCategory, string> = {
+    const categoryTagMap: Record<
+      Exclude<PredictCategory, 'world-cup'>,
+      string
+    > = {
       trending: '&order=volume24hr',
       'ending-soon': '&order=endDate',
       new: '&order=startDate&exclude_tag_id=102169',
