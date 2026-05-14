@@ -251,6 +251,24 @@ describe('BenefitsPreview', () => {
         },
       );
     });
+
+    it('caps displayed benefits count at 99+ in the header tag', () => {
+      mockBenefits = Array.from({ length: 100 }, (_, index) => ({
+        id: index + 1,
+        longTitle: `Benefit ${index + 1}`,
+        shortDescription: 'd',
+      }));
+
+      const { getByText } = render(<BenefitsPreview />);
+
+      expect(getByText('99+ available')).toBeOnTheScreen();
+      expect(mockStrings).toHaveBeenCalledWith(
+        'rewards.benefits.available_count',
+        {
+          count: '99+',
+        },
+      );
+    });
   });
 
   describe('header without benefits', () => {
