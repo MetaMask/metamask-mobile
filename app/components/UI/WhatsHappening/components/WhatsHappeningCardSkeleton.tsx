@@ -6,20 +6,13 @@ import {
   WhatsHappeningSkeletonShimmer,
 } from './whatsHappeningSkeletonShared';
 
-interface WhatsHappeningCardSkeletonProps {
-  /** Tailwind height class so skeletons match real cards in the carousel. */
-  twHeightClassName?: string;
-}
-
-const WhatsHappeningCardSkeleton: React.FC<WhatsHappeningCardSkeletonProps> = ({
-  twHeightClassName = '',
-}) => {
+const WhatsHappeningCardSkeleton: React.FC = () => {
   const tw = useTailwind();
 
   return (
     <View
       style={tw.style(
-        `w-[280px] ${twHeightClassName} rounded-2xl bg-background-muted overflow-hidden`,
+        'w-[280px] rounded-2xl bg-background-muted overflow-hidden',
       )}
     >
       <WhatsHappeningSkeletonShimmer>
