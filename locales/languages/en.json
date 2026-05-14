@@ -5205,6 +5205,34 @@
       "manage_preferences_2": "Settings > Notifications.",
       "cancel": "Cancel",
       "cta": "Turn on"
+    },
+    "push_onboarding": {
+      "new_user": {
+        "title": "Never miss a move",
+        "body": "Get real-time alerts when prices hit your targets, your trades confirm, and your portfolio moves. Plus product updates and rewards along the way. We'll share updates based on your interactions with MetaMask.",
+        "button_yes": "Yes",
+        "button_not_now": "Not now",
+        "preview_card_1": {
+          "eyebrow": "METAMASK",
+          "time": "now",
+          "title": "ETH is up 4.2% today",
+          "message": "Now at $2,668.51 — above your price alert"
+        },
+        "preview_card_2": {
+          "eyebrow": "METAMASK",
+          "time": "1h ago",
+          "title": "Received 0.25 ETH",
+          "message": "From 0x9a21…4f8c · $640.29"
+        }
+      },
+      "existing_user": {
+        "title": "One quick thing",
+        "body": "We'd like to request this permission. You can update your settings anytime.",
+        "card_title": "Personalized news",
+        "card_description": "We will share updates based on your interactions with MetaMask and our communications.",
+        "button_confirm": "Confirm",
+        "button_not_now": "Not now"
+      }
     }
   },
   "protect_your_wallet_modal": {
