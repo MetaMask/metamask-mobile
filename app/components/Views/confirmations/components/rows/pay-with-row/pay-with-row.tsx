@@ -51,6 +51,7 @@ import { useParams } from '../../../../../../util/navigation/navUtils';
 import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
+import { isPayWithBottomSheetEnabled } from '../../../utils/transaction-pay';
 
 interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -69,8 +70,6 @@ export function PayWithRow() {
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
-  const isPayWithBottomSheetEnabled =
-    process.env.MM_DEV_PAY_WITH_BOTTOM_SHEET === 'true';
 
   const {
     txParams: { from },
@@ -88,7 +87,7 @@ export function PayWithRow() {
         mm_pay_token_list_opened: true,
       },
     });
-    if (isPayWithBottomSheetEnabled) {
+    if (isPayWithBottomSheetEnabled()) {
       navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
         preferredPaymentToken,
       });
@@ -96,13 +95,7 @@ export function PayWithRow() {
     }
 
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [
-    isDisabled,
-    isPayWithBottomSheetEnabled,
-    navigation,
-    preferredPaymentToken,
-    setConfirmationMetric,
-  ]);
+  }, [isDisabled, navigation, preferredPaymentToken, setConfirmationMetric]);
 
   const label = isWithdraw
     ? strings('confirm.label.receive_as')
