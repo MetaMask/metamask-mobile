@@ -48,7 +48,6 @@ import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import PredictOffline from '../../components/PredictOffline';
 import type { PredictWorldCupConfig } from '../../types/flags';
 import { strings } from '../../../../../../locales/i18n';
-import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../../util/theme';
 
 export const PREDICT_WORLD_CUP_SCREEN_TEST_IDS = {
   CONTAINER: 'predict-world-cup-screen',
@@ -87,12 +86,14 @@ const styles = StyleSheet.create({
   },
 });
 
+type Tw = ReturnType<typeof useTailwind>;
+
 type WorldCupConfigSubset = Pick<
   PredictWorldCupConfig,
   'seriesId' | 'tagSlug' | 'gamesTagId' | 'stages'
 >;
 
-const LiveIndicator = ({ color }: { color: string }) => {
+const LiveIndicator = ({ tw }: { tw: Tw }) => {
   const rippleScale = useRef(new Animated.Value(0.35)).current;
   const rippleOpacity = useRef(new Animated.Value(0.8)).current;
 
@@ -124,24 +125,18 @@ const LiveIndicator = ({ color }: { color: string }) => {
   const rippleStyle = useMemo(
     () => [
       styles.liveDotRipple,
+      tw.style('bg-success-default'),
       {
-        backgroundColor: color,
         opacity: rippleOpacity,
         transform: [{ scale: rippleScale }],
       },
     ],
-    [color, rippleOpacity, rippleScale],
+    [rippleOpacity, rippleScale, tw],
   );
 
   const dotStyle = useMemo(
-    () => [
-      styles.liveDot,
-      {
-        backgroundColor: color,
-        shadowColor: color,
-      },
-    ],
-    [color],
+    () => [styles.liveDot, tw.style('bg-success-default')],
+    [tw],
   );
 
   return (
@@ -282,7 +277,6 @@ const WorldCupTabContent = ({
 
 const PredictWorldCup: React.FC = () => {
   const tw = useTailwind();
-  const { colors, themeAppearance } = useTheme();
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictWorldCup'>>();
@@ -357,11 +351,6 @@ const PredictWorldCup: React.FC = () => {
         >
           {tabs.map((tab) => {
             const isActive = activeTab === tab.key;
-            const isDarkTheme = themeAppearance === 'dark';
-            const liveColor =
-              isDarkTheme !== isActive
-                ? colors.success.default
-                : LIGHT_MODE_SUCCESS_GREEN;
 
             return (
               <Pressable
@@ -373,19 +362,18 @@ const PredictWorldCup: React.FC = () => {
                 )}
                 testID={`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-${tab.key}`}
               >
-                {tab.isLive && <LiveIndicator color={liveColor} />}
+                {tab.isLive && <LiveIndicator tw={tw} />}
                 <Text
                   color={
-                    tab.isLive
-                      ? undefined
-                      : isActive
-                        ? TextColor.PrimaryInverse
-                        : TextColor.TextAlternative
+                    isActive
+                      ? TextColor.PrimaryInverse
+                      : TextColor.TextAlternative
                   }
                   variant={TextVariant.BodySm}
-                  style={tw.style('font-medium leading-[22px]', {
-                    color: tab.isLive ? liveColor : undefined,
-                  })}
+                  style={tw.style(
+                    'font-medium leading-[22px]',
+                    tab.isLive && !isActive && 'text-success-default',
+                  )}
                 >
                   {tab.label}
                 </Text>
