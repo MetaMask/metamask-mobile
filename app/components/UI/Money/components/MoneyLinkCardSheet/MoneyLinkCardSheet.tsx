@@ -17,7 +17,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import moneyLinkCardCoin from '../../../../../images/money-link-card-coin.png';
+import musdCoinImage from '../../../../../images/mm_usd.png';
 import styleSheet from './MoneyLinkCardSheet.styles';
 import { MoneyLinkCardSheetTestIds } from './MoneyLinkCardSheet.testIds';
 
@@ -47,7 +47,7 @@ const MoneyLinkCardSheet = () => {
 
   const handleConfirm = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      void confirmLinkInBackground();
+      confirmLinkInBackground().catch(() => undefined);
     });
   }, [confirmLinkInBackground]);
 
@@ -67,7 +67,7 @@ const MoneyLinkCardSheet = () => {
           testID={MoneyLinkCardSheetTestIds.ILLUSTRATION}
         >
           <Image
-            source={moneyLinkCardCoin}
+            source={musdCoinImage}
             style={styles.illustration}
             resizeMode="contain"
           />

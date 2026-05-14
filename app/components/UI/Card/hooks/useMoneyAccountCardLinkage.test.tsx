@@ -33,6 +33,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockLinkMoneyAccountCard = jest.fn();
+const mockIsLinkageInProgress = jest.fn<boolean, []>();
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
@@ -40,6 +41,7 @@ jest.mock('../../../../core/Engine', () => ({
       CardController: {
         linkMoneyAccountCard: (...args: unknown[]) =>
           mockLinkMoneyAccountCard(...args),
+        isLinkageInProgress: () => mockIsLinkageInProgress(),
       },
     },
   },
@@ -54,6 +56,21 @@ jest.mock('./useCardDelegation', () => {
   }
   return { UserCancelledError: MockUserCancelledError };
 });
+
+jest.mock(
+  '../../../../core/Engine/controllers/card-controller/provider-types',
+  () => {
+    class MockCardLinkageInProgressError extends Error {
+      constructor(
+        message = 'A Money Account to Card linkage is already in progress',
+      ) {
+        super(message);
+        this.name = 'CardLinkageInProgressError';
+      }
+    }
+    return { CardLinkageInProgressError: MockCardLinkageInProgressError };
+  },
+);
 
 jest.mock(
   '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken',
@@ -157,6 +174,9 @@ describe('useMoneyAccountCardLinkage', () => {
 
     mockResolveMoneyAccountCardToken.mockReturnValue(MOCK_TOKEN);
     applySelectorMocks(buildSelectors());
+    // Default: no in-flight linkage. Singleflight-specific tests override
+    // this within their own `it` blocks.
+    mockIsLinkageInProgress.mockReturnValue(false);
   });
 
   describe('derived state', () => {
@@ -435,6 +455,52 @@ describe('useMoneyAccountCardLinkage', () => {
       });
 
       expect(result.current.status).toBe('idle');
+      expect(result.current.error).toBeNull();
+    });
+  });
+
+  describe('confirmLinkInBackground - singleflight', () => {
+    it('silently no-ops when CardController.isLinkageInProgress() returns true', async () => {
+      mockIsLinkageInProgress.mockReturnValue(true);
+
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground();
+      });
+
+      expect(returned).toBe(false);
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
+      expect(result.current.status).toBe('idle');
+      expect(result.current.error).toBeNull();
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('silently handles CardLinkageInProgressError thrown by the controller (defence-in-depth)', async () => {
+      const { CardLinkageInProgressError } = jest.requireMock(
+        '../../../../core/Engine/controllers/card-controller/provider-types',
+      );
+      mockIsLinkageInProgress.mockReturnValue(false);
+      mockLinkMoneyAccountCard.mockRejectedValueOnce(
+        new CardLinkageInProgressError(),
+      );
+
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground();
+      });
+
+      expect(returned).toBe(false);
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      const onlyToast = mockShowToast.mock.calls[0]?.[0];
+      expect(onlyToast).toMatchObject({ hasNoTimeout: true });
+      // Not an error: must not be logged or transitioned to error state.
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(result.current.status).not.toBe('error');
       expect(result.current.error).toBeNull();
     });
   });

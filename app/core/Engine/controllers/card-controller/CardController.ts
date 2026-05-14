@@ -13,6 +13,7 @@ import {
 } from './types';
 import type { CardLocation } from '../../../../components/UI/Card/types';
 import {
+  CardLinkageInProgressError,
   CardProviderError,
   CardProviderErrorCode,
   CardStatus,
@@ -132,6 +133,7 @@ export class CardController extends BaseController<
   private fetchCardHomeDataPromise: Promise<void> | null = null;
   private fetchGeneration = 0;
   private previousEvmAddress: string | null = null;
+  private linkMoneyAccountCardInFlight = false;
 
   constructor({
     messenger,
@@ -920,12 +922,32 @@ export class CardController extends BaseController<
    * `TransactionController:transactionConfirmed` BEFORE submitting the
    * transaction (see `awaitTransactionConfirmed`).
    *
+   *
    * @param params.moneyAccountAddress - The primary Money Account address.
    * @param params.delegationAmountHuman - Allowance in human-readable units
    * (e.g. `"2199023255551"`); converted to minimal units using the token's
    * decimals. Pass `"0"` to revoke.
    */
   async linkMoneyAccountCard(params: {
+    moneyAccountAddress: string;
+    delegationAmountHuman: string;
+  }): Promise<void> {
+    if (this.linkMoneyAccountCardInFlight) {
+      throw new CardLinkageInProgressError();
+    }
+    this.linkMoneyAccountCardInFlight = true;
+    try {
+      await this.#linkMoneyAccountCardUnsafe(params);
+    } finally {
+      this.linkMoneyAccountCardInFlight = false;
+    }
+  }
+
+  isLinkageInProgress(): boolean {
+    return this.linkMoneyAccountCardInFlight;
+  }
+
+  async #linkMoneyAccountCardUnsafe(params: {
     moneyAccountAddress: string;
     delegationAmountHuman: string;
   }): Promise<void> {

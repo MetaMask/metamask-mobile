@@ -30,6 +30,7 @@ import {
   hasMoneyAccountCardRequirements,
   resolveMoneyAccountCardToken,
 } from '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
+import { CardLinkageInProgressError } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { CardFundingToken } from '../types';
 import { UserCancelledError } from './useCardDelegation';
@@ -179,6 +180,10 @@ export const useMoneyAccountCardLinkage =
         return false;
       }
 
+      if (Engine.context.CardController.isLinkageInProgress()) {
+        return false;
+      }
+
       setStatus('pending');
       setError(null);
       showPendingToast();
@@ -197,6 +202,10 @@ export const useMoneyAccountCardLinkage =
 
         if (linkageError instanceof UserCancelledError) {
           setStatus('cancelled');
+          return false;
+        }
+
+        if (linkageError instanceof CardLinkageInProgressError) {
           return false;
         }
 
