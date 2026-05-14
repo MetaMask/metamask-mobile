@@ -16,8 +16,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Animated, Easing, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { TouchableOpacity } from 'react-native';
 import I18n from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
@@ -43,33 +43,10 @@ import {
 import { parseScore } from '../../utils/gameParser';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
+import PulsingLiveDot from '../PulsingLiveDot/PulsingLiveDot';
 
 const TEAM_LOGO_SIZE = 32;
 const COMPACT_TEAM_LOGO_SIZE = 28;
-const LIVE_DOT_SIZE = 6;
-const LIVE_DOT_RIPPLE_SIZE = 12;
-
-const styles = StyleSheet.create({
-  liveDotContainer: {
-    alignItems: 'center',
-    height: LIVE_DOT_RIPPLE_SIZE,
-    justifyContent: 'center',
-    width: LIVE_DOT_RIPPLE_SIZE,
-  },
-  liveDot: {
-    borderRadius: LIVE_DOT_SIZE / 2,
-    height: LIVE_DOT_SIZE,
-    shadowOpacity: 0.84,
-    shadowRadius: 6,
-    width: LIVE_DOT_SIZE,
-  },
-  liveDotRipple: {
-    borderRadius: LIVE_DOT_RIPPLE_SIZE / 2,
-    height: LIVE_DOT_RIPPLE_SIZE,
-    position: 'absolute',
-    width: LIVE_DOT_RIPPLE_SIZE,
-  },
-});
 
 interface PredictMarketSportCardProps {
   market: PredictMarketType;
@@ -91,67 +68,6 @@ interface SportOutcomeButtonItem {
   teamColor?: string;
   variant: 'home' | 'draw' | 'away';
 }
-
-const PulsingLiveDot = () => {
-  const { colors } = useTheme();
-  const rippleScale = useRef(new Animated.Value(0.35)).current;
-  const rippleOpacity = useRef(new Animated.Value(0.8)).current;
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.parallel([
-        Animated.timing(rippleScale, {
-          toValue: 1,
-          duration: 1400,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(rippleOpacity, {
-          toValue: 0,
-          duration: 1400,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-
-    animation.start();
-
-    return () => {
-      animation.stop();
-    };
-  }, [rippleOpacity, rippleScale]);
-
-  const rippleStyle = useMemo(
-    () => [
-      styles.liveDotRipple,
-      {
-        backgroundColor: colors.success.default,
-        opacity: rippleOpacity,
-        transform: [{ scale: rippleScale }],
-      },
-    ],
-    [colors.success.default, rippleOpacity, rippleScale],
-  );
-
-  const dotStyle = useMemo(
-    () => [
-      styles.liveDot,
-      {
-        backgroundColor: colors.success.default,
-        shadowColor: colors.success.default,
-      },
-    ],
-    [colors.success.default],
-  );
-
-  return (
-    <Animated.View style={styles.liveDotContainer}>
-      <Animated.View style={rippleStyle} />
-      <Animated.View style={dotStyle} />
-    </Animated.View>
-  );
-};
 
 const formatGameDateTime = (
   startTime: string,

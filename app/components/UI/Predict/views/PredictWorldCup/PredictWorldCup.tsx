@@ -1,20 +1,7 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import {
-  Animated,
-  Easing,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-} from 'react-native';
+import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -46,6 +33,7 @@ import {
 import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import PredictOffline from '../../components/PredictOffline';
+import PulsingLiveDot from '../../components/PulsingLiveDot/PulsingLiveDot';
 import type { PredictWorldCupConfig } from '../../types/flags';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -61,91 +49,10 @@ export const PREDICT_WORLD_CUP_SCREEN_TEST_IDS = {
   SKELETON: 'predict-world-cup-skeleton',
 } as const;
 
-const LIVE_DOT_SIZE = 6;
-const LIVE_DOT_RIPPLE_SIZE = 12;
-
-const styles = StyleSheet.create({
-  liveDotContainer: {
-    alignItems: 'center',
-    height: LIVE_DOT_RIPPLE_SIZE,
-    justifyContent: 'center',
-    width: LIVE_DOT_RIPPLE_SIZE,
-  },
-  liveDot: {
-    borderRadius: LIVE_DOT_SIZE / 2,
-    height: LIVE_DOT_SIZE,
-    shadowOpacity: 0.84,
-    shadowRadius: 6,
-    width: LIVE_DOT_SIZE,
-  },
-  liveDotRipple: {
-    borderRadius: LIVE_DOT_RIPPLE_SIZE / 2,
-    height: LIVE_DOT_RIPPLE_SIZE,
-    position: 'absolute',
-    width: LIVE_DOT_RIPPLE_SIZE,
-  },
-});
-
-type Tw = ReturnType<typeof useTailwind>;
-
 type WorldCupConfigSubset = Pick<
   PredictWorldCupConfig,
   'seriesId' | 'tagSlug' | 'gamesTagId' | 'stages'
 >;
-
-const LiveIndicator = ({ tw }: { tw: Tw }) => {
-  const rippleScale = useRef(new Animated.Value(0.35)).current;
-  const rippleOpacity = useRef(new Animated.Value(0.8)).current;
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.parallel([
-        Animated.timing(rippleScale, {
-          toValue: 1,
-          duration: 1400,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(rippleOpacity, {
-          toValue: 0,
-          duration: 1400,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-
-    animation.start();
-
-    return () => {
-      animation.stop();
-    };
-  }, [rippleOpacity, rippleScale]);
-
-  const rippleStyle = useMemo(
-    () => [
-      styles.liveDotRipple,
-      tw.style('bg-success-default'),
-      {
-        opacity: rippleOpacity,
-        transform: [{ scale: rippleScale }],
-      },
-    ],
-    [rippleOpacity, rippleScale, tw],
-  );
-
-  const dotStyle = useMemo(
-    () => [styles.liveDot, tw.style('bg-success-default')],
-    [tw],
-  );
-
-  return (
-    <Animated.View style={styles.liveDotContainer}>
-      <Animated.View style={rippleStyle} />
-      <Animated.View style={dotStyle} />
-    </Animated.View>
-  );
-};
 
 interface WorldCupTabContentProps {
   activeTab: PredictWorldCupTabKey;
@@ -362,7 +269,9 @@ const PredictWorldCup: React.FC = () => {
                 )}
                 testID={`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-${tab.key}`}
               >
-                {tab.isLive && <LiveIndicator tw={tw} />}
+                {tab.isLive && (
+                  <PulsingLiveDot color={tw.color('success-default')} />
+                )}
                 <Text
                   color={
                     isActive
