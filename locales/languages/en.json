@@ -5226,10 +5226,10 @@
         }
       },
       "existing_user": {
-        "title": "One quick thing",
-        "body": "We'd like to request this permission. You can update your settings anytime.",
-        "card_title": "Personalized news",
-        "card_description": "We will share updates based on your interactions with MetaMask and our communications.",
+        "title": "Introducing personalized alerts",
+        "body": "Get notifications that match how you trade. Update anytime.",
+        "card_title": "What you'll get",
+        "card_description": "Personalized alerts and updates tailored to your trading activity.",
         "button_confirm": "Confirm",
         "button_not_now": "Not now"
       }

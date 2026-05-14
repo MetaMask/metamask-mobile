@@ -9,6 +9,7 @@ import {
   ButtonSize,
   Text,
   TextVariant,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { ExistingUserSheetSelectorsIDs } from './ExistingUserSheet.testIds';
@@ -58,7 +59,7 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
     >
       <Box twClassName="px-6 pb-8 pt-6">
         <Text
-          variant={TextVariant.HeadingSm}
+          variant={TextVariant.HeadingMd}
           twClassName="mb-3 text-center"
           testID={ExistingUserSheetSelectorsIDs.TITLE}
         >
@@ -67,17 +68,21 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
 
         <Text
           variant={TextVariant.BodyMd}
-          twClassName="mb-6 text-center"
+          twClassName="mb-6 text-center text-alternative"
           testID={ExistingUserSheetSelectorsIDs.BODY}
         >
           {strings('notifications.push_onboarding.existing_user.body')}
         </Text>
 
         <Box
-          twClassName="mb-6 rounded-xl bg-alternative p-4"
+          twClassName="mb-6 rounded-xl bg-section p-4"
           testID={ExistingUserSheetSelectorsIDs.CONSENT_CARD}
         >
-          <Text variant={TextVariant.BodyMd} twClassName="mb-2 font-semibold">
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Bold}
+            twClassName="mb-2"
+          >
             {strings('notifications.push_onboarding.existing_user.card_title')}
           </Text>
           <Text variant={TextVariant.BodySm} twClassName="text-alternative">

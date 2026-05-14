@@ -2,7 +2,11 @@ import React, { useRef, useCallback } from 'react';
 import { Image } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import LinearGradient from 'react-native-linear-gradient';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Theme,
+  useTailwind,
+  useTheme,
+} from '@metamask/design-system-twrnc-preset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -13,6 +17,7 @@ import {
   ButtonSize,
   Text,
   TextVariant,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { NewUserSheetSelectorsIDs } from './NewUserSheet.testIds';
@@ -42,10 +47,15 @@ function NotifCard({
   faded,
 }: NotifCardProps) {
   const tw = useTailwind();
+  const theme = useTheme();
+  const cardBackgroundClass =
+    theme === Theme.Light ? 'bg-section' : 'bg-subsection';
 
   const card = (
-    <Box twClassName="flex-row items-start gap-3 rounded-[14px] bg-alternative p-3">
-      <Box twClassName="h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-default">
+    <Box
+      twClassName={`flex-row items-start gap-3 rounded-[14px] border border-muted ${cardBackgroundClass} px-[14px] py-3`}
+    >
+      <Box twClassName="h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white">
         <Image
           source={FoxImage}
           style={tw.style('h-[22px] w-[22px]')}
@@ -61,7 +71,7 @@ function NotifCard({
             {timestamp}
           </Text>
         </Box>
-        <Text variant={TextVariant.BodySm} twClassName="font-semibold">
+        <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Bold}>
           {title}
         </Text>
         <Text variant={TextVariant.BodySm} twClassName="mt-0.5 text-default">
@@ -159,7 +169,7 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
         </Box>
 
         <Text
-          variant={TextVariant.HeadingSm}
+          variant={TextVariant.HeadingMd}
           twClassName="mb-3 text-center"
           testID={NewUserSheetSelectorsIDs.TITLE}
         >
