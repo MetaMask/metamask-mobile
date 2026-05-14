@@ -52,22 +52,7 @@ export interface UseMoneyAccountCardLinkageReturn {
   isLinking: boolean;
   error: Error | null;
 
-  /**
-   * Public entrypoint. Opens the "Spend and earn" confirmation bottom sheet
-   * when the user is eligible (`canLink`); otherwise fires the existing
-   * error toast and bails. Does NOT trigger any on-chain action — the real
-   * linkage runs from `confirmLinkInBackground`, which is dispatched by the
-   * sheet when the user presses "Link card". Views should always call this
-   * (not `confirmLinkInBackground`) so the confirmation sheet always shows.
-   */
   openLinkCardSheet: () => void;
-  /**
-   * @internal Sheet-only confirm handler. Runs the real on-chain linkage:
-   * `canLink` re-check, pending / success / error toast flow,
-   * `UserCancelledError` silent path, `BAANX_MAX_LIMIT` delegation amount.
-   * Consumers other than `MoneyLinkCardSheet` should NOT call this
-   * directly — go through `openLinkCardSheet` instead.
-   */
   confirmLinkInBackground: () => Promise<boolean>;
   reset: () => void;
 }
@@ -178,14 +163,6 @@ export const useMoneyAccountCardLinkage =
       });
     }, [theme.colors.error.default, theme.colors.error.muted, toastRef]);
 
-    /**
-     * Public entrypoint. Gates the linkage behind the "Spend and earn"
-     * confirmation sheet: when the user is eligible we navigate to the
-     * sheet, which dispatches the on-chain action via
-     * `confirmLinkInBackground` only after the user presses "Link card".
-     * If the user is not eligible we fire the existing error toast and
-     * bail — keeping the previous fail-closed behaviour intact.
-     */
     const openLinkCardSheet = useCallback((): void => {
       if (!canLink || !primaryMoneyAccount?.address) {
         showErrorToast();
@@ -196,14 +173,6 @@ export const useMoneyAccountCardLinkage =
       });
     }, [canLink, primaryMoneyAccount?.address, navigation, showErrorToast]);
 
-    /**
-     * Sheet-only confirm handler. Same body as the pre-sheet linkage:
-     * `canLink` re-check (defence in depth in case state changed while the
-     * sheet was open), same status transitions, same Predict-style pending /
-     * success / error toasts, same `UserCancelledError` silent path, same
-     * `BAANX_MAX_LIMIT`. Only `MoneyLinkCardSheet` should call this — every
-     * other callsite must go through `openLinkCardSheet`.
-     */
     const confirmLinkInBackground = useCallback(async (): Promise<boolean> => {
       if (!canLink || !primaryMoneyAccount?.address) {
         showErrorToast();

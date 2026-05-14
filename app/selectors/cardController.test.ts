@@ -21,6 +21,7 @@ import { selectPrimaryMoneyAccount } from './moneyAccountController';
 import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
 import {
   FundingAssetStatus,
+  type CardFundingAsset,
   type CardHomeData,
 } from '../core/Engine/controllers/card-controller/provider-types';
 import { FundingStatus } from '../components/UI/Card/types';
@@ -549,7 +550,11 @@ describe('selectCardLineaUsdcToken', () => {
 describe('selectIsMoneyAccountDelegatedForCard', () => {
   const MA_ADDRESS = '0xma000000000000000000000000000000000000aa';
 
-  const monadUsdcAsset = {
+  // Explicit `CardFundingAsset` annotation (instead of `as const`) so override
+  // tests can pass any valid `FundingAssetStatus`, chain id, or wallet
+  // address through `homeDataWithMonadUsdc` without TS rejecting the literal
+  // mismatch.
+  const monadUsdcAsset: CardFundingAsset = {
     symbol: 'USDC',
     name: 'USD Coin',
     address: '0xusdc000000000000000000000000000000000005',
@@ -560,10 +565,10 @@ describe('selectIsMoneyAccountDelegatedForCard', () => {
     spendingCap: '0',
     priority: 1,
     status: FundingAssetStatus.Active,
-  } as const;
+  };
 
   const homeDataWithMonadUsdc = (
-    overrides: Partial<typeof monadUsdcAsset> = {},
+    overrides: Partial<CardFundingAsset> = {},
   ): CardHomeData => ({
     ...mockCardHomeData,
     fundingAssets: [{ ...monadUsdcAsset, ...overrides }],

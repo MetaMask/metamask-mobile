@@ -1055,12 +1055,6 @@ export class CardController extends BaseController<
       tokens,
     );
 
-    // Refresh cardHomeData so consumers (e.g. `selectIsMoneyAccountDelegatedForCard`)
-    // see the new Monad / USDC funding row without waiting for another trigger.
-    // `fetchCardHomeData` is singleflighted via `fetchCardHomeDataPromise`, so
-    // awaiting it here is safe even if another caller raced us. We swallow
-    // failures because the on-chain + provider-side linkage already succeeded;
-    // a stale refresh should not surface as a linkage error to the user.
     try {
       await this.fetchCardHomeData();
     } catch (error) {

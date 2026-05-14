@@ -72,10 +72,6 @@ interface MoneyAccountDelegatedForCardParams {
  * CardController itself does not persist a per-address "linked" flag — once
  * the Baanx backend indexes the on-chain approval, the wallet appears in the
  * funding list with `enabled` or `limited` status.
- *
- * Pure helper: callers are expected to feed it the already-derived
- * `selectCardFundingTokens` output and the Money Account address they care
- * about (typically the primary one).
  */
 export const isMoneyAccountDelegatedForCard = ({
   fundingTokens,

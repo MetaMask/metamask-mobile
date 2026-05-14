@@ -16,6 +16,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import moneyLinkCardCoin from '../../../../../images/money-link-card-coin.png';
 import styleSheet from './MoneyLinkCardSheet.styles';
 import { MoneyLinkCardSheetTestIds } from './MoneyLinkCardSheet.testIds';
@@ -34,6 +35,7 @@ const MoneyLinkCardSheet = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
+  const { apyPercent } = useMoneyAccountBalance();
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -44,10 +46,6 @@ const MoneyLinkCardSheet = () => {
   }, []);
 
   const handleConfirm = useCallback(() => {
-    // Dismiss the sheet immediately. `confirmLinkInBackground` is fire-and-
-    // forget from the sheet's perspective — it owns its own pending /
-    // success / error toasts and does not need the sheet to stay open while
-    // it runs.
     sheetRef.current?.onCloseBottomSheet(() => {
       void confirmLinkInBackground();
     });
@@ -87,7 +85,9 @@ const MoneyLinkCardSheet = () => {
             twClassName="text-center"
             testID={MoneyLinkCardSheetTestIds.DESCRIPTION}
           >
-            {strings('money.metamask_card.link_card_sheet_description')}
+            {strings('money.metamask_card.link_card_sheet_description', {
+              apy: apyPercent ?? 0,
+            })}
           </Text>
         </Box>
       </Box>
