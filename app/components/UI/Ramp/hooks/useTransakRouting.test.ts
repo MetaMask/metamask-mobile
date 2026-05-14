@@ -29,6 +29,7 @@ jest.mock('react-redux', () => ({
     selected: {
       chainId: 'eip155:1',
       assetId: 'eip155:1/erc20:0xasset',
+      symbol: 'ETH',
     },
   })),
 }));
@@ -1206,6 +1207,7 @@ describe('useTransakRouting', () => {
                 providerCode: 'transak-native',
                 walletAddress: MOCK_WALLET_ADDRESS,
                 showCloseButton: true,
+                cryptocurrency: 'ETH',
               }),
             }),
           ],
@@ -1245,12 +1247,13 @@ describe('useTransakRouting', () => {
           routes: [
             expect.objectContaining({
               name: 'RampsOrderDetails',
-              params: {
+              params: expect.objectContaining({
                 callbackUrl,
                 providerCode: 'transak-native',
                 walletAddress: MOCK_WALLET_ADDRESS,
                 showCloseButton: true,
-              },
+                cryptocurrency: 'ETH',
+              }),
             }),
           ],
         }),
@@ -1580,6 +1583,7 @@ describe('useTransakRouting', () => {
                 providerCode: 'transak-native',
                 walletAddress: MOCK_WALLET_ADDRESS,
                 showCloseButton: true,
+                cryptocurrency: 'ETH',
               }),
             }),
           ],

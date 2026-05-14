@@ -478,6 +478,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
       // Same pattern as unified Buy WebView Checkout: leave the webview
       // immediately; OrderDetails resolves the order via callback params.
+      const cryptoSymbol = selectedToken?.symbol;
       navigation.reset({
         index: 0,
         routes: [
@@ -488,6 +489,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               providerCode: normalizeProviderCode('transak-native'),
               walletAddress: walletAddress || '',
               showCloseButton: true,
+              ...(cryptoSymbol ? { cryptocurrency: cryptoSymbol } : {}),
             },
           },
         ],
@@ -502,6 +504,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       refreshOrder,
       regionIsoCode,
       trackEvent,
+      selectedToken,
     ],
   );
 
