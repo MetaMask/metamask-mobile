@@ -6121,8 +6121,11 @@ describe('PredictController', () => {
       await withController(async ({ controller }) => {
         await controller.prepareWithdraw({});
 
-        const batchCall = (addTransactionBatch as jest.Mock).mock.calls[0][0];
-        expect(batchCall).not.toHaveProperty('gasFeeToken');
+        expect(addTransactionBatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            gasFeeToken: undefined,
+          }),
+        );
       });
     });
 

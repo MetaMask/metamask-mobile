@@ -2600,7 +2600,8 @@ export class PredictController extends BaseController<
       });
 
       const isDepositWallet = accountState.walletType === 'deposit-wallet';
-      const gasFeeToken: Hex | undefined = isDepositWallet
+
+      const gasFeeToken = isDepositWallet
         ? undefined
         : (MATIC_CONTRACTS_V2.collateral as Hex);
 
@@ -2625,8 +2626,8 @@ export class PredictController extends BaseController<
         disableHook: true,
         disableSequential: true,
         requireApproval: true,
-        ...(gasFeeToken ? { gasFeeToken } : {}),
         transactions: [transaction],
+        gasFeeToken,
       });
 
       this.update((state) => {
