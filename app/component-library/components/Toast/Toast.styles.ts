@@ -54,9 +54,6 @@ const styleSheet = (params: { theme: Theme }) => {
     compactActionButton: {
       marginLeft: 8,
     },
-    compactAvatar: {
-      marginTop: 0,
-    },
     baseCompact: {
       alignItems: 'center',
     },

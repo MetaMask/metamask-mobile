@@ -209,9 +209,6 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const renderAvatar = () => {
-    const avatarStyle = toastOptions?.compact
-      ? [styles.avatar, styles.compactAvatar]
-      : styles.avatar;
     switch (toastOptions?.variant) {
       case ToastVariants.Plain:
         return null;
@@ -226,7 +223,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             // should receive avatar type as props
             type={accountAvatarType}
             size={AvatarSize.Md}
-            style={avatarStyle}
+            style={styles.avatar}
           />
         );
       }
@@ -238,7 +235,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             name={networkName}
             imageSource={networkImageSource}
             size={AvatarSize.Md}
-            style={avatarStyle}
+            style={styles.avatar}
           />
         );
       }
@@ -249,7 +246,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             variant={AvatarVariant.Favicon}
             imageSource={appIconSource}
             size={AvatarSize.Md}
-            style={avatarStyle}
+            style={styles.avatar}
           />
         );
       }
@@ -261,7 +258,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             name={iconName}
             iconColor={iconColor}
             backgroundColor={backgroundColor}
-            style={avatarStyle}
+            style={styles.avatar}
           />
         );
       }
