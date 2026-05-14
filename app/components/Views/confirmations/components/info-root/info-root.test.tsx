@@ -55,6 +55,7 @@ jest.mock('../info/custom-amount-info', () => ({
 
 jest.mock('../../hooks/gas/useGasFeeToken');
 jest.mock('../../hooks/tokens/useTokenWithBalance');
+jest.mock('../../hooks/pay/useTransactionPayAutoFiatSubmission');
 
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
