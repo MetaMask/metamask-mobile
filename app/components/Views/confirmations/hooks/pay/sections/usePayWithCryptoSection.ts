@@ -12,9 +12,18 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { TokenIcon, TokenIconVariant } from '../../../components/token-icon';
-import { PayWithSectionConfig } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
-import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
+import {
+  PayWithRowConfig,
+  PayWithSectionConfig,
+} from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
+import {
+  isMatchingPayToken,
+  resolvePreferredPayToken,
+} from '../../../utils/transaction-pay';
 import { SetPayTokenRequest } from '../useAutomaticTransactionPayToken';
+import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
+import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
+import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 
 interface PayWithCryptoSectionParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -23,6 +32,8 @@ interface PayWithCryptoSectionParams {
 export const PAY_WITH_CRYPTO_SECTION_TEST_ID = 'pay-with-section-crypto';
 export const PAY_WITH_CRYPTO_PREFERRED_TOKEN_ROW_TEST_ID =
   'pay-with-crypto-section-preferred-token-row';
+export const PAY_WITH_CRYPTO_SELECTED_TOKEN_ROW_TEST_ID =
+  'pay-with-crypto-section-selected-token-row';
 export const PAY_WITH_CRYPTO_OTHER_ASSETS_ROW_TEST_ID =
   'pay-with-crypto-section-other-assets-row';
 
@@ -30,19 +41,49 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const navigation = useNavigation();
   const { preferredPaymentToken } = useParams<PayWithCryptoSectionParams>({});
   const formatFiat = useFiatFormatter({ currency: 'usd' });
+  const transactionMeta = useTransactionMetadataRequest();
+  const resolvedPreferredToken = useMemo(
+    () =>
+      resolvePreferredPayToken({
+        override: preferredPaymentToken,
+        transactionMeta,
+      }),
+    [preferredPaymentToken, transactionMeta],
+  );
   const { hasTokens, preferredToken, selectedToken } = usePayWithPreferredToken(
     {
-      preferredToken: preferredPaymentToken,
+      preferredToken: resolvedPreferredToken,
     },
   );
+  const {
+    isSelectedDistinctFromAutomatic,
+    selectedToken: selectedTokenDisplay,
+    selectToken,
+  } = usePayWithSelectedToken({ preferredToken: resolvedPreferredToken });
 
   const handleOtherAssetsPress = useCallback(() => {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [navigation]);
 
+  const handlePreferredTokenPress = useCallback(() => {
+    if (!preferredToken) {
+      return;
+    }
+    selectToken({
+      address: preferredToken.address,
+      chainId: preferredToken.chainId,
+    });
+    navigation.goBack();
+  }, [navigation, preferredToken, selectToken]);
+
   const preferredTokenBalance = useMemo(
     () => formatFiat(new BigNumber(preferredToken?.balanceUsd ?? '0')),
     [formatFiat, preferredToken?.balanceUsd],
+  );
+
+  const selectedTokenBalance = useMemo(
+    () => formatFiat(new BigNumber(selectedTokenDisplay?.balanceUsd ?? '0')),
+    [formatFiat, selectedTokenDisplay?.balanceUsd],
   );
 
   return useMemo(() => {
@@ -50,14 +91,13 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       return null;
     }
 
-    const rows: PayWithSectionConfig['rows'] = [];
+    const rows: PayWithRowConfig[] = [];
 
     if (preferredToken) {
-      const isPreferredTokenSelected =
-        selectedToken?.address.toLowerCase() ===
-          preferredToken.address.toLowerCase() &&
-        selectedToken.chainId.toLowerCase() ===
-          preferredToken.chainId.toLowerCase();
+      const isPreferredTokenSelected = isMatchingPayToken(
+        selectedToken,
+        preferredToken,
+      );
 
       rows.push({
         id: 'crypto-preferred-token',
@@ -72,7 +112,26 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
         }),
         isSelected: isPreferredTokenSelected,
         trailingElement: isPreferredTokenSelected ? 'checkmark' : 'none',
+        onPress: handlePreferredTokenPress,
         testID: PAY_WITH_CRYPTO_PREFERRED_TOKEN_ROW_TEST_ID,
+      });
+    }
+
+    if (isSelectedDistinctFromAutomatic && selectedTokenDisplay) {
+      rows.push({
+        id: 'crypto-selected-token',
+        icon: React.createElement(TokenIcon, {
+          address: selectedTokenDisplay.address,
+          chainId: selectedTokenDisplay.chainId,
+          variant: TokenIconVariant.Row,
+        }),
+        title: selectedTokenDisplay.symbol,
+        subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
+          balance: selectedTokenBalance,
+        }),
+        isSelected: true,
+        trailingElement: 'checkmark',
+        testID: PAY_WITH_CRYPTO_SELECTED_TOKEN_ROW_TEST_ID,
       });
     }
 
@@ -100,9 +159,13 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     };
   }, [
     handleOtherAssetsPress,
+    handlePreferredTokenPress,
     hasTokens,
+    isSelectedDistinctFromAutomatic,
     preferredToken,
     preferredTokenBalance,
     selectedToken,
+    selectedTokenBalance,
+    selectedTokenDisplay,
   ]);
 }
