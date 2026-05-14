@@ -186,6 +186,16 @@ describe('BenefitsPreview', () => {
       );
     });
 
+    it('does not request available_count copy when there are no benefits', () => {
+      render(<BenefitsPreview />);
+
+      const availableCountCalls = mockStrings.mock.calls.filter(
+        (call) => call[0] === 'rewards.benefits.available_count',
+      );
+
+      expect(availableCountCalls).toHaveLength(0);
+    });
+
     it('does not render benefit details container without benefits', () => {
       const { queryByTestId } = render(<BenefitsPreview />);
 
@@ -268,6 +278,40 @@ describe('BenefitsPreview', () => {
           count: '99+',
         },
       );
+    });
+
+    it('displays numeric count 99 in the header tag when there are exactly 99 benefits', () => {
+      mockBenefits = Array.from({ length: 99 }, (_, index) => ({
+        id: index + 1,
+        longTitle: `Benefit ${index + 1}`,
+        shortDescription: 'd',
+      }));
+
+      const { getByText } = render(<BenefitsPreview />);
+
+      expect(getByText('99 available')).toBeOnTheScreen();
+      expect(mockStrings).toHaveBeenCalledWith(
+        'rewards.benefits.available_count',
+        {
+          count: '99',
+        },
+      );
+    });
+
+    it('renders a single benefit card when the list has one item', () => {
+      mockBenefits = [
+        { id: 42, longTitle: 'Solo benefit', shortDescription: 'only one' },
+      ];
+
+      const { getByTestId, getByText, queryByTestId } = render(
+        <BenefitsPreview />,
+      );
+
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS),
+      ).toBeOnTheScreen();
+      expect(getByText('Solo benefit')).toBeOnTheScreen();
+      expect(queryByTestId('benefit-card-2')).toBeNull();
     });
   });
 
