@@ -216,7 +216,7 @@ jobs:
         run: find ios -name "*.plist" -exec xattr -c {} \;
 
       - name: Restore .metamask folder
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
         id: restore-metamask
         uses: actions/cache@v4
         with:
@@ -269,7 +269,7 @@ jobs:
           YARN_ENABLE_GLOBAL_CACHE: 'true'
 
       - name: Restore .metamask folder (reuse-hit path)
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build != 'true' }}
         id: restore-metamask-lean
         uses: actions/cache@v4
         with:
