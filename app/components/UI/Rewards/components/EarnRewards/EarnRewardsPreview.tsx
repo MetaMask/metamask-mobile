@@ -49,6 +49,12 @@ const PEEK_WIDTH = 24;
 const styles = StyleSheet.create({
   avatar: { width: AVATAR_SIZE, height: AVATAR_SIZE },
   cardGap: { marginRight: CARD_GAP },
+  // Asymmetric padding: left aligns the first card; the extra right padding
+  // ensures maxScroll >= snapToInterval so the last card can snap flush-left.
+  carouselContent: {
+    paddingLeft: HORIZONTAL_PADDING,
+    paddingRight: HORIZONTAL_PADDING + CARD_GAP + PEEK_WIDTH,
+  },
 });
 
 interface EarnCardProps {
@@ -181,7 +187,7 @@ const EarnRewardsPreview: React.FC = () => {
         showsHorizontalScrollIndicator={false}
         decelerationRate="fast"
         snapToInterval={cardWidth + CARD_GAP}
-        contentContainerStyle={{ paddingHorizontal: HORIZONTAL_PADDING }}
+        contentContainerStyle={styles.carouselContent}
       >
         {items.map((item, index) => (
           <View
