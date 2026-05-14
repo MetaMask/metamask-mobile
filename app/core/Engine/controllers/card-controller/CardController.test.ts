@@ -2208,8 +2208,8 @@ describe('CardController — data pass-throughs', () => {
           delegationAmountHuman: '2199023255551',
         });
 
-        // Wait until the first call has passed all its synchronous prefix
-        // work and is genuinely awaiting `approveFunding`.
+        await waitFor(() => handle.addTransactionCalls.length > 0);
+        handle.emitConfirmed();
         await waitFor(() => mockApproveFunding.mock.calls.length === 1);
 
         const callsBefore = {
@@ -2269,6 +2269,8 @@ describe('CardController — data pass-throughs', () => {
           moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
           delegationAmountHuman: '2199023255551',
         });
+        await waitFor(() => handle.addTransactionCalls.length === 2);
+        handle.emitConfirmed();
         await waitFor(() => mockApproveFunding.mock.calls.length === 2);
         await secondCall;
       });
