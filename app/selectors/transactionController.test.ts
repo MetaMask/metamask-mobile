@@ -28,6 +28,12 @@ jest.mock('./smartTransactionsController', () => ({
   }) => state.pendingSmartTransactionsForGroup || [],
 }));
 
+jest.mock('./multichainAccounts/accountTreeController', () => ({
+  selectSelectedAccountGroupEvmInternalAccount: (state: {
+    groupEvmAccount?: { address: string } | null;
+  }) => state.groupEvmAccount ?? null,
+}));
+
 describe('TransactionController Selectors', () => {
   describe('selectTransactions', () => {
     it('returns transactions from TransactionController state', () => {
@@ -258,34 +264,26 @@ describe('TransactionController Selectors', () => {
   });
 
   describe('selectLocalTransactions', () => {
-    it('filters required child transactions before nonce dedupe', () => {
-      const activeEvmAddress = '0x0000000000000000000000000000000000000001';
-      const state = {
+    const evmAddress = '0x0000000000000000000000000000000000000001';
+
+    const buildLocalTxState = ({
+      groupEvmAccount = { address: evmAddress },
+      transactions,
+    }: {
+      groupEvmAccount?: { address: string } | null;
+      transactions?: unknown[];
+    } = {}) =>
+      ({
         engine: {
           backgroundState: {
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: 'account-1',
-                accounts: {
-                  'account-1': {
-                    id: 'account-1',
-                    address: activeEvmAddress,
-                    type: 'eip155:eoa',
-                  },
-                },
-              },
-            },
             TransactionController: {
-              transactions: [
+              transactions: transactions ?? [
                 {
                   id: 'child',
                   hash: '0xCHILD',
                   chainId: '0x1',
                   time: 200,
-                  txParams: {
-                    from: activeEvmAddress,
-                    nonce: '0x1',
-                  },
+                  txParams: { from: evmAddress, nonce: '0x1' },
                 },
                 {
                   id: 'parent',
@@ -293,21 +291,26 @@ describe('TransactionController Selectors', () => {
                   requiredTransactionIds: ['child'],
                   time: 100,
                   type: TransactionType.predictDeposit,
-                  txParams: {
-                    from: activeEvmAddress,
-                    nonce: '0x1',
-                  },
+                  txParams: { from: evmAddress, nonce: '0x1' },
                 },
               ],
             },
           },
         },
+        groupEvmAccount,
         pendingSmartTransactionsForGroup: [],
-      } as unknown as RootState;
+      }) as unknown as RootState;
 
-      expect(selectLocalTransactions(state)).toStrictEqual([
+    it('filters required child transactions before nonce dedupe', () => {
+      expect(selectLocalTransactions(buildLocalTxState())).toStrictEqual([
         expect.objectContaining({ id: 'parent' }),
       ]);
+    });
+
+    it('returns no transactions when the selected group has no EVM account', () => {
+      expect(
+        selectLocalTransactions(buildLocalTxState({ groupEvmAccount: null })),
+      ).toStrictEqual([]);
     });
   });
 
