@@ -215,28 +215,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 4,
       paddingHorizontal: 0,
     },
-    orderTrackingSection: {
-      marginTop: 12,
-      paddingVertical: 10,
-      paddingHorizontal: 12,
-      borderRadius: 8,
-      backgroundColor: theme.colors.background.alternative,
-    },
-    orderTrackingTitle: {
-      marginBottom: 8,
-    },
-    orderTrackingRow: {
-      paddingVertical: 4,
-    },
-    orderTrackingActions: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 8,
-      marginTop: 8,
-    },
-    orderTrackingBadge: {
-      marginTop: 8,
-    },
   });
 };
 

@@ -16,7 +16,7 @@
 - [x] **Phase 6** — Bypass order-processing redirect in Transak/aggregator routing when headless; fire `onOrderCreated` and end session
 - [x] **Phase 7** — Extract UI-coupled error/limit surfacing; route errors through `onError` as typed `HeadlessBuyError`
 - [x] **Phase 8** — Cancellation + `onClose` semantics (including user-dismissed detection)
-- [ ] **Phase 9** — Expose `getOrder` / `refreshOrder` from hook and show in playground (now an MVP requirement — see Phase 9 Update)
+- [ ] **Phase 9** — Headless buy fixes from Goktug's May 12 testing thread (see Phase 9 section for what shipped and the dropped imperative-API design)
 - [ ] **Phase 9.5** — HeadlessHost visual treatment (transparent or bottom-sheet) — driven by the May 6 design thread
 - [ ] **Phase 10** — Implement deferred Phase 5b + playground polish + navigation/state cleanups + headless toast suppression
 
@@ -568,24 +568,26 @@ Deliverable: closing the buy flow from anywhere on the headless stack notifies t
 
 ---
 
-## Phase 9 — Expose `getOrder` + polling helpers
+## Phase 9 — Headless buy fixes (May 12 testing)
 
 ### Update (May 2026 — driven by MetaMask Pay)
 
-Phase 9 is now an MVP requirement, not playground polish. MetaMask Pay's `TransactionPayController` ([MetaMask/core#8628](https://github.com/MetaMask/core/pull/8628)) needs to know when the fiat order reaches a terminal state to fire step II (intent transaction) of its two-step flow.
+Phase 9 was originally framed as "expose `getOrder` + polling helpers" and, after [MetaMask/core#8628](https://github.com/MetaMask/core/pull/8628) elevated the priority, briefly grew an imperative `awaitOrderTerminalState(orderId)` Promise so MetaMask Pay's `TransactionPayController` could `await` settlement.
 
-The original Phase 9 surface (`getOrder`, `refreshOrder` + a "Refresh order" playground button) doesn't fit a controller consumer. The Phase 9 API should add an **imperative `awaitOrderTerminalState(orderId)` Promise** so TPC can `await` settlement instead of polling itself. Polling and the playground button stay as additional surfaces; the Promise is the load-bearing API.
+### What shipped
 
-The Apr 28 progress sync also called out a missing **auto-select-best-provider utility** ("Need utility function to auto-select best provider rather than requiring explicit provider ID"). Either fold into Phase 9 alongside `getOrder` or split as a follow-up phase — to be decided during Phase 9 implementation.
+The imperative observation surface was **not** shipped. During implementation the team determined that MetaMask Pay's existing approach — `useFiatOrderStatus` in [#28152](https://github.com/MetaMask/metamask-mobile/pull/28152) polling `RampsController.getOrder` directly via `setInterval` — made the imperative API unnecessary at N=1. `useHeadlessBuy` continues to expose `getOrderById` from Pedro's original Phase 2 facade ([#29144](https://github.com/MetaMask/metamask-mobile/pull/29144)) and nothing else changed on the order-observation surface.
 
-**Open question** (Barbara, [May 6 design thread](https://consensys.slack.com/archives/C0AK3NXRM7W/p1778072992397499)): does ramps need an internal timeout — distinct from the registry's 1-hour GC — so the consumer isn't pinned to a "loading forever" state when a quote stalls? Two shapes worth considering during Phase 9 implementation: (i) `awaitOrderTerminalState(orderId, { timeoutMs })` rejects with a timed-out error so the consumer can decide what to surface; (ii) the registry grows a per-session timeout that fires `onError({ code: 'TIMED_OUT' })` + `onClose` if no terminal event arrives within N seconds. Pedro's reply 37 in the same thread noted Phase 3's `cancel()` is today's escape hatch; not blocking for v1 but worth resolving before MMPay launch.
+Phase 9 landed instead as the bug-fix bundle from Goktug's May 12 testing thread, plus a static-bounds utility re-export for MMPay's typing-time validation:
 
-Goal: complete the hook surface.
+- Fix #2 — provider-rejection routing through `onError` (5 EUR scenario).
+- Fix #3.1 — `onOrderCreated(orderId, order)` signature widening.
+- Fix #3.2 — asymmetric-callback contract JSDoc + per-path freshness table.
+- Suggestion #1 — `getProviderBuyLimit` re-exported from the public barrel.
+- Suggestion #2 — pre-quote static bounds short-circuit inside `getQuotes`.
+- Analytics + deeplink utilities; `sessionRegistry` Fix #2 routing.
 
-- Add `getOrder(orderId)` using `useRampsOrders.getOrderById` (already available via [app/components/UI/Ramp/hooks/useRampsOrders.ts](../hooks/useRampsOrders.ts)).
-- Add `refreshOrder(providerCode, providerOrderId)` passthrough for polling after a callback.
-- Document the hook in a JSDoc at top of `useHeadlessBuy.ts` with a full example.
-- Extend playground: after `onOrderCreated` fires, show the orderId and a "Refresh order" button using these helpers.
+The Apr 28 progress sync called out a missing **auto-select-best-provider utility** ("Need utility function to auto-select best provider rather than requiring explicit provider ID"). Still a deferred item; no longer tied to Phase 9.
 
 ---
 

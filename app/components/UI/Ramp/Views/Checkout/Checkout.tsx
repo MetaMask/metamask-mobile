@@ -317,9 +317,9 @@ const Checkout = () => {
         // to the consumer, close the session, and unwind out of the ramp
         // stack so the caller regains foreground. Skip the toast +
         // RAMPS_ORDER_DETAILS reset — both are user-facing UI the headless
-        // consumer didn't ask for. The order arg (Phase 9 / Fix #3.1) lets
-        // consumers call `awaitOrderTerminalState(orderId, { walletAddress:
-        // order.walletAddress })` without an extra `getOrder` round-trip.
+        // consumer didn't ask for. Passing the order snapshot alongside the
+        // id (Fix #3.1) lets consumers branch on creation-time state (e.g.
+        // `order.walletAddress`) without a separate controller round-trip.
         const session = getSession(headlessSessionId);
         if (headlessSessionId && session) {
           try {

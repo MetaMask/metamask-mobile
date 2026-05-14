@@ -13,15 +13,6 @@ export {
   setStatus,
 } from './sessionRegistry';
 export { useHeadlessSessionDismissal } from './useHeadlessSessionDismissal';
-export {
-  awaitOrderTerminalState,
-  AwaitOrderTerminalStatePrerequisitesError,
-  getOrder,
-  isTerminalOrderStatus,
-  OrderTerminalStateTimeoutError,
-  refreshOrder,
-  RefreshOrderUnresolvableError,
-} from './orderTerminalState';
 // Static (no-network) bounds lookup. Re-exported here so non-React consumers
 // (e.g. MetaMask Pay's `TransactionPayController`) can pre-validate a fiat
 // amount against `(provider, fiatCurrency, paymentMethodId)` bounds before

@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { CaipChainId } from '@metamask/utils';
-import type { Provider, RampsOrder } from '@metamask/ramps-controller';
+import type { Provider } from '@metamask/ramps-controller';
 
 import ReduxService from '../../../../core/redux';
 import Routes from '../../../../constants/navigation/Routes';
@@ -20,13 +20,6 @@ import {
   failSession,
   getActiveSessionId,
 } from './sessionRegistry';
-import {
-  awaitOrderTerminalState as awaitOrderTerminalStateImperative,
-  getOrder as getOrderImperative,
-  refreshOrder as refreshOrderImperative,
-  type AwaitOrderTerminalStateOptions,
-  type RefreshOrderOptions,
-} from './orderTerminalState';
 import type {
   HeadlessBuyCallbacks,
   HeadlessBuyErrorCode,
@@ -192,72 +185,19 @@ function buildStaticBoundsRejection(args: {
  * from outside the Ramp UI. It exposes catalog data (`tokens`, `providers`,
  * `paymentMethods`, `countries`, `userRegion`) for building consumer UIs on
  * top of the same data source the standard ramp surface uses; a quote
- * selection helper (`getQuotes`); session lifecycle primitives
+ * selection helper (`getQuotes`); and session lifecycle primitives
  * (`startHeadlessBuy`, `errors`) that drive the three terminal callbacks
  * (`onOrderCreated`, `onError`, `onClose`) — see Phase 5 / 6 / 7 / 8 of the
- * plan; and Phase 9 order observation hooks (`getOrder`, `refreshOrder`,
- * `awaitOrderTerminalState`) for waiting on a fiat order to settle. The
- * imperative `awaitOrderTerminalState` is the load-bearing API for MetaMask
- * Pay's `TransactionPayController` so the second step of its two-step flow
- * can fire on settlement.
+ * plan.
  *
- * Non-React consumers (e.g. controllers) should import the same imperative
- * functions from `app/components/UI/Ramp/headless/orderTerminalState.ts` —
- * the hook methods are thin passthroughs.
- *
- * @example Consumer-side TPC pattern
- * ```ts
- * import { RampsOrderStatus } from '@metamask/ramps-controller';
- *
- * const { startHeadlessBuy, awaitOrderTerminalState, getQuotes } = useHeadlessBuy();
- *
- * const quotes = await getQuotes({
- *   assetId: 'eip155:59144/erc20:0xaca…',
- *   amount: 25,
- *   paymentMethodIds: ['/payments/debit-credit-card'],
- * });
- * const quote = pickQuote(quotes); // consumer-owned selection
- *
- * startHeadlessBuy(
- *   { quote, assetId: quote.crypto.assetId, amount: 25 },
- *   {
- *     onOrderCreated: async (orderId, order) => {
- *       // Bridge the callback into a promise so the consumer can await
- *       // settlement. Pass `order.walletAddress` so the slow-path poll
- *       // works even in Engine controller contexts where the React-tree
- *       // unified order processor isn't load-bearing. Bound the wait —
- *       // an unbounded default + an order stuck in `Pending` would hang.
- *       const settled = await awaitOrderTerminalState(orderId, {
- *         walletAddress: order.walletAddress,
- *         timeoutMs: 5 * 60 * 1000,
- *       });
- *       if (settled.status === RampsOrderStatus.Completed) {
- *         await fireStepIIIntent(settled);
- *       }
- *       // Failed | Cancelled | IdExpired → consumer's failure path; the
- *       // headless API does NOT fire onError for a created-then-failed
- *       // order (see types.ts onOrderCreated JSDoc).
- *     },
- *     onError: (e) => surfaceError(e),
- *     onClose: ({ reason }) => trackClose(reason),
- *   },
- * );
- * ```
- *
- * Notes:
- * - Don't call `awaitOrderTerminalState` *before* `onOrderCreated` fires —
- *   the order won't exist yet, and without `options.walletAddress` the
- *   helper rejects immediately with `AwaitOrderTerminalStatePrerequisitesError`.
- * - `getOrder` is a synchronous read of redux state; `refreshOrder` is a
- *   network call that returns a fresh order without writing back to state.
- * - `getQuotes` runs a no-network static bounds check before the network
- *   call when `params.providerIds` is set: it consults
- *   `Provider.limits.fiat[currency][paymentMethodId]` from the already-
- *   loaded catalog and short-circuits with `LIMIT_EXCEEDED` if every
- *   candidate `(provider, paymentMethodId)` rejects `params.amount`. The
- *   same static lookup is exported as `getProviderBuyLimit` from
- *   `app/components/UI/Ramp/headless` for consumers that need it
- *   standalone (e.g. disabling a "Get quote" button as the user types).
+ * `getQuotes` runs a no-network static bounds check before the network
+ * call when `params.providerIds` is set: it consults
+ * `Provider.limits.fiat[currency][paymentMethodId]` from the already-loaded
+ * catalog and short-circuits with `LIMIT_EXCEEDED` if every candidate
+ * `(provider, paymentMethodId)` rejects `params.amount`. The same static
+ * lookup is exported as `getProviderBuyLimit` from
+ * `app/components/UI/Ramp/headless` for consumers that need it standalone
+ * (e.g. disabling a "Get quote" button as the user types).
  */
 export function useHeadlessBuy(): HeadlessBuyResult {
   const navigation = useNavigation();
@@ -531,29 +471,6 @@ export function useHeadlessBuy(): HeadlessBuyResult {
     ],
   );
 
-  // Phase 9 — order observation hook surface. Each method is a thin pass-
-  // through to the module-level imperative twin in `orderTerminalState.ts`
-  // so non-React consumers (e.g. MetaMask Pay's `TransactionPayController`)
-  // can call into the exact same code path without going through React.
-  const getOrder = useCallback(
-    (providerOrderId: string): RampsOrder | undefined =>
-      getOrderImperative(providerOrderId),
-    [],
-  );
-  const refreshOrder = useCallback(
-    (orderIdOrOrder: string | RampsOrder, options?: RefreshOrderOptions) =>
-      refreshOrderImperative(orderIdOrOrder, options),
-    [],
-  );
-  const awaitOrderTerminalState = useCallback(
-    (
-      providerOrderId: string,
-      options?: AwaitOrderTerminalStateOptions,
-    ): Promise<RampsOrder> =>
-      awaitOrderTerminalStateImperative(providerOrderId, options),
-    [],
-  );
-
   const errors = useMemo(
     () => ({
       tokens: tokensError,
@@ -578,9 +495,6 @@ export function useHeadlessBuy(): HeadlessBuyResult {
     userRegion,
     orders,
     getOrderById,
-    getOrder,
-    refreshOrder,
-    awaitOrderTerminalState,
     getQuotes,
     startHeadlessBuy,
     isLoading,
