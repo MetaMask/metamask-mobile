@@ -111,15 +111,11 @@ const WorldCupTabContent = ({
 
   const renderItem = useCallback(
     ({ item, index }: { item: PredictMarketType; index: number }) => (
-      <Box twClassName="mb-3">
-        <PredictMarket
-          market={item}
-          entryPoint={entryPoint}
-          testID={`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.MARKET_CARD}-${
-            index + 1
-          }`}
-        />
-      </Box>
+      <PredictMarket
+        market={item}
+        entryPoint={entryPoint}
+        testID={`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.MARKET_CARD}-${index + 1}`}
+      />
     ),
     [entryPoint],
   );
