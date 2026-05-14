@@ -493,6 +493,8 @@ generateAndroidBinary() {
 	local testBuildTypeArg=""
 	# Define Gradle logging flags for E2E builds
 	local gradleLoggingFlags=""
+	# Optional Gradle init script used by Namespace remote build cache trials.
+	local -a gradleInitScriptArg=()
 
 	# Check if configuration is valid
 	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
@@ -506,6 +508,10 @@ generateAndroidBinary() {
 		# Flavor is not recognized
 		echo "Flavor $flavor is not recognized! Only Prod, Flask are supported"
 		exit 1
+	fi
+
+	if [ -n "${GRADLE_INIT_SCRIPT:-}" ] ; then
+		gradleInitScriptArg=(--init-script "$GRADLE_INIT_SCRIPT")
 	fi
 
 	if [ "$configuration" = "Debug" ] || [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
@@ -534,7 +540,7 @@ generateAndroidBinary() {
 
 	# Generate Android APKs
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
-	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleLoggingFlags $exUpdatesArgs
+	./gradlew "${gradleInitScriptArg[@]}" $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleLoggingFlags $exUpdatesArgs
 
 	# Skip AAB bundle for E2E environments - AAB cannot be installed on emulators
 	# and is only needed for Play Store distribution

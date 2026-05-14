@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import WhatsHappeningSourcesBottomSheet from './WhatsHappeningSourcesBottomSheet';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
 const mockTrackEvent = jest.fn();

@@ -1,9 +1,9 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 import WhatsHappeningCard from './WhatsHappeningCard';
 import type { WhatsHappeningItem } from '../types';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics/MetaMetrics.events';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn((eventName: string) => ({
@@ -14,14 +14,14 @@ const mockCreateEventBuilder = jest.fn((eventName: string) => ({
 }));
 
 let capturedOnVisible: (() => void) | null = null;
-jest.mock('../../../../../UI/MarketInsights/hooks/useViewportTracking', () => ({
+jest.mock('../../MarketInsights/hooks/useViewportTracking', () => ({
   useViewportTracking: (onVisible: () => void) => {
     capturedOnVisible = onVisible;
     return { ref: { current: null }, onLayout: jest.fn() };
   },
 }));
 
-jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
@@ -29,12 +29,12 @@ jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock(
-  '../../../../../Views/WhatsHappeningDetailView/components/RelatedAssetAvatar',
+  '../../../Views/WhatsHappeningDetailView/components/RelatedAssetAvatar',
   () => 'RelatedAssetAvatar',
 );
 
 jest.mock(
-  '../../../../../Views/WhatsHappeningDetailView/utils/getRelatedAssetImageSource',
+  '../../../Views/WhatsHappeningDetailView/utils/getRelatedAssetImageSource',
   () => ({
     getRelatedAssetImageSource: jest.fn(() => undefined),
   }),
