@@ -21,12 +21,9 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  IconColor,
-  IconName,
-} from '../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
-import { ButtonIconVariant } from '../../../../component-library/components/Toast/Toast.types';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import ToastService from '../../../../core/ToastService';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import {
@@ -200,30 +197,21 @@ export const PredictPreviewSheetProvider: React.FC<
   themeRef.current = theme;
 
   /**
-   * Tracks whether the Retry toast we showed is still visible. Used by the
-   * unmount cleanup to dismiss only OUR toast (not a deposit / withdraw /
-   * other-feature toast that may be on screen). Set to true when the
-   * state-based trigger calls `ToastService.showToast`, set back to false
-   * when the user taps Retry or Close, or when we dismiss it on unmount.
+   * Pending timer that auto-clears `activeOrder.error` after the failure
+   * toast finishes auto-dismissing (~3s — `visibilityDuration` 2750ms +
+   * exit animation in `Toast.tsx`). Cancelled when the user taps Retry
+   * (so the reopened slip surfaces the error banner) and on unmount (so
+   * we don't fire `clearOrderError` after teardown).
    */
-  const retryToastVisibleRef = useRef(false);
+  const clearErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     _providerMounted = true;
     return () => {
       _providerMounted = false;
-      // Dismiss any lingering Retry toast so its onPress closures don't try
-      // to setState on the now-unmounted provider. Only close if we know our
-      // toast is still up — otherwise we'd risk dismissing another feature's
-      // toast that has since replaced ours.
-      if (retryToastVisibleRef.current) {
-        retryToastVisibleRef.current = false;
-        try {
-          ToastService.closeToast();
-        } catch {
-          // Toast layer is no longer available (e.g. app shutdown / hot
-          // reload). Nothing to dismiss; safe to ignore.
-        }
+      if (clearErrorTimerRef.current) {
+        clearTimeout(clearErrorTimerRef.current);
+        clearErrorTimerRef.current = null;
       }
     };
   }, []);
@@ -292,6 +280,10 @@ export const PredictPreviewSheetProvider: React.FC<
     }
 
     const lastParams = lastBuyParamsRef.current;
+    // Use `closeButtonOptions` (with `ButtonVariants.Link`) rather than
+    // `linkButtonOptions` so the Retry sits inline on the right of the row
+    // (`[icon] [label] [Retry]`) instead of stacked below the label. This
+    // matches the deposit "Adding funds / Track" toast convention.
     ToastService.showToast({
       variant: ToastVariants.Icon,
       labelOptions: [
@@ -300,30 +292,42 @@ export const PredictPreviewSheetProvider: React.FC<
           isBold: true,
         },
       ],
-      iconName: IconName.Error,
-      iconColor: IconColor.Error,
-      backgroundColor: themeRef.current.colors.accent04.normal,
-      hasNoTimeout: true,
-      compact: true,
-      linkButtonOptions: {
-        label: strings('predict.order.retry'),
-        onPress: () => {
-          retryToastVisibleRef.current = false;
-          openBuySheet(lastParams);
-          ToastService.closeToast();
-        },
+      // The description provides useful context AND makes the labels
+      // container two lines tall — same height as the Retry Primary
+      // button — so the row's `alignItems: flex-start` produces a
+      // visually-balanced layout (matches the deposit/Track toast).
+      descriptionOptions: {
+        description: strings('predict.order.order_failed_generic'),
       },
+      iconName: IconName.Error,
+      iconColor: themeRef.current.colors.error.default,
+      backgroundColor: themeRef.current.colors.error.muted,
+      hasNoTimeout: false,
       closeButtonOptions: {
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
+        label: strings('predict.order.retry'),
+        variant: ButtonVariants.Link,
         onPress: () => {
-          retryToastVisibleRef.current = false;
-          clearOrderError();
-          ToastService.closeToast();
+          if (clearErrorTimerRef.current) {
+            clearTimeout(clearErrorTimerRef.current);
+            clearErrorTimerRef.current = null;
+          }
+          openBuySheet(lastParams);
         },
       },
     });
-    retryToastVisibleRef.current = true;
+
+    // Toast auto-dismisses on the platform default (~2.75s visibility +
+    // ~250ms exit anim). When that finishes without the user tapping
+    // Retry, clear the error so the next slip open is clean (no banner).
+    // Tapping Retry cancels this timer so the reopened slip can show the
+    // banner explaining what went wrong.
+    if (clearErrorTimerRef.current) {
+      clearTimeout(clearErrorTimerRef.current);
+    }
+    clearErrorTimerRef.current = setTimeout(() => {
+      clearErrorTimerRef.current = null;
+      clearOrderError();
+    }, 3000);
   }, [
     activeOrder?.error,
     buyParams,

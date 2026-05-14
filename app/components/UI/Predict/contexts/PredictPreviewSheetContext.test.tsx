@@ -77,6 +77,10 @@ jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: () => ({
     colors: {
       accent04: { normal: mockTestHexColors.WHITE_BRIGHT },
+      error: {
+        default: mockTestHexColors.WHITE_BRIGHT,
+        muted: mockTestHexColors.WHITE_BRIGHT,
+      },
     },
   }),
 }));
@@ -496,58 +500,35 @@ describe('PredictPreviewSheetContext', () => {
         screen.queryByTestId('predict-buy-preview-sheet'),
       ).not.toBeOnTheScreen();
 
-      // Instead, ToastService.showToast is called with the Try again link.
+      // Instead, ToastService.showToast is called with a non-persistent
+      // toast that auto-dismisses. The Retry uses `closeButtonOptions`
+      // (with `ButtonVariants.Link`) so it sits inline on the right of
+      // the row, matching the deposit/Track toast convention. The
+      // description line keeps the labels container two lines tall so
+      // the row's flex-start alignment looks balanced against the
+      // taller Primary Retry button.
       expect(mockToastShowToast).toHaveBeenCalledTimes(1);
       const toastCall = mockToastShowToast.mock.calls[0][0];
-      expect(toastCall.hasNoTimeout).toBe(true);
-      expect(toastCall.linkButtonOptions).toEqual(
-        expect.objectContaining({ label: expect.any(String) }),
+      expect(toastCall.hasNoTimeout).toBe(false);
+      expect(toastCall.linkButtonOptions).toBeUndefined();
+      expect(toastCall.descriptionOptions).toEqual(
+        expect.objectContaining({ description: expect.any(String) }),
       );
-      expect(typeof toastCall.linkButtonOptions.onPress).toBe('function');
       expect(toastCall.closeButtonOptions).toEqual(
         expect.objectContaining({
-          variant: 'Icon',
-          iconName: expect.any(String),
+          label: expect.any(String),
+          variant: 'Link',
         }),
       );
+      expect(typeof toastCall.closeButtonOptions.onPress).toBe('function');
 
-      // Tapping Try again reopens the slip with the last params and closes the toast.
+      // Tapping Retry reopens the slip with the last params. The toast
+      // is left to animate out on its own (no explicit closeToast call).
       act(() => {
-        toastCall.linkButtonOptions.onPress();
+        toastCall.closeButtonOptions.onPress();
       });
       expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
-      expect(mockToastCloseToast).toHaveBeenCalledTimes(1);
-    });
-
-    it('clears the order error and closes the toast when the user taps the close button on the Retry toast', () => {
-      const { rerender } = render(
-        <PredictPreviewSheetProvider>
-          <TestConsumer />
-        </PredictPreviewSheetProvider>,
-      );
-
-      fireEvent.press(screen.getByTestId('open-buy'));
-      fireEvent.press(screen.getByTestId('dismiss-sheet'));
-
-      mockActiveOrder = { error: 'order/failed' };
-      rerender(
-        <PredictPreviewSheetProvider>
-          <TestConsumer />
-        </PredictPreviewSheetProvider>,
-      );
-
-      const toastCall = mockToastShowToast.mock.calls[0][0];
-      const onClosePress = toastCall.closeButtonOptions.onPress;
-
-      mockClearOrderError.mockClear();
-      mockToastCloseToast.mockClear();
-
-      act(() => {
-        onClosePress();
-      });
-
-      expect(mockClearOrderError).toHaveBeenCalledTimes(1);
-      expect(mockToastCloseToast).toHaveBeenCalledTimes(1);
+      expect(mockToastCloseToast).not.toHaveBeenCalled();
     });
 
     it('does not fire the toast when the slip is open (banner handles it)', () => {
@@ -633,18 +614,30 @@ describe('PredictPreviewSheetContext', () => {
       );
       expect(mockToastShowToast).toHaveBeenCalledTimes(1);
     });
+  });
 
-    it('closes our Retry toast on provider unmount when one is currently shown', () => {
+  describe('failure toast auto-clear timer', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    const showRetryToast = () => {
       const { rerender, unmount } = render(
         <PredictPreviewSheetProvider>
           <TestConsumer />
         </PredictPreviewSheetProvider>,
       );
 
-      // Show + dismiss the slip so lastBuyParams is set, then trigger an
-      // error to fire the Retry toast.
       fireEvent.press(screen.getByTestId('open-buy'));
       fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+      // `clearOrderError` is called by the dismiss path; reset so subsequent
+      // assertions only count timer-driven calls.
+      mockClearOrderError.mockClear();
 
       mockActiveOrder = { error: 'order/failed' };
       rerender(
@@ -653,52 +646,47 @@ describe('PredictPreviewSheetContext', () => {
         </PredictPreviewSheetProvider>,
       );
 
-      // Toast was shown, so we own it.
+      return { rerender, unmount };
+    };
+
+    it('clears the order error after the toast auto-dismisses (~3s)', () => {
+      showRetryToast();
       expect(mockToastShowToast).toHaveBeenCalledTimes(1);
+      expect(mockClearOrderError).not.toHaveBeenCalled();
 
-      mockToastCloseToast.mockClear();
-      unmount();
-
-      expect(mockToastCloseToast).toHaveBeenCalledTimes(1);
-    });
-
-    it("does not call closeToast on unmount when no Retry toast was shown (avoids dismissing other features' toasts)", () => {
-      const { unmount } = render(
-        <PredictPreviewSheetProvider>
-          <TestConsumer />
-        </PredictPreviewSheetProvider>,
-      );
-
-      mockToastCloseToast.mockClear();
-      unmount();
-
-      expect(mockToastCloseToast).not.toHaveBeenCalled();
-    });
-
-    it('swallows ToastService errors during unmount (e.g. toast layer already gone)', () => {
-      const { rerender, unmount } = render(
-        <PredictPreviewSheetProvider>
-          <TestConsumer />
-        </PredictPreviewSheetProvider>,
-      );
-
-      // Show our toast first so the unmount cleanup tries to close it.
-      fireEvent.press(screen.getByTestId('open-buy'));
-      fireEvent.press(screen.getByTestId('dismiss-sheet'));
-
-      mockActiveOrder = { error: 'order/failed' };
-      rerender(
-        <PredictPreviewSheetProvider>
-          <TestConsumer />
-        </PredictPreviewSheetProvider>,
-      );
-
-      // Simulate the toast layer being gone (ref unavailable etc.).
-      mockToastCloseToast.mockImplementationOnce(() => {
-        throw new Error('Toast reference is not available');
+      act(() => {
+        jest.advanceTimersByTime(3000);
       });
 
-      expect(() => unmount()).not.toThrow();
+      expect(mockClearOrderError).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not clear the order error if Retry is tapped before the timer fires', () => {
+      showRetryToast();
+      const toastCall = mockToastShowToast.mock.calls[0][0];
+
+      act(() => {
+        toastCall.closeButtonOptions.onPress();
+      });
+
+      // Advance well past the timer — Retry should have cancelled it.
+      act(() => {
+        jest.advanceTimersByTime(10000);
+      });
+
+      expect(mockClearOrderError).not.toHaveBeenCalled();
+    });
+
+    it('cancels the pending clear timer on provider unmount', () => {
+      const { unmount } = showRetryToast();
+
+      unmount();
+
+      act(() => {
+        jest.advanceTimersByTime(10000);
+      });
+
+      expect(mockClearOrderError).not.toHaveBeenCalled();
     });
   });
 

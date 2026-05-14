@@ -53,14 +53,6 @@ interface BaseToastVariants {
   closeButtonOptions?: ToastCloseButtonOptions;
   startAccessory?: ReactElement;
   customBottomOffset?: number;
-  /**
-   * When true, renders the toast in a compact single-row layout:
-   * `[icon] [label] [actionButton] [closeButton]` instead of the default
-   * stacked layout. **`descriptionOptions` is ignored in this mode** —
-   * use a single label or the default layout if you need a description.
-   * Opt-in; existing toasts that don't set this keep the original layout.
-   */
-  compact?: boolean;
 }
 
 export type ToastCloseButtonOptions =

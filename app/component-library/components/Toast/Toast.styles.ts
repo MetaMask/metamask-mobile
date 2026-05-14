@@ -36,12 +36,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       justifyContent: 'flex-start',
     },
-    // In compact mode the labels container shares all of `labelsContainer`'s
-    // styling but switches to vertical-center alignment so the single-line
-    // label sits next to the action/close buttons.
-    labelsContainerCompact: {
-      justifyContent: 'center',
-    },
     label: {
       color: colors.text.default,
     },
@@ -50,12 +44,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     actionButton: {
       marginTop: 8,
-    },
-    compactActionButton: {
-      marginLeft: 8,
-    },
-    baseCompact: {
-      alignItems: 'center',
     },
   });
 };

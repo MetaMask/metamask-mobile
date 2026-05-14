@@ -73,12 +73,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     ],
   }));
   const baseStyle: StyleProp<ViewStyle> = useMemo(
-    () => [
-      styles.base,
-      toastOptions?.compact ? styles.baseCompact : null,
-      animatedStyle,
-    ],
-    [styles.base, styles.baseCompact, animatedStyle, toastOptions?.compact],
+    () => [styles.base, animatedStyle],
+    [styles.base, animatedStyle],
   );
 
   const resetState = () => setToastOptions(undefined);
@@ -174,17 +170,14 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       </Text>
     );
 
-  const renderActionButton = (
-    linkButtonOptions?: ToastLinkButtonOptions,
-    compact = false,
-  ) =>
+  const renderActionButton = (linkButtonOptions?: ToastLinkButtonOptions) =>
     linkButtonOptions && (
       <Button
         variant={ButtonVariants.Secondary}
         onPress={linkButtonOptions.onPress}
         labelTextVariant={TextVariant.BodyMD}
         label={linkButtonOptions.label}
-        style={compact ? styles.compactActionButton : styles.actionButton}
+        style={styles.actionButton}
       />
     );
 
@@ -272,27 +265,10 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       linkButtonOptions,
       closeButtonOptions,
       startAccessory,
-      compact,
     } = options;
 
     const isStartAccessoryValid =
       startAccessory != null && React.isValidElement(startAccessory);
-
-    if (compact) {
-      return (
-        <>
-          {isStartAccessoryValid ? startAccessory : renderAvatar()}
-          <View
-            style={[styles.labelsContainer, styles.labelsContainerCompact]}
-            testID={ToastSelectorsIDs.CONTAINER}
-          >
-            {renderLabel(labelOptions)}
-          </View>
-          {renderActionButton(linkButtonOptions, true)}
-          {closeButtonOptions ? renderCloseButton(closeButtonOptions) : null}
-        </>
-      );
-    }
 
     return (
       <>
