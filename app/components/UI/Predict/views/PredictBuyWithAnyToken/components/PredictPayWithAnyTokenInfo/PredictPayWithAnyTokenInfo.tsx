@@ -89,39 +89,68 @@ function PredictPayWithAnyTokenInfoInner({
   }, [canTriggerDepositAmountCalculation, computedDepositAmount]);
 
   const hasValidDepositAmount = useMemo(
-    () => depositAmount !== '' && transactionMeta,
-    [depositAmount, transactionMeta],
+    () =>
+      !isPredictBalanceSelected &&
+      depositAmount !== '' &&
+      Boolean(transactionMeta),
+    [depositAmount, isPredictBalanceSelected, transactionMeta],
   );
 
-  const lastEmittedDepositRef = useRef('');
-  const lastEmittedAmountHumanRef = useRef('');
+  const emissionKey = useMemo(() => {
+    const selectedTokenAddress =
+      selectedPaymentToken?.address?.toLowerCase() ?? '';
+    const selectedTokenChainId =
+      selectedPaymentToken?.chainId?.toLowerCase() ?? '';
+
+    return `${transactionMeta?.id ?? ''}:${selectedTokenAddress}:${selectedTokenChainId}`;
+  }, [
+    selectedPaymentToken?.address,
+    selectedPaymentToken?.chainId,
+    transactionMeta?.id,
+  ]);
+
+  const lastEmittedDepositRef = useRef({ key: '', value: '' });
+  const lastEmittedAmountHumanRef = useRef({ key: '', value: '' });
 
   useEffect(() => {
+    const lastEmittedDeposit = lastEmittedDepositRef.current;
+
     if (
       !hasValidDepositAmount ||
-      depositAmount === lastEmittedDepositRef.current
+      (depositAmount === lastEmittedDeposit.value &&
+        emissionKey === lastEmittedDeposit.key)
     ) {
       return;
     }
-    lastEmittedDepositRef.current = depositAmount;
+    lastEmittedDepositRef.current = {
+      key: emissionKey,
+      value: depositAmount,
+    };
     updatePendingAmount(depositAmount);
     EngineService.flushState();
-  }, [depositAmount, hasValidDepositAmount, updatePendingAmount]);
+  }, [depositAmount, emissionKey, hasValidDepositAmount, updatePendingAmount]);
 
   useEffect(() => {
+    const lastEmittedAmountHuman = lastEmittedAmountHumanRef.current;
+
     if (
       !amountHuman ||
       amountHuman === '0' ||
       !hasValidDepositAmount ||
-      amountHuman === lastEmittedAmountHumanRef.current
+      (amountHuman === lastEmittedAmountHuman.value &&
+        emissionKey === lastEmittedAmountHuman.key)
     ) {
       return;
     }
-    lastEmittedAmountHumanRef.current = amountHuman;
+    lastEmittedAmountHumanRef.current = {
+      key: emissionKey,
+      value: amountHuman,
+    };
     updateTokenAmountCallback(amountHuman);
     EngineService.flushState();
   }, [
     amountHuman,
+    emissionKey,
     updateTokenAmountCallback,
     depositAmount,
     hasValidDepositAmount,
