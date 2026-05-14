@@ -1,22 +1,20 @@
 name: 'Setup CI JS dependencies'
 description: >
-  Mounts the Namespace cache volume (node_modules + .yarn/cache) and runs
-  yarn install + yarn setup:github-ci --node only when the volume is cold.
-  On non-Namespace runners no cache is available, so install always runs.
+  Sets up node_modules and project build outputs for CI jobs.
+  On Namespace runners, mounts the shared cache volume then runs
+  yarn install --immutable to sync with the current yarn.lock.
+  On non-Namespace runners, skips install when node_modules is
+  already present from a same-run artifact; otherwise installs from scratch.
 
 inputs:
   runner_provider:
-    description: 'Runner provider. Only `namespace` benefits from cache reuse; anything else falls through to a fresh install + setup.'
+    description: 'Runner provider (`namespace` or any GitHub-hosted value).'
     required: false
     default: 'current'
 
 runs:
   using: 'composite'
   steps:
-    # Namespace mounts node_modules / .yarn/cache as a persistent volume scoped
-    # to the runner pool, so a warm volume makes the file check below find
-    # everything and skip install entirely. Cold (e.g. yarn.lock change in the
-    # pool) falls through to install, which then warms the volume for everyone.
     - name: Configure Namespace cache
       if: ${{ inputs.runner_provider == 'namespace' }}
       uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
@@ -32,20 +30,19 @@ runs:
         node-version-file: '.nvmrc'
         cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
 
-    # File-based check is the source of truth: a partial restore (e.g.
-    # node_modules present but termsOfUseContent.ts missing) still falls
-    # through to install + setup. On non-namespace runners no cache is
-    # mounted, so this always evaluates to "needs install".
+    # Namespace: always run install so the shared volume stays in sync with yarn.lock.
+    # Non-Namespace: skip install when node_modules was extracted from a same-run
+    # artifact; run install when starting from a clean workspace.
     - name: Determine if install is needed
       id: check-deps
       shell: bash
       run: |
-        if [ -d node_modules ] && [ -f app/util/termsOfUse/termsOfUseContent.ts ]; then
+        if [ "${{ inputs.runner_provider }}" != "namespace" ] && \
+           [ -d node_modules ] && \
+           [ -f app/util/termsOfUse/termsOfUseContent.ts ]; then
           echo "needs-install=false" >> "$GITHUB_OUTPUT"
-          echo "✅ node_modules + setup outputs present; skipping install"
         else
           echo "needs-install=true" >> "$GITHUB_OUTPUT"
-          echo "⚠️ node_modules or setup outputs missing; will install + setup"
         fi
 
     - name: Install Yarn dependencies with retry
