@@ -269,9 +269,9 @@ describe('useOHLCVRealtime', () => {
         jest.advanceTimersByTime(500);
       });
 
-      // Advance past staleness threshold (30s) + one check interval (15s)
+      // Advance past staleness threshold (10s) + one check interval (5s)
       await act(async () => {
-        jest.advanceTimersByTime(30_000 + 15_000);
+        jest.advanceTimersByTime(10_000 + 5_000);
       });
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -303,13 +303,13 @@ describe('useOHLCVRealtime', () => {
         jest.advanceTimersByTime(500);
       });
 
-      // Simulate a WS bar arriving at T+20s
+      // Simulate a WS bar arriving at T+7s (before staleness threshold)
       const barUpdatedHandler = mockSubscribe.mock.calls.find(
         (call) => call[0] === 'OHLCVService:barUpdated',
       )?.[1];
 
       await act(async () => {
-        jest.advanceTimersByTime(20_000);
+        jest.advanceTimersByTime(7_000);
       });
 
       await act(async () => {
@@ -327,9 +327,9 @@ describe('useOHLCVRealtime', () => {
         });
       });
 
-      // Check interval fires at T+30s (only 10s after last message)
+      // Check interval fires at T+10s (only 3s after last message - not stale)
       await act(async () => {
-        jest.advanceTimersByTime(10_000);
+        jest.advanceTimersByTime(3_000);
       });
 
       expect(mockFetch).not.toHaveBeenCalled();
@@ -367,11 +367,8 @@ describe('useOHLCVRealtime', () => {
         });
       });
 
-      // Advance to next staleness check
-      await act(async () => {
-        jest.advanceTimersByTime(15_000);
-      });
-
+      // pollLatest() is called immediately when chain goes down
+      // No need to advance time for staleness check
       expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
@@ -394,9 +391,9 @@ describe('useOHLCVRealtime', () => {
         });
       });
 
-      // Advance but not past staleness threshold from subscribe time
+      // Advance but not past staleness threshold from subscribe time (10s)
       await act(async () => {
-        jest.advanceTimersByTime(15_000);
+        jest.advanceTimersByTime(5_000);
       });
 
       expect(mockFetch).not.toHaveBeenCalled();
@@ -416,7 +413,7 @@ describe('useOHLCVRealtime', () => {
 
       // Force staleness
       await act(async () => {
-        jest.advanceTimersByTime(30_000 + 15_000);
+        jest.advanceTimersByTime(10_000 + 5_000);
       });
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -445,9 +442,18 @@ describe('useOHLCVRealtime', () => {
         jest.advanceTimersByTime(500);
       });
 
-      // Advance past staleness threshold (30s) + one check interval (15s)
+      // Simulate the subscriptionError event that would be emitted by OHLCVService
+      const subscriptionErrorHandler = mockSubscribe.mock.calls.find(
+        (call) => call[0] === 'OHLCVService:subscriptionError',
+      )?.[1];
+
       await act(async () => {
-        jest.advanceTimersByTime(30_000 + 15_000);
+        subscriptionErrorHandler({
+          channel:
+            'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
+          error: 'WS subscribe failed',
+          operation: 'subscribe',
+        });
       });
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
