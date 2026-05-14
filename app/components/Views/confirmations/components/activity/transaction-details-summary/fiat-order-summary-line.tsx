@@ -9,32 +9,13 @@ import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import { ProgressListItem } from '../../progress-list';
 import { useFiatOrderStatus } from '../../../hooks/activity/useFiatOrderStatus';
 
-interface FiatOrderMetadata {
-  orderId?: string;
-  provider?: string;
-}
-
-type MetamaskPayMetadataWithFiatOrder = NonNullable<
-  TransactionMeta['metamaskPay']
-> & {
-  fiat?: FiatOrderMetadata;
-};
-
-export function getFiatOrderMetadata(
-  transactionMeta: TransactionMeta,
-): FiatOrderMetadata | undefined {
-  return (
-    transactionMeta.metamaskPay as MetamaskPayMetadataWithFiatOrder | undefined
-  )?.fiat;
-}
-
 export function FiatOrderSummaryLine({
   parentTransaction,
 }: {
   parentTransaction: TransactionMeta;
 }) {
   const navigation = useNavigation();
-  const fiat = getFiatOrderMetadata(parentTransaction);
+  const { fiat } = parentTransaction.metamaskPay ?? {};
   const fiatOrderId = fiat?.orderId;
   const fiatProvider = fiat?.provider;
   const walletAddress = parentTransaction.txParams.from;
