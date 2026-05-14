@@ -1,19 +1,21 @@
 import React, { useRef, useCallback } from 'react';
-import { View, Image, Text as RNText } from 'react-native';
+import { Image } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import LinearGradient from 'react-native-linear-gradient';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import {
+  Box,
   Button,
   ButtonVariant,
   ButtonSize,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import createStyles from './NewUserSheet.styles';
 import { NewUserSheetSelectorsIDs } from './NewUserSheet.testIds';
-import { useTheme } from '../../../../../util/theme';
 import FoxImage from '../../../../../images/branding/fox.png';
 
 export interface NewUserSheetProps {
@@ -39,23 +41,34 @@ function NotifCard({
   message,
   faded,
 }: NotifCardProps) {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const tw = useTailwind();
 
   const card = (
-    <View style={styles.notifCard}>
-      <View style={styles.foxTile}>
-        <Image source={FoxImage} style={styles.foxImage} resizeMode="contain" />
-      </View>
-      <View style={styles.notifTextBlock}>
-        <View style={styles.notifHeader}>
-          <RNText style={styles.notifEyebrow}>{eyebrow}</RNText>
-          <RNText style={styles.notifTimestamp}>{timestamp}</RNText>
-        </View>
-        <RNText style={styles.notifTitle}>{title}</RNText>
-        <RNText style={styles.notifMessage}>{message}</RNText>
-      </View>
-    </View>
+    <Box twClassName="flex-row items-start gap-3 rounded-[14px] bg-alternative p-3">
+      <Box twClassName="h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-default">
+        <Image
+          source={FoxImage}
+          style={tw.style('h-[22px] w-[22px]')}
+          resizeMode="contain"
+        />
+      </Box>
+      <Box twClassName="min-w-0 flex-1">
+        <Box twClassName="mb-0.5 flex-row justify-between">
+          <Text variant={TextVariant.BodyXs} twClassName="text-alternative">
+            {eyebrow}
+          </Text>
+          <Text variant={TextVariant.BodyXs} twClassName="text-alternative">
+            {timestamp}
+          </Text>
+        </Box>
+        <Text variant={TextVariant.BodySm} twClassName="font-semibold">
+          {title}
+        </Text>
+        <Text variant={TextVariant.BodySm} twClassName="mt-0.5 text-default">
+          {message}
+        </Text>
+      </Box>
+    </Box>
   );
 
   if (!faded) {
@@ -68,7 +81,7 @@ function NotifCard({
         <LinearGradient
           colors={['black', 'black', 'transparent']}
           locations={[0, 0.33, 1]}
-          style={styles.fadeMask}
+          style={tw.style('flex-1')}
         />
       }
     >
@@ -84,8 +97,6 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
   onNotNow,
   testID,
 }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const closeWithAction = useCallback((action?: () => void) => {
@@ -114,8 +125,8 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
       onClose={onClose}
       testID={testID ?? NewUserSheetSelectorsIDs.CONTAINER}
     >
-      <View style={styles.container}>
-        <View style={styles.cardsStack}>
+      <Box twClassName="px-6 pb-8 pt-6">
+        <Box twClassName="mb-6 gap-2">
           <NotifCard
             eyebrow={strings(
               'notifications.push_onboarding.new_user.preview_card_1.eyebrow',
@@ -145,23 +156,31 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
             )}
             faded
           />
-        </View>
+        </Box>
 
-        <RNText style={styles.title} testID={NewUserSheetSelectorsIDs.TITLE}>
+        <Text
+          variant={TextVariant.HeadingSm}
+          twClassName="mb-3 text-center"
+          testID={NewUserSheetSelectorsIDs.TITLE}
+        >
           {strings('notifications.push_onboarding.new_user.title')}
-        </RNText>
+        </Text>
 
-        <RNText style={styles.body} testID={NewUserSheetSelectorsIDs.BODY}>
+        <Text
+          variant={TextVariant.BodyMd}
+          twClassName="mb-6 text-center text-alternative"
+          testID={NewUserSheetSelectorsIDs.BODY}
+        >
           {strings('notifications.push_onboarding.new_user.body')}
-        </RNText>
+        </Text>
 
-        <View style={styles.buttonsContainer}>
+        <Box twClassName="gap-3">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
             onPress={handleYes}
-            style={styles.button}
+            twClassName="rounded-xl"
             testID={NewUserSheetSelectorsIDs.BUTTON_YES}
           >
             {strings('notifications.push_onboarding.new_user.button_yes')}
@@ -171,13 +190,13 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
             size={ButtonSize.Lg}
             isFullWidth
             onPress={handleNotNow}
-            style={styles.button}
+            twClassName="rounded-xl"
             testID={NewUserSheetSelectorsIDs.BUTTON_NOT_NOW}
           >
             {strings('notifications.push_onboarding.new_user.button_not_now')}
           </Button>
-        </View>
-      </View>
+        </Box>
+      </Box>
     </BottomSheet>
   );
 };

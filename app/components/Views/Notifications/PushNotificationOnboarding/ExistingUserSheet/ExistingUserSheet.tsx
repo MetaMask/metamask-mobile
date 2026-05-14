@@ -1,17 +1,17 @@
 import React, { useRef, useCallback } from 'react';
-import { View, Text as RNText } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import {
+  Box,
   Button,
   ButtonVariant,
   ButtonSize,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import createStyles from './ExistingUserSheet.styles';
 import { ExistingUserSheetSelectorsIDs } from './ExistingUserSheet.testIds';
-import { useTheme } from '../../../../../util/theme';
 
 export interface ExistingUserSheetProps {
   isVisible: boolean;
@@ -28,8 +28,6 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
   onNotNow,
   testID,
 }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const closeWithAction = useCallback((action?: () => void) => {
@@ -58,39 +56,44 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
       onClose={onClose}
       testID={testID ?? ExistingUserSheetSelectorsIDs.CONTAINER}
     >
-      <View style={styles.container}>
-        <RNText
-          style={styles.title}
+      <Box twClassName="px-6 pb-8 pt-6">
+        <Text
+          variant={TextVariant.HeadingSm}
+          twClassName="mb-3 text-center"
           testID={ExistingUserSheetSelectorsIDs.TITLE}
         >
           {strings('notifications.push_onboarding.existing_user.title')}
-        </RNText>
+        </Text>
 
-        <RNText style={styles.body} testID={ExistingUserSheetSelectorsIDs.BODY}>
+        <Text
+          variant={TextVariant.BodyMd}
+          twClassName="mb-6 text-center"
+          testID={ExistingUserSheetSelectorsIDs.BODY}
+        >
           {strings('notifications.push_onboarding.existing_user.body')}
-        </RNText>
+        </Text>
 
-        <View
-          style={styles.consentCard}
+        <Box
+          twClassName="mb-6 rounded-xl bg-alternative p-4"
           testID={ExistingUserSheetSelectorsIDs.CONSENT_CARD}
         >
-          <RNText style={styles.consentCardTitle}>
+          <Text variant={TextVariant.BodyMd} twClassName="mb-2 font-semibold">
             {strings('notifications.push_onboarding.existing_user.card_title')}
-          </RNText>
-          <RNText style={styles.consentCardDescription}>
+          </Text>
+          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
             {strings(
               'notifications.push_onboarding.existing_user.card_description',
             )}
-          </RNText>
-        </View>
+          </Text>
+        </Box>
 
-        <View style={styles.buttonsContainer}>
+        <Box twClassName="gap-3">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
             onPress={handleConfirm}
-            style={styles.button}
+            twClassName="rounded-xl"
             testID={ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM}
           >
             {strings(
@@ -102,15 +105,15 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
             size={ButtonSize.Lg}
             isFullWidth
             onPress={handleNotNow}
-            style={styles.button}
+            twClassName="rounded-xl"
             testID={ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW}
           >
             {strings(
               'notifications.push_onboarding.existing_user.button_not_now',
             )}
           </Button>
-        </View>
-      </View>
+        </Box>
+      </Box>
     </BottomSheet>
   );
 };
