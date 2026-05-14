@@ -305,7 +305,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               (() => {
                 const perpsContent = (
                   <>
-                    <PerpsSectionBase
+                    <HomepagePerpsHomeSlot
                       ref={perpsSectionRef}
                       sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
                       totalSectionsLoaded={totalSectionsLoaded}
