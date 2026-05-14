@@ -12,8 +12,6 @@ export interface UseStepperProgressResult {
   progress: ReturnType<typeof useSharedValue<number>>;
   isLastStep: boolean;
   advanceStep: () => void;
-  /** Call this to restart the progress animation for the current step. */
-  restartProgress: () => void;
   /**
    * True while the Rive transition animation is in progress.
    * Prevents rapid Continue taps from queuing overlapping animations.
@@ -88,16 +86,11 @@ export const useStepperProgress = (
     });
   }, [steps.length, progress]);
 
-  const restartProgress = useCallback(() => {
-    startProgress(currentStepIndex);
-  }, [startProgress, currentStepIndex]);
-
   return {
     currentStepIndex,
     progress,
     isLastStep,
     advanceStep,
-    restartProgress,
     isButtonDisabled,
   };
 };

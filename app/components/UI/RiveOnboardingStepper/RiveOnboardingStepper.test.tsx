@@ -8,7 +8,7 @@ import {
   __getLastMockedMethods,
   __clearLastMockedMethods,
   __mockRiveFireState,
-} from '../.././../__mocks__/rive-react-native';
+} from '../../../__mocks__/rive-react-native';
 import Logger from '../../../util/Logger';
 
 jest.mock('../../../util/Logger', () => ({

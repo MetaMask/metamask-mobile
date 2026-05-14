@@ -95,6 +95,7 @@ const RiveOnboardingStepper = ({
   const handleContinue = useCallback(() => {
     if (isLastStep) {
       onComplete();
+      hasCompletedRef.current = true;
       return;
     }
 
@@ -186,7 +187,7 @@ const RiveOnboardingStepper = ({
           size={ButtonSize.Lg}
           isInverse={buttonIsInverse}
           onPress={handleContinue}
-          isDisabled={isButtonDisabled}
+          isDisabled={isButtonDisabled || !currentStep?.buttonLabel}
           isFullWidth
           testID={RiveOnboardingStepperTestIds.FOOTER_BUTTON}
         >
