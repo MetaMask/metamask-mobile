@@ -8,4 +8,6 @@ export interface AddressCopyProps {
     left?: number;
     right?: number;
   };
+  /** Optional testID for the outer container */
+  testID?: string;
 }

@@ -96,10 +96,14 @@ jobs:
     outputs:
       fingerprint: ${{ steps.publish.outputs.fingerprint }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: actions/setup-node@v4
+      # Use the default ref (refs/pull/N/merge on pull_request, github.sha otherwise) so the
+      # fingerprint is computed against the SAME working tree that `build-android-e2e.yml`,
+      # `build-ios-e2e.yml`, and `run-e2e-workflow.yml` check out and build/test against.
+      # Posting on `pull_request.head.sha` while fingerprinting the PR head tree would let
+      # two PRs with identical heads but different merges collide on the cache key — and the
+      # native build then runs against a different (merge) tree than the one we fingerprinted.
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -115,8 +119,11 @@ jobs:
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
-          # .head.sha = PR head (pull_request events); github.sha fallback = pushed/scheduled commit
-          # (push to main, merge_group, schedule) where no PR payload exists.
+          # Commit statuses must be posted on a real commit SHA (not the merge ref).
+          # `find-reusable-build` looks up the status via `run.head_sha` from
+          # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request
+          # events and as the pushed/scheduled commit SHA otherwise — so this is the same
+          # SHA the lookup queries against.
           target-sha: ${{ github.event.pull_request.head.sha || github.sha }}
 
   dedupe:
@@ -564,7 +571,8 @@ jobs:
         run: mkdir -p tests/results
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
-      - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
+      # Namespace Linux: cap Jest workers to reduce cgroup OOM SIGKILL without tuning heap.
+      - run: yarn test:unit --shard=${{ matrix.shard }}/10${{ inputs.runner_provider == 'namespace' && ' --maxWorkers=50%' || '' }} --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: ${{ inputs.runner_provider == 'namespace' && '--max_old_space_size=12288' || '--max_old_space_size=20480' }}
       - name: Rename coverage report and extract test count for this shard
