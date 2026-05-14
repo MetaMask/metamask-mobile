@@ -14,19 +14,20 @@ import { ConnectionInfo } from '../types/connection-info';
 import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 import logger from '../services/logger';
-import NavigationService from '../../NavigationService';
-import Routes from '../../../constants/navigation/Routes';
-import {
-  createCliAuthWebviewRequest,
-  rejectCliAuthWebviewRequest,
-} from '../services/cli-auth-webview-request-registry';
+import { AgenticCliDashboardWebviewService } from '../../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
+
+const DASHBOARD_WEBVIEW_URLS = {
+  DEV_TOKEN: 'https://test-dashboard.web3auth.io/agentic/auth',
+  PROD_TOKEN: 'https://dev-dashboard.web3auth.io/agentic/auth',
+} as const;
+const DEFAULT_DASHBOARD_WEBVIEW_URL = DASHBOARD_WEBVIEW_URLS.DEV_TOKEN;
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
   showConnectionLoading(conninfo: ConnectionInfo): void {
     store.dispatch(
       showSimpleNotification({
         id: conninfo.id,
-        autodismiss: 8000,
+        autodismiss: 15000,
         title: strings('sdk_connect_v2.show_loading.title'),
         description: strings('sdk_connect_v2.show_loading.description', {
           dappName: conninfo.metadata.dapp.name,
@@ -118,29 +119,14 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
   }
 
   async requestCliAuthToken(
-    conninfo: ConnectionInfo,
+    _conninfo: ConnectionInfo,
     dashboardAccessToken: string,
+    dashboardUrl: string = DEFAULT_DASHBOARD_WEBVIEW_URL,
   ): Promise<string> {
-    const { requestId, promise } = createCliAuthWebviewRequest({
-      dashboardAccessToken,
-      dappName: conninfo.metadata.dapp.name,
+    return AgenticCliDashboardWebviewService.open({
+      dashboardUrl,
+      dashboardToken: dashboardAccessToken,
     });
-
-    try {
-      NavigationService.navigation?.navigate(Routes.WEBVIEW.MAIN, {
-        screen: Routes.WEBVIEW.CLI_AUTH,
-        params: { requestId },
-      });
-    } catch (error) {
-      rejectCliAuthWebviewRequest(
-        requestId,
-        error instanceof Error
-          ? error
-          : new Error('Failed to open CLI auth WebView'),
-      );
-    }
-
-    return promise;
   }
 
   showNotFoundError(): void {

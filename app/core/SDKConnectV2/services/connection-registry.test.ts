@@ -10,6 +10,7 @@ import Engine from '../../Engine';
 import { analytics } from '../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../Analytics';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
+import { MOCK_ENTROPY_SOURCE } from '../../../util/test/keyringControllerTestUtils';
 
 jest.mock('../adapters/host-application-adapter');
 jest.mock('../store/connection-store');
@@ -120,9 +121,17 @@ describe('ConnectionRegistry', () => {
     Engine.context.KeyringController.isUnlocked = jest
       .fn()
       .mockReturnValue(true);
+    (
+      Engine.context as unknown as {
+        AuthenticationController: { getBearerToken: jest.Mock };
+      }
+    ).AuthenticationController = {
+      getBearerToken: jest.fn().mockResolvedValue('hydra-token'),
+    };
 
     mockHostApp =
       new HostApplicationAdapter() as jest.Mocked<HostApplicationAdapter>;
+    mockHostApp.requestCliAuthToken = jest.fn().mockResolvedValue('cli-token');
     mockStore = new ConnectionStore(
       'test-prefix',
     ) as jest.Mocked<ConnectionStore>;
@@ -142,6 +151,7 @@ describe('ConnectionRegistry', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       client: {} as any,
       connect: jest.fn().mockResolvedValue(undefined),
+      sendAuthToken: jest.fn().mockResolvedValue(undefined),
       disconnect: jest.fn().mockResolvedValue(undefined),
       resume: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<Connection>;
@@ -448,6 +458,79 @@ describe('ConnectionRegistry', () => {
       );
     });
 
+    it('defers agentic-cli connection until the keyring is unlocked', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const agenticCliRequest: ConnectionRequest = {
+        ...mockConnectionRequest,
+        connectionType: {
+          name: 'agentic-cli',
+        },
+      };
+      const agenticCliDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+        JSON.stringify(agenticCliRequest),
+      )}`;
+
+      (
+        Engine.context.KeyringController.isUnlocked as jest.Mock
+      ).mockReturnValue(false);
+      Engine.controllerMessenger.unsubscribe = jest.fn();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ access_token: 'dashboard-token' }),
+      }) as jest.Mock;
+      const promise = registry.handleConnectDeeplink(agenticCliDeeplink);
+      await Promise.resolve();
+
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockConnection.connect).not.toHaveBeenCalled();
+      expect(mockHostApp.showConnectionLoading).not.toHaveBeenCalled();
+
+      const unlockHandler = (
+        Engine.controllerMessenger.subscribe as jest.Mock
+      ).mock.calls.find(
+        ([eventName]) => eventName === 'KeyringController:unlock',
+      )?.[1];
+
+      expect(unlockHandler).toBeDefined();
+      (
+        Engine.context.KeyringController.isUnlocked as jest.Mock
+      ).mockReturnValue(true);
+      unlockHandler();
+
+      await promise;
+
+      expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalledWith(
+        'KeyringController:unlock',
+        unlockHandler,
+      );
+      expect(Connection.create).toHaveBeenCalledTimes(1);
+      expect(mockConnection.connect).toHaveBeenCalledWith({
+        ...agenticCliRequest.sessionRequest,
+        mode: 'untrusted',
+      });
+      expect(mockHostApp.requestCliAuthToken).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: agenticCliRequest.sessionRequest.id,
+        }),
+        'dashboard-token',
+        undefined,
+      );
+      expect(
+        Engine.context.AuthenticationController.getBearerToken,
+      ).toHaveBeenCalledWith(MOCK_ENTROPY_SOURCE);
+      expect(mockConnection.sendAuthToken).toHaveBeenCalledWith('cli-token');
+      expect(mockStore.save).not.toHaveBeenCalled();
+      expect(mockHostApp.syncConnectionList).not.toHaveBeenCalledWith([
+        mockConnection,
+      ]);
+    });
+
     it('should handle invalid URL gracefully', async () => {
       // Given: a registry ready to handle connections
       registry = new ConnectionRegistry(
@@ -542,7 +625,6 @@ describe('ConnectionRegistry', () => {
       const connectionError = new Error('Connection failed');
       mockConnection.connect.mockRejectedValue(connectionError);
 
-      const disconnectSpy = jest.spyOn(registry, 'disconnect');
       const eventName =
         MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED.category;
 
@@ -564,9 +646,8 @@ describe('ConnectionRegistry', () => {
       expect(mockConnection.connect).toHaveBeenCalledTimes(1);
 
       // Failed connection is cleaned up properly
-      expect(disconnectSpy).toHaveBeenCalledWith(mockConnection.id);
-      expect(mockStore.delete).toHaveBeenCalledWith(mockConnection.id);
-      expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([]);
+      expect(mockConnection.disconnect).toHaveBeenCalledTimes(1);
+      expect(mockStore.delete).not.toHaveBeenCalledWith(mockConnection.id);
 
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
@@ -592,8 +673,6 @@ describe('ConnectionRegistry', () => {
           failure_reason: 'Connection failed',
         }),
       );
-
-      disconnectSpy.mockRestore();
     });
 
     it('should be idempotent and ignore duplicate deeplink calls', async () => {

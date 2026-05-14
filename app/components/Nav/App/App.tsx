@@ -22,6 +22,7 @@ import OptinMetrics from '../../UI/OptinMetrics';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
 import CliAuthWebview from '../../Views/SDK/CliAuthWebview/CliAuthWebview';
+import AgenticCliDashboardWebview from '../../Views/AgenticCliDashboardWebview';
 import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
 import {
@@ -1227,6 +1228,16 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
         component={PayWithBottomSheet}
+      />
+      <Stack.Screen
+        name={Routes.AGENTIC_CLI_DASHBOARD_WEBVIEW.CONFIRM}
+        component={AgenticCliDashboardWebview}
+        options={{
+          headerShown: true,
+          gestureEnabled: true,
+          presentation: 'modal',
+          cardStyle: { backgroundColor: importedColors.white },
+        }}
       />
     </Stack.Navigator>
   );

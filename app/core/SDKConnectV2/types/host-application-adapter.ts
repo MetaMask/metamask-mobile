@@ -66,6 +66,7 @@ export interface IHostApplicationAdapter {
   requestCliAuthToken(
     conninfo: ConnectionInfo,
     dashboardAccessToken: string,
+    dashboardUrl?: string,
   ): Promise<string>;
 
   /**

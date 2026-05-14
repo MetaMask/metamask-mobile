@@ -1,5 +1,4 @@
 import {
-  RestrictedMethodMessenger,
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
@@ -33,6 +32,7 @@ import { hmacSha512 } from '@metamask/native-utils';
 import { pbkdf2 } from '../../Encryptor';
 import I18n from '../../../../locales/i18n';
 import { ExcludedSnapEndowments, ExcludedSnapPermissions } from './permissions';
+import { getMnemonicSeed } from './utils';
 
 export type SnapPermissionSpecificationsActions =
   | ApprovalControllerAddRequestAction
@@ -90,6 +90,7 @@ export const getSnapPermissionSpecifications = (
         hmacSha512: async (key: Uint8Array, data: Uint8Array) =>
           hmacSha512(key, data),
       }),
+      getMnemonicSeed: (source?: string) => getMnemonicSeed(messenger, source),
       getPreferences: () => {
         const {
           securityAlertsEnabled,
@@ -145,6 +146,5 @@ export const getSnapPermissionSpecifications = (
       },
       ///: END:ONLY_INCLUDE_IF
     },
-    messenger as RestrictedMethodMessenger,
   ),
 });
