@@ -417,10 +417,12 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           walletAddress || depositOrder.walletAddress,
         );
 
-        addOrder({
+        const orderWithPaymentDetails = {
           ...rampsOrder,
           paymentDetails: depositOrder.paymentDetails,
-        });
+        };
+
+        addOrder(orderWithPaymentDetails);
 
         // Suppress the toast when a headless session is driving this
         // flow — the consumer handles its own notification UI. Keep
@@ -437,7 +439,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
         navigateToOrderProcessingCallback({
           orderId: rampsOrder.providerOrderId,
-          order: rampsOrder,
+          order: orderWithPaymentDetails,
         });
 
         trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
@@ -594,15 +596,17 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   walletAddress || depositOrder.walletAddress,
                 );
 
-                addOrder({
+                const orderWithPaymentDetails = {
                   ...rampsOrder,
                   paymentDetails: depositOrder.paymentDetails,
-                });
+                };
+
+                addOrder(orderWithPaymentDetails);
 
                 if (getSession(headlessSessionId)) {
                   navigateToOrderProcessingCallback({
                     orderId: rampsOrder.providerOrderId,
-                    order: rampsOrder,
+                    order: orderWithPaymentDetails,
                   });
                   return true;
                 }

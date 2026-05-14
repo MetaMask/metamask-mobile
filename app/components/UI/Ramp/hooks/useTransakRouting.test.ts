@@ -1405,7 +1405,7 @@ describe('useTransakRouting', () => {
       providerOrderId: 'order-hs',
       provider: 'transak-native',
       walletAddress: MOCK_WALLET_ADDRESS,
-      paymentDetails: {},
+      paymentDetails: { instructions: 'Wire transfer' },
     };
 
     const refreshedOrder = {
@@ -1421,6 +1421,10 @@ describe('useTransakRouting', () => {
       paymentMethod: { id: 'card' },
       network: { chainId: '1', name: 'Ethereum' },
       fiatCurrency: { symbol: 'USD' },
+    };
+    const refreshedOrderWithPaymentDetails = {
+      ...refreshedOrder,
+      paymentDetails: depositOrder.paymentDetails,
     };
 
     const runApprovedFlowHeadless = async () => {
@@ -1486,7 +1490,10 @@ describe('useTransakRouting', () => {
         });
       });
 
-      expect(onOrderCreated).toHaveBeenCalledWith('order-hs', refreshedOrder);
+      expect(onOrderCreated).toHaveBeenCalledWith(
+        'order-hs',
+        refreshedOrderWithPaymentDetails,
+      );
       expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
         reason: 'completed',
       });
@@ -1521,7 +1528,10 @@ describe('useTransakRouting', () => {
       });
 
       expect(mockAddOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ providerOrderId: 'order-hs' }),
+        expect.objectContaining({
+          providerOrderId: 'order-hs',
+          paymentDetails: depositOrder.paymentDetails,
+        }),
       );
       expect(mockTrackEvent).toHaveBeenCalledWith(
         'RAMPS_TRANSACTION_CONFIRMED',
@@ -1660,7 +1670,10 @@ describe('useTransakRouting', () => {
         );
       });
 
-      expect(onOrderCreated).toHaveBeenCalledWith('order-hs', refreshedOrder);
+      expect(onOrderCreated).toHaveBeenCalledWith(
+        'order-hs',
+        refreshedOrderWithPaymentDetails,
+      );
       expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
         reason: 'completed',
       });
