@@ -18,6 +18,7 @@ import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupported
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
 import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
+import { useFiatConfirm } from '../pay/useFiatConfirm';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -39,6 +40,7 @@ export function useTransactionConfirm() {
     transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
+  const { onFiatConfirm, isFiatPaymentSelected, orderId } = useFiatConfirm();
   const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
     useMusdConfirmNavigation();
 
@@ -91,7 +93,13 @@ export function useTransactionConfirm() {
     async (options?: {
       onError?: (error: unknown) => void;
       waitForResult?: boolean;
+      existingOrderId?: string;
     }) => {
+      if (isFiatPaymentSelected && !orderId && !options?.existingOrderId) {
+        onFiatConfirm();
+        return;
+      }
+
       if (!transactionMetadata) {
         return;
       }
@@ -151,12 +159,15 @@ export function useTransactionConfirm() {
       chainId,
       handleGasless7702,
       handleSmartTransaction,
+      isFiatPaymentSelected,
       isFullScreenConfirmation,
       isGaslessSupported,
       isGaslessSupportedSTX,
       navigation,
       musdConversionNavigateOnConfirm,
+      onFiatConfirm,
       onRequestConfirm,
+      orderId,
       selectedGasFeeToken,
       transactionMetadata,
       tryEnableEvmNetwork,

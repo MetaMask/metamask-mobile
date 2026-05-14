@@ -25,3 +25,12 @@ export {
 } from './usePredictSearch';
 
 export { usePredictCashOut } from './usePredictCashOut';
+
+export {
+  usePredictWorldCupMarkets,
+  usePredictWorldCupAvailability,
+  usePredictWorldCupAvailableTabs,
+  type UsePredictWorldCupMarketsOptions,
+  type UsePredictWorldCupAvailableTabsOptions,
+  type PredictWorldCupAvailableTab,
+} from './usePredictWorldCup';
