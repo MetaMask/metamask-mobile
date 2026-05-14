@@ -87,7 +87,7 @@ interface InfoProps {
 const Info = ({ route }: InfoProps) => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
-  const { isSigningQRObject } = useQRHardwareContext();
+  const { isSigningQRObject, signingConfirmed } = useQRHardwareContext();
   const { isDowngrade, isUpgradeOnly } = use7702TransactionType();
   // Refresh STX liveness for the transaction's network
   useRefreshSmartTransactionsLiveness(transactionMetadata?.chainId);
@@ -100,7 +100,7 @@ const Info = ({ route }: InfoProps) => {
     return <SwitchAccountType />;
   }
 
-  if (isSigningQRObject) {
+  if (isSigningQRObject && signingConfirmed) {
     return <QRInfo />;
   }
 

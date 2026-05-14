@@ -5,6 +5,7 @@ import { ApprovalType } from '@metamask/controller-utils';
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+
 import { isSignatureRequest } from '../utils/confirm';
 import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
@@ -12,6 +13,7 @@ import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
 import { useIsConfirmationFromLedgerAccount } from './useIsConfirmationFromLedgerAccount';
 import { useLedgerConfirm } from './useLedgerConfirm';
+import { useQrConfirm } from '../../../../core/HardwareWallet/hooks/useQrConfirm';
 
 export const useConfirmActions = () => {
   const {
@@ -21,8 +23,12 @@ export const useConfirmActions = () => {
   } = useApprovalRequest();
   const { onConfirm: onTransactionConfirm } = useTransactionConfirm();
   const { captureSignatureMetrics } = useSignatureMetrics();
-  const { cancelQRScanRequestIfPresent, isSigningQRObject, setScannerVisible } =
-    useQRHardwareContext();
+  const {
+    cancelQRScanRequestIfPresent,
+    isSigningQRObject,
+    setScannerVisible,
+    setSigningConfirmed,
+  } = useQRHardwareContext();
   const navigation = useNavigation();
   const approvalType = approvalRequest?.type;
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
@@ -83,7 +89,7 @@ export const useConfirmActions = () => {
     captureSignatureMetrics,
   ]);
 
-  const ledgerConfirmOptions = useMemo(
+  const sharedConfirmOptions = useMemo(
     () => ({
       onReject,
       onTransactionConfirm,
@@ -93,7 +99,8 @@ export const useConfirmActions = () => {
     [onReject, onTransactionConfirm, executeApproval, isTransactionReq],
   );
 
-  const { onConfirm: onLedgerConfirm } = useLedgerConfirm(ledgerConfirmOptions);
+  const { onConfirm: onLedgerConfirm } = useLedgerConfirm(sharedConfirmOptions);
+  const { onConfirm: onQrConfirm } = useQrConfirm(sharedConfirmOptions);
 
   const onConfirm = useCallback(async () => {
     if (isLedgerAccount) {
@@ -106,17 +113,26 @@ export const useConfirmActions = () => {
       return;
     }
 
+    if (isSigningQRObject) {
+      setSigningConfirmed();
+      setScannerVisible(true);
+      return;
+    }
+
     if (isTransactionReq) {
+      setSigningConfirmed();
       await onTransactionConfirm();
       return;
     }
 
+    setSigningConfirmed();
     await executeApproval();
   }, [
     isLedgerAccount,
     isSigningQRObject,
     isTransactionReq,
     setScannerVisible,
+    setSigningConfirmed,
     onTransactionConfirm,
     executeApproval,
     onLedgerConfirm,
