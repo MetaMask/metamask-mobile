@@ -26,13 +26,13 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { AreaChart, LineChart } from 'react-native-svg-charts';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import { usePredictSeries } from '../../hooks/usePredictSeries';
 import {
   OPEN_PREDICT_OUTCOME_STATUS,
@@ -40,7 +40,6 @@ import {
   type PredictMarket,
   type PredictOutcome,
   type PredictOutcomeToken,
-  type PredictSeries,
 } from '../../types';
 import type {
   PredictEntryPoint,
@@ -50,21 +49,22 @@ import {
   getEventStartTime,
   getCryptoSymbol,
   getVariant,
-  RECURRENCE_TO_DURATION_SECS,
 } from '../../utils/cryptoUpDown';
 import { formatPrice } from '../../utils/format';
 import {
-  findLiveMarket,
-  findNearestMarket,
-} from '../TimeSlotPicker/TimeSlotPicker.utils';
+  getCurrentSeriesWindowMs,
+  formatSeriesMarketCountdown,
+  getSeriesDurationMs,
+  getSeriesMarketProgressRemaining,
+  getSeriesMarketWindow,
+  resolvePredictSeriesMarket,
+  type PredictMarketWithSeries,
+} from '../../utils/series';
 import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { PredictCryptoUpDownMarketCardSelectorsIDs } from '../../Predict.testIds';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 
-const DEFAULT_DURATION_MS = 5 * 60 * 1000;
-const MARKET_WINDOW_LOOKBACK = 3;
-const MARKET_WINDOW_LOOKAHEAD = 10;
 const SPARKLINE_POINT_LIMIT = 48;
 const SPARKLINE_HEIGHT = 126;
 const SPARKLINE_RANGE_PADDING_RATIO = 0.12;
@@ -87,8 +87,6 @@ const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
 };
 const SPARKLINE_CURVE = curveCatmullRom.alpha(0.35);
 
-type PredictMarketWithSeries = PredictMarket & { series: PredictSeries };
-
 interface PredictCryptoUpDownMarketCardProps {
   market: PredictMarketWithSeries;
   testID?: string;
@@ -99,19 +97,6 @@ interface PredictCryptoUpDownMarketCardProps {
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: (marketId: string) => void;
 }
-
-const getDurationMs = (market: PredictMarketWithSeries) => {
-  const durationSecs = RECURRENCE_TO_DURATION_SECS[market.series.recurrence];
-  return durationSecs ? durationSecs * 1000 : DEFAULT_DURATION_MS;
-};
-
-const getCurrentWindowMs = (durationMs: number) => {
-  const now = Date.now();
-  if (!Number.isFinite(now) || durationMs <= 0) {
-    return 0;
-  }
-  return Math.floor(now / durationMs) * durationMs;
-};
 
 const getOpenOutcome = (market: PredictMarket): PredictOutcome | undefined =>
   market.outcomes.find(
@@ -146,62 +131,6 @@ const formatCents = (price?: number) => {
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
-
-const formatCountdown = (endDate?: string, nowMs = Date.now()) => {
-  if (!endDate) {
-    return '--:--';
-  }
-
-  const remainingMs = new Date(endDate).getTime() - nowMs;
-  if (!Number.isFinite(remainingMs) || remainingMs <= 0) {
-    return '00:00';
-  }
-
-  const totalSeconds = Math.ceil(remainingMs / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-};
-
-const getProgressRemaining = (
-  endDate: string | undefined,
-  durationMs: number,
-  nowMs: number,
-) => {
-  if (!endDate || durationMs <= 0) {
-    return 0;
-  }
-
-  const remainingMs = new Date(endDate).getTime() - nowMs;
-  if (!Number.isFinite(remainingMs)) {
-    return 0;
-  }
-
-  return Math.max(0, Math.min(remainingMs / durationMs, 1));
-};
-
-const attachSeries = (
-  market: PredictMarket,
-  series: PredictSeries,
-): PredictMarketWithSeries => ({
-  ...market,
-  series: market.series ?? series,
-});
-
-const resolveSelectedMarket = (
-  sourceMarket: PredictMarketWithSeries,
-  seriesMarkets?: PredictMarket[],
-) => {
-  if (!seriesMarkets?.length) {
-    return sourceMarket;
-  }
-
-  const liveMarket = findLiveMarket(seriesMarkets);
-  return attachSeries(
-    liveMarket ?? findNearestMarket(seriesMarkets) ?? sourceMarket,
-    sourceMarket.series,
-  );
-};
 
 const getSparklineDisplayData = (data: number[]) =>
   data.length >= 2 ? data : FALLBACK_SPARKLINE_DATA;
@@ -441,6 +370,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   const { colors } = useTheme();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { navigateToMarketDetails } = usePredictNavigation();
   const { openBuySheet } = usePredictPreviewSheet();
   const contextEntryPoint = usePredictEntryPoint();
   const baseEntryPoint =
@@ -452,20 +382,20 @@ const PredictCryptoUpDownMarketCard: React.FC<
     ? PredictEventValues.ENTRY_POINT.TRENDING
     : baseEntryPoint;
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
-  const durationMs = getDurationMs(market);
+  const durationMs = getSeriesDurationMs(market.series.recurrence);
   const [windowMs, setWindowMs] = useState(() =>
-    getCurrentWindowMs(durationMs),
+    getCurrentSeriesWindowMs(durationMs),
   );
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   useEffect(() => {
-    setWindowMs(getCurrentWindowMs(durationMs));
+    setWindowMs(getCurrentSeriesWindowMs(durationMs));
   }, [durationMs]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setNowMs(Date.now());
-      const nextWindowMs = getCurrentWindowMs(durationMs);
+      const nextWindowMs = getCurrentSeriesWindowMs(durationMs);
       setWindowMs((currentWindowMs) =>
         currentWindowMs === nextWindowMs ? currentWindowMs : nextWindowMs,
       );
@@ -477,12 +407,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   const seriesQueryParams = useMemo(
     () => ({
       seriesId: market.series.id,
-      endDateMin: new Date(
-        windowMs - MARKET_WINDOW_LOOKBACK * durationMs,
-      ).toISOString(),
-      endDateMax: new Date(
-        windowMs + MARKET_WINDOW_LOOKAHEAD * durationMs,
-      ).toISOString(),
+      ...getSeriesMarketWindow({ anchorMs: windowMs, durationMs }),
     }),
     [durationMs, market.series.id, windowMs],
   );
@@ -490,7 +415,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   const { data: seriesMarkets, isLoading: isSeriesLoading } =
     usePredictSeries(seriesQueryParams);
   const selectedMarket = useMemo(
-    () => resolveSelectedMarket(market, seriesMarkets),
+    () => resolvePredictSeriesMarket(market, seriesMarkets),
     [market, seriesMarkets],
   );
   const selectedOutcome = useMemo(
@@ -572,8 +497,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
     latestPrice > validatedTargetPrice
       ? IconName.ArrowDown
       : IconName.ArrowUp;
-  const countdown = formatCountdown(selectedMarket.endDate, nowMs);
-  const progressRemaining = getProgressRemaining(
+  const countdown = formatSeriesMarketCountdown(selectedMarket.endDate, nowMs);
+  const progressRemaining = getSeriesMarketProgressRemaining(
     selectedMarket.endDate,
     durationMs,
     nowMs,
@@ -587,22 +512,24 @@ const PredictCryptoUpDownMarketCard: React.FC<
 
   const handleCardPress = useCallback(() => {
     onCardPress?.();
-    navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_DETAILS,
-      params: {
+    navigateToMarketDetails(
+      {
         marketId: selectedMarket.id,
+        series: selectedMarket.series,
         entryPoint: resolvedEntryPoint,
         title: cardTitle,
         image: imageUrl,
       },
-    });
+      { throughRoot: true },
+    );
   }, [
     cardTitle,
     imageUrl,
-    navigation,
+    navigateToMarketDetails,
     onCardPress,
     resolvedEntryPoint,
     selectedMarket.id,
+    selectedMarket.series,
   ]);
 
   const handleBuyPress = useCallback(

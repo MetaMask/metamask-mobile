@@ -41,6 +41,7 @@ import {
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { useCurrentPredictMarketFromSeries } from '../../hooks/useCurrentPredictMarketFromSeries';
 import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
 import PredictGameDetailsContent from '../../components/PredictGameDetailsContent';
 import PredictCryptoUpDownDetails from '../../components/PredictCryptoUpDownDetails';
@@ -80,9 +81,31 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
 
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
-  const { marketId, entryPoint, title, image, transactionActiveAbTests } =
-    route.params || {};
-  const resolvedMarketId = marketId;
+  const {
+    marketId,
+    series,
+    seriesId,
+    seriesRecurrence,
+    entryPoint,
+    title,
+    image,
+    transactionActiveAbTests,
+  } = route.params || {};
+  const shouldResolveMarketFromSeries =
+    !marketId && Boolean(series?.id ?? seriesId);
+  const {
+    market: currentSeriesMarket,
+    marketId: currentSeriesMarketId,
+    isLoading: isCurrentSeriesMarketLoading,
+    isFetching: isCurrentSeriesMarketFetching,
+    refetch: refetchCurrentSeriesMarket,
+  } = useCurrentPredictMarketFromSeries({
+    series,
+    seriesId,
+    seriesRecurrence,
+    enabled: shouldResolveMarketFromSeries,
+  });
+  const resolvedMarketId = marketId ?? currentSeriesMarketId;
 
   const { executeGuardedAction } = usePredictActionGuard({
     navigation,
@@ -97,26 +120,37 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     id: resolvedMarketId ?? '',
     enabled: Boolean(resolvedMarketId),
   });
-  const market = marketData ?? null;
+  const market = marketData ?? currentSeriesMarket ?? null;
+  const isResolvingMarketFromSeries =
+    shouldResolveMarketFromSeries &&
+    !resolvedMarketId &&
+    isCurrentSeriesMarketLoading;
+  const isResolvedMarketLoading =
+    isMarketLoading || isResolvingMarketFromSeries;
+  const isResolvedMarketFetching =
+    isMarketFetching || isCurrentSeriesMarketFetching;
 
   // Track screen load performance (market details + chart)
   usePredictMeasurement({
     traceName: TraceName.PredictMarketDetailsView,
-    conditions: [!isMarketFetching, !!market, !isRefreshing],
+    conditions: [!isResolvedMarketFetching, !!market, !isRefreshing],
     debugContext: {
       marketId: market?.id,
       hasMarket: !!market,
-      loadingStates: { isMarketFetching, isRefreshing },
+      loadingStates: {
+        isMarketFetching: isResolvedMarketFetching,
+        isRefreshing,
+      },
     },
   });
 
   // calculate sticky header indices based on content structure
   const stickyHeaderIndices = useMemo(() => {
-    if (isMarketLoading) {
+    if (isResolvedMarketLoading) {
       return [];
     }
     return [1];
-  }, [isMarketLoading]);
+  }, [isResolvedMarketLoading]);
 
   const titleLineCount = useMemo(
     () => estimateLineCount(title ?? market?.title),
@@ -132,7 +166,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     marketId: resolvedMarketId,
     childMarketIds: market?.childMarketIds,
     claimable: false,
-    enabled: !isMarketLoading && Boolean(resolvedMarketId),
+    enabled: !isResolvedMarketLoading && Boolean(resolvedMarketId),
     livePriceUpdates: true,
   });
 
@@ -145,7 +179,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     marketId: resolvedMarketId,
     childMarketIds: market?.childMarketIds,
     claimable: true,
-    enabled: !isMarketLoading && Boolean(resolvedMarketId),
+    enabled: !isResolvedMarketLoading && Boolean(resolvedMarketId),
   });
 
   const feeCollectionConfig = useSelector(selectPredictFeeCollectionFlag);
@@ -157,10 +191,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   // Tabs become ready when both market and positions queries have resolved
   const tabsReady = useMemo(
     () =>
-      !isMarketLoading &&
+      !isResolvedMarketLoading &&
       !isActivePositionsLoading &&
       !isClaimablePositionsLoading,
-    [isMarketLoading, isActivePositionsLoading, isClaimablePositionsLoading],
+    [
+      isResolvedMarketLoading,
+      isActivePositionsLoading,
+      isClaimablePositionsLoading,
+    ],
   );
 
   const {
@@ -188,7 +226,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
     market,
-    isMarketFetching,
+    isMarketFetching: isResolvedMarketFetching,
   });
 
   const handleBackPress = () => {
@@ -254,6 +292,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     await Promise.allSettled([
+      ...(shouldResolveMarketFromSeries ? [refetchCurrentSeriesMarket()] : []),
       refetchMarket(),
       refetchPriceHistory(),
       refetchActivePositions(),
@@ -262,9 +301,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     setIsRefreshing(false);
   }, [
     refetchActivePositions,
+    refetchCurrentSeriesMarket,
     refetchMarket,
     refetchPriceHistory,
     refetchClaimablePositions,
+    shouldResolveMarketFromSeries,
   ]);
 
   const handlePolymarketResolution = useCallback(() => {
@@ -381,7 +422,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         onClaimPress={handleClaimPress}
         isClaimablePositionsLoading={isClaimablePositionsLoading}
         hasPositivePnl={hasPositivePnl}
-        isMarketLoading={isMarketLoading}
+        isMarketLoading={isResolvedMarketLoading}
         isClaimPending={isClaimPending}
       />
     );
@@ -412,7 +453,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       testID={PredictMarketDetailsSelectorsIDs.SCREEN}
     >
       <PredictMarketDetailsHeader
-        isLoading={isMarketLoading}
+        isLoading={isResolvedMarketLoading}
         market={market}
         title={title}
         image={image}
@@ -458,7 +499,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         </Box>
 
         {/* Show content skeleton while initial market data is fetching */}
-        {isMarketLoading ? (
+        {isResolvedMarketLoading ? (
           <Box twClassName="px-3">
             <PredictDetailsContentSkeleton />
           </Box>
@@ -472,7 +513,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         )}
 
         {/* Tab content - only show when market is loaded */}
-        {!isMarketLoading && market && (
+        {!isResolvedMarketLoading && market && (
           <PredictMarketDetailsTabContent
             activeTab={activeTab}
             tabsReady={tabsReady}
@@ -504,7 +545,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         hasPositivePnl={hasPositivePnl}
         marketStatus={market?.status as PredictMarketStatus | undefined}
         singleOutcomeMarket={singleOutcomeMarket}
-        isMarketLoading={isMarketLoading}
+        isMarketLoading={isResolvedMarketLoading}
         market={market}
         openOutcomes={openOutcomes}
         yesPercentage={yesPercentage}

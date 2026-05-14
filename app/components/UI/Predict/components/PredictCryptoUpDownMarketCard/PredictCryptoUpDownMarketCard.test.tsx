@@ -205,6 +205,7 @@ describe('PredictCryptoUpDownMarketCard', () => {
       screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
         marketId: 'market-live',
+        series: SERIES,
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
         title: 'BTC Up or Down - 5 Minutes',
         image: 'https://example.com/btc.png',

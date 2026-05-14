@@ -192,6 +192,16 @@ jest.mock('../../hooks/usePredictMarket', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useCurrentPredictMarketFromSeries', () => ({
+  useCurrentPredictMarketFromSeries: jest.fn(() => ({
+    market: undefined,
+    marketId: undefined,
+    isLoading: false,
+    isFetching: false,
+    refetch: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/usePredictPriceHistory', () => ({
   usePredictPriceHistory: jest.fn(() => ({
     priceHistories: [],
@@ -501,6 +511,7 @@ const isSplitPositionsOverride = (
 
 interface HookOverrides {
   market?: HookOverrideShape;
+  currentSeriesMarket?: HookOverrideShape;
   priceHistory?: HookOverrideShape;
   positions?: PositionsOverride;
   eligibility?: HookOverrideShape;
@@ -560,6 +571,9 @@ function setupPredictMarketDetailsTest(
   mockUseRoute.mockReturnValue(mockRoute);
 
   const { usePredictMarket } = jest.requireMock('../../hooks/usePredictMarket');
+  const { useCurrentPredictMarketFromSeries } = jest.requireMock(
+    '../../hooks/useCurrentPredictMarketFromSeries',
+  );
   const { usePredictPriceHistory } = jest.requireMock(
     '../../hooks/usePredictPriceHistory',
   );
@@ -585,6 +599,15 @@ function setupPredictMarketDetailsTest(
     isFetching: false,
     refetch: jest.fn(),
     ...hookOverrides.market,
+  });
+
+  useCurrentPredictMarketFromSeries.mockReturnValue({
+    market: undefined,
+    marketId: undefined,
+    isLoading: false,
+    isFetching: false,
+    refetch: jest.fn(),
+    ...hookOverrides.currentSeriesMarket,
   });
 
   usePredictPriceHistory.mockReturnValue({
@@ -786,6 +809,49 @@ describe('PredictMarketDetails', () => {
           PredictMarketDetailsSelectorsIDs.DETAILS_BUTTONS_SKELETON_BUTTON_1,
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('resolves the details market from route series params', () => {
+      const routeSeries = {
+        id: 'btc-series',
+        slug: 'btc-up-or-down-5m',
+        title: 'BTC Up or Down',
+        recurrence: '5m',
+      };
+      const liveMarket = createMockMarket({
+        id: 'live-market',
+        series: routeSeries,
+      });
+
+      setupPredictMarketDetailsTest(
+        {},
+        { params: { series: routeSeries } },
+        {
+          currentSeriesMarket: {
+            market: liveMarket,
+            marketId: liveMarket.id,
+          },
+          market: { data: liveMarket },
+        },
+      );
+
+      const { useCurrentPredictMarketFromSeries } = jest.requireMock(
+        '../../hooks/useCurrentPredictMarketFromSeries',
+      );
+      const { usePredictMarket } = jest.requireMock(
+        '../../hooks/usePredictMarket',
+      );
+
+      expect(useCurrentPredictMarketFromSeries).toHaveBeenCalledWith({
+        series: routeSeries,
+        seriesId: undefined,
+        seriesRecurrence: undefined,
+        enabled: true,
+      });
+      expect(usePredictMarket).toHaveBeenCalledWith({
+        id: liveMarket.id,
+        enabled: true,
+      });
     });
 
     it('displays fallback title when market data is unavailable', () => {

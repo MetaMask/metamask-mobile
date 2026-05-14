@@ -50,11 +50,17 @@ export interface UseCryptoUpDownChartDataResult {
   window: number;
 }
 
+interface UseCryptoUpDownChartDataOptions {
+  enabled?: boolean;
+}
+
 export const useCryptoUpDownChartData = (
   market: PredictMarket & { series: PredictSeries },
   chartRef?: RefObject<LivelineChartRef | null>,
   targetPrice?: number,
+  options: UseCryptoUpDownChartDataOptions = {},
 ): UseCryptoUpDownChartDataResult => {
+  const enabled = options.enabled ?? true;
   const symbol = getCryptoSymbol(market);
   const recurrence = market.series.recurrence;
   const variant = getVariant(recurrence);
@@ -68,7 +74,9 @@ export const useCryptoUpDownChartData = (
       ? marketEndDateMs
       : undefined;
   const isLiveByEndDate =
-    typeof liveEndDateMs === 'number' ? Date.now() < liveEndDateMs : false;
+    enabled && typeof liveEndDateMs === 'number'
+      ? Date.now() < liveEndDateMs
+      : false;
 
   const [frozenMarketId, setFrozenMarketId] = useState<string>();
   const hasFrozenLiveData = frozenMarketId === market.id;
@@ -176,7 +184,8 @@ export const useCryptoUpDownChartData = (
 
   const isLive = isLiveByEndDate && !hasFrozenLiveData;
 
-  const wsSymbol = isLive && symbol ? `${symbol.toLowerCase()}/usd` : '';
+  const wsSymbol =
+    enabled && isLive && symbol ? `${symbol.toLowerCase()}/usd` : '';
 
   useLiveCryptoPrices(wsSymbol, handleLiveUpdate);
 
@@ -189,7 +198,7 @@ export const useCryptoUpDownChartData = (
       variant,
       endDate: historyEndDate,
     }),
-    enabled: !!symbol && !!eventStartTime,
+    enabled: enabled && !!symbol && !!eventStartTime,
     staleTime: isLive ? 1000 : Infinity,
     refetchOnMount: isLive ? 'always' : false,
     refetchInterval: isLive ? 10000 : false,
@@ -266,6 +275,16 @@ export const useCryptoUpDownChartData = (
       setLiveValue(historicalValue);
     }
   }, [historicalValue, isCurrentMarket, isLive]);
+
+  if (!enabled) {
+    return {
+      data: EMPTY_DATA,
+      value: 0,
+      loading: false,
+      isLive: false,
+      window: durationSecs,
+    };
+  }
 
   if (!isCurrentMarket && isLive) {
     return {
