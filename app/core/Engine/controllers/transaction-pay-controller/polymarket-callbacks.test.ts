@@ -92,15 +92,15 @@ describe('createPolymarketCallbacks', () => {
 
     it('signs typed and personal messages via the init messenger', async () => {
       const initMessenger = buildInitMessenger();
-      initMessenger.call.mockImplementation((action: string) => {
+      initMessenger.call.mockImplementation(((action: string) => {
         if (action === 'KeyringController:signTypedMessage') {
           return Promise.resolve('0xtyped');
         }
         if (action === 'KeyringController:signPersonalMessage') {
           return Promise.resolve('0xpersonal');
         }
-        return undefined as never;
-      });
+        return undefined;
+      }) as never);
       const callbacks = createPolymarketCallbacks(initMessenger);
 
       await callbacks.submitDepositWalletBatch({

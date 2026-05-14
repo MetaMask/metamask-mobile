@@ -388,7 +388,9 @@ describe('TransactionController Selectors', () => {
         pendingSmartTransactionsForGroup: [],
       } as unknown as RootState;
 
-      const ids = selectLocalTransactions(state).map((t) => t.id);
+      const ids = selectLocalTransactions(state).map(
+        (t) => (t as { id: string }).id,
+      );
 
       expect(ids).toContain('tx-a');
       expect(ids).toContain('tx-b');
