@@ -79,7 +79,6 @@ const mockStore = configureStore({
         TokensController: {
           allTokens: {},
           allIgnoredTokens: {},
-          allDetectedTokens: {},
         },
         CurrencyRateController: {
           currentCurrency: 'usd',

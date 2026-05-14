@@ -67,13 +67,9 @@ const captureKeyringTypesWithMissingIdentities = (
 
   const internalAccountCount = internalAccounts.length;
 
-  const accountTrackerCount = Object.keys(
-    Engine.context.AccountTrackerController.state.accounts || {},
-  ).length;
-
   captureException(
     new Error(
-      `Attempt to get permission specifications failed because there were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`,
+      `Attempt to get permission specifications failed because there were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities.`,
     ),
   );
 };

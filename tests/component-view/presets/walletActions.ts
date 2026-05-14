@@ -53,7 +53,6 @@ export const initialStateWalletActions = (
           TokenBalancesController: { tokenBalances: {} },
           TokensController: {
             allTokens: {},
-            allDetectedTokens: {},
             allIgnoredTokens: {},
           },
           CurrencyRateController: {

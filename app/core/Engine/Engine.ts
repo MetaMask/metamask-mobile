@@ -1125,14 +1125,13 @@ export class Engine {
    */
   hasFunds = () => {
     try {
-      const {
-        engine: { backgroundState },
-      } = store.getState();
       // TODO: Check `allNfts[currentChainId]` property instead
       // @ts-expect-error This property does not exist
       const nfts = backgroundState.NftController.nfts;
 
-      const { tokenBalances } = backgroundState.TokenBalancesController;
+      const tokenBalances = getTokenBalancesControllerTokenBalances(
+        store.getState(),
+      );
 
       const hasNonZeroTokenBalance = (): boolean => {
         for (const chains of Object.values(tokenBalances)) {

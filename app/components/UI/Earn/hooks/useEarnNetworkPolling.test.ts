@@ -91,32 +91,6 @@ describe('useEarnNetworkPolling', () => {
         PreferencesController: {
           useTokenDetection: true,
         },
-        TokensController: {
-          allDetectedTokens: {
-            '0x1': {
-              [mockSelectedAccount.address]: {
-                '0x123': {
-                  address: '0x123',
-                  symbol: 'TEST',
-                  decimals: 18,
-                  image: 'test-image.png',
-                  name: 'Test Token',
-                },
-              },
-            },
-            '0x89': {
-              [mockSelectedAccount.address]: {
-                '0x456': {
-                  address: '0x456',
-                  symbol: 'TEST2',
-                  decimals: 6,
-                  image: 'test2-image.png',
-                  name: 'Test Token 2',
-                },
-              },
-            },
-          },
-        },
       },
     },
   } as unknown as RootState;
@@ -264,30 +238,6 @@ describe('useEarnNetworkPolling', () => {
       ],
       'mainnet',
     );
-  });
-
-  it('should not call addTokens when no detected tokens', async () => {
-    const stateWithoutDetectedTokens = {
-      ...mockState,
-      engine: {
-        ...mockState.engine,
-        backgroundState: {
-          ...mockState.engine.backgroundState,
-          TokensController: {
-            allDetectedTokens: {},
-          },
-        },
-      },
-    } as unknown as RootState;
-
-    renderHookWithProvider(() => useEarnNetworkPolling(), {
-      state: stateWithoutDetectedTokens,
-    });
-
-    // Wait for async operations to complete
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    expect(mockAddTokens).not.toHaveBeenCalled();
   });
 
   it('should pass empty chainIds to useTokenDetectionPolling when useTokenDetection is false', () => {
