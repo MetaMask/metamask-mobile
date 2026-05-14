@@ -57,6 +57,7 @@ const PaidByMetaMask = () => (
         textAlign: 'center',
         bottom: 1,
         fontWeight: 'normal',
+        testID: 'paid-by-metamask',
       },
     }}
   >
