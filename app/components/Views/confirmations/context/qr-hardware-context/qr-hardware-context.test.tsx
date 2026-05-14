@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text, View } from 'react-native';
 import { userEvent } from '@testing-library/react-native';
 
 import { ConfirmationFooterSelectorIDs } from '../../ConfirmationView.testIds';
@@ -55,7 +56,58 @@ jest.mock('../../../../../core/HardwareWallet', () => ({
   isUserCancellation: jest.fn().mockReturnValue(false),
 }));
 
+jest.mock('../../../../../core/HardwareWallet/contexts', () => ({
+  useHardwareWallet: jest.fn(() => ({
+    ensureDeviceReady: jest.fn().mockResolvedValue(true),
+    showAwaitingConfirmation: jest.fn(),
+    hideAwaitingConfirmation: jest.fn(),
+    showHardwareWalletError: jest.fn(),
+    setQrScanRetryHandler: jest.fn(),
+  })),
+}));
+
+jest.mock(
+  '../../../../../core/HardwareWallet/hooks/useQrScanErrorForwarding',
+  () => ({
+    useQrScanErrorForwarding: jest.fn(() => ({
+      onQRHardwareScanError: jest.fn(),
+      handleScannerModalHide: jest.fn(),
+    })),
+  }),
+);
+
+const MockView = View;
+const MockText = Text;
+
+jest.mock('../../../../UI/QRHardware/AnimatedQRScanner', () => ({
+  __esModule: true,
+  default: ({ visible }: { visible: boolean }) =>
+    visible ? (
+      <MockView>
+        <MockText>
+          Scan your hardware wallet to confirm the transaction
+        </MockText>
+      </MockView>
+    ) : null,
+}));
+
+jest.mock('../../../../UI/QRHardware/AnimatedQRCode', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('../../hooks/gas/useGasFeeToken');
+
+jest.mock('../../hooks/useIsConfirmationFromLedgerAccount', () => ({
+  useIsConfirmationFromLedgerAccount: jest.fn(() => false),
+}));
+
+jest.mock(
+  '../../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount',
+  () => ({
+    useIsConfirmationFromQrAccount: jest.fn(() => true),
+  }),
+);
 
 jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
   useFullScreenConfirmation: jest.fn(() => ({

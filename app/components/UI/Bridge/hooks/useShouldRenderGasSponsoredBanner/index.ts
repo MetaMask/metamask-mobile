@@ -4,6 +4,7 @@ import {
   selectSourceToken,
   selectDestToken,
 } from '../../../../../core/redux/slices/bridge';
+import { useIsHardwareWalletForBridge } from '../useIsHardwareWalletForBridge';
 
 interface Props {
   quoteGasSponsored?: boolean;
@@ -16,6 +17,7 @@ export const useShouldRenderGasSponsoredBanner = ({
 }: Props) => {
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const isHardwareWallet = useIsHardwareWalletForBridge();
   const isNetworkGasSponsored = useIsNetworkGasSponsored(sourceToken?.chainId);
 
   // Sponsorship only applies to same-chain (swap) flows; cross-chain bridges
@@ -27,8 +29,9 @@ export const useShouldRenderGasSponsoredBanner = ({
   );
 
   const shouldShowGasSponsored =
-    quoteGasSponsored ||
-    (hasInsufficientBalance && isNetworkGasSponsored && isSameChain);
+    !isHardwareWallet &&
+    (quoteGasSponsored ||
+      (hasInsufficientBalance && isNetworkGasSponsored && isSameChain));
 
   return shouldShowGasSponsored;
 };

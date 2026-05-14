@@ -5963,10 +5963,56 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       // PR #25334: Builder fee approval is now non-blocking (fire-and-forget)
-      // to prevent QR popup spam for hardware wallets.
+      // to prevent repeated signing prompts for hardware wallets.
       // Order should proceed even if builder fee approval fails.
       expect(result.success).toBe(true);
       expect(result.orderId).toBeDefined();
+    });
+
+    it('leaves builder fee cache empty when wrapped KEYRING_LOCKED is thrown', async () => {
+      const wrappedKeyringLockedError = Object.assign(
+        new Error('Failed to sign typed data with viem wallet'),
+        { cause: new Error('KEYRING_LOCKED') },
+      );
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          maxBuilderFee: jest.fn().mockResolvedValue(0),
+          referral: jest.fn().mockResolvedValue({
+            referrerState: {
+              stage: 'not_ready',
+              data: null,
+            },
+          }),
+        }),
+      );
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          approveBuilderFee: jest
+            .fn()
+            .mockRejectedValue(wrappedKeyringLockedError),
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(true);
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setBuilderFee,
+      ).not.toHaveBeenCalled();
+      expect(mockCompleteInFlight).toHaveBeenCalled();
     });
 
     it('handles referral code setup failure (non-blocking)', async () => {
@@ -6005,6 +6051,53 @@ describe('HyperLiquidProvider', () => {
       // Referral setup is now non-blocking (fire-and-forget), so order should succeed
       expect(result.success).toBe(true);
       expect(result.orderId).toBeDefined();
+    });
+
+    it('leaves referral cache empty when wrapped KEYRING_LOCKED is thrown', async () => {
+      const wrappedKeyringLockedError = Object.assign(
+        new Error('Failed to sign typed data with viem wallet'),
+        { cause: new Error('KEYRING_LOCKED') },
+      );
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          maxBuilderFee: jest.fn().mockResolvedValue(1),
+          referral: jest.fn().mockResolvedValue({
+            referrerState: {
+              stage: 'ready',
+              data: { code: REFERRAL_CONFIG.MainnetCode },
+            },
+            referredBy: null,
+          }),
+        }),
+      );
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          setReferrer: jest.fn().mockRejectedValue(wrappedKeyringLockedError),
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(result.success).toBe(true);
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setReferral,
+      ).not.toHaveBeenCalled();
+      expect(mockCompleteInFlight).toHaveBeenCalled();
     });
 
     it('skips referral setup when referral code is not ready', async () => {
@@ -8957,12 +9050,12 @@ describe('HyperLiquidProvider', () => {
     });
 
     // ─────────────────────────────────────────────────
-    // dexAbstraction → unifiedAccount migration on init
+    // Signing-backed unifiedAccount migration on init
     //
-    // The transition requires an EIP-712 prompt (HL blocks the agent path),
-    // so software-wallet users migrate during initial setup to ensure the
-    // first trade sees unified collateral. Hardware wallets remain deferred
-    // to avoid QR / Ledger prompt spam while browsing.
+    // Some transitions require an EIP-712 prompt, so software-wallet users
+    // migrate during initial setup to ensure the first trade sees unified
+    // collateral. Hardware wallets remain deferred to avoid repeated signing
+    // prompts while browsing.
     // ─────────────────────────────────────────────────
 
     it('calls userSetAbstraction on init for software-wallet dexAbstraction users', async () => {
@@ -9100,33 +9193,36 @@ describe('HyperLiquidProvider', () => {
       ).toHaveBeenCalledWith(USER_ADDRESS, 'unifiedAccount');
     });
 
-    it('defers dexAbstraction migration on init for hardware wallets', async () => {
-      // Arrange
-      mockWalletService.isSelectedHardwareWallet.mockReturnValue(true);
-      const mockExchangeClient = createMockExchangeClient();
-      mockClientService.getInfoClient = jest.fn().mockReturnValue(
-        createMockInfoClient({
-          userAbstraction: jest.fn().mockResolvedValue('dexAbstraction'),
-        }),
-      );
-      mockClientService.getExchangeClient = jest
-        .fn()
-        .mockReturnValue(mockExchangeClient);
+    it.each(['dexAbstraction', 'default', 'disabled'] as const)(
+      'defers %s migration on init for hardware wallets',
+      async (currentMode) => {
+        // Arrange
+        mockWalletService.isSelectedHardwareWallet.mockReturnValue(true);
+        const mockExchangeClient = createMockExchangeClient();
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            userAbstraction: jest.fn().mockResolvedValue(currentMode),
+          }),
+        );
+        mockClientService.getExchangeClient = jest
+          .fn()
+          .mockReturnValue(mockExchangeClient);
 
-      // Act - init path
-      await provider.getMarketDataWithPrices();
+        // Act - init path
+        await provider.getMarketDataWithPrices();
 
-      // Assert - no browsing-time hardware prompt; action-time setup can still run.
-      expect(mockExchangeClient.userSetAbstraction).not.toHaveBeenCalled();
-      expect(mockExchangeClient.agentSetAbstraction).not.toHaveBeenCalled();
-      expect(
-        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
-          .set,
-      ).not.toHaveBeenCalled();
-      expect(
-        mockSubscriptionService.setUserAbstractionMode,
-      ).not.toHaveBeenCalled();
-    });
+        // Assert - no browsing-time hardware prompt; action-time setup can still run.
+        expect(mockExchangeClient.userSetAbstraction).not.toHaveBeenCalled();
+        expect(mockExchangeClient.agentSetAbstraction).not.toHaveBeenCalled();
+        expect(
+          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+            .set,
+        ).not.toHaveBeenCalled();
+        expect(
+          mockSubscriptionService.setUserAbstractionMode,
+        ).not.toHaveBeenCalled();
+      },
+    );
 
     it('does NOT call setUserAbstractionMode when migration fails', async () => {
       const mockExchangeClient = createMockExchangeClient();
@@ -9322,6 +9418,41 @@ describe('HyperLiquidProvider', () => {
       // Sentry NOT called
       expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
       // In-flight lock still released
+      expect(mockCompleteInFlight).toHaveBeenCalled();
+    });
+
+    it('does NOT cache or log to Sentry when a wrapped KEYRING_LOCKED error is thrown', async () => {
+      // Arrange
+      const wrappedKeyringLockedError = Object.assign(
+        new Error('Failed to sign typed data with viem wallet'),
+        { cause: new Error('KEYRING_LOCKED') },
+      );
+      const mockExchangeClient = createMockExchangeClient();
+      mockExchangeClient.agentSetAbstraction = jest
+        .fn()
+        .mockRejectedValue(wrappedKeyringLockedError);
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(mockExchangeClient);
+
+      // Act
+      await provider.getMarketDataWithPrices();
+
+      // Assert
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .set,
+      ).not.toHaveBeenCalled();
+      expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
       expect(mockCompleteInFlight).toHaveBeenCalled();
     });
 
