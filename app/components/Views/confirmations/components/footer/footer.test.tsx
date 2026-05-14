@@ -158,14 +158,14 @@ describe('Footer', () => {
     });
   });
 
-  it('renders confirm button text "Get signature" if QR signing is in progress', () => {
+  it('renders confirm button text "Confirm" even if QR signing is in progress', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       isSigningQRObject: true,
     } as QRHardwareHook.QRHardwareContextType);
     const { getByText } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
     });
-    expect(getByText('Get signature')).toBeTruthy();
+    expect(getByText('Confirm')).toBeTruthy();
   });
 
   it('confirm button is disabled if `needsCameraPermission` is true', () => {

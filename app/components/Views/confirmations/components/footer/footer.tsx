@@ -39,6 +39,7 @@ import { PredictClaimFooter } from '../predict-confirmations/predict-claim-foote
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
+import { useIsConfirmationFromQrAccount } from '../../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
 import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
@@ -62,6 +63,7 @@ export const Footer = () => {
   } = useAlerts();
   const { onConfirm, onReject } = useConfirmActions();
   const { isSigningQRObject, needsCameraPermission } = useQRHardwareContext();
+  const isQrAccount = useIsConfirmationFromQrAccount();
   const { securityAlertResponse } = useSecurityAlertResponse();
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
@@ -121,10 +123,6 @@ export const Footer = () => {
   });
 
   const confirmButtonLabel = () => {
-    if (isSigningQRObject) {
-      return strings('confirm.qr_get_sign');
-    }
-
     if (isPayLoading) {
       return strings('confirm.confirm');
     }

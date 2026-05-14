@@ -168,6 +168,31 @@ describe('useConfirmAction', () => {
     await flushPromises();
   });
 
+  it('calls setSigningConfirmed before confirming a transaction', async () => {
+    const mockSetSigningConfirmed = jest.fn();
+    const mockTransactionConfirm = jest.fn().mockResolvedValue(undefined);
+    useTransactionConfirmMock.mockReturnValue({
+      onConfirm: mockTransactionConfirm,
+    });
+    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+      isSigningQRObject: false,
+      setScannerVisible: jest.fn(),
+      setSigningConfirmed: mockSetSigningConfirmed,
+    } as unknown as QRHardwareHook.QRHardwareContextType);
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: stakingDepositConfirmationState,
+    });
+
+    await result?.current?.onConfirm();
+
+    expect(mockSetSigningConfirmed).toHaveBeenCalledTimes(1);
+    expect(mockTransactionConfirm).toHaveBeenCalledTimes(1);
+    expect(mockSetSigningConfirmed.mock.invocationCallOrder[0]).toBeLessThan(
+      mockTransactionConfirm.mock.invocationCallOrder[0],
+    );
+  });
+
   it('delegates to useLedgerConfirm when account is Ledger', async () => {
     const { useIsConfirmationFromLedgerAccount } = jest.requireMock(
       './useIsConfirmationFromLedgerAccount',

@@ -74,7 +74,7 @@ describe('useQrConfirm', () => {
     mockExecuteHardwareWalletOperation.mockResolvedValue(true);
   });
 
-  it('opens scanner when QR signing is already in progress', async () => {
+  it('re-shows awaiting confirmation when QR signing is already in progress', async () => {
     mockIsSigningQRObject.current = true;
 
     const { result } = renderHook(() => useQrConfirm(defaultOptions));
@@ -83,8 +83,12 @@ describe('useQrConfirm', () => {
       await result.current.onConfirm();
     });
 
-    expect(mockSetSigningConfirmed).toHaveBeenCalled();
-    expect(mockSetScannerVisible).toHaveBeenCalledWith(true);
+    expect(mockShowAwaitingConfirmation).toHaveBeenCalledWith(
+      'message',
+      expect.any(Function),
+    );
+    expect(mockSetSigningConfirmed).not.toHaveBeenCalled();
+    expect(mockSetScannerVisible).not.toHaveBeenCalled();
     expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
   });
 

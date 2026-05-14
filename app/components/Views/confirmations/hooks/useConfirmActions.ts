@@ -122,6 +122,7 @@ export const useConfirmActions = () => {
     }
 
     if (isTransactionReq) {
+      setSigningConfirmed();
       await onTransactionConfirm();
       return;
     }
