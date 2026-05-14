@@ -137,8 +137,8 @@
       "message": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer."
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
-      "title": "Gas sponsorship unavailable"
+      "message": "This specific network requires to maintain a reserve of %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Reserve balance is required"
     },
     "token_trust_signal": {
       "malicious": {
@@ -2944,6 +2944,17 @@
     "pna25_blog_post_link": "blog post",
     "pna25_confirm_button": "Accept and close",
     "pna25_open_settings_button": "Open Settings"
+  },
+  "onboarding_interest_questionnaire": {
+    "title": "What do you want to do with MetaMask?",
+    "description": "Select all that apply.",
+    "option_buy_and_sell_crypto": "Buy and sell crypto",
+    "option_consolidate_wallets": "Consolidate your wallets",
+    "option_advanced_trades": "Make advanced trades",
+    "option_predict_sports_events": "Predict sports and events",
+    "option_crypto_as_money": "Use crypto as money",
+    "option_connect_apps_sites": "Connect to apps or sites",
+    "continue": "Continue"
   },
   "template_confirmation": {
     "ok": "OK",
@@ -6610,6 +6621,19 @@
       "link_card_title": "Link your MetaMask Card",
       "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
       "link_card_cta": "Link card"
+    },
+    "rive_onboarding": {
+      "step1_title": "Money accounts are here",
+      "step1_body": "Earn up to {{percentage}}% APY on your balance, available across your entire wallet.",
+      "step1_footer_text": "APY is variable and may change at any time.",
+      "step2_title": "Earn automatically",
+      "step2_body": "Move stablecoins with no exchange fees. Funds start earning right away.",
+      "step2_footer_text": "APY is variable and may change at any time.",
+      "step3_title": "Spend anywhere",
+      "step3_body": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask card.",
+      "step4_title": "Trade and earn in one place",
+      "step4_body": "Use your Money balance to trade across MetaMask while still earning yield.",
+      "continue": "Continue"
     },
     "action": {
       "add": "Add",
