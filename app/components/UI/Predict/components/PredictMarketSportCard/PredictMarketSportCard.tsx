@@ -46,8 +46,8 @@ import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 
 const TEAM_LOGO_SIZE = 32;
 const COMPACT_TEAM_LOGO_SIZE = 28;
-const LIVE_DOT_SIZE = 8;
-const LIVE_DOT_RIPPLE_SIZE = 24;
+const LIVE_DOT_SIZE = 6;
+const LIVE_DOT_RIPPLE_SIZE = 12;
 
 const styles = StyleSheet.create({
   liveDotContainer: {
@@ -602,6 +602,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                   <Button
                     onPress={() => handleBuy(item)}
                     style={{ backgroundColor: getButtonBackgroundColor(item) }}
+                    twClassName={`${isCompact ? 'p-0' : ''}`}
                     isFullWidth
                     size={isCompact ? ButtonBaseSize.Md : ButtonBaseSize.Lg}
                     testID={
