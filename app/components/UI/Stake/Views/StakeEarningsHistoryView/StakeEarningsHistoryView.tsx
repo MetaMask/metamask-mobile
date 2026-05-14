@@ -9,6 +9,9 @@ import styleSheet from './StakeEarningsHistoryView.styles';
 import { StakeEarningsHistoryViewRouteParams } from './StakeEarningsHistoryView.types';
 import EarningsHistory from '../../../Earn/components/Earnings/EarningsHistory/EarningsHistory';
 
+export const STAKE_EARNINGS_HISTORY_VIEW_BACK_BUTTON_TEST_ID =
+  'stake-earnings-history-header-back-button';
+
 const StakeEarningsHistoryView = () => {
   const navigation = useNavigation();
   const route = useRoute<StakeEarningsHistoryViewRouteParams>();
@@ -22,6 +25,9 @@ const StakeEarningsHistoryView = () => {
           ticker: asset.ticker || asset.symbol,
         })}
         onBack={navigation.goBack}
+        backButtonProps={{
+          testID: STAKE_EARNINGS_HISTORY_VIEW_BACK_BUTTON_TEST_ID,
+        }}
         includesTopInset
       />
       <ScrollView contentContainerStyle={styles.mainContainer}>

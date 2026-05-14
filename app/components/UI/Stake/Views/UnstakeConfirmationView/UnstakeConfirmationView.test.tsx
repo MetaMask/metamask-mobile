@@ -1,5 +1,8 @@
 import React from 'react';
-import UnstakeConfirmationView from './UnstakeConfirmationView';
+import { fireEvent } from '@testing-library/react-native';
+import UnstakeConfirmationView, {
+  UNSTAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID,
+} from './UnstakeConfirmationView';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
@@ -10,6 +13,8 @@ import { UnstakeConfirmationViewRouteParams } from './UnstakeConfirmationView.ty
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
 import { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -64,6 +69,7 @@ Image.getSize = jest.fn(
 );
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -72,7 +78,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       setOptions: mockSetOptions,
-      goBack: jest.fn(),
+      goBack: mockGoBack,
     }),
     useRoute: () => ({
       key: '1',
@@ -84,6 +90,24 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({
+  name: 'UNSTAKE_CONFIRMATION_BACK_CLICKED',
+});
+const mockEventBuilder = {
+  addProperties: mockAddProperties,
+  build: mockBuild,
+};
+const mockCreateEventBuilder = jest.fn().mockReturnValue(mockEventBuilder);
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('../../hooks/usePoolStakedDeposit', () => ({
   __esModule: true,
@@ -105,14 +129,43 @@ jest.mock('../../hooks/useStakeContext', () => ({
 }));
 
 describe('UnstakeConfirmationView', () => {
-  it('renders unstake confirmation view', () => {
-    const { getByText } = renderWithProvider(<UnstakeConfirmationView />, {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const renderView = () =>
+    renderWithProvider(<UnstakeConfirmationView />, {
       state: mockInitialState,
     });
+
+  it('renders unstake confirmation view', () => {
+    const { getByText } = renderView();
 
     expect(getByText(strings('stake.unstaking_to'))).toBeOnTheScreen();
     expect(getByText(strings('stake.interacting_with'))).toBeOnTheScreen();
     expect(getByText('Cancel')).toBeOnTheScreen();
     expect(getByText('Continue')).toBeOnTheScreen();
+  });
+
+  it('renders header with the unstake title', () => {
+    const { getByText } = renderView();
+
+    expect(getByText(strings('stake.unstake'))).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack and tracks UNSTAKE_CONFIRMATION_BACK_CLICKED on back press', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(UNSTAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.UNSTAKE_CONFIRMATION_BACK_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      selected_provider: EVENT_PROVIDERS.CONSENSYS,
+      location: EVENT_LOCATIONS.UNSTAKE_CONFIRMATION_VIEW,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });

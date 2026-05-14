@@ -20,6 +20,9 @@ import { getDecimalChainId } from '../../../../../util/networks';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
+export const STAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID =
+  'stake-confirmation-header-back-button';
+
 const StakeConfirmationView = () => {
   const navigation = useNavigation();
   const route =
@@ -47,6 +50,9 @@ const StakeConfirmationView = () => {
       <HeaderStandard
         title={strings('stake.stake')}
         onBack={handleBackPress}
+        backButtonProps={{
+          testID: STAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID,
+        }}
         includesTopInset
       />
       <ScrollView contentContainerStyle={styles.mainContainer}>

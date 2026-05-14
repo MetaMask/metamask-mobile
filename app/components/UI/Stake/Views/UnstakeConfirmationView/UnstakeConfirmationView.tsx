@@ -20,6 +20,9 @@ import { selectEvmChainId } from '../../../../../selectors/networkController';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
+export const UNSTAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID =
+  'unstake-confirmation-header-back-button';
+
 const UnstakeConfirmationView = () => {
   const route =
     useRoute<
@@ -47,6 +50,9 @@ const UnstakeConfirmationView = () => {
       <HeaderStandard
         title={strings('stake.unstake')}
         onBack={handleBackPress}
+        backButtonProps={{
+          testID: UNSTAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID,
+        }}
         includesTopInset
       />
       <View style={styles.mainContainer}>

@@ -1,12 +1,15 @@
 import { Hex } from '@metamask/utils';
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { fireLayoutEvent } from '../../../../../util/testUtils/react-native-svg-charts';
 import { strings } from '../../../../../../locales/i18n';
 import useEarningsHistory from '../../../Earn/hooks/useEarningsHistory';
 import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../__mocks__/stakeMockData';
-import StakeEarningsHistoryView from './StakeEarningsHistoryView';
+import StakeEarningsHistoryView, {
+  STAKE_EARNINGS_HISTORY_VIEW_BACK_BUTTON_TEST_ID,
+} from './StakeEarningsHistoryView';
 
 jest.mock('../../../Earn/hooks/useEarningsHistory');
 
@@ -30,7 +33,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 jest.mock('react-native-svg-charts', () => {
-  const reactNativeSvgCharts = jest.requireActual('react-native-svg-charts'); // Get the actual Grid component
+  const reactNativeSvgCharts = jest.requireActual('react-native-svg-charts');
   return {
     ...reactNativeSvgCharts,
     Grid: () => <></>,
@@ -89,6 +92,10 @@ const mockInitialState = {
 const earningsHistoryView = <StakeEarningsHistoryView />;
 
 describe('StakeEarningsHistoryView', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders the staking earnings history header title with the asset ticker', () => {
     const expectedTitle = strings('stake.earnings_history_title', {
       ticker:
@@ -102,5 +109,18 @@ describe('StakeEarningsHistoryView', () => {
     fireLayoutEvent(renderedView.root);
 
     expect(renderedView.getByText(expectedTitle)).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when the header back button is pressed', () => {
+    const renderedView = renderWithProvider(earningsHistoryView, {
+      state: mockInitialState,
+    });
+    fireLayoutEvent(renderedView.root);
+
+    fireEvent.press(
+      renderedView.getByTestId(STAKE_EARNINGS_HISTORY_VIEW_BACK_BUTTON_TEST_ID),
+    );
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });
