@@ -8978,6 +8978,13 @@
       "title": "Success",
       "description": "Return to the app to continue."
     },
+    "show_otp": {
+      "title": "Enter this code",
+      "description": "Enter {{otp}} in {{dappName}} to finish connecting. This code expires in {{seconds}} seconds."
+    },
+    "cli_auth_webview": {
+      "title": "CLI Auth"
+    },
     "show_not_found": {
       "title": "Connection Not Found",
       "description": "Please establish a new connection from the app to continue."

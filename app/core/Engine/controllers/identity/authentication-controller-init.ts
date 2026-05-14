@@ -3,7 +3,7 @@ import {
   Controller as AuthenticationController,
   type AuthenticationControllerMessenger,
 } from '@metamask/profile-sync-controller/auth';
-import { Platform } from '@metamask/profile-sync-controller/sdk';
+import { Env, Platform } from '@metamask/profile-sync-controller/sdk';
 
 /**
  * Initialize the authentication controller.
@@ -25,6 +25,11 @@ export const authenticationControllerInit: MessengerClientInitFunction<
     metametrics: {
       agent: Platform.MOBILE,
       getMetaMetricsId: async () => analyticsId ?? '',
+    },
+
+    // DO NOT MERGE: for debug purpose only
+    config: {
+      env: Env.DEV,
     },
   });
 

@@ -1,3 +1,4 @@
+import { Alert } from 'react-native';
 import { Connection } from '../services/connection';
 import { IHostApplicationAdapter } from '../types/host-application-adapter';
 import { SDKSessions } from '../../../core/SDKConnect/SDKConnect';
@@ -13,6 +14,12 @@ import { ConnectionInfo } from '../types/connection-info';
 import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 import logger from '../services/logger';
+import NavigationService from '../../NavigationService';
+import Routes from '../../../constants/navigation/Routes';
+import {
+  createCliAuthWebviewRequest,
+  rejectCliAuthWebviewRequest,
+} from '../services/cli-auth-webview-request-registry';
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
   showConnectionLoading(conninfo: ConnectionInfo): void {
@@ -91,6 +98,49 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
         status: 'success',
       }),
     );
+  }
+
+  showOtpCode(conninfo: ConnectionInfo, otp: string, deadline: number): void {
+    const secondsUntilExpiry = Math.max(
+      0,
+      Math.ceil((deadline - Date.now()) / 1000),
+    );
+
+    Alert.alert(
+      strings('sdk_connect_v2.show_otp.title'),
+      strings('sdk_connect_v2.show_otp.description', {
+        dappName: conninfo.metadata.dapp.name,
+        otp,
+        seconds: secondsUntilExpiry,
+      }),
+      [{ text: strings('navigation.ok') }],
+    );
+  }
+
+  async requestCliAuthToken(
+    conninfo: ConnectionInfo,
+    dashboardAccessToken: string,
+  ): Promise<string> {
+    const { requestId, promise } = createCliAuthWebviewRequest({
+      dashboardAccessToken,
+      dappName: conninfo.metadata.dapp.name,
+    });
+
+    try {
+      NavigationService.navigation?.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.CLI_AUTH,
+        params: { requestId },
+      });
+    } catch (error) {
+      rejectCliAuthWebviewRequest(
+        requestId,
+        error instanceof Error
+          ? error
+          : new Error('Failed to open CLI auth WebView'),
+      );
+    }
+
+    return promise;
   }
 
   showNotFoundError(): void {

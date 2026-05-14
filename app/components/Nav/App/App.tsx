@@ -21,6 +21,7 @@ import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
+import CliAuthWebview from '../../Views/SDK/CliAuthWebview/CliAuthWebview';
 import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
 import {
@@ -355,6 +356,7 @@ const OnboardingNav = () => {
 const SimpleWebviewScreen = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name={Routes.WEBVIEW.SIMPLE} component={SimpleWebview} />
+    <Stack.Screen name={Routes.WEBVIEW.CLI_AUTH} component={CliAuthWebview} />
   </Stack.Navigator>
 );
 
