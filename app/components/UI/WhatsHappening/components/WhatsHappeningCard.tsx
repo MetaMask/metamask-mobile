@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, memo } from 'react';
-import { TouchableOpacity, View, type LayoutChangeEvent } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -32,7 +32,8 @@ interface WhatsHappeningCardProps {
   cardIndex: number;
   source: WhatsHappeningSourceValue;
   onPress?: (item: WhatsHappeningItem) => void;
-  onCardLayout?: (height: number) => void;
+  /** Tailwind height class so the carousel can keep all cards visually aligned. */
+  twHeightClassName?: string;
 }
 
 const MAX_VISIBLE_ASSET_ICONS = 3;
@@ -42,7 +43,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   cardIndex,
   source,
   onPress,
-  onCardLayout,
+  twHeightClassName = '',
 }) => {
   const tw = useTailwind();
   const formattedDate = useMemo(
@@ -67,14 +68,6 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   const { ref: cardRef, onLayout: onVisibilityLayout } =
     useViewportTracking(handleVisible);
 
-  const handleLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      onVisibilityLayout();
-      onCardLayout?.(event.nativeEvent.layout.height);
-    },
-    [onVisibilityLayout, onCardLayout],
-  );
-
   const visibleAssets = useMemo(
     () => item.relatedAssets.slice(0, MAX_VISIBLE_ASSET_ICONS),
     [item.relatedAssets],
@@ -95,12 +88,12 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
     : null;
 
   return (
-    <View ref={cardRef} collapsable={false} onLayout={handleLayout}>
+    <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
       <TouchableOpacity
         onPress={handlePress}
         activeOpacity={0.7}
         style={tw.style(
-          'w-[280px] rounded-2xl bg-background-muted overflow-hidden p-4 gap-3',
+          `w-[280px] ${twHeightClassName} rounded-2xl bg-background-muted overflow-hidden p-4 justify-between gap-3`,
         )}
       >
         <Box gap={3}>
@@ -140,7 +133,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="mt-2"
+          gap={2}
         >
           {assetLabel && (
             <Box
