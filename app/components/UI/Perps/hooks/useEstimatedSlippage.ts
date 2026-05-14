@@ -23,8 +23,11 @@ export function computeSlippagePct(
 ): EstimatedSlippageResult {
   const levels = direction === 'long' ? orderBook.asks : orderBook.bids;
   const midPrice = Number.parseFloat(orderBook.midPrice);
-  if (!levels.length || !Number.isFinite(midPrice) || midPrice <= 0) {
+  if (!Number.isFinite(midPrice) || midPrice <= 0) {
     return EMPTY_RESULT;
+  }
+  if (!levels.length) {
+    return { estimatedSlippagePct: null, insufficientLiquidity: true };
   }
 
   let remainingUsd = notionalUsd;

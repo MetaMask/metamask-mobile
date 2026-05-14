@@ -189,9 +189,4 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
 
 PerpsSlippageBottomSheet.displayName = 'PerpsSlippageBottomSheet';
 
-export default memo(
-  PerpsSlippageBottomSheet,
-  (prevProps, nextProps) =>
-    prevProps.isVisible === nextProps.isVisible &&
-    prevProps.currentValueBps === nextProps.currentValueBps,
-);
+export default memo(PerpsSlippageBottomSheet);

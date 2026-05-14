@@ -106,13 +106,13 @@ describe('computeSlippagePct', () => {
   });
 
   describe('edge cases', () => {
-    it('returns empty result for empty asks', () => {
+    it('returns insufficient liquidity for empty asks', () => {
       const book = makeOrderBook('100', [], [{ price: '99', size: '10' }]);
 
       const result = computeSlippagePct(book, 100, 'long');
 
       expect(result.estimatedSlippagePct).toBeNull();
-      expect(result.insufficientLiquidity).toBe(false);
+      expect(result.insufficientLiquidity).toBe(true);
     });
 
     it('returns empty result for invalid mid price', () => {
