@@ -4,7 +4,10 @@ import {
   Image,
   ImageSourcePropType,
   Pressable,
+  ScrollView,
   StyleSheet,
+  useWindowDimensions,
+  View,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -36,9 +39,16 @@ import cardImage from '../../../../../images/rewards/rewards-card-earn.png';
 
 const AVATAR_SIZE = 78;
 const UK_COUNTRY_CODE = 'GB';
+// Horizontal padding matches px-4 (16 px per side). CARD_GAP is the space
+// between adjacent carousel slides. PEEK_WIDTH is how many pixels of the
+// next card show on the right edge as a swipe affordance.
+const HORIZONTAL_PADDING = 16;
+const CARD_GAP = 12;
+const PEEK_WIDTH = 24;
 
 const styles = StyleSheet.create({
   avatar: { width: AVATAR_SIZE, height: AVATAR_SIZE },
+  cardGap: { marginRight: CARD_GAP },
 });
 
 interface EarnCardProps {
@@ -88,19 +98,29 @@ const EarnCard: React.FC<EarnCardProps> = ({
   );
 };
 
+type CarouselSlotKey = 'musd-skeleton' | 'musd' | 'card';
+
 /**
  * EarnRewardsPreview shows the "Earn rewards" section on the dashboard.
  *
- * - mUSD calculator card: shown when geoLocation has settled AND is not UK.
- * 'UNKNOWN' is treated as non-UK so mUSD is shown. Hidden only when undefined (loading)
- * or 'GB' to prevent flash for UK users.
- * - MetaMask Card card: shown when card geo is loaded (no country restriction).
- * - While geo is loading (status 'idle' or 'loading'): skeletons shown; title always visible
+ * mUSD calculator card: shown when geoLocation has settled AND is not UK.
+ * 'UNKNOWN' is treated as non-UK so mUSD is shown. Hidden only when undefined
+ * (loading) or 'GB' to prevent flash for UK users.
+ * MetaMask Card card: always shown.
+ * While geo is loading (status 'idle' or 'loading'): a skeleton occupies the
+ * mUSD slot; the Card slot is always present.
+ * Cards are displayed in a horizontal peek carousel: the right edge of the
+ * next card is visible as a swipe affordance. No pagination dots. If there
+ * are no items at all the entire section is not rendered.
  */
 const EarnRewardsPreview: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const { width: screenWidth } = useWindowDimensions();
+  // Each card stops short of the right edge so the next card peeks through.
+  const cardWidth =
+    screenWidth - HORIZONTAL_PADDING * 2 - CARD_GAP - PEEK_WIDTH;
 
   // mUSD geo check - hide for UK users, require positive geo confirmation to avoid flash
   const geoLocation = useSelector(selectGeolocationLocation);
@@ -109,7 +129,7 @@ const EarnRewardsPreview: React.FC = () => {
   const showMusdCard =
     geoLocation !== undefined && geoLocation !== UK_COUNTRY_CODE;
 
-  // Card check — isCardGeoLoaded flips true when loadCardholderAccounts settles
+  // Card check — subtitle varies by cardholder status; card is always rendered
   const isCardholder = useSelector(selectIsCardholder);
   const isAuthenticatedCard = useSelector(selectIsCardAuthenticated);
   const cardSubtitle =
@@ -125,15 +145,28 @@ const EarnRewardsPreview: React.FC = () => {
     handleDeeplink({ uri: 'metamask://card-onboarding' });
   }, []);
 
+  // Build the ordered list of carousel slots, preserving existing visibility logic.
+  const items: CarouselSlotKey[] = [];
+  if (isMusdGeoLoading && !showMusdCard) {
+    items.push('musd-skeleton');
+  } else if (showMusdCard) {
+    items.push('musd');
+  }
+  items.push('card');
+
+  if (items.length === 0) return null;
+
+  const cardStyle = { width: cardWidth };
+
   return (
     <Box
-      twClassName="gap-3 px-4 pb-3"
+      twClassName="gap-3 pb-3"
       testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
+        twClassName="gap-2 px-4"
       >
         {isMusdGeoLoading && (
           <ActivityIndicator size="small" color={colors.primary.default} />
@@ -143,26 +176,42 @@ const EarnRewardsPreview: React.FC = () => {
         </Text>
       </Box>
 
-      {isMusdGeoLoading && !showMusdCard ? (
-        <Skeleton style={tw.style('h-28 rounded-xl')} />
-      ) : (
-        showMusdCard && (
-          <EarnCard
-            testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
-            image={musdImage}
-            title={strings('rewards.earn_rewards.musd_title')}
-            subtitle={strings('rewards.earn_rewards.musd_subtitle')}
-            onPress={handleMusdPress}
-          />
-        )
-      )}
-      <EarnCard
-        testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
-        image={cardImage}
-        title={strings('rewards.earn_rewards.card_title')}
-        subtitle={cardSubtitle}
-        onPress={handleCardPress}
-      />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        decelerationRate="fast"
+        snapToInterval={cardWidth + CARD_GAP}
+        contentContainerStyle={{ paddingHorizontal: HORIZONTAL_PADDING }}
+      >
+        {items.map((item, index) => (
+          <View
+            key={item}
+            style={[cardStyle, index < items.length - 1 && styles.cardGap]}
+          >
+            {item === 'musd-skeleton' && (
+              <Skeleton style={tw.style('h-28 rounded-xl')} />
+            )}
+            {item === 'musd' && (
+              <EarnCard
+                testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
+                image={musdImage}
+                title={strings('rewards.earn_rewards.musd_title')}
+                subtitle={strings('rewards.earn_rewards.musd_subtitle')}
+                onPress={handleMusdPress}
+              />
+            )}
+            {item === 'card' && (
+              <EarnCard
+                testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
+                image={cardImage}
+                title={strings('rewards.earn_rewards.card_title')}
+                subtitle={cardSubtitle}
+                onPress={handleCardPress}
+              />
+            )}
+          </View>
+        ))}
+      </ScrollView>
     </Box>
   );
 };
