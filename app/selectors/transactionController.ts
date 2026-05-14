@@ -5,6 +5,7 @@ import {
   selectPendingSmartTransactionsBySender,
   selectPendingSmartTransactionsForSelectedAccountGroup,
 } from './smartTransactionsController';
+import { selectEvmAddress } from './accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from './multichainAccounts/accountTreeController';
 import {
   TransactionMeta,
@@ -220,15 +221,17 @@ export const selectLocalTransactions = createDeepEqualSelector(
     selectNonReplacedTransactions,
     selectPendingSmartTransactionsForSelectedAccountGroup,
     selectSelectedAccountGroupEvmInternalAccount,
+    selectEvmAddress,
     selectRequiredTransactionIds,
   ],
   (
     nonReplacedTransactions,
     pendingSmartTransactions,
     groupEvmAccount,
+    fallbackEvmAddress,
     requiredTransactionIds,
   ) => {
-    const activeEvmAddress = groupEvmAccount?.address;
+    const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
 
     const transactions = nonReplacedTransactions.filter((transaction) => {
       if (requiredTransactionIds.has(transaction.id)) {

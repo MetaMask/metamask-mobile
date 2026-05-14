@@ -34,6 +34,11 @@ jest.mock('./multichainAccounts/accountTreeController', () => ({
   }) => state.groupEvmAccount ?? null,
 }));
 
+jest.mock('./accountsController', () => ({
+  selectEvmAddress: (state: { fallbackEvmAddress?: string }) =>
+    state.fallbackEvmAddress,
+}));
+
 describe('TransactionController Selectors', () => {
   describe('selectTransactions', () => {
     it('returns transactions from TransactionController state', () => {
