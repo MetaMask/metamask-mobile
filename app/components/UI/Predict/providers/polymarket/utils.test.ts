@@ -241,9 +241,10 @@ describe('polymarket utils', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/events/pagination?limit=10&offset=0&active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr',
+        'https://gamma-api.polymarket.com/events/pagination?limit=10&offset=0&active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr&ascending=false',
       );
       const requestedUrl = String(mockFetch.mock.calls[0][0]);
+      expect(requestedUrl).toContain('ascending=false');
       expect(requestedUrl).not.toContain('liquidity_min');
       expect(requestedUrl).not.toContain('volume_min');
     });

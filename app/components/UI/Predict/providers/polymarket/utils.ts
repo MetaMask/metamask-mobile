@@ -1234,7 +1234,7 @@ export const fetchEventsFromPolymarketApi = async (
   if (isExactQueryTabWithCustomQuery) {
     queryParamsEvents = `${limitParam}&${offsetParam}&${customQueryParams}`;
   } else if (category === 'world-cup') {
-    queryParamsEvents = `${limitParam}&${offsetParam}&active=true&archived=false&closed=false&tag_slug=${PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG}&order=volume24hr`;
+    queryParamsEvents = `${limitParam}&${offsetParam}&active=true&archived=false&closed=false&tag_slug=${PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG}&order=volume24hr&ascending=false`;
   } else {
     const active = `active=true`;
     const archived = `archived=false`;
