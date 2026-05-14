@@ -22,11 +22,11 @@ export interface UseOHLCVRealtimeResult {
 
 const DEBOUNCE_MS = 500;
 
-/** How often we check whether data is stale (ms) */
-const STALENESS_CHECK_INTERVAL_MS = 15_000;
+/** How often we poll /latest when stale (matches WS heartbeat interval) */
+const STALENESS_CHECK_INTERVAL_MS = 5_000;
 
 /** If no WS message arrives within this window, consider the stream stale */
-const STALENESS_THRESHOLD_MS = 30_000;
+const STALENESS_THRESHOLD_MS = 10_000;
 
 const OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv';
 
@@ -86,16 +86,9 @@ function extractChainId(assetId: string): string {
  *
  * Includes a staleness-based HTTP polling fallback:
  * - Tracks `lastMessageTime` on every WS bar received.
- * - Every 15 seconds checks if no WS message arrived within the last 30 seconds.
- * - Also listens to `OHLCVService:chainStatusChanged` for chain-down events.
- * - When stale or chain-down, fetches the latest candle via the REST API.
- *
- * Note: Both WebSocket disconnect and server-side chain-down notifications
- * publish the same `OHLCVService:chainStatusChanged` event with
- * `status: 'down'`. The hook handles both identically — on the next staleness
- * check interval (up to 15s delay) it triggers a REST poll. For immediate
- * polling on disconnect/chain-down, call `pollLatest()` directly inside
- * `handleChainStatusChanged` when status transitions to 'down'.
+ * - Every 5 seconds checks if no WS message arrived within the last 10 seconds.
+ * - On subscribe error or chain-down, immediately polls `/latest` (no wait).
+ * - When stale, continues polling `/latest` every 5s (matching WS heartbeat).
  */
 export function useOHLCVRealtime({
   assetId,
@@ -123,7 +116,6 @@ export function useOHLCVRealtime({
 
   useEffect(() => {
     if (!enabled || !assetId || !interval || !currency) {
-      setLatestBar(null);
       return;
     }
 
@@ -133,50 +125,6 @@ export function useOHLCVRealtime({
     setLatestBar(null);
     lastMessageTimeRef.current = 0;
     chainDownRef.current = false;
-
-    const handleBarUpdated = (payload: {
-      channel: string;
-      bar: WSOHLCVBar;
-    }) => {
-      if (payload.channel === channelRef.current) {
-        lastMessageTimeRef.current = Date.now();
-        chainDownRef.current = false;
-        setLatestBar(payload.bar);
-      }
-    };
-
-    const handleSubscriptionError = (_payload: {
-      channel: string;
-      error: string;
-      operation: string;
-    }) => {
-      // Intentional no-op: errors are logged by OHLCVService internally.
-    };
-
-    const chainId = extractChainId(assetId);
-    const handleChainStatusChanged = (payload: {
-      chainIds: string[];
-      status: 'up' | 'down';
-      timestamp?: number;
-    }) => {
-      if (payload.chainIds.includes(chainId)) {
-        chainDownRef.current = payload.status === 'down';
-      }
-    };
-
-    // Subscribe to messenger events before triggering the WS subscription
-    (Engine.controllerMessenger.subscribe as (...args: unknown[]) => void)(
-      'OHLCVService:barUpdated',
-      handleBarUpdated,
-    );
-    (Engine.controllerMessenger.subscribe as (...args: unknown[]) => void)(
-      'OHLCVService:subscriptionError',
-      handleSubscriptionError,
-    );
-    (Engine.controllerMessenger.subscribe as (...args: unknown[]) => void)(
-      'OHLCVService:chainStatusChanged',
-      handleChainStatusChanged,
-    );
 
     // Staleness polling: check periodically if we should fall back to REST
     const pollLatest = async () => {
@@ -200,6 +148,59 @@ export function useOHLCVRealtime({
         // no-op
       }
     };
+
+    const handleBarUpdated = (payload: {
+      channel: string;
+      bar: WSOHLCVBar;
+    }) => {
+      if (payload.channel === channelRef.current) {
+        lastMessageTimeRef.current = Date.now();
+        chainDownRef.current = false;
+        setLatestBar(payload.bar);
+      }
+    };
+
+    const handleSubscriptionError = (payload: {
+      channel: string;
+      error: string;
+      operation: string;
+    }) => {
+      if (
+        payload.operation === 'subscribe' &&
+        payload.channel === channelRef.current
+      ) {
+        lastMessageTimeRef.current = 1;
+        pollLatest();
+      }
+    };
+
+    const chainId = extractChainId(assetId);
+    const handleChainStatusChanged = (payload: {
+      chainIds: string[];
+      status: 'up' | 'down';
+      timestamp?: number;
+    }) => {
+      if (payload.chainIds.includes(chainId)) {
+        chainDownRef.current = payload.status === 'down';
+        if (payload.status === 'down') {
+          pollLatest();
+        }
+      }
+    };
+
+    // Subscribe to messenger events before triggering the WS subscription
+    (Engine.controllerMessenger.subscribe as (...args: unknown[]) => void)(
+      'OHLCVService:barUpdated',
+      handleBarUpdated,
+    );
+    (Engine.controllerMessenger.subscribe as (...args: unknown[]) => void)(
+      'OHLCVService:subscriptionError',
+      handleSubscriptionError,
+    );
+    (Engine.controllerMessenger.subscribe as (...args: unknown[]) => void)(
+      'OHLCVService:chainStatusChanged',
+      handleChainStatusChanged,
+    );
 
     stalenessTimerRef.current = setInterval(() => {
       const elapsed = Date.now() - lastMessageTimeRef.current;
@@ -232,9 +233,7 @@ export function useOHLCVRealtime({
         subscribedRef.current = true;
         lastMessageTimeRef.current = Date.now();
       } catch {
-        // Seed lastMessageTime so the staleness timer can detect the gap
-        // and activate the REST polling fallback after STALENESS_THRESHOLD_MS.
-        lastMessageTimeRef.current = Date.now();
+        // Subscribe failure is handled via subscriptionError event → immediate REST poll.
       }
     }, DEBOUNCE_MS);
 
