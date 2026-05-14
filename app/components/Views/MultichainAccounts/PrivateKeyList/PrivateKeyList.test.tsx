@@ -311,7 +311,8 @@ describe('PrivateKeyList', () => {
     });
 
     const toastOptions = toastShowMock.mock.calls[0][0];
-    toastOptions.closeButtonOptions?.onPress?.();
+    const closeToast = toastOptions.closeButtonOptions?.onPress as () => void;
+    closeToast();
 
     expect(Toast.hide).toHaveBeenCalled();
   });

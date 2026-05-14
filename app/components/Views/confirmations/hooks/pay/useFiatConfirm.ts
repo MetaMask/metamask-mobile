@@ -5,6 +5,7 @@ import {
   useHeadlessBuy,
   type HeadlessBuyError,
 } from '../../../../UI/Ramp/headless';
+import type { TransactionFiatPayment } from '@metamask/transaction-pay-controller';
 import type { Quote } from '../../../../UI/Ramp/types';
 import Engine from '../../../../../core/Engine';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -13,9 +14,15 @@ import { useConfirmationContext } from '../../context/confirmation-context';
 
 const log = createProjectLogger('fiat-confirm');
 
+type HeadlessFiatPayment = TransactionFiatPayment & {
+  caipAssetId?: string;
+};
+
 export function useFiatConfirm() {
   const transactionMetadata = useTransactionMetadataRequest();
-  const fiatPayment = useTransactionPayFiatPayment();
+  const fiatPayment = useTransactionPayFiatPayment() as
+    | HeadlessFiatPayment
+    | undefined;
   const { setIsHeadlessBuyInProgress, setHeadlessBuyError } =
     useConfirmationContext();
   const { startHeadlessBuy } = useHeadlessBuy();
