@@ -3655,7 +3655,10 @@
       "card": {
         "title": "Card",
         "reset_onboarding_description": "Reset Card onboarding state to start the onboarding flow from the beginning.",
-        "reset_onboarding_button": "Reset Onboarding State"
+        "reset_onboarding_button": "Reset Onboarding State",
+        "unlink_money_account_description": "Revoke the USDC spending-limit allowance that authorises Card to spend from your Money Account. This submits an approve(0) transaction and marks the Money Account as not-delegated on the Card backend.",
+        "unlink_money_account_button": "Unlink Money Account from Card",
+        "unlink_money_account_disabled_hint": "No active linkage to remove."
       },
       "haptics": {
         "title": "Haptics",
@@ -6688,6 +6691,9 @@
       "link_success_title": "Card linked successfully",
       "link_success_description": "You can now spend while you earn",
       "link_error": "Couldn't link card",
+      "link_card_sheet_title": "Spend and earn",
+      "link_card_sheet_description": "Link your card so you can spend your Money balance while it earns {{apy}}% APY.",
+      "link_card_sheet_cta": "Link card",
       "manage_card": "Manage",
       "avail_balance": "Avail. balance"
     },

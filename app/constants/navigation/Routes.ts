@@ -444,6 +444,7 @@ const Routes = {
       APY_INFO_SHEET: 'MoneyApyInfoSheet',
       EARNINGS_INFO_SHEET: 'MoneyEarningsInfoSheet',
       MONEY_BALANCE_INFO_SHEET: 'MoneyBalanceInfoSheet',
+      LINK_CARD_SHEET: 'MoneyLinkCardSheet',
       EARN_CRYPTO_INFO_SHEET: 'MoneyEarnCryptoInfoSheet',
     },
   },
