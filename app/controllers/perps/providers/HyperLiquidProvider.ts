@@ -780,8 +780,10 @@ export class HyperLiquidProvider implements PerpsProvider {
             PERPS_EVENT_VALUE.STATUS.NOT_APPLICABLE,
           [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: 'no_hl_account',
         });
-        // Leave TradingReadinessCache untouched so the next entry re-evaluates
-        // after a deposit lands and the wallet becomes a Hyperliquid user.
+        // Signal #ensureReady to drop its memoized promise so the next entry
+        // re-probes. Without this, the resolved promise would be reused and
+        // the wallet would stay permanently deferred until reconnect.
+        this.#unifiedAccountSetupNeedsRetry = true;
         completeInFlight();
         return;
       }
@@ -943,6 +945,7 @@ export class HyperLiquidProvider implements PerpsProvider {
             PERPS_EVENT_VALUE.STATUS.NOT_APPLICABLE,
           [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: 'no_hl_account',
         });
+        this.#unifiedAccountSetupNeedsRetry = true;
         completeInFlight();
         return;
       }
