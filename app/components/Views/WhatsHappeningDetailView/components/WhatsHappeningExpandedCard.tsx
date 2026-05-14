@@ -153,7 +153,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                 </Box>
 
                 <Box
-                  twClassName={`${impactBgClass} rounded px-2 py-1 self-start`}
+                  twClassName={`${impactBgClass} rounded px-2 py-1 self-start border border-transparent`}
                 >
                   <Text variant={TextVariant.BodySm} color={impactTextColor}>
                     {impactLabel}
