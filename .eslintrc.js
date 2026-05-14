@@ -9,8 +9,6 @@
 const utilNumberImportBurndownFiles = [
   'app/component-library/components-temp/CustomSpendCap/CustomInput/CustomInput.tsx',
   'app/component-library/components-temp/CustomSpendCap/CustomSpendCap.tsx',
-  'app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.tsx',
-  'app/component-library/components-temp/Price/AggregatedPercentage/utils.ts',
   'app/components/UI/AccountInfoCard/index.js',
   'app/components/UI/AssetOverview/Price/Price.advanced.tsx',
   'app/components/UI/AssetOverview/Price/Price.legacy.tsx',

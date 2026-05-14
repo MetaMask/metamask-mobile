@@ -35,7 +35,8 @@ import PillScrollList from '../components/PillScrollList';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
-import WhatsHappeningSection from '../../Homepage/Sections/WhatsHappening';
+import WhatsHappeningSection from '../../../UI/WhatsHappening';
+import { WhatsHappeningSource } from '../../../UI/WhatsHappening/constants';
 import type { SectionRefreshHandle } from '../../Homepage/types';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 
@@ -57,7 +58,13 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     <Box>
       <SectionHeader
         title={strings('trending.perps_movers')}
-        onViewAll={() => navigateToPerpsMarketList(navigation)}
+        onViewAll={() =>
+          navigateToPerpsMarketList(
+            navigation,
+            'all',
+            perps.defaultSortOptionId,
+          )
+        }
         testID="section-header-view-all-perps"
         tabName="Now"
         sectionName="perps_movers"
@@ -174,8 +181,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         <Box twClassName="-mx-4" marginBottom={6}>
           <WhatsHappeningSection
             ref={whatsHappeningRef}
-            sectionIndex={0}
-            totalSectionsLoaded={1}
+            source={WhatsHappeningSource.Explore}
           />
         </Box>
       )}

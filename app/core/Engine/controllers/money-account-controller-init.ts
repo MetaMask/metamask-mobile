@@ -29,9 +29,12 @@ export const moneyAccountControllerInit: MessengerClientInitFunction<
   // Re-check the Money account feature flag whenever remote flags are updated.
   initMessenger.subscribe(
     'RemoteFeatureFlagController:stateChange',
-    async ({ remoteFeatureFlags }) => {
+    async ({ remoteFeatureFlags, localOverrides }) => {
       try {
-        const isEnabled = isMoneyAccountEnabled(remoteFeatureFlags);
+        const isEnabled = isMoneyAccountEnabled({
+          ...remoteFeatureFlags,
+          ...localOverrides,
+        });
         const hasMoneyAccount =
           Object.keys(controller.state.moneyAccounts).length > 0;
 

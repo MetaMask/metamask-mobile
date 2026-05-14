@@ -131,7 +131,7 @@ await Gestures.tap(loadingButton, {
 - **Element State**: Configure visibility, enabled, and stability checking appropriately
 - **Debugging**: Check test output for unmocked API requests and framework warnings
 - **Performance**: Use `checkStability: false` by default, enable only for animated elements
-- Check `.cursor/rules/e2e-testing-guidelines.mdc` for comprehensive testing guidelines
+- Check [`docs/testing/e2e-testing.md`](../../docs/testing/e2e-testing.md) for comprehensive testing guidelines
 
 **Basic E2E Test Structure:**
 
