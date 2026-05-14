@@ -97,8 +97,9 @@ export function useTransactionPayPostQuote(): void {
       // resolving the user's Polymarket account state. The strategy switch
       // also drops refundTo because the bridge mints its own deposit address.
       if (isPredictWithdraw) {
-        isPolymarketDepositWalletWithdraw()
-          .then((isDepositWallet) => {
+        const applyDepositWalletFlag = async () => {
+          try {
+            const isDepositWallet = await isPolymarketDepositWalletWithdraw();
             if (!isDepositWallet) {
               return;
             }
@@ -112,13 +113,14 @@ export function useTransactionPayPostQuote(): void {
             log('Marked transaction as Polymarket deposit-wallet withdraw', {
               transactionId,
             });
-          })
-          .catch((error) =>
+          } catch (error) {
             log('Failed to apply Polymarket deposit-wallet flag', {
               error,
               transactionId,
-            }),
-          );
+            });
+          }
+        };
+        applyDepositWalletFlag();
       }
     } catch (error) {
       log('Error initializing post-quote transaction', {

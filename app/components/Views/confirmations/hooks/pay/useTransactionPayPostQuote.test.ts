@@ -14,6 +14,9 @@ jest.mock('../../../../../core/Engine', () => ({
     TransactionPayController: {
       setTransactionConfig: jest.fn(),
     },
+    PredictController: {
+      getAccountState: jest.fn(),
+    },
   },
 }));
 jest.mock('../../../../UI/Predict/providers/polymarket/safe/utils', () => ({
@@ -32,11 +35,22 @@ describe('useTransactionPayPostQuote', () => {
   const setTransactionConfigMock = jest.mocked(
     Engine.context.TransactionPayController.setTransactionConfig,
   );
+  const getAccountStateMock = jest.mocked(
+    Engine.context.PredictController.getAccountState,
+  );
   const computeProxyAddressMock = jest.mocked(computeProxyAddress);
+
+  const flushPromises = () => new Promise(setImmediate);
 
   beforeEach(() => {
     jest.clearAllMocks();
     computeProxyAddressMock.mockReturnValue(PROXY_ADDRESS_MOCK);
+    getAccountStateMock.mockResolvedValue({
+      address: '0xProxyAddress',
+      isDeployed: true,
+      walletType: 'safe',
+      balance: 100,
+    } as never);
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: false,
       canSelectWithdrawToken: false,
@@ -262,5 +276,83 @@ describe('useTransactionPayPostQuote', () => {
     expect(config.refundTo).toBeUndefined();
     expect(config.isHyperliquidSource).toBeUndefined();
     expect(computeProxyAddressMock).not.toHaveBeenCalled();
+  });
+
+  describe('Polymarket deposit-wallet predictWithdraw', () => {
+    beforeEach(() => {
+      setTransactionConfigMock.mockReset();
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: TRANSACTION_ID_MOCK,
+        txParams: { from: FROM_MOCK },
+        type: TransactionType.predictWithdraw,
+      } as never);
+      useTransactionPayWithdrawMock.mockReturnValue({
+        isWithdraw: true,
+        canSelectWithdrawToken: true,
+      });
+    });
+
+    it('flags transaction and clears refundTo when walletType is deposit-wallet', async () => {
+      getAccountStateMock.mockResolvedValue({
+        address: '0xDepositWallet',
+        isDeployed: true,
+        walletType: 'deposit-wallet',
+        balance: 50,
+      } as never);
+
+      renderHook(() => useTransactionPayPostQuote());
+      await flushPromises();
+
+      expect(setTransactionConfigMock).toHaveBeenCalledTimes(2);
+
+      const followUpCallback = setTransactionConfigMock.mock.calls[1][1];
+      const config = {
+        refundTo: PROXY_ADDRESS_MOCK,
+      } as {
+        isPolymarketDepositWallet?: boolean;
+        refundTo?: Hex;
+      };
+      followUpCallback(config);
+
+      expect(config.isPolymarketDepositWallet).toBe(true);
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('does not set deposit-wallet flag when walletType is safe', async () => {
+      getAccountStateMock.mockResolvedValue({
+        address: '0xSafeProxy',
+        isDeployed: true,
+        walletType: 'safe',
+        balance: 100,
+      } as never);
+
+      renderHook(() => useTransactionPayPostQuote());
+      await flushPromises();
+
+      expect(setTransactionConfigMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not resolve account state for non-predictWithdraw flows', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: TRANSACTION_ID_MOCK,
+        txParams: { from: FROM_MOCK },
+        type: TransactionType.perpsWithdraw,
+      } as never);
+
+      renderHook(() => useTransactionPayPostQuote());
+      await flushPromises();
+
+      expect(getAccountStateMock).not.toHaveBeenCalled();
+      expect(setTransactionConfigMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('swallows getAccountState errors without setting the deposit-wallet flag', async () => {
+      getAccountStateMock.mockRejectedValue(new Error('boom'));
+
+      renderHook(() => useTransactionPayPostQuote());
+      await flushPromises();
+
+      expect(setTransactionConfigMock).toHaveBeenCalledTimes(1);
+    });
   });
 });
