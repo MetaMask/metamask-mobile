@@ -5,7 +5,7 @@ import React, {
   useRef,
   useEffect,
 } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import createStyles from './AccountGroupBalance.styles';
@@ -263,23 +263,19 @@ const AccountGroupBalance = ({
       </TouchableOpacity>
     );
 
-  return (
-    <View style={styles.accountGroupBalance}>
-      {showWalletHomeOnboardingStepsTile ? (
-        <WalletHomeOnboardingSteps
-          isAwaitingBalance={awaitBalanceForPostOnboardingSteps}
-          onCoordinatedFlowExit={onCoordinatedFlowExit}
-          suspendRiveForCurtain={suspendRiveForCurtain}
-          onFundPrimaryPress={onFundPrimaryPressWithChecklistAnalytics}
-          canAdvanceFundStepAfterBalance={canAdvanceFundStepAfterBalance}
-          onTradePrimaryPress={onTradePrimaryPress}
-          onNotificationsPrimaryPress={onNotificationsPrimaryPress}
-          testID={WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}
-        />
-      ) : (
-        renderBalanceOrEmpty()
-      )}
-    </View>
+  return showWalletHomeOnboardingStepsTile ? (
+    <WalletHomeOnboardingSteps
+      isAwaitingBalance={awaitBalanceForPostOnboardingSteps}
+      onCoordinatedFlowExit={onCoordinatedFlowExit}
+      suspendRiveForCurtain={suspendRiveForCurtain}
+      onFundPrimaryPress={onFundPrimaryPressWithChecklistAnalytics}
+      canAdvanceFundStepAfterBalance={canAdvanceFundStepAfterBalance}
+      onTradePrimaryPress={onTradePrimaryPress}
+      onNotificationsPrimaryPress={onNotificationsPrimaryPress}
+      testID={WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}
+    />
+  ) : (
+    renderBalanceOrEmpty()
   );
 };
 

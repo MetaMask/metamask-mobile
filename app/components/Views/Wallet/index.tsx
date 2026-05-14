@@ -262,9 +262,6 @@ const createStyles = ({ colors }: Theme) =>
       position: 'relative',
       overflow: 'hidden',
     },
-    headerEndAccessoryContainer: {
-      alignItems: 'flex-end',
-    },
     headerActionButtonsContainer: {
       flexDirection: 'row',
       gap: 8,
@@ -1458,7 +1455,9 @@ const Wallet = ({
         <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
       </ComponentErrorBoundary>
     ) : homeGrowthBanner === 'carousel' ? (
-      <Carousel style={styles.carousel} />
+      <View accessible={false}>
+        <Carousel style={styles.carousel} />
+      </View>
     ) : null;
 
   const bannerContent = (
@@ -1500,6 +1499,7 @@ const Wallet = ({
       swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
       sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
       receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+      containerTestID={WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER}
     />
   ) : null;
 
@@ -1630,62 +1630,47 @@ const Wallet = ({
                   testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
                   style={undefined}
                   endAccessory={
-                    <View style={styles.headerEndAccessoryContainer}>
-                      <View style={styles.headerActionButtonsContainer}>
-                        {isMoneyHomeScreenEnabled && (
-                          <ButtonIcon
-                            iconProps={{
-                              color: MMDSIconColor.IconDefault,
-                            }}
-                            onPress={handleActivityPress}
-                            iconName={MMDSIconName.Clock}
-                            size={ButtonIconSize.Md}
-                            testID={
-                              WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON
-                            }
-                            hitSlop={touchAreaSlop}
-                          />
-                        )}
-                        <View
-                          testID={
-                            WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON
+                    <View
+                      style={styles.headerActionButtonsContainer}
+                      accessible={false}
+                    >
+                      {isMoneyHomeScreenEnabled && (
+                        <ButtonIcon
+                          iconProps={{
+                            color: MMDSIconColor.IconDefault,
+                          }}
+                          onPress={handleActivityPress}
+                          iconName={MMDSIconName.Clock}
+                          size={ButtonIconSize.Md}
+                          testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
+                          hitSlop={touchAreaSlop}
+                        />
+                      )}
+                      <AddressCopy
+                        testID={
+                          WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON
+                        }
+                        hitSlop={touchAreaSlop}
+                      />
+                      <CardButton
+                        onPress={handleCardPress}
+                        touchAreaSlop={touchAreaSlop}
+                      />
+                      {isNotificationsFeatureEnabled() ? (
+                        <BadgeWrapper
+                          position={BadgeWrapperPosition.TopRight}
+                          positionAnchorShape={
+                            BadgeWrapperPositionAnchorShape.Circular
+                          }
+                          badge={
+                            isNotificationEnabled &&
+                            unreadNotificationCount > 0 ? (
+                              <BadgeStatus
+                                status={BadgeStatusStatus.Attention}
+                              />
+                            ) : null
                           }
                         >
-                          <AddressCopy hitSlop={touchAreaSlop} />
-                        </View>
-                        <CardButton
-                          onPress={handleCardPress}
-                          touchAreaSlop={touchAreaSlop}
-                        />
-                        {isNotificationsFeatureEnabled() ? (
-                          <BadgeWrapper
-                            position={BadgeWrapperPosition.TopRight}
-                            positionAnchorShape={
-                              BadgeWrapperPositionAnchorShape.Circular
-                            }
-                            badge={
-                              isNotificationEnabled &&
-                              unreadNotificationCount > 0 ? (
-                                <BadgeStatus
-                                  status={BadgeStatusStatus.Attention}
-                                />
-                              ) : null
-                            }
-                          >
-                            <ButtonIcon
-                              iconProps={{
-                                color: MMDSIconColor.IconDefault,
-                              }}
-                              onPress={handleHamburgerPress}
-                              iconName={MMDSIconName.Menu}
-                              size={ButtonIconSize.Md}
-                              testID={
-                                WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
-                              }
-                              hitSlop={touchAreaSlop}
-                            />
-                          </BadgeWrapper>
-                        ) : (
                           <ButtonIcon
                             iconProps={{
                               color: MMDSIconColor.IconDefault,
@@ -1698,8 +1683,21 @@ const Wallet = ({
                             }
                             hitSlop={touchAreaSlop}
                           />
-                        )}
-                      </View>
+                        </BadgeWrapper>
+                      ) : (
+                        <ButtonIcon
+                          iconProps={{
+                            color: MMDSIconColor.IconDefault,
+                          }}
+                          onPress={handleHamburgerPress}
+                          iconName={MMDSIconName.Menu}
+                          size={ButtonIconSize.Md}
+                          testID={
+                            WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
+                          }
+                          hitSlop={touchAreaSlop}
+                        />
+                      )}
                     </View>
                   }
                   twClassName="pl-1 pr-3"

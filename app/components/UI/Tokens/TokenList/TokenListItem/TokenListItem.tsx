@@ -600,7 +600,6 @@ export const TokenListItem = React.memo(
 
     return (
       <TouchableOpacity
-        accessible={false}
         onPress={() => {
           onItemPress?.(asset);
         }}
