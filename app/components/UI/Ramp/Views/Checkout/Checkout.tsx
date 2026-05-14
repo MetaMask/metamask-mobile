@@ -39,7 +39,10 @@ import {
   failSession,
   getSession,
 } from '../../headless/sessionRegistry';
-import { setHeadlessEntryCardTouchThrough } from '../../headless/headlessEntryNavigation';
+import {
+  dismissHeadlessFlow,
+  setHeadlessEntryCardTouchThrough,
+} from '../../headless/headlessEntryNavigation';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
@@ -88,12 +91,6 @@ interface CheckoutParams {
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
   Routes.RAMP.CHECKOUT,
 );
-
-interface NavigationWithParents {
-  getParent?: () => NavigationWithParents | undefined;
-  goBack?: () => void;
-  pop?: () => void;
-}
 
 const Checkout = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -200,24 +197,8 @@ const Checkout = () => {
     effectiveOrderId,
   ]);
 
-  const dismissHeadlessFlow = useCallback(() => {
-    const currentNavigation = navigation as NavigationWithParents;
-    const parentNavigation = currentNavigation.getParent?.();
-    const outerNavigation = parentNavigation?.getParent?.();
-
-    if (outerNavigation?.goBack) {
-      outerNavigation.goBack();
-      return;
-    }
-    if (outerNavigation?.pop) {
-      outerNavigation.pop();
-      return;
-    }
-    if (parentNavigation?.pop) {
-      parentNavigation.pop();
-      return;
-    }
-    currentNavigation.goBack?.();
+  const dismissActiveHeadlessFlow = useCallback(() => {
+    dismissHeadlessFlow(navigation);
   }, [navigation]);
 
   const failHeadlessCheckout = useCallback(
@@ -226,10 +207,10 @@ const Checkout = () => {
         return false;
       }
       hasTerminatedHeadlessSessionRef.current = true;
-      dismissHeadlessFlow();
+      dismissActiveHeadlessFlow();
       return true;
     },
-    [headlessSessionId, dismissHeadlessFlow],
+    [headlessSessionId, dismissActiveHeadlessFlow],
   );
 
   useEffect(() => {
@@ -338,7 +319,7 @@ const Checkout = () => {
           if (headlessSessionId) {
             hasTerminatedHeadlessSessionRef.current = true;
             closeSession(headlessSessionId, { reason: 'user_dismissed' });
-            dismissHeadlessFlow();
+            dismissActiveHeadlessFlow();
             return;
           }
           // @ts-expect-error navigation prop mismatch
@@ -380,7 +361,7 @@ const Checkout = () => {
           hasTerminatedHeadlessSessionRef.current = true;
           closeSession(headlessSessionId, { reason: 'completed' });
           closeSourceRef.current = 'callback_success';
-          dismissHeadlessFlow();
+          dismissActiveHeadlessFlow();
           return;
         }
 
@@ -430,7 +411,7 @@ const Checkout = () => {
       isV2Enabled,
       params?.cryptocurrency,
       headlessSessionId,
-      dismissHeadlessFlow,
+      dismissActiveHeadlessFlow,
       failHeadlessCheckout,
       recordUrlChange,
       createEventBuilder,
@@ -459,11 +440,11 @@ const Checkout = () => {
     if (headlessSessionId) {
       hasTerminatedHeadlessSessionRef.current = true;
       closeSession(headlessSessionId, { reason: 'user_dismissed' });
-      dismissHeadlessFlow();
+      dismissActiveHeadlessFlow();
       return;
     }
     sheetRef.current?.onCloseBottomSheet();
-  }, [handleCancelPress, headlessSessionId, dismissHeadlessFlow]);
+  }, [handleCancelPress, headlessSessionId, dismissActiveHeadlessFlow]);
 
   const handleNavigationStateChangeWithDedup = useCallback(
     (navState: { url: string }) => {
@@ -545,7 +526,7 @@ const Checkout = () => {
     }
     hasTerminatedHeadlessSessionRef.current = true;
     closeSession(headlessSessionId, { reason: 'user_dismissed' });
-    dismissHeadlessFlow();
+    dismissActiveHeadlessFlow();
   };
   fireClosedRef.current = () => {
     if (!hasTrackedScreenViewRef.current) return;

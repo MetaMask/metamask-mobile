@@ -33,6 +33,7 @@ import {
   failSession,
   getSession,
 } from '../headless/sessionRegistry';
+import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
 
 interface RampStackParamList {
   /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
@@ -106,12 +107,6 @@ interface UseTransakRoutingConfig {
   baseRouteParams?: Record<string, unknown>;
 }
 
-interface NavigationWithParents {
-  getParent?: () => NavigationWithParents | undefined;
-  goBack?: () => void;
-  pop?: () => void;
-}
-
 export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const baseRoute = config?.baseRoute;
   const baseRouteParams = config?.baseRouteParams;
@@ -151,24 +146,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const processingOrderIdRef = useRef<string | null>(null);
   const { addOrder, refreshOrder } = useRampsOrders();
 
-  const dismissHeadlessFlow = useCallback(() => {
-    const currentNavigation = navigation as unknown as NavigationWithParents;
-    const parentNavigation = currentNavigation.getParent?.();
-    const outerNavigation = parentNavigation?.getParent?.();
-
-    if (outerNavigation?.goBack) {
-      outerNavigation.goBack();
-      return;
-    }
-    if (outerNavigation?.pop) {
-      outerNavigation.pop();
-      return;
-    }
-    if (parentNavigation?.pop) {
-      parentNavigation.pop();
-      return;
-    }
-    currentNavigation.goBack?.();
+  const dismissActiveHeadlessFlow = useCallback(() => {
+    dismissHeadlessFlow(navigation);
   }, [navigation]);
 
   const {
@@ -370,7 +349,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           );
         }
         closeSession(headlessSessionId, { reason: 'completed' });
-        dismissHeadlessFlow();
+        dismissActiveHeadlessFlow();
         return;
       }
       navigation.reset({
@@ -383,7 +362,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         ],
       });
     },
-    [navigation, headlessSessionId, dismissHeadlessFlow],
+    [navigation, headlessSessionId, dismissActiveHeadlessFlow],
   );
 
   const navigateToAdditionalVerificationCallback = useCallback(
@@ -431,7 +410,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       if (!orderId) {
         if (headlessSessionId) {
           closeSession(headlessSessionId, { reason: 'user_dismissed' });
-          dismissHeadlessFlow();
+          dismissActiveHeadlessFlow();
         }
         return;
       }
@@ -502,7 +481,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           message: 'useTransakRouting: Failed to process order after checkout',
         });
         if (failSession(headlessSessionId, error)) {
-          dismissHeadlessFlow();
+          dismissActiveHeadlessFlow();
         }
       }
     },
@@ -515,7 +494,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       regionIsoCode,
       trackEvent,
       headlessSessionId,
-      dismissHeadlessFlow,
+      dismissActiveHeadlessFlow,
     ],
   );
 
