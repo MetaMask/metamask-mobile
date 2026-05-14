@@ -130,21 +130,7 @@ function TransactionFeeRow({
       variant={labelColor}
     >
       {paidByMetaMask ? (
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={4}
-          testID={ConfirmationRowComponentIDs.PAID_BY_METAMASK}
-        >
-          <Icon
-            name={IconName.Check}
-            color={IconColor.Success}
-            size={IconSize.Sm}
-          />
-          <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
-            {strings('transactions.paid_by_metamask')}
-          </Text>
-        </Box>
+        <PaidByLabel />
       ) : (
         <Text
           variant={TextVariant.BodyMD}
@@ -155,6 +141,26 @@ function TransactionFeeRow({
         </Text>
       )}
     </AlertRow>
+  );
+}
+
+function PaidByLabel() {
+  return (
+    <Box
+      flexDirection={FlexDirection.Row}
+      alignItems={AlignItems.center}
+      gap={4}
+      testID={ConfirmationRowComponentIDs.PAID_BY_METAMASK}
+    >
+      <Icon
+        name={IconName.Check}
+        color={IconColor.Success}
+        size={IconSize.Sm}
+      />
+      <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+        {strings('transactions.paid_by_metamask')}
+      </Text>
+    </Box>
   );
 }
 

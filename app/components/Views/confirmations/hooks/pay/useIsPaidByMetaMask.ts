@@ -7,17 +7,20 @@ import {
   useTransactionPayTotals,
 } from './useTransactionPayData';
 
+const SUPPORTED_TYPES = [TransactionType.musdConversion];
+
 export function useIsPaidByMetaMask(): boolean {
   const totals = useTransactionPayTotals();
   const quotes = useTransactionPayQuotes();
   const transactionMetadata = useTransactionMetadataOrThrow();
-  const hasQuotes = Boolean(quotes?.length);
 
-  if (!hasQuotes || !totals?.fees) return false;
   if (
-    !hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
-  )
+    !quotes?.length ||
+    !totals?.fees ||
+    !hasTransactionType(transactionMetadata, SUPPORTED_TYPES)
+  ) {
     return false;
+  }
 
   const sourceNetwork = new BigNumber(totals.fees.sourceNetwork.estimate.usd);
   const targetNetwork = new BigNumber(totals.fees.targetNetwork.usd);
