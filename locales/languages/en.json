@@ -1463,7 +1463,8 @@
       "out_of_range": "Enter a value between {{min}}% and {{max}}%",
       "estimated_slippage": "Est. slippage",
       "max_slippage": "Max slippage",
-      "exceeds_max": "Estimated slippage ({{estimated}}%) exceeds your max ({{max}}%)"
+      "exceeds_max": "Estimated slippage ({{estimated}}%) exceeds your max ({{max}}%)",
+      "insufficient_liquidity": "Insufficient liquidity to fill this order within your max slippage ({{max}}%)"
     },
     "price_deviation_warning": {
       "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."

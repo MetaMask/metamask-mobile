@@ -1653,10 +1653,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   variant={TextVariant.BodySM}
                   color={TextColor.Error}
                 >
-                  {strings('perps.slippage.exceeds_max', {
-                    estimated: estimatedSlippagePct?.toFixed(2) ?? '0',
-                    max: `${bpsToPercent(maxSlippageBps)}`,
-                  })}
+                  {insufficientLiquidity
+                    ? strings('perps.slippage.insufficient_liquidity', {
+                        max: `${bpsToPercent(maxSlippageBps)}`,
+                      })
+                    : strings('perps.slippage.exceeds_max', {
+                        estimated: estimatedSlippagePct?.toFixed(2) ?? '0',
+                        max: `${bpsToPercent(maxSlippageBps)}`,
+                      })}
                 </Text>
               </View>
             )}
