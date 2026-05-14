@@ -896,6 +896,26 @@ export type PerpsControllerSaveMarketFilterPreferencesAction = {
 };
 
 /**
+ * Get the user's max slippage tolerance in basis points.
+ *
+ * @returns The configured max slippage bps, or undefined if never set (callers should default to 300 bps / 3%).
+ */
+export type PerpsControllerGetMaxSlippageAction = {
+  type: `PerpsController:getMaxSlippage`;
+  handler: PerpsController['getMaxSlippage'];
+};
+
+/**
+ * Set the user's max slippage tolerance in basis points.
+ *
+ * @param bps - Max slippage in basis points (e.g. 300 = 3%). Clamped to 10–1000, snapped to step of 10.
+ */
+export type PerpsControllerSetMaxSlippageAction = {
+  type: `PerpsController:setMaxSlippage`;
+  handler: PerpsController['setMaxSlippage'];
+};
+
+/**
  * Set the selected payment token for the Perps order/deposit flow.
  * Pass null or a token with description PERPS_CONSTANTS.PerpsBalanceTokenDescription to select Perps balance.
  * Only required fields (address, chainId) are stored in state; description and symbol are optional.
@@ -981,26 +1001,6 @@ export type PerpsControllerIsCurrentlyReinitializingAction = {
 };
 
 /**
- * Get the user's max slippage tolerance in basis points.
- *
- * @returns The stored max slippage bps, or undefined if not set.
- */
-export type PerpsControllerGetMaxSlippageAction = {
-  type: `PerpsController:getMaxSlippage`;
-  handler: PerpsController['getMaxSlippage'];
-};
-
-/**
- * Set the user's max slippage tolerance in basis points.
- *
- * @param bps - The max slippage in basis points (10–1000).
- */
-export type PerpsControllerSetMaxSlippageAction = {
-  type: `PerpsController:setMaxSlippage`;
-  handler: PerpsController['setMaxSlippage'];
-};
-
-/**
  * Union of all PerpsController action types.
  */
 export type PerpsControllerMethodActions =
@@ -1080,6 +1080,8 @@ export type PerpsControllerMethodActions =
   | PerpsControllerClearPendingTradeConfigurationAction
   | PerpsControllerGetMarketFilterPreferencesAction
   | PerpsControllerSaveMarketFilterPreferencesAction
+  | PerpsControllerGetMaxSlippageAction
+  | PerpsControllerSetMaxSlippageAction
   | PerpsControllerSetSelectedPaymentTokenAction
   | PerpsControllerResetSelectedPaymentTokenAction
   | PerpsControllerGetOrderBookGroupingAction
@@ -1087,6 +1089,4 @@ export type PerpsControllerMethodActions =
   | PerpsControllerToggleWatchlistMarketAction
   | PerpsControllerIsWatchlistMarketAction
   | PerpsControllerGetWatchlistMarketsAction
-  | PerpsControllerIsCurrentlyReinitializingAction
-  | PerpsControllerGetMaxSlippageAction
-  | PerpsControllerSetMaxSlippageAction;
+  | PerpsControllerIsCurrentlyReinitializingAction;
