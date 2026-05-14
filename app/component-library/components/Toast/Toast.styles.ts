@@ -36,6 +36,10 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       justifyContent: 'flex-start',
     },
+    compactLabelContainer: {
+      flex: 1,
+      justifyContent: 'center',
+    },
     label: {
       color: colors.text.default,
     },
@@ -44,6 +48,12 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     actionButton: {
       marginTop: 8,
+    },
+    compactActionButton: {
+      marginLeft: 8,
+    },
+    base_compact: {
+      alignItems: 'center',
     },
   });
 };

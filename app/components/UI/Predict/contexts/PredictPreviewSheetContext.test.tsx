@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
+import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import {
   getPredictLastBuyParams,
   isPredictBuySheetVisible,
@@ -63,6 +64,24 @@ jest.mock('../hooks/usePredictActiveOrder', () => ({
     activeOrder: mockActiveOrder,
     clearOrderError: mockClearOrderError,
   })),
+}));
+
+const mockToastShowToast = jest.fn();
+const mockToastCloseToast = jest.fn();
+jest.mock('../../../../core/ToastService', () => ({
+  __esModule: true,
+  default: {
+    showToast: (...args: unknown[]) => mockToastShowToast(...args),
+    closeToast: (...args: unknown[]) => mockToastCloseToast(...args),
+  },
+}));
+
+jest.mock('../../../../util/theme', () => ({
+  useAppThemeFromContext: () => ({
+    colors: {
+      accent04: { normal: mockTestHexColors.WHITE_BRIGHT },
+    },
+  }),
 }));
 
 jest.mock('../components/PredictPreviewSheet/PredictPreviewSheet', () => {
@@ -445,8 +464,8 @@ describe('PredictPreviewSheetContext', () => {
     expect(screen.getByTestId('predict-sell-preview-sheet')).toBeOnTheScreen();
   });
 
-  describe('reopen API for failure toast', () => {
-    it('does not auto-reopen the buy sheet when activeOrder.error appears after dismiss', () => {
+  describe('failure toast (state-based trigger)', () => {
+    it('does not auto-reopen the buy sheet when activeOrder.error appears after dismiss, and fires a Try again toast instead', () => {
       const { rerender } = render(
         <PredictPreviewSheetProvider>
           <TestConsumer />
@@ -468,11 +487,147 @@ describe('PredictPreviewSheetContext', () => {
         </PredictPreviewSheetProvider>,
       );
 
-      // The sheet must NOT auto-reopen — the failure toast's "Try again"
-      // action is now responsible for re-opening it.
+      // The sheet must NOT auto-reopen.
       expect(
         screen.queryByTestId('predict-buy-preview-sheet'),
       ).not.toBeOnTheScreen();
+
+      // Instead, ToastService.showToast is called with the Try again link.
+      expect(mockToastShowToast).toHaveBeenCalledTimes(1);
+      const toastCall = mockToastShowToast.mock.calls[0][0];
+      expect(toastCall.hasNoTimeout).toBe(true);
+      expect(toastCall.linkButtonOptions).toEqual(
+        expect.objectContaining({ label: expect.any(String) }),
+      );
+      expect(typeof toastCall.linkButtonOptions.onPress).toBe('function');
+      expect(toastCall.closeButtonOptions).toEqual(
+        expect.objectContaining({
+          variant: 'Icon',
+          iconName: expect.any(String),
+        }),
+      );
+
+      // Tapping Try again reopens the slip with the last params and closes the toast.
+      act(() => {
+        toastCall.linkButtonOptions.onPress();
+      });
+      expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
+      expect(mockToastCloseToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('Tapping the close button on the Try again toast clears the order error and closes the toast', () => {
+      const { rerender } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+      fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+      mockActiveOrder = { error: 'order/failed' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      const toastCall = mockToastShowToast.mock.calls[0][0];
+      const onClosePress = toastCall.closeButtonOptions.onPress;
+
+      mockClearOrderError.mockClear();
+      mockToastCloseToast.mockClear();
+
+      act(() => {
+        onClosePress();
+      });
+
+      expect(mockClearOrderError).toHaveBeenCalledTimes(1);
+      expect(mockToastCloseToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fire the toast when the slip is open (banner handles it)', () => {
+      const { rerender } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+      expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
+
+      mockActiveOrder = { error: 'order/failed' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(mockToastShowToast).not.toHaveBeenCalled();
+    });
+
+    it('does not fire the toast when bottomSheetEnabled is OFF (legacy flow)', () => {
+      mockBottomSheetEnabled = false;
+      const { rerender } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+
+      mockActiveOrder = { error: 'order/failed' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(mockToastShowToast).not.toHaveBeenCalled();
+    });
+
+    it('does not fire the toast on error transitions when no buy sheet was ever opened', () => {
+      const { rerender } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      mockActiveOrder = { error: 'order/failed' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(mockToastShowToast).not.toHaveBeenCalled();
+    });
+
+    it('only fires once per error transition (does not re-fire on unrelated rerenders)', () => {
+      const { rerender } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+      fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+      mockActiveOrder = { error: 'order/failed' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      expect(mockToastShowToast).toHaveBeenCalledTimes(1);
+
+      // A subsequent rerender with the same error must not re-fire.
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      expect(mockToastShowToast).toHaveBeenCalledTimes(1);
     });
 
     it('getPredictLastBuyParams returns the most recent params passed to openBuySheet', () => {

@@ -104,6 +104,8 @@ let mockBottomSheetEnabled = false;
 let mockBuySheetVisible = false;
 let mockLastBuyParams: { market?: { id: string } } | null = null;
 const mockReopenPredictBuySheet = jest.fn();
+const mockClearOrderError = jest.fn();
+const mockToastClose = jest.fn();
 
 jest.mock('../selectors/featureFlags', () => ({
   selectPredictBottomSheetEnabledFlag: jest.fn(() => mockBottomSheetEnabled),
@@ -114,6 +116,25 @@ jest.mock('../contexts/PredictPreviewSheetContext', () => ({
   getPredictLastBuyParams: jest.fn(() => mockLastBuyParams),
   reopenPredictBuySheet: (...args: unknown[]) =>
     mockReopenPredictBuySheet(...args),
+}));
+
+jest.mock('../../../../core/ToastService', () => ({
+  __esModule: true,
+  default: {
+    showToast: jest.fn(),
+    closeToast: (...args: unknown[]) => mockToastClose(...args),
+  },
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PredictController: {
+        clearOrderError: (...args: unknown[]) => mockClearOrderError(...args),
+      },
+    },
+  },
 }));
 
 describe('usePredictToastRegistrations', () => {
@@ -132,7 +153,6 @@ describe('usePredictToastRegistrations', () => {
     mockBottomSheetEnabled = false;
     mockBuySheetVisible = false;
     mockLastBuyParams = null;
-    mockReopenPredictBuySheet.mockReset();
     mockWithdrawTransaction = { amount: 123.45 };
 
     mockDeposit.mockResolvedValue(undefined);
@@ -925,7 +945,7 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
-    it('suppresses the error toast when bottom sheet flag is ON and the buy sheet is visible', () => {
+    it('suppresses the failure toast when bottom sheet flag is ON and the slip is visible', () => {
       mockBottomSheetEnabled = true;
       mockBuySheetVisible = true;
       const handler = getHandler();
@@ -942,41 +962,7 @@ describe('usePredictToastRegistrations', () => {
       expect(showToast).not.toHaveBeenCalled();
     });
 
-    it('still shows the error toast when flag is ON but the buy sheet is not visible', () => {
-      mockBottomSheetEnabled = true;
-      mockBuySheetVisible = false;
-      const handler = getHandler();
-
-      handler(
-        {
-          type: 'order',
-          status: 'failed',
-          senderAddress: selectedAddress,
-        },
-        showToast,
-      );
-
-      expect(showToast).toHaveBeenCalled();
-    });
-
-    it('still shows the error toast when flag is OFF even if the sheet is visible', () => {
-      mockBottomSheetEnabled = false;
-      mockBuySheetVisible = true;
-      const handler = getHandler();
-
-      handler(
-        {
-          type: 'order',
-          status: 'failed',
-          senderAddress: selectedAddress,
-        },
-        showToast,
-      );
-
-      expect(showToast).toHaveBeenCalled();
-    });
-
-    it('renders a Try again link in the failure toast when last buy params exist and the slip is closed', () => {
+    it('shows a persistent Try again toast with close button when bottom sheet flag is ON, slip is closed, and last buy params exist', () => {
       mockBottomSheetEnabled = true;
       mockBuySheetVisible = false;
       mockLastBuyParams = { market: { id: 'market-1' } };
@@ -993,24 +979,28 @@ describe('usePredictToastRegistrations', () => {
 
       expect(showToast).toHaveBeenCalledTimes(1);
       const toastCall = showToast.mock.calls[0][0];
-      expect(toastCall).toEqual(
-        expect.objectContaining({
-          linkButtonOptions: expect.objectContaining({
-            label: 'predict.order.try_again',
-          }),
-        }),
+      expect(toastCall.hasNoTimeout).toBe(true);
+      expect(toastCall.linkButtonOptions).toEqual(
+        expect.objectContaining({ label: expect.any(String) }),
+      );
+      expect(toastCall.closeButtonOptions).toEqual(
+        expect.objectContaining({ variant: 'Icon' }),
       );
 
-      // Tapping the link should call reopenPredictBuySheet so the slip
-      // re-opens with the inline order_failed banner.
+      // Tap Try again -> reopens slip + closes toast
       toastCall.linkButtonOptions.onPress();
       expect(mockReopenPredictBuySheet).toHaveBeenCalledTimes(1);
+      expect(mockToastClose).toHaveBeenCalledTimes(1);
+
+      // Tap close button -> clears error + closes toast
+      mockToastClose.mockClear();
+      toastCall.closeButtonOptions.onPress();
+      expect(mockClearOrderError).toHaveBeenCalledTimes(1);
+      expect(mockToastClose).toHaveBeenCalledTimes(1);
     });
 
-    it('falls back to the plain error toast when no last buy params are available', () => {
-      mockBottomSheetEnabled = true;
-      mockBuySheetVisible = false;
-      mockLastBuyParams = null;
+    it('shows the legacy plain failure toast when bottom sheet flag is OFF', () => {
+      mockBottomSheetEnabled = false;
       const handler = getHandler();
 
       handler(
@@ -1030,10 +1020,10 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
-    it('does not render the Try again link when the bottom sheet flag is OFF, even if last buy params exist', () => {
-      mockBottomSheetEnabled = false;
+    it('falls back to plain toast when bottom sheet flag is ON but no last buy params recorded', () => {
+      mockBottomSheetEnabled = true;
       mockBuySheetVisible = false;
-      mockLastBuyParams = { market: { id: 'market-1' } };
+      mockLastBuyParams = null;
       const handler = getHandler();
 
       handler(

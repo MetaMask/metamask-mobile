@@ -22,6 +22,14 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
+  IconColor,
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
+import { ToastVariants } from '../../../../component-library/components/Toast';
+import { ButtonIconVariant } from '../../../../component-library/components/Toast/Toast.types';
+import ToastService from '../../../../core/ToastService';
+import { useAppThemeFromContext } from '../../../../util/theme';
+import {
   selectPredictWithAnyTokenEnabledFlag,
   selectPredictBottomSheetEnabledFlag,
 } from '../selectors/featureFlags';
@@ -192,7 +200,8 @@ export const PredictPreviewSheetProvider: React.FC<
   const payWithAnyTokenEnabled = useSelector(
     selectPredictWithAnyTokenEnabledFlag,
   );
-  const { clearOrderError } = usePredictActiveOrder();
+  const { activeOrder, clearOrderError } = usePredictActiveOrder();
+  const theme = useAppThemeFromContext();
 
   const buySheetRef = useRef<PredictPreviewSheetRef>(null);
   const sellSheetRef = useRef<PredictPreviewSheetRef>(null);
@@ -226,6 +235,8 @@ export const PredictPreviewSheetProvider: React.FC<
   const openBuySheet = useCallback(
     (params: PredictBuyPreviewParams) => {
       lastBuyParamsRef.current = params;
+      // Module-level mirror used by the failure toast outside the React tree.
+      // eslint-disable-next-line react-compiler/react-compiler
       _lastBuyParams = params;
       if (bottomSheetEnabled) {
         setBuyParams(params);
@@ -278,6 +289,69 @@ export const PredictPreviewSheetProvider: React.FC<
       _openBuySheetFromToast = null;
     };
   }, [openBuySheet]);
+
+  // State-based trigger for the "Try again" failure toast. Mirrors the
+  // original auto-reopen condition (which fired whenever `activeOrder.error`
+  // transitioned to truthy while the sheet was dismissed and we still had
+  // remembered buy params) — but instead of reopening the sheet uninvited,
+  // surfaces a Try again toast that the user can opt into. Using a state
+  // trigger here is more reliable than the controller's `'failed'` event,
+  // which depends on `isBackgroundOrder` being true (subject to a race
+  // between the slip's unmount cleanup and on-chain confirmation).
+  const previousErrorRef = useRef<string | undefined>(activeOrder?.error);
+  useEffect(() => {
+    const currentError = activeOrder?.error;
+    const previousError = previousErrorRef.current;
+    previousErrorRef.current = currentError;
+
+    // Only fire on falsy -> truthy transition.
+    if (!currentError || previousError) {
+      return;
+    }
+    // Only for the bottom-sheet flow, with the slip closed, and only if we
+    // know which params to reopen with.
+    if (!bottomSheetEnabled || buyParams || !lastBuyParamsRef.current) {
+      return;
+    }
+
+    const lastParams = lastBuyParamsRef.current;
+    ToastService.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [
+        {
+          label: strings('predict.order.prediction_failed'),
+          isBold: true,
+        },
+      ],
+      iconName: IconName.Error,
+      iconColor: IconColor.Error,
+      backgroundColor: theme.colors.accent04.normal,
+      hasNoTimeout: true,
+      compact: true,
+      linkButtonOptions: {
+        label: strings('predict.order.retry'),
+        onPress: () => {
+          openBuySheet(lastParams);
+          ToastService.closeToast();
+        },
+      },
+      closeButtonOptions: {
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
+        onPress: () => {
+          clearOrderError();
+          ToastService.closeToast();
+        },
+      },
+    });
+  }, [
+    activeOrder?.error,
+    buyParams,
+    bottomSheetEnabled,
+    openBuySheet,
+    clearOrderError,
+    theme.colors.accent04.normal,
+  ]);
 
   const BuyComponent = useMemo(
     () => (payWithAnyTokenEnabled ? PredictBuyWithAnyToken : PredictBuyPreview),

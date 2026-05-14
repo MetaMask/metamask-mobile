@@ -11,11 +11,16 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
+import {
+  ButtonIconVariant,
+  type ToastRef,
+} from '../../../../component-library/components/Toast/Toast.types';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
-import type { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import ToastService from '../../../../core/ToastService';
+import Engine from '../../../../core/Engine';
 import type { PredictTransactionStatusChangedPayload } from '../controllers/PredictController';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { formatPrice } from '../utils/format';
@@ -105,31 +110,49 @@ const showErrorToast = ({
   onRetry,
   backgroundColor,
   iconColor,
+  hasNoTimeout = false,
+  onClose,
+  compact = false,
 }: {
   showToast: ToastRef['showToast'];
   title: string;
-  description: string;
+  description?: string;
   retryLabel?: string;
   onRetry?: () => void;
   backgroundColor: string;
   iconColor: string;
+  hasNoTimeout?: boolean;
+  onClose?: () => void;
+  compact?: boolean;
 }) =>
   showToast({
     variant: ToastVariants.Icon,
-    labelOptions: [
-      { label: title, isBold: true },
-      { label: '\n', isBold: false },
-      { label: description, isBold: false },
-    ],
+    labelOptions: description
+      ? [
+          { label: title, isBold: true },
+          { label: '\n', isBold: false },
+          { label: description, isBold: false },
+        ]
+      : [{ label: title, isBold: true }],
     iconName: IconName.Error,
     iconColor,
     backgroundColor,
-    hasNoTimeout: false,
+    hasNoTimeout,
+    compact,
     ...(retryLabel && onRetry
       ? {
           linkButtonOptions: {
             label: retryLabel,
             onPress: onRetry,
+          },
+        }
+      : {}),
+    ...(onClose
+      ? {
+          closeButtonOptions: {
+            variant: ButtonIconVariant.Icon,
+            iconName: IconName.Close,
+            onPress: onClose,
           },
         }
       : {}),
@@ -371,18 +394,16 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'failed') {
-          // When the bet slip is currently visible (e.g. user reopened it
-          // manually), the inline order_failed banner inside the slip already
-          // surfaces the error, so suppress the toast to avoid duplicate UI.
+          // When the slip is currently visible, the inline order_failed banner
+          // inside the slip handles the error. Suppress the toast to avoid
+          // duplicate UI.
           if (bottomSheetEnabled && isPredictBuySheetVisible()) {
             return;
           }
 
           // When the bottom-sheet flow is on and we have remembered params
-          // from a previous openBuySheet, surface a "Try again" link in the
+          // from a previous openBuySheet, surface a "Retry" link in the
           // toast that reopens the bet slip with the same market context.
-          // The slip will render the inline order_failed banner because
-          // activeOrder.error is still set.
           const lastBuyParams = bottomSheetEnabled
             ? getPredictLastBuyParams()
             : null;
@@ -391,9 +412,17 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             showErrorToast({
               showToast,
               title: strings('predict.order.prediction_failed'),
-              description: strings('predict.order.order_failed_generic'),
-              retryLabel: strings('predict.order.try_again'),
-              onRetry: reopenPredictBuySheet,
+              retryLabel: strings('predict.order.retry'),
+              onRetry: () => {
+                reopenPredictBuySheet();
+                ToastService.closeToast();
+              },
+              hasNoTimeout: true,
+              compact: true,
+              onClose: () => {
+                Engine.context.PredictController.clearOrderError();
+                ToastService.closeToast();
+              },
               backgroundColor: theme.colors.accent04.normal,
               iconColor: theme.colors.error.default,
             });
