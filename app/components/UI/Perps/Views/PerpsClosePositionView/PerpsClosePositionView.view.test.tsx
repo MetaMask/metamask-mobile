@@ -11,11 +11,15 @@ import type {
   Position,
 } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
+import { strings } from '../../../../../../locales/i18n';
 import {
   defaultPositionForViews,
   renderPerpsClosePositionView,
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
-import { PerpsClosePositionViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsAmountDisplaySelectorsIDs,
+  PerpsClosePositionViewSelectorsIDs,
+} from '../../Perps.testIds';
 
 const TIMEOUT_MS = 5000;
 
@@ -108,6 +112,131 @@ describe('PerpsClosePositionView', () => {
         expect.objectContaining({
           orderType: 'market',
           position: expect.objectContaining({ symbol: 'ETH' }),
+        }),
+      );
+    });
+  });
+
+  it('uses the latest live position when take profit partially fills before manual close', async () => {
+    const routePosition: Position = {
+      ...longPosition,
+      takeProfitPrice: '2800',
+      takeProfitCount: 1,
+    };
+    const partiallyClosedPosition: Position = {
+      ...routePosition,
+      size: '0.4',
+      marginUsed: '333.33',
+      unrealizedPnl: '120',
+      returnOnEquity: '0.36',
+      positionValue: '1000',
+    };
+    const closePosition = Engine.context.PerpsController
+      .closePosition as jest.Mock;
+
+    const { stream } = renderPerpsClosePositionView({
+      initialParams: {
+        position: routePosition,
+      },
+      streamOverrides: {
+        account: fundedAccount('10000'),
+        positions: [routePosition],
+        marketData: [ethMarket],
+      },
+    });
+
+    act(() => {
+      stream.emitPositions([partiallyClosedPosition]);
+      stream.emitPrices({
+        ETH: {
+          symbol: 'ETH',
+          price: '2800',
+          timestamp: Date.now(),
+        },
+      });
+    });
+
+    const confirmButton = await screen.findByTestId(
+      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+
+    await waitFor(() => {
+      expect(confirmButton).not.toBeDisabled();
+    });
+
+    fireEvent.press(confirmButton);
+
+    await waitFor(() => {
+      expect(closePosition).toHaveBeenCalledWith(
+        expect.objectContaining({
+          position: expect.objectContaining({
+            symbol: 'ETH',
+            size: '0.4',
+            marginUsed: '333.33',
+            takeProfitPrice: '2800',
+          }),
+        }),
+      );
+    });
+  });
+
+  it('submits a partial market close with explicit size and slippage amount', async () => {
+    const closePosition = Engine.context.PerpsController
+      .closePosition as jest.Mock;
+
+    const { stream } = renderPerpsClosePositionView({
+      initialParams: {
+        position: longPosition,
+      },
+      streamOverrides: {
+        account: fundedAccount('10000'),
+        positions: [longPosition],
+        marketData: [ethMarket],
+      },
+    });
+
+    act(() => {
+      stream.emitPrices({
+        ETH: {
+          symbol: 'ETH',
+          price: '2500',
+          timestamp: Date.now(),
+        },
+      });
+    });
+
+    fireEvent.press(
+      await screen.findByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+    );
+    fireEvent.press(screen.getByText('50%'));
+    fireEvent.press(screen.getByText(strings('perps.deposit.done_button')));
+
+    const confirmButton = await screen.findByTestId(
+      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+
+    await waitFor(() => {
+      expect(confirmButton).not.toBeDisabled();
+    });
+
+    fireEvent.press(confirmButton);
+
+    await waitFor(() => {
+      expect(closePosition).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'market',
+          size: '0.5',
+          usdAmount: '1250',
+          priceAtCalculation: 2500,
+          maxSlippageBps: 300,
+          position: expect.objectContaining({
+            symbol: 'ETH',
+            size: '1',
+          }),
         }),
       );
     });
