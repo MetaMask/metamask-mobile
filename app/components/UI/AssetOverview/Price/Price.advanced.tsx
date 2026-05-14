@@ -116,6 +116,8 @@ export interface PriceAdvancedProps {
   timePeriod?: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
   setTimePeriod?: (period: TimePeriod) => void;
+  /** Monotonically increasing counter to trigger chart data re-fetch on pull-to-refresh. */
+  chartRefreshKey?: number;
 }
 
 const PriceAdvanced = ({
@@ -129,6 +131,7 @@ const PriceAdvanced = ({
   timePeriod = '1d',
   chartNavigationButtons = [],
   setTimePeriod,
+  chartRefreshKey,
 }: PriceAdvancedProps) => {
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -286,12 +289,22 @@ const PriceAdvanced = ({
     hasMore,
     nextCursor,
     hasEmptyData,
+    refetch: refetchChart,
   } = useOHLCVChart({
     assetId,
     timePeriod: config.timePeriod,
     interval: config.interval,
     vsCurrency: currentCurrency,
   });
+
+  const refetchChartRef = useRef(refetchChart);
+  refetchChartRef.current = refetchChart;
+
+  useEffect(() => {
+    if (chartRefreshKey && chartRefreshKey > 0) {
+      refetchChartRef.current();
+    }
+  }, [chartRefreshKey]);
 
   const ohlcvPagination = useMemo(
     () => ({

@@ -73,6 +73,10 @@ interface MultichainTransactionsViewProps {
    * Location context for analytics tracking (home or asset_details)
    */
   location?: TransactionDetailLocation;
+  /**
+   * Optional extra callback invoked alongside the built-in transaction refresh.
+   */
+  onRefresh?: () => void;
 }
 
 const MultichainTransactionsView = ({
@@ -86,6 +90,7 @@ const MultichainTransactionsView = ({
   showDisclaimer = false,
   onScroll,
   location,
+  onRefresh: onRefreshProp,
 }: MultichainTransactionsViewProps) => {
   const { colors } = useTheme();
   const style = styles();
@@ -128,13 +133,14 @@ const MultichainTransactionsView = ({
 
     setRefreshing(true);
     try {
+      onRefreshProp?.();
       await updateIncomingTransactions();
     } catch (error) {
       console.warn('Error refreshing transactions:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [enableRefresh]);
+  }, [enableRefresh, onRefreshProp]);
 
   const renderEmptyList = () => (
     <View style={style.emptyContainer}>
