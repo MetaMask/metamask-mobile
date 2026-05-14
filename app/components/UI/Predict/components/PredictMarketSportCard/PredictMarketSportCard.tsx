@@ -16,8 +16,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Animated, Easing, StyleSheet, TouchableOpacity } from 'react-native';
 import I18n from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
@@ -45,6 +45,31 @@ import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedS
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 
 const TEAM_LOGO_SIZE = 32;
+const COMPACT_TEAM_LOGO_SIZE = 28;
+const LIVE_DOT_SIZE = 8;
+const LIVE_DOT_RIPPLE_SIZE = 24;
+
+const styles = StyleSheet.create({
+  liveDotContainer: {
+    alignItems: 'center',
+    height: LIVE_DOT_RIPPLE_SIZE,
+    justifyContent: 'center',
+    width: LIVE_DOT_RIPPLE_SIZE,
+  },
+  liveDot: {
+    borderRadius: LIVE_DOT_SIZE / 2,
+    height: LIVE_DOT_SIZE,
+    shadowOpacity: 0.84,
+    shadowRadius: 6,
+    width: LIVE_DOT_SIZE,
+  },
+  liveDotRipple: {
+    borderRadius: LIVE_DOT_RIPPLE_SIZE / 2,
+    height: LIVE_DOT_RIPPLE_SIZE,
+    position: 'absolute',
+    width: LIVE_DOT_RIPPLE_SIZE,
+  },
+});
 
 interface PredictMarketSportCardProps {
   market: PredictMarketType;
@@ -66,6 +91,67 @@ interface SportOutcomeButtonItem {
   teamColor?: string;
   variant: 'home' | 'draw' | 'away';
 }
+
+const PulsingLiveDot = () => {
+  const { colors } = useTheme();
+  const rippleScale = useRef(new Animated.Value(0.35)).current;
+  const rippleOpacity = useRef(new Animated.Value(0.8)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.parallel([
+        Animated.timing(rippleScale, {
+          toValue: 1,
+          duration: 1400,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(rippleOpacity, {
+          toValue: 0,
+          duration: 1400,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+
+    animation.start();
+
+    return () => {
+      animation.stop();
+    };
+  }, [rippleOpacity, rippleScale]);
+
+  const rippleStyle = useMemo(
+    () => [
+      styles.liveDotRipple,
+      {
+        backgroundColor: colors.success.default,
+        opacity: rippleOpacity,
+        transform: [{ scale: rippleScale }],
+      },
+    ],
+    [colors.success.default, rippleOpacity, rippleScale],
+  );
+
+  const dotStyle = useMemo(
+    () => [
+      styles.liveDot,
+      {
+        backgroundColor: colors.success.default,
+        shadowColor: colors.success.default,
+      },
+    ],
+    [colors.success.default],
+  );
+
+  return (
+    <Animated.View style={styles.liveDotContainer}>
+      <Animated.View style={rippleStyle} />
+      <Animated.View style={dotStyle} />
+    </Animated.View>
+  );
+};
 
 const formatGameDateTime = (
   startTime: string,
@@ -303,17 +389,20 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     ],
   );
 
+  const isCompact = Boolean(isCarousel);
+  const teamLogoSize = isCompact ? COMPACT_TEAM_LOGO_SIZE : TEAM_LOGO_SIZE;
+
   const renderTeamLogo = (team: PredictSportTeam, logoTestID?: string) =>
     config?.TeamIcon ? (
       <config.TeamIcon
         color={team.color}
-        size={TEAM_LOGO_SIZE}
+        size={teamLogoSize}
         testID={logoTestID}
       />
     ) : (
       <PredictSportTeamLogo
         uri={team.logo}
-        size={TEAM_LOGO_SIZE}
+        size={teamLogoSize}
         testID={logoTestID}
       />
     );
@@ -365,37 +454,41 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
           </Box>
         )}
 
-        <Box twClassName="p-4 gap-4">
+        <Box twClassName={isCompact ? 'p-3 gap-3' : 'p-4 gap-4'}>
           <Text
             variant={TextVariant.HeadingSm}
             color={TextColor.TextDefault}
             fontWeight={FontWeight.Bold}
             twClassName="text-center"
-            numberOfLines={2}
+            numberOfLines={isCompact ? 1 : 2}
           >
             {market.title}
           </Text>
 
-          <Box twClassName="gap-2">
+          <Box twClassName={isCompact ? 'gap-1' : 'gap-2'}>
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="w-full gap-3"
+              twClassName={isCompact ? 'w-full gap-2' : 'w-full gap-3'}
             >
               {renderTeamLogo(
                 game.homeTeam,
                 testID ? `${testID}-home-team-logo` : undefined,
               )}
 
-              <Text
-                variant={TextVariant.DisplayMd}
-                color={TextColor.TextDefault}
-                fontWeight={FontWeight.Bold}
-                twClassName={isScheduled ? 'opacity-0 w-16' : 'w-16'}
-                numberOfLines={1}
-              >
-                {liveData.homeScore}
-              </Text>
+              {!(isCompact && isScheduled) && (
+                <Text
+                  variant={TextVariant.DisplayMd}
+                  color={TextColor.TextDefault}
+                  fontWeight={FontWeight.Bold}
+                  twClassName={
+                    isScheduled ? 'opacity-0 w-16' : isCompact ? 'w-12' : 'w-16'
+                  }
+                  numberOfLines={1}
+                >
+                  {liveData.homeScore}
+                </Text>
+              )}
 
               <Box
                 alignItems={BoxAlignItems.Center}
@@ -408,12 +501,9 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
                       justifyContent={BoxJustifyContent.Center}
-                      twClassName="gap-1"
+                      twClassName="gap-0"
                     >
-                      <Box
-                        twClassName="w-[6px] h-[6px] rounded-full bg-success-default"
-                        style={{ shadowColor: colors.success.default }}
-                      />
+                      <PulsingLiveDot />
                       <Text
                         variant={TextVariant.BodySm}
                         fontWeight={FontWeight.Medium}
@@ -452,17 +542,23 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                 ) : null}
               </Box>
 
-              <Text
-                variant={TextVariant.DisplayMd}
-                color={TextColor.TextDefault}
-                fontWeight={FontWeight.Bold}
-                twClassName={
-                  isScheduled ? 'opacity-0 w-16 text-right' : 'w-16 text-right'
-                }
-                numberOfLines={1}
-              >
-                {liveData.awayScore}
-              </Text>
+              {!(isCompact && isScheduled) && (
+                <Text
+                  variant={TextVariant.DisplayMd}
+                  color={TextColor.TextDefault}
+                  fontWeight={FontWeight.Bold}
+                  twClassName={
+                    isScheduled
+                      ? 'opacity-0 w-16 text-right'
+                      : isCompact
+                        ? 'w-12 text-right'
+                        : 'w-16 text-right'
+                  }
+                  numberOfLines={1}
+                >
+                  {liveData.awayScore}
+                </Text>
+              )}
 
               {renderTeamLogo(
                 game.awayTeam,
@@ -507,7 +603,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                     onPress={() => handleBuy(item)}
                     style={{ backgroundColor: getButtonBackgroundColor(item) }}
                     isFullWidth
-                    size={ButtonBaseSize.Lg}
+                    size={isCompact ? ButtonBaseSize.Md : ButtonBaseSize.Lg}
                     testID={
                       testID ? `${testID}-${item.variant}-button` : undefined
                     }

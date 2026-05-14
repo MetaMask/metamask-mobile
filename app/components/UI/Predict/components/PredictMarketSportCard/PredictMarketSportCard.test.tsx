@@ -158,6 +158,19 @@ describe('PredictMarketSportCard', () => {
     expect(getByText('ENG 62¢')).toBeOnTheScreen();
   });
 
+  it('renders compact carousel cards without scheduled score placeholders', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <PredictMarketSportCard market={mockMarket} isCarousel />,
+      { state: initialState },
+    );
+
+    expect(getByText('Spain vs England')).toBeOnTheScreen();
+    expect(queryByText('0')).not.toBeOnTheScreen();
+    expect(getByText('SPA 60¢')).toBeOnTheScreen();
+    expect(getByText('DRAW 15¢')).toBeOnTheScreen();
+    expect(getByText('ENG 62¢')).toBeOnTheScreen();
+  });
+
   it('renders live status and live scores from game updates', () => {
     mockGameUpdate = {
       gameId: 'game-1',
