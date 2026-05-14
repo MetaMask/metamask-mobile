@@ -89,13 +89,14 @@ export const usePredictSearchMarketData = ({
     return refine ? refine(markets) : markets;
   }, [enabled, query.data, refine]);
 
+  const queryRefetch = query.refetch;
   const refetch = useCallback(async () => {
     if (!enabled) {
       return;
     }
 
-    await query.refetch();
-  }, [enabled, query]);
+    await queryRefetch();
+  }, [enabled, queryRefetch]);
 
   return {
     marketData,
