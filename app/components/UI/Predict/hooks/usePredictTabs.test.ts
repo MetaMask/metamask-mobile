@@ -184,20 +184,26 @@ describe('usePredictTabs', () => {
     });
   });
 
-  describe('hotTabQueryParams', () => {
-    it('returns undefined when hot tab is disabled', () => {
+  describe('tab custom query params', () => {
+    it('does not add custom query params to base tabs', () => {
       const { result } = renderHook(() => usePredictTabs());
 
-      expect(result.current.hotTabQueryParams).toBeUndefined();
+      expect(
+        result.current.tabs.every((tab) => tab.customQueryParams === undefined),
+      ).toBe(true);
     });
 
-    it('returns query params when hot tab is enabled', () => {
+    it('adds query params to the hot tab when enabled', () => {
       mockHotTabFlag.enabled = true;
       mockHotTabFlag.queryParams = 'test=value';
 
       const { result } = renderHook(() => usePredictTabs());
 
-      expect(result.current.hotTabQueryParams).toBe('test=value');
+      expect(result.current.tabs[0]).toEqual({
+        key: 'hot',
+        label: 'predict.category.hot',
+        customQueryParams: 'test=value',
+      });
     });
   });
 

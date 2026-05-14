@@ -14,6 +14,7 @@ import type { PredictNavigationParamList } from '../types/navigation';
 export interface FeedTab {
   key: PredictTabKey;
   label: string;
+  customQueryParams?: string;
 }
 
 export interface UsePredictTabsResult {
@@ -21,7 +22,6 @@ export interface UsePredictTabsResult {
   activeIndex: number;
   setActiveIndex: (index: number) => void;
   initialTabKey: PredictTabKey;
-  hotTabQueryParams?: string;
 }
 
 export const usePredictTabs = (): UsePredictTabsResult => {
@@ -39,11 +39,12 @@ export const usePredictTabs = (): UsePredictTabsResult => {
       baseTabs.unshift({
         key: PREDICT_HOT_TAB.key,
         label: strings(PREDICT_HOT_TAB.labelKey),
+        customQueryParams: hotTabFlag.queryParams,
       });
     }
 
     return baseTabs;
-  }, [hotTabFlag.enabled]);
+  }, [hotTabFlag.enabled, hotTabFlag.queryParams]);
 
   const requestedTabKey = isPredictTabKey(route.params?.tab)
     ? route.params?.tab
@@ -109,6 +110,5 @@ export const usePredictTabs = (): UsePredictTabsResult => {
     activeIndex,
     setActiveIndex,
     initialTabKey: initialTabKeyRef.current,
-    hotTabQueryParams: hotTabFlag.queryParams,
   };
 };

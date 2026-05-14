@@ -830,6 +830,26 @@ describe('PredictFeed', () => {
       ).toBeOnTheScreen();
     });
 
+    it('passes Hot tab custom query params to market data fetching', () => {
+      mockUseSelector.mockReturnValue({
+        enabled: true,
+        queryParams: 'tag_id=149&order=volume24hr',
+      });
+
+      render(<PredictFeed />);
+
+      const hotTabCall = mockUsePredictMarketData.mock.calls.find(
+        (call: [{ category?: string }]) => call[0].category === 'hot',
+      );
+
+      expect(hotTabCall?.[0]).toEqual(
+        expect.objectContaining({
+          category: 'hot',
+          customQueryParams: 'tag_id=149&order=volume24hr',
+        }),
+      );
+    });
+
     it('does not render Hot tab when flag is disabled', () => {
       mockUseSelector.mockReturnValue({
         enabled: false,
