@@ -5,8 +5,11 @@
 import '../../../../../../tests/component-view/mocks';
 
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
-import type { AccountState, PerpsMarketData } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
+import {
+  createFundedAccountForViews,
+  defaultEthMarketForViews,
+} from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsHomeView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 
@@ -23,26 +26,6 @@ const eligibleOverrides = {
   },
 };
 
-const fundedAccount = (balance: string): AccountState => ({
-  spendableBalance: balance,
-  withdrawableBalance: balance,
-  totalBalance: balance,
-  marginUsed: '0',
-  unrealizedPnl: '0',
-  returnOnEquity: '0',
-});
-
-const ethMarket: PerpsMarketData = {
-  symbol: 'ETH',
-  name: 'Ethereum',
-  maxLeverage: '50x',
-  price: '$2,500.00',
-  change24h: '+$50.00',
-  change24hPercent: '+2.0%',
-  volume: '$1.5B',
-  marketType: 'crypto',
-};
-
 describe('PerpsHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -55,10 +38,10 @@ describe('PerpsHomeView', () => {
     const { stream } = renderPerpsHomeView({
       overrides: eligibleOverrides,
       streamOverrides: {
-        account: fundedAccount('100'),
+        account: createFundedAccountForViews('100'),
         positions: [],
         orders: [],
-        marketData: [ethMarket],
+        marketData: [defaultEthMarketForViews],
       },
     });
 
@@ -84,7 +67,7 @@ describe('PerpsHomeView', () => {
     });
 
     act(() => {
-      stream.emitAccount(fundedAccount('180'));
+      stream.emitAccount(createFundedAccountForViews('180'));
     });
 
     await waitFor(() => {

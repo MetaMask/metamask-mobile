@@ -6,11 +6,14 @@ import '../../../../../../tests/component-view/mocks';
 
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import type { AccountState, PerpsMarketData } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import NavigationService from '../../../../../core/NavigationService';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  createFundedAccountForViews,
+  defaultEthMarketForViews,
+} from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { PerpsTutorialSelectorsIDs } from '../../Perps.testIds';
 import PerpsTutorialCarousel from './PerpsTutorialCarousel';
@@ -26,26 +29,6 @@ const firstTimeOverrides = {
       },
     },
   },
-};
-
-const fundedAccount = (balance: string): AccountState => ({
-  spendableBalance: balance,
-  withdrawableBalance: balance,
-  totalBalance: balance,
-  marginUsed: '0',
-  unrealizedPnl: '0',
-  returnOnEquity: '0',
-});
-
-const ethMarket: PerpsMarketData = {
-  symbol: 'ETH',
-  name: 'Ethereum',
-  maxLeverage: '50x',
-  price: '$2,500.00',
-  change24h: '+$50.00',
-  change24hPercent: '+2.0%',
-  volume: '$1.5B',
-  marketType: 'crypto',
 };
 
 describe('PerpsTutorialCarousel', () => {
@@ -74,10 +57,10 @@ describe('PerpsTutorialCarousel', () => {
         overrides: firstTimeOverrides,
         initialParams: { source: 'component_view' },
         streamOverrides: {
-          account: fundedAccount('0'),
+          account: createFundedAccountForViews('0'),
           positions: [],
           orders: [],
-          marketData: [ethMarket],
+          marketData: [defaultEthMarketForViews],
         },
       },
     );
