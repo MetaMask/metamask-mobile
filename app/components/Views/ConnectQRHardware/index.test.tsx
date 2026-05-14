@@ -3,14 +3,11 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import ConnectQRHardware from './index';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
-import { QR_CONTINUE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
+import { ConnectQRHardwareSelectorsIDs } from './ConnectQRHardware.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import {
-  ACCOUNT_SELECTOR_FORGET_BUTTON,
-  ACCOUNT_SELECTOR_NEXT_BUTTON,
-  ACCOUNT_SELECTOR_PREVIOUS_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
-import { QrKeyringBridge } from '@metamask/eth-qr-keyring';
+import { AccountSelectorSelectorsIDs } from '../../UI/HardwareWallet/AccountSelector/AccountSelector.testIds';
+import { QrKeyring, QrKeyringBridge } from '@metamask/eth-qr-keyring';
+import type { Hex } from '@metamask/utils';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
@@ -29,6 +26,9 @@ const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 }));
+const mockSetTargetWalletType = jest.fn();
+const mockShowHardwareWalletError = jest.fn();
+const mockSetQrScanRetryHandler = jest.fn();
 
 jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -37,12 +37,67 @@ jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock(
+  '../../../core/HardwareWallet/contexts/HardwareWalletContext',
+  () => ({
+    useHardwareWallet: () => ({
+      setTargetWalletType: mockSetTargetWalletType,
+      showHardwareWalletError: mockShowHardwareWalletError,
+      setQrScanRetryHandler: mockSetQrScanRetryHandler,
+    }),
+  }),
+);
+
+jest.mock('../../UI/QRHardware/AnimatedQRScanner', () => ({
+  __esModule: true,
+  default: ({
+    visible,
+    onQRHardwareScanError,
+    onModalHideComplete,
+  }: {
+    visible: boolean;
+    onQRHardwareScanError?: (error: Error) => void;
+    onModalHideComplete?: () => void;
+  }) => {
+    const ActualReact = jest.requireActual('react');
+    const { View, Button } = jest.requireActual('react-native');
+    const prevVisibleRef = ActualReact.useRef(visible);
+
+    ActualReact.useEffect(() => {
+      if (prevVisibleRef.current && !visible) {
+        onModalHideComplete?.();
+      }
+      prevVisibleRef.current = visible;
+    }, [visible, onModalHideComplete]);
+
+    return visible ? (
+      <View testID="animated-qr-scanner">
+        <Button
+          title="trigger-qr-hardware-error"
+          onPress={() =>
+            onQRHardwareScanError?.(
+              new Error('Scanned QR code is not in UR format'),
+            )
+          }
+        />
+      </View>
+    ) : null;
+  },
+}));
+
 const mockedNavigate = {
   pop: jest.fn(),
   goBack: jest.fn(),
 };
 
-const mockPage0Accounts = [
+interface MockAccount {
+  address: Hex;
+  index: number;
+  shortenedAddress: string;
+  balance: string;
+}
+
+const mockPage0Accounts: MockAccount[] = [
   {
     address: '0x4678901234567890123456789012345678901210',
     shortenedAddress: '0x46789...01210',
@@ -75,7 +130,7 @@ const mockPage0Accounts = [
   },
 ];
 
-const mockPage1Accounts = [
+const mockPage1Accounts: MockAccount[] = [
   {
     address: '0x12345678901234567890123456789012345678902',
     shortenedAddress: '0x12345...78902',
@@ -108,27 +163,11 @@ const mockPage1Accounts = [
   },
 ];
 
-const mockQrKeyring = {
-  getFirstPage: jest.fn(),
-  getNextPage: jest.fn(),
-  getPreviousPage: jest.fn(),
-  forgetDevice: jest.fn(),
-  getName: jest.fn().mockResolvedValue('KeystoneDevice'),
-  getAccounts: jest
-    .fn()
-    .mockReturnValue([
-      '0x4678901234567890123456789012345678901210',
-      '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
-    ]),
-  setAccountToUnlock: jest.fn(),
-  addAccounts: jest
-    .fn()
-    .mockResolvedValue(['0x4678901234567890123456789012345678901210']),
-};
-
 const mockQrKeyringBridge: QrKeyringBridge = {
   requestScan: jest.fn(),
 };
+
+const mockQrKeyring = new QrKeyring({ bridge: mockQrKeyringBridge });
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -182,41 +221,55 @@ const mockInitialState = {
 
 describe('ConnectQRHardware', () => {
   const mockKeyringController = MockEngine.context.KeyringController;
-  mockQrKeyring.getFirstPage.mockResolvedValue(mockPage0Accounts);
-  mockQrKeyring.getNextPage.mockResolvedValue(mockPage1Accounts);
-  mockQrKeyring.getPreviousPage.mockResolvedValue(mockPage0Accounts);
-
   const mockAccountTrackerController =
     MockEngine.context.AccountTrackerController;
-  mockAccountTrackerController.syncBalanceWithAddresses.mockImplementation(
-    (addresses) =>
-      Promise.resolve(
-        addresses.reduce(
-          (acc: { [key: string]: { balance: string } }, address) => {
-            acc[address] = {
-              balance: '0x0',
-            };
-            return acc;
-          },
-          {},
-        ),
-      ),
-  );
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
-  });
 
-  it('renders correctly to match snapshot', () => {
-    mockKeyringController.getAccounts.mockResolvedValue([]);
-    const wrapper = renderWithProvider(
-      <ConnectQRHardware navigation={mockedNavigate} />,
-      { state: mockInitialState },
+    // Re-establish QrKeyring spies each test. `testSetup.js` runs
+    // `jest.restoreAllMocks()` in afterEach, which restores spied methods to
+    // their real implementations, so spies must be recreated here.
+    jest
+      .spyOn(mockQrKeyring, 'getFirstPage')
+      .mockResolvedValue(mockPage0Accounts);
+    jest
+      .spyOn(mockQrKeyring, 'getNextPage')
+      .mockResolvedValue(mockPage1Accounts);
+    jest
+      .spyOn(mockQrKeyring, 'getPreviousPage')
+      .mockResolvedValue(mockPage0Accounts);
+    jest.spyOn(mockQrKeyring, 'forgetDevice').mockImplementation();
+    jest
+      .spyOn(mockQrKeyring, 'getName')
+      .mockResolvedValue('KeystoneDevice' as never);
+    jest
+      .spyOn(mockQrKeyring, 'getAccounts')
+      .mockReturnValue([
+        '0x4678901234567890123456789012345678901210',
+        '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
+      ] as never);
+    jest.spyOn(mockQrKeyring, 'setAccountToUnlock').mockImplementation();
+    jest
+      .spyOn(mockQrKeyring, 'addAccounts')
+      .mockResolvedValue(['0x4678901234567890123456789012345678901210']);
+
+    mockAccountTrackerController.syncBalanceWithAddresses.mockImplementation(
+      (addresses) =>
+        Promise.resolve(
+          addresses.reduce(
+            (acc: { [key: string]: { balance: string } }, address) => {
+              acc[address] = {
+                balance: '0x0',
+              };
+              return acc;
+            },
+            {},
+          ),
+        ),
     );
-
-    expect(wrapper).toMatchSnapshot();
   });
 
   it('renders first page correctly when user clicks `continue` button', async () => {
@@ -227,7 +280,7 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
 
     expect(button).toBeDefined();
 
@@ -250,14 +303,14 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
     expect(button).toBeDefined();
 
     await act(async () => {
       fireEvent.press(button);
     });
 
-    const nextButton = getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON);
+    const nextButton = getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON);
     expect(nextButton).toBeDefined();
     await act(async () => {
       fireEvent.press(nextButton);
@@ -278,20 +331,20 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
     expect(button).toBeDefined();
 
     await act(async () => {
       fireEvent.press(button);
     });
 
-    const nextButton = getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON);
+    const nextButton = getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON);
     expect(nextButton).toBeDefined();
     await act(async () => {
       fireEvent.press(nextButton);
     });
 
-    const prevButton = getByTestId(ACCOUNT_SELECTOR_PREVIOUS_BUTTON);
+    const prevButton = getByTestId(AccountSelectorSelectorsIDs.PREVIOUS_BUTTON);
     expect(prevButton).toBeDefined();
     await act(async () => {
       fireEvent.press(prevButton);
@@ -313,14 +366,14 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
     expect(button).toBeDefined();
 
     await act(async () => {
       fireEvent.press(button);
     });
 
-    const forgetButton = getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON);
+    const forgetButton = getByTestId(AccountSelectorSelectorsIDs.FORGET_BUTTON);
     expect(forgetButton).toBeDefined();
     await act(async () => {
       fireEvent.press(forgetButton);
@@ -342,7 +395,7 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
 
     await act(async () => {
       fireEvent.press(button);
@@ -362,7 +415,7 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
 
     await act(async () => {
       fireEvent.press(button);
@@ -398,13 +451,13 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
 
     await act(async () => {
       fireEvent.press(button);
     });
 
-    const forgetButton = getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON);
+    const forgetButton = getByTestId(AccountSelectorSelectorsIDs.FORGET_BUTTON);
 
     await act(async () => {
       fireEvent.press(forgetButton);
@@ -431,7 +484,7 @@ describe('ConnectQRHardware', () => {
       { state: mockInitialState },
     );
 
-    const button = getByTestId(QR_CONTINUE_BUTTON);
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
 
     await act(async () => {
       fireEvent.press(button);
@@ -441,5 +494,33 @@ describe('ConnectQRHardware', () => {
       device_type: HardwareDeviceTypes.QR,
     });
     expect(mockBuild).toHaveBeenCalled();
+  });
+
+  it('shows hardware wallet bottom sheet error for QR scan errors', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+    jest
+      .mocked(mockQrKeyring.getFirstPage)
+      .mockImplementationOnce(() => new Promise(() => undefined));
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON),
+      );
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('trigger-qr-hardware-error'));
+    });
+
+    expect(mockShowHardwareWalletError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Scanned QR code is not in UR format',
+      }),
+    );
   });
 });

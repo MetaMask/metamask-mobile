@@ -34,6 +34,15 @@ jest.mock('../../../../selectors/accountsController', () => ({
     .mockReturnValue('0x1234567890123456789012345678901234567890'),
 }));
 
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroupEvmInternalAccount: jest.fn().mockReturnValue({
+      address: '0x1234567890123456789012345678901234567890',
+    }),
+  }),
+);
+
 jest.mock('../../../../selectors/networkController', () => ({
   selectChainId: jest.fn().mockReturnValue('0xa4b1'),
 }));
@@ -487,6 +496,38 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.totalFee).toBeGreaterThan(0);
       expect(result.current.originalMetamaskFeeRate).toBe(0.01);
       // The hook should apply discount internally
+    });
+
+    it('does not apply a discount when controller returns null discountBips', async () => {
+      mockEngineContext.RewardsController.getPerpsDiscountForAccount.mockResolvedValueOnce(
+        null,
+      );
+
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.01045,
+        feeAmount: 1045,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.01,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(result.current.feeDiscountPercentage).toBeUndefined();
+      expect(result.current.metamaskFeeRate).toBe(0.01);
+      expect(result.current.originalMetamaskFeeRate).toBe(0.01);
+      expect(result.current.metamaskFee).toBe(1000); // 100000 * 0.01, undiscounted
     });
   });
 

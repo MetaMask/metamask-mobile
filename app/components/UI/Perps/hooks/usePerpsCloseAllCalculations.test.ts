@@ -95,7 +95,9 @@ describe('usePerpsCloseAllCalculations', () => {
     mockUseSelector.mockImplementation(() => {
       selectorCallCount++;
       if (selectorCallCount % 2 === 1) {
-        return '0x1234567890123456789012345678901234567890'; // selectedAddress
+        return {
+          address: '0x1234567890123456789012345678901234567890',
+        }; // selected account group EVM account
       }
       return '0xa4b1'; // chainId
     });
@@ -486,6 +488,47 @@ describe('usePerpsCloseAllCalculations', () => {
       // Two positions: 67.5 * 2 = 135
       expect(result.current.totalFees).toBeCloseTo(135, 1);
       expect(result.current.avgFeeDiscountPercentage).toBe(65);
+    });
+
+    it('does not apply a discount and allows retry when controller returns null (unhydrated)', async () => {
+      // Arrange: subscription state not hydrated yet
+      mockGetPerpsDiscount.mockResolvedValue(null);
+
+      const positions = [createMockPosition({ symbol: 'BTC' })];
+      const priceData = { BTC: { price: '51000' } };
+
+      mockCalculateFees.mockResolvedValue(
+        createMockFeeResult({
+          feeAmount: 275,
+          metamaskFeeRate: 0.01,
+          metamaskFeeAmount: 250,
+          protocolFeeRate: 0.001,
+          protocolFeeAmount: 25,
+        }),
+      );
+
+      // Act
+      const { result, rerender } = renderHook(
+        ({ pos }: { pos: Position[] }) =>
+          usePerpsCloseAllCalculations({ positions: pos, priceData }),
+        { initialProps: { pos: positions } },
+      );
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      // No discount applied; original rate matches base rate
+      expect(result.current.avgFeeDiscountPercentage).toBeUndefined();
+      expect(result.current.avgMetamaskFeeRate).toBeCloseTo(0.01, 4);
+      expect(result.current.totalFees).toBe(275);
+
+      // Hydration completes and a positions change retries the fetch
+      mockGetPerpsDiscount.mockResolvedValueOnce(6500);
+      rerender({ pos: [...positions] });
+
+      await waitFor(() =>
+        expect(result.current.avgFeeDiscountPercentage).toBe(65),
+      );
+      expect(mockGetPerpsDiscount).toHaveBeenCalledTimes(2);
     });
 
     it('handles discount fetch errors gracefully', async () => {

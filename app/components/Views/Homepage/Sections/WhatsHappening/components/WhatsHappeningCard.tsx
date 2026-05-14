@@ -1,69 +1,122 @@
-import React, { useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
+import React, { useCallback, useMemo, memo } from 'react';
+import { TouchableOpacity, View } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BoxJustifyContent,
   Text,
   TextVariant,
   TextColor,
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
+  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../../locales/i18n';
 import type { WhatsHappeningItem } from '../types';
-import { formatShortDate } from '../util/formatDate';
+import {
+  getImpactLabel,
+  getImpactBackgroundClass,
+  getImpactTextColor,
+} from '../util/impact';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import RelatedAssetAvatar from '../../../../WhatsHappeningDetailView/components/RelatedAssetAvatar';
+import { getRelatedAssetImageSource } from '../../../../WhatsHappeningDetailView/utils/getRelatedAssetImageSource';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { useViewportTracking } from '../../../../../UI/MarketInsights/hooks/useViewportTracking';
+import { formatRelativeTime } from '../../../../../UI/MarketInsights/utils/marketInsightsFormatting';
+import { getWhatsHappeningEventProps } from '../eventProperties';
+import type { WhatsHappeningSourceValue } from '../constants';
 
 interface WhatsHappeningCardProps {
   item: WhatsHappeningItem;
+  cardIndex: number;
+  source: WhatsHappeningSourceValue;
   onPress?: (item: WhatsHappeningItem) => void;
 }
 
+const MAX_VISIBLE_ASSET_ICONS = 3;
+
 const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   item,
+  cardIndex,
+  source,
   onPress,
 }) => {
-  const formattedDate = useMemo(() => formatShortDate(item.date), [item.date]);
+  const tw = useTailwind();
+  const formattedDate = useMemo(
+    () =>
+      item.date ? formatRelativeTime(item.date, { nowLabel: 'now' }) : null,
+    [item.date],
+  );
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handlePress = () => onPress?.(item);
 
+  const handleVisible = useCallback(() => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
+      )
+        .addProperties(getWhatsHappeningEventProps(item, cardIndex, source))
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder, item, cardIndex, source]);
+
+  const { ref: cardRef, onLayout: onVisibilityLayout } =
+    useViewportTracking(handleVisible);
+
+  const visibleAssets = useMemo(
+    () => item.relatedAssets.slice(0, MAX_VISIBLE_ASSET_ICONS),
+    [item.relatedAssets],
+  );
+  const visibleAssetImages = useMemo(
+    () => visibleAssets.map(getRelatedAssetImageSource),
+    [visibleAssets],
+  );
+  const firstAsset = item.relatedAssets[0];
+  const remainingAssetCount = Math.max(0, item.relatedAssets.length - 1);
+  const firstAssetDisplaySymbol = firstAsset
+    ? getPerpsDisplaySymbol(firstAsset.symbol)
+    : null;
+  const assetLabel = firstAssetDisplaySymbol
+    ? remainingAssetCount > 0
+      ? `${firstAssetDisplaySymbol} +${remainingAssetCount}`
+      : firstAssetDisplaySymbol
+    : null;
+
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
-      <Box
-        twClassName="w-[280px] h-[248px] rounded-2xl bg-background-muted overflow-hidden"
-        padding={4}
-        justifyContent={BoxJustifyContent.Between}
-        gap={3}
+    <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
+      <TouchableOpacity
+        onPress={handlePress}
+        activeOpacity={0.7}
+        style={tw.style(
+          'w-[280px] h-[254px] rounded-2xl bg-background-muted overflow-hidden p-4 justify-between gap-3',
+        )}
       >
         <Box gap={3}>
-          {/* Category badge */}
-          {item.category && (
-            <Box twClassName="self-start">
-              <Box twClassName="rounded-full bg-background-default px-2 py-0.5">
-                <Text
-                  variant={TextVariant.BodyXs}
-                  color={TextColor.TextAlternative}
-                  fontWeight={FontWeight.Medium}
-                >
-                  {strings(
-                    `homepage.sections.whats_happening_categories.${item.category}`,
-                  )}
-                </Text>
-              </Box>
+          {item.impact && (
+            <Box
+              twClassName={`self-start rounded ${getImpactBackgroundClass(item.impact)} px-2 py-0.5`}
+            >
+              <Text
+                variant={TextVariant.BodyXs}
+                color={getImpactTextColor(item.impact)}
+                fontWeight={FontWeight.Medium}
+              >
+                {getImpactLabel(item.impact)}
+              </Text>
             </Box>
           )}
 
-          {/* Title */}
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
-            numberOfLines={3}
+            numberOfLines={2}
           >
             {item.title}
           </Text>
 
-          {/* Description */}
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
@@ -73,28 +126,43 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
           </Text>
         </Box>
 
-        {/* Footer: asset pills + date */}
-        <Box gap={2}>
-          {item.relatedAssets.length > 0 && (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          gap={2}
+        >
+          {assetLabel && (
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="flex-wrap gap-1"
+              gap={1}
+              twClassName="flex-shrink"
             >
-              {item.relatedAssets.map((asset) => (
-                <Box
-                  key={asset.sourceAssetId}
-                  twClassName="rounded-full bg-background-default px-2 py-0.5"
-                >
-                  <Text
-                    variant={TextVariant.BodyXs}
-                    color={TextColor.TextDefault}
-                    fontWeight={FontWeight.Medium}
-                  >
-                    {asset.symbol}
-                  </Text>
+              {visibleAssets.length > 0 && (
+                <Box flexDirection={BoxFlexDirection.Row}>
+                  {visibleAssets.map((asset, index) => (
+                    <Box
+                      key={asset.sourceAssetId}
+                      twClassName={index > 0 ? '-ml-1' : ''}
+                    >
+                      <RelatedAssetAvatar
+                        name={asset.name}
+                        image={visibleAssetImages[index]}
+                        size={16}
+                      />
+                    </Box>
+                  ))}
                 </Box>
-              ))}
+              )}
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
+                numberOfLines={1}
+              >
+                {assetLabel}
+              </Text>
             </Box>
           )}
 
@@ -107,9 +175,9 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
             </Text>
           )}
         </Box>
-      </Box>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 };
 
-export default WhatsHappeningCard;
+export default memo(WhatsHappeningCard);
