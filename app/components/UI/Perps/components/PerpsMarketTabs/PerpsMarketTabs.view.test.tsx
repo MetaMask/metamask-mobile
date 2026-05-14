@@ -8,9 +8,9 @@ import React from 'react';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type { Order } from '@metamask/perps-controller';
 import {
+  createEthMarketForViews,
   createFundedAccountForViews,
-  defaultEthMarketForViews,
-  defaultLongPositionForViews,
+  createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import {
   defaultOrderForViews,
@@ -75,7 +75,7 @@ describe('PerpsMarketTabs', () => {
           account: createFundedAccountForViews('10000'),
           positions: [],
           orders: [limitLongOrder],
-          marketData: [defaultEthMarketForViews],
+          marketData: [createEthMarketForViews()],
         },
       },
     );
@@ -97,7 +97,7 @@ describe('PerpsMarketTabs', () => {
       stream.emitOrders([]);
       stream.emitPositions([
         {
-          ...defaultLongPositionForViews,
+          ...createLongPositionForViews(),
           unrealizedPnl: '-37.50',
           returnOnEquity: '-0.045',
         },

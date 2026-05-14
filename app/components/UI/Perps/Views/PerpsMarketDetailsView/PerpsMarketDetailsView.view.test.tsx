@@ -14,9 +14,9 @@ import {
   setupPerpsMarketInsightsEngineMock,
 } from '../../../../../../tests/component-view/fixtures/perpsMarketInsights';
 import {
+  createEthMarketForViews,
   createFundedAccountForViews,
-  defaultEthMarketForViews,
-  defaultLongPositionForViews,
+  createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { getModifyActionLabels } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
@@ -171,12 +171,12 @@ describe('PerpsMarketDetailsView', () => {
           },
         },
       },
-      initialParams: { market: defaultEthMarketForViews },
+      initialParams: { market: createEthMarketForViews() },
       streamOverrides: {
         account: createFundedAccountForViews('10000'),
-        positions: [defaultLongPositionForViews],
+        positions: [createLongPositionForViews()],
         orders: [],
-        marketData: [defaultEthMarketForViews],
+        marketData: [createEthMarketForViews()],
       },
     });
 
@@ -191,7 +191,7 @@ describe('PerpsMarketDetailsView', () => {
     act(() => {
       stream.emitPositions([
         {
-          ...defaultLongPositionForViews,
+          ...createLongPositionForViews(),
           unrealizedPnl: '-100',
           returnOnEquity: '-0.12',
         },
@@ -219,7 +219,7 @@ describe('PerpsMarketDetailsView', () => {
 
   it('removes close actions after a stop-loss-triggered close stream update', async () => {
     const stopLossPosition: Position = {
-      ...defaultLongPositionForViews,
+      ...createLongPositionForViews(),
       stopLossPrice: '2300',
       stopLossCount: 1,
     };
@@ -234,12 +234,12 @@ describe('PerpsMarketDetailsView', () => {
           },
         },
       },
-      initialParams: { market: defaultEthMarketForViews },
+      initialParams: { market: createEthMarketForViews() },
       streamOverrides: {
         account: createFundedAccountForViews('10000'),
         positions: [stopLossPosition],
         orders: [],
-        marketData: [defaultEthMarketForViews],
+        marketData: [createEthMarketForViews()],
       },
     });
 
@@ -263,8 +263,9 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   it('shows the reduced live position after a partial close stream update', async () => {
+    const position = createLongPositionForViews();
     const partiallyClosedPosition: Position = {
-      ...defaultLongPositionForViews,
+      ...position,
       size: '0.4',
       marginUsed: '333.33',
       unrealizedPnl: '120',
@@ -282,12 +283,12 @@ describe('PerpsMarketDetailsView', () => {
           },
         },
       },
-      initialParams: { market: defaultEthMarketForViews },
+      initialParams: { market: createEthMarketForViews() },
       streamOverrides: {
         account: createFundedAccountForViews('10000'),
-        positions: [defaultLongPositionForViews],
+        positions: [position],
         orders: [],
-        marketData: [defaultEthMarketForViews],
+        marketData: [createEthMarketForViews()],
       },
     });
 
@@ -315,7 +316,7 @@ describe('PerpsMarketDetailsView', () => {
 
   it('removes close actions after a take-profit-triggered close stream update', async () => {
     const takeProfitPosition: Position = {
-      ...defaultLongPositionForViews,
+      ...createLongPositionForViews(),
       takeProfitPrice: '2800',
       takeProfitCount: 1,
     };
@@ -330,12 +331,12 @@ describe('PerpsMarketDetailsView', () => {
           },
         },
       },
-      initialParams: { market: defaultEthMarketForViews },
+      initialParams: { market: createEthMarketForViews() },
       streamOverrides: {
         account: createFundedAccountForViews('10000'),
         positions: [takeProfitPosition],
         orders: [],
-        marketData: [defaultEthMarketForViews],
+        marketData: [createEthMarketForViews()],
       },
     });
 

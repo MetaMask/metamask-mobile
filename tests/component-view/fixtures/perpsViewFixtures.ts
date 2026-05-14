@@ -13,7 +13,7 @@ export const createFundedAccountForViews = (balance: string): AccountState => ({
   returnOnEquity: '0',
 });
 
-export const defaultEthMarketForViews: PerpsMarketData = {
+const defaultEthMarketForViews: PerpsMarketData = {
   symbol: 'ETH',
   name: 'Ethereum',
   maxLeverage: '50x',
@@ -24,7 +24,14 @@ export const defaultEthMarketForViews: PerpsMarketData = {
   marketType: 'crypto',
 };
 
-export const defaultLongPositionForViews: Position = {
+export const createEthMarketForViews = (
+  overrides: Partial<PerpsMarketData> = {},
+): PerpsMarketData => ({
+  ...defaultEthMarketForViews,
+  ...overrides,
+});
+
+const defaultLongPositionForViews: Position = {
   symbol: 'ETH',
   size: '1',
   marginUsed: '833.33',
@@ -39,3 +46,10 @@ export const defaultLongPositionForViews: Position = {
   takeProfitCount: 0,
   stopLossCount: 0,
 };
+
+export const createLongPositionForViews = (
+  overrides: Partial<Position> = {},
+): Position => ({
+  ...defaultLongPositionForViews,
+  ...overrides,
+});

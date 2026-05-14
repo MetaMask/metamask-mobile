@@ -9,9 +9,9 @@ import type { Position } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  createEthMarketForViews,
   createFundedAccountForViews,
-  defaultEthMarketForViews,
-  defaultLongPositionForViews,
+  createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsClosePositionView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
@@ -28,7 +28,7 @@ describe('PerpsClosePositionView', () => {
 
   it('submits a market close for a long position with custom take profit', async () => {
     const takeProfitPosition: Position = {
-      ...defaultLongPositionForViews,
+      ...createLongPositionForViews(),
       takeProfitPrice: '2800',
       takeProfitCount: 1,
     };
@@ -42,7 +42,7 @@ describe('PerpsClosePositionView', () => {
       streamOverrides: {
         account: createFundedAccountForViews('10000'),
         positions: [takeProfitPosition],
-        marketData: [defaultEthMarketForViews],
+        marketData: [createEthMarketForViews()],
       },
     });
 
@@ -80,7 +80,7 @@ describe('PerpsClosePositionView', () => {
 
   it('uses the latest live position when take profit partially fills before manual close', async () => {
     const routePosition: Position = {
-      ...defaultLongPositionForViews,
+      ...createLongPositionForViews(),
       takeProfitPrice: '2800',
       takeProfitCount: 1,
     };
@@ -102,7 +102,7 @@ describe('PerpsClosePositionView', () => {
       streamOverrides: {
         account: createFundedAccountForViews('10000'),
         positions: [routePosition],
-        marketData: [defaultEthMarketForViews],
+        marketData: [createEthMarketForViews()],
       },
     });
 
@@ -146,15 +146,16 @@ describe('PerpsClosePositionView', () => {
   it('submits a partial market close with explicit size and slippage amount', async () => {
     const closePosition = Engine.context.PerpsController
       .closePosition as jest.Mock;
+    const position = createLongPositionForViews();
 
     const { stream } = renderPerpsClosePositionView({
       initialParams: {
-        position: defaultLongPositionForViews,
+        position,
       },
       streamOverrides: {
         account: createFundedAccountForViews('10000'),
-        positions: [defaultLongPositionForViews],
-        marketData: [defaultEthMarketForViews],
+        positions: [position],
+        marketData: [createEthMarketForViews()],
       },
     });
 

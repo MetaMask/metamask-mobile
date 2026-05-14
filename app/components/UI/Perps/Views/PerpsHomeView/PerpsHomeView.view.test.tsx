@@ -7,8 +7,8 @@ import '../../../../../../tests/component-view/mocks';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import {
+  createEthMarketForViews,
   createFundedAccountForViews,
-  defaultEthMarketForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsHomeView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
@@ -41,7 +41,7 @@ describe('PerpsHomeView', () => {
         account: createFundedAccountForViews('100'),
         positions: [],
         orders: [],
-        marketData: [defaultEthMarketForViews],
+        marketData: [createEthMarketForViews()],
       },
     });
 
