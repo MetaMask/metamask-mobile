@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import type {
+  ShouldStartLoadRequest,
   WebViewErrorEvent,
   WebViewHttpErrorEvent,
 } from '@metamask/react-native-webview/lib/WebViewTypes';
@@ -145,9 +146,24 @@ const AgenticCliDashboardWebview: React.FC = () => {
   );
 
   const handleShouldStartLoadWithRequest = useCallback(
-    (request: { url: string }) => {
+    (request: ShouldStartLoadRequest) => {
       if (AgenticCliDashboardWebviewService.shouldLoadInWebView(request.url)) {
         return true;
+      }
+
+      if (!request.isTopFrame) {
+        return true;
+      }
+
+      if (
+        request.navigationType !== 'click' &&
+        request.navigationType !== 'formsubmit'
+      ) {
+        Logger.log('AgenticCliDashboardWebview: blocked external navigation', {
+          navigationType: request.navigationType,
+          url: redactUrlToken(request.url),
+        });
+        return false;
       }
 
       Linking.openURL(request.url).catch((err) =>
