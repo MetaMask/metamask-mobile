@@ -539,18 +539,19 @@ describe('PredictFeed', () => {
   });
 
   describe('search error recovery', () => {
-    it('shows the offline error state in the search overlay when all market fetch retries fail', async () => {
-      const getMarketsSpy = jest.spyOn(
+    it('shows the offline error state in the search overlay when all search retries fail', async () => {
+      const searchMarketsSpy = jest.spyOn(
         Engine.context.PredictController,
-        'getMarkets',
+        'searchMarkets',
       );
-      getMarketsSpy.mockRejectedValue(new Error('Network error'));
+      searchMarketsSpy.mockRejectedValue(new Error('Network error'));
 
       const { getByTestId, findByPlaceholderText, findByTestId } =
         renderPredictFeedView();
 
       fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
-      await findByPlaceholderText(SEARCH_PLACEHOLDER);
+      const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
+      fireEvent.changeText(searchInput, 'bitcoin');
 
       // The hook retries up to 3 times with exponential backoff (~3-5 s total).
       // findByTestId waits until the error state appears after all retries exhaust.
@@ -562,21 +563,22 @@ describe('PredictFeed', () => {
         ),
       ).toBeOnTheScreen();
 
-      getMarketsSpy.mockRestore();
+      searchMarketsSpy.mockRestore();
     });
 
-    it('calls getMarkets again when the user presses Retry after an error', async () => {
-      const getMarketsSpy = jest.spyOn(
+    it('calls searchMarkets again when the user presses Retry after an error', async () => {
+      const searchMarketsSpy = jest.spyOn(
         Engine.context.PredictController,
-        'getMarkets',
+        'searchMarkets',
       );
-      getMarketsSpy.mockRejectedValue(new Error('Network error'));
+      searchMarketsSpy.mockRejectedValue(new Error('Network error'));
 
       const { getByTestId, findByPlaceholderText, findByTestId, findByText } =
         renderPredictFeedView();
 
       fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
-      await findByPlaceholderText(SEARCH_PLACEHOLDER);
+      const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
+      fireEvent.changeText(searchInput, 'bitcoin');
 
       await findByTestId(
         PREDICT_OFFLINE_TEST_IDS.ERROR_STATE,
@@ -584,20 +586,20 @@ describe('PredictFeed', () => {
         { timeout: 10000 },
       );
 
-      const callCountBeforeRetry = getMarketsSpy.mock.calls.length;
+      const callCountBeforeRetry = searchMarketsSpy.mock.calls.length;
 
       // Make subsequent calls succeed so the retry completes quickly.
-      getMarketsSpy.mockResolvedValue({ markets: [], nextCursor: null });
+      searchMarketsSpy.mockResolvedValue([]);
 
       fireEvent.press(await findByText('Retry'));
 
       await waitFor(() => {
-        expect(getMarketsSpy.mock.calls.length).toBeGreaterThan(
+        expect(searchMarketsSpy.mock.calls.length).toBeGreaterThan(
           callCountBeforeRetry,
         );
       });
 
-      getMarketsSpy.mockRestore();
+      searchMarketsSpy.mockRestore();
     });
   });
 });

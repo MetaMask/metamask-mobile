@@ -533,6 +533,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   );
 
   const isSearchLoading = isDebouncing || isFetching;
+  const hasSearchQuery = debouncedSearchQuery.trim().length > 0;
 
   const renderItem = useCallback(
     (info: { item: PredictMarketType; index: number }) => (
@@ -593,17 +594,21 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
               testID={getPredictFeedSelector.searchSkeleton(3)}
             />
           </Box>
-        ) : error ? (
+        ) : error && hasSearchQuery ? (
           <PredictOffline onRetry={refetch} />
         ) : !marketData || marketData.length === 0 ? (
-          <Box twClassName="flex-1 justify-center items-center p-8">
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.PrimaryAlternative}
-            >
-              {strings('predict.search_no_markets_found', { q: searchQuery })}
-            </Text>
-          </Box>
+          hasSearchQuery ? (
+            <Box twClassName="flex-1 justify-center items-center p-8">
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.PrimaryAlternative}
+              >
+                {strings('predict.search_no_markets_found', {
+                  q: searchQuery,
+                })}
+              </Text>
+            </Box>
+          ) : null
         ) : (
           <FlashList<PredictMarketType>
             data={marketData}

@@ -698,11 +698,43 @@ describe('PredictFeed', () => {
       expect(getByText(/No results found/i)).toBeOnTheScreen();
     });
 
+    it('does not display no results message before the user enters a query', () => {
+      mockUsePredictSearchMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      const { getByTestId, queryByText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+
+      expect(queryByText(/No results found/i)).toBeNull();
+    });
+
+    it('does not display search error state before the user enters a query', () => {
+      mockUsePredictSearchMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        error: 'Search error',
+        refetch: jest.fn(),
+      });
+
+      const { getByTestId, queryByTestId } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+
+      expect(
+        queryByTestId(PredictFeedMockSelectorsIDs.OFFLINE_MOCK),
+      ).toBeNull();
+    });
+
     it('displays error state in search when fetch fails', () => {
       mockUsePredictSearchMarketData.mockReturnValue({
         marketData: [],
         isFetching: false,
-        error: new Error('Search error'),
+        error: 'Search error',
         refetch: jest.fn(),
       });
 
