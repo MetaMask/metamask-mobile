@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useStore } from 'react-redux';
 import { Hex, CaipChainId, isCaipAssetType } from '@metamask/utils';
@@ -272,12 +272,8 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isAuthenticated = useIsRampAuthenticated();
 
-  const tokenRef = useRef(token);
-  tokenRef.current = token;
-
   return useCallback(() => {
-    const currentToken = tokenRef.current;
-    const tokenChainIdHex = currentToken.chainId as Hex;
+    const tokenChainIdHex = token.chainId as Hex;
 
     trackActionButtonClick(trackEvent, createEventBuilder, {
       action_name: ActionButtonType.BUY,
@@ -288,12 +284,12 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
 
     let assetId: string | undefined;
     try {
-      if (isCaipAssetType(currentToken.address)) {
-        assetId = currentToken.address;
+      if (isCaipAssetType(token.address)) {
+        assetId = token.address;
       } else {
         assetId = parseRampIntent({
           chainId: getDecimalChainId(tokenChainIdHex),
-          address: currentToken.address,
+          address: token.address,
         })?.assetId;
       }
     } catch {
@@ -330,7 +326,7 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
           is_authenticated: isAuthenticated,
           preferred_provider: preferredProvider,
           order_count: orders.length + controllerOrders.length,
-          asset_symbol: currentToken.symbol,
+          asset_symbol: token.symbol,
         })
         .build(),
     );
@@ -338,6 +334,7 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
     goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
   }, [
     store,
+    token,
     trackEvent,
     createEventBuilder,
     rampUnifiedV1Enabled,
@@ -367,11 +364,6 @@ export const useHandleOnSwap = ({
   // location from the session that opened the bridge (e.g. "Main View").
   const isFromBridgeAssetPicker = token.source === TokenDetailsSource.Swap;
 
-  // Source and dest tokens are passed at click time so `goToSwaps` doesn't
-  // recreate when upstream rebuilds the token reference. `useSwapBridgeNavigation`
-  // no longer carries the heavy `useInitialBridgeTokens` subtree at render
-  // time — the popular-tokens prefetch is now wired via the lightweight
-  // `useFetchPopularTokens` and fires lazily on click.
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenView,
     sourcePage,
@@ -379,18 +371,11 @@ export const useHandleOnSwap = ({
     skipLocationUpdate: isFromBridgeAssetPicker,
   });
 
-  const tokenRef = useRef(token);
-  tokenRef.current = token;
-  const currentTokenBalanceRef = useRef(currentTokenBalance);
-  currentTokenBalanceRef.current = currentTokenBalance;
-
   return useCallback(() => {
     if (!goToSwaps) return;
 
-    const currentToken = tokenRef.current;
-    const currentTokenAsBridgeToken = toCurrentTokenAsBridgeToken(currentToken);
-    const balanceForCheck =
-      currentTokenBalanceRef.current ?? currentToken.balance;
+    const currentTokenAsBridgeToken = toCurrentTokenAsBridgeToken(token);
+    const balanceForCheck = currentTokenBalance ?? token.balance;
 
     if (hasPositiveBalance(balanceForCheck)) {
       goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
@@ -401,8 +386,8 @@ export const useHandleOnSwap = ({
     const userAssetsMap = selectAssetsBySelectedAccountGroup(store.getState());
     const buySourceToken = computeBuySourceToken(
       userAssetsMap,
-      currentToken.chainId,
-      currentToken.address,
+      token.chainId,
+      token.address,
     );
 
     if (buySourceToken) {
@@ -411,7 +396,7 @@ export const useHandleOnSwap = ({
     }
 
     goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
-  }, [goToSwaps, store]);
+  }, [goToSwaps, store, token, currentTokenBalance]);
 };
 
 /**
@@ -430,12 +415,7 @@ export const useHandleOnSend = ({ token }: { token: TokenActionInput }) => {
   const { sendNonEvmAsset } = useSendNonEvmAsset({ asset: token });
   ///: END:ONLY_INCLUDE_IF
 
-  const tokenRef = useRef(token);
-  tokenRef.current = token;
-
   return useCallback(async () => {
-    const currentToken = tokenRef.current;
-
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ACTION_BUTTON_CLICKED)
         .addProperties({
@@ -463,11 +443,11 @@ export const useHandleOnSend = ({ token }: { token: TokenActionInput }) => {
 
     const selectedChainId = selectEvmChainId(store.getState());
 
-    if (currentToken.chainId !== selectedChainId) {
+    if (token.chainId !== selectedChainId) {
       const { NetworkController, MultichainNetworkController } = Engine.context;
       const networkConfiguration =
         NetworkController.getNetworkConfigurationByChainId(
-          currentToken.chainId as Hex,
+          token.chainId as Hex,
         );
 
       const networkClientId =
@@ -482,7 +462,7 @@ export const useHandleOnSend = ({ token }: { token: TokenActionInput }) => {
 
     navigateToSendPage({
       location: InitSendLocation.AssetOverview,
-      asset: currentToken,
+      asset: token,
     });
   }, [
     trackEvent,
@@ -491,6 +471,7 @@ export const useHandleOnSend = ({ token }: { token: TokenActionInput }) => {
     navigation,
     store,
     navigateToSendPage,
+    token,
   ]);
 };
 
@@ -509,14 +490,8 @@ export const useHandleOnReceive = ({
   const store = useStore<RootState>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const tokenRef = useRef(token);
-  tokenRef.current = token;
-  const networkNameRef = useRef(networkName);
-  networkNameRef.current = networkName;
-
   return useCallback(() => {
-    const currentToken = tokenRef.current;
-    const chainId = currentToken.chainId as Hex;
+    const chainId = token.chainId as Hex;
 
     trackActionButtonClick(trackEvent, createEventBuilder, {
       action_name: ActionButtonType.RECEIVE,
@@ -530,9 +505,9 @@ export const useHandleOnReceive = ({
     const selectedAccountGroup = selectSelectedAccountGroup(state);
     const getAccountByScope = selectSelectedInternalAccountByScope(state);
 
-    const accountForChain = currentToken.chainId
+    const accountForChain = token.chainId
       ? (getAccountByScope(
-          formatChainIdToCaip(currentToken.chainId as Hex) as CaipChainId,
+          formatChainIdToCaip(token.chainId as Hex) as CaipChainId,
         ) ?? selectedInternalAccount)
       : selectedInternalAccount;
 
@@ -543,14 +518,14 @@ export const useHandleOnReceive = ({
         screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
         params: {
           address: addressForChain,
-          networkName: networkNameRef.current || 'Unknown Network',
+          networkName: networkName || 'Unknown Network',
           chainId,
           groupId: selectedAccountGroup.id,
         },
       });
     } else {
-      const resultChainId = formatChainIdToCaip(currentToken.chainId as Hex);
-      const isNonEvmToken = resultChainId === currentToken.chainId;
+      const resultChainId = formatChainIdToCaip(token.chainId as Hex);
+      const isNonEvmToken = resultChainId === token.chainId;
 
       Logger.error(
         new Error('useHandleOnReceive - Missing required data for navigation'),
@@ -559,9 +534,9 @@ export const useHandleOnReceive = ({
           hasAccountGroup: !!selectedAccountGroup,
           hasChainId: !!chainId,
           isNonEvmAsset: isNonEvmToken,
-          assetChainId: currentToken.chainId,
+          assetChainId: token.chainId,
         },
       );
     }
-  }, [trackEvent, createEventBuilder, store, navigation]);
+  }, [trackEvent, createEventBuilder, store, navigation, token, networkName]);
 };
