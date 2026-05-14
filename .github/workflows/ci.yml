@@ -586,7 +586,8 @@ jobs:
         run: mkdir -p tests/results
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
-      - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
+      # Namespace Linux: cap Jest workers to reduce cgroup OOM SIGKILL without tuning heap.
+      - run: yarn test:unit --shard=${{ matrix.shard }}/10${{ inputs.runner_provider == 'namespace' && ' --maxWorkers=50%' || '' }} --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: ${{ inputs.runner_provider == 'namespace' && '--max_old_space_size=12288' || '--max_old_space_size=20480' }}
       - name: Rename coverage report and extract test count for this shard

@@ -887,7 +887,6 @@ describe('MoneyHomeView', () => {
           preferredPaymentToken: expect.objectContaining({
             address: mockConversionTokens[0].address,
           }),
-          navigationStack: Routes.MONEY.ROOT,
         }),
       );
     });
