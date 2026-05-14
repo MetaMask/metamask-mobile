@@ -1,14 +1,15 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import WhatsHappeningSection from './WhatsHappeningSection';
-import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import Routes from '../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import {
   WhatsHappeningInteractionType,
   WhatsHappeningSource,
   WhatsHappeningView,
 } from './constants';
+import { WhatsHappeningSelectorsIDs } from './WhatsHappening.testIds';
 
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -27,12 +28,9 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock(
-  '../../../../../selectors/featureFlagController/whatsHappening',
-  () => ({
-    selectWhatsHappeningEnabled: jest.fn(() => true),
-  }),
-);
+jest.mock('../../../selectors/featureFlagController/whatsHappening', () => ({
+  selectWhatsHappeningEnabled: jest.fn(() => true),
+}));
 
 jest.mock('./hooks', () => ({
   useWhatsHappening: jest.fn(() => ({
@@ -43,7 +41,7 @@ jest.mock('./hooks', () => ({
   })),
 }));
 
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
@@ -52,7 +50,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 const mockUseWhatsHappening = jest.requireMock('./hooks').useWhatsHappening;
 const mockSelectWhatsHappeningEnabled = jest.requireMock(
-  '../../../../../selectors/featureFlagController/whatsHappening',
+  '../../../selectors/featureFlagController/whatsHappening',
 ).selectWhatsHappeningEnabled;
 
 const mockItem = {
@@ -67,8 +65,6 @@ const mockItem = {
 };
 
 const defaultProps = {
-  sectionIndex: 1,
-  totalSectionsLoaded: 3,
   source: 'homepage' as const,
 };
 
@@ -88,14 +84,14 @@ describe('WhatsHappeningSection', () => {
     mockSelectWhatsHappeningEnabled.mockImplementation(() => false);
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     expect(
-      screen.queryByTestId('homepage-whats-happening-carousel'),
+      screen.queryByTestId(WhatsHappeningSelectorsIDs.CAROUSEL),
     ).toBeNull();
   });
 
   it('returns null when not loading and items are empty', () => {
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     expect(
-      screen.queryByTestId('homepage-whats-happening-carousel'),
+      screen.queryByTestId(WhatsHappeningSelectorsIDs.CAROUSEL),
     ).toBeNull();
   });
 
@@ -108,7 +104,7 @@ describe('WhatsHappeningSection', () => {
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     expect(
-      screen.getByTestId('homepage-whats-happening-carousel'),
+      screen.getByTestId(WhatsHappeningSelectorsIDs.CAROUSEL),
     ).toBeOnTheScreen();
   });
 
@@ -121,7 +117,7 @@ describe('WhatsHappeningSection', () => {
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     expect(
-      screen.getByTestId('homepage-whats-happening-carousel'),
+      screen.getByTestId(WhatsHappeningSelectorsIDs.CAROUSEL),
     ).toBeOnTheScreen();
     expect(screen.getByText(mockItem.title)).toBeOnTheScreen();
   });
@@ -135,7 +131,7 @@ describe('WhatsHappeningSection', () => {
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     expect(
-      screen.queryByTestId('homepage-whats-happening-carousel'),
+      screen.queryByTestId(WhatsHappeningSelectorsIDs.CAROUSEL),
     ).toBeNull();
     expect(screen.getByText(/unable to load/i)).toBeOnTheScreen();
   });
@@ -212,7 +208,7 @@ describe('WhatsHappeningSection', () => {
       refresh: jest.fn(),
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
-    const carousel = screen.getByTestId('homepage-whats-happening-carousel');
+    const carousel = screen.getByTestId(WhatsHappeningSelectorsIDs.CAROUSEL);
     // CARD_WIDTH = 280, GAP = 12 → offset for index 1 = 292
     fireEvent(carousel, 'momentumScrollEnd', {
       nativeEvent: { contentOffset: { x: 292, y: 0 } },
@@ -242,7 +238,7 @@ describe('WhatsHappeningSection', () => {
       refresh: jest.fn(),
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
-    const carousel = screen.getByTestId('homepage-whats-happening-carousel');
+    const carousel = screen.getByTestId(WhatsHappeningSelectorsIDs.CAROUSEL);
 
     fireEvent(carousel, 'momentumScrollEnd', {
       nativeEvent: { contentOffset: { x: 0, y: 0 } },
@@ -253,7 +249,7 @@ describe('WhatsHappeningSection', () => {
   });
 
   describe('without section-tracking props (Perps context)', () => {
-    it('renders correctly when sectionIndex and totalSectionsLoaded are omitted', () => {
+    it('renders correctly when source is Perps', () => {
       mockUseWhatsHappening.mockReturnValue({
         items: [mockItem],
         isLoading: false,
@@ -264,11 +260,11 @@ describe('WhatsHappeningSection', () => {
         <WhatsHappeningSection source={WhatsHappeningSource.Perps} />,
       );
       expect(
-        screen.getByTestId('homepage-whats-happening-carousel'),
+        screen.getByTestId(WhatsHappeningSelectorsIDs.CAROUSEL),
       ).toBeOnTheScreen();
     });
 
-    it('renders error state correctly when section-tracking props are omitted', () => {
+    it('renders error state correctly when source is Perps', () => {
       mockUseWhatsHappening.mockReturnValue({
         items: [],
         isLoading: false,

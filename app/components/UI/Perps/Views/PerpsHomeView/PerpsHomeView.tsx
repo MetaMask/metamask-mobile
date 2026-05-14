@@ -54,8 +54,8 @@ import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/Pe
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import PerpsHomeHeader from '../../components/PerpsHomeHeader';
-import WhatsHappeningSection from '../../../../Views/Homepage/Sections/WhatsHappening';
-import { WhatsHappeningSource } from '../../../../Views/Homepage/Sections/WhatsHappening/constants';
+import WhatsHappeningSection from '../../../../UI/WhatsHappening';
+import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';

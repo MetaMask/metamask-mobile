@@ -15,13 +15,13 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { TextVariant } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
-import ErrorState from '../../components/ErrorState';
-import ViewMoreCard from '../../components/ViewMoreCard';
-import { SectionRefreshHandle } from '../../types';
-import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
-import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
+import SectionHeader from '../../../component-library/components-temp/SectionHeader';
+import ErrorState from '../../Views/Homepage/components/ErrorState';
+import ViewMoreCard from '../../Views/Homepage/components/ViewMoreCard';
+import { SectionRefreshHandle } from '../../Views/Homepage/types';
+import { selectWhatsHappeningEnabled } from '../../../selectors/featureFlagController/whatsHappening';
+import { strings } from '../../../../locales/i18n';
+import Routes from '../../../constants/navigation/Routes';
 import {
   MAX_ITEMS_DISPLAYED,
   WhatsHappeningInteractionType,
@@ -29,14 +29,11 @@ import {
   type WhatsHappeningSourceValue,
 } from './constants';
 import { useWhatsHappening } from './hooks';
+import type { WhatsHappeningItem } from './types';
 import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
-import useHomeViewedEvent, {
-  HomeSectionNames,
-} from '../../hooks/useHomeViewedEvent';
-import { useSectionPerformance } from '../../hooks/useSectionPerformance';
-import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import { WhatsHappeningSelectorsIDs } from './WhatsHappening.testIds';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { getWhatsHappeningEventProps } from './eventProperties';
 
 const CARD_WIDTH = 280;
@@ -57,22 +54,19 @@ const styles = StyleSheet.create({
 });
 
 interface WhatsHappeningSectionProps {
-  sectionIndex?: number;
-  totalSectionsLoaded?: number;
   source: WhatsHappeningSourceValue;
 }
 
 const WhatsHappeningSection = forwardRef<
   SectionRefreshHandle,
   WhatsHappeningSectionProps
->(({ sectionIndex, totalSectionsLoaded, source }, ref) => {
-  const sectionViewRef = useRef<View>(null);
+>(({ source }, ref) => {
   const currentIndexRef = useRef<number>(0);
   const tw = useTailwind();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isEnabled = useSelector(selectWhatsHappeningEnabled);
-  const title = strings('homepage.sections.whats_happening');
+  const title = strings('whats_happening.title');
 
   const { items, isLoading, error, refresh } =
     useWhatsHappening(MAX_ITEMS_DISPLAYED);
@@ -80,33 +74,6 @@ const WhatsHappeningSection = forwardRef<
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
   const hasError = !isLoading && items.length === 0 && !!error;
-
-  // Pass the real ref only when the section actually mounts a View (has items
-  // or is showing the error state). When false, sectionRef: null triggers the
-  // hook's immediate-fire path once loading completes, so the event still fires
-  // for the truly-empty state (no items, no error) with isEmpty: true.
-  const willRender = !isLoading && (items.length > 0 || hasError);
-
-  // When sectionIndex is absent (Perps context), pass -1 so the hook's
-  // guard (sectionIndex < 0) suppresses the HOME_VIEWED event entirely.
-  const { onLayout } = useHomeViewedEvent({
-    sectionRef: willRender ? sectionViewRef : null,
-    isLoading,
-    sectionName: HomeSectionNames.WHATS_HAPPENING,
-    sectionIndex: sectionIndex ?? -1,
-    totalSectionsLoaded: totalSectionsLoaded ?? 0,
-    isEmpty: items.length === 0,
-    itemCount: items.length,
-  });
-
-  useSectionPerformance({
-    sectionId: HomeSectionNames.WHATS_HAPPENING,
-    contentReady: !isLoading,
-    isEmpty: items.length === 0 && !hasError,
-    contentStateForTrace: hasError ? 'error' : undefined,
-    isLoading,
-    enabled: isEnabled,
-  });
 
   const navigateToDetail = useCallback(
     (initialIndex: number) => {
@@ -158,13 +125,11 @@ const WhatsHappeningSection = forwardRef<
 
   if (hasError) {
     return (
-      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
+      <View style={styles.sectionGap}>
         <SectionHeader
           title={title}
           onPress={handleViewAll}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-            'whats-happening',
-          )}
+          testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
         />
         <ErrorState
           title={strings('homepage.error.unable_to_load', {
@@ -181,13 +146,11 @@ const WhatsHappeningSection = forwardRef<
   }
 
   return (
-    <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
+    <View style={styles.sectionGap}>
       <SectionHeader
         title={title}
         onPress={handleViewAll}
-        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-          'whats-happening',
-        )}
+        testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
       />
       <ScrollView
         horizontal
@@ -196,13 +159,13 @@ const WhatsHappeningSection = forwardRef<
         snapToOffsets={SNAP_OFFSETS}
         decelerationRate="fast"
         onMomentumScrollEnd={handleMomentumScrollEnd}
-        testID="homepage-whats-happening-carousel"
+        testID={WhatsHappeningSelectorsIDs.CAROUSEL}
       >
         {isLoading ? (
           SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
         ) : (
           <>
-            {items.map((item, index) => (
+            {items.map((item: WhatsHappeningItem, index: number) => (
               <WhatsHappeningCard
                 key={item.id}
                 item={item}

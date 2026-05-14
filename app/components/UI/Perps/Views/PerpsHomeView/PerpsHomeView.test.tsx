@@ -479,7 +479,7 @@ jest.mock(
   '../../components/PerpsRecentActivityList/PerpsRecentActivityList',
   () => 'PerpsRecentActivityList',
 );
-jest.mock('../../../../Views/Homepage/Sections/WhatsHappening', () => {
+jest.mock('../../../../UI/WhatsHappening', () => {
   const { View } = jest.requireActual('react-native');
   return function MockWhatsHappeningSection() {
     return <View testID="whats-happening-section" />;
