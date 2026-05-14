@@ -5,6 +5,7 @@ import { AppThemeKey } from '../../../util/theme/models';
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
+import TelegramIcon from 'images/telegram.svg';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
@@ -17,9 +18,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  Icon,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -184,11 +182,7 @@ const OnboardingSheet = () => {
             onPress={onPressContinueWithTelegramAction}
             testID={OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON}
             startAccessory={
-              <Icon
-                name={IconName.Telegram}
-                size={IconSize.Lg}
-                style={tw.style({ color: colors.background.default })}
-              />
+              <TelegramIcon width={24} height={24} name={'telegram'} />
             }
             isFullWidth
             size={ButtonSize.Lg}
