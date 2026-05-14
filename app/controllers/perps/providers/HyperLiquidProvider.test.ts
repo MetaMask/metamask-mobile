@@ -5963,10 +5963,100 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       // PR #25334: Builder fee approval is now non-blocking (fire-and-forget)
-      // to prevent QR popup spam for hardware wallets.
+      // to prevent repeated signing prompts for hardware wallets.
       // Order should proceed even if builder fee approval fails.
       expect(result.success).toBe(true);
       expect(result.orderId).toBeDefined();
+    });
+
+    it('retries builder fee approval on subsequent order after initial failure', async () => {
+      const mockedCache = TradingReadinessCache as jest.Mocked<
+        typeof TradingReadinessCache
+      >;
+
+      // First order: builder fee approval fails
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          maxBuilderFee: jest
+            .fn()
+            .mockResolvedValueOnce(0) // first order: check — not approved
+            .mockResolvedValueOnce(0) // second order (retry): check — not approved
+            .mockResolvedValueOnce(0.001), // second order (retry): verification — now approved
+        }),
+      );
+
+      const mockApproveBuilderFee = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('Network timeout'))
+        .mockResolvedValueOnce({ status: 'ok' });
+
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          approveBuilderFee: mockApproveBuilderFee,
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      // First order — builder fee fails but order proceeds (non-blocking)
+      const result1 = await provider.placeOrder(orderParams);
+      expect(result1.success).toBe(true);
+
+      // Simulate cached failure state — getBuilderFee returns { attempted: true, success: false }
+      mockedCache.getBuilderFee.mockReturnValue({
+        attempted: true,
+        success: false,
+      });
+
+      // Second order — should retry builder fee approval (not skip due to cached failure)
+      const result2 = await provider.placeOrder(orderParams);
+      expect(result2.success).toBe(true);
+
+      // approveBuilderFee called twice: first attempt (failed) + retry (success)
+      expect(mockApproveBuilderFee).toHaveBeenCalledTimes(2);
+    });
+
+    it('skips builder fee retry when previous attempt succeeded', async () => {
+      const mockedCache = TradingReadinessCache as jest.Mocked<
+        typeof TradingReadinessCache
+      >;
+
+      // Simulate successful cache
+      mockedCache.getBuilderFee.mockReturnValue({
+        attempted: true,
+        success: true,
+      });
+
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(createMockInfoClient());
+
+      const mockApproveBuilderFee = jest.fn();
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          approveBuilderFee: mockApproveBuilderFee,
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+      expect(result.success).toBe(true);
+
+      // Should not retry — cache shows success
+      expect(mockApproveBuilderFee).not.toHaveBeenCalled();
     });
 
     it('leaves builder fee cache empty when wrapped KEYRING_LOCKED is thrown', async () => {
@@ -9050,12 +9140,12 @@ describe('HyperLiquidProvider', () => {
     });
 
     // ─────────────────────────────────────────────────
-    // dexAbstraction → unifiedAccount migration on init
+    // Signing-backed unifiedAccount migration on init
     //
-    // The transition requires an EIP-712 prompt (HL blocks the agent path),
-    // so software-wallet users migrate during initial setup to ensure the
-    // first trade sees unified collateral. Hardware wallets remain deferred
-    // to avoid QR / Ledger prompt spam while browsing.
+    // Some transitions require an EIP-712 prompt, so software-wallet users
+    // migrate during initial setup to ensure the first trade sees unified
+    // collateral. Hardware wallets remain deferred to avoid repeated signing
+    // prompts while browsing.
     // ─────────────────────────────────────────────────
 
     it('calls userSetAbstraction on init for software-wallet dexAbstraction users', async () => {
@@ -9193,33 +9283,36 @@ describe('HyperLiquidProvider', () => {
       ).toHaveBeenCalledWith(USER_ADDRESS, 'unifiedAccount');
     });
 
-    it('defers dexAbstraction migration on init for hardware wallets', async () => {
-      // Arrange
-      mockWalletService.isSelectedHardwareWallet.mockReturnValue(true);
-      const mockExchangeClient = createMockExchangeClient();
-      mockClientService.getInfoClient = jest.fn().mockReturnValue(
-        createMockInfoClient({
-          userAbstraction: jest.fn().mockResolvedValue('dexAbstraction'),
-        }),
-      );
-      mockClientService.getExchangeClient = jest
-        .fn()
-        .mockReturnValue(mockExchangeClient);
+    it.each(['dexAbstraction', 'default', 'disabled'] as const)(
+      'defers %s migration on init for hardware wallets',
+      async (currentMode) => {
+        // Arrange
+        mockWalletService.isSelectedHardwareWallet.mockReturnValue(true);
+        const mockExchangeClient = createMockExchangeClient();
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            userAbstraction: jest.fn().mockResolvedValue(currentMode),
+          }),
+        );
+        mockClientService.getExchangeClient = jest
+          .fn()
+          .mockReturnValue(mockExchangeClient);
 
-      // Act - init path
-      await provider.getMarketDataWithPrices();
+        // Act - init path
+        await provider.getMarketDataWithPrices();
 
-      // Assert - no browsing-time hardware prompt; action-time setup can still run.
-      expect(mockExchangeClient.userSetAbstraction).not.toHaveBeenCalled();
-      expect(mockExchangeClient.agentSetAbstraction).not.toHaveBeenCalled();
-      expect(
-        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
-          .set,
-      ).not.toHaveBeenCalled();
-      expect(
-        mockSubscriptionService.setUserAbstractionMode,
-      ).not.toHaveBeenCalled();
-    });
+        // Assert - no browsing-time hardware prompt; action-time setup can still run.
+        expect(mockExchangeClient.userSetAbstraction).not.toHaveBeenCalled();
+        expect(mockExchangeClient.agentSetAbstraction).not.toHaveBeenCalled();
+        expect(
+          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+            .set,
+        ).not.toHaveBeenCalled();
+        expect(
+          mockSubscriptionService.setUserAbstractionMode,
+        ).not.toHaveBeenCalled();
+      },
+    );
 
     it('does NOT call setUserAbstractionMode when migration fails', async () => {
       const mockExchangeClient = createMockExchangeClient();
