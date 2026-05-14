@@ -393,6 +393,41 @@ describe('selectCardPrimaryToken', () => {
 });
 
 describe('selectCardAvailableTokens', () => {
+  const WALLET_A = '0xwalletA000000000000000000000000000000001';
+  const WALLET_B = '0xwalletB000000000000000000000000000000002';
+
+  const makeAsset = (
+    overrides: Partial<(typeof mockCardHomeData.availableFundingAssets)[0]>,
+  ) => ({ ...mockPrimaryAsset, ...overrides });
+
+  const stateWithAssets = (
+    assets: typeof mockCardHomeData.availableFundingAssets,
+    currentWallet?: string,
+  ) => {
+    if (currentWallet) {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: currentWallet }),
+      );
+    } else {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue(undefined),
+      );
+    }
+    return createMockRootState({
+      cardHomeData: {
+        ...mockCardHomeData,
+        availableFundingAssets: assets,
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+  };
+
+  beforeEach(() => {
+    // Default: no selected account — filter is a no-op.
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(undefined),
+    );
+  });
+
   it('returns empty array when cardHomeData is null', () => {
     const state = createMockRootState({ cardHomeData: null });
     expect(selectCardAvailableTokens(state)).toStrictEqual([]);
@@ -411,6 +446,68 @@ describe('selectCardAvailableTokens', () => {
         fundingStatus: FundingStatus.Limited,
       }),
     );
+  });
+
+  it('shows all assets when no account is selected', () => {
+    const assets = [
+      makeAsset({ walletAddress: WALLET_A, status: FundingAssetStatus.Active }),
+      makeAsset({
+        walletAddress: WALLET_B,
+        status: FundingAssetStatus.Inactive,
+      }),
+    ];
+    const state = stateWithAssets(assets);
+    expect(selectCardAvailableTokens(state)).toHaveLength(2);
+  });
+
+  it('always shows Active and Limited tokens regardless of wallet', () => {
+    const assets = [
+      makeAsset({ walletAddress: WALLET_B, status: FundingAssetStatus.Active }),
+      makeAsset({
+        walletAddress: WALLET_B,
+        status: FundingAssetStatus.Limited,
+      }),
+    ];
+    const state = stateWithAssets(assets, WALLET_A);
+    expect(selectCardAvailableTokens(state)).toHaveLength(2);
+  });
+
+  it('shows Inactive token only for the current wallet', () => {
+    const assets = [
+      makeAsset({
+        walletAddress: WALLET_A,
+        status: FundingAssetStatus.Inactive,
+      }),
+      makeAsset({
+        walletAddress: WALLET_B,
+        status: FundingAssetStatus.Inactive,
+      }),
+    ];
+    const state = stateWithAssets(assets, WALLET_A);
+    const tokens = selectCardAvailableTokens(state);
+    expect(tokens).toHaveLength(1);
+    expect(tokens[0].walletAddress).toBe(WALLET_A);
+  });
+
+  it('shows Inactive token with empty walletAddress for any current wallet', () => {
+    const assets = [
+      makeAsset({ walletAddress: '', status: FundingAssetStatus.Inactive }),
+    ];
+    const state = stateWithAssets(assets, WALLET_A);
+    expect(selectCardAvailableTokens(state)).toHaveLength(1);
+  });
+
+  it('shows Active from walletB and Inactive placeholder for walletA simultaneously', () => {
+    const assets = [
+      makeAsset({ walletAddress: WALLET_B, status: FundingAssetStatus.Active }),
+      makeAsset({
+        walletAddress: WALLET_A,
+        status: FundingAssetStatus.Inactive,
+      }),
+    ];
+    const state = stateWithAssets(assets, WALLET_A);
+    const tokens = selectCardAvailableTokens(state);
+    expect(tokens).toHaveLength(2);
   });
 });
 

@@ -107,8 +107,25 @@ export const selectCardPrimaryToken = createSelector(
 
 export const selectCardAvailableTokens = createSelector(
   selectCardHomeData,
-  (data): CardFundingToken[] =>
-    (data?.availableFundingAssets ?? []).map(toCardFundingToken),
+  selectSelectedEvmAccount,
+  (data, selectedAccount): CardFundingToken[] => {
+    const currentAddress = selectedAccount?.address?.toLowerCase();
+    return (data?.availableFundingAssets ?? [])
+      .filter((asset) => {
+        if (!currentAddress) return true;
+        // Active/Limited: always show — the user can fund from any linked account.
+        if (
+          asset.status === FundingAssetStatus.Active ||
+          asset.status === FundingAssetStatus.Limited
+        ) {
+          return true;
+        }
+        // Inactive: only show for the current account to avoid duplicate "not enabled" rows.
+        const assetWallet = asset.walletAddress?.toLowerCase();
+        return !assetWallet || assetWallet === currentAddress;
+      })
+      .map(toCardFundingToken);
+  },
 );
 
 export const selectCardFundingTokens = createSelector(
