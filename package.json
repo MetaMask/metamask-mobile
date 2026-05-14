@@ -39,7 +39,6 @@
     "ramps:debug-dashboard": "bash scripts/money-movement/debug-dashboard/run.sh",
     "install:ios:runway": "./scripts/install-ios-runway-app.sh",
     "install:android:runway": "./scripts/install-android-runway-app.sh",
-    "build:announce": "node ./scripts/metamask-bot-build-announce-bitrise.js",
     "build:android:main:prod": "./scripts/build.sh android main production",
     "build:android:main:beta": "./scripts/build.sh android main beta",
     "build:android:main:rc": "./scripts/build.sh android main rc",

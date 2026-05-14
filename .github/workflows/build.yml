@@ -100,8 +100,8 @@ permissions:
   id-token: write
 
 jobs:
-  # Bump version in repo (bitrise.yml, package.json, ios/android) before building.
-  # Skipped when skip_version_bump=true (e.g. nightly builds where Bitrise owns the bump).
+  # Bump version in repo (package.json, ios/android) before building.
+  # Skipped when skip_version_bump=true (e.g. nightly builds where the bump is owned upstream).
   update-build-version:
     if: ${{ !inputs.skip_version_bump }}
     uses: ./.github/workflows/update-latest-build-version.yml

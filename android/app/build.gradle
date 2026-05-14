@@ -167,14 +167,6 @@ def reactNativeArchitectures() {
 }
 
 
-/**
-* Adding function that will retuen the Bitrise ndkPath if it is a Production Build
-*/
-def ndkPath() {
-    return System.getenv('METAMASK_ENVIRONMENT') == 'production' ? rootProject.ext.bitriseNdkPath : ""
-}
-
-
 android {
     ndkVersion rootProject.ext.ndkVersion
 
