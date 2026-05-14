@@ -122,7 +122,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const { goBack, dispatch } = useNavigation();
+  const { goBack, dispatch, addListener } = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
@@ -141,6 +141,28 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
     [market, outcomeToken, entryPoint],
   );
+
+  // Track swipe/hardware-back dismissals in screen mode. The back-button handler
+  // sets predictBuyPreviewDismissedViaBackRef before calling goBack() so we can
+  // distinguish it from a swipe here. Sheet-mode dismissals are handled by
+  // PredictPreviewSheetContext.onBuyDismiss instead.
+  useEffect(() => {
+    if (isSheetMode) return;
+    return addListener('beforeRemove', () => {
+      if (!predictBuyPreviewOrderInitiatedRef.current) {
+        const dismissalMethod = predictBuyPreviewDismissedViaBackRef.current
+          ? PredictDismissalMethod.BACK_BUTTON
+          : PredictDismissalMethod.SWIPE;
+        Engine.context.PredictController.trackBetslipDismissed({
+          analyticsProperties,
+          dismissalMethod,
+          hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
+          timeOnScreenMs: Date.now() - mountTimestampRef.current,
+          activeAbTests: transactionActiveAbTests,
+        });
+      }
+    });
+  }, [addListener, isSheetMode, analyticsProperties, transactionActiveAbTests]);
 
   const {
     placeOrder,
@@ -336,16 +358,18 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         testID="back-button"
         onPress={() => {
           predictBuyPreviewDismissedViaBackRef.current = true;
-          Engine.context.PredictController.trackBetslipDismissed({
-            analyticsProperties,
-            dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
-            hadEnteredAmount: currentValue > 0,
-            timeOnScreenMs: Date.now() - mountTimestampRef.current,
-            activeAbTests: transactionActiveAbTests,
-          });
           if (isSheetMode) {
+            // Sheet dismissals are tracked in PredictPreviewSheetContext.onBuyDismiss.
+            Engine.context.PredictController.trackBetslipDismissed({
+              analyticsProperties,
+              dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
+              hadEnteredAmount: currentValue > 0,
+              timeOnScreenMs: Date.now() - mountTimestampRef.current,
+              activeAbTests: transactionActiveAbTests,
+            });
             onClose?.();
           } else {
+            // Screen mode: beforeRemove listener owns dismiss tracking.
             goBack();
           }
         }}

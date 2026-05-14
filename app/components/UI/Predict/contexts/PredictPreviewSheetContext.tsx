@@ -47,15 +47,16 @@ import { PredictDismissalMethod } from '../constants/eventNames';
 import { parseAnalyticsProperties } from '../utils/analytics';
 
 let _providerMounted = false;
+let _providerInSheetMode = false;
 
 /**
- * Returns whether `PredictPreviewSheetProvider` is currently mounted somewhere
- * in the tree. Used by `usePredictToastRegistrations` to decide whether to
- * suppress the order-failure toast (the provider auto-reopens the sheet with
- * an inline error banner instead).
+ * Returns whether `PredictPreviewSheetProvider` is mounted AND will actually
+ * open a bottom sheet (i.e. not in disableBottomSheet mode). Used by
+ * `usePredictToastRegistrations` to suppress the order-failure toast when the
+ * provider will auto-reopen the sheet with an inline error banner instead.
  */
 export function isPredictSheetProviderMounted(): boolean {
-  return _providerMounted;
+  return _providerMounted && _providerInSheetMode;
 }
 
 const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
@@ -150,11 +151,24 @@ export const usePredictPreviewSheet = (): PredictPreviewSheetContextValue => {
 
 interface PredictPreviewSheetProviderProps {
   children: React.ReactNode;
+  /**
+   * When true, always navigate to the full-screen bet slip instead of opening
+   * the bottom sheet. Required when the provider is rendered inside
+   * HomepageDiscoveryTabs, where the sheet is obscured by the tab layout.
+   *
+   * This prop exists solely to support the Hub Page Discovery Tabs A/B test
+   * (LD flag: `coreMCU589AbtestHubPageDiscoveryTabs`). If that feature is
+   * scrapped or fully rolled out and this layout is no longer needed, this prop
+   * can be removed along with the HomepageDiscoveryTabs component.
+   *
+   * Contact @metamask-core-mobile-ux for questions about the flag or rollout.
+   */
+  disableBottomSheet?: boolean;
 }
 
 export const PredictPreviewSheetProvider: React.FC<
   PredictPreviewSheetProviderProps
-> = ({ children }) => {
+> = ({ children, disableBottomSheet = false }) => {
   const navigation = useNavigation();
   const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
   const payWithAnyTokenEnabled = useSelector(
@@ -191,36 +205,44 @@ export const PredictPreviewSheetProvider: React.FC<
 
   useEffect(() => {
     _providerMounted = true;
+    _providerInSheetMode = !disableBottomSheet;
     return () => {
       _providerMounted = false;
+      _providerInSheetMode = false;
     };
-  }, []);
+  }, [disableBottomSheet]);
 
   const openBuySheet = useCallback(
     (params: PredictBuyPreviewParams) => {
       lastBuyParamsRef.current = params;
-      if (bottomSheetEnabled) {
+      if (bottomSheetEnabled && !disableBottomSheet) {
         setBuyParams(params);
         buyNonceRef.current += 1;
         setBuyNonce(buyNonceRef.current);
       } else {
-        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, params);
+        navigation.navigate(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params,
+        });
       }
     },
-    [bottomSheetEnabled, navigation],
+    [bottomSheetEnabled, disableBottomSheet, navigation],
   );
 
   const openSellSheet = useCallback(
     (params: PredictSellPreviewParams) => {
-      if (bottomSheetEnabled) {
+      if (bottomSheetEnabled && !disableBottomSheet) {
         setSellParams(params);
         sellNonceRef.current += 1;
         setSellNonce(sellNonceRef.current);
       } else {
-        navigation.navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, params);
+        navigation.navigate(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+          params,
+        });
       }
     },
-    [bottomSheetEnabled, navigation],
+    [bottomSheetEnabled, disableBottomSheet, navigation],
   );
 
   useEffect(() => {
@@ -244,6 +266,7 @@ export const PredictPreviewSheetProvider: React.FC<
 
     if (
       bottomSheetEnabled &&
+      !disableBottomSheet &&
       activeOrder?.error &&
       !buyParams &&
       lastBuyParamsRef.current &&
@@ -255,7 +278,7 @@ export const PredictPreviewSheetProvider: React.FC<
       buyNonceRef.current += 1;
       setBuyNonce(buyNonceRef.current);
     }
-  }, [activeOrder?.error, buyParams, bottomSheetEnabled]);
+  }, [activeOrder?.error, buyParams, bottomSheetEnabled, disableBottomSheet]);
 
   const BuyComponent = useMemo(
     () => (payWithAnyTokenEnabled ? PredictBuyWithAnyToken : PredictBuyPreview),

@@ -254,10 +254,10 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-buy'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.BUY_PREVIEW,
-      buyParams,
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: buyParams,
+    });
     expect(
       screen.queryByTestId('predict-buy-preview-sheet'),
     ).not.toBeOnTheScreen();
@@ -274,10 +274,10 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-sell'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.SELL_PREVIEW,
-      sellParams,
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+      params: sellParams,
+    });
     expect(
       screen.queryByTestId('predict-sell-preview-sheet'),
     ).not.toBeOnTheScreen();
@@ -556,6 +556,89 @@ describe('PredictPreviewSheetContext', () => {
       unmount();
 
       expect(isPredictSheetProviderMounted()).toBe(false);
+    });
+
+    it('returns false when provider is mounted with disableBottomSheet=true', () => {
+      const { unmount } = render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(isPredictSheetProviderMounted()).toBe(false);
+
+      unmount();
+    });
+
+    it('returns false after unmounting a disableBottomSheet provider', () => {
+      const { unmount } = render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      unmount();
+
+      expect(isPredictSheetProviderMounted()).toBe(false);
+    });
+  });
+
+  describe('disableBottomSheet prop', () => {
+    it('navigates to BUY_PREVIEW instead of opening sheet when disableBottomSheet=true and flag is ON', () => {
+      render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+        params: buyParams,
+      });
+      expect(
+        screen.queryByTestId('predict-buy-preview-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('navigates to SELL_PREVIEW instead of opening sheet when disableBottomSheet=true and flag is ON', () => {
+      render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-sell'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+        params: sellParams,
+      });
+      expect(
+        screen.queryByTestId('predict-sell-preview-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not auto-reopen buy sheet when disableBottomSheet=true', () => {
+      const { rerender } = render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+
+      mockActiveOrder = { error: 'order/failed' };
+      rerender(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(
+        screen.queryByTestId('predict-buy-preview-sheet'),
+      ).not.toBeOnTheScreen();
     });
   });
 
