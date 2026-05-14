@@ -99,16 +99,21 @@ describeForPlatforms('MultichainAccountSelectorList account syncing', () => {
     const fixture = buildMultichainAccountsFixture({
       includeSecondAccount: true,
     });
+    const account2Group = fixture.groups.account2;
+    if (!account2Group) {
+      throw new Error('Expected fixture to include Account 2');
+    }
+
     const { findByTestId } = renderMultichainAccountSelectorList({
       fixture,
-      selectedAccountGroups: [fixture.groups.account2],
+      selectedAccountGroups: [account2Group],
       showCheckbox: true,
       showFooter: false,
     });
 
     expect(
       await findByTestId(
-        `${ACCOUNT_LIST_CELL_TEST_IDS.ACCOUNT_LIST_CELL}${fixture.groups.account2.id}`,
+        `${ACCOUNT_LIST_CELL_TEST_IDS.ACCOUNT_LIST_CELL}${account2Group.id}`,
       ),
     ).toBeOnTheScreen();
   });

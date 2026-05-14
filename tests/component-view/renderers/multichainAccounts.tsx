@@ -91,7 +91,9 @@ function getFixture(options: FixtureRendererOptions = {}) {
   return fixture;
 }
 
-const BrowserRouteProbe = createRouteParamsProbe(Routes.BROWSER.HOME);
+const BrowserRouteProbe = createRouteParamsProbe(
+  Routes.BROWSER.HOME,
+) as React.ComponentType<unknown>;
 
 interface AccountSelectorRendererOptions extends FixtureRendererOptions {
   selectedAccountGroups?: AccountGroupObject[];
@@ -143,13 +145,13 @@ interface AccountGroupDetailsRendererOptions extends FixtureRendererOptions {
 
 const MultichainAccountDetailActionsRouteProbe = createRouteParamsProbe(
   Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
-);
+) as React.ComponentType<unknown>;
 const AddressListRouteProbe = createRouteParamsProbe(
   Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
-);
+) as React.ComponentType<unknown>;
 const PrivateKeyListRouteProbe = createRouteParamsProbe(
   Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
-);
+) as React.ComponentType<unknown>;
 
 export function renderAccountGroupDetailsWithRoutes(
   options: AccountGroupDetailsRendererOptions = {},
