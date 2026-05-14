@@ -1,15 +1,8 @@
-type HeadlessEntryPointerEvents = 'auto' | 'none';
-
 interface NavigationNode {
   getParent?: () => NavigationNode | undefined;
   goBack?: () => void;
   pop?: () => void;
-  setOptions?: (options: {
-    cardStyle?: {
-      backgroundColor: 'transparent';
-      pointerEvents: HeadlessEntryPointerEvents;
-    };
-  }) => void;
+  setOptions?: (options: Record<string, unknown>) => void;
 }
 
 export const setHeadlessEntryCardTouchThrough = (
@@ -35,22 +28,15 @@ export const dismissHeadlessFlow = (
 ): boolean => {
   const parentNavigation = navigation?.getParent?.();
   const outerNavigation = parentNavigation?.getParent?.();
+  const dismiss =
+    outerNavigation?.goBack ??
+    outerNavigation?.pop ??
+    parentNavigation?.pop ??
+    navigation?.goBack;
 
-  if (outerNavigation?.goBack) {
-    outerNavigation.goBack();
-    return true;
+  if (!dismiss) {
+    return false;
   }
-  if (outerNavigation?.pop) {
-    outerNavigation.pop();
-    return true;
-  }
-  if (parentNavigation?.pop) {
-    parentNavigation.pop();
-    return true;
-  }
-  if (navigation?.goBack) {
-    navigation.goBack();
-    return true;
-  }
-  return false;
+  dismiss();
+  return true;
 };

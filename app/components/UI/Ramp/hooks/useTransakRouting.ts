@@ -248,15 +248,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           throw error;
         }
         if (headlessSessionId) {
-          // Headless mode: route the swallowed infrastructure error through
-          // the session so the consumer receives an onError callback, then
-          // rethrow so the caller's outer catch unwinds the flow.
           failSession(headlessSessionId, error);
           throw error;
         }
-        // Non-headless (UB2) preserves today's swallow — the existing test
-        // 'logs error and returns when getUserLimits throws a non-limit
-        // error' encodes that as intent.
         Logger.error(error as Error, 'Failed to check user limits');
       }
     },

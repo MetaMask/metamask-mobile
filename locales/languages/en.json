@@ -3536,6 +3536,12 @@
         "event_log_error": "onError → {{code}}{{messageSuffix}}",
         "event_log_close": "onClose → {{reason}}",
         "event_log_cancelled": "consumer-cancelled session {{sessionId}}"
+      },
+      "headless_host": {
+        "title": "Headless buy",
+        "loading": "Preparing the buy flow…",
+        "no_session": "Headless session is no longer active.",
+        "cancel": "Cancel"
       }
     },
     "request_feature": "Request a feature",

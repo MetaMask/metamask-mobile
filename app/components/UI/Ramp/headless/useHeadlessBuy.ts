@@ -168,21 +168,6 @@ export function useHeadlessBuy(): HeadlessBuyResult {
 
       const session = createSession(params, callbacks);
 
-      // The Headless Host is registered inside the Unified Buy v2 stack
-      // (`app/components/UI/Ramp/routes.tsx` → `MainRoutes`) so it lives
-      // next to every post-auth reset target (`Checkout`, `BasicInfo`,
-      // `KycWebview`, …). From outside that stack we enter via the
-      // dedicated transparent-modal mount point — `RAMP.HEADLESS_ENTRY`
-      // in `MainNavigator.js`, which renders the same `TokenListRoutes`
-      // as `RAMP.TOKEN_SELECTION` but wraps it in a transparent overlay
-      // (preset: `clearStackNavigatorOptionsWithTransitionAnimation` +
-      // `presentation: 'transparentModal'`) so the consumer's screen
-      // stays visible behind the headless flow.
-      //   RAMP.HEADLESS_ENTRY (outer transparent modal)
-      //     → RAMP.TOKEN_SELECTION (RootStack slot wrapping `MainRoutes`)
-      //       → RAMP.HEADLESS_HOST (target screen on the inner stack)
-      // Resetting the Host's nearest navigator (the `MainRoutes` inner
-      // stack) then resolves all the `useTransakRouting` targets.
       navigation.navigate(Routes.RAMP.HEADLESS_ENTRY, {
         screen: Routes.RAMP.TOKEN_SELECTION,
         params: {

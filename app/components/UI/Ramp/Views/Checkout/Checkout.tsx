@@ -513,9 +513,7 @@ const Checkout = () => {
   const fireClosedRef = useRef<() => void>(() => {
     /* no-op until initialized */
   });
-  const closeHeadlessOnUnmountRef = useRef<() => void>(() => {
-    /* no-op until initialized */
-  });
+  const closeHeadlessOnUnmountRef = useRef<() => void>(() => undefined);
   closeHeadlessOnUnmountRef.current = () => {
     if (!headlessSessionId || hasTerminatedHeadlessSessionRef.current) {
       return;

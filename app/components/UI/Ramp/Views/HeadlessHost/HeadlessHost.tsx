@@ -36,11 +36,6 @@ import { getQuoteProviderName } from '../../types';
 
 import styleSheet from './HeadlessHost.styles';
 
-/**
- * Test-only anchor for the Host's transparent placeholder. The Host renders
- * no user-visible chrome after Phase 9.5 — every loading / error / cancel
- * surface is owned by the consumer (MetaMask Pay's `TransactionPayController`).
- */
 export const HEADLESS_HOST_CONTAINER_TEST_ID = 'headless-host-container';
 
 export interface HeadlessHostParams {
@@ -63,26 +58,6 @@ export interface HeadlessHostParams {
 export const createHeadlessHostNavDetails =
   createNavigationDetails<HeadlessHostParams>(Routes.RAMP.HEADLESS_HOST);
 
-/**
- * Headless Host screen.
- *
- * After Phase 9.5 the Host is intentionally **invisible** — it renders a
- * transparent placeholder so React Navigation has a stack base for resets,
- * but the consumer (TPC / MMPay) renders the only user-visible loading UI
- * for a headless buy. The Host still picks up the live session by
- * `headlessSessionId` and calls `useContinueWithQuote().continueWithQuote(...)`
- * exactly once on mount (status guard prevents re-entry on the post-OTP auth
- * loop), surfaces `nativeFlowError` (set by OtpCode on routing failure) as
- * `onError('AUTH_FAILED', ...)` and closes the session, and fires
- * `onClose({ reason: 'user_dismissed' })` from two paths.
- *
- * Dismissal: `navigation.addListener('beforeRemove', ...)` catches synchronous
- * user-driven pops of the Host itself (hardware back / iOS swipe-back when the
- * Host is the focused screen, or a programmatic pop targeting it).
- * `useHeadlessSessionDismissal` (Phase 8) catches any other unmount path:
- * stack resets that bypass `beforeRemove`, hot reloads, parent navigator
- * pops, etc. `closeSession` is idempotent so the two are safe to coexist.
- */
 function HeadlessHost() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
@@ -99,32 +74,8 @@ function HeadlessHost() {
     };
   }, [navigation, isFocused]);
 
-  // Phase 8: defense-in-depth dismissal. The `beforeRemove` listener below
-  // fires the synchronous close on every user-driven exit, so this hook's
-  // unmount cleanup is effectively a no-op in production. Kept because some
-  // flows (hot reload, programmatic stack reset) skip `beforeRemove`.
   useHeadlessSessionDismissal(headlessSessionId);
 
-  // Phase 9.5: replace the old visible Cancel/Back-button handlers with a
-  // navigation listener. `beforeRemove` only fires when *this* screen is
-  // being popped (the listener is per-screen). It catches the common case:
-  // hardware back / iOS swipe-back while the Host is focused, or a
-  // programmatic pop targeting the Host. Other unmount paths
-  // (stack reset, parent pop while a child screen has focus, hot reload)
-  // are caught by `useHeadlessSessionDismissal`'s unmount cleanup above.
-  // closeSession is idempotent: Phase 6 success and Phase 7 errors clear
-  // the session before `beforeRemove` and turn this into a no-op.
-  //
-  // Stack-rebuild guard (Cursor Bugbot): `useTransakRouting` calls
-  // `navigation.reset()` to re-pin HEADLESS_HOST at the base of the stack
-  // when navigating to VerifyIdentity / BasicInfo / Checkout / KycWebview.
-  // The reset action fires `beforeRemove` on the OLD HEADLESS_HOST instance
-  // before re-pinning the new one, but the session is still in flight —
-  // closing it here would prematurely fire `onClose({ reason: 'user_dismissed' })`
-  // and break the flow. Skip the close when the action is a RESET; the
-  // legitimate unmount cases (stack reset that does NOT re-pin the Host,
-  // hot reload) are caught by `useHeadlessSessionDismissal`'s unmount path
-  // with `isHeadlessHostStillInNavigator`.
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (e.data.action.type === 'RESET') {
@@ -294,14 +245,6 @@ function HeadlessHost() {
     continueWithQuote,
   ]);
 
-  // The View is intentionally empty — Phase 9.5 hands all visible UI to the
-  // consumer. It must also be touch-transparent: the navigation route exists
-  // only as an orchestration base, so the empty placeholder should not eat
-  // taps/scrolls intended for the consumer surface below.
-  //
-  // We do NOT set `accessibilityElementsHidden` here because there are no
-  // descendants to hide; it would only confuse screen readers about an
-  // already-empty stack base.
   return (
     <View
       testID={HEADLESS_HOST_CONTAINER_TEST_ID}

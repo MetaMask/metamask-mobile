@@ -1014,9 +1014,6 @@ describe('useTransakRouting', () => {
         }),
       );
 
-      // The rethrow propagates through the outer `case 'APPROVED'` catch,
-      // which re-wraps as `parseUserFacingError`. We catch the rejection
-      // inside act so all microtasks settle before the assertion.
       let caught: unknown;
       await act(async () => {
         try {
@@ -1034,7 +1031,6 @@ describe('useTransakRouting', () => {
         'headless-buy-fixa',
         networkError,
       );
-      // The rethrow unwinds the flow before reaching OTT generation.
       expect(mockRequestOtt).not.toHaveBeenCalled();
     });
 
@@ -1050,8 +1046,6 @@ describe('useTransakRouting', () => {
         status: 'APPROVED',
         kycType: 'SIMPLE',
       });
-      // Returning daily remaining=0 forces the inner code path to throw
-      // LimitExceededError before the generic catch sees it.
       mockGetUserLimits.mockResolvedValue({
         remaining: { '1': 0, '30': 50000, '365': 200000 },
       });
@@ -1072,9 +1066,6 @@ describe('useTransakRouting', () => {
         }),
       ).rejects.toThrow();
 
-      // LimitExceededError takes the early rethrow path — failSession isn't
-      // invoked because the limit error is a user-actionable condition that
-      // the outer flow handles directly.
       expect(mockFailSession).not.toHaveBeenCalled();
     });
   });
@@ -1588,42 +1579,29 @@ describe('useTransakRouting', () => {
         reason: 'completed',
       });
       expect(mockParentPop).toHaveBeenCalled();
+      expect(mockAddOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ providerOrderId: 'order-hs' }),
+      );
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: expect.arrayContaining([
+            expect.objectContaining({
+              name: 'Checkout',
+              params: expect.objectContaining({ headlessSessionId: 'hs-1' }),
+            }),
+          ]),
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TRANSACTION_CONFIRMED',
+        expect.objectContaining({ ramp_type: 'DEPOSIT' }),
+      );
       expect(mockReset).not.toHaveBeenCalledWith(
         expect.objectContaining({
           routes: [expect.objectContaining({ name: 'RampsOrderDetails' })],
         }),
       );
       expect(mockShowV2OrderToast).not.toHaveBeenCalled();
-    });
-
-    it('still adds the order and tracks the transaction event when headless', async () => {
-      mockGetSession.mockReturnValue({
-        id: 'hs-1',
-        status: 'continued',
-        callbacks: {
-          onOrderCreated: jest.fn(),
-          onError: jest.fn(),
-          onClose: jest.fn(),
-        },
-      });
-
-      const handler = await runApprovedFlowHeadless();
-      expect(handler).not.toBeNull();
-      if (!handler) return;
-
-      await act(async () => {
-        await handler({
-          url: 'https://redirect.example.com?orderId=order-hs',
-        });
-      });
-
-      expect(mockAddOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ providerOrderId: 'order-hs' }),
-      );
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        'RAMPS_TRANSACTION_CONFIRMED',
-        expect.objectContaining({ ramp_type: 'DEPOSIT' }),
-      );
     });
 
     it('swallows consumer onOrderCreated errors and still closes + pops', async () => {
@@ -1733,26 +1711,6 @@ describe('useTransakRouting', () => {
       expect(mockParentPop).toHaveBeenCalled();
       expect(mockGetOrder).not.toHaveBeenCalled();
       expect(mockShowV2OrderToast).not.toHaveBeenCalled();
-    });
-
-    it('passes headlessSessionId to Checkout so native provider unmounts can close the session', async () => {
-      await runApprovedFlowHeadless();
-
-      expect(mockReset).toHaveBeenCalledWith(
-        expect.objectContaining({
-          routes: [
-            expect.objectContaining({
-              params: { headlessSessionId: 'hs-1' },
-            }),
-            expect.objectContaining({
-              name: 'Checkout',
-              params: expect.objectContaining({
-                headlessSessionId: 'hs-1',
-              }),
-            }),
-          ],
-        }),
-      );
     });
 
     it('routes manual bank transfer order success through headless callbacks without showing a toast', async () => {

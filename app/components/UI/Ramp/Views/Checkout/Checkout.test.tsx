@@ -725,34 +725,12 @@ describe('Checkout', () => {
         reason: 'completed',
       });
       expect(mockParentPop).toHaveBeenCalled();
-      expect(mockNavigation.reset).not.toHaveBeenCalled();
-      expect(showV2OrderToastMock).not.toHaveBeenCalled();
-    });
-
-    it('still adds the order to Redux and dispatches protect-wallet when headless', async () => {
-      mockGetSession.mockReturnValue({
-        id: 'hs-1',
-        status: 'continued',
-        callbacks: {
-          onOrderCreated: jest.fn(),
-          onError: jest.fn(),
-          onClose: jest.fn(),
-        },
-      });
-      mockUseParams.mockReturnValue(callbackFlowParams);
-
-      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
-
-      await act(async () => {
-        fireEvent.press(getByTestId('trigger-callback-navigation'));
-      });
-
-      await waitFor(() => {
-        expect(mockAddOrder).toHaveBeenCalledWith(mockOrder);
-      });
+      expect(mockAddOrder).toHaveBeenCalledWith(mockOrder);
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'PROTECT_WALLET_MODAL_VISIBLE',
       });
+      expect(mockNavigation.reset).not.toHaveBeenCalled();
+      expect(showV2OrderToastMock).not.toHaveBeenCalled();
     });
 
     it('swallows consumer onOrderCreated errors and still closes + pops', async () => {

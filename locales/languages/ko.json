@@ -3521,6 +3521,12 @@
         "event_log_error": "오류 → {{code}}{{messageSuffix}}",
         "event_log_close": "종료 → {{reason}}",
         "event_log_cancelled": "소비자 취소 세션 {{sessionId}}"
+      },
+      "headless_host": {
+        "title": "헤드리스 매수",
+        "loading": "매수 절차 준비 중…",
+        "no_session": "헤드리스 세션이 더 이상 활성화 상태가 아닙니다.",
+        "cancel": "취소"
       }
     },
     "request_feature": "기능 요청",

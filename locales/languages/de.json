@@ -3521,6 +3521,12 @@
         "event_log_error": "onError → {{code}}{{messageSuffix}}",
         "event_log_close": "onClose → {{reason}}",
         "event_log_cancelled": "Vom Verbraucher abgebrochene Sitzung {{sessionId}}"
+      },
+      "headless_host": {
+        "title": "Headless-Kauf",
+        "loading": "Kauffluss wird vorbereitet …",
+        "no_session": "Headless-Sitzung ist nicht mehr aktiv.",
+        "cancel": "Stornieren"
       }
     },
     "request_feature": "Eine Funktion anfragen",

@@ -3521,6 +3521,12 @@
         "event_log_error": "onError → {{code}}{{messageSuffix}}",
         "event_log_close": "onClose → {{reason}}",
         "event_log_cancelled": "Ακύρωση συνεδρίας από τον χρήστη {{sessionId}}"
+      },
+      "headless_host": {
+        "title": "Αγορά χωρίς επιβεβαίωση",
+        "loading": "Προετοιμασία της διαδικασίας αγοράς…",
+        "no_session": "Η συνεδρία χωρίς επιβεβαίωση δεν είναι πλέον ενεργή.",
+        "cancel": "Ακύρωση"
       }
     },
     "request_feature": "Ζητήστε μια λειτουργία",

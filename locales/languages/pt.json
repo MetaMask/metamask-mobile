@@ -3521,6 +3521,12 @@
         "event_log_error": "onError → {{code}}{{messageSuffix}}",
         "event_log_close": "onClose → {{reason}}",
         "event_log_cancelled": "sessão cancelada pelo consumidor {{sessionId}}"
+      },
+      "headless_host": {
+        "title": "Compra sem interface",
+        "loading": "Preparando o fluxo de compras…",
+        "no_session": "A sessão sem interface não está mais ativa.",
+        "cancel": "Cancelar"
       }
     },
     "request_feature": "Solicitar um recurso",

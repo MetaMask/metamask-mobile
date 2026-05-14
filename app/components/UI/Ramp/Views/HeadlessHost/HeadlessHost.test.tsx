@@ -33,18 +33,11 @@ const mockContinueWithQuote = jest.fn();
 const mockUseContinueWithQuoteOptions = jest.fn();
 let mockIsFocused = true;
 
-// Holds the most recent 'beforeRemove' listener registered against the
-// mocked navigation object. Tests fire it directly to exercise the
-// production beforeRemove path without spinning up a real navigator.
-// The listener now reads `e.data.action.type` so it can ignore RESET
-// stack-rebuilds; tests pass an event arg accordingly.
 interface BeforeRemoveEvent {
   data: { action: { type: string } };
 }
 let registeredBeforeRemoveListener: ((e?: BeforeRemoveEvent) => void) | null =
   null;
-// Default event passed when a test wants to simulate a user back/swipe — any
-// non-RESET action type triggers the close path.
 const DEFAULT_GO_BACK_EVENT: BeforeRemoveEvent = {
   data: { action: { type: 'GO_BACK' } },
 };
@@ -214,8 +207,6 @@ describe('HeadlessHost', () => {
     });
 
     it('renders only a transparent container — no header, spinner, or buttons after Phase 9.5', () => {
-      // The Phase 9.5 contract: the consumer (TPC / MMPay) renders all
-      // user-visible loading UI. The Host is a stack base only.
       const session = seedSession(buildAggregatorQuote());
       renderHost({ headlessSessionId: session.id });
       expect(
@@ -225,7 +216,6 @@ describe('HeadlessHost', () => {
         'pointerEvents',
         'none',
       );
-      // No legacy chrome should be present.
       expect(screen.queryByText(/Cancel/i)).not.toBeOnTheScreen();
       expect(screen.queryByText(/Preparing/i)).not.toBeOnTheScreen();
       expect(screen.queryByText(/no longer active/i)).not.toBeOnTheScreen();
@@ -238,8 +228,6 @@ describe('HeadlessHost', () => {
     });
 
     it('renders the transparent container even with no session — no UI affordances surface to the user', () => {
-      // Pre-Phase 9.5 this rendered a "no session" message; the consumer
-      // now owns that surface.
       renderHost({ headlessSessionId: 'headless-buy-not-real' });
       expect(
         screen.getByTestId(HEADLESS_HOST_CONTAINER_TEST_ID),
@@ -342,12 +330,8 @@ describe('HeadlessHost', () => {
     it('skips orchestration when the session has already been cancelled', async () => {
       const quote = buildAggregatorQuote();
       const session = seedSession(quote);
-      // Mark the session terminal *before* the screen mounts: the focus
-      // effect must respect that and avoid a stale re-trigger.
       closeSession(session.id, { reason: 'consumer_cancelled' });
       renderHost({ headlessSessionId: session.id });
-      // No session left → orchestration short-circuits. The consumer
-      // already received onClose from the closeSession call above.
       expect(mockContinueWithQuote).not.toHaveBeenCalled();
     });
   });
@@ -421,13 +405,6 @@ describe('HeadlessHost', () => {
         expect(mockContinueWithQuote).toHaveBeenCalledTimes(1),
       );
       unmount();
-      // Phase 8: unmount fires the dismissal close because the session
-      // had not reached a terminal status. After unmount the session is
-      // gone from the registry, so the .catch's live-session re-read
-      // short-circuits and does not produce a second onClose or an
-      // onError. (The .catch's `cancelled` flag is independent React
-      // unmount-state protection; this test does not exercise it
-      // directly.)
       expect(callbacks.onClose).toHaveBeenCalledTimes(1);
       expect(callbacks.onClose).toHaveBeenCalledWith({
         reason: 'user_dismissed',
@@ -454,8 +431,6 @@ describe('HeadlessHost', () => {
       });
       expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
-      // The auth-error path also short-circuits the continue-on-focus effect
-      // — we never want to push EnterEmail again on top of the error message.
       expect(mockContinueWithQuote).not.toHaveBeenCalled();
     });
 
@@ -477,17 +452,12 @@ describe('HeadlessHost', () => {
         },
       );
       renderHost({ headlessSessionId: session.id });
-      // Even though onError throws, the close path still runs and the
-      // session is gone from the registry.
       await waitFor(() => expect(getSession(session.id)).toBeUndefined());
     });
   });
 
   describe('Dismissal (Phase 8 + 9.5)', () => {
     it('registers a beforeRemove listener that synchronously closes the session with user_dismissed', () => {
-      // Phase 9.5 replaces the old visible Cancel/Back buttons with a
-      // navigation listener so the synchronous close still fires when the
-      // user backs out — even with no chrome to render.
       const quote = buildAggregatorQuote();
       const session = seedSession(quote);
       const callbacks = session.callbacks;
@@ -498,7 +468,6 @@ describe('HeadlessHost', () => {
       );
       expect(typeof registeredBeforeRemoveListener).toBe('function');
 
-      // Fire the listener like React Navigation would on a back gesture.
       registeredBeforeRemoveListener?.(DEFAULT_GO_BACK_EVENT);
 
       expect(callbacks.onClose).toHaveBeenCalledTimes(1);
@@ -509,12 +478,6 @@ describe('HeadlessHost', () => {
     });
 
     it('does NOT close the session when beforeRemove fires for a RESET action (stack rebuild guard)', () => {
-      // Cursor Bugbot — useTransakRouting calls navigation.reset() to
-      // re-pin HEADLESS_HOST at the base when moving to VerifyIdentity /
-      // BasicInfo / Checkout / KycWebview. The reset fires beforeRemove on
-      // the OLD instance, but the session is still in flight; closing it
-      // here would prematurely fire onClose({ reason: 'user_dismissed' })
-      // and break the flow.
       const quote = buildAggregatorQuote();
       const session = seedSession(quote);
       const callbacks = session.callbacks;
@@ -526,9 +489,6 @@ describe('HeadlessHost', () => {
       });
 
       expect(callbacks.onClose).not.toHaveBeenCalled();
-      // The session is still live so useTransakRouting's reset can complete
-      // and re-pin the new HEADLESS_HOST without losing the consumer's
-      // callbacks.
       expect(getSession(session.id)).toBeDefined();
     });
 
@@ -565,15 +525,10 @@ describe('HeadlessHost', () => {
         expect(mockContinueWithQuote).toHaveBeenCalledTimes(1),
       );
 
-      // Simulate Phase 6: useTransakRouting / Checkout fires
-      // closeSession({ reason: 'completed' }) after onOrderCreated.
       closeSession(session.id, { reason: 'completed' });
       expect(callbacks.onClose).toHaveBeenCalledTimes(1);
       expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'completed' });
 
-      // beforeRemove fires too (React Navigation always fires it on screen
-      // removal), then unmount cleanup runs. Both find the session gone and
-      // no-op.
       registeredBeforeRemoveListener?.(DEFAULT_GO_BACK_EVENT);
       unmount();
 
@@ -589,15 +544,12 @@ describe('HeadlessHost', () => {
         nativeFlowError: 'OTP rejected',
       });
 
-      // Phase 7: nativeFlowError handler funnels through failSession →
-      // closeSession({ reason: 'unknown' }, { terminalStatus: 'failed' }).
       expect(callbacks.onClose).toHaveBeenCalledTimes(1);
       expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
 
       registeredBeforeRemoveListener?.(DEFAULT_GO_BACK_EVENT);
       unmount();
 
-      // Both follow-up paths re-read, see nothing, no-op.
       expect(callbacks.onClose).toHaveBeenCalledTimes(1);
     });
 
@@ -605,8 +557,6 @@ describe('HeadlessHost', () => {
       const quote = buildAggregatorQuote();
       const session = seedSession(quote);
       const callbacks = session.callbacks;
-      // Cancel before the screen mounts; the Phase 8 dismissal cleanup must
-      // not produce a spurious second onClose.
       closeSession(session.id, { reason: 'consumer_cancelled' });
       expect(callbacks.onClose).toHaveBeenCalledTimes(1);
       expect(callbacks.onClose).toHaveBeenCalledWith({
