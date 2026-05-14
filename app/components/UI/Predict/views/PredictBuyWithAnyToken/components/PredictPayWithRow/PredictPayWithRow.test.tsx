@@ -165,6 +165,24 @@ describe('PredictPayWithRow', () => {
     );
   });
 
+  it('calls onPaymentSelectorOpen before navigating to pay-with modal', () => {
+    const callOrder: string[] = [];
+    const onPaymentSelectorOpen = jest.fn(() => callOrder.push('lock'));
+    mockNavigate.mockImplementation(() => callOrder.push('navigate'));
+
+    renderWithProvider(
+      <PredictPayWithRow onPaymentSelectorOpen={onPaymentSelectorOpen} />,
+    );
+
+    fireEvent.press(screen.getByText('Pay with USDC'));
+
+    expect(onPaymentSelectorOpen).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CONFIRMATION_PAY_WITH_MODAL,
+    );
+    expect(callOrder).toStrictEqual(['lock', 'navigate']);
+  });
+
   it('does not navigate when disabled prop is true', () => {
     renderWithProvider(<PredictPayWithRow disabled />);
 
