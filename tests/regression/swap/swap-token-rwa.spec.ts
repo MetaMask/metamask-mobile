@@ -20,7 +20,7 @@ describe(RegressionTrade('Swap RWA'), (): void => {
   jest.setTimeout(120000);
 
   it('completes a USDC -> GOOGLON swap', async (): Promise<void> => {
-    const quantity: string = '1000';
+    const quantity: string = '25';
     const sourceTokenSymbol: string = 'USDC';
     const destTokenSymbol: string = 'GOOGLON';
     const chainId = '0x1';

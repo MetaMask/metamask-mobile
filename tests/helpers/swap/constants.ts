@@ -1750,7 +1750,7 @@ export const GET_TOKENS_API_MUSD_RESPONSE = [
 export const GET_QUOTE_USDC_GOOGLON_RESPONSE = [
   {
     quote: {
-      requestId: '76032e05-1fc5-4a61-ab98-cd30505da07a',
+      requestId: '1177467397',
       bridgeId: 'cowswap',
       srcChainId: 1,
       srcAsset: {
@@ -1783,7 +1783,7 @@ export const GET_QUOTE_USDC_GOOGLON_RESPONSE = [
           },
         },
       },
-      srcTokenAmount: '10000000',
+      srcTokenAmount: '25000000',
       destChainId: 1,
       destAsset: {
         address: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
@@ -1800,22 +1800,22 @@ export const GET_QUOTE_USDC_GOOGLON_RESPONSE = [
         rwaData: {
           market: {
             nextOpen: '2026-02-19T14:31:00.000Z',
-            nextClose: '2026-02-19T14:29:00.000Z',
+            nextClose: '2027-02-19T14:29:00.000Z',
           },
           nextPause: {
             start: '2026-03-08T23:52:00.000Z',
-            end: '2026-03-09T00:12:00.000Z',
+            end: '2027-03-09T00:12:00.000Z',
           },
           ticker: 'GOOGL',
           instrumentType: 'stock',
           isOpen: true,
         },
       },
-      destTokenAmount: '32747750652651914',
-      minDestTokenAmount: '32092795639598875',
+      destTokenAmount: '56413720768128364',
+      minDestTokenAmount: '55285446352765796',
       feeData: {
         metabridge: {
-          amount: '87500',
+          amount: '218750',
           asset: {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: 1,
@@ -1906,19 +1906,19 @@ export const GET_QUOTE_USDC_GOOGLON_RESPONSE = [
             rwaData: {
               market: {
                 nextOpen: '2026-02-19T14:31:00.000Z',
-                nextClose: '2026-02-19T14:29:00.000Z',
+                nextClose: '2027-02-19T14:29:00.000Z',
               },
               nextPause: {
                 start: '2026-03-08T23:52:00.000Z',
-                end: '2026-03-09T00:12:00.000Z',
+                end: '2027-03-09T00:12:00.000Z',
               },
               ticker: 'GOOGL',
               instrumentType: 'stock',
               isOpen: true,
             },
           },
-          srcAmount: '10000000',
-          destAmount: '32747750652651914',
+          srcAmount: '25000000',
+          destAmount: '56413720768128364',
           protocol: {
             name: 'cowswap',
             displayName: 'CowSwap',
@@ -1926,9 +1926,9 @@ export const GET_QUOTE_USDC_GOOGLON_RESPONSE = [
         },
       ],
       priceData: {
-        totalFromAmountUsd: '9.99906',
-        totalToAmountUsd: '9.906849527440256',
-        priceImpact: '0.009221914115901285',
+        totalFromAmountUsd: '23.221451944986807',
+        totalToAmountUsd: '22.962395485461442',
+        priceImpact: '0.001886237122171553',
       },
       aggregatorType: 'AGG',
       walletAddress: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
@@ -1942,10 +1942,10 @@ export const GET_QUOTE_USDC_GOOGLON_RESPONSE = [
           buyToken: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
           from: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
           receiver: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
-          sellAmount: '10000000',
-          buyAmount: '32092795639598875',
-          feeAmount: '55143',
-          validTo: 1771504781,
+          sellAmount: '25000000',
+          buyAmount: '55285446352765796',
+          feeAmount: '0',
+          validTo: 1778748252,
           appData:
             '{"appCode":"metamask","metadata":{"orderClass":{"orderClass":"market"},"partnerFee":[{"volumeBps":100,"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58"},{"volumeBps":100,"priceImprovementBps":9900,"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58"}]},"version":"1.8.0"}',
           appDataHash:
@@ -1956,7 +1956,7 @@ export const GET_QUOTE_USDC_GOOGLON_RESPONSE = [
           signingScheme: 'eip712',
           priceQuality: 'fast',
         },
-        quoteId: null,
+        quoteId: 1177570184,
         relayer: '0x9008D19f58AAbD9eD0D60971565AA8510560ab41',
       },
     },
