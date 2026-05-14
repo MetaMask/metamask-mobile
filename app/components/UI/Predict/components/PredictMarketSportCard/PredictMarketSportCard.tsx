@@ -440,7 +440,9 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
       onPress={handleCardPress}
       activeOpacity={0.9}
     >
-      <Box twClassName="bg-muted rounded-[12px] overflow-hidden">
+      <Box
+        twClassName={`bg-muted rounded-[12px] overflow-hidden ${isCompact ? 'h-full' : ''}`}
+      >
         {onDismiss && (
           <Box twClassName="absolute top-3 right-3 z-10">
             <ButtonIcon
@@ -454,7 +456,9 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
           </Box>
         )}
 
-        <Box twClassName={isCompact ? 'p-3 gap-3' : 'p-4 gap-4'}>
+        <Box
+          twClassName={isCompact ? 'flex-1 p-3 justify-between' : 'p-4 gap-4'}
+        >
           <Text
             variant={TextVariant.HeadingSm}
             color={TextColor.TextDefault}
