@@ -137,8 +137,8 @@
       "message": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer."
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
-      "title": "Gas sponsorship unavailable"
+      "message": "This specific network requires to maintain a reserve of %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Reserve balance is required"
     },
     "token_trust_signal": {
       "malicious": {
