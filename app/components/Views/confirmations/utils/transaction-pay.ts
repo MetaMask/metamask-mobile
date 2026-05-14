@@ -1,4 +1,5 @@
 import {
+  NestedTransactionMetadata,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
@@ -22,8 +23,65 @@ import {
 } from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import Logger from '../../../../util/Logger';
+import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 
 const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
+
+function toAddressWord(address: string): string {
+  return address.toLowerCase().replace(/^0x/, '').padStart(64, '0');
+}
+
+/**
+ * Replace every occurrence of `oldAddress` (encoded as a 32-byte ABI word)
+ * inside the `data` of each nested transaction with `newAddress`, and persist
+ * the change via `updateAtomicBatchData`. No-ops when there are no nested
+ * transactions or no old address to replace.
+ */
+export function replaceAccountInNestedTransactions({
+  transactionId,
+  nestedTransactions,
+  oldAddress,
+  newAddress,
+}: {
+  transactionId: string;
+  nestedTransactions: NestedTransactionMetadata[] | undefined;
+  oldAddress: string | undefined;
+  newAddress: string;
+}): void {
+  if (!oldAddress || !nestedTransactions?.length) {
+    return;
+  }
+
+  const oldWord = toAddressWord(oldAddress);
+  const newWord = toAddressWord(newAddress);
+
+  if (oldWord === newWord) {
+    return;
+  }
+
+  nestedTransactions.forEach((nested, index) => {
+    const data = nested.data;
+    if (!data) {
+      return;
+    }
+
+    const lowerData = data.toLowerCase();
+    if (!lowerData.includes(oldWord)) {
+      return;
+    }
+
+    const newData = lowerData.split(oldWord).join(newWord) as Hex;
+
+    updateAtomicBatchData({
+      transactionId,
+      transactionIndex: index,
+      transactionData: newData,
+    }).catch((error) => {
+      Logger.error(error, 'Failed to update account in nested transaction');
+    });
+  });
+}
 
 export function getRequiredBalance(
   transactionMeta: TransactionMeta,
