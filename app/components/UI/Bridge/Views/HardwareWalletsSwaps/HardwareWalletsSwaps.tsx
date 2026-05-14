@@ -285,6 +285,7 @@ export function HardwareWalletsSwaps() {
   const toastRef = useContext(ToastContext)?.toastRef;
   const hasAutoNavigatedRef = useRef(false);
   const hasInitialSubmissionRef = useRef(false);
+  const submissionGenerationRef = useRef(0);
 
   useEffect(() => {
     console.log('[HW-Swaps] progress state changed:', JSON.stringify({
@@ -354,10 +355,15 @@ export function HardwareWalletsSwaps() {
     console.log('[HW-Swaps] Cached params found, calling submitBridgeTx...', {
       walletAddress,
     });
+    const myGeneration = submissionGenerationRef.current;
     try {
       await submitBridgeTx(cachedParams);
       console.log('[HW-Swaps] submitBridgeTx completed successfully');
     } catch (error) {
+      if (submissionGenerationRef.current !== myGeneration) {
+        console.log('[HW-Swaps] Stale submission — ignoring error from cancelled batch');
+        return;
+      }
       Logger.error(
         error as Error,
         'HardwareWalletsSwaps: submission failed',
@@ -456,6 +462,7 @@ export function HardwareWalletsSwaps() {
 
   const handleTryAgain = useCallback(async () => {
     console.log('[HW-Swaps] handleTryAgain — cancelling current batch and retrying submission');
+    submissionGenerationRef.current += 1;
     await cancelCurrentBatch();
     dispatch(updateHardwareWalletsSwaps({ type: 'RETRY' }));
     await submitWithDeviceReady();
@@ -463,6 +470,7 @@ export function HardwareWalletsSwaps() {
 
   const handleReconnect = useCallback(async () => {
     console.log('[HW-Swaps] handleReconnect — cancelling stale batch and retrying submission');
+    submissionGenerationRef.current += 1;
     await cancelCurrentBatch();
     dispatch(updateHardwareWalletsSwaps({ type: 'RETRY' }));
     await submitWithDeviceReady();

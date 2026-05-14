@@ -334,6 +334,61 @@ describe('HardwareWalletsSwaps', () => {
     });
   });
 
+  it('does not dispatch TRANSACTION_FAILED when stale submission rejects after retry', async () => {
+    const cachedParams = {
+      quoteResponse: { id: 'test' } as any,
+      location: undefined,
+      transactionActiveAbTests: undefined,
+    };
+    const { getBridgeSubmissionCache } = jest.requireMock(
+      '../../hooks/bridgeSubmissionCache',
+    );
+    getBridgeSubmissionCache.mockReturnValue(cachedParams);
+
+    let retrySubmissionResolver: (value: unknown) => void;
+    const retrySubmissionPromise = new Promise(
+      (resolve) => (retrySubmissionResolver = resolve),
+    );
+
+    mockSubmitBridgeTx
+      .mockRejectedValueOnce(new Error('Batch cancelled'))
+      .mockImplementationOnce(() => retrySubmissionPromise);
+
+    const { getByTestId, store } = renderScreen({
+      status: HardwareWalletsSwapsStatus.Failed,
+      steps: [
+        {
+          kind: HardwareWalletsSwapsStepKind.Approval,
+          status: 'waiting',
+        },
+        {
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: 'waiting',
+        },
+      ],
+    });
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
+      );
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const state = store.getState();
+    expect(state.bridge.hardwareWalletsSwaps.status).toBe(
+      HardwareWalletsSwapsStatus.Waiting,
+    );
+
+    retrySubmissionResolver!({ success: true });
+    await act(async () => {
+      await Promise.resolve();
+    });
+  });
+
   it('submits bridge transaction directly without redundant device readiness check', async () => {
     const cachedParams = {
       quoteResponse: { id: 'test' } as any,
