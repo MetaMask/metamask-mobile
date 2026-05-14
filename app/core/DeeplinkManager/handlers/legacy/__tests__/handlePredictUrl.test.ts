@@ -2,10 +2,26 @@ import { handlePredictUrl } from '../handlePredictUrl';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
+import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../../../../components/UI/Predict/constants/flags';
+import { selectPredictWorldCupConfig } from '../../../../../components/UI/Predict/selectors/featureFlags';
 
 // Mock dependencies
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
+jest.mock('../../../../redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: jest.fn(() => ({})),
+    },
+  },
+}));
+jest.mock(
+  '../../../../../components/UI/Predict/selectors/featureFlags',
+  () => ({
+    selectPredictWorldCupConfig: jest.fn(),
+  }),
+);
 
 describe('handlePredictUrl', () => {
   let mockNavigate: jest.Mock;
@@ -21,6 +37,9 @@ describe('handlePredictUrl', () => {
 
     // Mock DevLogger
     (DevLogger.log as jest.Mock) = jest.fn();
+    jest
+      .mocked(selectPredictWorldCupConfig)
+      .mockReturnValue(DEFAULT_PREDICT_WORLD_CUP_FLAG);
   });
 
   describe('with market parameter', () => {
@@ -229,6 +248,114 @@ describe('handlePredictUrl', () => {
     });
   });
 
+  describe('with World Cup feed parameter', () => {
+    it('navigates to the World Cup screen when feed is world-cup and screen is enabled', async () => {
+      jest.mocked(selectPredictWorldCupConfig).mockReturnValue({
+        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+        enabled: true,
+        showWorldCupScreen: true,
+      });
+
+      await handlePredictUrl({ predictPath: '?feed=world-cup' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.WORLD_CUP,
+        params: {
+          entryPoint: 'deeplink',
+          initialTab: 'all',
+        },
+      });
+    });
+
+    it('passes a valid fixed World Cup tab to the World Cup screen', async () => {
+      jest.mocked(selectPredictWorldCupConfig).mockReturnValue({
+        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+        enabled: true,
+        showWorldCupScreen: true,
+      });
+
+      await handlePredictUrl({ predictPath: '?feed=world-cup&tab=live' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.WORLD_CUP,
+        params: {
+          entryPoint: 'deeplink',
+          initialTab: 'live',
+        },
+      });
+    });
+
+    it('passes a valid configured stage tab to the World Cup screen', async () => {
+      jest.mocked(selectPredictWorldCupConfig).mockReturnValue({
+        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+        enabled: true,
+        showWorldCupScreen: true,
+        stages: [{ key: 'group-stage', eventIds: ['1'] }],
+      });
+
+      await handlePredictUrl({
+        predictPath: '?feed=world-cup&tab=group-stage',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.WORLD_CUP,
+        params: {
+          entryPoint: 'deeplink',
+          initialTab: 'group-stage',
+        },
+      });
+    });
+
+    it('falls back to All when World Cup tab is invalid', async () => {
+      jest.mocked(selectPredictWorldCupConfig).mockReturnValue({
+        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+        enabled: true,
+        showWorldCupScreen: true,
+      });
+
+      await handlePredictUrl({ predictPath: '?feed=world-cup&tab=invalid' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.WORLD_CUP,
+        params: {
+          entryPoint: 'deeplink',
+          initialTab: 'all',
+        },
+      });
+    });
+
+    it('falls back to Predict market list when World Cup screen is disabled', async () => {
+      await handlePredictUrl({ predictPath: '?feed=world-cup&tab=live' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+        },
+      });
+    });
+
+    it('prioritizes market parameter over feed=world-cup', async () => {
+      jest.mocked(selectPredictWorldCupConfig).mockReturnValue({
+        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+        enabled: true,
+        showWorldCupScreen: true,
+      });
+
+      await handlePredictUrl({
+        predictPath: '?feed=world-cup&market=123&tab=live',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '123',
+          entryPoint: 'deeplink',
+        },
+      });
+    });
+  });
+
   describe('with query parameter', () => {
     it('navigates to market list with query parameter', async () => {
       await handlePredictUrl({ predictPath: '?query=bitcoin' });
@@ -398,6 +525,8 @@ describe('handlePredictUrl', () => {
           market: '23246',
           utmSource: undefined,
           tab: undefined,
+          worldCupTab: undefined,
+          feed: undefined,
           query: undefined,
         },
       );
@@ -685,7 +814,14 @@ describe('handlePredictUrl', () => {
 
       expect(DevLogger.log).toHaveBeenCalledWith(
         '[handlePredictUrl] Parsed navigation parameters:',
-        { market: '23246', utmSource: 'test', tab: undefined },
+        {
+          market: '23246',
+          utmSource: 'test',
+          tab: undefined,
+          worldCupTab: undefined,
+          feed: undefined,
+          query: undefined,
+        },
       );
     });
 
