@@ -2,6 +2,7 @@ import {
   isAbortError,
   ensureError,
   isHyperLiquidUserNotFoundError,
+  isKeyringLockedError,
 } from './errorUtils';
 
 describe('errorUtils', () => {
@@ -146,6 +147,30 @@ describe('errorUtils', () => {
       expect(isHyperLiquidUserNotFoundError(undefined)).toBe(false);
       expect(isHyperLiquidUserNotFoundError(null)).toBe(false);
       expect(isHyperLiquidUserNotFoundError(42)).toBe(false);
+    });
+  });
+
+  describe('isKeyringLockedError', () => {
+    it('returns true for direct KEYRING_LOCKED errors', () => {
+      const error = new Error('KEYRING_LOCKED');
+
+      expect(isKeyringLockedError(error)).toBe(true);
+    });
+
+    it('returns true for wrapped KEYRING_LOCKED causes', () => {
+      const error = Object.assign(
+        new Error('Failed to sign typed data with viem wallet'),
+        { cause: new Error('KEYRING_LOCKED') },
+      );
+
+      expect(isKeyringLockedError(error)).toBe(true);
+    });
+
+    it('returns false for non-keyring errors with cyclic causes', () => {
+      const error = new Error('Network error') as Error & { cause?: unknown };
+      error.cause = error;
+
+      expect(isKeyringLockedError(error)).toBe(false);
     });
   });
 });

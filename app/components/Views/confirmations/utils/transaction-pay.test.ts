@@ -10,7 +10,10 @@ import {
   getTokenAddress,
   getTokenTransferData,
   isTokenBlocked,
+  replaceAccountInNestedTransactions,
 } from './transaction-pay';
+import { updateAtomicBatchData } from '../../../../util/transaction-controller';
+import Logger from '../../../../util/Logger';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
 import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
@@ -37,6 +40,15 @@ jest.mock('../../../../store', () => ({
 
 jest.mock('../../../../selectors/featureFlagController/confirmations', () => ({
   selectGasFeeTokenFlags: jest.fn(),
+}));
+
+jest.mock('../../../../util/transaction-controller', () => ({
+  updateAtomicBatchData: jest.fn(),
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
 }));
 
 const CHAIN_ID_MOCK = '0x1';
@@ -607,6 +619,164 @@ describe('Transaction Pay Utils', () => {
           { chainIds: [], tokens: [] },
         ),
       ).toBe(false);
+    });
+  });
+
+  describe('replaceAccountInNestedTransactions', () => {
+    const TRANSACTION_ID = 'tx-1';
+    const OLD_ADDRESS = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+    const NEW_ADDRESS = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+    const OLD_WORD =
+      '000000000000000000000000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+    const NEW_WORD =
+      '000000000000000000000000bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+    const SELECTOR = '0x23b872dd';
+
+    const updateAtomicBatchDataMock = jest.mocked(updateAtomicBatchData);
+    const loggerErrorMock = jest.mocked(Logger.error);
+
+    beforeEach(() => {
+      updateAtomicBatchDataMock.mockResolvedValue('0x' as Hex);
+    });
+
+    it('replaces the old address word in nested transaction data', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [{ data: `${SELECTOR}${OLD_WORD}` as Hex }],
+        oldAddress: OLD_ADDRESS,
+        newAddress: NEW_ADDRESS,
+      });
+
+      expect(updateAtomicBatchDataMock).toHaveBeenCalledTimes(1);
+      expect(updateAtomicBatchDataMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID,
+        transactionIndex: 0,
+        transactionData: `${SELECTOR}${NEW_WORD}`,
+      });
+    });
+
+    it('replaces every occurrence within the same nested transaction data', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [
+          { data: `${SELECTOR}${OLD_WORD}${OLD_WORD}` as Hex },
+        ],
+        oldAddress: OLD_ADDRESS,
+        newAddress: NEW_ADDRESS,
+      });
+
+      expect(updateAtomicBatchDataMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID,
+        transactionIndex: 0,
+        transactionData: `${SELECTOR}${NEW_WORD}${NEW_WORD}`,
+      });
+    });
+
+    it('matches address case-insensitively and writes lowercase output', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [
+          { data: `${SELECTOR}${OLD_WORD.toUpperCase()}` as Hex },
+        ],
+        oldAddress: OLD_ADDRESS.toUpperCase(),
+        newAddress: NEW_ADDRESS,
+      });
+
+      expect(updateAtomicBatchDataMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID,
+        transactionIndex: 0,
+        transactionData: `${SELECTOR}${NEW_WORD}`,
+      });
+    });
+
+    it('preserves the original index when only some nested transactions match', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [
+          { data: '0xdeadbeef' as Hex },
+          { data: `${SELECTOR}${OLD_WORD}` as Hex },
+          { data: undefined },
+        ],
+        oldAddress: OLD_ADDRESS,
+        newAddress: NEW_ADDRESS,
+      });
+
+      expect(updateAtomicBatchDataMock).toHaveBeenCalledTimes(1);
+      expect(updateAtomicBatchDataMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID,
+        transactionIndex: 1,
+        transactionData: `${SELECTOR}${NEW_WORD}`,
+      });
+    });
+
+    it('does nothing when oldAddress is undefined', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [{ data: `${SELECTOR}${OLD_WORD}` as Hex }],
+        oldAddress: undefined,
+        newAddress: NEW_ADDRESS,
+      });
+
+      expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when nestedTransactions is undefined or empty', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: undefined,
+        oldAddress: OLD_ADDRESS,
+        newAddress: NEW_ADDRESS,
+      });
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [],
+        oldAddress: OLD_ADDRESS,
+        newAddress: NEW_ADDRESS,
+      });
+
+      expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when old and new addresses are the same', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [{ data: `${SELECTOR}${OLD_WORD}` as Hex }],
+        oldAddress: OLD_ADDRESS,
+        newAddress: OLD_ADDRESS.toUpperCase(),
+      });
+
+      expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
+    });
+
+    it('skips nested transactions whose data does not contain the old word', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [{ data: '0xdeadbeef' as Hex }],
+        oldAddress: OLD_ADDRESS,
+        newAddress: NEW_ADDRESS,
+      });
+
+      expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
+    });
+
+    it('logs an error when updateAtomicBatchData rejects', async () => {
+      const error = new Error('boom');
+      updateAtomicBatchDataMock.mockRejectedValueOnce(error);
+
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [{ data: `${SELECTOR}${OLD_WORD}` as Hex }],
+        oldAddress: OLD_ADDRESS,
+        newAddress: NEW_ADDRESS,
+      });
+
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(loggerErrorMock).toHaveBeenCalledWith(
+        error,
+        'Failed to update account in nested transaction',
+      );
     });
   });
 });

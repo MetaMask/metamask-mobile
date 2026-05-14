@@ -2,7 +2,8 @@
  * Global singleton cache for Perps signing operations
  *
  * This cache persists across provider reconnections to prevent repeated
- * signing requests for hardware wallets. Critical for preventing QR popup spam.
+ * signing requests for hardware wallets. Critical for preventing repeated
+ * hardware wallet signing prompts.
  *
  * Cache is intentionally kept separate from provider instances because providers
  * are recreated on account/network changes, which would reset instance-level caches.
