@@ -77,20 +77,67 @@ describe('useSendActions', () => {
     expect(result.current.handleCancelPress).toBeDefined();
   });
 
-  it('calls navigation.navigate with correct params when evm ', () => {
+  it('calls navigation.navigate with correct params when evm ', async () => {
     const { result } = renderHookWithProvider(
       () => useSendActions(),
       mockState,
     );
     jest.spyOn(SendUtils, 'submitEvmTransaction').mockImplementation(jest.fn());
-    result.current.handleSubmitPress();
+    await result.current.handleSubmitPress(ACCOUNT_ADDRESS_MOCK_2);
     expect(mockNavigate).toHaveBeenCalledWith('RedesignedConfirmations', {
       params: { maxValueMode: undefined },
       loader: 'transfer',
     });
   });
 
-  it('normalizes trailing dot values before submitting evm transaction', () => {
+  it('shows alert and does not navigate when evm send has no recipient address', async () => {
+    const { result } = renderHookWithProvider(
+      () => useSendActions(),
+      mockState,
+    );
+    const submitSpy = jest
+      .spyOn(SendUtils, 'submitEvmTransaction')
+      .mockImplementation(jest.fn());
+
+    await result.current.handleSubmitPress();
+
+    expect(submitSpy).not.toHaveBeenCalled();
+    expect(mockAlert).toHaveBeenCalledWith('Invalid address');
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('shows alert and does not navigate when evm send recipient is empty string', async () => {
+    const { result } = renderHookWithProvider(
+      () => useSendActions(),
+      mockState,
+    );
+    const submitSpy = jest
+      .spyOn(SendUtils, 'submitEvmTransaction')
+      .mockImplementation(jest.fn());
+
+    await result.current.handleSubmitPress('');
+
+    expect(submitSpy).not.toHaveBeenCalled();
+    expect(mockAlert).toHaveBeenCalledWith('Invalid address');
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('shows alert and does not navigate when submitEvmTransaction throws', async () => {
+    const { result } = renderHookWithProvider(
+      () => useSendActions(),
+      mockState,
+    );
+    jest
+      .spyOn(SendUtils, 'submitEvmTransaction')
+      .mockRejectedValue(new Error('Invalid recipient address'));
+
+    await result.current.handleSubmitPress(ACCOUNT_ADDRESS_MOCK_2);
+
+    expect(mockAlert).toHaveBeenCalledWith('Invalid address');
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('normalizes trailing dot values before submitting evm transaction', async () => {
     mockUseSendContext.mockReturnValue({
       asset: {
         chainId: '0x1',
@@ -100,6 +147,7 @@ describe('useSendActions', () => {
       },
       chainId: '0x1',
       from: ACCOUNT_ADDRESS_MOCK_1,
+      to: ACCOUNT_ADDRESS_MOCK_2,
       value: '0.',
     } as unknown as ReturnType<typeof useSendContext>);
 
@@ -111,7 +159,7 @@ describe('useSendActions', () => {
       () => useSendActions(),
       mockState,
     );
-    result.current.handleSubmitPress();
+    await result.current.handleSubmitPress();
 
     expect(submitSpy).toHaveBeenCalledWith(
       expect.objectContaining({ value: '0' }),

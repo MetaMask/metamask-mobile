@@ -39,17 +39,34 @@ export const useSendActions = () => {
         return;
       }
 
-      // Context update is not immediate when submitting from the recipient list
-      // so we use the passed recipientAddress or fall back to the context value
       const toAddress = recipientAddress || to;
+
       if (isEvmSendType) {
-        submitEvmTransaction({
-          asset: asset as AssetType,
-          chainId: chainId as Hex,
-          from: from as Hex,
-          to: toAddress as Hex,
-          value: normalizeAmount(value),
-        });
+        if (!toAddress) {
+          Logger.error(
+            new Error(
+              'handleSubmitPress: missing recipient address for EVM send',
+            ),
+            { recipientAddress, contextTo: to },
+          );
+          Alert.alert(strings('send.invalid_address'));
+          return;
+        }
+
+        try {
+          await submitEvmTransaction({
+            asset: asset as AssetType,
+            chainId: chainId as Hex,
+            from: from as Hex,
+            to: toAddress as Hex,
+            value: normalizeAmount(value),
+          });
+        } catch (error) {
+          Logger.error(error as Error, 'submitEvmTransaction failed');
+          Alert.alert(strings('send.invalid_address'));
+          return;
+        }
+
         navigation.navigate(
           Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
           {
