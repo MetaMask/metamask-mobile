@@ -9,6 +9,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   subscriptions: {},
   subscriptionBenefits: {},
   vipDashboard: {},
+  vipPerpsFees: {},
   seasons: {},
   subscriptionReferralDetails: {},
   seasonStatuses: {},

@@ -2,9 +2,10 @@ import type {
   Position,
   TraderProfileResponse,
 } from '@metamask/social-controllers';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import Routes from '../../../../constants/navigation/Routes';
+import { ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
 import type { UseTraderProfileResult } from './hooks/useTraderProfile';
@@ -15,10 +16,13 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockRefresh = jest.fn();
+const mockRefetchPositions = jest.fn();
+const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../../../util/haptics', () => ({
   ...jest.requireActual('../../../../util/haptics'),
+  playImpact: (...args: unknown[]) => mockPlayImpact(...args),
   playSelection: (...args: unknown[]) => mockPlaySelection(...args),
 }));
 
@@ -256,6 +260,7 @@ let mockPositionsResult: UseTraderPositionsResult = {
   isLoadingOpen: false,
   isLoadingClosed: false,
   error: null,
+  refetch: mockRefetchPositions,
 };
 
 jest.mock('./hooks', () => ({
@@ -280,7 +285,10 @@ describe('TraderProfileView', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      refetch: mockRefetchPositions,
     };
+    mockRefresh.mockResolvedValue(undefined);
+    mockRefetchPositions.mockResolvedValue(undefined);
     mockNotificationPreferences = {
       enabled: false,
       txAmountLimit: 500 as const,
@@ -394,6 +402,25 @@ describe('TraderProfileView', () => {
       screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
     );
     expect(screen.queryByText('No positions yet')).not.toBeOnTheScreen();
+  });
+
+  describe('pull-to-refresh', () => {
+    it('calls both profile refresh and positions refetch when pulled', async () => {
+      renderWithProvider(<TraderProfileView />);
+
+      const refreshControl = screen.UNSAFE_getByProps({
+        testID: TraderProfileViewSelectorsIDs.REFRESH_CONTROL,
+      });
+
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      expect(mockRefresh).toHaveBeenCalledTimes(1);
+      expect(mockRefetchPositions).toHaveBeenCalledTimes(1);
+      expect(mockPlayImpact).toHaveBeenCalledTimes(1);
+      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PullToRefresh);
+    });
   });
 
   describe('notification bell routing', () => {
