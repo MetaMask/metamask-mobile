@@ -8204,9 +8204,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/controller-utils@npm:^12.0.0":
-  version: 12.0.0
-  resolution: "@metamask/controller-utils@npm:12.0.0"
+"@metamask/controller-utils@npm:^12.0.0, @metamask/controller-utils@npm:^12.1.0":
+  version: 12.1.0
+  resolution: "@metamask/controller-utils@npm:12.1.0"
   dependencies:
     "@metamask/eth-query": "npm:^4.0.0"
     "@metamask/ethjs-unit": "npm:^0.3.0"
@@ -8221,23 +8221,24 @@ __metadata:
     lodash: "npm:^4.17.21"
   peerDependencies:
     "@babel/runtime": ^7.0.0
-  checksum: 10/7fc73916fcbc530c015b5ea6b92d7a15f4f35185bc360702c94cdc9493085d0e028e69b70bdd8690bf035e566c254c6868d2a9f2914098c3d06feff185ae65cd
+  checksum: 10/421b9685faefa481529e611a11cf005cd94ced8f4a15a6ea1aacd885417be0de6191ee414e0bcb0fff7ecade9e356a4d0f3d7c826e798ba47d65e412aa1df049
   languageName: node
   linkType: hard
 
-"@metamask/core-backend@npm:^6.1.1, @metamask/core-backend@npm:^6.2.0, @metamask/core-backend@npm:^6.2.1, @metamask/core-backend@npm:^6.2.2":
-  version: 6.2.2
-  resolution: "@metamask/core-backend@npm:6.2.2"
+"@metamask/core-backend@npm:@metamask-previews/core-backend@6.2.2-preview-6d2aeda":
+  version: 6.2.2-preview-6d2aeda
+  resolution: "@metamask-previews/core-backend@npm:6.2.2-preview-6d2aeda"
   dependencies:
-    "@metamask/accounts-controller": "npm:^38.1.0"
-    "@metamask/controller-utils": "npm:^12.0.0"
+    "@metamask/accounts-controller": "npm:^38.1.1"
+    "@metamask/controller-utils": "npm:^12.1.0"
     "@metamask/keyring-controller": "npm:^25.5.0"
     "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/profile-sync-controller": "npm:^28.0.2"
+    "@metamask/profile-sync-controller": "npm:^28.1.0"
     "@metamask/utils": "npm:^11.9.0"
     "@tanstack/query-core": "npm:^5.62.16"
+    async-mutex: "npm:^0.5.0"
     uuid: "npm:^8.3.2"
-  checksum: 10/5a2b60e9b37b24932ff54b8db6c073f413a32b30eef1778953066df6a5699a4ad6d48c723f9c6d318db497de97d089e31df5bbf8e599fa141a927cc14d744f31
+  checksum: 10/b604f0daa6f8a3433021c3d824590f6d6396e24050cfd0dfd12fb26267204fb88c5e5d99126692b825fee8d89127067bbd62f0f36f6afbcadd994bb0555c7ae5
   languageName: node
   linkType: hard
 
@@ -35280,7 +35281,7 @@ __metadata:
     "@metamask/compliance-controller": "npm:2.0.0"
     "@metamask/connectivity-controller": "npm:^0.1.0"
     "@metamask/controller-utils": "npm:^12.0.0"
-    "@metamask/core-backend": "npm:^6.2.0"
+    "@metamask/core-backend": "npm:@metamask-previews/core-backend@6.2.2-preview-6d2aeda"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
     "@metamask/design-system-react-native": "npm:^0.23.0"
