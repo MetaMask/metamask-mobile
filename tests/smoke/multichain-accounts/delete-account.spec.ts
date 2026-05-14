@@ -29,7 +29,7 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
 
   // Skipped after CV migration; retained pending accounts-engineers sign-off for removal.
   // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('deletes the account', async () => {
+  it('deletes the account', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
