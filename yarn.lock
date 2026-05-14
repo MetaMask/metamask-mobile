@@ -8144,19 +8144,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/core-backend@npm:^6.1.1, @metamask/core-backend@npm:^6.2.0, @metamask/core-backend@npm:^6.2.1, @metamask/core-backend@npm:^6.2.2":
-  version: 6.2.2
-  resolution: "@metamask/core-backend@npm:6.2.2"
+"@metamask/core-backend@npm:^6.1.1, @metamask/core-backend@npm:^6.2.1, @metamask/core-backend@npm:^6.2.2, @metamask/core-backend@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "@metamask/core-backend@npm:6.3.0"
   dependencies:
-    "@metamask/accounts-controller": "npm:^38.1.0"
-    "@metamask/controller-utils": "npm:^12.0.0"
+    "@metamask/accounts-controller": "npm:^38.1.1"
+    "@metamask/controller-utils": "npm:^12.1.0"
     "@metamask/keyring-controller": "npm:^25.5.0"
     "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/profile-sync-controller": "npm:^28.0.2"
+    "@metamask/profile-sync-controller": "npm:^28.1.0"
     "@metamask/utils": "npm:^11.9.0"
     "@tanstack/query-core": "npm:^5.62.16"
+    async-mutex: "npm:^0.5.0"
     uuid: "npm:^8.3.2"
-  checksum: 10/5a2b60e9b37b24932ff54b8db6c073f413a32b30eef1778953066df6a5699a4ad6d48c723f9c6d318db497de97d089e31df5bbf8e599fa141a927cc14d744f31
+  checksum: 10/4823dc2d9ac77e405190eb7aca87c14ddc1cc2d30092872c48a2dbf45672f64859a36bc298fa2673cfcd14165525216dad4f3d9242c7f2ec743a71c175045928
   languageName: node
   linkType: hard
 
@@ -35259,7 +35260,7 @@ __metadata:
     "@metamask/compliance-controller": "npm:2.0.0"
     "@metamask/connectivity-controller": "npm:^0.1.0"
     "@metamask/controller-utils": "npm:^12.0.0"
-    "@metamask/core-backend": "npm:^6.2.0"
+    "@metamask/core-backend": "npm:^6.3.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
     "@metamask/design-system-react-native": "npm:^0.23.0"
