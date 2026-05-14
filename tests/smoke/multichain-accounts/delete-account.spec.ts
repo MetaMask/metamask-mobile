@@ -27,8 +27,6 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  // Skipped after CV migration; retained pending accounts-engineers sign-off for removal.
-  // eslint-disable-next-line jest/no-disabled-tests
   it('deletes the account', async () => {
     await withFixtures(
       {
