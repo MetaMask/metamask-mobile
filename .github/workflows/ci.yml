@@ -527,8 +527,8 @@ jobs:
         run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
 
-  # Warms the Namespace cache volume before test shards run. Falls back to
-  # ubuntu-latest when not on Namespace, in which case it is a no-op.
+  # Warms the Namespace cache volume before test shards run. On non-Namespace
+  # runners uploads a ci-js-deps artifact so consumers can skip their own install.
   prepare-ci-js-deps:
     name: Prepare CI JS dependencies
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
@@ -537,15 +537,23 @@ jobs:
       - get_requirements
     steps:
       - uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: ./.github/actions/setup-ci-js-deps
-        if: ${{ inputs.runner_provider == 'namespace' }}
         with:
           runner_provider: ${{ inputs.runner_provider }}
-      - name: Skip cache warm-up (no shared cache available)
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Pack CI JS deps
         if: ${{ inputs.runner_provider != 'namespace' }}
-        run: |
-          echo "Skipping cache warm-up. runner_provider=${{ inputs.runner_provider }} has no cross-job cache; consumers will install themselves."
+        run: tar -czf ci-js-deps.tar.gz node_modules app/util/termsOfUse/termsOfUseContent.ts
+      - name: Upload CI JS deps artifact
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-js-deps
+          path: ci-js-deps.tar.gz
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
 
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
@@ -559,6 +567,17 @@ jobs:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
       - uses: actions/checkout@v6
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Download CI JS deps artifact
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ci-js-deps
+          path: .
+      - name: Extract CI JS deps
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
           runner_provider: ${{ inputs.runner_provider }}
@@ -600,6 +619,17 @@ jobs:
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v6
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Download CI JS deps artifact
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ci-js-deps
+          path: .
+      - name: Extract CI JS deps
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
           runner_provider: ${{ inputs.runner_provider }}
@@ -703,6 +733,17 @@ jobs:
         shard: [1, 2]
     steps:
       - uses: actions/checkout@v6
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Download CI JS deps artifact
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ci-js-deps
+          path: .
+      - name: Extract CI JS deps
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
           runner_provider: ${{ inputs.runner_provider }}
