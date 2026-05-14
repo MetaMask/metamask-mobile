@@ -220,11 +220,19 @@ describe('WhatsHappeningCard', () => {
     expect(screen.queryByText('BTC')).toBeNull();
   });
 
-  it('does not render relative time in the compact card footer', () => {
+  it('renders relative time at the top when date is valid', () => {
     renderWithProvider(
       <WhatsHappeningCard item={baseItem} cardIndex={0} source="homepage" />,
     );
-    expect(screen.queryByText('4d ago')).toBeNull();
+    expect(screen.getByText('4d ago')).toBeOnTheScreen();
+  });
+
+  it('does not render date when date string is invalid', () => {
+    const item = { ...baseItem, date: 'not-a-date' };
+    renderWithProvider(
+      <WhatsHappeningCard item={item} cardIndex={0} source="homepage" />,
+    );
+    expect(screen.queryByText('not-a-date')).toBeNull();
   });
 
   it('calls onPress with the item when tapped', () => {

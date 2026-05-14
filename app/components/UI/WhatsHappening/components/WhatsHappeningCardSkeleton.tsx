@@ -17,8 +17,13 @@ const WhatsHappeningCardSkeleton: React.FC = () => {
     >
       <WhatsHappeningSkeletonShimmer>
         <View style={tw.style('p-4 gap-3')}>
-          {/* Category badge */}
-          <View style={tw.style('w-[80px] h-5 rounded-full')} />
+          {/* Impact badge (left) + date (right) */}
+          <View
+            style={tw.style('w-full flex-row items-center justify-between')}
+          >
+            <View style={tw.style('w-[80px] h-5 rounded-full')} />
+            <View style={tw.style('w-[40px] h-3 rounded')} />
+          </View>
           {/* Title */}
           <WhatsHappeningSkeletonLineStack
             tw={tw}

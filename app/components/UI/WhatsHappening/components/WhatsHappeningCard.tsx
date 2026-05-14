@@ -1,4 +1,4 @@
-import React, { useCallback, memo } from 'react';
+import React, { useCallback, useMemo, memo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -7,6 +7,9 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import type { WhatsHappeningItem } from '../types';
 import {
@@ -17,6 +20,7 @@ import {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useViewportTracking } from '../../MarketInsights/hooks/useViewportTracking';
+import { formatRelativeTime } from '../../MarketInsights/utils/marketInsightsFormatting';
 import { getWhatsHappeningEventProps } from '../eventProperties';
 import type { WhatsHappeningSourceValue } from '../constants';
 import WhatsHappeningAssetSlider from './WhatsHappeningAssetSlider';
@@ -35,6 +39,11 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   onPress,
 }) => {
   const tw = useTailwind();
+  const formattedDate = useMemo(
+    () =>
+      item.date ? formatRelativeTime(item.date, { nowLabel: 'now' }) : null,
+    [item.date],
+  );
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handlePress = () => onPress?.(item);
@@ -62,17 +71,36 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
         )}
       >
         <Box gap={3}>
-          {item.impact && (
+          {(item.impact || formattedDate) && (
             <Box
-              twClassName={`self-start rounded ${getImpactBackgroundClass(item.impact)} px-2 py-0.5`}
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+              twClassName="w-full"
             >
-              <Text
-                variant={TextVariant.BodyXs}
-                color={getImpactTextColor(item.impact)}
-                fontWeight={FontWeight.Medium}
-              >
-                {getImpactLabel(item.impact)}
-              </Text>
+              {item.impact ? (
+                <Box
+                  twClassName={`rounded ${getImpactBackgroundClass(item.impact)} px-2 py-0.5`}
+                >
+                  <Text
+                    variant={TextVariant.BodyXs}
+                    color={getImpactTextColor(item.impact)}
+                    fontWeight={FontWeight.Medium}
+                  >
+                    {getImpactLabel(item.impact)}
+                  </Text>
+                </Box>
+              ) : (
+                <Box />
+              )}
+              {formattedDate ? (
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                >
+                  {formattedDate}
+                </Text>
+              ) : null}
             </Box>
           )}
 
