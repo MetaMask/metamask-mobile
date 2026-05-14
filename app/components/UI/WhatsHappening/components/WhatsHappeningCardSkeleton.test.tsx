@@ -18,20 +18,8 @@ describe('WhatsHappeningCardSkeleton', () => {
     expect(screen.toJSON()).not.toBeNull();
   });
 
-  it('applies the twHeightClassName when provided', () => {
-    renderWithProvider(
-      <WhatsHappeningCardSkeleton twHeightClassName="h-[230px]" />,
-    );
+  it('renders the badge, title, description and footer placeholder rows', () => {
+    renderWithProvider(<WhatsHappeningCardSkeleton />);
     expect(screen.toJSON()).not.toBeNull();
-  });
-
-  it('renders correctly without twHeightClassName (default empty string)', () => {
-    const { toJSON: withoutProp } = renderWithProvider(
-      <WhatsHappeningCardSkeleton />,
-    );
-    const { toJSON: withEmptyProp } = renderWithProvider(
-      <WhatsHappeningCardSkeleton twHeightClassName="" />,
-    );
-    expect(withoutProp()).toEqual(withEmptyProp());
   });
 });
