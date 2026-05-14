@@ -12,6 +12,7 @@ import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
 import { useIsConfirmationFromLedgerAccount } from './useIsConfirmationFromLedgerAccount';
+import { useIsConfirmationFromQrAccount } from '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
 import { useLedgerConfirm } from './useLedgerConfirm';
 import { useQrConfirm } from '../../../../core/HardwareWallet/hooks/useQrConfirm';
 
@@ -36,6 +37,7 @@ export const useConfirmActions = () => {
     approvalType && approvalType === ApprovalType.Transaction;
 
   const isLedgerAccount = useIsConfirmationFromLedgerAccount();
+  const isQrAccount = useIsConfirmationFromQrAccount();
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false, navigateToHome = false) => {
@@ -108,8 +110,8 @@ export const useConfirmActions = () => {
       return;
     }
 
-    if (isSigningQRObject) {
-      setScannerVisible(true);
+    if (isQrAccount) {
+      await onQrConfirm();
       return;
     }
 
@@ -129,6 +131,7 @@ export const useConfirmActions = () => {
     await executeApproval();
   }, [
     isLedgerAccount,
+    isQrAccount,
     isSigningQRObject,
     isTransactionReq,
     setScannerVisible,
@@ -136,6 +139,7 @@ export const useConfirmActions = () => {
     onTransactionConfirm,
     executeApproval,
     onLedgerConfirm,
+    onQrConfirm,
   ]);
 
   return { onConfirm, onReject };

@@ -19,6 +19,13 @@ jest.mock('./useIsConfirmationFromLedgerAccount', () => ({
   useIsConfirmationFromLedgerAccount: jest.fn().mockReturnValue(false),
 }));
 
+jest.mock(
+  '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount',
+  () => ({
+    useIsConfirmationFromQrAccount: jest.fn().mockReturnValue(false),
+  }),
+);
+
 const mockOnLedgerConfirm = jest.fn().mockResolvedValue(undefined);
 jest.mock('./useLedgerConfirm', () => ({
   useLedgerConfirm: () => ({ onConfirm: mockOnLedgerConfirm }),
