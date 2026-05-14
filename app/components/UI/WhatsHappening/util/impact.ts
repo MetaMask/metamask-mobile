@@ -1,5 +1,5 @@
 import { TextColor } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../../locales/i18n';
+import { strings } from '../../../../../locales/i18n';
 import type { WhatsHappeningItem } from '../types';
 
 export const getImpactLabel = (
@@ -7,11 +7,11 @@ export const getImpactLabel = (
 ): string => {
   switch (impact) {
     case 'positive':
-      return strings('homepage.sections.whats_happening_impact.bullish');
+      return strings('whats_happening.impact.bullish');
     case 'negative':
-      return strings('homepage.sections.whats_happening_impact.bearish');
+      return strings('whats_happening.impact.bearish');
     default:
-      return strings('homepage.sections.whats_happening_impact.neutral');
+      return strings('whats_happening.impact.neutral');
   }
 };
 

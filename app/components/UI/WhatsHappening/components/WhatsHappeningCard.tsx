@@ -18,12 +18,12 @@ import {
   getImpactTextColor,
 } from '../util/impact';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
-import RelatedAssetAvatar from '../../../../WhatsHappeningDetailView/components/RelatedAssetAvatar';
-import { getRelatedAssetImageSource } from '../../../../WhatsHappeningDetailView/utils/getRelatedAssetImageSource';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { useViewportTracking } from '../../../../../UI/MarketInsights/hooks/useViewportTracking';
-import { formatRelativeTime } from '../../../../../UI/MarketInsights/utils/marketInsightsFormatting';
+import RelatedAssetAvatar from '../../../Views/WhatsHappeningDetailView/components/RelatedAssetAvatar';
+import { getRelatedAssetImageSource } from '../../../Views/WhatsHappeningDetailView/utils/getRelatedAssetImageSource';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useViewportTracking } from '../../MarketInsights/hooks/useViewportTracking';
+import { formatRelativeTime } from '../../MarketInsights/utils/marketInsightsFormatting';
 import { getWhatsHappeningEventProps } from '../eventProperties';
 import type { WhatsHappeningSourceValue } from '../constants';
 
