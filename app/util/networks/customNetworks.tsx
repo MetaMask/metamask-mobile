@@ -202,6 +202,16 @@ export const PopularList = [
       imageUrl: 'TEMPO',
       imageSource: require('../../images/tempo.png'),
     },
+  {
+    chainId: toHex('8721'),
+    nickname: 'EB-Chain',
+    rpcUrl: 'https://rpc.ebcscan.net',
+    failoverRpcUrls: [],
+    ticker: 'EBC',
+    rpcPrefs: {
+      blockExplorerUrl: 'https://ebcscan.net',
+      imageUrl: 'EBC',
+    },
   },
 ];
 
@@ -402,6 +412,7 @@ export const NETWORK_CHAIN_ID: {
   readonly ROOTSTOCK_TESTNET: '0x1f';
   readonly TEMPO_TESTNET: '0xa5bf';
   readonly TEMPO_MAINNET: '0x1079';
+  readonly EBCHAIN: '0x2211';
   readonly CHILIZ: '0x15b38';
   readonly STABLE_MAINNET: '0x3dc';
 } & typeof CHAIN_IDS = {
@@ -448,6 +459,7 @@ export const NETWORK_CHAIN_ID: {
   ROOTSTOCK_TESTNET: '0x1f',
   TEMPO_TESTNET: '0xa5bf',
   TEMPO_MAINNET: '0x1079',
+  EBCHAIN: '0x2211',
   CHILIZ: '0x15b38',
   STABLE_MAINNET: '0x3dc',
   ...CHAIN_IDS,
