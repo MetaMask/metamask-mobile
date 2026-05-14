@@ -21,6 +21,12 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
+import {
+  Icon as DSIcon,
+  IconColor as DSIconColor,
+  IconName as DSIconName,
+  IconSize as DSIconSize,
+} from '@metamask/design-system-react-native';
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
@@ -136,6 +142,16 @@ const SocialLinked = ({
           width={24}
           height={24}
           name={'apple-white'}
+        />
+      );
+    }
+
+    if (authConnection === 'telegram') {
+      return (
+        <DSIcon
+          name={DSIconName.Telegram}
+          size={DSIconSize.Lg}
+          color={DSIconColor.IconDefault}
         />
       );
     }

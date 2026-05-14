@@ -15,11 +15,13 @@ export interface HandleOAuthLoginResult {
 export enum AuthConnection {
   Google = 'google',
   Apple = 'apple',
+  Telegram = 'telegram',
 }
 
 export interface LoginHandlerCodeResult {
   authConnection: AuthConnection;
   code: string;
+  state?: string;
   clientId: string;
   redirectUri?: string;
   codeVerifier?: string;
@@ -64,9 +66,14 @@ export interface AuthRequestIdTokenParams {
   code_verifier?: string;
 }
 
+export interface AuthRequestMintTokenParams {
+  id_token: string;
+}
+
 export type AuthRequestParams =
   | AuthRequestCodeParams
-  | AuthRequestIdTokenParams;
+  | AuthRequestIdTokenParams
+  | AuthRequestMintTokenParams;
 
 // return type for auth request with
 // grant type : authorization_code, access_type: offline
@@ -78,6 +85,8 @@ export interface AuthResponse {
   endpoints: Record<string, string>;
   refresh_token?: string;
   revoke_token?: string;
+  account_name?: string;
+  profile_pairing_token?: string;
 }
 
 // return type for auth request with

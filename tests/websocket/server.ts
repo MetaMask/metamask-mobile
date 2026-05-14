@@ -64,6 +64,11 @@ class LocalWebSocketServer implements Resource {
    * Start the WebSocket server on the configured port.
    * The base server only tracks connections. Protocol-specific message
    * handling is added by each service's setup function.
+   *
+   * Awaits the 'listening' event so callers can rely on the port being
+   * fully bound before attempting connections.  If the port is already in
+   * use the returned promise rejects with the EADDRINUSE error instead of
+   * emitting an unhandled 'error' event.
    */
   async start(): Promise<void> {
     if (this.server) {
@@ -73,7 +78,20 @@ class LocalWebSocketServer implements Resource {
       return;
     }
 
-    this.server = new WebSocketServer({ port: this.port });
+    const wsServer = new WebSocketServer({ port: this.port });
+
+    // Wait for the underlying net.Server to finish binding before resolving.
+    // Without this await, start() returns before the port is actually open and
+    // any EADDRINUSE error fires as an unhandled 'error' event.
+    await new Promise<void>((resolve, reject) => {
+      wsServer.once('listening', resolve);
+      wsServer.once('error', (err: Error) => {
+        wsServer.close();
+        reject(err);
+      });
+    });
+
+    this.server = wsServer;
 
     this.server.on('connection', (socket: WebSocket) => {
       logger.info(
@@ -117,32 +135,25 @@ class LocalWebSocketServer implements Resource {
       `[${this.name}] Found ${serverClients.length} active server clients`,
     );
 
-    // Close all client connections
+    // Forcibly terminate all server-side connections so the port is released
+    // immediately.  Using terminate() instead of close() skips the graceful
+    // close handshake and prevents server.close() from hanging while waiting
+    // for the handshake round-trip to complete.
     for (const client of serverClients) {
       try {
-        if (
-          client.readyState === client.OPEN ||
-          client.readyState === client.CONNECTING
-        ) {
-          client.close();
-        }
+        client.terminate();
       } catch (error) {
-        logger.warn(`[${this.name}] Error closing server client:`, error);
+        logger.warn(`[${this.name}] Error terminating server client:`, error);
       }
     }
 
     // Clean up tracked connections
     for (const socket of this.websocketConnections) {
       try {
-        if (
-          socket.readyState === socket.OPEN ||
-          socket.readyState === socket.CONNECTING
-        ) {
-          socket.close();
-        }
+        socket.terminate();
       } catch (error) {
         logger.warn(
-          `[${this.name}] Error closing tracked websocket connection:`,
+          `[${this.name}] Error terminating tracked websocket connection:`,
           error,
         );
       }

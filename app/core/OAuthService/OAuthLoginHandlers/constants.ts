@@ -70,6 +70,17 @@ export const IosGoogleRedirectUri =
 export const GoogleWebGID =
   CURRENT_OAUTH_CONFIG.ANDROID_GOOGLE_SERVER_CLIENT_ID;
 export const AppleWebClientId = CURRENT_OAUTH_CONFIG.ANDROID_APPLE_CLIENT_ID;
+export const TelegramAuthServerUrl =
+  'https://authentication.dev-api.cx.metamask.io';
+export const TelegramAuthServerInitiatePath = '/api/v2/telegram/login/initiate';
+export const TelegramAuthServerVerifyPath = '/api/v2/telegram/login/verify';
+export const TelegramHydraTokenUrl =
+  'https://oidc.dev-api.cx.metamask.io/oauth2/token';
+export const TelegramHydraClientId = 'f1a963d7-50dc-4cb5-8d81-f1f3654f0df3';
+export const TelegramMintPath = 'api/v1/oauth/mint';
+// TODO: plumb per-env via OAUTH_CONFIG once non-dev profile-pairing endpoints are confirmed
+export const ProfilePairingEndpoint =
+  'https://authentication.dev-api.cx.metamask.io/api/v2/profile/pair';
 
 // Use universal link for OAuth redirect
 export const GoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
@@ -137,6 +148,12 @@ export const AuthConnectionConfig: Record<
       groupedAuthConnectionId:
         CURRENT_OAUTH_CONFIG.APPLE_GROUPED_AUTH_CONNECTION_ID,
     },
+    [AuthConnection.Telegram]: {
+      authConnectionId:
+        CURRENT_OAUTH_CONFIG.ANDROID_TELEGRAM_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId:
+        CURRENT_OAUTH_CONFIG.TELEGRAM_GROUPED_AUTH_CONNECTION_ID,
+    },
   },
   [SupportedPlatforms.IOS]: {
     [AuthConnection.Google]: {
@@ -148,6 +165,11 @@ export const AuthConnectionConfig: Record<
       authConnectionId: CURRENT_OAUTH_CONFIG.IOS_APPLE_AUTH_CONNECTION_ID,
       groupedAuthConnectionId:
         CURRENT_OAUTH_CONFIG.APPLE_GROUPED_AUTH_CONNECTION_ID,
+    },
+    [AuthConnection.Telegram]: {
+      authConnectionId: CURRENT_OAUTH_CONFIG.IOS_TELEGRAM_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId:
+        CURRENT_OAUTH_CONFIG.TELEGRAM_GROUPED_AUTH_CONNECTION_ID,
     },
   },
 };

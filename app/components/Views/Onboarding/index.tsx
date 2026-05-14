@@ -572,7 +572,8 @@ const Onboarding = () => {
           error.code === OAuthErrorType.UserCancelled ||
           error.code === OAuthErrorType.UserDismissed ||
           error.code === OAuthErrorType.GoogleLoginError ||
-          error.code === OAuthErrorType.AppleLoginError
+          error.code === OAuthErrorType.AppleLoginError ||
+          error.code === OAuthErrorType.TelegramLoginError
         ) {
           // QA: do not show error sheet if user cancelled
           return;
@@ -872,6 +873,12 @@ const Onboarding = () => {
     [onPressContinueWithSocialLogin],
   );
 
+  const onPressContinueWithTelegram = useCallback(
+    async (createWallet: boolean): Promise<void> =>
+      onPressContinueWithSocialLogin(createWallet, AuthConnection.Telegram),
+    [onPressContinueWithSocialLogin],
+  );
+
   const handleCtaActions = useCallback(
     async (actionType: string): Promise<void> => {
       if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -883,6 +890,7 @@ const Onboarding = () => {
             onPressImport,
             onPressContinueWithGoogle,
             onPressContinueWithApple,
+            onPressContinueWithTelegram,
             createWallet: actionType === 'create',
           },
         });
@@ -899,6 +907,7 @@ const Onboarding = () => {
       onPressContinueWithGoogle,
       onPressContinueWithApple,
       dispatch,
+      onPressContinueWithTelegram,
     ],
   );
 

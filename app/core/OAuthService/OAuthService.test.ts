@@ -788,6 +788,7 @@ describe('updateMarketingOptInStatus', () => {
     // Reset the Engine state to default
     Engine.context.SeedlessOnboardingController.state = {
       accessToken: undefined,
+      migrationVersion: 0,
       socialBackupsMetadata: [],
       isSeedlessOnboardingUserAuthenticated: false,
     };
@@ -1076,6 +1077,7 @@ describe('getMarketingOptInStatus', () => {
     mockFetch.mockClear();
     Engine.context.SeedlessOnboardingController.state = {
       accessToken: undefined,
+      migrationVersion: 0,
       socialBackupsMetadata: [],
       isSeedlessOnboardingUserAuthenticated: false,
     };

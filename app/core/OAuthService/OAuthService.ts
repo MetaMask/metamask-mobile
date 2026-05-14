@@ -75,6 +75,12 @@ const getAuthConnectionIdFromClientId = (params: {
   return authConnectionConfig[SupportedPlatforms.IOS][authConnection];
 };
 
+const getTokenDebugInfo = (token?: string) => ({
+  present: Boolean(token),
+  length: token?.length ?? 0,
+  prefix: token ? token.slice(0, 12) : null,
+});
+
 interface OAuthServiceLocalState {
   userId?: string;
   accountName?: string;
@@ -150,6 +156,13 @@ export class OAuthService {
         authConnectionConfig: this.config.authConnectionConfig,
       });
 
+      if (!authConnectionConfig) {
+        throw new SeedlessOnboardingControllerError(
+          SeedlessOnboardingControllerErrorType.AuthenticationError,
+          `No auth connection config found for ${authConnection}`,
+        );
+      }
+
       const refreshToken = data.refresh_token;
       const revokeToken = data.revoke_token;
 
@@ -169,10 +182,30 @@ export class OAuthService {
 
       await whenEngineReady();
 
+      Logger.log(
+        '[OAuthService] seedless authenticate request:',
+        JSON.stringify({
+          authConnection,
+          clientId,
+          userId,
+          accountName,
+          authConnectionId: authConnectionConfig.authConnectionId,
+          groupedAuthConnectionId:
+            authConnectionConfig.groupedAuthConnectionId ?? null,
+          tokenPresence: {
+            idToken: getTokenDebugInfo(data.id_token),
+            accessToken: getTokenDebugInfo(data.access_token),
+            metadataAccessToken: getTokenDebugInfo(data.metadata_access_token),
+            refreshToken: getTokenDebugInfo(refreshToken),
+            revokeToken: getTokenDebugInfo(revokeToken),
+          },
+        }),
+      );
+
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
           idTokens: [data.id_token],
-          authConnection,
+          authConnection: authConnection as unknown as SeedlessAuthConnection,
           authConnectionId: authConnectionConfig.authConnectionId,
           groupedAuthConnectionId: authConnectionConfig.groupedAuthConnectionId,
           userId,
@@ -181,6 +214,7 @@ export class OAuthService {
           revokeToken,
           accessToken: data.access_token,
           metadataAccessToken: data.metadata_access_token,
+          profilePairingToken: data.profile_pairing_token,
         });
       Logger.log(
         'handleCodeFlow: success seedless authenticate. isNewUser',
@@ -192,6 +226,18 @@ export class OAuthService {
         accountName,
       };
     } catch (error) {
+      Logger.log(
+        '[OAuthService] seedless authenticate error:',
+        JSON.stringify({
+          authConnection,
+          clientId,
+          userId: this.localState.userId ?? null,
+          accountName: this.localState.accountName ?? null,
+          errorName: error instanceof Error ? error.name : 'UnknownError',
+          errorMessage:
+            error instanceof Error ? error.message : String(error ?? ''),
+        }),
+      );
       Logger.log(error as Error, {
         message: 'handleCodeFlow',
       });
@@ -299,7 +345,12 @@ export class OAuthService {
           loginHandler.decodeIdToken(data.id_token),
         ) as Partial<OAuthUserInfo>;
         const userId = jwtPayload.sub ?? '';
-        const accountName = jwtPayload.email ?? '';
+        const accountName =
+          data.account_name ??
+          jwtPayload.email ??
+          (authConnection === AuthConnection.Telegram && userId
+            ? `Telegram ${userId}`
+            : '');
 
         this.updateLocalState({
           userId,
@@ -397,6 +448,9 @@ export class OAuthService {
         : 'false';
     }
 
+    const oauthErrorCode =
+      error instanceof OAuthError ? String(error.code) : undefined;
+
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
@@ -409,6 +463,9 @@ export class OAuthService {
           is_rehydration: userClickedRehydration,
           failure_type: isUserCancelled ? 'user_cancelled' : 'error',
           error_category: errorCategory,
+          ...(oauthErrorCode !== undefined && {
+            oauth_error_code: oauthErrorCode,
+          }),
         })
         .build(),
     );

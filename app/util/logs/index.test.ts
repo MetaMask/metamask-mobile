@@ -96,6 +96,7 @@ describe('logs :: generateStateLogs', () => {
       vault: undefined,
     };
     Engine.context.SeedlessOnboardingController.state = {
+      migrationVersion: 0,
       socialBackupsMetadata: [],
       isSeedlessOnboardingUserAuthenticated: false,
     } as typeof Engine.context.SeedlessOnboardingController.state;
@@ -399,6 +400,7 @@ describe('logs :: generateStateLogs', () => {
   describe('Sanitized SeedlessOnboardingController State', () => {
     beforeEach(() => {
       Engine.context.SeedlessOnboardingController.state = {
+        migrationVersion: 0,
         socialBackupsMetadata: [],
         isSeedlessOnboardingUserAuthenticated: false,
       } as typeof Engine.context.SeedlessOnboardingController.state;
@@ -446,6 +448,7 @@ describe('logs :: generateStateLogs', () => {
 
     it('generates logs with sanitized SeedlessOnboardingController sensitive data', () => {
       Engine.context.SeedlessOnboardingController.state = {
+        migrationVersion: 0,
         userId: 'userId',
         isSeedlessOnboardingUserAuthenticated: true,
         socialBackupsMetadata: [
@@ -532,6 +535,7 @@ describe('logs :: generateStateLogs', () => {
 
     it('includes authConnection fields in sanitized state', () => {
       Engine.context.SeedlessOnboardingController.state = {
+        migrationVersion: 0,
         authConnection:
           'google' as typeof Engine.context.SeedlessOnboardingController.state.authConnection,
         authConnectionId: 'connection-id-123',
@@ -636,6 +640,7 @@ describe('logs :: generateStateLogs', () => {
 
     it('filters out sensitive data from socialBackupsMetadata', () => {
       Engine.context.SeedlessOnboardingController.state = {
+        migrationVersion: 0,
         socialBackupsMetadata: [
           {
             type: SecretType.Mnemonic,
@@ -676,6 +681,7 @@ describe('logs :: generateStateLogs', () => {
 
     it('filters out sensitive data from nodeAuthTokens', () => {
       Engine.context.SeedlessOnboardingController.state = {
+        migrationVersion: 0,
         nodeAuthTokens: [
           {
             nodeIndex: 1,
@@ -717,6 +723,7 @@ describe('logs :: generateStateLogs', () => {
 
     it('handles empty arrays in socialBackupsMetadata and nodeAuthTokens', () => {
       Engine.context.SeedlessOnboardingController.state = {
+        migrationVersion: 0,
         socialBackupsMetadata: [],
         nodeAuthTokens: [],
         isSeedlessOnboardingUserAuthenticated: false,

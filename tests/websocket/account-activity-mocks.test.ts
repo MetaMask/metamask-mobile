@@ -27,7 +27,8 @@ describe('Account Activity WebSocket Mocks', () => {
 
   beforeEach(async () => {
     clients = [];
-    testPort = 51000 + Math.floor(Math.random() * 9000);
+    // Range 52000–52999 — does not overlap with server.test.ts (50000–50999).
+    testPort = 52000 + Math.floor(Math.random() * 1000);
     server = new LocalWebSocketServer('test-account-activity');
     server.setServerPort(testPort);
     await server.start();
