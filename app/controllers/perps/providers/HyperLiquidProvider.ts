@@ -129,6 +129,7 @@ import {
   aggregateAccountStates,
 } from '../utils/accountUtils';
 import { ensureError, isKeyringLockedError } from '../utils/errorUtils';
+import { shouldDeferUnifiedAccountSetup } from '../utils/hyperLiquidAbstraction';
 import {
   adaptAccountStateFromSDK,
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
@@ -627,7 +628,8 @@ export class HyperLiquidProvider implements PerpsProvider {
     const network = this.#clientService.isTestnetMode() ? 'testnet' : 'mainnet';
 
     // Check global cache first to avoid repeated signing requests
-    // This is CRITICAL for hardware wallets to prevent QR popup spam
+    // This is CRITICAL for hardware wallets to prevent repeated signing prompts
+    // while browsing.
     const cachedStatus = TradingReadinessCache.get(network, userAddress);
     if (cachedStatus?.attempted) {
       this.#deps.debugLogger.log(
@@ -726,14 +728,14 @@ export class HyperLiquidProvider implements PerpsProvider {
         return;
       }
 
-      // Defer the user-signed transition until the user attempts an action.
+      // Defer signing-backed transitions until the user attempts an action.
       // Cache is intentionally left untouched so the next entry re-evaluates;
       // the read-only userAbstraction call is cheap and gated by the in-flight
       // lock, preventing concurrent prompts.
-      if (currentMode === 'dexAbstraction' && !allowUserSigning) {
+      if (shouldDeferUnifiedAccountSetup(currentMode, allowUserSigning)) {
         this.#deps.debugLogger.log(
-          'HyperLiquidProvider: Deferring dexAbstraction → unifiedAccount migration to action time',
-          { user: userAddress, network },
+          'HyperLiquidProvider: Deferring unified account migration to action time',
+          { user: userAddress, network, mode: currentMode },
         );
         completeInFlight();
         return;
@@ -928,10 +930,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       }
 
       // Attempt Unified Account migration as early as possible so users aren't
-      // blocked when they try to trade. Software-wallet dexAbstraction users can
-      // complete the one-time EIP-712 migration during initial setup so the first
-      // trade sees the unified balance. Hardware wallets remain deferred to
-      // action time to avoid QR / Ledger prompt spam while browsing.
+      // blocked when they try to trade. Software wallets can complete the
+      // signing-backed migration during initial setup so the first trade sees
+      // the unified balance. Hardware wallets remain deferred to action time to
+      // avoid repeated signing prompts while browsing.
       await this.#ensureUnifiedAccountEnabled({
         allowUserSigning: !this.#walletService.isSelectedHardwareWallet(),
       });
@@ -964,7 +966,7 @@ export class HyperLiquidProvider implements PerpsProvider {
    * - Builder fee approval (required for orders)
    * - Referral code setup (attribution)
    *
-   * These operations are DEFERRED from ensureReady() to avoid QR popup spam
+   * These operations are DEFERRED from ensureReady() to avoid hardware wallet prompt spam
    * when users are just viewing the Perps section (critical for hardware wallets).
    *
    * Call this method before any trading operation (placeOrder, cancelOrder, etc.)
@@ -982,8 +984,26 @@ export class HyperLiquidProvider implements PerpsProvider {
     // already-migrated or already-rejected users are not re-prompted.
     await this.#ensureUnifiedAccountEnabled({ allowUserSigning: true });
 
-    // If trading setup already complete, return immediately
+    // If trading setup already complete, only retry builder fee if it previously failed
     if (this.#tradingSetupComplete) {
+      const isTestnet = this.#clientService.isTestnetMode();
+      const network = isTestnet ? 'testnet' : 'mainnet';
+      const userAddress = await this.#walletService.getUserAddressWithDefault();
+      const cacheKey = this.#getCacheKey(network, userAddress);
+      if (!this.#builderFeeCheckCache.has(cacheKey)) {
+        this.#deps.debugLogger.log(
+          '[ensureReadyForTrading] Retrying builder fee approval (previous attempt failed)',
+        );
+        try {
+          await this.#ensureBuilderFeeApproval();
+        } catch (error) {
+          // Don't throw - retry is best-effort, trading continues regardless
+          this.#deps.debugLogger.log(
+            '[ensureReadyForTrading] Builder fee retry failed',
+            error,
+          );
+        }
+      }
       return;
     }
 
@@ -2543,16 +2563,15 @@ export class HyperLiquidProvider implements PerpsProvider {
     const cacheKey = this.#getCacheKey(network, userAddress);
 
     // Check GLOBAL cache first to avoid repeated signing requests across reconnections
-    // This is CRITICAL for hardware wallets to prevent QR popup spam
+    // This is CRITICAL for hardware wallets to prevent repeated signing prompts
+    // while browsing.
     const globalCached = PerpsSigningCache.getBuilderFee(network, userAddress);
-    if (globalCached?.attempted) {
+    if (globalCached?.attempted && globalCached?.success) {
       this.#deps.debugLogger.log(
-        '[ensureBuilderFeeApproval] Using global cache (prevents QR popup spam)',
+        '[ensureBuilderFeeApproval] Using global cache (prevents hardware wallet prompt spam)',
         { network, success: globalCached.success },
       );
-      if (globalCached.success) {
-        this.#builderFeeCheckCache.set(cacheKey, true);
-      }
+      this.#builderFeeCheckCache.set(cacheKey, true);
       return;
     }
 
@@ -2584,7 +2603,7 @@ export class HyperLiquidProvider implements PerpsProvider {
         network,
         userAddress,
       );
-      if (recheckCache?.attempted) {
+      if (recheckCache?.attempted && recheckCache?.success) {
         this.#deps.debugLogger.log(
           '[ensureBuilderFeeApproval] Completed by another provider',
           { network },
@@ -2661,14 +2680,14 @@ export class HyperLiquidProvider implements PerpsProvider {
         return;
       }
 
-      // Cache failure to prevent retries
+      // Record failure — will be retried on next trading operation
       PerpsSigningCache.setBuilderFee(network, userAddress, {
         attempted: true,
         success: false,
       });
 
       this.#deps.debugLogger.log(
-        '[ensureBuilderFeeApproval] Failed, cached to prevent retries',
+        '[ensureBuilderFeeApproval] Failed, will retry on next trading operation',
         {
           network,
           error: ensureError(
@@ -8379,7 +8398,7 @@ export class HyperLiquidProvider implements PerpsProvider {
     const globalCached = PerpsSigningCache.getReferral(network, userAddress);
     if (globalCached?.attempted) {
       this.#deps.debugLogger.log(
-        '[ensureReferralSet] Using global cache (prevents QR popup spam)',
+        '[ensureReferralSet] Using global cache (prevents hardware wallet prompt spam)',
         { network, success: globalCached.success },
       );
       return;
