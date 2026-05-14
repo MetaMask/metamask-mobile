@@ -341,7 +341,10 @@ export const CreateNewWallet = async ({
 
   await MetaMetricsOptInView.tapAgreeButton();
   await device.disableSynchronization(); // Detox is hanging after wallet creation
-  await OnboardingInterestQuestionnaireView.tapContinueButton();
+
+  if (optInToMetrics) {
+    await OnboardingInterestQuestionnaireView.tapContinueButton();
+  }
 
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
