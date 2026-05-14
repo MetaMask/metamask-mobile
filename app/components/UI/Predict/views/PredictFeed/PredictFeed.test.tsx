@@ -10,6 +10,8 @@ import {
   getPredictFeedSelector,
   getPredictFeedMockSelector,
 } from '../../Predict.testIds';
+import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
+import { buildPredictWorldCupAllQuery } from '../../utils/worldCup';
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
@@ -77,6 +79,14 @@ import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 const mockUsePredictMarketData = usePredictMarketData as jest.Mock;
 
 const mockUseSelector = jest.fn();
+const mockHotTabFlag: { enabled: boolean; queryParams?: string } = {
+  enabled: false,
+  queryParams: undefined,
+};
+let mockIsWorldCupMainFeedTabEnabled = false;
+let mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
+let mockIsFeaturedCarouselEnabled = false;
+let mockIsUpDownEnabled = false;
 
 jest.mock('react-redux', () => {
   const actualReactRedux = jest.requireActual('react-redux');
@@ -87,7 +97,13 @@ jest.mock('react-redux', () => {
 });
 
 jest.mock('../../selectors/featureFlags', () => ({
-  selectPredictHotTabFlag: jest.fn(),
+  selectPredictFeaturedCarouselEnabledFlag:
+    'selectPredictFeaturedCarouselEnabledFlag',
+  selectPredictHotTabFlag: 'selectPredictHotTabFlag',
+  selectPredictUpDownEnabledFlag: 'selectPredictUpDownEnabledFlag',
+  selectPredictWorldCupConfig: 'selectPredictWorldCupConfig',
+  selectPredictWorldCupMainFeedTabEnabledFlag:
+    'selectPredictWorldCupMainFeedTabEnabledFlag',
 }));
 
 jest.mock('../../../../hooks/useDebouncedValue', () => ({
@@ -275,9 +291,27 @@ describe('PredictFeed', () => {
     });
     mockUseFocusEffect.mockImplementation(() => undefined);
     mockGetInstance.mockReturnValue(mockSessionManager);
-    mockUseSelector.mockReturnValue({
-      enabled: false,
-      queryParams: undefined,
+    mockHotTabFlag.enabled = false;
+    mockHotTabFlag.queryParams = undefined;
+    mockIsWorldCupMainFeedTabEnabled = false;
+    mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
+    mockIsFeaturedCarouselEnabled = false;
+    mockIsUpDownEnabled = false;
+    mockUseSelector.mockImplementation((selector: string) => {
+      switch (selector) {
+        case 'selectPredictFeaturedCarouselEnabledFlag':
+          return mockIsFeaturedCarouselEnabled;
+        case 'selectPredictHotTabFlag':
+          return mockHotTabFlag;
+        case 'selectPredictUpDownEnabledFlag':
+          return mockIsUpDownEnabled;
+        case 'selectPredictWorldCupConfig':
+          return mockWorldCupConfig;
+        case 'selectPredictWorldCupMainFeedTabEnabledFlag':
+          return mockIsWorldCupMainFeedTabEnabled;
+        default:
+          return undefined;
+      }
     });
     mockUseFeedScrollManager.mockReturnValue({
       headerTranslateY: { value: 0 },
@@ -815,10 +849,8 @@ describe('PredictFeed', () => {
 
   describe('hot tab feature flag', () => {
     it('renders Hot tab first when flag is enabled', () => {
-      mockUseSelector.mockReturnValue({
-        enabled: true,
-        queryParams: 'tag_id=149&order=volume24hr',
-      });
+      mockHotTabFlag.enabled = true;
+      mockHotTabFlag.queryParams = 'tag_id=149&order=volume24hr';
 
       const { getByTestId } = render(<PredictFeed />);
 
@@ -831,10 +863,8 @@ describe('PredictFeed', () => {
     });
 
     it('passes Hot tab custom query params to market data fetching', () => {
-      mockUseSelector.mockReturnValue({
-        enabled: true,
-        queryParams: 'tag_id=149&order=volume24hr',
-      });
+      mockHotTabFlag.enabled = true;
+      mockHotTabFlag.queryParams = 'tag_id=149&order=volume24hr';
 
       render(<PredictFeed />);
 
@@ -851,10 +881,8 @@ describe('PredictFeed', () => {
     });
 
     it('does not render Hot tab when flag is disabled', () => {
-      mockUseSelector.mockReturnValue({
-        enabled: false,
-        queryParams: undefined,
-      });
+      mockHotTabFlag.enabled = false;
+      mockHotTabFlag.queryParams = undefined;
 
       const { queryByTestId, getByTestId } = render(<PredictFeed />);
 
@@ -867,10 +895,8 @@ describe('PredictFeed', () => {
     });
 
     it('renders seven category tabs when hot tab is enabled', () => {
-      mockUseSelector.mockReturnValue({
-        enabled: true,
-        queryParams: 'tag_id=149',
-      });
+      mockHotTabFlag.enabled = true;
+      mockHotTabFlag.queryParams = 'tag_id=149';
 
       const { getByTestId } = render(<PredictFeed />);
 
@@ -898,10 +924,8 @@ describe('PredictFeed', () => {
     });
 
     it('renders seven pager pages when hot tab is enabled', () => {
-      mockUseSelector.mockReturnValue({
-        enabled: true,
-        queryParams: 'tag_id=149&tag_id=100995&order=volume24hr',
-      });
+      mockHotTabFlag.enabled = true;
+      mockHotTabFlag.queryParams = 'tag_id=149&tag_id=100995&order=volume24hr';
 
       const { getByTestId } = render(<PredictFeed />);
 
@@ -929,10 +953,8 @@ describe('PredictFeed', () => {
     });
 
     it('tracks tab change for hot tab when swiped to', () => {
-      mockUseSelector.mockReturnValue({
-        enabled: true,
-        queryParams: 'tag_id=149',
-      });
+      mockHotTabFlag.enabled = true;
+      mockHotTabFlag.queryParams = 'tag_id=149';
 
       const mockOnTabSwitch = jest.fn();
       mockUseFeedScrollManager.mockReturnValue({
@@ -957,10 +979,8 @@ describe('PredictFeed', () => {
     });
 
     it('starts session with hot as initial tab when requested via deeplink', () => {
-      mockUseSelector.mockReturnValue({
-        enabled: true,
-        queryParams: 'tag_id=149',
-      });
+      mockHotTabFlag.enabled = true;
+      mockHotTabFlag.queryParams = 'tag_id=149';
       mockUseRoute.mockReturnValue({
         params: {
           entryPoint: 'homepage_new_prediction',
@@ -973,6 +993,101 @@ describe('PredictFeed', () => {
       expect(mockSessionManager.startSession).toHaveBeenCalledWith(
         'homepage_new_prediction',
         'hot',
+      );
+    });
+  });
+
+  describe('World Cup tab feature flag', () => {
+    it('does not render World Cup tab when flag is disabled', () => {
+      const { queryByTestId } = render(<PredictFeed />);
+
+      expect(
+        queryByTestId(getPredictFeedMockSelector.tabKey('world-cup')),
+      ).toBeNull();
+    });
+
+    it('renders World Cup tab and page first when flag is enabled', () => {
+      mockIsWorldCupMainFeedTabEnabled = true;
+      mockWorldCupConfig = {
+        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+        enabled: true,
+        showMainFeedTab: true,
+      };
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(
+        getByTestId(getPredictFeedMockSelector.tabKey('world-cup')),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(getPredictFeedMockSelector.pagerPage(0)),
+      ).toBeOnTheScreen();
+      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
+        'homepage_new_prediction',
+        'world-cup',
+      );
+    });
+
+    it('places World Cup before Hot when both flags are enabled', () => {
+      mockIsWorldCupMainFeedTabEnabled = true;
+      mockWorldCupConfig = {
+        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+        enabled: true,
+        showMainFeedTab: true,
+      };
+      mockHotTabFlag.enabled = true;
+      mockHotTabFlag.queryParams = 'tag_id=149';
+
+      const mockOnTabSwitch = jest.fn();
+      mockUseFeedScrollManager.mockReturnValue({
+        headerTranslateY: { value: 0 },
+        headerHidden: false,
+        headerHeight: 100,
+        tabBarHeight: 48,
+        layoutReady: true,
+        onTabSwitch: mockOnTabSwitch,
+        scrollHandler: jest.fn(),
+        onHeaderLayout: jest.fn(),
+        onTabBarLayout: jest.fn(),
+      });
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      fireEvent(
+        getByTestId(getPredictFeedMockSelector.pagerPage(0)),
+        'onTouchEnd',
+      );
+      fireEvent(
+        getByTestId(getPredictFeedMockSelector.pagerPage(1)),
+        'onTouchEnd',
+      );
+
+      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith(
+        'world-cup',
+      );
+      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('hot');
+    });
+
+    it('passes World Cup custom query params to market data fetching', () => {
+      mockIsWorldCupMainFeedTabEnabled = true;
+      mockWorldCupConfig = {
+        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+        enabled: true,
+        showMainFeedTab: true,
+        tagSlug: 'custom-world-cup',
+      };
+
+      render(<PredictFeed />);
+
+      const worldCupTabCall = mockUsePredictMarketData.mock.calls.find(
+        (call: [{ category?: string }]) => call[0].category === 'world-cup',
+      );
+
+      expect(worldCupTabCall?.[0]).toEqual(
+        expect.objectContaining({
+          category: 'world-cup',
+          customQueryParams: buildPredictWorldCupAllQuery(mockWorldCupConfig),
+        }),
       );
     });
   });
