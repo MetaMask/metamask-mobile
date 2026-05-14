@@ -534,8 +534,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const exceedsMaxSlippage =
     isMarketOrder &&
-    estimatedSlippagePct !== null &&
-    estimatedSlippagePct > bpsToPercent(maxSlippageBps);
+    (insufficientLiquidity ||
+      (estimatedSlippagePct !== null &&
+        estimatedSlippagePct > bpsToPercent(maxSlippageBps)));
 
   // Simple boolean calculation - no need for expensive memoization
   const hasValidAmount = parseFloat(orderForm.amount) > 0;
