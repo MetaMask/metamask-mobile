@@ -36,6 +36,7 @@ _public_envs: &public_envs # Servers (production)
   RAMPS_ENVIRONMENT: 'production'
   RAMP_DEV_BUILD: 'false'
   BRIDGE_USE_DEV_APIS: 'false'
+  MM_BATCH_SELL_ENABLED: 'false'
   RAMP_INTERNAL_BUILD: 'false'
   IS_TEST: 'false'
   SEEDLESS_ONBOARDING_ENABLED: 'true'
@@ -214,7 +215,83 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_main
 
-  # Test builds (QA)
+  # BrowserStack performance builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
+  # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
+  # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
+  # on feature branches with the same github_environment/signing as all other e2e builds.
+  # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
+  # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
+  main-e2e-bs-without-srp:
+    github_environment: build-e2e
+    signing: *signing_uat
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'e2e'
+      METAMASK_BUILD_TYPE: 'main'
+      IS_BROWSERSTACK_BUILD: 'true'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+      E2E_MOCK_OAUTH: 'true'
+      IS_PERFORMANCE_TEST: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+    secrets: *secrets
+    code_fencing: *code_fencing_main
+    
+  # BrowserStack performance builds — with pre-imported wallet (ADDITIONAL_SRP_1 baked in)
+  # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
+  # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
+  # on feature branches with the same github_environment/signing as all other e2e builds.
+  # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
+  main-e2e-bs-with-srp:
+    github_environment: build-e2e
+    signing: *signing_uat
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'e2e'
+      METAMASK_BUILD_TYPE: 'main'
+      IS_BROWSERSTACK_BUILD: 'true'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+      E2E_MOCK_OAUTH: 'true'
+      IS_PERFORMANCE_TEST: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+    secrets:
+      <<: *secrets
+      ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
+      PREDEFINED_PASSWORD: 'E2E_PASSWORD'
+    code_fencing: *code_fencing_main
+  # Release candidate with pre-imported wallet (system tests / performance tests)
+  # Same as main-rc but bakes in ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD so the app
+  # starts with an imported wallet, skipping onboarding. Used by run-system-tests.yml.
+  main-rc-with-srp:
+    script_name: main-rc
+    github_environment: build-rc
+    signing: *signing_rc
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_BUILD_TYPE: 'main'
+    secrets:
+      <<: *secrets
+      ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
+      PREDEFINED_PASSWORD: 'E2E_PASSWORD'
+    code_fencing: *code_fencing_main
+
+  # Release candidate without pre-imported wallet — seedless onboarding (E2E_MOCK_OAUTH baked in)
+  # RC counterpart to main-rc-with-srp; used by performance tests that exercise the onboarding flow.
+  # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
+  main-rc-without-srp:
+    script_name: main-rc
+    github_environment: build-rc
+    signing: *signing_rc
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_BUILD_TYPE: 'main'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+      E2E_MOCK_OAUTH: 'true'
+    secrets: *secrets
+    code_fencing: *code_fencing_main
+
+  # Test builds
   main-test:
     github_environment: build-uat
     signing: *signing_uat
@@ -285,6 +362,38 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 
+  # BrowserStack experimental builds — with pre-imported wallet
+  main-exp-with-srp:
+    github_environment: build-exp
+    signing: *signing_uat
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'exp'
+      METAMASK_BUILD_TYPE: 'main'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+    secrets:
+      <<: *secrets
+      ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
+      PREDEFINED_PASSWORD: 'E2E_PASSWORD'
+    code_fencing: *code_fencing_experimental
+
+  # BrowserStack experimental builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
+  # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
+  main-exp-without-srp:
+    github_environment: build-exp
+    signing: *signing_uat
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'exp'
+      METAMASK_BUILD_TYPE: 'main'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+      E2E_MOCK_OAUTH: 'true'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+    secrets: *secrets
+    code_fencing: *code_fencing_experimental
+
+  # Local development / Expo development build (Runway .app for simulator)
   # Dev release build (Ex. For sideloading via Build Mobile App workflow)
   main-dev:
     github_environment: build-dev
