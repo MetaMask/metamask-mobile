@@ -68,6 +68,52 @@ import {
   predictBuyPreviewSessionRef,
 } from '../PredictBuyPreview/PredictBuyPreview';
 
+interface BuyActionButtonStateParams {
+  isPaymentSelectorNavigationLocked: boolean;
+  isBannerActive: boolean;
+  isChangePaymentMode: boolean;
+  isAddFundsMode: boolean;
+  isRetrying: boolean;
+  hasPreview: boolean;
+  canPlaceBet: boolean;
+}
+
+const getBuyActionButtonState = ({
+  isPaymentSelectorNavigationLocked,
+  isBannerActive,
+  isChangePaymentMode,
+  isAddFundsMode,
+  isRetrying,
+  hasPreview,
+  canPlaceBet,
+}: BuyActionButtonStateParams) => {
+  if (isPaymentSelectorNavigationLocked) {
+    return {
+      disabled: true,
+      reducedOpacity: true,
+    };
+  }
+
+  if (!isBannerActive && (isChangePaymentMode || isAddFundsMode)) {
+    return {
+      disabled: false,
+      reducedOpacity: false,
+    };
+  }
+
+  if (isBannerActive) {
+    return {
+      disabled: isRetrying || !hasPreview,
+      reducedOpacity: !hasPreview,
+    };
+  }
+
+  return {
+    disabled: !canPlaceBet,
+    reducedOpacity: !canPlaceBet,
+  };
+};
+
 const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
@@ -160,7 +206,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const {
     toWin,
     metamaskFee,
-    providerFee,
+    exchangeFee,
     total,
     depositFee,
     rewardsFeeAmount,
@@ -168,7 +214,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     hasBlockingPayAlerts,
     blockingPayAlertMessage,
   } = usePredictBuyInfo({
-    currentValue,
     preview,
     previewError,
     isConfirming,
@@ -184,8 +229,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isInsufficientBalance,
     isCurrentTokenInsufficient,
     hasAlternativeBalance,
-    maxBetAmount,
     isPaySystemSettling,
+    isPaymentSelectorNavigationLocked,
+    lockPaymentSelectorNavigation,
   } = usePredictBuyConditions({
     currentValue,
     preview,
@@ -193,12 +239,12 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isUserInputChange,
     isConfirming,
     totalPayForPredictBalance,
-    isInputFocused,
     hasBlockingPayAlerts,
   });
 
   const {
     errorMessage,
+    errorMessageSource,
     buyErrorBanner,
     isOrderNotFilled,
     resetOrderNotFilled,
@@ -209,7 +255,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isPlacingOrder,
     isBelowMinimum,
     isInsufficientBalance,
-    maxBetAmount,
     isConfirming,
     isPayFeesLoading,
     blockingPayAlertMessage,
@@ -227,8 +272,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   );
 
   const handleChangePaymentMethod = useCallback(() => {
+    lockPaymentSelectorNavigation();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [navigation]);
+  }, [lockPaymentSelectorNavigation, navigation]);
 
   const handleAddFunds = useCallback(() => {
     if (isSheetMode) {
@@ -297,6 +343,10 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   }, [isSheetMode, isBannerActive, isInputFocused, setIsInputFocused]);
 
   const handleBuyButtonPress = useCallback(() => {
+    if (isPaymentSelectorNavigationLocked) {
+      return;
+    }
+
     if (isBannerActive) {
       handleRetryWithBestPrice();
       return;
@@ -312,6 +362,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     handleConfirm();
   }, [
     isBannerActive,
+    isPaymentSelectorNavigationLocked,
     isChangePaymentMode,
     isAddFundsMode,
     handleRetryWithBestPrice,
@@ -335,6 +386,26 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const wrapperProps = isSheetMode
     ? { twClassName: 'bg-background-default' }
     : { style: tw.style('flex-1 bg-background-default') };
+
+  const {
+    disabled: isBuyActionButtonDisabled,
+    reducedOpacity: showBuyActionButtonReducedOpacity,
+  } = getBuyActionButtonState({
+    isPaymentSelectorNavigationLocked,
+    isBannerActive,
+    isChangePaymentMode,
+    isAddFundsMode,
+    isRetrying,
+    hasPreview: Boolean(preview),
+    canPlaceBet,
+  });
+  const shouldSuppressInlineError =
+    (isChangePaymentMode || isAddFundsMode) &&
+    errorMessageSource === 'insufficient_balance';
+  const shouldRenderInlineError =
+    !isSheetMode ||
+    !buyErrorBanner ||
+    errorMessageSource === 'blocking_pay_alert';
 
   return (
     <Wrapper {...wrapperProps}>
@@ -396,16 +467,17 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
               hideAvailableBalance={false}
             />
             {payWithAnyTokenEnabled && (
-              <PredictPayWithRow disabled={isPlacingOrder} />
+              <PredictPayWithRow
+                disabled={isPlacingOrder || isPaymentSelectorNavigationLocked}
+                onPaymentSelectorOpen={lockPaymentSelectorNavigation}
+              />
             )}
           </Box>
         </ScrollView>
       )}
-      {!(isSheetMode && buyErrorBanner) && (
+      {shouldRenderInlineError && (
         <PredictBuyError
-          errorMessage={
-            isChangePaymentMode || isAddFundsMode ? undefined : errorMessage
-          }
+          errorMessage={shouldSuppressInlineError ? undefined : errorMessage}
         />
       )}
       {!isSheetMode && (
@@ -431,9 +503,10 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         )}
         {payWithAnyTokenEnabled && isSheetMode && (
           <PredictPayWithRow
-            disabled={isPlacingOrder}
+            disabled={isPlacingOrder || isPaymentSelectorNavigationLocked}
             variant="row"
             availableBalance={availableBalanceDisplay}
+            onPaymentSelectorOpen={lockPaymentSelectorNavigation}
           />
         )}
         <PredictFeeSummary
@@ -459,20 +532,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         <PredictBuyActionButton
           isLoading={isPlacingOrder || (isBannerActive && isRetrying)}
           onPress={handleBuyButtonPress}
-          disabled={
-            !isBannerActive && (isChangePaymentMode || isAddFundsMode)
-              ? false
-              : isBannerActive
-                ? isRetrying || !preview
-                : !canPlaceBet
-          }
-          showReducedOpacity={
-            !isBannerActive && (isChangePaymentMode || isAddFundsMode)
-              ? false
-              : isBannerActive
-                ? !preview
-                : !canPlaceBet
-          }
+          disabled={isBuyActionButtonDisabled}
+          showReducedOpacity={showBuyActionButtonReducedOpacity}
           outcomeTokenTitle={outcomeToken?.title}
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
           isSheetMode={isSheetMode}
@@ -497,7 +558,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
           ref={feeBreakdownSheetRef}
-          providerFee={providerFee}
+          providerFee={exchangeFee}
           metamaskFee={metamaskFee}
           depositFee={depositFee}
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
