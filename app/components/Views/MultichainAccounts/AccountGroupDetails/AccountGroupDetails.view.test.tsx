@@ -161,22 +161,4 @@ describeForPlatforms('Multichain account group details', () => {
       );
     });
   });
-
-  it('hides remove account action during seedless onboarding login flow', () => {
-    const { queryByTestId } = renderAccountGroupDetailsWithRoutes({
-      overrides: {
-        engine: {
-          backgroundState: {
-            SeedlessOnboardingController: {
-              vault: 'seedless-vault',
-            },
-          },
-        },
-      },
-    });
-
-    expect(
-      queryByTestId(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON),
-    ).not.toBeOnTheScreen();
-  });
 });

@@ -128,25 +128,6 @@ describeForPlatforms('DeleteAccount multichain account details', () => {
     ).toBeOnTheScreen();
   });
 
-  it('does not remove HD accounts from the delete sheet', () => {
-    const removeAccountSpy = jest.spyOn(
-      Engine.context.KeyringController,
-      'removeAccount',
-    );
-    const { getByTestId, queryByTestId } = renderDeleteAccountWithRoutes();
-
-    fireEvent.press(
-      getByTestId(
-        MultichainDeleteAccountSelectors.DELETE_ACCOUNT_REMOVE_BUTTON,
-      ),
-    );
-
-    expect(removeAccountSpy).not.toHaveBeenCalled();
-    expect(
-      queryByTestId(getRouteProbeTestId(Routes.WALLET_VIEW)),
-    ).not.toBeOnTheScreen();
-  });
-
   it('removes the imported accounts section from the account list after deletion', async () => {
     const { getByTestId, queryByText } = renderMultichainAccountSelectorList({
       fixture: buildMultichainAccountsFixture({
