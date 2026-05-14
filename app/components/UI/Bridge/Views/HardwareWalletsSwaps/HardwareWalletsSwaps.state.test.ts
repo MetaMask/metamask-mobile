@@ -402,7 +402,49 @@ describe('hardwareWalletsSwapsReducer', () => {
       payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
     });
 
-    expect(result.status).toBe(HardwareWalletsSwapsStatus.Submitted);
+    expect(result).toBe(submittedState);
+  });
+
+  it('ignores late REJECTED after the final step has submitted', () => {
+    const submittedState = hardwareWalletsSwapsReducer(
+      hardwareWalletsSwapsReducer(initialHardwareWalletsSwapsState, {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: { totalSteps: 1 },
+      }),
+      {
+        type: HardwareWalletsSwapsEventType.Signed,
+        payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
+      },
+    );
+
+    expect(submittedState.status).toBe(HardwareWalletsSwapsStatus.Submitted);
+    expect(submittedState.currentStep).toBe(1);
+
+    const result = hardwareWalletsSwapsReducer(submittedState, {
+      type: HardwareWalletsSwapsEventType.Rejected,
+      payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
+    });
+
+    expect(result).toBe(submittedState);
+  });
+
+  it('ignores late REJECTED after the progress flow has been cancelled', () => {
+    const cancelledState = hardwareWalletsSwapsReducer(
+      hardwareWalletsSwapsReducer(initialHardwareWalletsSwapsState, {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: { totalSteps: 1 },
+      }),
+      { type: HardwareWalletsSwapsEventType.Cancel },
+    );
+
+    expect(cancelledState.status).toBe(HardwareWalletsSwapsStatus.Cancelled);
+
+    const result = hardwareWalletsSwapsReducer(cancelledState, {
+      type: HardwareWalletsSwapsEventType.Rejected,
+      payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
+    });
+
+    expect(result).toBe(cancelledState);
   });
 
   it('REJECTED without payload uses fallback when current step has matching kind', () => {
@@ -455,6 +497,7 @@ describe('hardwareWalletsSwapsReducer', () => {
       initialHardwareWalletsSwapsState,
       { type: HardwareWalletsSwapsEventType.Start, payload: { totalSteps: 2 } },
     );
+
     const unknownEvent = {
       type: 'UNKNOWN_EVENT',
     } as unknown as HardwareWalletsSwapsEvent;
