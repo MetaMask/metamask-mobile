@@ -558,7 +558,7 @@ jobs:
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    if: ${{ !cancelled() && needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -570,13 +570,13 @@ jobs:
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
@@ -622,13 +622,13 @@ jobs:
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
@@ -724,7 +724,7 @@ jobs:
   component-view-tests:
     name: Component view tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    if: ${{ !cancelled() && needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -736,13 +736,13 @@ jobs:
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
