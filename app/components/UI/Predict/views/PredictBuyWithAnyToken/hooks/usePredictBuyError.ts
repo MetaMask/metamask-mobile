@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import { MINIMUM_BET } from '../../../constants/transactions';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
@@ -15,6 +15,29 @@ export interface PredictBuyErrorBannerData {
   description: string;
 }
 
+export type PredictBuyErrorMessageSource =
+  | 'preview'
+  | 'below_minimum'
+  | 'insufficient_balance'
+  | 'blocking_pay_alert'
+  | 'order_error';
+
+type PredictBuyErrorResult =
+  | {
+      status: 'error';
+      error: string;
+      source: 'blocking_pay_alert' | 'order_error';
+    }
+  | {
+      status: 'order_not_filled';
+      source: 'order_error';
+    };
+
+interface PredictBuyErrorMessageData {
+  message: string;
+  source: PredictBuyErrorMessageSource;
+}
+
 interface UsePredictBuyInfoParams {
   preview?: OrderPreview | null;
   previewError: string | null;
@@ -22,7 +45,6 @@ interface UsePredictBuyInfoParams {
   isPlacingOrder: boolean;
   isBelowMinimum: boolean;
   isInsufficientBalance: boolean;
-  maxBetAmount: number;
   isPayFeesLoading: boolean;
   blockingPayAlertMessage: string | null;
   outcomeTokenPrice?: number;
@@ -40,7 +62,6 @@ export const usePredictBuyError = ({
   isPlacingOrder,
   isBelowMinimum,
   isInsufficientBalance,
-  maxBetAmount,
   isPayFeesLoading,
   blockingPayAlertMessage,
   outcomeTokenPrice,
@@ -49,28 +70,71 @@ export const usePredictBuyError = ({
   const { activeOrder, clearOrderError } = usePredictActiveOrder();
   const { isBalanceLoading } = usePredictBuyAvailableBalance();
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
-  const { isPredictBalanceSelected } = usePredictPaymentToken();
-
-  const errorResult = useMemo(() => {
-    if (isBalanceLoading || isPlacingOrder || isConfirming || !preview) {
-      return undefined;
+  const [persistedBuyErrorBanner, setPersistedBuyErrorBanner] =
+    useState<PredictBuyErrorBannerData | null>(null);
+  const { isPredictBalanceSelected, selectedPaymentToken } =
+    usePredictPaymentToken();
+  const selectedPaymentTokenKey = useMemo(() => {
+    if (isPredictBalanceSelected) {
+      return 'predict-balance';
     }
 
-    const ready = !isPayFeesLoading && !isPredictBalanceSelected;
+    if (!selectedPaymentToken?.address || !selectedPaymentToken?.chainId) {
+      return 'external-token:unknown';
+    }
 
-    if (ready && !!blockingPayAlertMessage) {
+    return `${selectedPaymentToken.chainId.toLowerCase()}:${selectedPaymentToken.address.toLowerCase()}`;
+  }, [
+    isPredictBalanceSelected,
+    selectedPaymentToken?.address,
+    selectedPaymentToken?.chainId,
+  ]);
+  const previousSelectedPaymentTokenKeyRef = useRef(selectedPaymentTokenKey);
+
+  const errorResult = useMemo<PredictBuyErrorResult | undefined>(() => {
+    if (
+      !isPlacingOrder &&
+      !isConfirming &&
+      !isPredictBalanceSelected &&
+      !!blockingPayAlertMessage
+    ) {
       return {
         status: 'error',
         error: blockingPayAlertMessage,
+        source: 'blocking_pay_alert',
       };
     }
 
-    return activeOrder?.error
-      ? getPlaceOrderErrorOutcome({
-          error: activeOrder?.error,
-          orderParams: { preview },
-        })
-      : undefined;
+    if (
+      isBalanceLoading ||
+      isPlacingOrder ||
+      isConfirming ||
+      !preview ||
+      isPayFeesLoading
+    ) {
+      return undefined;
+    }
+
+    if (!activeOrder?.error) {
+      return undefined;
+    }
+
+    const orderError = getPlaceOrderErrorOutcome({
+      error: activeOrder?.error,
+      orderParams: { preview },
+    });
+
+    if (
+      orderError.status !== 'error' &&
+      orderError.status !== 'order_not_filled'
+    ) {
+      return undefined;
+    }
+
+    return {
+      ...orderError,
+      source: 'order_error',
+    };
   }, [
     isBalanceLoading,
     isPlacingOrder,
@@ -82,30 +146,35 @@ export const usePredictBuyError = ({
     activeOrder?.error,
   ]);
 
-  const errorMessage = useMemo(() => {
+  const errorMessageData = useMemo<
+    PredictBuyErrorMessageData | undefined
+  >(() => {
     if (previewError) {
-      return previewError;
+      return {
+        message: previewError,
+        source: 'preview',
+      };
     }
 
     if (isBelowMinimum) {
-      return strings('predict.order.prediction_minimum_bet', {
-        amount: formatPrice(MINIMUM_BET, {
-          minimumDecimals: 2,
-          maximumDecimals: 2,
+      return {
+        message: strings('predict.order.prediction_minimum_bet', {
+          amount: formatPrice(MINIMUM_BET, {
+            minimumDecimals: 2,
+            maximumDecimals: 2,
+          }),
         }),
-      });
+        source: 'below_minimum',
+      };
     }
 
     if (isInsufficientBalance) {
-      const formattedMax = formatPrice(maxBetAmount, {
-        minimumDecimals: 2,
-        maximumDecimals: 2,
-      });
-      return maxBetAmount >= MINIMUM_BET
-        ? strings('predict.order.prediction_insufficient_funds_try_token', {
-            amount: formattedMax,
-          })
-        : strings('predict.order.no_funds_enough_try_token');
+      return {
+        message: isPredictBalanceSelected
+          ? strings('predict.order.no_funds_enough')
+          : strings('predict.order.no_funds_enough_try_token'),
+        source: 'insufficient_balance',
+      };
     }
 
     if (!errorResult) {
@@ -129,7 +198,11 @@ export const usePredictBuyError = ({
       if (bannerWouldSuppress) {
         return undefined;
       }
-      return errorResult.error;
+
+      return {
+        message: errorResult.error,
+        source: errorResult.source,
+      };
     }
 
     return undefined;
@@ -138,75 +211,103 @@ export const usePredictBuyError = ({
     errorResult,
     isBelowMinimum,
     isInsufficientBalance,
-    maxBetAmount,
     activeOrder?.error,
     blockingPayAlertMessage,
     isPredictBalanceSelected,
     isSheetMode,
   ]);
 
-  const buyErrorBanner = useMemo<PredictBuyErrorBannerData | null>(() => {
-    // Inline banners are a sheet-mode-only surface. In legacy full-screen
-    // mode the equivalent error is surfaced via `errorMessage` instead.
-    if (!isSheetMode) {
+  const currentBuyErrorBanner =
+    useMemo<PredictBuyErrorBannerData | null>(() => {
+      // Inline banners are a sheet-mode-only surface. In legacy full-screen
+      // mode the equivalent error is surfaced via `errorMessage` instead.
+      if (!isSheetMode) {
+        return null;
+      }
+
+      if (isPlacingOrder || isConfirming) {
+        return null;
+      }
+
+      if (!activeOrder?.error) {
+        return null;
+      }
+
+      if (blockingPayAlertMessage && !isPredictBalanceSelected) {
+        return null;
+      }
+
+      const orderError = getPlaceOrderErrorOutcome({
+        error: activeOrder.error,
+        orderParams: { preview } as PlaceOrderParams,
+      });
+
+      if (!orderError) {
+        return null;
+      }
+
+      if (orderError.status === 'order_not_filled') {
+        const fallbackPrice = preview?.sharePrice ?? outcomeTokenPrice ?? 0;
+        return {
+          variant: 'price_changed',
+          title: strings('predict.order.price_changed_title'),
+          description: strings('predict.order.price_changed_body', {
+            price: formatCents(fallbackPrice),
+          }),
+        };
+      }
+
+      if (orderError.status === 'error') {
+        return {
+          variant: 'order_failed',
+          title: strings('predict.order.order_failed_title'),
+          description: strings('predict.order.order_failed_body'),
+        };
+      }
+
       return null;
+    }, [
+      activeOrder?.error,
+      preview,
+      outcomeTokenPrice,
+      isPlacingOrder,
+      isConfirming,
+      blockingPayAlertMessage,
+      isPredictBalanceSelected,
+      isSheetMode,
+    ]);
+
+  useEffect(() => {
+    if (currentBuyErrorBanner) {
+      setPersistedBuyErrorBanner(currentBuyErrorBanner);
+    }
+  }, [currentBuyErrorBanner]);
+
+  useEffect(() => {
+    if (
+      previousSelectedPaymentTokenKeyRef.current === selectedPaymentTokenKey
+    ) {
+      return;
     }
 
-    if (isPlacingOrder || isConfirming) {
-      return null;
-    }
+    previousSelectedPaymentTokenKeyRef.current = selectedPaymentTokenKey;
+    setPersistedBuyErrorBanner(null);
+  }, [selectedPaymentTokenKey]);
 
-    if (!activeOrder?.error) {
-      return null;
-    }
+  const shouldSuppressBuyErrorBanner =
+    !isSheetMode ||
+    isPlacingOrder ||
+    isConfirming ||
+    Boolean(blockingPayAlertMessage && !isPredictBalanceSelected);
 
-    if (blockingPayAlertMessage && !isPredictBalanceSelected) {
-      return null;
-    }
-
-    const orderError = getPlaceOrderErrorOutcome({
-      error: activeOrder.error,
-      orderParams: { preview } as PlaceOrderParams,
-    });
-
-    if (!orderError) {
-      return null;
-    }
-
-    if (orderError.status === 'order_not_filled') {
-      const fallbackPrice = preview?.sharePrice ?? outcomeTokenPrice ?? 0;
-      return {
-        variant: 'price_changed',
-        title: strings('predict.order.price_changed_title'),
-        description: strings('predict.order.price_changed_body', {
-          price: formatCents(fallbackPrice),
-        }),
-      };
-    }
-
-    if (orderError.status === 'error') {
-      return {
-        variant: 'order_failed',
-        title: strings('predict.order.order_failed_title'),
-        description: strings('predict.order.order_failed_body'),
-      };
-    }
-
-    return null;
-  }, [
-    activeOrder?.error,
-    preview,
-    outcomeTokenPrice,
-    isPlacingOrder,
-    isConfirming,
-    blockingPayAlertMessage,
-    isPredictBalanceSelected,
-    isSheetMode,
-  ]);
+  const buyErrorBanner =
+    currentBuyErrorBanner ??
+    (shouldSuppressBuyErrorBanner ? null : persistedBuyErrorBanner);
 
   const clearBuyErrorBanner = useCallback(() => {
     clearOrderError();
     setIsOrderNotFilled(false);
+    setPersistedBuyErrorBanner(null);
   }, [clearOrderError]);
 
   const resetOrderNotFilled = clearBuyErrorBanner;
@@ -218,7 +319,8 @@ export const usePredictBuyError = ({
   }, [errorResult]);
 
   return {
-    errorMessage,
+    errorMessage: errorMessageData?.message,
+    errorMessageSource: errorMessageData?.source,
     buyErrorBanner,
     isOrderNotFilled,
     resetOrderNotFilled,

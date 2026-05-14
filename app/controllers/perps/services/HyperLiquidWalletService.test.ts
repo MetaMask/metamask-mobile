@@ -322,7 +322,13 @@ describe('HyperLiquidWalletService', () => {
       expect(service.isSelectedHardwareWallet()).toBe(false);
     });
 
-    it('returns true for Ledger hardware wallet', () => {
+    it.each([
+      'Ledger Hardware',
+      'Trezor Hardware',
+      'OneKey Hardware',
+      'Lattice Hardware',
+      'QR Hardware Wallet Device',
+    ])('returns true for %s wallet', (keyringType) => {
       (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
         if (
           action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
@@ -332,28 +338,7 @@ describe('HyperLiquidWalletService', () => {
               ...mockEvmAccount,
               metadata: {
                 ...mockEvmAccount.metadata,
-                keyring: { type: 'Ledger Hardware' },
-              },
-            },
-          ];
-        }
-        return undefined;
-      });
-
-      expect(service.isSelectedHardwareWallet()).toBe(true);
-    });
-
-    it('returns true for QR hardware wallet', () => {
-      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [
-            {
-              ...mockEvmAccount,
-              metadata: {
-                ...mockEvmAccount.metadata,
-                keyring: { type: 'QR Hardware Wallet Device' },
+                keyring: { type: keyringType },
               },
             },
           ];
