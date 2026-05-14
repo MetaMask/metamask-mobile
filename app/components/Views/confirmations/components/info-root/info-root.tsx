@@ -30,6 +30,7 @@ import { MusdConversionInfoRoot } from '../info/musd-conversion-info-root';
 import { MoneyAccountDepositInfo } from '../info/money-account-deposit-info';
 import { MoneyAccountWithdrawInfo } from '../info/money-account-withdraw-info';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
+import { useTransactionPayAutoFiatSubmission } from '../../hooks/pay/useTransactionPayAutoFiatSubmission';
 import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
 
 interface ConfirmationInfoComponentRequest {
@@ -91,6 +92,7 @@ const Info = ({ route }: InfoProps) => {
   const { isDowngrade, isUpgradeOnly } = use7702TransactionType();
   // Refresh STX liveness for the transaction's network
   useRefreshSmartTransactionsLiveness(transactionMetadata?.chainId);
+  useTransactionPayAutoFiatSubmission();
 
   if (!approvalRequest?.type) {
     return null;
