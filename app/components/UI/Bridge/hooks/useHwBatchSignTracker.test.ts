@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
   TransactionStatus,
@@ -6,7 +5,10 @@ import {
 } from '@metamask/transaction-controller';
 import { useHwBatchSignTracker } from './useHwBatchSignTracker';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
-import { HardwareWalletsSwapsStepKind, HardwareWalletsSwapsEventType } from '../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
+import {
+  HardwareWalletsSwapsStepKind,
+  HardwareWalletsSwapsEventType,
+} from '../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
 
 jest.mock('../../../../core/Engine', () => ({
   rejectPendingApproval: jest.fn(),
@@ -596,18 +598,14 @@ describe('useHwBatchSignTracker', () => {
   describe('approval acceptance', () => {
     it('accepts pending approval requests for matching bridge transactions', async () => {
       const txId = 'tx-approval-001';
-      (
-        Engine.context.TransactionController.state as any
-      ).transactions = [
+      (Engine.context.TransactionController.state as any).transactions = [
         {
           id: txId,
           type: TransactionType.bridgeApproval,
           txParams: { from: FROM_ADDRESS },
         },
       ];
-      (
-        Engine.context.ApprovalController.state as any
-      ).pendingApprovals = {
+      (Engine.context.ApprovalController.state as any).pendingApprovals = {
         [txId]: { id: txId, type: 'transaction' },
       };
 
@@ -616,25 +614,20 @@ describe('useHwBatchSignTracker', () => {
       );
 
       const handler = mockSubscribe.mock.calls.find(
-        ([event]: [string]) =>
-          event === 'ApprovalController:stateChange',
+        ([event]: [string]) => event === 'ApprovalController:stateChange',
       )?.[1];
 
       await act(async () => {
         await handler!();
       });
 
-      expect(Engine.context.ApprovalController.acceptRequest).toHaveBeenCalledWith(
-        txId,
-        undefined,
-        { waitForResult: true },
-      );
+      expect(
+        Engine.context.ApprovalController.acceptRequest,
+      ).toHaveBeenCalledWith(txId, undefined, { waitForResult: true });
     });
 
     it('does not accept non-transaction approval requests', async () => {
-      (
-        Engine.context.ApprovalController.state as any
-      ).pendingApprovals = {
+      (Engine.context.ApprovalController.state as any).pendingApprovals = {
         'sig-001': { id: 'sig-001', type: 'personal_sign' },
       };
 
@@ -643,31 +636,28 @@ describe('useHwBatchSignTracker', () => {
       );
 
       const handler = mockSubscribe.mock.calls.find(
-        ([event]: [string]) =>
-          event === 'ApprovalController:stateChange',
+        ([event]: [string]) => event === 'ApprovalController:stateChange',
       )?.[1];
 
       await act(async () => {
         await handler!();
       });
 
-      expect(Engine.context.ApprovalController.acceptRequest).not.toHaveBeenCalled();
+      expect(
+        Engine.context.ApprovalController.acceptRequest,
+      ).not.toHaveBeenCalled();
     });
 
     it('does not accept the same approval request twice', async () => {
       const txId = 'tx-dup-001';
-      (
-        Engine.context.TransactionController.state as any
-      ).transactions = [
+      (Engine.context.TransactionController.state as any).transactions = [
         {
           id: txId,
           type: TransactionType.bridge,
           txParams: { from: FROM_ADDRESS },
         },
       ];
-      (
-        Engine.context.ApprovalController.state as any
-      ).pendingApprovals = {
+      (Engine.context.ApprovalController.state as any).pendingApprovals = {
         [txId]: { id: txId, type: 'transaction' },
       };
 
@@ -676,8 +666,7 @@ describe('useHwBatchSignTracker', () => {
       );
 
       const handler = mockSubscribe.mock.calls.find(
-        ([event]: [string]) =>
-          event === 'ApprovalController:stateChange',
+        ([event]: [string]) => event === 'ApprovalController:stateChange',
       )?.[1];
 
       await act(async () => {
@@ -685,14 +674,14 @@ describe('useHwBatchSignTracker', () => {
         await handler!();
       });
 
-      expect(Engine.context.ApprovalController.acceptRequest).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.ApprovalController.acceptRequest,
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('accepts pending transaction_batch approval requests through the hardware wallet operation flow', async () => {
       const batchId = 'batch-approval-001';
-      (
-        Engine.context.ApprovalController.state as any
-      ).pendingApprovals = {
+      (Engine.context.ApprovalController.state as any).pendingApprovals = {
         [batchId]: { id: batchId, type: 'transaction_batch' },
       };
 
@@ -701,8 +690,7 @@ describe('useHwBatchSignTracker', () => {
       );
 
       const handler = mockSubscribe.mock.calls.find(
-        ([event]: [string]) =>
-          event === 'ApprovalController:stateChange',
+        ([event]: [string]) => event === 'ApprovalController:stateChange',
       )?.[1];
 
       await act(async () => {
@@ -716,11 +704,9 @@ describe('useHwBatchSignTracker', () => {
           execute: expect.any(Function),
         }),
       );
-      expect(Engine.context.ApprovalController.acceptRequest).toHaveBeenCalledWith(
-        batchId,
-        undefined,
-        { waitForResult: true },
-      );
+      expect(
+        Engine.context.ApprovalController.acceptRequest,
+      ).toHaveBeenCalledWith(batchId, undefined, { waitForResult: true });
     });
 
     it('clears transaction_batch dedupe and dispatches failed when hardware operation rejects', async () => {
@@ -732,9 +718,7 @@ describe('useHwBatchSignTracker', () => {
           return false;
         },
       );
-      (
-        Engine.context.ApprovalController.state as any
-      ).pendingApprovals = {
+      (Engine.context.ApprovalController.state as any).pendingApprovals = {
         [batchId]: { id: batchId, type: 'transaction_batch' },
       };
 
@@ -743,8 +727,7 @@ describe('useHwBatchSignTracker', () => {
       );
 
       const handler = mockSubscribe.mock.calls.find(
-        ([event]: [string]) =>
-          event === 'ApprovalController:stateChange',
+        ([event]: [string]) => event === 'ApprovalController:stateChange',
       )?.[1];
 
       await act(async () => {
@@ -770,9 +753,7 @@ describe('useHwBatchSignTracker', () => {
           return false;
         },
       );
-      (
-        Engine.context.ApprovalController.state as any
-      ).pendingApprovals = {
+      (Engine.context.ApprovalController.state as any).pendingApprovals = {
         [batchId]: { id: batchId, type: 'transaction_batch' },
       };
 
@@ -781,8 +762,7 @@ describe('useHwBatchSignTracker', () => {
       );
 
       const approvalHandler = mockSubscribe.mock.calls.find(
-        ([event]: [string]) =>
-          event === 'ApprovalController:stateChange',
+        ([event]: [string]) => event === 'ApprovalController:stateChange',
       )?.[1];
       const statusHandler = mockSubscribe.mock.calls.find(
         ([event]: [string]) =>
@@ -828,9 +808,7 @@ describe('useHwBatchSignTracker', () => {
 
     it('processes only one approval when stateChange fires concurrently', async () => {
       const batchId = 'batch-concurrent-001';
-      (
-        Engine.context.ApprovalController.state as any
-      ).pendingApprovals = {
+      (Engine.context.ApprovalController.state as any).pendingApprovals = {
         [batchId]: { id: batchId, type: 'transaction_batch' },
       };
 
@@ -839,8 +817,7 @@ describe('useHwBatchSignTracker', () => {
       );
 
       const handler = mockSubscribe.mock.calls.find(
-        ([event]: [string]) =>
-          event === 'ApprovalController:stateChange',
+        ([event]: [string]) => event === 'ApprovalController:stateChange',
       )?.[1];
 
       await act(async () => {
@@ -850,7 +827,9 @@ describe('useHwBatchSignTracker', () => {
       });
 
       expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledTimes(1);
-      expect(Engine.context.ApprovalController.acceptRequest).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.ApprovalController.acceptRequest,
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('processes multiple distinct approvals sequentially', async () => {
@@ -871,9 +850,7 @@ describe('useHwBatchSignTracker', () => {
           return true;
         });
 
-      (
-        Engine.context.ApprovalController.state as any
-      ).pendingApprovals = {
+      (Engine.context.ApprovalController.state as any).pendingApprovals = {
         [batchId1]: { id: batchId1, type: 'transaction_batch' },
         [batchId2]: { id: batchId2, type: 'transaction_batch' },
       };
@@ -883,8 +860,7 @@ describe('useHwBatchSignTracker', () => {
       );
 
       const handler = mockSubscribe.mock.calls.find(
-        ([event]: [string]) =>
-          event === 'ApprovalController:stateChange',
+        ([event]: [string]) => event === 'ApprovalController:stateChange',
       )?.[1];
 
       await act(async () => {

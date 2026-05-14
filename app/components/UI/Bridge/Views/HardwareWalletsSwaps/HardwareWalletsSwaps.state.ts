@@ -156,7 +156,6 @@ export function hardwareWalletsSwapsReducer(
   state: HardwareWalletsSwapsState,
   event: HardwareWalletsSwapsEvent,
 ): HardwareWalletsSwapsState {
-  console.log('[HW-Swaps-Reducer] event:', JSON.stringify(event), 'currentState:', JSON.stringify({ status: state.status, currentStep: state.currentStep, totalSteps: state.totalSteps }));
   switch (event.type) {
     case HardwareWalletsSwapsEventType.Start: {
       const totalSteps = Math.max(event.payload.totalSteps, 1);
@@ -194,6 +193,7 @@ export function hardwareWalletsSwapsReducer(
     case HardwareWalletsSwapsEventType.Signed: {
       if (
         state.status === HardwareWalletsSwapsStatus.Rejected ||
+        state.status === HardwareWalletsSwapsStatus.Submitted ||
         state.status === HardwareWalletsSwapsStatus.Failed ||
         state.status === HardwareWalletsSwapsStatus.Disconnected ||
         state.status === HardwareWalletsSwapsStatus.Cancelled
@@ -216,6 +216,10 @@ export function hardwareWalletsSwapsReducer(
       };
     }
     case HardwareWalletsSwapsEventType.Rejected: {
+      if (state.status !== HardwareWalletsSwapsStatus.Waiting) {
+        return state;
+      }
+
       const stepKind =
         event.payload?.stepKind ?? state.steps[state.currentStep - 1]?.kind;
       if (stepKind && !isCurrentStepKind(state, stepKind)) {

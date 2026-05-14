@@ -106,15 +106,14 @@ export function useHwBatchSignTracker({
     signedBatchIdsRef.current = new Set();
     acceptedApprovalIdsRef.current = new Set();
     approvalQueueRef.current = [];
-    isProcessingQueueRef.current = false;
     batchGenerationRef.current += 1;
     currentBatchIdRef.current = null;
     setConfirmationTxId(undefined);
 
     const pendingApprovals = Engine.context.ApprovalController.state.pendingApprovals ?? {};
     for (const [requestId, request] of Object.entries(pendingApprovals)) {
-      if (request.type === 'transaction_batch') {
-        console.log('[HW-BatchSign] cancelCurrentBatch — rejecting pending transaction_batch', { requestId });
+      if (request.type === 'transaction_batch' || request.type === 'transaction') {
+        console.log('[HW-BatchSign] cancelCurrentBatch — rejecting pending approval', { requestId, type: request.type });
         Engine.rejectPendingApproval(requestId, new Error('Batch cancelled'), {
           ignoreMissing: true,
           logErrors: false,
@@ -137,6 +136,8 @@ export function useHwBatchSignTracker({
         }
       }),
     );
+
+    isProcessingQueueRef.current = false;
   }, []);
 
   useEffect(() => {
@@ -231,6 +232,9 @@ export function useHwBatchSignTracker({
         }
       } finally {
         setProcessingQueue(false);
+        if (approvalQueue.length > 0) {
+          processApprovalQueue();
+        }
       }
     };
 
@@ -334,6 +338,11 @@ export function useHwBatchSignTracker({
       if (!isFromCurrentBatch(transactionMeta)) {
         return;
       }
+      if (pendingAbortTxIdsRef.current.has(transactionMeta.id)) {
+        pendingAbortTxIdsRef.current.delete(transactionMeta.id);
+        console.log('[HW-BatchSign] transactionRejected for aborted tx — ignoring', { txId: transactionMeta.id });
+        return;
+      }
 
       const stepKind = getStepKind(transactionMeta.type as TransactionType);
       console.log('[HW-BatchSign] transactionRejected — dispatching REJECTED', { txId: transactionMeta.id, stepKind });
@@ -358,6 +367,11 @@ export function useHwBatchSignTracker({
       if (!matchesTx(transactionMeta, targetFrom)) return;
       if (handledTxIds.has(transactionMeta.id)) return;
       if (!isFromCurrentBatch(transactionMeta)) {
+        return;
+      }
+      if (pendingAbortTxIdsRef.current.has(transactionMeta.id)) {
+        pendingAbortTxIdsRef.current.delete(transactionMeta.id);
+        console.log('[HW-BatchSign] transactionFailed for aborted tx — ignoring', { txId: transactionMeta.id });
         return;
       }
 

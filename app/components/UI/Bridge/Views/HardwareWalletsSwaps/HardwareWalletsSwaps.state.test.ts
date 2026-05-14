@@ -1,5 +1,6 @@
 import {
   hardwareWalletsSwapsReducer,
+  type HardwareWalletsSwapsEvent,
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsStepKind,
   HardwareWalletsSwapsStepStatus,
@@ -72,7 +73,9 @@ describe('hardwareWalletsSwapsReducer', () => {
 
     expect(result.status).toBe(HardwareWalletsSwapsStatus.Rejected);
     expect(result.currentStep).toBe(1);
-    expect(result.steps[0].status).toBe(HardwareWalletsSwapsStepStatus.Rejected);
+    expect(result.steps[0].status).toBe(
+      HardwareWalletsSwapsStepStatus.Rejected,
+    );
   });
 
   it('retries from the rejected step', () => {
@@ -114,7 +117,9 @@ describe('hardwareWalletsSwapsReducer', () => {
     });
 
     expect(rejectedState.currentStep).toBe(2);
-    expect(rejectedState.steps[1].status).toBe(HardwareWalletsSwapsStepStatus.Rejected);
+    expect(rejectedState.steps[1].status).toBe(
+      HardwareWalletsSwapsStepStatus.Rejected,
+    );
 
     const result = hardwareWalletsSwapsReducer(rejectedState, {
       type: HardwareWalletsSwapsEventType.Retry,
@@ -151,7 +156,9 @@ describe('hardwareWalletsSwapsReducer', () => {
 
     expect(retried.status).toBe(HardwareWalletsSwapsStatus.Waiting);
     expect(retried.currentStep).toBe(1);
-    expect(retried.steps[0].status).toBe(HardwareWalletsSwapsStepStatus.Waiting);
+    expect(retried.steps[0].status).toBe(
+      HardwareWalletsSwapsStepStatus.Waiting,
+    );
     expect(retried.disconnectedStep).toBeNull();
   });
 
@@ -230,10 +237,13 @@ describe('hardwareWalletsSwapsReducer', () => {
   });
 
   it('clamps totalSteps to 1 when START is called with 0', () => {
-    const result = hardwareWalletsSwapsReducer(initialHardwareWalletsSwapsState, {
-      type: HardwareWalletsSwapsEventType.Start,
-      payload: { totalSteps: 0 },
-    });
+    const result = hardwareWalletsSwapsReducer(
+      initialHardwareWalletsSwapsState,
+      {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: { totalSteps: 0 },
+      },
+    );
 
     expect(result.totalSteps).toBe(1);
     expect(result.currentStep).toBe(1);
@@ -253,7 +263,9 @@ describe('hardwareWalletsSwapsReducer', () => {
 
     expect(result.status).toBe(HardwareWalletsSwapsStatus.Rejected);
     expect(result.currentStep).toBe(1);
-    expect(result.steps[0].status).toBe(HardwareWalletsSwapsStepStatus.Rejected);
+    expect(result.steps[0].status).toBe(
+      HardwareWalletsSwapsStepStatus.Rejected,
+    );
   });
 
   it('ignores SIGNING for a step kind that is not current', () => {
@@ -306,37 +318,46 @@ describe('hardwareWalletsSwapsReducer', () => {
   });
 
   it('populates step addresses from START payload', () => {
-    const result = hardwareWalletsSwapsReducer(initialHardwareWalletsSwapsState, {
-      type: HardwareWalletsSwapsEventType.Start,
-      payload: {
-        totalSteps: 2,
-        spenderAddress: '0xSpender',
-        recipientAddress: '0xRecipient',
+    const result = hardwareWalletsSwapsReducer(
+      initialHardwareWalletsSwapsState,
+      {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: {
+          totalSteps: 2,
+          spenderAddress: '0xSpender',
+          recipientAddress: '0xRecipient',
+        },
       },
-    });
+    );
 
     expect(result.steps[0].address).toBe('0xSpender');
     expect(result.steps[1].address).toBe('0xRecipient');
   });
 
   it('omits addresses when not provided in START payload', () => {
-    const result = hardwareWalletsSwapsReducer(initialHardwareWalletsSwapsState, {
-      type: HardwareWalletsSwapsEventType.Start,
-      payload: { totalSteps: 2 },
-    });
+    const result = hardwareWalletsSwapsReducer(
+      initialHardwareWalletsSwapsState,
+      {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: { totalSteps: 2 },
+      },
+    );
 
     expect(result.steps[0].address).toBeUndefined();
     expect(result.steps[1].address).toBeUndefined();
   });
 
   it('assigns recipient address to the only step for single-step flows', () => {
-    const result = hardwareWalletsSwapsReducer(initialHardwareWalletsSwapsState, {
-      type: HardwareWalletsSwapsEventType.Start,
-      payload: {
-        totalSteps: 1,
-        recipientAddress: '0xRecipient',
+    const result = hardwareWalletsSwapsReducer(
+      initialHardwareWalletsSwapsState,
+      {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: {
+          totalSteps: 1,
+          recipientAddress: '0xRecipient',
+        },
       },
-    });
+    );
 
     expect(result.steps[0].address).toBe('0xRecipient');
     expect(result.steps[0].kind).toBe(HardwareWalletsSwapsStepKind.Transaction);
@@ -381,7 +402,49 @@ describe('hardwareWalletsSwapsReducer', () => {
       payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
     });
 
-    expect(result.status).toBe(HardwareWalletsSwapsStatus.Submitted);
+    expect(result).toBe(submittedState);
+  });
+
+  it('ignores late REJECTED after the final step has submitted', () => {
+    const submittedState = hardwareWalletsSwapsReducer(
+      hardwareWalletsSwapsReducer(initialHardwareWalletsSwapsState, {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: { totalSteps: 1 },
+      }),
+      {
+        type: HardwareWalletsSwapsEventType.Signed,
+        payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
+      },
+    );
+
+    expect(submittedState.status).toBe(HardwareWalletsSwapsStatus.Submitted);
+    expect(submittedState.currentStep).toBe(1);
+
+    const result = hardwareWalletsSwapsReducer(submittedState, {
+      type: HardwareWalletsSwapsEventType.Rejected,
+      payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
+    });
+
+    expect(result).toBe(submittedState);
+  });
+
+  it('ignores late REJECTED after the progress flow has been cancelled', () => {
+    const cancelledState = hardwareWalletsSwapsReducer(
+      hardwareWalletsSwapsReducer(initialHardwareWalletsSwapsState, {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: { totalSteps: 1 },
+      }),
+      { type: HardwareWalletsSwapsEventType.Cancel },
+    );
+
+    expect(cancelledState.status).toBe(HardwareWalletsSwapsStatus.Cancelled);
+
+    const result = hardwareWalletsSwapsReducer(cancelledState, {
+      type: HardwareWalletsSwapsEventType.Rejected,
+      payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
+    });
+
+    expect(result).toBe(cancelledState);
   });
 
   it('REJECTED without payload uses fallback when current step has matching kind', () => {
@@ -395,33 +458,38 @@ describe('hardwareWalletsSwapsReducer', () => {
     });
 
     expect(result.status).toBe(HardwareWalletsSwapsStatus.Rejected);
-    expect(result.steps[0].status).toBe(HardwareWalletsSwapsStepStatus.Rejected);
+    expect(result.steps[0].status).toBe(
+      HardwareWalletsSwapsStepStatus.Rejected,
+    );
   });
 
   it('REJECTED without payload falls back to current step index map', () => {
-    const state: import('./HardwareWalletsSwaps.state').HardwareWalletsSwapsState = {
-      status: HardwareWalletsSwapsStatus.Waiting,
-      currentStep: 1,
-      totalSteps: 2,
-      steps: [
-        {
-          kind: HardwareWalletsSwapsStepKind.Approval,
-          status: HardwareWalletsSwapsStepStatus.Waiting,
-        },
-        {
-          kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: HardwareWalletsSwapsStepStatus.Waiting,
-        },
-      ],
-      disconnectedStep: null,
-    };
+    const state: import('./HardwareWalletsSwaps.state').HardwareWalletsSwapsState =
+      {
+        status: HardwareWalletsSwapsStatus.Waiting,
+        currentStep: 1,
+        totalSteps: 2,
+        steps: [
+          {
+            kind: HardwareWalletsSwapsStepKind.Approval,
+            status: HardwareWalletsSwapsStepStatus.Waiting,
+          },
+          {
+            kind: HardwareWalletsSwapsStepKind.Transaction,
+            status: HardwareWalletsSwapsStepStatus.Waiting,
+          },
+        ],
+        disconnectedStep: null,
+      };
 
     const result = hardwareWalletsSwapsReducer(state, {
       type: HardwareWalletsSwapsEventType.Rejected,
     });
 
     expect(result.status).toBe(HardwareWalletsSwapsStatus.Rejected);
-    expect(result.steps[0].status).toBe(HardwareWalletsSwapsStepStatus.Rejected);
+    expect(result.steps[0].status).toBe(
+      HardwareWalletsSwapsStepStatus.Rejected,
+    );
   });
 
   it('returns state unchanged for unknown event type', () => {
@@ -430,9 +498,11 @@ describe('hardwareWalletsSwapsReducer', () => {
       { type: HardwareWalletsSwapsEventType.Start, payload: { totalSteps: 2 } },
     );
 
-    const result = hardwareWalletsSwapsReducer(state, {
-      type: 'UNKNOWN_EVENT' as any,
-    });
+    const unknownEvent = {
+      type: 'UNKNOWN_EVENT',
+    } as unknown as HardwareWalletsSwapsEvent;
+
+    const result = hardwareWalletsSwapsReducer(state, unknownEvent);
 
     expect(result).toBe(state);
   });
@@ -454,7 +524,9 @@ describe('hardwareWalletsSwapsReducer', () => {
 
     expect(state.disconnectedStep).toBe(1);
 
-    const result = hardwareWalletsSwapsReducer(state, { type: HardwareWalletsSwapsEventType.Retry });
+    const result = hardwareWalletsSwapsReducer(state, {
+      type: HardwareWalletsSwapsEventType.Retry,
+    });
 
     expect(result.status).toBe(HardwareWalletsSwapsStatus.Waiting);
     expect(result.currentStep).toBe(1);

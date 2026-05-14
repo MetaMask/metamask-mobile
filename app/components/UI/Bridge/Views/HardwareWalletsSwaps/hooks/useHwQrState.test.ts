@@ -1,9 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { renderHook, act } from '@testing-library/react-native';
-import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { ConnectionStatus, HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { useHwQrState } from './useHwQrState';
 import { updateHardwareWalletsSwaps } from '../../../../../../core/redux/slices/bridge';
 import { HardwareWalletsSwapsStatus, HardwareWalletsSwapsEventType } from '../HardwareWalletsSwaps.state';
+import type { HardwareWalletContextValue } from '../../../../../../core/HardwareWallet/contexts';
 
 jest.mock('../../../../../../core/HardwareWallet', () => ({
   useHardwareWallet: jest.fn(),
@@ -24,9 +25,27 @@ const mockUseHardwareWallet = useHardwareWallet as jest.MockedFunction<
   typeof useHardwareWallet
 >;
 
-function mockQrWallet(pendingScanRequest?: { id: string }) {
+function makeQrScanRequest(id: string) {
+  return { type: QrScanRequestType.SIGN, request: { id } } as unknown as NonNullable<HardwareWalletContextValue['qr']['pendingScanRequest']>;
+}
+
+function mockQrWallet(pendingScanRequest?: NonNullable<HardwareWalletContextValue['qr']['pendingScanRequest']>): HardwareWalletContextValue {
   return {
     walletType: HardwareWalletType.Qr,
+    deviceId: null,
+    connectionState: { status: ConnectionStatus.Ready },
+    deviceSelection: {
+      devices: [],
+      selectedDevice: null,
+      isScanning: false,
+      scanError: null,
+    },
+    ensureDeviceReady: jest.fn(),
+    setTargetWalletType: jest.fn(),
+    setPendingOperationAddress: jest.fn(),
+    showHardwareWalletError: jest.fn(),
+    showAwaitingConfirmation: jest.fn(),
+    hideAwaitingConfirmation: jest.fn(),
     qr: {
       pendingScanRequest,
       isSigningQRObject: false,
@@ -34,12 +53,26 @@ function mockQrWallet(pendingScanRequest?: { id: string }) {
       isRequestCompleted: false,
       cancelQRScanRequestIfPresent: jest.fn(),
     },
-  } as any;
+  };
 }
 
-function mockLedgerWallet() {
+function mockLedgerWallet(): HardwareWalletContextValue {
   return {
     walletType: HardwareWalletType.Ledger,
+    deviceId: null,
+    connectionState: { status: ConnectionStatus.Ready },
+    deviceSelection: {
+      devices: [],
+      selectedDevice: null,
+      isScanning: false,
+      scanError: null,
+    },
+    ensureDeviceReady: jest.fn(),
+    setTargetWalletType: jest.fn(),
+    setPendingOperationAddress: jest.fn(),
+    showHardwareWalletError: jest.fn(),
+    showAwaitingConfirmation: jest.fn(),
+    hideAwaitingConfirmation: jest.fn(),
     qr: {
       pendingScanRequest: undefined,
       isSigningQRObject: false,
@@ -47,7 +80,7 @@ function mockLedgerWallet() {
       isRequestCompleted: false,
       cancelQRScanRequestIfPresent: jest.fn(),
     },
-  } as any;
+  };
 }
 
 describe('useHwQrState', () => {
@@ -70,7 +103,7 @@ describe('useHwQrState', () => {
   });
 
   it('shows inline QR signing when in Waiting state with active QR request', () => {
-    mockUseHardwareWallet.mockReturnValue(mockQrWallet({ id: 'scan-1' }));
+    mockUseHardwareWallet.mockReturnValue(mockQrWallet(makeQrScanRequest('scan-1')));
 
     const { result } = renderHook(() =>
       useHwQrState({
@@ -83,7 +116,7 @@ describe('useHwQrState', () => {
   });
 
   it('does not show inline QR signing when not in Waiting state', () => {
-    mockUseHardwareWallet.mockReturnValue(mockQrWallet({ id: 'scan-1' }));
+    mockUseHardwareWallet.mockReturnValue(mockQrWallet(makeQrScanRequest('scan-1')));
 
     const { result } = renderHook(() =>
       useHwQrState({
@@ -118,7 +151,7 @@ describe('useHwQrState', () => {
 
   it('resets isReadingQrSignature when request ID changes', () => {
     const { result, rerender } = renderHook(
-      ({ pendingScanRequest }) => {
+      ({ pendingScanRequest }: { pendingScanRequest: NonNullable<HardwareWalletContextValue['qr']['pendingScanRequest']> }) => {
         mockUseHardwareWallet.mockReturnValue(mockQrWallet(pendingScanRequest));
         return useHwQrState({
           isEnabled: true,
@@ -126,7 +159,7 @@ describe('useHwQrState', () => {
         });
       },
       {
-        initialProps: { pendingScanRequest: { id: 'scan-1' } as any },
+        initialProps: { pendingScanRequest: makeQrScanRequest('scan-1') },
       },
     );
 
@@ -136,7 +169,7 @@ describe('useHwQrState', () => {
 
     expect(result.current.isReadingQrSignature).toBe(true);
 
-    rerender({ pendingScanRequest: { id: 'scan-2' } as any });
+    rerender({ pendingScanRequest: makeQrScanRequest('scan-2') });
 
     expect(result.current.isReadingQrSignature).toBe(false);
   });
@@ -156,7 +189,7 @@ describe('useHwQrState', () => {
   });
 
   it('returns false for showInlineQrSigning when disabled', () => {
-    mockUseHardwareWallet.mockReturnValue(mockQrWallet({ id: 'scan-1' }));
+    mockUseHardwareWallet.mockReturnValue(mockQrWallet(makeQrScanRequest('scan-1')));
 
     const { result } = renderHook(() =>
       useHwQrState({

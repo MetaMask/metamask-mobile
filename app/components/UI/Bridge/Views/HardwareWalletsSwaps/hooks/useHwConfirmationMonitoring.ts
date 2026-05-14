@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { updateHardwareWalletsSwaps } from '../../../../../../core/redux/slices/bridge';
 import { HardwareWalletsSwapsStatus } from '../HardwareWalletsSwaps.state';
 
 /**

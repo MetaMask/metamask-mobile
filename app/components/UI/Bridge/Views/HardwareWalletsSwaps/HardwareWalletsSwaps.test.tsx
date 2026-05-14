@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -16,7 +15,6 @@ import {
 import { HardwareWalletsSwaps } from './HardwareWalletsSwaps';
 import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
-import { updateHardwareWalletsSwaps } from '../../../../../core/redux/slices/bridge';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
