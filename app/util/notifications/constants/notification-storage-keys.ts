@@ -1,8 +1,11 @@
 import {
   HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS,
   RESUBSCRIBE_NOTIFICATIONS_EXPIRY,
+  TRUE,
 } from '../../../constants/storage';
 import storageWrapper from '../../../store/storage-wrapper';
+
+export const PUSH_PRE_PROMPT_SHOWN = '@MetaMask:PUSH_PRE_PROMPT_SHOWN';
 
 /**
  * Used to track when/how often we should re-subscribe users to notifications.
@@ -42,4 +45,22 @@ export const hasUserTurnedOffNotificationsOnce = async () => {
 
 export const setUserHasTurnedOffNotificationsOnce = async () => {
   await storageWrapper.setItem(HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS, 'true');
+};
+
+/**
+ * Tracks whether this user has ever seen the push pre-prompt flow.
+ * The flag is intentionally local and shared by both pre-prompt variants so a
+ * user sees at most one pre-prompt on this install.
+ */
+export const hasPushPrePromptBeenShown = () => {
+  const localShown = storageWrapper.getItemSync(PUSH_PRE_PROMPT_SHOWN);
+  return localShown === TRUE;
+};
+
+export const setPushPrePromptShown = async () => {
+  await storageWrapper.setItem(PUSH_PRE_PROMPT_SHOWN, TRUE);
+};
+
+export const resetPushPrePromptShown = async () => {
+  await storageWrapper.removeItem(PUSH_PRE_PROMPT_SHOWN);
 };

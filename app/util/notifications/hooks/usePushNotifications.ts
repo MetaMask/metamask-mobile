@@ -13,6 +13,10 @@ import {
   hasPushPermission,
   requestPushPermissions,
 } from '../services/NotificationService';
+import {
+  clearPushNotificationStatusCache,
+  setCachedNativePermissionEnabled,
+} from '../utils/push-notification-status';
 
 export interface UsePushNotificationsToggleProps {
   // Depending on the instance, we may want to nudge to enable push notifications
@@ -32,25 +36,34 @@ export function usePushNotificationsToggle(
       ? requestPushPermissions
       : hasPushPermission;
 
-    const result = await pushPermCallback().catch(() => false);
-    if (!result) return;
+    const nativePermissionEnabled = await pushPermCallback().catch(() => false);
+    setCachedNativePermissionEnabled(nativePermissionEnabled);
+    if (!nativePermissionEnabled) {
+      return false;
+    }
 
-    await enablePushNotificationsHelper().catch(() => {
-      /* Do Nothing */
-    });
+    try {
+      await enablePushNotificationsHelper();
+      return true;
+    } catch {
+      return false;
+    }
   }, [props.nudgeEnablePush]);
 
   const disablePushNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
-    await disablePushNotificationsHelper().catch(() => {
-      /* Do Nothing */
-    });
+    try {
+      await disablePushNotificationsHelper();
+      clearPushNotificationStatusCache();
+      return true;
+    } catch {
+      return false;
+    }
   }, []);
 
   const togglePushNotification = useCallback(
-    async (val: boolean) => {
-      val ? await enablePushNotifications() : await disablePushNotifications();
-    },
+    async (val: boolean) =>
+      val ? await enablePushNotifications() : await disablePushNotifications(),
     [disablePushNotifications, enablePushNotifications],
   );
 

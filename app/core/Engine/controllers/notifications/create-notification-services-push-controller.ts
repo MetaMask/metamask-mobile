@@ -6,11 +6,11 @@ import {
 } from '@metamask/notification-services-controller/push-services';
 import I18n from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
+import { resolvePushNotificationStatus } from '../../../../util/notifications/utils/push-notification-status';
 import {
   createRegToken,
   createSubscribeToPushNotifications,
   deleteRegToken,
-  isPushNotificationsEnabled,
 } from './push-utils';
 
 export const createNotificationServicesPushController = (props: {
@@ -36,15 +36,23 @@ export const createNotificationServicesPushController = (props: {
   // Push Notification Side Effect - ensure permissions have been set
   // We only need to switch push notifications off if it is enabled, but the system/device has it off
   if (notificationServicesPushController.state.isPushEnabled) {
-    isPushNotificationsEnabled().then((isEnabled) => {
-      if (isEnabled === false) {
-        notificationServicesPushController
-          .disablePushNotifications()
-          .catch((error) => {
-            Logger.error(error);
-          });
-      }
-    });
+    resolvePushNotificationStatus({
+      controllerIsPushEnabled:
+        notificationServicesPushController.state.isPushEnabled,
+      source: 'push_controller_init',
+    })
+      .then(({ nativeOsPermissionEnabled }) => {
+        if (nativeOsPermissionEnabled === false) {
+          notificationServicesPushController
+            .disablePushNotifications()
+            .catch((error) => {
+              Logger.error(error);
+            });
+        }
+      })
+      .catch((error) => {
+        Logger.error(error);
+      });
   }
 
   return notificationServicesPushController;
