@@ -16,14 +16,14 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { Article, MarketInsightsSource } from '@metamask/ai-controllers';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
-import type { WhatsHappeningSourceValue } from '../../Homepage/Sections/WhatsHappening/constants';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
+import type { WhatsHappeningSourceValue } from '../../../UI/WhatsHappening/constants';
 import { strings } from '../../../../../locales/i18n';
 import {
   getImpactLabel,
   getImpactBackgroundClass,
   getImpactTextColor,
-} from '../../Homepage/Sections/WhatsHappening/util/impact';
+} from '../../../UI/WhatsHappening/util/impact';
 import {
   formatRelativeTime,
   getUniqueSourcesByFavicon,
@@ -100,7 +100,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   }, [tw, isDarkMode, colors.background.muted]);
 
   const aiPillContainerClass = isDarkMode
-    ? 'bg-icon-default rounded px-1.5 py-1 self-start'
+    ? 'bg-icon-default rounded px-1.5 py-1 self-start border border-transparent'
     : 'bg-default rounded px-1.5 py-1 self-start border border-text-default';
   const aiPillForegroundClass = isDarkMode
     ? 'text-icon-inverse'
@@ -148,12 +148,12 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                     fontWeight={FontWeight.Medium}
                     twClassName={aiPillForegroundClass}
                   >
-                    {strings('homepage.sections.whats_happening_ai')}
+                    {strings('whats_happening.ai')}
                   </Text>
                 </Box>
 
                 <Box
-                  twClassName={`${impactBgClass} rounded px-2 py-1 self-start`}
+                  twClassName={`${impactBgClass} rounded px-2 py-1 self-start border border-transparent`}
                 >
                   <Text variant={TextVariant.BodySm} color={impactTextColor}>
                     {impactLabel}
