@@ -320,8 +320,11 @@ describe(
           });
 
           await Assertions.expectElementToBeVisible(
-            RowComponents.NetworkFeeGasFeeTokenArrow,
-            { description: 'Gas Fee Token Arrow' },
+            RowComponents.NetworkFeeGasFeeTokenPill,
+            {
+              description: 'Gas Fee Token Pill',
+              timeout: 30000,
+            },
           );
 
           await TransactionConfirmView.tapGasFeeTokenPill();

@@ -49,6 +49,7 @@ import TagColored, {
 const PaidByMetaMask = () => (
   <TagColored
     color={TagColor.Success}
+    testID={ConfirmationRowComponentIDs.PAID_BY_METAMASK}
     labelProps={{
       variant: TextVariant.BodySM,
       style: {
@@ -57,7 +58,6 @@ const PaidByMetaMask = () => (
         bottom: 1,
         fontWeight: 'normal',
       },
-      testID: 'paid-by-metamask',
     }}
   >
     {strings('transactions.paid_by_metamask')}

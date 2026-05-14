@@ -23,6 +23,7 @@ const TagColored: React.FC<TagColoredProps> = ({
   color = DEFAULT_TAGCOLORED_COLOR,
   children,
   labelProps,
+  ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, color });
 
@@ -33,7 +34,11 @@ const TagColored: React.FC<TagColoredProps> = ({
   } = labelProps || {};
 
   return (
-    <View style={styles.base} testID={TAGCOLORED_TESTID}>
+    <View
+      {...props}
+      style={styles.base}
+      testID={props.testID ?? TAGCOLORED_TESTID}
+    >
       {typeof children === 'string' ? (
         <Text
           variant={DEFAULT_TAGCOLORED_TEXTVARIANT}
