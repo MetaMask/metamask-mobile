@@ -1,6 +1,8 @@
 import {
   HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS,
+  PUSH_PRE_PROMPT_SHOWN,
   RESUBSCRIBE_NOTIFICATIONS_EXPIRY,
+  TRUE,
 } from '../../../constants/storage';
 import storageWrapper from '../../../store/storage-wrapper';
 
@@ -42,4 +44,20 @@ export const hasUserTurnedOffNotificationsOnce = async () => {
 
 export const setUserHasTurnedOffNotificationsOnce = async () => {
   await storageWrapper.setItem(HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS, 'true');
+};
+
+/**
+ * Tracks whether this user has ever seen the push pre-prompt flow.
+ */
+export const hasPushPrePromptBeenShown = async () => {
+  const shown = await storageWrapper.getItem(PUSH_PRE_PROMPT_SHOWN);
+  return shown === TRUE;
+};
+
+export const setPushPrePromptShown = async () => {
+  await storageWrapper.setItem(PUSH_PRE_PROMPT_SHOWN, TRUE);
+};
+
+export const resetPushPrePromptShown = async () => {
+  await storageWrapper.removeItem(PUSH_PRE_PROMPT_SHOWN);
 };
