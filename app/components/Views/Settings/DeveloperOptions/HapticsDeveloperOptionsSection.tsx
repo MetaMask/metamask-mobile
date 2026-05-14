@@ -4,6 +4,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  FontWeight,
   Text,
   TextVariant,
   TextColor,
@@ -128,14 +129,16 @@ export default function HapticsDeveloperOptionsSection() {
     <>
       <Text
         color={TextColor.TextDefault}
-        variant={TextVariant.HeadingLg}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
         style={styles.heading}
       >
         {strings('app_settings.developer_options.haptics.title')}
       </Text>
       <Text
         color={TextColor.TextAlternative}
-        variant={TextVariant.BodyMd}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
         style={styles.desc}
       >
         {strings('app_settings.developer_options.haptics.description')}
@@ -144,6 +147,7 @@ export default function HapticsDeveloperOptionsSection() {
       <Text
         color={TextColor.TextDefault}
         variant={TextVariant.HeadingMd}
+        fontWeight={FontWeight.Medium}
         style={styles.heading}
       >
         {strings(
@@ -166,6 +170,7 @@ export default function HapticsDeveloperOptionsSection() {
       <Text
         color={TextColor.TextDefault}
         variant={TextVariant.HeadingMd}
+        fontWeight={FontWeight.Medium}
         style={styles.heading}
       >
         {strings(
@@ -209,6 +214,7 @@ export default function HapticsDeveloperOptionsSection() {
       <Text
         color={TextColor.TextDefault}
         variant={TextVariant.HeadingMd}
+        fontWeight={FontWeight.Medium}
         style={styles.heading}
       >
         {strings('app_settings.developer_options.haptics.selection_heading')}
@@ -226,13 +232,15 @@ export default function HapticsDeveloperOptionsSection() {
       <Text
         color={TextColor.TextDefault}
         variant={TextVariant.HeadingMd}
+        fontWeight={FontWeight.Medium}
         style={styles.heading}
       >
         {strings('app_settings.developer_options.haptics.raw_impacts_heading')}
       </Text>
       <Text
         color={TextColor.TextAlternative}
-        variant={TextVariant.BodyMd}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
         style={styles.desc}
       >
         {strings('app_settings.developer_options.haptics.raw_impacts_desc')}

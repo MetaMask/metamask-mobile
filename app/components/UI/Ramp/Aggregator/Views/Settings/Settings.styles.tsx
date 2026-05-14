@@ -12,6 +12,10 @@ const styles = () =>
     button: {
       flex: 1,
     },
+    activationKeysRow: {
+      marginVertical: 0,
+      marginTop: 20,
+    },
   });
 
 export default styles;

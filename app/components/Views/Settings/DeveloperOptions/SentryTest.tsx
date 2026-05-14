@@ -1,14 +1,14 @@
 import React, { useCallback } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../component-library/components/Texts/Text';
 import {
   Button,
   ButtonVariant,
   ButtonSize,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { trace, TraceName } from '../../../../util/trace';
 import { sleep } from '../../../../util/testUtils';
@@ -53,8 +53,9 @@ function GenerateTrace() {
   return (
     <>
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
         style={styles.desc}
       >
         {strings('app_settings.developer_options.generate_trace_test_desc')}
@@ -79,8 +80,9 @@ export default function SentryTest() {
   return (
     <>
       <Text
-        color={TextColor.Default}
-        variant={TextVariant.HeadingLG}
+        color={TextColor.TextDefault}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
         style={styles.heading}
       >
         {'Sentry'}

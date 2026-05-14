@@ -11,10 +11,12 @@ import {
   selectMusdConversionEducationSeen,
 } from '../../../../reducers/user';
 import { useStyles } from '../../../../component-library/hooks';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -49,15 +51,17 @@ export const MusdDeveloperOptionsSection = () => {
   return (
     <>
       <Text
-        color={TextColor.Default}
-        variant={TextVariant.HeadingLG}
+        color={TextColor.TextDefault}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
         style={styles.heading}
       >
         {'mUSD'}
       </Text>
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
         style={styles.desc}
       >
         {`Education screen seen: ${String(hasSeenConversionEducationScreen)}`}
@@ -71,8 +75,9 @@ export const MusdDeveloperOptionsSection = () => {
         style={styles.accessory}
       />
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
         style={styles.desc}
       >
         {`Asset detail CTAs dismissed: ${String(assetDetailCtasSeenCount)}`}

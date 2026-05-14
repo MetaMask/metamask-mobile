@@ -1,3 +1,5 @@
+import type { TextVariant } from '@metamask/design-system-react-native';
+
 export interface GatewayWithAvailability {
   key: string;
   value: string;
@@ -7,6 +9,8 @@ export interface GatewayWithAvailability {
 
 export interface HeadingProps {
   first?: boolean;
+  /** @default TextVariant.HeadingLg */
+  textVariant?: TextVariant;
   children: React.ReactNode;
 }
 

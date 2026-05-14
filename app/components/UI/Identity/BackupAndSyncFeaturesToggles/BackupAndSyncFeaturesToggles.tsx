@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { View, Switch, InteractionManager } from 'react-native';
 
 import {
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -129,7 +130,11 @@ const BackupAndSyncFeaturesToggles = () => {
         <Text variant={TextVariant.HeadingSm}>
           {strings('backupAndSync.manageWhatYouSync.title')}
         </Text>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
           {strings('backupAndSync.manageWhatYouSync.description')}
         </Text>
       </View>
