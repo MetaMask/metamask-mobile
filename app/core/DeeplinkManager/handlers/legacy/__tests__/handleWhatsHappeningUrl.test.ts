@@ -1,7 +1,7 @@
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
-import { WhatsHappeningSource } from '../../../../../components/Views/Homepage/Sections/WhatsHappening/constants';
+import { WhatsHappeningSource } from '../../../../../components/UI/WhatsHappening/constants';
 import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
 
 jest.mock('../../../../NavigationService', () => ({
