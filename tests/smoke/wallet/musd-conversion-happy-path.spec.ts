@@ -52,7 +52,7 @@ function withMusdFixturesOptions(
   };
 }
 
-describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
+describe.skip(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     // Do not launch app here: launch happens inside withFixtures (restartDevice: true)

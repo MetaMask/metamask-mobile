@@ -569,7 +569,7 @@ const PerpsClosePositionView: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <PerpsOrderHeader
         asset={position.symbol}
         price={currentPrice}
