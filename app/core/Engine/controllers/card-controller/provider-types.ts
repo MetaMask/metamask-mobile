@@ -38,6 +38,15 @@ export class CardProviderError extends Error {
   }
 }
 
+export class CardLinkageInProgressError extends Error {
+  constructor(
+    message = 'A Money Account to Card linkage is already in progress',
+  ) {
+    super(message);
+    this.name = 'CardLinkageInProgressError';
+  }
+}
+
 // -- Provider Identity --
 
 export type CardProviderId = string;

@@ -26,7 +26,7 @@ export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 export SENTRY_DIST=$CURRENT_PROJECT_VERSION
 export SENTRY_RELEASE="$PRODUCT_BUNDLE_IDENTIFIER@$MARKETING_VERSION+$SENTRY_DIST"
 
-# Write source map to a fixed absolute path so Bitrise (and other CI) can
+# Write source map to a fixed absolute path so CI can
 # deploy it AND Sentry CLI can locate it for upload.
 # Using a relative path breaks Sentry: react-native-xcode.sh writes the file
 # with CWD=repo_root, but sentry-cli resolves SOURCEMAP_FILE relative to its
