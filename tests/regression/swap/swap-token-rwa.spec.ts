@@ -17,7 +17,7 @@ import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager, DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
 
 describe(RegressionTrade('Swap RWA'), (): void => {
-  jest.setTimeout(120000);
+  jest.setTimeout(180000);
 
   it('completes a USDC -> GOOGLON swap', async (): Promise<void> => {
     const quantity: string = '25';

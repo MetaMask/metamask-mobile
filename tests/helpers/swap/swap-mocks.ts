@@ -248,19 +248,11 @@ export const testSpecificMock: TestSpecificMock = async (
   });
 
   // Mock USDC->GOOGLON (SSE)
-  // await setupSSEMockRequest(
-  //   mockServer,
-  //   /getQuoteStream.*srcTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*destTokenAddress=0xba47214edd2bb43099611b208f75e4b42fdcfedc/i,
-  //   toSSEResponse(GET_QUOTE_USDC_GOOGLON_RESPONSE),
-  // );
-
-  // Mock USDC->GOOGLON (JSON)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /\/getQuote\?.*destTokenAddress=0xba47214edd2bb43099611b208f75e4b42fdcfedc/i,
-    response: GET_QUOTE_USDC_GOOGLON_RESPONSE,
-    responseCode: 200,
-  });
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream.*srcTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*destTokenAddress=0xbA47214eDd2bb43099611b208f75E4b42FDcfED/i,
+    toSSEResponse(GET_QUOTE_USDC_GOOGLON_RESPONSE),
+  );
 
   await interceptProxyUrl(
     mockServer,
