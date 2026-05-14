@@ -4,13 +4,22 @@ import { useTransakRouting } from './useTransakRouting';
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
+const mockParentPop = jest.fn();
+const mockGetParent = jest.fn(() => ({ pop: mockParentPop }));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     reset: mockReset,
+    getParent: mockGetParent,
   }),
+}));
+
+jest.mock('../headless/sessionRegistry', () => ({
+  getSession: jest.fn(),
+  closeSession: jest.fn(),
+  failSession: jest.fn(),
 }));
 
 const MOCK_WALLET_ADDRESS = '0xabcdef1234567890';
@@ -1039,11 +1048,11 @@ describe('useTransakRouting', () => {
   describe('navigateToKycWebview', () => {
     it('resets navigation stack with KycProcessing behind the webview', () => {
       const { result } = renderHook(() => useTransakRouting());
-      const mockQuote = { id: 'quote-789' } as unknown as TransakBuyQuote;
+      const kycQuote = { id: 'quote-789' } as unknown as TransakBuyQuote;
 
       act(() => {
         result.current.navigateToKycWebview({
-          quote: mockQuote,
+          quote: kycQuote,
           kycUrl: 'https://kyc.example.com',
           workFlowRunId: 'wf-456',
           amount: 30,
@@ -1067,7 +1076,7 @@ describe('useTransakRouting', () => {
                 url: 'https://kyc.example.com',
                 providerName: 'Transak',
                 workFlowRunId: 'wf-456',
-                quote: mockQuote,
+                quote: kycQuote,
                 amount: 30,
               }),
             }),
@@ -1373,6 +1382,320 @@ describe('useTransakRouting', () => {
         }),
       );
       expect(mockAddOrder).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('headless session flow', () => {
+    const mockGetSession = jest.requireMock('../headless/sessionRegistry')
+      .getSession as jest.Mock;
+    const mockCloseSession = jest.requireMock('../headless/sessionRegistry')
+      .closeSession as jest.Mock;
+    const mockFailSession = jest.requireMock('../headless/sessionRegistry')
+      .failSession as jest.Mock;
+    const mockShowV2OrderToast = jest.requireMock('../utils/v2OrderToast')
+      .showV2OrderToast as jest.Mock;
+
+    const HEADLESS_CONFIG = {
+      baseRoute: 'RampHeadlessHost',
+      baseRouteParams: { headlessSessionId: 'hs-1' },
+    };
+
+    const depositOrder = {
+      id: 'order-hs',
+      providerOrderId: 'order-hs',
+      provider: 'transak-native',
+      walletAddress: MOCK_WALLET_ADDRESS,
+      paymentDetails: {},
+    };
+
+    const refreshedOrder = {
+      providerOrderId: 'order-hs',
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.05',
+      status: 'Pending',
+      fiatAmount: 100,
+      exchangeRate: 2000,
+      networkFees: 0,
+      partnerFees: 0,
+      totalFeesFiat: 0,
+      paymentMethod: { id: 'card' },
+      network: { chainId: '1', name: 'Ethereum' },
+      fiatCurrency: { symbol: 'USD' },
+    };
+
+    const runApprovedFlowHeadless = async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockRequestOtt.mockResolvedValue({ ott: 'test-ott' });
+      mockGeneratePaymentWidgetUrl.mockReturnValue(
+        'https://payment.example.com',
+      );
+
+      const { result } = renderHook(() => useTransakRouting(HEADLESS_CONFIG));
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      return capturedHandleNavigationStateChange;
+    };
+
+    beforeEach(() => {
+      mockGetSession.mockReset();
+      mockCloseSession.mockReset();
+      mockFailSession.mockReset();
+      mockParentPop.mockReset();
+      mockGetOrder.mockResolvedValue(depositOrder);
+      mockRefreshOrder.mockResolvedValue(refreshedOrder);
+    });
+
+    it('fires onOrderCreated, closes the session, and pops the ramp stack when a live session is present', async () => {
+      const onOrderCreated = jest.fn();
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated,
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(onOrderCreated).toHaveBeenCalledWith('order-hs');
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'completed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: [expect.objectContaining({ name: 'RampsOrderDetails' })],
+        }),
+      );
+      expect(mockShowV2OrderToast).not.toHaveBeenCalled();
+    });
+
+    it('still adds the order and tracks the transaction event when headless', async () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockAddOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ providerOrderId: 'order-hs' }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TRANSACTION_CONFIRMED',
+        expect.objectContaining({ ramp_type: 'DEPOSIT' }),
+      );
+    });
+
+    it('swallows consumer onOrderCreated errors and still closes + pops', async () => {
+      const Logger = jest.requireMock('../../../../util/Logger');
+      const mockLoggerError = Logger.error as jest.Mock;
+      const throwingCallback = jest.fn(() => {
+        throw new Error('consumer bug');
+      });
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: throwingCallback,
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(throwingCallback).toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        'useTransakRouting: onOrderCreated callback threw',
+      );
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'completed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+    });
+
+    it('preserves LIMIT_EXCEEDED errors for the Headless Host to surface as data', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 50, '30': 50000, '365': 200000 },
+      });
+
+      const { result } = renderHook(() => useTransakRouting(HEADLESS_CONFIG));
+
+      await expect(
+        act(async () => {
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
+        }),
+      ).rejects.toMatchObject({
+        name: 'LimitExceededError',
+        headlessBuyErrorCode: 'LIMIT_EXCEEDED',
+      });
+
+      expect(mockShowV2OrderToast).not.toHaveBeenCalled();
+      expect(mockFailSession).not.toHaveBeenCalled();
+    });
+
+    it('surfaces headless checkout processing failures through onError and skips toasts', async () => {
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      mockGetOrder.mockRejectedValue(new Error('Network error'));
+      mockFailSession.mockReturnValue({
+        code: 'UNKNOWN',
+        message: 'Network error',
+      });
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockFailSession).toHaveBeenCalledWith('hs-1', expect.any(Error));
+      expect(mockShowV2OrderToast).not.toHaveBeenCalled();
+      expect(mockParentPop).toHaveBeenCalled();
+    });
+
+    it('routes manual bank transfer order success through headless callbacks without showing a toast', async () => {
+      const onOrderCreated = jest.fn();
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated,
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockSelectedPaymentMethod = {
+        id: '/payments/bank-transfer',
+        isManualBankTransfer: true,
+      };
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockTransakCreateOrder.mockResolvedValue(depositOrder);
+      mockRefreshOrder.mockResolvedValue(refreshedOrder);
+
+      const { result } = renderHook(() => useTransakRouting(HEADLESS_CONFIG));
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      expect(onOrderCreated).toHaveBeenCalledWith('order-hs');
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'completed',
+      });
+      expect(mockShowV2OrderToast).not.toHaveBeenCalled();
+      expect(mockParentPop).toHaveBeenCalled();
+    });
+
+    it('falls back to the regular order-details reset + toast when session id is present but session is missing from registry', async () => {
+      mockGetSession.mockReturnValue(undefined);
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockShowV2OrderToast).toHaveBeenCalledWith(
+        expect.objectContaining({ orderId: 'order-hs' }),
+      );
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 0,
+          routes: [
+            expect.objectContaining({
+              params: expect.objectContaining({ orderId: 'order-hs' }),
+            }),
+          ],
+        }),
+      );
+      expect(mockCloseSession).not.toHaveBeenCalled();
+      expect(mockParentPop).not.toHaveBeenCalled();
     });
   });
 });

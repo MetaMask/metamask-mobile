@@ -73,6 +73,11 @@ interface TrendingTokenRowItemProps {
    */
   onPress?: (token: TrendingAsset) => void;
   /**
+   * Called synchronously before the card's press handler fires.
+   * Useful for injecting analytics without overriding navigation.
+   */
+  onCardPress?: () => void;
+  /**
    * When the same token row appears in multiple Explore sections, set this to keep
    * `testID` (and E2E selectors) unique per instance.
    */
@@ -126,6 +131,7 @@ const TrendingTokenRowItem = ({
   tokenDetailsSource = TokenDetailsSource.Trending,
   transactionActiveAbTests,
   onPress,
+  onCardPress,
   testIdInstanceKey,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -165,12 +171,13 @@ const TrendingTokenRowItem = ({
   });
 
   const handlePress = useCallback(async () => {
+    onCardPress?.();
     if (onPress) {
       onPress(token);
       return;
     }
     await defaultOnPress();
-  }, [onPress, token, defaultOnPress]);
+  }, [onPress, onCardPress, token, defaultOnPress]);
 
   const rowTestId = testIdInstanceKey
     ? `trending-token-row-item-${testIdInstanceKey}-${token.assetId}`
@@ -182,27 +189,25 @@ const TrendingTokenRowItem = ({
       onPress={handlePress}
       testID={rowTestId}
     >
-      <View>
-        <BadgeWrapper
-          style={styles.badge}
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            <Badge
-              size={AvatarSize.Xs}
-              variant={BadgeVariant.Network}
-              imageSource={networkBadgeImageSource}
-              isScaled={false}
-            />
-          }
-        >
-          <TrendingTokenLogo
-            assetId={token.assetId}
-            symbol={token.symbol}
-            size={40}
-            recyclingKey={token.assetId}
+      <BadgeWrapper
+        style={styles.badge}
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          <Badge
+            size={AvatarSize.Xs}
+            variant={BadgeVariant.Network}
+            imageSource={networkBadgeImageSource}
+            isScaled={false}
           />
-        </BadgeWrapper>
-      </View>
+        }
+      >
+        <TrendingTokenLogo
+          assetId={token.assetId}
+          symbol={token.symbol}
+          size={40}
+          recyclingKey={token.assetId}
+        />
+      </BadgeWrapper>
       <View style={styles.leftContainer}>
         <View style={styles.tokenHeaderRow}>
           <Text

@@ -70,13 +70,11 @@ interface HomepagePredictTrendingMarketsProps {
   isLoadingMarkets: boolean;
   markets: PredictMarket[];
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  /** When false the section header is omitted (e.g. carousel shown below positions). */
-  showHeader?: boolean;
 }
 
 /**
  * Shared header + horizontal markets carousel for homepage predictions
- * (default "trending when empty" and dedicated trending-only section).
+ * (default “trending when empty” and dedicated trending-only section).
  */
 const HomepagePredictTrendingMarkets = ({
   title,
@@ -85,20 +83,15 @@ const HomepagePredictTrendingMarkets = ({
   isLoadingMarkets,
   markets,
   transactionActiveAbTests,
-  showHeader = true,
 }: HomepagePredictTrendingMarketsProps) => {
   const tw = useTailwind();
   return (
     <Box gap={3}>
-      {showHeader && (
-        <SectionHeader
-          title={title}
-          onPress={onViewAll}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-            headerTestIdKey,
-          )}
-        />
-      )}
+      <SectionHeader
+        title={title}
+        onPress={onViewAll}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(headerTestIdKey)}
+      />
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -187,6 +180,7 @@ interface HomepagePredictPositionsProps {
   predictHomepageUnrealizedPnl: PredictHomepageUnrealizedPnlRowState;
   onClaim: () => Promise<void>;
   onPositionPress: (position: PredictPosition) => void;
+  /** When false the section header is omitted (e.g. carousel shown above positions). */
   showHeader?: boolean;
 }
 
@@ -222,33 +216,29 @@ const HomepagePredictPositions = ({
         )}
       </Box>
     )}
-    <Box>
-      {isLoadingPositions ? (
-        <>
-          <PredictPositionRowSkeleton />
-          <PredictPositionRowSkeleton />
-        </>
-      ) : (
-        positions.map((position) => (
-          <PredictPositionRow
-            key={`${position.outcomeId}:${position.outcomeIndex}`}
-            position={position}
-            onPress={onPositionPress}
-            privacyMode={Boolean(privacyMode)}
-          />
-        ))
-      )}
-      {!isLoadingPositions &&
-        !isLoadingClaimable &&
-        totalClaimableValue > 0 && (
-          <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
-            <PredictClaimButton
-              amount={privacyMode ? undefined : totalClaimableValue}
-              onPress={onClaim}
-            />
-          </Box>
-        )}
-    </Box>
+    {isLoadingPositions ? (
+      <>
+        <PredictPositionRowSkeleton />
+        <PredictPositionRowSkeleton />
+      </>
+    ) : (
+      positions.map((position) => (
+        <PredictPositionRow
+          key={`${position.outcomeId}:${position.outcomeIndex}`}
+          position={position}
+          onPress={onPositionPress}
+          privacyMode={Boolean(privacyMode)}
+        />
+      ))
+    )}
+    {!isLoadingPositions && !isLoadingClaimable && totalClaimableValue > 0 && (
+      <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
+        <PredictClaimButton
+          amount={privacyMode ? undefined : totalClaimableValue}
+          onPress={onClaim}
+        />
+      </Box>
+    )}
   </Box>
 );
 
@@ -366,7 +356,6 @@ const usePredictPositionsSectionData = (homepageQueriesEnabled: boolean) => {
   }, [claim]);
 
   const hasPositions = positions.length > 0;
-  const hasClaimablePositions = !isLoadingClaimable && totalClaimableValue > 0;
   const {
     data: predictUnrealizedPnL,
     isLoading: isPredictUnrealizedPnLLoading,
@@ -400,7 +389,6 @@ const usePredictPositionsSectionData = (homepageQueriesEnabled: boolean) => {
     isLoadingClaimable,
     handleClaim,
     hasPositions,
-    hasClaimablePositions,
     predictHomepageUnrealizedPnl,
   };
 };
@@ -441,7 +429,6 @@ const PredictionsSectionDefault = forwardRef<
       isLoadingClaimable,
       handleClaim,
       hasPositions,
-      hasClaimablePositions,
       predictHomepageUnrealizedPnl,
     } = usePredictPositionsSectionData(isPredictEnabled);
     const {
@@ -453,6 +440,8 @@ const PredictionsSectionDefault = forwardRef<
       enabled: isPredictEnabled,
     });
 
+    const hasClaimablePositions =
+      !isLoadingClaimable && totalClaimableValue > 0;
     const hasAnyPositions = hasPositions || hasClaimablePositions;
     const isLoading =
       isLoadingPositions || isLoadingMarkets || isLoadingClaimable;
@@ -465,7 +454,25 @@ const PredictionsSectionDefault = forwardRef<
       (positionsError || marketsError);
     const isEmpty =
       !isLoading && !hasAnyPositions && markets.length === 0 && !hasError;
-    const willRender = isPredictEnabled && !isLoading && !isEmpty && !hasError;
+    const showTrendingAbove =
+      !hasPositions &&
+      !isLoadingPositions &&
+      (isLoadingMarkets || markets.length > 0);
+    const inPositionsLayout =
+      hasAnyPositions || isLoadingPositions || isLoadingClaimable;
+    /** TTC: no Predict position-row or market-card skeleton; claimable / other fetch may continue. */
+    const predictTimeToContentReady = Boolean(
+      isPredictEnabled &&
+        (hasError ||
+          (inPositionsLayout
+            ? !isLoadingPositions && (hasPositions || !isLoadingMarkets)
+            : !isLoadingMarkets)),
+    );
+    const willRender =
+      isPredictEnabled &&
+      !hasError &&
+      !isLoading &&
+      (hasAnyPositions || markets.length > 0);
     const itemCount = hasPositions
       ? positions.length
       : hasClaimablePositions
@@ -483,9 +490,10 @@ const PredictionsSectionDefault = forwardRef<
     });
 
     useSectionPerformance({
-      sectionId: HomeSectionNames.PREDICT,
-      contentReady: willRender,
-      isEmpty: isEmpty || !!hasError,
+      sectionId: analyticsName,
+      contentReady: predictTimeToContentReady,
+      isEmpty: isEmpty && !hasError,
+      contentStateForTrace: hasError ? 'error' : undefined,
       isLoading,
       enabled: isPredictEnabled,
     });
@@ -506,11 +514,6 @@ const PredictionsSectionDefault = forwardRef<
     }
 
     if (hasAnyPositions || isLoadingPositions || isLoadingClaimable) {
-      const showTrendingAbove =
-        !hasPositions &&
-        !isLoadingPositions &&
-        (isLoadingMarkets || markets.length > 0);
-
       return (
         <View ref={sectionViewRef} onLayout={onLayout}>
           {showTrendingAbove && (
@@ -526,7 +529,6 @@ const PredictionsSectionDefault = forwardRef<
           )}
           <HomepagePredictPositions
             title={title}
-            showHeader={!showTrendingAbove}
             onViewAll={handleViewAllFromPositions}
             privacyMode={privacyMode}
             isLoadingPositions={isLoadingPositions}
@@ -536,6 +538,7 @@ const PredictionsSectionDefault = forwardRef<
             predictHomepageUnrealizedPnl={predictHomepageUnrealizedPnl}
             onClaim={handleClaim}
             onPositionPress={handlePositionPress}
+            showHeader={!showTrendingAbove}
           />
         </View>
       );
@@ -593,10 +596,11 @@ const PredictionsSectionPositionsOnly = forwardRef<
       isLoadingClaimable,
       handleClaim,
       hasPositions,
-      hasClaimablePositions,
       predictHomepageUnrealizedPnl,
     } = usePredictPositionsSectionData(isPredictEnabled);
 
+    const hasClaimablePositions =
+      !isLoadingClaimable && totalClaimableValue > 0;
     const hasAnyPositions = hasPositions || hasClaimablePositions;
     const isLoading = isLoadingPositions || isLoadingClaimable;
     const willRender = isPredictEnabled && !isLoading && hasAnyPositions;

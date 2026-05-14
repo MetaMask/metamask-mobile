@@ -23,5 +23,11 @@ export const STATIC_ASSETS_MOCKS: MockEventsObject = {
       responseCode: 200,
       response: MINIMAL_SVG,
     },
+    {
+      urlEndpoint:
+        /^https:\/\/metamask\.github\.io\/test-dapp\/metamask-fox\.svg$/,
+      responseCode: 200,
+      response: MINIMAL_SVG,
+    },
   ],
 };
