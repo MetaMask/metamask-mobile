@@ -67,7 +67,7 @@ const BenefitsPreview = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+          twClassName="gap-1"
         >
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.benefits.title')}
@@ -85,12 +85,11 @@ const BenefitsPreview = () => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-2"
+      twClassName="gap-1"
     >
       <Text variant={TextVariant.HeadingMd}>
         {strings('rewards.benefits.title')}
       </Text>
-      {benefitsCountBadge}
     </Box>
   );
 
