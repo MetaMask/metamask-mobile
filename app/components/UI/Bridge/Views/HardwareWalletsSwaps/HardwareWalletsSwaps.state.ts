@@ -74,7 +74,9 @@ export type HardwareWalletsSwapsEvent =
       };
     }
   | {
-      type: HardwareWalletsSwapsEventType.Signing | HardwareWalletsSwapsEventType.Signed;
+      type:
+        | HardwareWalletsSwapsEventType.Signing
+        | HardwareWalletsSwapsEventType.Signed;
       payload: { stepKind: HardwareWalletsSwapsStepKind };
     }
   | {
@@ -111,8 +113,7 @@ function buildSteps(
         ? HardwareWalletsSwapsStepKind.Approval
         : HardwareWalletsSwapsStepKind.Transaction,
     status: HardwareWalletsSwapsStepStatus.Waiting,
-    address:
-      hasApproval && index === 0 ? spenderAddress : recipientAddress,
+    address: hasApproval && index === 0 ? spenderAddress : recipientAddress,
   }));
 }
 
@@ -188,7 +189,11 @@ export function hardwareWalletsSwapsReducer(
       return {
         ...state,
         status: HardwareWalletsSwapsStatus.Waiting,
-        steps: updateStepStatus(state, event.payload.stepKind, HardwareWalletsSwapsStepStatus.Signing),
+        steps: updateStepStatus(
+          state,
+          event.payload.stepKind,
+          HardwareWalletsSwapsStepStatus.Signing,
+        ),
       };
     case HardwareWalletsSwapsEventType.Signed: {
       if (
@@ -212,7 +217,11 @@ export function hardwareWalletsSwapsReducer(
             ? HardwareWalletsSwapsStatus.Submitted
             : HardwareWalletsSwapsStatus.Waiting,
         currentStep: Math.min(nextStep, state.totalSteps),
-        steps: updateStepStatus(state, event.payload.stepKind, HardwareWalletsSwapsStepStatus.Signed),
+        steps: updateStepStatus(
+          state,
+          event.payload.stepKind,
+          HardwareWalletsSwapsStepStatus.Signed,
+        ),
       };
     }
     case HardwareWalletsSwapsEventType.Rejected: {
@@ -230,7 +239,11 @@ export function hardwareWalletsSwapsReducer(
         ...state,
         status: HardwareWalletsSwapsStatus.Rejected,
         steps: stepKind
-          ? updateStepStatus(state, stepKind, HardwareWalletsSwapsStepStatus.Rejected)
+          ? updateStepStatus(
+              state,
+              stepKind,
+              HardwareWalletsSwapsStepStatus.Rejected,
+            )
           : state.steps.map((step, index) =>
               index + 1 === state.currentStep
                 ? {

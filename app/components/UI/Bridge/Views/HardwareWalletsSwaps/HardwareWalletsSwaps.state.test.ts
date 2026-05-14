@@ -317,6 +317,35 @@ describe('hardwareWalletsSwapsReducer', () => {
     expect(result.status).toBe(HardwareWalletsSwapsStatus.Disconnected);
   });
 
+  it('does not overwrite terminal statuses with DEVICE_DISCONNECTED', () => {
+    const started = hardwareWalletsSwapsReducer(
+      initialHardwareWalletsSwapsState,
+      { type: HardwareWalletsSwapsEventType.Start, payload: { totalSteps: 1 } },
+    );
+    const submitted = hardwareWalletsSwapsReducer(started, {
+      type: HardwareWalletsSwapsEventType.Signed,
+      payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
+    });
+    const rejected = hardwareWalletsSwapsReducer(started, {
+      type: HardwareWalletsSwapsEventType.Rejected,
+      payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
+    });
+    const failed = hardwareWalletsSwapsReducer(started, {
+      type: HardwareWalletsSwapsEventType.TransactionFailed,
+    });
+    const cancelled = hardwareWalletsSwapsReducer(started, {
+      type: HardwareWalletsSwapsEventType.Cancel,
+    });
+
+    [submitted, rejected, failed, cancelled].forEach((terminalState) => {
+      const result = hardwareWalletsSwapsReducer(terminalState, {
+        type: HardwareWalletsSwapsEventType.DeviceDisconnected,
+      });
+
+      expect(result).toBe(terminalState);
+    });
+  });
+
   it('populates step addresses from START payload', () => {
     const result = hardwareWalletsSwapsReducer(
       initialHardwareWalletsSwapsState,
