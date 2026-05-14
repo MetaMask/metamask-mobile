@@ -245,6 +245,7 @@ describe('Checkout', () => {
   const mockAddOrder = jest.fn();
   const mockGetOrderFromCallback = jest.fn();
   const mockAddPrecreatedOrder = jest.fn();
+  const mockHeadlessEntrySetOptions = jest.fn();
   const mockNavigation = {
     setOptions: jest.fn(),
     reset: jest.fn(),
@@ -280,7 +281,13 @@ describe('Checkout', () => {
     const nav = require('@react-navigation/native');
     nav.useNavigation.mockReturnValue(mockNavigation);
     mockNavigation.getParent.mockReset();
-    mockNavigation.getParent.mockImplementation(() => ({ pop: jest.fn() }));
+    mockHeadlessEntrySetOptions.mockReset();
+    mockNavigation.getParent.mockImplementation(() => ({
+      pop: jest.fn(),
+      getParent: () => ({
+        setOptions: mockHeadlessEntrySetOptions,
+      }),
+    }));
   });
 
   describe('handleNavigationStateChange (callback flow)', () => {
@@ -682,7 +689,12 @@ describe('Checkout', () => {
       mockCloseSession.mockReset();
       mockFailSession.mockReset();
       mockParentPop = jest.fn();
-      mockNavigation.getParent.mockReturnValue({ pop: mockParentPop });
+      mockNavigation.getParent.mockImplementation(() => ({
+        pop: mockParentPop,
+        getParent: () => ({
+          setOptions: mockHeadlessEntrySetOptions,
+        }),
+      }));
       mockGetOrderFromCallback.mockResolvedValue(mockOrder);
       mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
     });
@@ -824,6 +836,79 @@ describe('Checkout', () => {
 
       expect(mockFailSession).toHaveBeenCalledWith('hs-1', expect.any(Error));
       expect(mockParentPop).toHaveBeenCalled();
+    });
+
+    it('treats an empty provider callback as user dismissal when headless', async () => {
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-empty-query'));
+      });
+
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'user_dismissed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+      expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
+    });
+
+    it('closes and dismisses the headless flow when the checkout close button is pressed', () => {
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      fireEvent.press(getByTestId('checkout-close-button'));
+
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'user_dismissed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+    });
+
+    it('closes and dismisses the headless flow when Checkout unmounts with a live session', () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { unmount } = renderWithProvider(<Checkout />, {}, true, false);
+
+      unmount();
+
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'user_dismissed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+    });
+
+    it('keeps the headless entry card touch-through until Checkout finishes the first WebView load', () => {
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      expect(mockHeadlessEntrySetOptions).toHaveBeenCalledWith({
+        cardStyle: {
+          backgroundColor: 'transparent',
+          pointerEvents: 'none',
+        },
+      });
+
+      fireEvent.press(getByTestId('trigger-load-end'));
+
+      expect(mockHeadlessEntrySetOptions).toHaveBeenCalledWith({
+        cardStyle: {
+          backgroundColor: 'transparent',
+          pointerEvents: 'auto',
+        },
+      });
     });
 
     it('falls back to the regular reset + toast when session id is present but session is missing from registry', async () => {

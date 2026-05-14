@@ -39,6 +39,7 @@ import {
   failSession,
   getSession,
 } from '../../headless/sessionRegistry';
+import { setHeadlessEntryCardTouchThrough } from '../../headless/headlessEntryNavigation';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
@@ -88,6 +89,12 @@ export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
   Routes.RAMP.CHECKOUT,
 );
 
+interface NavigationWithParents {
+  getParent?: () => NavigationWithParents | undefined;
+  goBack?: () => void;
+  pop?: () => void;
+}
+
 const Checkout = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const dispatch = useDispatch();
@@ -132,12 +139,29 @@ const Checkout = () => {
   const stepIndexRef = useRef(0);
   const openedAtRef = useRef<number>(Date.now());
   const closeSourceRef = useRef<CloseSource | null>(null);
+  const hasTerminatedHeadlessSessionRef = useRef(false);
+  const hasMadeHeadlessCheckoutInteractiveRef = useRef(false);
   const loadStartTimeRef = useRef<number | null>(null);
   const loadUrlErrorsRef = useRef<Set<string>>(new Set());
   const lastLoadCompleteUrlRef = useRef<string | null>(null);
   const previousNavStateUrlRef = useRef<string | null>(null);
 
   const hasTrackedScreenViewRef = useRef(false);
+
+  useEffect(() => {
+    if (!headlessSessionId) {
+      return;
+    }
+
+    const touchThroughWhileLoading = Boolean(uri);
+    hasMadeHeadlessCheckoutInteractiveRef.current = !touchThroughWhileLoading;
+    setHeadlessEntryCardTouchThrough(navigation, touchThroughWhileLoading);
+
+    return () => {
+      setHeadlessEntryCardTouchThrough(navigation, false);
+    };
+  }, [navigation, headlessSessionId, uri]);
+
   useEffect(() => {
     if (uri && !hasTrackedScreenViewRef.current) {
       hasTrackedScreenViewRef.current = true;
@@ -176,16 +200,36 @@ const Checkout = () => {
     effectiveOrderId,
   ]);
 
+  const dismissHeadlessFlow = useCallback(() => {
+    const currentNavigation = navigation as NavigationWithParents;
+    const parentNavigation = currentNavigation.getParent?.();
+    const outerNavigation = parentNavigation?.getParent?.();
+
+    if (outerNavigation?.goBack) {
+      outerNavigation.goBack();
+      return;
+    }
+    if (outerNavigation?.pop) {
+      outerNavigation.pop();
+      return;
+    }
+    if (parentNavigation?.pop) {
+      parentNavigation.pop();
+      return;
+    }
+    currentNavigation.goBack?.();
+  }, [navigation]);
+
   const failHeadlessCheckout = useCallback(
     (checkoutError: unknown) => {
       if (!failSession(headlessSessionId, checkoutError)) {
         return false;
       }
-      // @ts-expect-error navigation prop mismatch
-      navigation.getParent()?.pop();
+      hasTerminatedHeadlessSessionRef.current = true;
+      dismissHeadlessFlow();
       return true;
     },
-    [headlessSessionId, navigation],
+    [headlessSessionId, dismissHeadlessFlow],
   );
 
   useEffect(() => {
@@ -291,6 +335,12 @@ const Checkout = () => {
         const parsedUrl = parseUrl(navState.url);
         if (Object.keys(parsedUrl.query).length === 0) {
           closeSourceRef.current = 'callback_success';
+          if (headlessSessionId) {
+            hasTerminatedHeadlessSessionRef.current = true;
+            closeSession(headlessSessionId, { reason: 'user_dismissed' });
+            dismissHeadlessFlow();
+            return;
+          }
           // @ts-expect-error navigation prop mismatch
           navigation.getParent()?.pop();
           return;
@@ -327,10 +377,10 @@ const Checkout = () => {
               'UnifiedCheckout: onOrderCreated callback threw',
             );
           }
+          hasTerminatedHeadlessSessionRef.current = true;
           closeSession(headlessSessionId, { reason: 'completed' });
           closeSourceRef.current = 'callback_success';
-          // @ts-expect-error navigation prop mismatch
-          navigation.getParent()?.pop();
+          dismissHeadlessFlow();
           return;
         }
 
@@ -380,6 +430,7 @@ const Checkout = () => {
       isV2Enabled,
       params?.cryptocurrency,
       headlessSessionId,
+      dismissHeadlessFlow,
       failHeadlessCheckout,
       recordUrlChange,
       createEventBuilder,
@@ -405,8 +456,14 @@ const Checkout = () => {
   }, [createEventBuilder, trackEvent, rampRoutingDecision]);
   const handleClosePress = useCallback(() => {
     handleCancelPress();
+    if (headlessSessionId) {
+      hasTerminatedHeadlessSessionRef.current = true;
+      closeSession(headlessSessionId, { reason: 'user_dismissed' });
+      dismissHeadlessFlow();
+      return;
+    }
     sheetRef.current?.onCloseBottomSheet();
-  }, [handleCancelPress]);
+  }, [handleCancelPress, headlessSessionId, dismissHeadlessFlow]);
 
   const handleNavigationStateChangeWithDedup = useCallback(
     (navState: { url: string }) => {
@@ -425,6 +482,10 @@ const Checkout = () => {
 
   const handleLoadEnd = useCallback(
     (syntheticEvent: { nativeEvent: { url: string } }) => {
+      if (headlessSessionId && !hasMadeHeadlessCheckoutInteractiveRef.current) {
+        hasMadeHeadlessCheckoutInteractiveRef.current = true;
+        setHeadlessEntryCardTouchThrough(navigation, false);
+      }
       if (loadStartTimeRef.current === null) return;
       const { url: loadedUrl } = syntheticEvent.nativeEvent;
       const redactedLoadedUrl = redactUrlForAnalytics(loadedUrl);
@@ -458,6 +519,8 @@ const Checkout = () => {
       checkoutSessionId,
       providerName,
       rampRoutingDecision,
+      headlessSessionId,
+      navigation,
     ],
   );
 
@@ -469,6 +532,21 @@ const Checkout = () => {
   const fireClosedRef = useRef<() => void>(() => {
     /* no-op until initialized */
   });
+  const closeHeadlessOnUnmountRef = useRef<() => void>(() => {
+    /* no-op until initialized */
+  });
+  closeHeadlessOnUnmountRef.current = () => {
+    if (!headlessSessionId || hasTerminatedHeadlessSessionRef.current) {
+      return;
+    }
+    const session = getSession(headlessSessionId);
+    if (!session) {
+      return;
+    }
+    hasTerminatedHeadlessSessionRef.current = true;
+    closeSession(headlessSessionId, { reason: 'user_dismissed' });
+    dismissHeadlessFlow();
+  };
   fireClosedRef.current = () => {
     if (!hasTrackedScreenViewRef.current) return;
     const lastUrl = urlHistoryRef.current.current;
@@ -498,6 +576,7 @@ const Checkout = () => {
   };
   useEffect(
     () => () => {
+      closeHeadlessOnUnmountRef.current();
       fireClosedRef.current();
     },
     [],

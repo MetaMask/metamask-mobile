@@ -28,8 +28,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockAddListener = jest.fn();
+const mockHeadlessEntrySetOptions = jest.fn();
 const mockContinueWithQuote = jest.fn();
 const mockUseContinueWithQuoteOptions = jest.fn();
+let mockIsFocused = true;
 
 // Holds the most recent 'beforeRemove' listener registered against the
 // mocked navigation object. Tests fire it directly to exercise the
@@ -55,7 +57,13 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       navigate: mockNavigate,
       addListener: mockAddListener,
+      getParent: () => ({
+        getParent: () => ({
+          setOptions: mockHeadlessEntrySetOptions,
+        }),
+      }),
     }),
+    useIsFocused: () => mockIsFocused,
   };
 });
 
@@ -174,6 +182,7 @@ describe('HeadlessHost', () => {
     jest.clearAllMocks();
     __resetSessionRegistryForTests();
     registeredBeforeRemoveListener = null;
+    mockIsFocused = true;
     mockAddListener.mockImplementation(
       (eventName: string, listener: (e?: BeforeRemoveEvent) => void) => {
         if (eventName === 'beforeRemove') {
@@ -212,10 +221,20 @@ describe('HeadlessHost', () => {
       expect(
         screen.getByTestId(HEADLESS_HOST_CONTAINER_TEST_ID),
       ).toBeOnTheScreen();
+      expect(screen.getByTestId(HEADLESS_HOST_CONTAINER_TEST_ID)).toHaveProp(
+        'pointerEvents',
+        'none',
+      );
       // No legacy chrome should be present.
       expect(screen.queryByText(/Cancel/i)).not.toBeOnTheScreen();
       expect(screen.queryByText(/Preparing/i)).not.toBeOnTheScreen();
       expect(screen.queryByText(/no longer active/i)).not.toBeOnTheScreen();
+      expect(mockHeadlessEntrySetOptions).toHaveBeenCalledWith({
+        cardStyle: {
+          backgroundColor: 'transparent',
+          pointerEvents: 'none',
+        },
+      });
     });
 
     it('renders the transparent container even with no session — no UI affordances surface to the user', () => {
@@ -226,6 +245,20 @@ describe('HeadlessHost', () => {
         screen.getByTestId(HEADLESS_HOST_CONTAINER_TEST_ID),
       ).toBeOnTheScreen();
       expect(mockContinueWithQuote).not.toHaveBeenCalled();
+    });
+
+    it('restores the headless entry card to interactive when the Host is not focused', () => {
+      mockIsFocused = false;
+      const session = seedSession(buildAggregatorQuote());
+
+      renderHost({ headlessSessionId: session.id });
+
+      expect(mockHeadlessEntrySetOptions).toHaveBeenCalledWith({
+        cardStyle: {
+          backgroundColor: 'transparent',
+          pointerEvents: 'auto',
+        },
+      });
     });
   });
 

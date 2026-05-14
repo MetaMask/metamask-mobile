@@ -158,17 +158,25 @@ jest.mock('../Views/Checkout', () => ({
       url,
       providerName,
       onNavigationStateChange,
+      headlessSessionId,
       workFlowRunId,
     }: {
       url: string;
       providerName: string;
       onNavigationStateChange?: (nav: { url: string }) => void;
+      headlessSessionId?: string;
       workFlowRunId?: string;
     }) => {
       capturedHandleNavigationStateChange = onNavigationStateChange ?? null;
       return [
         'Checkout',
-        { url, providerName, onNavigationStateChange, workFlowRunId },
+        {
+          url,
+          providerName,
+          onNavigationStateChange,
+          headlessSessionId,
+          workFlowRunId,
+        },
       ];
     },
   ),
@@ -1706,6 +1714,45 @@ describe('useTransakRouting', () => {
       expect(mockFailSession).toHaveBeenCalledWith('hs-1', expect.any(Error));
       expect(mockShowV2OrderToast).not.toHaveBeenCalled();
       expect(mockParentPop).toHaveBeenCalled();
+    });
+
+    it('treats a Transak redirect without orderId as user dismissal when headless', async () => {
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com/callback',
+        });
+      });
+
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'user_dismissed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+      expect(mockGetOrder).not.toHaveBeenCalled();
+      expect(mockShowV2OrderToast).not.toHaveBeenCalled();
+    });
+
+    it('passes headlessSessionId to Checkout so native provider unmounts can close the session', async () => {
+      await runApprovedFlowHeadless();
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: [
+            expect.objectContaining({
+              params: { headlessSessionId: 'hs-1' },
+            }),
+            expect.objectContaining({
+              name: 'Checkout',
+              params: expect.objectContaining({
+                headlessSessionId: 'hs-1',
+              }),
+            }),
+          ],
+        }),
+      );
     });
 
     it('routes manual bank transfer order success through headless callbacks without showing a toast', async () => {

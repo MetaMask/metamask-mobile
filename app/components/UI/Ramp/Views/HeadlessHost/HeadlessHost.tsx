@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -23,6 +23,7 @@ import {
   getSession,
   setStatus,
 } from '../../headless/sessionRegistry';
+import { setHeadlessEntryCardTouchThrough } from '../../headless/headlessEntryNavigation';
 import { useHeadlessSessionDismissal } from '../../headless/useHeadlessSessionDismissal';
 import { getChainIdFromAssetId } from '../../headless/useHeadlessBuy';
 import useContinueWithQuote, {
@@ -84,10 +85,19 @@ export const createHeadlessHostNavDetails =
  */
 function HeadlessHost() {
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const { styles } = useStyles(styleSheet, {});
   const { headlessSessionId, nativeFlowError } =
     useParams<HeadlessHostParams>();
   const session = getSession(headlessSessionId);
+
+  useEffect(() => {
+    setHeadlessEntryCardTouchThrough(navigation, isFocused);
+
+    return () => {
+      setHeadlessEntryCardTouchThrough(navigation, false);
+    };
+  }, [navigation, isFocused]);
 
   // Phase 8: defense-in-depth dismissal. The `beforeRemove` listener below
   // fires the synchronous close on every user-driven exit, so this hook's
@@ -285,11 +295,19 @@ function HeadlessHost() {
   ]);
 
   // The View is intentionally empty — Phase 9.5 hands all visible UI to the
-  // consumer. We do NOT set `accessibilityElementsHidden` here because there
-  // are no descendants to hide; it would only confuse screen readers about
-  // an already-empty stack base.
+  // consumer. It must also be touch-transparent: the navigation route exists
+  // only as an orchestration base, so the empty placeholder should not eat
+  // taps/scrolls intended for the consumer surface below.
+  //
+  // We do NOT set `accessibilityElementsHidden` here because there are no
+  // descendants to hide; it would only confuse screen readers about an
+  // already-empty stack base.
   return (
-    <View testID={HEADLESS_HOST_CONTAINER_TEST_ID} style={styles.container} />
+    <View
+      testID={HEADLESS_HOST_CONTAINER_TEST_ID}
+      pointerEvents="none"
+      style={styles.container}
+    />
   );
 }
 
