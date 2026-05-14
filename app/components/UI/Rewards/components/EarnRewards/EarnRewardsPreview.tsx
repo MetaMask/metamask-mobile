@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -49,14 +49,10 @@ const PEEK_WIDTH = 24;
 const styles = StyleSheet.create({
   avatar: { width: AVATAR_SIZE, height: AVATAR_SIZE },
   cardGap: { marginRight: CARD_GAP },
-  // Asymmetric padding: left aligns the first card; paddingRight = CARD_GAP +
-  // PEEK_WIDTH makes maxScroll exactly equal to snapToInterval so the last
-  // card snaps flush with the left edge (paddingRight = screenWidth -
-  // HORIZONTAL_PADDING - cardWidth, which simplifies to CARD_GAP + PEEK_WIDTH).
-  carouselContent: {
-    paddingLeft: HORIZONTAL_PADDING,
-    paddingRight: CARD_GAP + PEEK_WIDTH,
-  },
+  // Symmetric padding so the first card snaps flush to the left edge (peek on
+  // the right) and the last card snaps flush to the right edge (peek on the
+  // left). Snap points are defined explicitly via snapToOffsets.
+  carouselContent: { paddingHorizontal: HORIZONTAL_PADDING },
 });
 
 interface EarnCardProps {
@@ -65,6 +61,12 @@ interface EarnCardProps {
   subtitle: string;
   onPress: () => void;
   testID: string;
+  /**
+   * When true the card cannot be pressed and will not show pressed state.
+   * Used to suppress accidental taps while the user is actively dragging
+   * the carousel.
+   */
+  disabled?: boolean;
 }
 
 const EarnCard: React.FC<EarnCardProps> = ({
@@ -73,12 +75,14 @@ const EarnCard: React.FC<EarnCardProps> = ({
   subtitle,
   onPress,
   testID,
+  disabled,
 }) => {
   const tw = useTailwind();
 
   return (
     <Pressable
       testID={testID}
+      disabled={disabled}
       style={({ pressed }) =>
         tw.style(
           'rounded-xl bg-muted flex-row items-center p-4 gap-4',
@@ -117,9 +121,11 @@ type CarouselSlotKey = 'musd-skeleton' | 'musd' | 'card';
  * MetaMask Card card: always shown.
  * While geo is loading (status 'idle' or 'loading'): a skeleton occupies the
  * mUSD slot; the Card slot is always present.
- * Cards are displayed in a horizontal peek carousel: the right edge of the
- * next card is visible as a swipe affordance. No pagination dots. If there
- * are no items at all the entire section is not rendered.
+ * Cards are displayed in a horizontal peek carousel that scales to any
+ * number of items: every card except the last snaps flush-left with the next
+ * card peeking on the right; the last card snaps flush-right with the
+ * previous card peeking on the left. No pagination dots. If there are no
+ * items at all the entire section is not rendered.
  */
 const EarnRewardsPreview: React.FC = () => {
   const tw = useTailwind();
@@ -154,6 +160,13 @@ const EarnRewardsPreview: React.FC = () => {
     handleDeeplink({ uri: 'metamask://card-onboarding' });
   }, []);
 
+  // Disable presses only while the user is actively dragging the carousel.
+  // We intentionally do NOT include momentum-scroll state here so that taps
+  // during deceleration still register and stop the scroll.
+  const [isDragging, setIsDragging] = useState(false);
+  const handleScrollBeginDrag = useCallback(() => setIsDragging(true), []);
+  const handleScrollEndDrag = useCallback(() => setIsDragging(false), []);
+
   // Build the ordered list of carousel slots, preserving existing visibility logic.
   const items: CarouselSlotKey[] = [];
   if (isMusdGeoLoading && !showMusdCard) {
@@ -162,8 +175,27 @@ const EarnRewardsPreview: React.FC = () => {
     items.push('musd');
   }
   items.push('card');
+  const itemCount = items.length;
 
-  if (items.length === 0) return null;
+  // Explicit snap offsets give the first card a flush-left snap (peek on right)
+  // and the last card a flush-right snap (peek on left). With symmetric
+  // padding, the trailing edge is at:
+  //   contentWidth = 2 * HORIZONTAL_PADDING
+  //                + itemCount * cardWidth
+  //                + (itemCount - 1) * CARD_GAP
+  // and maxScroll = contentWidth - screenWidth.
+  const snapOffsets = useMemo(() => {
+    const contentWidth =
+      HORIZONTAL_PADDING * 2 +
+      itemCount * cardWidth +
+      Math.max(0, itemCount - 1) * CARD_GAP;
+    const maxScroll = Math.max(0, contentWidth - screenWidth);
+    return Array.from({ length: itemCount }, (_, i) =>
+      i === itemCount - 1 ? maxScroll : i * (cardWidth + CARD_GAP),
+    );
+  }, [itemCount, cardWidth, screenWidth]);
+
+  if (itemCount === 0) return null;
 
   const cardStyle = { width: cardWidth };
 
@@ -189,7 +221,9 @@ const EarnRewardsPreview: React.FC = () => {
         horizontal
         showsHorizontalScrollIndicator={false}
         decelerationRate="fast"
-        snapToInterval={cardWidth + CARD_GAP}
+        snapToOffsets={snapOffsets}
+        onScrollBeginDrag={handleScrollBeginDrag}
+        onScrollEndDrag={handleScrollEndDrag}
         contentContainerStyle={styles.carouselContent}
       >
         {items.map((item, index) => (
@@ -207,6 +241,7 @@ const EarnRewardsPreview: React.FC = () => {
                 title={strings('rewards.earn_rewards.musd_title')}
                 subtitle={strings('rewards.earn_rewards.musd_subtitle')}
                 onPress={handleMusdPress}
+                disabled={isDragging}
               />
             )}
             {item === 'card' && (
@@ -216,6 +251,7 @@ const EarnRewardsPreview: React.FC = () => {
                 title={strings('rewards.earn_rewards.card_title')}
                 subtitle={cardSubtitle}
                 onPress={handleCardPress}
+                disabled={isDragging}
               />
             )}
           </View>
