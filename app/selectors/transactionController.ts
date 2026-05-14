@@ -26,13 +26,14 @@ function dedupeTransactions(transactions: LocalTransaction[]) {
   const seenTransactions = new Set<string>();
 
   return transactions.filter((transaction) => {
-    const { chainId, txParams, id } = transaction as TransactionMeta;
+    const { chainId, txParams, id, isTransfer } =
+      transaction as TransactionMeta;
     const { from, nonce } = txParams || {};
     const hash = 'hash' in transaction ? transaction.hash : undefined;
     const isBridgeTransaction = transaction.type === TransactionType.bridge;
     const hasNonce = nonce !== undefined && nonce !== null;
 
-    if (!from) {
+    if (!from || isTransfer !== undefined) {
       return false;
     }
 

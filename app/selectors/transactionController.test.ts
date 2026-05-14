@@ -312,6 +312,32 @@ describe('TransactionController Selectors', () => {
         selectLocalTransactions(buildLocalTxState({ groupEvmAccount: null })),
       ).toStrictEqual([]);
     });
+
+    it('excludes incoming transactions populated by the TransactionController incoming-transactions feature', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'outgoing',
+            hash: '0xOUTGOING',
+            chainId: '0x1',
+            time: 200,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'incoming-duplicate',
+            hash: '0xOUTGOING',
+            chainId: '0x1',
+            time: 100,
+            isTransfer: true,
+            txParams: { from: evmAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'outgoing' }),
+      ]);
+    });
   });
 
   describe('selectTransactionMetadataById', () => {
