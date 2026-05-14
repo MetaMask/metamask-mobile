@@ -244,9 +244,12 @@ describe('BenefitsPreview', () => {
       const { getByText } = render(<BenefitsPreview />);
 
       expect(getByText('2 available')).toBeOnTheScreen();
-      expect(mockStrings).toHaveBeenCalledWith('rewards.benefits.available_count', {
-        count: '2',
-      });
+      expect(mockStrings).toHaveBeenCalledWith(
+        'rewards.benefits.available_count',
+        {
+          count: '2',
+        },
+      );
     });
   });
 
