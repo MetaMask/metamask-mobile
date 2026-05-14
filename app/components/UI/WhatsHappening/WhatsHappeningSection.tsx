@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useImperativeHandle,
   useRef,
+  useState,
 } from 'react';
 import {
   NativeScrollEvent,
@@ -62,6 +63,14 @@ const WhatsHappeningSection = forwardRef<
   WhatsHappeningSectionProps
 >(({ source }, ref) => {
   const currentIndexRef = useRef<number>(0);
+  const [cardHeight, setCardHeight] = useState<number | undefined>(undefined);
+
+  const handleFirstCardLayout = useCallback(
+    (height: number) => {
+      if (!cardHeight) setCardHeight(height);
+    },
+    [cardHeight],
+  );
   const tw = useTailwind();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -172,11 +181,12 @@ const WhatsHappeningSection = forwardRef<
                 cardIndex={index}
                 source={source}
                 onPress={() => handleCardPress(index)}
+                onCardLayout={index === 0 ? handleFirstCardLayout : undefined}
               />
             ))}
             <ViewMoreCard
               onPress={handleViewAll}
-              twClassName="w-[180px] h-[254px]"
+              twClassName={`w-[180px]${cardHeight ? ` h-[${cardHeight}px]` : ''}`}
               textVariant={TextVariant.BodyLg}
             />
           </>

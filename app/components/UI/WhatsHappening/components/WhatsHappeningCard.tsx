@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, memo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View, type LayoutChangeEvent } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -32,6 +32,7 @@ interface WhatsHappeningCardProps {
   cardIndex: number;
   source: WhatsHappeningSourceValue;
   onPress?: (item: WhatsHappeningItem) => void;
+  onCardLayout?: (height: number) => void;
 }
 
 const MAX_VISIBLE_ASSET_ICONS = 3;
@@ -41,6 +42,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   cardIndex,
   source,
   onPress,
+  onCardLayout,
 }) => {
   const tw = useTailwind();
   const formattedDate = useMemo(
@@ -65,6 +67,14 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   const { ref: cardRef, onLayout: onVisibilityLayout } =
     useViewportTracking(handleVisible);
 
+  const handleLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      onVisibilityLayout();
+      onCardLayout?.(event.nativeEvent.layout.height);
+    },
+    [onVisibilityLayout, onCardLayout],
+  );
+
   const visibleAssets = useMemo(
     () => item.relatedAssets.slice(0, MAX_VISIBLE_ASSET_ICONS),
     [item.relatedAssets],
@@ -85,7 +95,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
     : null;
 
   return (
-    <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
+    <View ref={cardRef} collapsable={false} onLayout={handleLayout}>
       <TouchableOpacity
         onPress={handlePress}
         activeOpacity={0.7}
