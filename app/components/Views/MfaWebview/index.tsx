@@ -165,7 +165,7 @@ const MfaWebview: React.FC = () => {
   if (error) {
     return (
       <SafeAreaView
-        edges={['bottom']}
+        edges={['top']}
         style={tw.style(
           'flex-1 bg-default justify-center items-center p-4 gap-4',
         )}
@@ -192,12 +192,12 @@ const MfaWebview: React.FC = () => {
     // Brief blank state while we resolve the bearer; the WebView itself
     // shows a loading spinner once it starts.
     return (
-      <SafeAreaView edges={['bottom']} style={tw.style('flex-1 bg-default')} />
+      <SafeAreaView edges={['top']} style={tw.style('flex-1 bg-default')} />
     );
   }
 
   return (
-    <SafeAreaView edges={['bottom']} style={tw.style('flex-1 bg-default')}>
+    <SafeAreaView edges={['top']} style={tw.style('flex-1 bg-default')}>
       <WebView
         ref={webViewRef}
         source={{

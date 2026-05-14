@@ -5,14 +5,7 @@ export enum PressActionId {
   OPEN_NOTIFICATIONS_VIEW = 'open-notifications-view-press-action-id',
 }
 
-// 'default' tells Notifee to use the activity declared in AndroidManifest.xml
-// as the app's launcher (resolves to io.metamask.MainActivity for the main
-// flavor, io.metamask.qa.MainActivity for qa, etc.).
-// Was previously the literal 'com.metamask.ui.MainActivity' which is stale
-// from an older package name and threw at runtime when Notifee tried to
-// construct the press-action Intent — meaning all notification taps were
-// silently inert.
-export const LAUNCH_ACTIVITY = 'default';
+export const LAUNCH_ACTIVITY = 'com.metamask.ui.MainActivity';
 
 export const NotificationTypes = {
   TRANSACTION: 'transaction',

@@ -212,9 +212,8 @@ xcrun simctl openurl booted "https://link.metamask.io/cli-login?sessionId=<sessi
 adb shell am start -W -a android.intent.action.VIEW -d "https://link.metamask.io/cli-login?sessionId=<sessionId>&server=http%3A%2F%2F10.0.2.2%3A3000"
 ```
 
-Temporary debug logs are still wired in this branch (`[FCM:*]`, `[Deeplink:*]`) for local iteration. They are
-marked `// TEMP debug — remove before commit`, and the notification feature-flag override is marked
-`// TEMP debug — force-enable for local CLI-push testing; revert before commit`.
+No notification or Notifee test hooks are required for this local smoke path. Temporary debug logs are still
+present for the deeplink saga only and are marked `// TEMP debug — remove before commit`.
 
 ## Jira
 

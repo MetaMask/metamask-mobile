@@ -180,8 +180,6 @@ class FCMService {
     try {
       await registerForRemoteMessages();
       const fcmToken = await messaging().getToken();
-      // eslint-disable-next-line no-console -- TEMP debug — remove before commit
-      console.log('[FCM:token]', fcmToken);
       return fcmToken;
     } catch {
       return null;
@@ -248,8 +246,6 @@ class FCMService {
 
     try {
       this.#hasRegisteredForeground = messaging().onMessage(async (payload) => {
-        // eslint-disable-next-line no-console -- TEMP debug — remove before commit
-        console.log('[FCM:foreground]', JSON.stringify(payload, null, 2));
         processAndHandleNotification(payload, handler);
       });
     } catch {
@@ -269,8 +265,6 @@ class FCMService {
   onClickPushNotificationWhenAppClosed = async () => {
     try {
       const remoteMessage = await getInitialNotification();
-      // eslint-disable-next-line no-console -- TEMP debug — remove before commit
-      console.log('[FCM:initial]', JSON.stringify(remoteMessage, null, 2));
       analyticsTrackPushClickEvent(remoteMessage);
       const deeplink = remoteMessage?.data?.deeplink?.toString();
       return deeplink;
@@ -285,8 +279,6 @@ class FCMService {
     try {
       messaging().onNotificationOpenedApp((remoteMessage) => {
         try {
-          // eslint-disable-next-line no-console -- TEMP debug — remove before commit
-          console.log('[FCM:opened]', JSON.stringify(remoteMessage, null, 2));
           analyticsTrackPushClickEvent(remoteMessage);
           const deeplink = remoteMessage?.data?.deeplink?.toString();
           deeplinkCallback(deeplink);
