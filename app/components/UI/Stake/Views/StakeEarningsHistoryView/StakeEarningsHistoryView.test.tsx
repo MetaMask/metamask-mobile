@@ -3,17 +3,18 @@ import React from 'react';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { fireLayoutEvent } from '../../../../../util/testUtils/react-native-svg-charts';
+import { strings } from '../../../../../../locales/i18n';
 import useEarningsHistory from '../../../Earn/hooks/useEarningsHistory';
-import { getStakingNavbar } from '../../../Navbar';
 import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../__mocks__/stakeMockData';
 import StakeEarningsHistoryView from './StakeEarningsHistoryView';
 
-jest.mock('../../../Navbar');
 jest.mock('../../../Earn/hooks/useEarningsHistory');
 
+const mockGoBack = jest.fn();
 const mockNavigation = {
   navigate: jest.fn(),
   setOptions: jest.fn(),
+  goBack: mockGoBack,
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -88,20 +89,18 @@ const mockInitialState = {
 const earningsHistoryView = <StakeEarningsHistoryView />;
 
 describe('StakeEarningsHistoryView', () => {
-  it('calls navigation setOptions on render', () => {
-    const renderedView = renderWithProvider(earningsHistoryView, {
-      state: mockInitialState,
+  it('renders the staking earnings history header title with the asset ticker', () => {
+    const expectedTitle = strings('stake.earnings_history_title', {
+      ticker:
+        MOCK_STAKED_ETH_MAINNET_ASSET.ticker ||
+        MOCK_STAKED_ETH_MAINNET_ASSET.symbol,
     });
-    fireLayoutEvent(renderedView.root);
-    expect(mockNavigation.setOptions).toHaveBeenCalled();
-  });
 
-  it('calls navigation setOptions to get staking navigation bar', () => {
     const renderedView = renderWithProvider(earningsHistoryView, {
       state: mockInitialState,
     });
     fireLayoutEvent(renderedView.root);
-    expect(mockNavigation.setOptions).toHaveBeenCalled();
-    expect(getStakingNavbar).toHaveBeenCalled();
+
+    expect(renderedView.getByText(expectedTitle)).toBeOnTheScreen();
   });
 });
