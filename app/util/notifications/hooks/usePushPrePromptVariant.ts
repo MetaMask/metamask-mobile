@@ -49,8 +49,6 @@ type EligibilityBlockReason =
   | 'notifications_enabled_by_default_flag_disabled'
   | 'notifications_feature_flag_disabled';
 
-const PUSH_STATUS_SOURCE = 'pre_prompt_eligibility';
-
 const getEligibilityBlockReason = ({
   completedOnboarding,
   isBasicFunctionalityEnabled,
@@ -116,7 +114,6 @@ const resolvePrePromptVariant = async (
 
   const pushStatus = await resolvePushNotificationStatus({
     controllerIsPushEnabled: eligibility.isPushEnabled,
-    source: PUSH_STATUS_SOURCE,
   });
 
   if (!pushStatus.effectivePushEnabled) {

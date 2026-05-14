@@ -13,10 +13,6 @@ import {
   hasPushPermission,
   requestPushPermissions,
 } from '../services/NotificationService';
-import {
-  clearPushNotificationStatusCache,
-  setCachedNativePermissionEnabled,
-} from '../utils/push-notification-status';
 
 export interface UsePushNotificationsToggleProps {
   // Depending on the instance, we may want to nudge to enable push notifications
@@ -37,7 +33,6 @@ export function usePushNotificationsToggle(
       : hasPushPermission;
 
     const nativePermissionEnabled = await pushPermCallback().catch(() => false);
-    setCachedNativePermissionEnabled(nativePermissionEnabled);
     if (!nativePermissionEnabled) {
       return false;
     }
@@ -54,7 +49,6 @@ export function usePushNotificationsToggle(
     assertIsFeatureEnabled();
     try {
       await disablePushNotificationsHelper();
-      clearPushNotificationStatusCache();
       return true;
     } catch {
       return false;

@@ -39,7 +39,6 @@ export const createNotificationServicesPushController = (props: {
     resolvePushNotificationStatus({
       controllerIsPushEnabled:
         notificationServicesPushController.state.isPushEnabled,
-      source: 'push_controller_init',
     })
       .then(({ nativeOsPermissionEnabled }) => {
         if (nativeOsPermissionEnabled === false) {

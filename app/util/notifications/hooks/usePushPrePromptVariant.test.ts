@@ -111,7 +111,6 @@ describe('usePushPrePromptVariant', () => {
       controllerIsPushEnabled: true,
       effectivePushEnabled: true,
       nativeOsPermissionEnabled: true,
-      permissionCheckSource: 'cached',
     });
   });
 
@@ -169,7 +168,6 @@ describe('usePushPrePromptVariant', () => {
       controllerIsPushEnabled: true,
       effectivePushEnabled: false,
       nativeOsPermissionEnabled: false,
-      permissionCheckSource: 'cached',
     });
 
     const { result } = renderUsePushPrePromptVariant();
