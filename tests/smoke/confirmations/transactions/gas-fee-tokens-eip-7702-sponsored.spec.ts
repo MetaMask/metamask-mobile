@@ -18,8 +18,10 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents';
 import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager';
 import {
+  countProxiedRequestsMatching,
   setupMockRequest,
   setupMockPostRequest,
+  waitForAdditionalProxiedRequestsMatching,
   waitForProxiedRequestsMatching,
 } from '../../../api-mocking/helpers/mockHelpers';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
@@ -38,11 +40,14 @@ import { RelayStatus } from '../../../../app/util/transactions/transaction-relay
 const TRANSACTION_UUID_MOCK = '1234-5678';
 const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 const RECIPIENT_ADDRESS_MOCK = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
-/** Match {@link gas-fee-tokens-eip-7702.spec.ts} and {@link transaction-relay-mocks} for proxy URL matching. */
-const LOCALHOST_SENTINEL_URL =
-  device.getPlatform() === 'android'
-    ? 'https://tx-sentinel-127.0.0.1.api.cx.metamask.io'
-    : 'https://tx-sentinel-localhost.api.cx.metamask.io';
+// Match the decoded proxied URL before Android fallback rewrites localhost to 127.0.0.1.
+const LOCALHOST_SENTINEL_ORIGIN_REGEX =
+  /^https:\/\/tx-sentinel-(localhost|127\.0\.0\.1)\.api\.cx\.metamask\.io\/?$/;
+const LOCALHOST_SENTINEL_NETWORK_URL_REGEX =
+  /^https:\/\/tx-sentinel-(localhost|127\.0\.0\.1)\.api\.cx\.metamask\.io\/network$/;
+const LOCALHOST_SENTINEL_SMART_TRANSACTION_URL_REGEX = new RegExp(
+  `^https:\\/\\/tx-sentinel-(localhost|127\\.0\\.0\\.1)\\.api\\.cx\\.metamask\\.io\\/smart-transactions\\/${TRANSACTION_UUID_MOCK}$`,
+);
 
 const SEND_ETH_TRANSACTION_MOCK = {
   data: '0x',
@@ -137,7 +142,7 @@ const setupCommonMocks = async (mockServer: Mockttp) => {
 
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: `${LOCALHOST_SENTINEL_URL}/network`,
+    url: LOCALHOST_SENTINEL_NETWORK_URL_REGEX,
     response: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.response,
     responseCode: 200,
   });
@@ -145,7 +150,7 @@ const setupCommonMocks = async (mockServer: Mockttp) => {
   // Mock infura_simulateTransactions (align body + ignoreFields with gas-fee-tokens-eip-7702.spec.ts)
   await setupMockPostRequest(
     mockServer,
-    LOCALHOST_SENTINEL_URL,
+    LOCALHOST_SENTINEL_ORIGIN_REGEX,
     SIMULATION_SPONSORED_REQUEST_BODY,
     SIMULATION_RESPONSE,
     {
@@ -229,7 +234,26 @@ const performSendTransaction = async (mockServer: Mockttp) => {
   await SendView.pressAmountFiveButton();
   await SendView.pressContinueButton();
   await SendView.inputRecipientAddress(RECIPIENT_ADDRESS_MOCK);
+  const sentinelSimulationRequestCount = await countProxiedRequestsMatching(
+    mockServer,
+    {
+      method: 'POST',
+      urlRegex: LOCALHOST_SENTINEL_ORIGIN_REGEX,
+    },
+  );
   await SendView.pressReviewButton();
+  await waitForAdditionalProxiedRequestsMatching(
+    mockServer,
+    {
+      method: 'POST',
+      urlRegex: LOCALHOST_SENTINEL_ORIGIN_REGEX,
+    },
+    sentinelSimulationRequestCount,
+    {
+      description: 'sentinel simulation request after review',
+      timeout: 30000,
+    },
+  );
   await Assertions.expectElementToNotBeVisible(SendView.reviewButton, {
     description: 'Send review button dismissed',
     timeout: 5000,
@@ -275,7 +299,7 @@ describe(
             // Mock eth_sendRelayTransaction
             await setupMockPostRequest(
               mockServer,
-              LOCALHOST_SENTINEL_URL,
+              LOCALHOST_SENTINEL_ORIGIN_REGEX,
               {
                 jsonrpc: '2.0',
                 method: 'eth_sendRelayTransaction',
@@ -291,7 +315,7 @@ describe(
             // Status check mock
             await setupMockRequest(mockServer, {
               requestMethod: 'GET',
-              url: `${LOCALHOST_SENTINEL_URL}/smart-transactions/${TRANSACTION_UUID_MOCK}`,
+              url: LOCALHOST_SENTINEL_SMART_TRANSACTION_URL_REGEX,
               response: {
                 transactions: [
                   {

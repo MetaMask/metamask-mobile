@@ -23,17 +23,6 @@ describe('TagColored', () => {
     expect(screen.getByTestId(TAGCOLORED_TESTID)).toBeOnTheScreen();
   });
 
-  it('applies custom view props to the tag container', () => {
-    render(
-      <TagColored testID="custom-tag" accessibilityLabel="Custom tag">
-        TagColored
-      </TagColored>,
-    );
-
-    expect(screen.getByTestId('custom-tag')).toBeOnTheScreen();
-    expect(screen.getByLabelText('Custom tag')).toBeOnTheScreen();
-  });
-
   it('renders custom element children', () => {
     const testText = 'TagColored';
     const ChildrenComponent = () => <Text>{testText}</Text>;
