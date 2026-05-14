@@ -22,9 +22,9 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   WhatsHappeningInteractionType,
   type WhatsHappeningSourceValue,
-} from '../../Homepage/Sections/WhatsHappening/constants';
-import { getWhatsHappeningEventProps } from '../../Homepage/Sections/WhatsHappening/eventProperties';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
+} from '../../../UI/WhatsHappening/constants';
+import { getWhatsHappeningEventProps } from '../../../UI/WhatsHappening/eventProperties';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
 
 interface WhatsHappeningSourcesBottomSheetProps {
   onClose: () => void;
