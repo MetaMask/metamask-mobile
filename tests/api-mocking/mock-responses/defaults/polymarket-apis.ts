@@ -38,6 +38,23 @@ export const POLYMARKET_API_MOCKS = {
       responseCode: 200,
       response: { events: [] },
     },
+    {
+      urlEndpoint: /^https:\/\/gamma-api\.polymarket\.com\/events\/\d+(\?.*)?$/,
+      responseCode: 200,
+      response: {
+        id: '1',
+        slug: 'mock-prediction-event',
+        title: 'Mock prediction event',
+        description: 'E2E mock event',
+        icon: 'https://polymarket.com/icon.png',
+        closed: false,
+        series: [],
+        markets: [],
+        tags: [],
+        liquidity: 0,
+        volume: 0,
+      },
+    },
     // gamma-api: markets list
     {
       urlEndpoint: /^https:\/\/gamma-api\.polymarket\.com\/markets(\?.*)?$/,
