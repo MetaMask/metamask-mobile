@@ -7685,7 +7685,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^7.1.1":
+"@metamask/assets-controller@npm:^7.1.1, @metamask/assets-controller@npm:^7.1.2":
   version: 7.1.2
   resolution: "@metamask/assets-controller@npm:7.1.2"
   dependencies:
@@ -10427,15 +10427,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:@metamask-previews/transaction-pay-controller@22.3.1-preview-c04e6a2":
-  version: 22.3.1-preview-c04e6a2
-  resolution: "@metamask-previews/transaction-pay-controller@npm:22.3.1-preview-c04e6a2"
+"@metamask/transaction-pay-controller@npm:^22.5.0":
+  version: 22.5.0
+  resolution: "@metamask/transaction-pay-controller@npm:22.5.0"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
-    "@metamask/assets-controller": "npm:^7.1.1"
-    "@metamask/assets-controllers": "npm:^108.0.0"
+    "@metamask/assets-controller": "npm:^7.1.2"
+    "@metamask/assets-controllers": "npm:^108.1.0"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/bridge-controller": "npm:^72.0.4"
     "@metamask/bridge-status-controller": "npm:^71.1.4"
@@ -10446,13 +10446,13 @@ __metadata:
     "@metamask/network-controller": "npm:^32.0.0"
     "@metamask/ramps-controller": "npm:^13.3.1"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.1"
-    "@metamask/transaction-controller": "npm:^65.3.0"
+    "@metamask/transaction-controller": "npm:^65.4.0"
     "@metamask/utils": "npm:^11.9.0"
     bignumber.js: "npm:^9.1.2"
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/16429a261c525e7fcf8b475c7bc9a49f54ae075304759f0be3af988115e248cbc239838307476cc289b8743b7a8be1a2d2800e1894914e4fb39352390073ce68
+  checksum: 10/611103e0f4a8c2783f8196302830d9befee8973f64e0fdb050f658de3519c6dc01c1bf104788b2d726e8f22e22ed529ac19b7b3e9d53aea945e6676d71bef7e2
   languageName: node
   linkType: hard
 
@@ -35442,7 +35442,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^65.4.0"
-    "@metamask/transaction-pay-controller": "npm:@metamask-previews/transaction-pay-controller@22.3.1-preview-c04e6a2"
+    "@metamask/transaction-pay-controller": "npm:^22.5.0"
     "@metamask/tron-wallet-snap": "npm:^1.25.3"
     "@metamask/utils": "npm:^11.11.0"
     "@myx-trade/sdk": "npm:^0.1.265"
