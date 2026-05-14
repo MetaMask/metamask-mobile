@@ -11,9 +11,14 @@ import {
 import { AccountListBottomSheetSelectorsIDs } from '../../../../components/Views/AccountSelector/AccountListBottomSheet.testIds';
 import {
   MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID,
+  MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
 } from './MultichainAccountSelectorList.constants';
 import { AccountCellIds } from '../AccountCell/AccountCell.testIds';
+import { ACCOUNT_LIST_CELL_TEST_IDS } from './AccountListCell/AccountListCell.testIds';
+import { EXTERNAL_ACCOUNT_CELL_TEST_IDS } from './ExternalAccountCell/ExternalAccountCell.testIds';
+
+const EXTERNAL_ADDRESS = '0x1111111111111111111111111111111111111111';
 
 interface ImmediateInteractionManager {
   runAfterInteractions: (callback: () => void) => { cancel: () => void };
@@ -76,6 +81,104 @@ describeForPlatforms('MultichainAccountSelectorList account syncing', () => {
     });
 
     createAccountSpy.mockRestore();
+  });
+
+  it('selects an account from the list', async () => {
+    const onSelectAccount = jest.fn();
+    const { findByText, fixture } = renderMultichainAccountSelectorList({
+      onSelectAccount,
+      showFooter: false,
+    });
+
+    fireEvent.press(await findByText(MULTICHAIN_TEST_ACCOUNTS.account1.name));
+
+    expect(onSelectAccount).toHaveBeenCalledWith(fixture.groups.account1);
+  });
+
+  it('shows selected account checkboxes', async () => {
+    const fixture = buildMultichainAccountsFixture({
+      includeSecondAccount: true,
+    });
+    const { findByTestId } = renderMultichainAccountSelectorList({
+      fixture,
+      selectedAccountGroups: [fixture.groups.account2],
+      showCheckbox: true,
+      showFooter: false,
+    });
+
+    expect(
+      await findByTestId(
+        `${ACCOUNT_LIST_CELL_TEST_IDS.ACCOUNT_LIST_CELL}${fixture.groups.account2.id}`,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('enables keyboard avoidance when the filtered list has two or fewer accounts', async () => {
+    const setKeyboardAvoidingViewEnabled = jest.fn();
+    const { getByTestId } = renderMultichainAccountSelectorList({
+      fixture: buildMultichainAccountsFixture({
+        includeSecondAccount: true,
+      }),
+      setKeyboardAvoidingViewEnabled,
+      showFooter: false,
+    });
+
+    fireEvent.changeText(
+      getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+      MULTICHAIN_TEST_ACCOUNTS.account2.name,
+    );
+
+    await waitFor(() => {
+      expect(setKeyboardAvoidingViewEnabled).toHaveBeenLastCalledWith(true);
+    });
+  });
+
+  it('selects a valid external address when no wallet account matches the search', async () => {
+    const onSelectExternalAccount = jest.fn();
+    const { getByTestId, findByTestId, findByText } =
+      renderMultichainAccountSelectorList({
+        chainId: '0x1',
+        onSelectExternalAccount,
+        showExternalAccountOnEmptySearch: true,
+        showFooter: false,
+      });
+
+    fireEvent.changeText(
+      getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+      EXTERNAL_ADDRESS,
+    );
+
+    expect(await findByText('External account')).toBeOnTheScreen();
+    fireEvent.press(
+      await findByTestId(EXTERNAL_ACCOUNT_CELL_TEST_IDS.CONTAINER),
+    );
+
+    expect(onSelectExternalAccount).toHaveBeenCalledWith(EXTERNAL_ADDRESS);
+  });
+
+  it('shows an error and disables external account selection for an invalid address', async () => {
+    const onSelectExternalAccount = jest.fn();
+    const { getByTestId, findByTestId } = renderMultichainAccountSelectorList({
+      chainId: '0x1',
+      onSelectExternalAccount,
+      showExternalAccountOnEmptySearch: true,
+      showFooter: false,
+    });
+
+    fireEvent.changeText(
+      getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+      'not-an-address',
+    );
+
+    expect(
+      await findByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      await findByTestId(EXTERNAL_ACCOUNT_CELL_TEST_IDS.CONTAINER),
+    );
+
+    expect(onSelectExternalAccount).not.toHaveBeenCalled();
   });
 
   it('gracefully handles adding accounts with activity and synced accounts', async () => {

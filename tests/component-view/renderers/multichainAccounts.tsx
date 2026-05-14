@@ -76,8 +76,15 @@ function getFixture(options: FixtureRendererOptions = {}) {
 
 interface AccountSelectorRendererOptions extends FixtureRendererOptions {
   selectedAccountGroups?: AccountGroupObject[];
+  showCheckbox?: boolean;
   showFooter?: boolean;
   hideAccountCellMenu?: boolean;
+  chainId?: string;
+  setKeyboardAvoidingViewEnabled?: (enabled: boolean) => void;
+  showExternalAccountOnEmptySearch?: boolean;
+  onSelectAccount?: (accountGroup: AccountGroupObject) => void;
+  onSelectExternalAccount?: (address: string) => void;
+  selectedExternalAddress?: string;
 }
 
 export function renderMultichainAccountSelectorList(
@@ -87,8 +94,17 @@ export function renderMultichainAccountSelectorList(
   const SelectorScreen = () => (
     <MultichainAccountSelectorList
       selectedAccountGroups={options.selectedAccountGroups ?? []}
+      showCheckbox={options.showCheckbox}
       showFooter={options.showFooter ?? true}
       hideAccountCellMenu={options.hideAccountCellMenu ?? true}
+      chainId={options.chainId}
+      setKeyboardAvoidingViewEnabled={options.setKeyboardAvoidingViewEnabled}
+      showExternalAccountOnEmptySearch={
+        options.showExternalAccountOnEmptySearch
+      }
+      onSelectAccount={options.onSelectAccount}
+      onSelectExternalAccount={options.onSelectExternalAccount}
+      selectedExternalAddress={options.selectedExternalAddress}
     />
   );
 

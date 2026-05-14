@@ -7,11 +7,13 @@ import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import BackupAndSyncSettings from '../../../app/components/Views/Settings/Identity/BackupAndSyncSettings';
 import Contacts from '../../../app/components/Views/Settings/Contacts';
 import ContactForm from '../../../app/components/Views/Settings/Contacts/ContactForm';
+import AmbiguousAddressSheet from '../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet';
 import { initialStateIdentity } from '../presets/identity';
 
 interface IdentityRendererOptions {
   overrides?: DeepPartial<RootState>;
   stateOptions?: Parameters<typeof initialStateIdentity>[0];
+  routeParams?: Record<string, unknown>;
 }
 
 export function buildIdentityState(options: IdentityRendererOptions = {}) {
@@ -54,6 +56,16 @@ export function renderContactForm(options: IdentityRendererOptions = {}) {
     ContactForm as unknown as React.ComponentType,
     { name: Routes.SETTINGS.CONTACT_FORM },
     { state: buildIdentityState(options) },
-    { mode: 'add' },
+    { mode: 'add', ...options.routeParams },
+  );
+}
+
+export function renderAmbiguousAddressSheet(
+  options: IdentityRendererOptions = {},
+) {
+  return renderComponentViewScreen(
+    AmbiguousAddressSheet as unknown as React.ComponentType,
+    { name: Routes.SHEET.AMBIGUOUS_ADDRESS },
+    { state: buildIdentityState(options) },
   );
 }
