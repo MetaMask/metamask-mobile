@@ -12,7 +12,14 @@ const mockNavigate = jest.fn();
 const mockUseSelector = jest.fn();
 const mockUseBenefits = jest.fn();
 
-const mockStrings = jest.fn((key: string) => {
+const mockStrings = jest.fn((key: string, params?: Record<string, unknown>) => {
+  if (
+    key === 'rewards.benefits.available_count' &&
+    params &&
+    typeof params.count === 'string'
+  ) {
+    return `${params.count} available`;
+  }
   const translations: Record<string, string> = {
     'rewards.benefits.title': 'Benefits',
     'rewards.benefits.empty-list': 'No benefits available yet',
@@ -42,7 +49,8 @@ jest.mock('../../hooks/useBenefits', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => mockStrings(key),
+  strings: (key: string, params?: Record<string, unknown>) =>
+    mockStrings(key, params),
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
@@ -126,7 +134,10 @@ describe('BenefitsPreview', () => {
   it('requests rewards benefits title copy from i18n', () => {
     render(<BenefitsPreview />);
 
-    expect(mockStrings).toHaveBeenCalledWith('rewards.benefits.title');
+    expect(mockStrings).toHaveBeenCalledWith(
+      'rewards.benefits.title',
+      undefined,
+    );
   });
 
   it('reads subscription benefits and loading state from the store', () => {
@@ -169,7 +180,10 @@ describe('BenefitsPreview', () => {
 
       expect(getByTestId('benefit-empty-list')).toBeOnTheScreen();
       expect(getByText('No benefits available yet')).toBeOnTheScreen();
-      expect(mockStrings).toHaveBeenCalledWith('rewards.benefits.empty-list');
+      expect(mockStrings).toHaveBeenCalledWith(
+        'rewards.benefits.empty-list',
+        undefined,
+      );
     });
 
     it('does not render benefit details container without benefits', () => {
@@ -224,6 +238,15 @@ describe('BenefitsPreview', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.REWARD_BENEFITS_FULL_VIEW,
       );
+    });
+
+    it('shows available benefits count in the header tag', () => {
+      const { getByText } = render(<BenefitsPreview />);
+
+      expect(getByText('2 available')).toBeOnTheScreen();
+      expect(mockStrings).toHaveBeenCalledWith('rewards.benefits.available_count', {
+        count: '2',
+      });
     });
   });
 
