@@ -313,13 +313,8 @@ const Checkout = () => {
         addOrder(rampsOrder);
         dispatch(protectWalletModalVisible());
 
-        // Headless mode: hand the orderId AND the creation-snapshot order
-        // to the consumer, close the session, and unwind out of the ramp
-        // stack so the caller regains foreground. Skip the toast +
-        // RAMPS_ORDER_DETAILS reset — both are user-facing UI the headless
-        // consumer didn't ask for. Passing the order snapshot alongside the
-        // id (Fix #3.1) lets consumers branch on creation-time state (e.g.
-        // `order.walletAddress`) without a separate controller round-trip.
+        // Headless mode returns foreground control to the consumer without
+        // showing the toast or order-details reset.
         const session = getSession(headlessSessionId);
         if (headlessSessionId && session) {
           try {

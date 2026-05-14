@@ -317,60 +317,137 @@ describe('useHeadlessBuy', () => {
       expect(mockGetQuotesRaw).not.toHaveBeenCalled();
     });
 
-    // Fix #2 — provider rejection inspection. UB2 handles `success.length === 0
-    // && error.length > 0` at BuildQuote.tsx:683-687; headless mode previously
-    // returned the raw response silently. This block exercises the inspection
-    // + Design B (active-session routing) + classification logic.
-    describe('provider rejection inspection (Fix #2)', () => {
-      const sampleQuote = {
-        provider: '/providers/transak-native',
-        quote: {
-          amountIn: 5,
-          amountOut: 0.001,
-          paymentMethod: '/payments/debit-credit-card',
-        },
-        providerInfo: {
-          id: '/providers/transak-native',
-          name: 'Transak',
-          type: 'native' as const,
-        },
-      } as unknown as Parameters<
-        ReturnType<typeof useHeadlessBuy>['startHeadlessBuy']
-      >[0]['quote'];
-      const baseStartParams = {
-        quote: sampleQuote,
-        assetId: 'eip155:59144/erc20:0xabc',
-        amount: 5,
+    const assetId = 'eip155:59144/erc20:0xabc';
+    const cardPaymentMethod = '/payments/debit-credit-card';
+    const bankPaymentMethod = '/payments/bank-transfer';
+    const transakProvider = '/providers/transak-native';
+    const moonpayProvider = '/providers/moonpay';
+    const regionWithCurrency = (currency?: string) => ({
+      ...mockUserRegion,
+      country: currency ? { isoCode: 'FR', currency } : { isoCode: 'FR' },
+    });
+    const baseQuotesParams = {
+      assetId,
+      amount: 5,
+      walletAddress: '0xWALLET',
+      paymentMethodIds: [cardPaymentMethod],
+      providerIds: [transakProvider],
+    };
+    const emptyQuotesResponse = {
+      success: [],
+      sorted: [],
+      error: [],
+      customActions: [],
+    };
+    const quoteResponse = (overrides = {}) => ({
+      ...emptyQuotesResponse,
+      ...overrides,
+    });
+    const useControllerValue = (overrides: Record<string, unknown>) => {
+      (useRampsController as jest.Mock).mockReturnValue({
+        ...baseControllerValue,
+        ...overrides,
+      });
+    };
+    const seedQuote = {
+      provider: transakProvider,
+      quote: {
+        amountIn: 5,
+        amountOut: 0.001,
+        paymentMethod: cardPaymentMethod,
+      },
+      providerInfo: {
+        id: transakProvider,
+        name: 'Transak',
+        type: 'native' as const,
+      },
+    } as unknown as Parameters<
+      ReturnType<typeof useHeadlessBuy>['startHeadlessBuy']
+    >[0]['quote'];
+    const startParams = { quote: seedQuote, assetId, amount: 5 };
+    const startActiveSession = () => {
+      const { result } = renderHook(() => useHeadlessBuy());
+      const callbacks = {
+        onOrderCreated: jest.fn(),
+        onError: jest.fn(),
+        onClose: jest.fn(),
       };
-      const getQuotesParams = {
-        assetId: 'eip155:59144/erc20:0xabc',
-        amount: 5,
-        walletAddress: '0xWALLET',
-      };
-
-      it('rejects with LIMIT_EXCEEDED and routes through the active session', async () => {
-        mockGetQuotesRaw.mockResolvedValueOnce({
-          success: [],
-          sorted: [],
-          error: [{ provider: 'transak', error: 'Below minimum buy amount' }],
-          customActions: [],
-        });
-        const { result } = renderHook(() => useHeadlessBuy());
-        const callbacks = {
-          onOrderCreated: jest.fn(),
-          onError: jest.fn(),
-          onClose: jest.fn(),
+      let sessionId: string | undefined;
+      act(() => {
+        sessionId = result.current.startHeadlessBuy(
+          startParams,
+          callbacks,
+        ).sessionId;
+      });
+      return { callbacks, result, sessionId };
+    };
+    const buildProvidersWithBounds = (
+      rows: {
+        id: string;
+        currency: string;
+        paymentMethodId: string;
+        minAmount: number;
+        maxAmount: number;
+      }[],
+    ): Provider[] => {
+      const byProviderId: Record<string, Provider> = {};
+      for (const row of rows) {
+        if (!byProviderId[row.id]) {
+          byProviderId[row.id] = {
+            id: row.id,
+            name: row.id,
+            limits: { fiat: {} as Record<string, unknown> },
+          } as unknown as Provider;
+        }
+        const limits = byProviderId[row.id].limits as unknown as {
+          fiat: Record<string, Record<string, unknown>>;
         };
-        let sessionId: string | undefined;
-        act(() => {
-          sessionId = result.current.startHeadlessBuy(
-            baseStartParams,
-            callbacks,
-          ).sessionId;
-        });
+        if (!limits.fiat[row.currency.toLowerCase()]) {
+          limits.fiat[row.currency.toLowerCase()] = {};
+        }
+        limits.fiat[row.currency.toLowerCase()][row.paymentMethodId] = {
+          minAmount: row.minAmount,
+          maxAmount: row.maxAmount,
+        };
+      }
+      return Object.values(byProviderId);
+    };
+    const transakEurBounds = [
+      {
+        id: transakProvider,
+        currency: 'EUR',
+        paymentMethodId: cardPaymentMethod,
+        minAmount: 10,
+        maxAmount: 5000,
+      },
+    ];
+    const expectNetworkPassThrough = async ({
+      providers = buildProvidersWithBounds(transakEurBounds),
+      params = {},
+      response = quoteResponse(),
+      userRegion = regionWithCurrency('EUR'),
+    } = {}) => {
+      useControllerValue({ providers, userRegion });
+      mockGetQuotesRaw.mockResolvedValueOnce(response);
+      const { result } = renderHook(() => useHeadlessBuy());
+      await expect(
+        result.current.getQuotes({ ...baseQuotesParams, ...params }),
+      ).resolves.toBe(response);
+      expect(mockGetQuotesRaw).toHaveBeenCalled();
+    };
+
+    describe('provider rejection inspection (Fix #2)', () => {
+      it('rejects with LIMIT_EXCEEDED and routes through the active session', async () => {
+        mockGetQuotesRaw.mockResolvedValueOnce(
+          quoteResponse({
+            error: [{ provider: 'transak', error: 'Below minimum buy amount' }],
+          }),
+        );
+        const { callbacks, result, sessionId } = startActiveSession();
+
         await expect(
           act(async () => {
-            await result.current.getQuotes(getQuotesParams);
+            await result.current.getQuotes(baseQuotesParams);
           }),
         ).rejects.toMatchObject({
           headlessBuyErrorCode: 'LIMIT_EXCEEDED',
@@ -387,8 +464,6 @@ describe('useHeadlessBuy', () => {
               ],
               successCount: 0,
               errorCount: 1,
-              // Discriminator parity with the static (pre-network) path —
-              // see `buildStaticBoundsRejection` in useHeadlessBuy.ts.
               source: 'network-reject',
             }),
           }),
@@ -399,76 +474,45 @@ describe('useHeadlessBuy', () => {
       });
 
       it('rejects with the structured error when no session is active', async () => {
-        mockGetQuotesRaw.mockResolvedValueOnce({
-          success: [],
-          sorted: [],
-          error: [{ provider: 'transak', error: 'Below minimum buy amount' }],
-          customActions: [],
-        });
+        mockGetQuotesRaw.mockResolvedValueOnce(
+          quoteResponse({
+            error: [{ provider: 'transak', error: 'Below minimum buy amount' }],
+          }),
+        );
         const { result } = renderHook(() => useHeadlessBuy());
         await expect(
-          result.current.getQuotes(getQuotesParams),
+          result.current.getQuotes(baseQuotesParams),
         ).rejects.toMatchObject({
           headlessBuyErrorCode: 'LIMIT_EXCEEDED',
           details: expect.objectContaining({ errorCount: 1, successCount: 0 }),
         });
       });
 
-      it('maps non-limit messages to QUOTE_FAILED', async () => {
-        mockGetQuotesRaw.mockResolvedValueOnce({
-          success: [],
-          sorted: [],
-          error: [
-            { provider: 'transak', error: 'Payment provider unavailable' },
-          ],
-          customActions: [],
-        });
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(
-          result.current.getQuotes(getQuotesParams),
-        ).rejects.toMatchObject({ headlessBuyErrorCode: 'QUOTE_FAILED' });
-      });
-
-      it('treats "Rate limit exceeded" as QUOTE_FAILED, not LIMIT_EXCEEDED', async () => {
-        mockGetQuotesRaw.mockResolvedValueOnce({
-          success: [],
-          sorted: [],
-          error: [{ provider: 'transak', error: 'Rate limit exceeded' }],
-          customActions: [],
-        });
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(
-          result.current.getQuotes(getQuotesParams),
-        ).rejects.toMatchObject({ headlessBuyErrorCode: 'QUOTE_FAILED' });
-      });
-
-      it('prefers structured SDK code (`code` field) over message parsing', async () => {
-        mockGetQuotesRaw.mockResolvedValueOnce({
-          success: [],
-          sorted: [],
-          error: [
+      it.each([
+        [
+          'non-limit messages',
+          [{ provider: 'transak', error: 'Payment provider unavailable' }],
+          'QUOTE_FAILED',
+        ],
+        [
+          'rate-limit messages',
+          [{ provider: 'transak', error: 'Rate limit exceeded' }],
+          'QUOTE_FAILED',
+        ],
+        [
+          'SDK limit codes over message parsing',
+          [
             {
               provider: 'transak',
               error: 'Some unrelated message',
               code: 'AMOUNT_LIMIT_EXCEEDED',
             },
           ],
-          customActions: [],
-        });
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(
-          result.current.getQuotes(getQuotesParams),
-        ).rejects.toMatchObject({ headlessBuyErrorCode: 'LIMIT_EXCEEDED' });
-      });
-
-      // Cursor Bugbot regression guard — classification is per-provider, not
-      // aggregate. If provider A returns a buy-limit code and provider B
-      // returns a rate-limit code, B should NOT veto A's verdict.
-      it('classifies per provider — one limit + one rate-limit still maps to LIMIT_EXCEEDED', async () => {
-        mockGetQuotesRaw.mockResolvedValueOnce({
-          success: [],
-          sorted: [],
-          error: [
+          'LIMIT_EXCEEDED',
+        ],
+        [
+          'mixed provider SDK codes',
+          [
             {
               provider: 'transak',
               error: 'Below minimum buy amount',
@@ -476,244 +520,89 @@ describe('useHeadlessBuy', () => {
             },
             {
               provider: 'moonpay',
-              error: 'Provider throttled — try again later',
+              error: 'Provider throttled - try again later',
               code: 'RATE_LIMIT_EXCEEDED',
             },
           ],
-          customActions: [],
-        });
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(
-          result.current.getQuotes(getQuotesParams),
-        ).rejects.toMatchObject({ headlessBuyErrorCode: 'LIMIT_EXCEEDED' });
-      });
-
-      // Second Cursor Bugbot regression — the same per-provider rule must
-      // hold for the message-regex fallback path (when providers don't
-      // return structured `code` fields). Previously this used
-      // `combinedMessage` which joined all provider messages together,
-      // so "Rate limit exceeded" from B contaminated the "Below minimum"
-      // signal from A.
-      it('classifies per provider on the message-regex path too (no SDK codes)', async () => {
-        mockGetQuotesRaw.mockResolvedValueOnce({
-          success: [],
-          sorted: [],
-          error: [
+          'LIMIT_EXCEEDED',
+        ],
+        [
+          'mixed provider messages without codes',
+          [
             { provider: 'transak', error: 'Below minimum buy amount' },
             { provider: 'moonpay', error: 'Rate limit exceeded' },
           ],
-          customActions: [],
-        });
+          'LIMIT_EXCEEDED',
+        ],
+      ])('classifies %s as %s', async (_name, error, headlessBuyErrorCode) => {
+        mockGetQuotesRaw.mockResolvedValueOnce(quoteResponse({ error }));
         const { result } = renderHook(() => useHeadlessBuy());
         await expect(
-          result.current.getQuotes(getQuotesParams),
-        ).rejects.toMatchObject({ headlessBuyErrorCode: 'LIMIT_EXCEEDED' });
+          result.current.getQuotes(baseQuotesParams),
+        ).rejects.toMatchObject({ headlessBuyErrorCode });
       });
 
-      it('returns the response unchanged when both success and error are empty', async () => {
-        mockGetQuotesRaw.mockResolvedValueOnce({
-          success: [],
-          sorted: [],
-          error: [],
-          customActions: [],
-        });
+      it.each([
+        ['empty success and error', quoteResponse()],
+        [
+          'non-empty success',
+          quoteResponse({
+            success: [{ provider: 'transak', amountOut: 0.01 }],
+            sorted: [{ provider: 'transak', amountOut: 0.01 }],
+          }),
+        ],
+      ])('returns the response unchanged when %s', async (_name, response) => {
+        mockGetQuotesRaw.mockResolvedValueOnce(response);
         const { result } = renderHook(() => useHeadlessBuy());
-        await expect(
-          result.current.getQuotes(getQuotesParams),
-        ).resolves.toEqual({
-          success: [],
-          sorted: [],
-          error: [],
-          customActions: [],
-        });
-      });
-
-      it('returns the response unchanged when success is non-empty (happy path)', async () => {
-        const happyResponse = {
-          success: [{ provider: 'transak', amountOut: 0.01 }],
-          sorted: [{ provider: 'transak', amountOut: 0.01 }],
-          error: [],
-          customActions: [],
-        };
-        mockGetQuotesRaw.mockResolvedValueOnce(happyResponse);
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(result.current.getQuotes(getQuotesParams)).resolves.toBe(
-          happyResponse,
+        await expect(result.current.getQuotes(baseQuotesParams)).resolves.toBe(
+          response,
         );
       });
     });
 
-    // Fix #2 follow-up / Suggestion #2 — pre-quote static bounds check that
-    // mirrors UB2: when every `(provider × paymentMethodId)` candidate has
-    // known bounds AND `params.amount` falls outside them, short-circuit
-    // with `LIMIT_EXCEEDED` instead of paying the network round-trip.
     describe('pre-quote static bounds check (Suggestion #2)', () => {
-      // Helper: build a providers catalog with bounds wired into
-      // `provider.limits.fiat[currency][paymentMethodId]`. Mirrors the
-      // shape `getProviderBuyLimit` reads from.
-      const buildProvidersWithBounds = (
-        rows: {
-          id: string;
-          currency: string;
-          paymentMethodId: string;
-          minAmount: number;
-          maxAmount: number;
-        }[],
-      ): Provider[] => {
-        const byProviderId: Record<string, Provider> = {};
-        for (const r of rows) {
-          if (!byProviderId[r.id]) {
-            byProviderId[r.id] = {
-              id: r.id,
-              name: r.id,
-              limits: { fiat: {} as Record<string, unknown> },
-            } as unknown as Provider;
-          }
-          const limits = byProviderId[r.id].limits as unknown as {
-            fiat: Record<string, Record<string, unknown>>;
-          };
-          if (!limits.fiat[r.currency.toLowerCase()]) {
-            limits.fiat[r.currency.toLowerCase()] = {};
-          }
-          limits.fiat[r.currency.toLowerCase()][r.paymentMethodId] = {
-            minAmount: r.minAmount,
-            maxAmount: r.maxAmount,
-          };
-        }
-        return Object.values(byProviderId);
-      };
-
-      const baseQuotesParams = {
-        assetId: 'eip155:59144/erc20:0xabc',
-        amount: 5,
-        walletAddress: '0xWALLET',
-        paymentMethodIds: ['/payments/debit-credit-card'],
-        providerIds: ['/providers/transak-native'],
-      };
-
-      it('short-circuits with LIMIT_EXCEEDED when amount < min for the only candidate', async () => {
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
-          providers: buildProvidersWithBounds([
-            {
-              id: '/providers/transak-native',
+      it.each([
+        ['amount < min', 5],
+        ['amount > max', 999999],
+      ])(
+        'short-circuits with LIMIT_EXCEEDED when %s',
+        async (_name, amount) => {
+          useControllerValue({
+            providers: buildProvidersWithBounds(transakEurBounds),
+            userRegion: regionWithCurrency('EUR'),
+          });
+          const { result } = renderHook(() => useHeadlessBuy());
+          await expect(
+            result.current.getQuotes({ ...baseQuotesParams, amount }),
+          ).rejects.toMatchObject({
+            headlessBuyErrorCode: 'LIMIT_EXCEEDED',
+            details: expect.objectContaining({
+              amount,
               currency: 'EUR',
-              paymentMethodId: '/payments/debit-credit-card',
-              minAmount: 10,
-              maxAmount: 5000,
-            },
-          ]),
-          userRegion: {
-            ...mockUserRegion,
-            country: { isoCode: 'FR', currency: 'EUR' },
-          },
-        });
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(
-          result.current.getQuotes({ ...baseQuotesParams, amount: 5 }),
-        ).rejects.toMatchObject({
-          headlessBuyErrorCode: 'LIMIT_EXCEEDED',
-          details: expect.objectContaining({
-            amount: 5,
-            currency: 'EUR',
-            source: 'static-bounds',
-            rejections: [
-              expect.objectContaining({
-                provider: '/providers/transak-native',
-                paymentMethodId: '/payments/debit-credit-card',
-                minAmount: 10,
-                maxAmount: 5000,
-              }),
-            ],
-          }),
-        });
-        // Network was NOT called — that's the whole point.
-        expect(mockGetQuotesRaw).not.toHaveBeenCalled();
-      });
+              source: 'static-bounds',
+              rejections: [
+                expect.objectContaining({
+                  provider: transakProvider,
+                  paymentMethodId: cardPaymentMethod,
+                  minAmount: 10,
+                  maxAmount: 5000,
+                }),
+              ],
+            }),
+          });
+          expect(mockGetQuotesRaw).not.toHaveBeenCalled();
+        },
+      );
 
-      it('short-circuits when amount > max', async () => {
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
-          providers: buildProvidersWithBounds([
-            {
-              id: '/providers/transak-native',
-              currency: 'EUR',
-              paymentMethodId: '/payments/debit-credit-card',
-              minAmount: 10,
-              maxAmount: 5000,
-            },
-          ]),
-          userRegion: {
-            ...mockUserRegion,
-            country: { isoCode: 'FR', currency: 'EUR' },
-          },
+      it('routes the static rejection through an active session', async () => {
+        useControllerValue({
+          providers: buildProvidersWithBounds(transakEurBounds),
+          userRegion: regionWithCurrency('EUR'),
         });
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(
-          result.current.getQuotes({ ...baseQuotesParams, amount: 999999 }),
-        ).rejects.toMatchObject({
-          headlessBuyErrorCode: 'LIMIT_EXCEEDED',
-        });
-        expect(mockGetQuotesRaw).not.toHaveBeenCalled();
-      });
-
-      it('routes the static rejection through an active session (Design B)', async () => {
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
-          providers: buildProvidersWithBounds([
-            {
-              id: '/providers/transak-native',
-              currency: 'EUR',
-              paymentMethodId: '/payments/debit-credit-card',
-              minAmount: 10,
-              maxAmount: 5000,
-            },
-          ]),
-          userRegion: {
-            ...mockUserRegion,
-            country: { isoCode: 'FR', currency: 'EUR' },
-          },
-        });
-        const { result } = renderHook(() => useHeadlessBuy());
-        const callbacks = {
-          onOrderCreated: jest.fn(),
-          onError: jest.fn(),
-          onClose: jest.fn(),
-        };
-        // startHeadlessBuy reads `params.quote.quote.paymentMethod` for
-        // controller seeding — keep this shape minimal but valid.
-        const seedQuote = {
-          provider: '/providers/transak-native',
-          quote: {
-            amountIn: 5,
-            amountOut: 0.001,
-            paymentMethod: '/payments/debit-credit-card',
-          },
-          providerInfo: {
-            id: '/providers/transak-native',
-            name: 'Transak',
-            type: 'native' as const,
-          },
-        } as unknown as Parameters<
-          ReturnType<typeof useHeadlessBuy>['startHeadlessBuy']
-        >[0]['quote'];
-        let sessionId: string | undefined;
-        act(() => {
-          sessionId = result.current.startHeadlessBuy(
-            {
-              quote: seedQuote,
-              assetId: 'eip155:59144/erc20:0xabc',
-              amount: 5,
-            },
-            callbacks,
-          ).sessionId;
-        });
+        const { callbacks, result, sessionId } = startActiveSession();
         await expect(
           act(async () => {
-            await result.current.getQuotes({
-              ...baseQuotesParams,
-              amount: 5,
-            });
+            await result.current.getQuotes(baseQuotesParams);
           }),
         ).rejects.toMatchObject({ headlessBuyErrorCode: 'LIMIT_EXCEEDED' });
         expect(callbacks.onError).toHaveBeenCalledWith(
@@ -724,199 +613,107 @@ describe('useHeadlessBuy', () => {
         expect(getSession(sessionId)).toBeUndefined();
       });
 
-      it('falls through to the network when at least one candidate passes', async () => {
-        // Two providers — one rejects, one accepts. Network must still run.
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
+      it.each([
+        [
+          'at least one provider accepts',
+          {
+            providers: buildProvidersWithBounds([
+              ...transakEurBounds,
+              {
+                id: moonpayProvider,
+                currency: 'EUR',
+                paymentMethodId: cardPaymentMethod,
+                minAmount: 1,
+                maxAmount: 100,
+              },
+            ]),
+            params: { providerIds: [transakProvider, moonpayProvider] },
+            response: quoteResponse({
+              success: [{ provider: 'moonpay' }],
+              sorted: [{ provider: 'moonpay' }],
+            }),
+          },
+        ],
+        [
+          'bounds are unknown for a catalog provider',
+          {
+            providers: [
+              {
+                id: transakProvider,
+                name: 'Transak',
+                limits: { fiat: {} },
+              } as unknown as Provider,
+            ],
+            response: quoteResponse({ success: [{ provider: 'transak' }] }),
+          },
+        ],
+        ['the provider catalog is empty', { providers: [] }],
+        [
+          'a requested provider is missing from a non-empty catalog',
+          {
+            providers: buildProvidersWithBounds([
+              {
+                id: moonpayProvider,
+                currency: 'EUR',
+                paymentMethodId: cardPaymentMethod,
+                minAmount: 10,
+                maxAmount: 5000,
+              },
+            ]),
+            params: { providerIds: ['/providers/unknown'] },
+          },
+        ],
+        ['providerIds is omitted', { params: { providerIds: undefined } }],
+        [
+          'currency cannot be resolved',
+          { userRegion: regionWithCurrency(), params: { amount: 5 } },
+        ],
+        ['amount is 0', { params: { amount: 0 } }],
+        ['amount is NaN', { params: { amount: Number.NaN } }],
+        [
+          'one provider has a known-accept payment method',
+          {
+            providers: buildProvidersWithBounds([
+              ...transakEurBounds,
+              {
+                id: transakProvider,
+                currency: 'EUR',
+                paymentMethodId: bankPaymentMethod,
+                minAmount: 1,
+                maxAmount: 5000,
+              },
+            ]),
+            params: {
+              paymentMethodIds: [cardPaymentMethod, bankPaymentMethod],
+            },
+            response: quoteResponse({ success: [{ provider: 'transak' }] }),
+          },
+        ],
+        ['paymentMethodIds is empty', { params: { paymentMethodIds: [] } }],
+        [
+          'provider.limits is undefined',
+          {
+            providers: [
+              { id: transakProvider, name: 'Transak' } as unknown as Provider,
+            ],
+          },
+        ],
+      ])('falls through to the network when %s', async (_name, scenario) => {
+        await expectNetworkPassThrough(scenario);
+      });
+
+      it('honors an explicit params.currency override', async () => {
+        useControllerValue({
           providers: buildProvidersWithBounds([
             {
-              id: '/providers/transak-native',
-              currency: 'EUR',
-              paymentMethodId: '/payments/debit-credit-card',
-              minAmount: 10,
-              maxAmount: 5000,
-            },
-            {
-              id: '/providers/moonpay',
-              currency: 'EUR',
-              paymentMethodId: '/payments/debit-credit-card',
-              minAmount: 1,
-              maxAmount: 100,
-            },
-          ]),
-          userRegion: {
-            ...mockUserRegion,
-            country: { isoCode: 'FR', currency: 'EUR' },
-          },
-        });
-        const happy = {
-          success: [{ provider: 'moonpay' }],
-          sorted: [{ provider: 'moonpay' }],
-          error: [],
-          customActions: [],
-        };
-        mockGetQuotesRaw.mockResolvedValueOnce(happy);
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(
-          result.current.getQuotes({
-            ...baseQuotesParams,
-            amount: 5,
-            providerIds: ['/providers/transak-native', '/providers/moonpay'],
-          }),
-        ).resolves.toBe(happy);
-        expect(mockGetQuotesRaw).toHaveBeenCalled();
-      });
-
-      it('falls through when bounds are unknown for any candidate (treats unknown as not-a-rejection)', async () => {
-        // Provider exists but has no bounds row for this (currency,
-        // paymentMethod) — we can't be certain, so let the network decide.
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
-          providers: [
-            {
-              id: '/providers/transak-native',
-              name: 'Transak',
-              limits: { fiat: {} },
-            } as unknown as Provider,
-          ],
-          userRegion: {
-            ...mockUserRegion,
-            country: { isoCode: 'FR', currency: 'EUR' },
-          },
-        });
-        const happy = {
-          success: [{ provider: 'transak' }],
-          sorted: [],
-          error: [],
-          customActions: [],
-        };
-        mockGetQuotesRaw.mockResolvedValueOnce(happy);
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(result.current.getQuotes(baseQuotesParams)).resolves.toBe(
-          happy,
-        );
-        expect(mockGetQuotesRaw).toHaveBeenCalled();
-      });
-
-      it('falls through when an unrecognized providerId is requested (no catalog entry → unknown)', async () => {
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
-          providers: [],
-          userRegion: {
-            ...mockUserRegion,
-            country: { isoCode: 'FR', currency: 'EUR' },
-          },
-        });
-        const happy = {
-          success: [],
-          sorted: [],
-          error: [],
-          customActions: [],
-        };
-        mockGetQuotesRaw.mockResolvedValueOnce(happy);
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(result.current.getQuotes(baseQuotesParams)).resolves.toBe(
-          happy,
-        );
-        expect(mockGetQuotesRaw).toHaveBeenCalled();
-      });
-
-      // Coverage test: catalog has SOME providers, but the caller asked for
-      // a provider that isn't among them. Exercises the unknown-provider
-      // branch inside the candidate-building loop (different from
-      // `providers: []` which short-circuits before the loop runs).
-      it('falls through when a requested providerId is missing from a non-empty catalog', async () => {
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
-          // Catalog has a different provider than the one the caller asked
-          // for. Forces the loop to take the `if (!provider)` branch and
-          // record `bounds: undefined` for each paymentMethod.
-          providers: buildProvidersWithBounds([
-            {
-              id: '/providers/moonpay',
-              currency: 'EUR',
-              paymentMethodId: '/payments/debit-credit-card',
-              minAmount: 10,
-              maxAmount: 5000,
-            },
-          ]),
-          userRegion: {
-            ...mockUserRegion,
-            country: { isoCode: 'FR', currency: 'EUR' },
-          },
-        });
-        const happy = {
-          success: [],
-          sorted: [],
-          error: [],
-          customActions: [],
-        };
-        mockGetQuotesRaw.mockResolvedValueOnce(happy);
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(
-          result.current.getQuotes({
-            ...baseQuotesParams,
-            amount: 5,
-            // Asks for a provider the catalog doesn't have — `find`
-            // returns undefined and the loop takes the unknown branch.
-            providerIds: ['/providers/unknown'],
-          }),
-        ).resolves.toBe(happy);
-        expect(mockGetQuotesRaw).toHaveBeenCalled();
-      });
-
-      it('falls through when providerIds is omitted (no candidates to enumerate without a network call)', async () => {
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
-          providers: buildProvidersWithBounds([
-            {
-              id: '/providers/transak-native',
-              currency: 'EUR',
-              paymentMethodId: '/payments/debit-credit-card',
-              minAmount: 10,
-              maxAmount: 5000,
-            },
-          ]),
-          userRegion: {
-            ...mockUserRegion,
-            country: { isoCode: 'FR', currency: 'EUR' },
-          },
-        });
-        const happy = {
-          success: [],
-          sorted: [],
-          error: [],
-          customActions: [],
-        };
-        mockGetQuotesRaw.mockResolvedValueOnce(happy);
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(
-          result.current.getQuotes({
-            assetId: 'eip155:59144/erc20:0xabc',
-            amount: 5,
-            walletAddress: '0xWALLET',
-            paymentMethodIds: ['/payments/debit-credit-card'],
-            // providerIds intentionally omitted
-          }),
-        ).resolves.toBe(happy);
-        expect(mockGetQuotesRaw).toHaveBeenCalled();
-      });
-
-      it('honors an explicit params.currency override (does not require userRegion currency)', async () => {
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
-          providers: buildProvidersWithBounds([
-            {
-              id: '/providers/transak-native',
+              id: transakProvider,
               currency: 'USD',
-              paymentMethodId: '/payments/debit-credit-card',
+              paymentMethodId: cardPaymentMethod,
               minAmount: 10,
               maxAmount: 5000,
             },
           ]),
-          // userRegion has no currency — bounds check would skip without
-          // params.currency.
-          userRegion: { ...mockUserRegion, country: { isoCode: 'FR' } },
+          userRegion: regionWithCurrency(),
         });
         const { result } = renderHook(() => useHeadlessBuy());
         await expect(
@@ -929,266 +726,40 @@ describe('useHeadlessBuy', () => {
           headlessBuyErrorCode: 'LIMIT_EXCEEDED',
           details: expect.objectContaining({ currency: 'USD' }),
         });
+        expect(mockGetQuotesRaw).not.toHaveBeenCalled();
       });
 
-      it('falls through when currency cannot be resolved (no params.currency, no userRegion currency)', async () => {
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
-          providers: buildProvidersWithBounds([
-            {
-              id: '/providers/transak-native',
-              currency: 'EUR',
-              paymentMethodId: '/payments/debit-credit-card',
-              minAmount: 10,
-              maxAmount: 5000,
-            },
-          ]),
-          userRegion: { ...mockUserRegion, country: { isoCode: 'FR' } },
+      it('treats exact min/max amounts as in-bounds', async () => {
+        useControllerValue({
+          providers: buildProvidersWithBounds(transakEurBounds),
+          userRegion: regionWithCurrency('EUR'),
         });
-        const happy = {
-          success: [],
-          sorted: [],
-          error: [],
-          customActions: [],
-        };
-        mockGetQuotesRaw.mockResolvedValueOnce(happy);
+        const response = quoteResponse();
+        mockGetQuotesRaw.mockResolvedValue(response);
         const { result } = renderHook(() => useHeadlessBuy());
-        await expect(
-          result.current.getQuotes({ ...baseQuotesParams, amount: 5 }),
-        ).resolves.toBe(happy);
-        expect(mockGetQuotesRaw).toHaveBeenCalled();
-      });
-
-      it('amount exactly at the boundary (=== minAmount or === maxAmount) is treated as in-bounds', async () => {
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
-          providers: buildProvidersWithBounds([
-            {
-              id: '/providers/transak-native',
-              currency: 'EUR',
-              paymentMethodId: '/payments/debit-credit-card',
-              minAmount: 10,
-              maxAmount: 5000,
-            },
-          ]),
-          userRegion: {
-            ...mockUserRegion,
-            country: { isoCode: 'FR', currency: 'EUR' },
-          },
-        });
-        const happy = {
-          success: [],
-          sorted: [],
-          error: [],
-          customActions: [],
-        };
-        mockGetQuotesRaw.mockResolvedValue(happy);
-        const { result } = renderHook(() => useHeadlessBuy());
-        // exactly minAmount
         await expect(
           result.current.getQuotes({ ...baseQuotesParams, amount: 10 }),
-        ).resolves.toBe(happy);
-        // exactly maxAmount
+        ).resolves.toBe(response);
         await expect(
           result.current.getQuotes({ ...baseQuotesParams, amount: 5000 }),
-        ).resolves.toBe(happy);
+        ).resolves.toBe(response);
         expect(mockGetQuotesRaw).toHaveBeenCalledTimes(2);
       });
 
-      it('Suggestion #1: getProviderBuyLimit is exported from the public headless barrel', () => {
-        // Defensive test — protects against a future refactor breaking the
-        // re-export chain MMPay (`TransactionPayController`) depends on.
+      it('exports getProviderBuyLimit from the public headless barrel', () => {
         const headless = jest.requireActual('./');
         expect(typeof headless.getProviderBuyLimit).toBe('function');
-        const bounds = headless.getProviderBuyLimit(
-          {
-            limits: {
-              fiat: { eur: { card: { minAmount: 10, maxAmount: 5000 } } },
-            },
-          },
-          'EUR',
-          'card',
-        );
-        expect(bounds).toEqual({ minAmount: 10, maxAmount: 5000 });
-      });
-
-      it('skips the pre-flight when amount is 0 (UB2 parity: useProviderLimits returns null for amount <= 0)', async () => {
-        // Same setup that would normally reject — only `amount` differs.
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
-          providers: buildProvidersWithBounds([
+        expect(
+          headless.getProviderBuyLimit(
             {
-              id: '/providers/transak-native',
-              currency: 'EUR',
-              paymentMethodId: '/payments/debit-credit-card',
-              minAmount: 10,
-              maxAmount: 5000,
+              limits: {
+                fiat: { eur: { card: { minAmount: 10, maxAmount: 5000 } } },
+              },
             },
-          ]),
-          userRegion: {
-            ...mockUserRegion,
-            country: { isoCode: 'FR', currency: 'EUR' },
-          },
-        });
-        const happy = {
-          success: [],
-          sorted: [],
-          error: [],
-          customActions: [],
-        };
-        mockGetQuotesRaw.mockResolvedValueOnce(happy);
-        const { result } = renderHook(() => useHeadlessBuy());
-        // amount 0 (and any non-positive) must not short-circuit — a consumer
-        // calling getQuotes mid-typing shouldn't tear down their session.
-        await expect(
-          result.current.getQuotes({ ...baseQuotesParams, amount: 0 }),
-        ).resolves.toBe(happy);
-        expect(mockGetQuotesRaw).toHaveBeenCalled();
-      });
-
-      it('skips the pre-flight when amount is NaN (defensive — falls through to the network)', async () => {
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
-          providers: buildProvidersWithBounds([
-            {
-              id: '/providers/transak-native',
-              currency: 'EUR',
-              paymentMethodId: '/payments/debit-credit-card',
-              minAmount: 10,
-              maxAmount: 5000,
-            },
-          ]),
-          userRegion: {
-            ...mockUserRegion,
-            country: { isoCode: 'FR', currency: 'EUR' },
-          },
-        });
-        const happy = {
-          success: [],
-          sorted: [],
-          error: [],
-          customActions: [],
-        };
-        mockGetQuotesRaw.mockResolvedValueOnce(happy);
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(
-          result.current.getQuotes({ ...baseQuotesParams, amount: Number.NaN }),
-        ).resolves.toBe(happy);
-        expect(mockGetQuotesRaw).toHaveBeenCalled();
-      });
-
-      it('falls through when one provider × two payment methods has a known-accept + known-reject mix', async () => {
-        // Same provider, two payment methods: card rejects (min 10), bank
-        // transfer accepts (min 1). Single passing candidate is enough.
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
-          providers: buildProvidersWithBounds([
-            {
-              id: '/providers/transak-native',
-              currency: 'EUR',
-              paymentMethodId: '/payments/debit-credit-card',
-              minAmount: 10,
-              maxAmount: 5000,
-            },
-            {
-              id: '/providers/transak-native',
-              currency: 'EUR',
-              paymentMethodId: '/payments/bank-transfer',
-              minAmount: 1,
-              maxAmount: 5000,
-            },
-          ]),
-          userRegion: {
-            ...mockUserRegion,
-            country: { isoCode: 'FR', currency: 'EUR' },
-          },
-        });
-        const happy = {
-          success: [{ provider: 'transak' }],
-          sorted: [],
-          error: [],
-          customActions: [],
-        };
-        mockGetQuotesRaw.mockResolvedValueOnce(happy);
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(
-          result.current.getQuotes({
-            ...baseQuotesParams,
-            amount: 5,
-            paymentMethodIds: [
-              '/payments/debit-credit-card',
-              '/payments/bank-transfer',
-            ],
-          }),
-        ).resolves.toBe(happy);
-        expect(mockGetQuotesRaw).toHaveBeenCalled();
-      });
-
-      it('falls through when paymentMethodIds is an empty array', async () => {
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
-          providers: buildProvidersWithBounds([
-            {
-              id: '/providers/transak-native',
-              currency: 'EUR',
-              paymentMethodId: '/payments/debit-credit-card',
-              minAmount: 10,
-              maxAmount: 5000,
-            },
-          ]),
-          userRegion: {
-            ...mockUserRegion,
-            country: { isoCode: 'FR', currency: 'EUR' },
-          },
-        });
-        const happy = {
-          success: [],
-          sorted: [],
-          error: [],
-          customActions: [],
-        };
-        mockGetQuotesRaw.mockResolvedValueOnce(happy);
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(
-          result.current.getQuotes({
-            ...baseQuotesParams,
-            amount: 5,
-            paymentMethodIds: [],
-          }),
-        ).resolves.toBe(happy);
-        expect(mockGetQuotesRaw).toHaveBeenCalled();
-      });
-
-      it('falls through when provider.limits is entirely undefined', async () => {
-        // Belt-and-braces: getProviderBuyLimit handles `limits === undefined`
-        // via optional chaining, but a regression that introduces non-
-        // optional access wouldn't be caught by the empty-fiat-object test.
-        (useRampsController as jest.Mock).mockReturnValue({
-          ...baseControllerValue,
-          providers: [
-            {
-              id: '/providers/transak-native',
-              name: 'Transak',
-              // intentionally no `limits` field
-            } as unknown as Provider,
-          ],
-          userRegion: {
-            ...mockUserRegion,
-            country: { isoCode: 'FR', currency: 'EUR' },
-          },
-        });
-        const happy = {
-          success: [],
-          sorted: [],
-          error: [],
-          customActions: [],
-        };
-        mockGetQuotesRaw.mockResolvedValueOnce(happy);
-        const { result } = renderHook(() => useHeadlessBuy());
-        await expect(result.current.getQuotes(baseQuotesParams)).resolves.toBe(
-          happy,
-        );
-        expect(mockGetQuotesRaw).toHaveBeenCalled();
+            'EUR',
+            'card',
+          ),
+        ).toEqual({ minAmount: 10, maxAmount: 5000 });
       });
     });
   });
@@ -1422,5 +993,4 @@ describe('useHeadlessBuy', () => {
       ]);
     });
   });
-
 });

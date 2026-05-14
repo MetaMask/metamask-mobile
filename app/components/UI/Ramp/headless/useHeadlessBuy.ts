@@ -57,12 +57,6 @@ function resolveWalletAddressForChain(chainId: CaipChainId): string | null {
   return getFormattedAddressFromInternalAccount(account);
 }
 
-/**
- * A `(provider, paymentMethodId)` candidate that the pre-quote static bounds
- * check inspected. `bounds` is `undefined` when the provider's catalog entry
- * doesn't declare bounds for the given `(currency, paymentMethodId)` — we
- * treat that as "unknown" (cannot short-circuit) rather than "rejects."
- */
 interface BoundsCandidate {
   providerId: string;
   paymentMethodId: string;
@@ -70,24 +64,8 @@ interface BoundsCandidate {
 }
 
 /**
- * Pre-quote (no-network) bounds check used by `getQuotes`. Returns an
- * `Error` shaped for `toHeadlessBuyError` when **every** candidate pair
- * `(provider × paymentMethodId)` has known bounds AND the amount falls
- * outside those bounds. Otherwise returns `undefined` and the caller
- * proceeds with the normal network round-trip.
- *
- * "Every" is deliberate: a single "passes" or "unknown" candidate keeps
- * the network call in play, because that candidate might still produce a
- * valid quote. This mirrors UB2's behaviour — UB2 still asks the network
- * if it can't be certain, and only short-circuits when it's certain the
- * answer is "rejected."
- *
- * Skipped entirely (returns `undefined`) when:
- * - `amount` is `<= 0` or not finite — UB2 parity: `useProviderLimits.ts:30` returns `null` for `amount <= 0` so the UI shows no error while the user is still typing. We do the same so headless consumers can use `getQuotes` to "warm" the system without nuking a registered session.
- * - `providerIds` is missing/empty — caller asked for "any provider," no way to enumerate candidates without a network call.
- * - `paymentMethodIds` is missing/empty — same.
- * - `fiatCurrency` is missing — bounds are keyed by currency.
- * - `providers` catalog is empty — none of the requested ids are mappable.
+ * Returns a no-network LIMIT_EXCEEDED error only when every requested
+ * provider/payment candidate has known bounds and rejects the amount.
  */
 function buildStaticBoundsRejection(args: {
   amount: number;
@@ -120,10 +98,6 @@ function buildStaticBoundsRejection(args: {
   for (const providerId of providerIds) {
     const provider = providers.find((p) => p.id === providerId);
     if (!provider) {
-      // Caller named a provider we don't have catalog entries for. Treat
-      // as "unknown" — preserve today's behavior of letting the network
-      // decide. (The network call will likely return an empty `success`
-      // and a provider error, which Fix #2 already surfaces.)
       for (const paymentMethodId of paymentMethodIds) {
         candidates.push({ providerId, paymentMethodId, bounds: undefined });
       }
@@ -138,9 +112,6 @@ function buildStaticBoundsRejection(args: {
     }
   }
 
-  // Decision rule: short-circuit only when *every* candidate has bounds
-  // AND those bounds reject the amount. A single "unknown" or "passes"
-  // candidate keeps the network call alive.
   const allReject =
     candidates.length > 0 &&
     candidates.every(
@@ -181,23 +152,7 @@ function buildStaticBoundsRejection(args: {
 }
 
 /**
- * `useHeadlessBuy` is the public facade for driving the Unified Buy v2 flow
- * from outside the Ramp UI. It exposes catalog data (`tokens`, `providers`,
- * `paymentMethods`, `countries`, `userRegion`) for building consumer UIs on
- * top of the same data source the standard ramp surface uses; a quote
- * selection helper (`getQuotes`); and session lifecycle primitives
- * (`startHeadlessBuy`, `errors`) that drive the three terminal callbacks
- * (`onOrderCreated`, `onError`, `onClose`) — see Phase 5 / 6 / 7 / 8 of the
- * plan.
- *
- * `getQuotes` runs a no-network static bounds check before the network
- * call when `params.providerIds` is set: it consults
- * `Provider.limits.fiat[currency][paymentMethodId]` from the already-loaded
- * catalog and short-circuits with `LIMIT_EXCEEDED` if every candidate
- * `(provider, paymentMethodId)` rejects `params.amount`. The same static
- * lookup is exported as `getProviderBuyLimit` from
- * `app/components/UI/Ramp/headless` for consumers that need it standalone
- * (e.g. disabling a "Get quote" button as the user types).
+ * Public facade for driving the Unified Buy v2 flow from outside Ramp UI.
  */
 export function useHeadlessBuy(): HeadlessBuyResult {
   const navigation = useNavigation();
@@ -235,15 +190,6 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         );
       }
 
-      // Pre-quote (no-network) static bounds check. UB2 mirrors what users
-      // would experience downstream by inspecting `Provider.limits.fiat[...]`
-      // from the already-loaded provider catalog. When every candidate
-      // `(provider × paymentMethodId)` definitively rejects `params.amount`,
-      // we short-circuit with `LIMIT_EXCEEDED` instead of paying the network
-      // round-trip. The function returns `undefined` (skip) when there's
-      // any uncertainty — preserving today's behavior of letting the
-      // network decide. See `buildStaticBoundsRejection` above for the
-      // full decision rule.
       const fiatCurrency =
         params.currency ?? userRegion?.country?.currency ?? undefined;
       const staticRejection = buildStaticBoundsRejection({
@@ -251,18 +197,9 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         providerIds: params.providerIds,
         paymentMethodIds: params.paymentMethodIds,
         fiatCurrency,
-        // `providers` is typed as `Provider[]` by `useRampsController` but
-        // can be `null` while the catalog is loading; pass `[]` to keep
-        // the helper's signature non-nullable and skip the check until
-        // the catalog arrives.
         providers: providers ?? [],
       });
       if (staticRejection) {
-        // Same Design B routing as the post-network rejection path: if a
-        // session is active, run the error through `failSession` so
-        // `onError` + `onClose({ reason: 'unknown' })` fire and the
-        // session is removed from the registry. Then re-throw so the
-        // consumer's `await getQuotes(...)` catch also receives it.
         const activeId = getActiveSessionId();
         if (activeId) {
           failSession(activeId, staticRejection, 'LIMIT_EXCEEDED');
@@ -280,13 +217,7 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         forceRefresh: params.forceRefresh,
       });
 
-      // Provider rejection: `success` is empty AND `error[]` is non-empty.
-      // UB2 handles this at BuildQuote.tsx:683-687; headless mode previously
-      // returned the raw response, so the consumer's `onError` never fired
-      // and the consumer was stuck (Goktug's 5 EUR scenario). Inspect,
-      // classify, route through the active session (Design B) and re-throw
-      // so the consumer's `await getQuotes(...)` catch also receives the
-      // structured error.
+      // UB2 surfaces empty-success provider rejections; headless must too.
       const errorEntries = (quotesResponse?.error ?? []) as readonly Record<
         string,
         unknown
@@ -303,32 +234,19 @@ export function useHeadlessBuy(): HeadlessBuyResult {
           .map((p) => `${p.provider}: ${p.message ?? '(no message)'}`)
           .join('; ');
 
-        // Prefer a structured `code` from the SDK; fall back to a
-        // word-boundary regex on each provider's message. Exclude
-        // rate/request limit messages — those are 429-style API limits, not
-        // buy bounds.
-        //
-        // Classification is **per-provider, then aggregated**: if provider A
-        // returned a buy-limit signal and provider B returned a rate-limit
-        // signal, we should NOT let B veto A's verdict. Both the
-        // `code`-based path AND the message-regex path must be per-provider
-        // — running the regex on a `combinedMessage` (joined across all
-        // providers) would let "Rate limit exceeded" from one provider
-        // contaminate the "Below minimum" signal from another.
+        // Classify per provider so a rate-limit signal cannot veto another
+        // provider's buy-limit signal.
         const limitWord = /\b(minimum|maximum|limit)\b/i;
         const rateRequestWord = /\b(rate|request)\b/i;
         const limitCodePattern = /limit/i;
         const rateRequestCodePattern = /rate|request/i;
         const isLimitExceeded = providerErrors.some((p) => {
-          // SDK code path (preferred when present).
           if (p.code !== undefined) {
             return (
               limitCodePattern.test(p.code) &&
               !rateRequestCodePattern.test(p.code)
             );
           }
-          // Message-regex fallback — also per-provider so a noisy message
-          // from one provider can't veto another's verdict.
           const message = p.message ?? '';
           return limitWord.test(message) && !rateRequestWord.test(message);
         });
@@ -345,28 +263,9 @@ export function useHeadlessBuy(): HeadlessBuyResult {
           providerErrors,
           successCount,
           errorCount: errorEntries.length,
-          // `source` discriminator parity with the static (pre-network) path
-          // in `buildStaticBoundsRejection`. Lets consumers branch on
-          // "which layer caught it" without sniffing for the presence of
-          // `providerErrors` vs `rejections`.
           source: 'network-reject',
         };
 
-        // Design B: if a session is active, route the error through it so
-        // `onError` + `onClose({ reason: 'unknown' })` fire and the session
-        // is removed from the registry. Then re-throw so the consumer's
-        // `await getQuotes(...)` catch also receives it.
-        //
-        // Caveat: `getActiveSessionId` returns the *first non-terminal*
-        // session (sessionRegistry.ts), and `getQuotes` does NOT correlate
-        // the rejected quote request with any specific session id. The
-        // single-live-session invariant (enforced by `startHeadlessBuy`'s
-        // auto-cancel at lines 200-203 below) makes this safe in practice
-        // — there is at most one active session, so "the first" is "the
-        // only." If a consumer registers a session and then calls
-        // `getQuotes` again for an unrelated request that gets rejected,
-        // that active session WILL be torn down. Document this clearly if
-        // we ever expose a multi-session API.
         const activeId = getActiveSessionId();
         if (activeId) {
           failSession(activeId, error, code);

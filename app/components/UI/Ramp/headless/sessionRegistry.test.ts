@@ -147,9 +147,6 @@ describe('sessionRegistry', () => {
       const session = createSession(baseParams, callbacks);
       const stored = getSession(session.id);
       expect(stored?.callbacks).toBe(callbacks);
-      // Fix #3.1: onOrderCreated now takes (orderId, order). This test only
-      // verifies pass-through-by-reference of the callbacks object, so any
-      // shape for the 2nd arg satisfies the contract.
       const fakeOrder = {} as Parameters<typeof callbacks.onOrderCreated>[1];
       stored?.callbacks.onOrderCreated('order-1', fakeOrder);
       expect(callbacks.onOrderCreated).toHaveBeenCalledWith(
