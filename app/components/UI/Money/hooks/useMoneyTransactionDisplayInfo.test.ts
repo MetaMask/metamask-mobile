@@ -37,12 +37,14 @@ const USDC_ADDRESS: Hex = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 // ETH native address on mainnet
 const ETH_ADDRESS: Hex = '0x0000000000000000000000000000000000000000';
 
-function makeState(overrides: {
-  currentCurrency?: string;
-  currencyRates?: Record<string, { conversionRate: number }>;
-  tokenMarketData?: Record<string, unknown>;
-  tokens?: TransactionMeta[];
-} = {}): ProviderValues['state'] {
+function makeState(
+  overrides: {
+    currentCurrency?: string;
+    currencyRates?: Record<string, { conversionRate: number }>;
+    tokenMarketData?: Record<string, unknown>;
+    tokens?: TransactionMeta[];
+  } = {},
+): ProviderValues['state'] {
   return {
     engine: {
       backgroundState: {
@@ -70,7 +72,12 @@ function makeTx(
   type: TransactionType,
   extra: Record<string, unknown> = {},
 ): TransactionMeta {
-  return { id: 'tx-1', chainId: CHAIN_ID, type, ...extra } as unknown as TransactionMeta;
+  return {
+    id: 'tx-1',
+    chainId: CHAIN_ID,
+    type,
+    ...extra,
+  } as unknown as TransactionMeta;
 }
 
 // ---------------------------------------------------------------------------
@@ -109,9 +116,7 @@ describe('useMoneyTransactionDisplayInfo — label', () => {
 
   it('derives label from nested type for an EIP-7702 batch deposit', () => {
     const tx = makeTx(TransactionType.batch, {
-      nestedTransactions: [
-        { type: TransactionType.moneyAccountDeposit },
-      ],
+      nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
     });
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
@@ -122,9 +127,7 @@ describe('useMoneyTransactionDisplayInfo — label', () => {
 
   it('derives label from nested type for an EIP-7702 batch withdraw', () => {
     const tx = makeTx(TransactionType.batch, {
-      nestedTransactions: [
-        { type: TransactionType.moneyAccountWithdraw },
-      ],
+      nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
     });
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
