@@ -325,6 +325,7 @@ const Routes = {
       BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL:
         'BatchSellDestinationTokenSelectorModal',
       BATCH_SELL_QUOTE_DETAILS_MODAL: 'BatchSellQuoteDetailsModal',
+      BATCH_SELL_FINAL_REVIEW_MODAL: 'BatchSellFinalReviewModal',
       BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL:
         'BatchSellMinimumReceivedInfoModal',
     },

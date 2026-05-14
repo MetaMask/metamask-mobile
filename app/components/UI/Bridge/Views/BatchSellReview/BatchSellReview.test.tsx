@@ -163,12 +163,12 @@ describe('BatchSellReview', () => {
     expect(getAllByText('100%')).toHaveLength(mockSelectedTokens.length);
   });
 
-  it('keeps the review button disabled while quotes load', () => {
+  it('enables the review button while quote placeholders are available', () => {
     const { getByTestId, getByText } = render(<BatchSellReview />);
     const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
 
     expect(getByText('Review')).toBeOnTheScreen();
-    expect(reviewButton.props.accessibilityState.disabled).toBe(true);
+    expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
   });
 
   it('shows UNKNOWN when there is no destination token match', () => {
@@ -180,7 +180,7 @@ describe('BatchSellReview', () => {
 
     expect(getByText('UNKNOWN')).toBeOnTheScreen();
     expect(queryByText('USDC')).toBeNull();
-    expect(reviewButton.props.accessibilityState.disabled).toBe(true);
+    expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
   });
 
   it('opens the destination stablecoin selector modal from the pill', () => {
@@ -221,7 +221,49 @@ describe('BatchSellReview', () => {
         ],
         totalReceived: '-- USDC',
         minimumReceived: '-- USDC',
-        isLoading: true,
+        isLoading: false,
+      },
+    });
+  });
+
+  it('opens the final review modal from the review button', () => {
+    const { getByTestId } = render(<BatchSellReview />);
+
+    fireEvent.press(getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
+      params: {
+        tokenData: [
+          {
+            key: '0x1:0x1111111111111111111111111111111111111111',
+            tokenSymbol: 'ETH',
+            slippage: '2%',
+            receivedAmount: '-- USDC',
+          },
+          {
+            key: '0x1:0x2222222222222222222222222222222222222222',
+            tokenSymbol: 'UNI',
+            slippage: '2%',
+            receivedAmount: '-- USDC',
+          },
+        ],
+        totalReceived: '-- USDC',
+        minimumReceived: '-- USDC',
+        isLoading: false,
+        sourceTokens: [
+          {
+            key: '0x1:0x1111111111111111111111111111111111111111',
+            tokenSymbol: 'ETH',
+          },
+          {
+            key: '0x1:0x2222222222222222222222222222222222222222',
+            tokenSymbol: 'UNI',
+          },
+        ],
+        networkFee: '1.20 USDC',
+        networkFeeFiat: '$1.20',
+        metamaskFeePercent: '0.875',
       },
     });
   });

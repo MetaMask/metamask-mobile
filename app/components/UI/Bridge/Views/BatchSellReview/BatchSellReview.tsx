@@ -46,6 +46,7 @@ import {
   getBatchSellSlippageValue,
   getSlippageDisplayValue,
 } from '../../components/SlippageModal/utils';
+import { BatchSellFinalReviewSourceTokenData } from '../../components/BatchSellFinalReviewModal/BatchSellFinalReviewModal.types';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
 
@@ -53,10 +54,26 @@ const DEFAULT_PERCENT = 100;
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
 // TODO(SWAPS-4439): When Batch Sell quote fetching is wired, pass
 // batchSellSlippages[assetId] into each token's BridgeController quote request.
-const HAS_QUOTES = false;
+const HAS_QUOTES = true;
 const QUOTE_DETAILS_PLACEHOLDER_AMOUNT = '--';
+const NETWORK_FEE_PLACEHOLDER = '1.20 USDC';
+const NETWORK_FEE_FIAT_PLACEHOLDER = '$1.20';
+const METAMASK_FEE_PERCENT = '0.875';
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
+
+function getSourceTokenData(
+  token: BridgeToken,
+): BatchSellFinalReviewSourceTokenData {
+  const sourceTokenData: BatchSellFinalReviewSourceTokenData = {
+    key: getTokenKey(token),
+    tokenSymbol: token.symbol,
+  };
+
+  if (token.image) sourceTokenData.image = token.image;
+
+  return sourceTokenData;
+}
 
 function areBatchSellSlippageMapsEqual(
   first: Record<string, string | undefined>,
@@ -158,39 +175,48 @@ export function BatchSellReview() {
     });
   }, [navigation]);
 
-  const handleOpenQuoteDetails = useCallback(() => {
+  const getQuoteDetailsParams = useCallback(() => {
     const destinationTokenSymbol =
       selectedDestinationToken?.symbol ?? UNKNOWN_DESTINATION_TOKEN_SYMBOL;
     const placeholderAmount = `${QUOTE_DETAILS_PLACEHOLDER_AMOUNT} ${destinationTokenSymbol}`;
 
+    return {
+      tokenData: selectedTokens.map((token) => {
+        const assetId = getBridgeTokenAssetId(token);
+        const slippage = getBatchSellSlippageValue(batchSellSlippages, assetId);
+
+        return {
+          key: getTokenKey(token),
+          tokenSymbol: token.symbol,
+          slippage: getSlippageDisplayValue(slippage),
+          receivedAmount: placeholderAmount,
+        };
+      }),
+      totalReceived: placeholderAmount,
+      minimumReceived: placeholderAmount,
+      isLoading: !HAS_QUOTES,
+    };
+  }, [batchSellSlippages, selectedDestinationToken?.symbol, selectedTokens]);
+
+  const handleOpenQuoteDetails = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_QUOTE_DETAILS_MODAL,
-      params: {
-        tokenData: selectedTokens.map((token) => {
-          const assetId = getBridgeTokenAssetId(token);
-          const slippage = getBatchSellSlippageValue(
-            batchSellSlippages,
-            assetId,
-          );
+      params: getQuoteDetailsParams(),
+    });
+  }, [getQuoteDetailsParams, navigation]);
 
-          return {
-            key: getTokenKey(token),
-            tokenSymbol: token.symbol,
-            slippage: getSlippageDisplayValue(slippage),
-            receivedAmount: placeholderAmount,
-          };
-        }),
-        totalReceived: placeholderAmount,
-        minimumReceived: placeholderAmount,
-        isLoading: !HAS_QUOTES,
+  const handleOpenFinalReview = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
+      params: {
+        ...getQuoteDetailsParams(),
+        sourceTokens: selectedTokens.map(getSourceTokenData),
+        networkFee: NETWORK_FEE_PLACEHOLDER,
+        networkFeeFiat: NETWORK_FEE_FIAT_PLACEHOLDER,
+        metamaskFeePercent: METAMASK_FEE_PERCENT,
       },
     });
-  }, [
-    batchSellSlippages,
-    navigation,
-    selectedDestinationToken?.symbol,
-    selectedTokens,
-  ]);
+  }, [getQuoteDetailsParams, navigation, selectedTokens]);
 
   const handleSlippagePress = useCallback(
     (token: BridgeToken) => {
@@ -330,6 +356,7 @@ export function BatchSellReview() {
             size={ButtonSize.Lg}
             isFullWidth
             isDisabled={!HAS_QUOTES}
+            onPress={handleOpenFinalReview}
             testID={BatchSellReviewSelectorsIDs.REVIEW_BUTTON}
           >
             {strings('bridge.batch_sell_review')}

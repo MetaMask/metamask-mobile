@@ -20,6 +20,7 @@ import type { BrowserParams } from '../../components/Views/Browser/Browser.types
 import type { BridgeRouteParams } from '../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeTokenSelectorRouteParams } from '../../components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
 import type { BatchSellQuoteDetailsModalParams } from '../../components/UI/Bridge/components/BatchSellQuoteDetailsModal/BatchSellQuoteDetailsModal.types';
+import type { BatchSellFinalReviewModalParams } from '../../components/UI/Bridge/components/BatchSellFinalReviewModal/BatchSellFinalReviewModal.types';
 import type { BatchSellMinimumReceivedInfoModalParams } from '../../components/UI/Bridge/components/BatchSellMinimumReceivedInfoModal/BatchSellMinimumReceivedInfoModal.types';
 import type {
   BatchSellSlippageModalParams,
@@ -540,6 +541,7 @@ export interface RootStackParamList extends ParamListBase {
   RecipientSelectorModal: undefined;
   BatchSellDestinationTokenSelectorModal: undefined;
   BatchSellQuoteDetailsModal: BatchSellQuoteDetailsModalParams;
+  BatchSellFinalReviewModal: BatchSellFinalReviewModalParams;
   BatchSellMinimumReceivedInfoModal:
     | BatchSellMinimumReceivedInfoModalParams
     | undefined;

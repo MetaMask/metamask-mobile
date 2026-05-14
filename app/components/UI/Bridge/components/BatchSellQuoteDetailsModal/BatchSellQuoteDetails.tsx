@@ -1,11 +1,10 @@
 import React from 'react';
+import { Pressable } from 'react-native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ButtonIcon,
-  ButtonIconSize,
   FontWeight,
   Icon,
   IconColor,
@@ -110,7 +109,7 @@ function SummaryRow({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        gap={2}
+        gap={1}
         twClassName="min-w-0 flex-1"
       >
         <Text
@@ -123,15 +122,19 @@ function SummaryRow({
         </Text>
         {hasInfoIcon ? (
           onInfoPress ? (
-            <ButtonIcon
-              iconName={IconName.Info}
-              iconProps={{ color: IconColor.IconAlternative }}
-              size={ButtonIconSize.Sm}
+            <Pressable
               onPress={onInfoPress}
               testID={
                 BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_INFO_BUTTON
               }
-            />
+              accessibilityRole="button"
+            >
+              <Icon
+                name={IconName.Info}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            </Pressable>
           ) : (
             <Icon
               name={IconName.Info}
@@ -167,19 +170,22 @@ export function BatchSellQuoteDetails({
   totalReceived,
   minimumReceived,
   isLoading = false,
+  isTokenDetailsExpanded = true,
   onMinimumReceivedInfoPress,
 }: BatchSellQuoteDetailsProps) {
   return (
     <Box twClassName="pb-4">
-      <Box paddingTop={2} paddingBottom={2}>
-        {tokenData.map((token) => (
-          <QuoteDetailsRow
-            key={token.key ?? token.tokenSymbol}
-            tokenData={token}
-            isLoading={isLoading}
-          />
-        ))}
-      </Box>
+      {isTokenDetailsExpanded ? (
+        <Box paddingTop={2} paddingBottom={2}>
+          {tokenData.map((token) => (
+            <QuoteDetailsRow
+              key={token.key ?? token.tokenSymbol}
+              tokenData={token}
+              isLoading={isLoading}
+            />
+          ))}
+        </Box>
+      ) : null}
       <Box paddingHorizontal={4}>
         <Box twClassName="border-t border-muted pt-2">
           <SummaryRow

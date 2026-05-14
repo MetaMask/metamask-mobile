@@ -139,6 +139,23 @@ describe('BatchSellQuoteDetailsModal', () => {
     expect(queryByText('7,638.23 USDC')).toBeNull();
   });
 
+  it('hides quote rows when token details are collapsed', () => {
+    const props: BatchSellQuoteDetailsProps = {
+      ...defaultParams,
+      isTokenDetailsExpanded: false,
+    };
+    const { getByText, queryByText } = render(
+      <BatchSellQuoteDetails {...props} />,
+    );
+
+    expect(queryByText('ETH • 0.5% slippage')).toBeNull();
+    expect(queryByText('UNI • 0.5% slippage')).toBeNull();
+    expect(getByText('Total received')).toBeOnTheScreen();
+    expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
+    expect(getByText('Minimum received')).toBeOnTheScreen();
+    expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
+  });
+
   it('calls onMinimumReceivedInfoPress when the info button is pressed', () => {
     const onMinimumReceivedInfoPress = jest.fn();
     const props: BatchSellQuoteDetailsProps = {
