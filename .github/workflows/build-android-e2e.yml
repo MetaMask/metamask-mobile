@@ -120,7 +120,7 @@ jobs:
 
       - name: Check Namespace E2E APK cache
         id: namespace-apk-cache
-        if: ${{ inputs.runner_provider == 'namespace' && steps.force-builds.outputs.force != 'true' }}
+        if: ${{ inputs.runner_provider == 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
         shell: bash
         env:
           APK_TARGET: ${{ steps.determine-target-paths.outputs.apk-target-path }}
