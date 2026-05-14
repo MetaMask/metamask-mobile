@@ -130,7 +130,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="mt-3"
+          twClassName="mt-2"
         >
           {assetLabel && (
             <Box
