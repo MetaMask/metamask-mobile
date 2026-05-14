@@ -60,7 +60,7 @@ export function useGameDetailsTabs({
   const resolvedActiveTab = activeTab >= tabs.length ? 0 : activeTab;
 
   useEffect(() => {
-    if (tabs.length > 0 && activeTab >= tabs.length) {
+    if (activeTab >= tabs.length) {
       setActiveTab(0);
     }
   }, [activeTab, tabs.length]);

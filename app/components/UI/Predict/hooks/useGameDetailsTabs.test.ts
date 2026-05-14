@@ -193,38 +193,6 @@ describe('useGameDetailsTabs', () => {
       expect(result.current.tabs).toHaveLength(1);
       expect(result.current.activeTab).toBe(0);
     });
-
-    it('keeps the selected tab state while all tabs are hidden', () => {
-      const { result, rerender } = renderHook(
-        (props) => useGameDetailsTabs(props),
-        {
-          initialProps: {
-            ...defaultParams,
-            activePositions: [createMockPosition()],
-          },
-        },
-      );
-
-      act(() => {
-        result.current.handleTabPress(1);
-      });
-      expect(result.current.activeTab).toBe(1);
-
-      mockUseSelector.mockReturnValue([]);
-      rerender({ ...defaultParams, activePositions: [] });
-
-      expect(result.current.tabs).toHaveLength(0);
-      expect(result.current.activeTab).toBe(0);
-
-      mockUseSelector.mockReturnValue(['nba']);
-      rerender({
-        ...defaultParams,
-        activePositions: [createMockPosition()],
-      });
-
-      expect(result.current.tabs).toHaveLength(2);
-      expect(result.current.activeTab).toBe(1);
-    });
   });
 
   describe('handleTabPress', () => {

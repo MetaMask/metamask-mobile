@@ -753,6 +753,60 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(getChartMarketId()).toBe('market-3');
   });
 
+  it('ignores stale series markets while a new market prop series is loading', async () => {
+    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(123);
+    const oldSeries = {
+      id: 'old-series',
+      slug: 'btc-up-or-down-5m',
+      title: 'BTC Up or Down - 5 Minutes',
+      recurrence: '5m',
+    };
+    const newSeries = {
+      id: 'new-series',
+      slug: 'eth-up-or-down-5m',
+      title: 'ETH Up or Down - 5 Minutes',
+      recurrence: '5m',
+    };
+    const initialMarket = createMockMarket({
+      id: 'old-expired-market',
+      endDate: new Date(0).toISOString(),
+      series: oldSeries,
+    });
+    const staleLiveMarket = createMockMarket({
+      id: 'old-live-market',
+      endDate: '2026-04-09T19:50:00Z',
+      series: oldSeries,
+    });
+    const nextMarket = createMockMarket({
+      id: 'new-expired-market',
+      endDate: new Date(0).toISOString(),
+      series: newSeries,
+    });
+    mockUsePredictSeries.mockReturnValue({
+      data: [staleLiveMarket],
+    });
+
+    try {
+      const { rerender } = render(
+        <PredictCryptoUpDownDetails
+          market={initialMarket}
+          onBack={mockOnBack}
+        />,
+      );
+
+      rerender(
+        <PredictCryptoUpDownDetails market={nextMarket} onBack={mockOnBack} />,
+      );
+
+      await waitFor(() =>
+        expect(getChartMarketId()).toBe('new-expired-market'),
+      );
+      expect(screen.queryByTestId('mock-time-slot-old-live-market')).toBeNull();
+    } finally {
+      dateNowSpy.mockRestore();
+    }
+  });
+
   it('auto-advances to the live market slot when the initial market has already ended', async () => {
     const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(123);
     // Date.now() is mocked to 123 ms (near epoch).
