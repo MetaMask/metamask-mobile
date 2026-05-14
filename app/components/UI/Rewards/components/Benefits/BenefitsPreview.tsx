@@ -6,6 +6,7 @@ import {
   BoxBackgroundColor,
   BoxFlexDirection,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Skeleton,
@@ -47,7 +48,7 @@ const BenefitsPreview = () => {
         count={benefits.length}
         max={99}
         size={BadgeCountSize.Lg}
-        twClassName={`${BoxBackgroundColor.BackgroundMuted} min-w-6 h-6`}
+        twClassName={`${BoxBackgroundColor.BackgroundMuted} min-w-6 h-6 ml-1`}
         textProps={{ color: TextColor.TextDefault }}
       />
     ) : null;
@@ -57,20 +58,24 @@ const BenefitsPreview = () => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
+        twClassName="gap-1"
       >
         <Text variant={TextVariant.HeadingMd}>
           {strings('rewards.benefits.title')}
         </Text>
         {benefitsCountBadge}
-        <Icon name={IconName.ArrowRight} size={IconSize.Md} />
+        <Icon
+          name={IconName.ArrowRight}
+          size={IconSize.Md}
+          color={IconColor.IconAlternative}
+        />
       </Box>
     </Pressable>
   ) : (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-2"
+      twClassName="gap-1"
     >
       <Text variant={TextVariant.HeadingMd}>
         {strings('rewards.benefits.title')}
