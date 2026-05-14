@@ -120,6 +120,10 @@
     "account_no_funds": {
       "message": "No funds available. Use a different account."
     },
+    "headless_buy_error": {
+      "title": "Fiat purchase failed",
+      "message": "Something went wrong with your fiat purchase. Please try again."
+    },
     "mmpay_hardware_account": {
       "title": "Wallet not supported",
       "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."
@@ -8892,7 +8896,8 @@
       "perps_withdraw": "Withdrawal",
       "predict_deposit": "Add funds",
       "swap": "Swap tokens",
-      "swap_approval": "Approve tokens"
+      "swap_approval": "Approve tokens",
+      "fiat_purchase": "Buy {{token}} with {{paymentMethod}}"
     },
     "perps_deposit_solution": "You now have {{fiat}} of USDC on Arbitrum. Try your deposit again."
   },
@@ -9153,22 +9158,7 @@
       "related_assets": "Related Assets",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
-      "whats_happening": "What's happening",
-      "whats_happening_ai": "AI",
-      "whats_happening_impact": {
-        "bullish": "Bullish",
-        "bearish": "Bearish",
-        "neutral": "Neutral"
-      },
       "top_traders": "Top Traders",
-      "whats_happening_categories": {
-        "geopolitical": "Geopolitical",
-        "macro": "Macro",
-        "regulatory": "Regulatory",
-        "technical": "Technical",
-        "social": "Social",
-        "other": "Other"
-      },
       "defi": "DeFi",
       "nfts": "NFTs",
       "trending_tokens": "Trending",
@@ -9188,5 +9178,22 @@
   },
   "sites": {
     "popular": "Popular"
+  },
+  "whats_happening": {
+    "title": "What's happening",
+    "ai": "AI",
+    "impact": {
+      "bullish": "Bullish",
+      "bearish": "Bearish",
+      "neutral": "Neutral"
+    },
+    "categories": {
+      "geopolitical": "Geopolitical",
+      "macro": "Macro",
+      "regulatory": "Regulatory",
+      "technical": "Technical",
+      "social": "Social",
+      "other": "Other"
+    }
   }
 }

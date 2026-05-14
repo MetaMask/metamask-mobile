@@ -211,7 +211,7 @@ import type {
   WebviewParams,
   SimpleWebviewParams,
 } from '../../components/Views/Webview/Webview.types';
-import type { WhatsHappeningSourceValue } from '../../components/Views/Homepage/Sections/WhatsHappening/constants';
+import type { WhatsHappeningSourceValue } from '../../components/UI/WhatsHappening/constants';
 
 /**
  * Generic type for nested navigation params.

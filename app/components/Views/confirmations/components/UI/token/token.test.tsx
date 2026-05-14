@@ -6,6 +6,11 @@ import { AssetType } from '../../../types/token';
 import { Token } from './token';
 import { act, fireEvent } from '@testing-library/react-native';
 
+jest.mock(
+  '../../../../../UI/Assets/components/AssetLogo/AssetLogo',
+  () => () => null,
+);
+
 describe('Token', () => {
   const createMockToken = (overrides: Partial<AssetType> = {}): AssetType => ({
     address: '0x1234567890123456789012345678901234567890',
