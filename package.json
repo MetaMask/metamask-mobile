@@ -26,6 +26,7 @@
     "coverage:files": "node scripts/coverage-analysis.js --files",
     "setup": "yarn clean && node scripts/setup.mjs",
     "skills": "bash scripts/skills-sync.sh",
+    "postinstall": "bash scripts/skills-postinstall.sh",
     "setup:ci": "yarn clean:ios && yarn clean:android && node scripts/setup.mjs",
     "setup:github-ci": "node scripts/setup.mjs --build-on-github-ci",
     "eas": "eas",
