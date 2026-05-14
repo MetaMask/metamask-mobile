@@ -199,13 +199,32 @@ export const PredictPreviewSheetProvider: React.FC<
   const themeRef = useRef(theme);
   themeRef.current = theme;
 
+  /**
+   * Tracks whether the Retry toast we showed is still visible. Used by the
+   * unmount cleanup to dismiss only OUR toast (not a deposit / withdraw /
+   * other-feature toast that may be on screen). Set to true when the
+   * state-based trigger calls `ToastService.showToast`, set back to false
+   * when the user taps Retry or Close, or when we dismiss it on unmount.
+   */
+  const retryToastVisibleRef = useRef(false);
+
   useEffect(() => {
     _providerMounted = true;
     return () => {
       _providerMounted = false;
       // Dismiss any lingering Retry toast so its onPress closures don't try
-      // to setState on the now-unmounted provider.
-      ToastService.closeToast();
+      // to setState on the now-unmounted provider. Only close if we know our
+      // toast is still up — otherwise we'd risk dismissing another feature's
+      // toast that has since replaced ours.
+      if (retryToastVisibleRef.current) {
+        retryToastVisibleRef.current = false;
+        try {
+          ToastService.closeToast();
+        } catch {
+          // Toast layer is no longer available (e.g. app shutdown / hot
+          // reload). Nothing to dismiss; safe to ignore.
+        }
+      }
     };
   }, []);
 
@@ -289,6 +308,7 @@ export const PredictPreviewSheetProvider: React.FC<
       linkButtonOptions: {
         label: strings('predict.order.retry'),
         onPress: () => {
+          retryToastVisibleRef.current = false;
           openBuySheet(lastParams);
           ToastService.closeToast();
         },
@@ -297,11 +317,13 @@ export const PredictPreviewSheetProvider: React.FC<
         variant: ButtonIconVariant.Icon,
         iconName: IconName.Close,
         onPress: () => {
+          retryToastVisibleRef.current = false;
           clearOrderError();
           ToastService.closeToast();
         },
       },
     });
+    retryToastVisibleRef.current = true;
   }, [
     activeOrder?.error,
     buyParams,

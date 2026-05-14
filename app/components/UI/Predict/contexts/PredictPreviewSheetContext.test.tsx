@@ -634,7 +634,35 @@ describe('PredictPreviewSheetContext', () => {
       expect(mockToastShowToast).toHaveBeenCalledTimes(1);
     });
 
-    it('closes any persistent toast on provider unmount', () => {
+    it('closes our Retry toast on provider unmount when one is currently shown', () => {
+      const { rerender, unmount } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      // Show + dismiss the slip so lastBuyParams is set, then trigger an
+      // error to fire the Retry toast.
+      fireEvent.press(screen.getByTestId('open-buy'));
+      fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+      mockActiveOrder = { error: 'order/failed' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      // Toast was shown, so we own it.
+      expect(mockToastShowToast).toHaveBeenCalledTimes(1);
+
+      mockToastCloseToast.mockClear();
+      unmount();
+
+      expect(mockToastCloseToast).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not call closeToast on unmount when no Retry toast was shown (avoids dismissing other features' toasts)", () => {
       const { unmount } = render(
         <PredictPreviewSheetProvider>
           <TestConsumer />
@@ -644,7 +672,33 @@ describe('PredictPreviewSheetContext', () => {
       mockToastCloseToast.mockClear();
       unmount();
 
-      expect(mockToastCloseToast).toHaveBeenCalledTimes(1);
+      expect(mockToastCloseToast).not.toHaveBeenCalled();
+    });
+
+    it('swallows ToastService errors during unmount (e.g. toast layer already gone)', () => {
+      const { rerender, unmount } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      // Show our toast first so the unmount cleanup tries to close it.
+      fireEvent.press(screen.getByTestId('open-buy'));
+      fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+      mockActiveOrder = { error: 'order/failed' };
+      rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      // Simulate the toast layer being gone (ref unavailable etc.).
+      mockToastCloseToast.mockImplementationOnce(() => {
+        throw new Error('Toast reference is not available');
+      });
+
+      expect(() => unmount()).not.toThrow();
     });
   });
 
