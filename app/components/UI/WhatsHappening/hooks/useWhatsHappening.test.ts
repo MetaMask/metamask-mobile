@@ -4,7 +4,7 @@ import { useWhatsHappening } from './useWhatsHappening';
 
 const mockFetchMarketOverview = jest.fn();
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {

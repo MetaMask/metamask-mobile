@@ -137,6 +137,42 @@ export type VipDashboardState = VipDashboardDto & {
   lastFetched: number;
 };
 
+// Backend wire format for GET /vip/fees — mirrors va-mmcx-rewards
+// src/main/vip/dto/vip-fees.dto.ts (PR #546). Fee bips are returned as
+// strings; the controller parses them as needed.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type HyperliquidVipFeesDto = {
+  builderCode: string;
+  builderFeeBips: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SwapsVipFeesDto = {
+  feeBips: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipFeesGroupDto = {
+  hyperliquid: HyperliquidVipFeesDto;
+  swaps: SwapsVipFeesDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipFeesResponseDto = {
+  vipTier: number;
+  fees: VipFeesGroupDto | null;
+  updatedAt: string | null;
+};
+
+// Per-subscription cache for VIP perps builder fee.
+// We store the raw bips string from the backend rather than a derived
+// discount so the cache stays valid if the perps base fee constant changes.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipPerpsFeesState = {
+  hyperliquidBuilderFeeBips: string;
+  lastFetched: number;
+};
+
 export interface MobileLoginDto {
   /**
    * The account of the user
@@ -2042,6 +2078,9 @@ export type RewardsControllerState = {
   vipDashboard: {
     [subscriptionId: string]: VipDashboardState;
   };
+  vipPerpsFees: {
+    [subscriptionId: string]: VipPerpsFeesState;
+  };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
@@ -2214,32 +2253,6 @@ export interface Patch {
   op: 'replace' | 'add' | 'remove';
   path: string[];
   value?: unknown;
-}
-
-/**
- * Request for getting Perps discount
- */
-export interface GetPerpsDiscountDto {
-  /**
-   * Account address in CAIP-10 format
-   * @example 'eip155:1:0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
-   */
-  account: CaipAccountId;
-}
-
-/**
- * Parsed response for Perps discount data
- */
-export interface PerpsDiscountData {
-  /**
-   * Whether the account has opted in (0 = not opted in, 1 = opted in)
-   */
-  hasOptedIn: boolean;
-  /**
-   * The discount percentage in basis points
-   * @example 550
-   */
-  discountBips: number;
 }
 
 /**

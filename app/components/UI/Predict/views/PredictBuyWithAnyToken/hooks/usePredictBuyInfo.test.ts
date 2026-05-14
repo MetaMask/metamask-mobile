@@ -25,6 +25,7 @@ jest.mock('../../../hooks/usePredictPaymentToken', () => ({
 jest.mock(
   '../../../../../Views/confirmations/hooks/pay/useTransactionPayData',
   () => ({
+    useTransactionPayQuotes: () => [],
     useTransactionPayTotals: () => mockPayTotals,
   }),
 );
@@ -102,7 +103,6 @@ const createMockPreview = (
 });
 
 const defaultParams = {
-  currentValue: 100,
   preview: createMockPreview(),
   previewError: null as string | null,
   isConfirming: false,
@@ -174,7 +174,7 @@ describe('usePredictBuyInfo', () => {
       expect(result.current.depositFee).toBe(2.0);
     });
 
-    it('returns 0 when there is an insufficient pay token balance alert', () => {
+    it('includes depositFee in total when there is an insufficient pay token balance alert', () => {
       mockIsPredictBalanceSelected = false;
       mockPayTotals = {
         fees: {
@@ -184,15 +184,17 @@ describe('usePredictBuyInfo', () => {
         },
       };
       mockInsufficientPayAlerts = [
-        { message: 'Insufficient payment token balance', isBlocking: true },
+        { message: 'Pay token balance alert', isBlocking: true },
       ];
 
       const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
 
-      expect(result.current.depositFee).toBe(0);
+      expect(result.current.hasBlockingPayAlerts).toBe(true);
+      expect(result.current.depositFee).toBe(5);
+      expect(result.current.total).toBe(110);
     });
 
-    it('keeps the last accepted deposit fee while confirming', () => {
+    it('returns 0 while confirming when pay totals no longer include fees', () => {
       mockIsPredictBalanceSelected = false;
       mockPayTotals = {
         fees: {
@@ -215,10 +217,10 @@ describe('usePredictBuyInfo', () => {
 
       rerender({ ...defaultParams, isConfirming: true });
 
-      expect(result.current.depositFee).toBe(5);
+      expect(result.current.depositFee).toBe(0);
     });
 
-    it('clears the accepted deposit fee after confirming ends', () => {
+    it('returns 0 after confirming ends when pay totals no longer include fees', () => {
       mockIsPredictBalanceSelected = false;
       mockPayTotals = {
         fees: {
@@ -243,19 +245,47 @@ describe('usePredictBuyInfo', () => {
 
       expect(result.current.depositFee).toBe(0);
     });
+
+    it('does not show stale deposit fee when switching back to Predict balance while confirming', () => {
+      mockIsPredictBalanceSelected = false;
+      mockPayTotals = {
+        fees: {
+          provider: { usd: 1.5 },
+          sourceNetwork: { estimate: { usd: 2.5 } },
+          targetNetwork: { usd: 1.0 },
+        },
+      };
+
+      const { result, rerender } = renderHook(
+        (params: typeof defaultParams) => usePredictBuyInfo(params),
+        {
+          initialProps: { ...defaultParams, isConfirming: true },
+        },
+      );
+
+      expect(result.current.depositFee).toBe(5);
+      expect(result.current.total).toBe(110);
+
+      mockIsPredictBalanceSelected = true;
+
+      rerender({ ...defaultParams, isConfirming: true });
+
+      expect(result.current.depositFee).toBe(0);
+      expect(result.current.total).toBe(105);
+    });
   });
 
   describe('total', () => {
-    it('calculates total as currentValue + providerFee + metamaskFee + depositFee', () => {
+    it('calculates total as preview all-in cost plus depositFee', () => {
       mockIsPredictBalanceSelected = true;
       const params = {
         ...defaultParams,
-        currentValue: 100,
         preview: createMockPreview({
           fees: {
             totalFee: 5,
             metamaskFee: 2,
             providerFee: 3,
+            marketFee: 0.25,
             totalFeePercentage: 0.05,
             collector: '0xCollector',
           },
@@ -264,8 +294,9 @@ describe('usePredictBuyInfo', () => {
 
       const { result } = renderHook(() => usePredictBuyInfo(params));
 
-      // 100 (currentValue) + 3 (providerFee) + 2 (metamaskFee) + 0 (depositFee, balance selected)
-      expect(result.current.total).toBe(105);
+      // 100 (preview.maxAmountSpent) + 2 (metamaskFee) + 3.25 (exchangeFee) + 0 (depositFee, balance selected)
+      expect(result.current.total).toBe(105.25);
+      expect(result.current.exchangeFee).toBe(3.25);
     });
 
     it('includes depositFee when external token selected', () => {
@@ -279,12 +310,12 @@ describe('usePredictBuyInfo', () => {
       };
       const params = {
         ...defaultParams,
-        currentValue: 100,
         preview: createMockPreview({
           fees: {
             totalFee: 5,
             metamaskFee: 2,
             providerFee: 3,
+            marketFee: 0.25,
             totalFeePercentage: 0.05,
             collector: '0xCollector',
           },
@@ -293,7 +324,7 @@ describe('usePredictBuyInfo', () => {
 
       const { result } = renderHook(() => usePredictBuyInfo(params));
 
-      expect(result.current.total).toBe(108);
+      expect(result.current.total).toBe(108.25);
     });
   });
 
@@ -326,6 +357,39 @@ describe('usePredictBuyInfo', () => {
       const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
 
       expect(result.current.totalPayForPredictBalance).toBe(105);
+    });
+
+    it('uses preview maxAmountSpent instead of the raw currentValue input', () => {
+      const { result } = renderHook(() =>
+        usePredictBuyInfo({
+          ...defaultParams,
+          preview: createMockPreview({
+            maxAmountSpent: 99.99,
+          }),
+        }),
+      );
+
+      expect(result.current.totalPayForPredictBalance).toBe(104.99);
+    });
+
+    it('returns the rounded all-in cost including market fee', () => {
+      const { result } = renderHook(() =>
+        usePredictBuyInfo({
+          ...defaultParams,
+          preview: createMockPreview({
+            fees: {
+              totalFee: 5,
+              metamaskFee: 2,
+              providerFee: 3,
+              marketFee: 0.001,
+              totalFeePercentage: 0.05,
+              collector: '0xCollector',
+            },
+          }),
+        }),
+      );
+
+      expect(result.current.totalPayForPredictBalance).toBe(105.01);
     });
   });
 
