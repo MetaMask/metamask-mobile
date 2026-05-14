@@ -53,6 +53,14 @@ export { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 // Margin adjustment hook
 export { usePerpsAdjustMarginData } from './usePerpsAdjustMarginData';
 
+// Slippage estimation hook
+export {
+  useEstimatedSlippage,
+  computeSlippagePct,
+  type EstimatedSlippageResult,
+  type UseEstimatedSlippageOptions,
+} from './useEstimatedSlippage';
+
 // UI utility hooks
 export { useBalanceComparison } from './useBalanceComparison';
 export { useColorPulseAnimation } from './useColorPulseAnimation';

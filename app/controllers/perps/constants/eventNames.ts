@@ -152,6 +152,11 @@ export const PERPS_EVENT_PROPERTY = {
   INITIAL_PAYMENT_METHOD: 'initial_payment_method',
   NEW_PAYMENT_METHOD: 'new_payment_method',
 
+  // Slippage properties
+  MAX_SLIPPAGE_PCT: 'max_slippage_pct',
+  MAX_SLIPPAGE_SOURCE: 'max_slippage_source',
+  ESTIMATED_SLIPPAGE_PCT: 'estimated_slippage_pct',
+
   // Account setup / abstraction mode (PERPS_ACCOUNT_SETUP)
   ABSTRACTION_MODE: 'abstraction_mode',
   PREVIOUS_ABSTRACTION_MODE: 'previous_abstraction_mode',
@@ -322,6 +327,10 @@ export const PERPS_EVENT_VALUE = {
     PAYMENT_METHOD_CHANGED: 'payment_method_changed',
     // Deposit + order (pay-with token) cancel
     CANCEL_TRADE_WITH_TOKEN: 'cancel_trade_with_token',
+    // Slippage interactions
+    SLIPPAGE_CONFIG_OPENED: 'slippage_config_opened',
+    SLIPPAGE_CONFIG_CHANGED: 'slippage_config_changed',
+    SLIPPAGE_LIMIT_BLOCKED_ORDER: 'slippage_limit_blocked_order',
   },
   ACTION_TYPE: {
     START_TRADING: 'start_trading',
@@ -401,6 +410,7 @@ export const PERPS_EVENT_VALUE = {
   },
   SETTING_TYPE: {
     LEVERAGE: 'leverage',
+    SLIPPAGE: 'slippage',
   },
   SCREEN_NAME: {
     CONNECTION_ERROR: 'connection_error',

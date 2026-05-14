@@ -343,6 +343,9 @@ export type PerpsControllerState = {
     };
   };
 
+  // Max slippage tolerance in basis points (e.g. 300 = 3%). Global user preference.
+  maxSlippageBps?: number;
+
   // Market filter preferences (network-independent) - includes both sorting and filtering options
   marketFilterPreferences: {
     optionId: SortOptionId;
@@ -590,6 +593,12 @@ const metadata: StateMetadata<PerpsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  maxSlippageBps: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   marketFilterPreferences: {
     includeInStateLogs: true,
     persist: true,
@@ -739,6 +748,8 @@ const MESSENGER_EXPOSED_METHODS = [
   'refreshEligibility',
   'resetFirstTimeUserState',
   'resetSelectedPaymentToken',
+  'getMaxSlippage',
+  'setMaxSlippage',
   'saveMarketFilterPreferences',
   'saveOrderBookGrouping',
   'savePendingTradeConfiguration',
@@ -4812,6 +4823,28 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.marketFilterPreferences = { optionId, direction };
+    });
+  }
+
+  /**
+   * Get the user's max slippage tolerance in basis points.
+   *
+   * @returns The configured max slippage bps, or undefined if never set (callers should default to 300 bps / 3%).
+   */
+  getMaxSlippage(): number | undefined {
+    return this.state.maxSlippageBps;
+  }
+
+  /**
+   * Set the user's max slippage tolerance in basis points.
+   *
+   * @param bps - Max slippage in basis points (e.g. 300 = 3%). Clamped to 10–1000, snapped to step of 10.
+   */
+  setMaxSlippage(bps: number): void {
+    const clamped = Math.min(1000, Math.max(10, bps));
+    const snapped = Math.round(clamped / 10) * 10;
+    this.update((state) => {
+      state.maxSlippageBps = snapped;
     });
   }
 

@@ -1455,6 +1455,16 @@
       "select_token_to_pay_with": "Please select a token to pay with before placing your order",
       "initializing": "Initializing order..."
     },
+    "slippage": {
+      "config_title": "Max slippage",
+      "config_description": "Your transaction will revert if the price changes unfavorably by more than this percentage.",
+      "save": "Save",
+      "input_label": "Max slippage percentage",
+      "out_of_range": "Enter a value between {{min}}% and {{max}}%",
+      "estimated_slippage": "Est. slippage",
+      "max_slippage": "Max slippage",
+      "exceeds_max": "Estimated slippage ({{estimated}}%) exceeds your max ({{max}}%)"
+    },
     "price_deviation_warning": {
       "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."
     },
@@ -1910,6 +1920,10 @@
       "pay_with": {
         "title": "Pay with",
         "content": "Choose which token or balance to use to pay for this trade. You can pay with your Perps balance or select another token from your wallet."
+      },
+      "slippage": {
+        "title": "Estimated slippage",
+        "content": "Slippage is the difference between the expected price and the price at which your order is filled. Larger orders or low-liquidity markets may have higher slippage."
       }
     },
     "connection": {

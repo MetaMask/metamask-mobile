@@ -558,6 +558,11 @@ export const PerpsOrderViewSelectorsIDs = {
   // Row touchables that open bottom sheets
   LEVERAGE_ROW: 'perps-order-view-leverage-row',
   LIMIT_PRICE_ROW: 'perps-order-view-limit-price-row',
+  // Slippage
+  SLIPPAGE_ROW: 'perps-order-view-slippage-row',
+  SLIPPAGE_VALUE: 'perps-order-view-slippage-value',
+  SLIPPAGE_INFO_ICON: 'perps-order-view-slippage-info-icon',
+  SLIPPAGE_EXCEEDED_ERROR: 'perps-order-view-slippage-exceeded-error',
 };
 
 // ========================================
