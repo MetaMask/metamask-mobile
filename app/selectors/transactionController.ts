@@ -219,12 +219,14 @@ export const selectSortedEVMTransactionsForSelectedAccountGroup =
 export const selectLocalTransactions = createDeepEqualSelector(
   [
     selectNonReplacedTransactions,
+    selectPendingSmartTransactionsForSelectedAccountGroup,
     selectSelectedAccountGroupEvmInternalAccount,
     selectEvmAddress,
     selectRequiredTransactionIds,
   ],
   (
     nonReplacedTransactions,
+    pendingSmartTransactions,
     groupEvmAccount,
     fallbackEvmAddress,
     requiredTransactionIds,
@@ -244,9 +246,20 @@ export const selectLocalTransactions = createDeepEqualSelector(
       return areAddressesEqual(fromAddress, activeEvmAddress);
     });
 
-    return dedupeTransactions(transactions).sort(
-      (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
-    );
+    const pendingSmartTransactionsForActiveAddress =
+      pendingSmartTransactions.filter((transaction) => {
+        const fromAddress = transaction.txParams?.from;
+        if (!fromAddress || !activeEvmAddress) {
+          return false;
+        }
+
+        return areAddressesEqual(fromAddress, activeEvmAddress);
+      });
+
+    return dedupeTransactions([
+      ...transactions,
+      ...pendingSmartTransactionsForActiveAddress,
+    ]).sort((a, b) => (b?.time ?? 0) - (a?.time ?? 0));
   },
 );
 
