@@ -28,6 +28,13 @@ jest.mock('../PriceChart/PriceChart.context', () => ({
   }),
 }));
 
+jest.mock(
+  '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration',
+  () => ({
+    selectTokenDetailsOhlcvWsEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('react-redux', () => {
   const actual = jest.requireActual('react-redux');
   return {
@@ -87,6 +94,10 @@ const mockUseOHLCVChart = jest.fn().mockReturnValue({
 
 jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
   useOHLCVChart: (...args: unknown[]) => mockUseOHLCVChart(...args),
+}));
+
+jest.mock('../../Charts/AdvancedChart/useOHLCVRealtime', () => ({
+  useOHLCVRealtime: () => ({ latestBar: null }),
 }));
 
 jest.mock('../../Charts/AdvancedChart/TimeRangeSelector', () => {

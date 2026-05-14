@@ -406,6 +406,37 @@ describe('PredictPayWithAnyTokenInfo', () => {
       expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
     });
 
+    it('re-emits the same amount when the active transaction changes', () => {
+      mockActiveTransactionMeta = { id: 'tx-1' };
+      mockAmountHuman = '100';
+
+      const { rerender } = render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          isInputFocused={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('100');
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100');
+
+      mockUpdatePendingAmount.mockClear();
+      mockUpdateTokenAmountCallback.mockClear();
+      mockActiveTransactionMeta = { id: 'tx-2' };
+
+      rerender(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          isInputFocused={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('100');
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100');
+    });
+
     it('updates deposit amount when value changes after unfocus', () => {
       mockActiveTransactionMeta = { id: 'tx-1' };
 
@@ -647,6 +678,62 @@ describe('PredictPayWithAnyTokenInfo', () => {
         />,
       );
 
+      expect(mockUpdateTokenAmountCallback).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('payment token transitions', () => {
+    it('does not re-emit the same token amount after Predict balance', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = {
+        address: '0xabc123',
+        chainId: '0x1',
+      };
+      mockActiveTransactionMeta = { id: 'tx-1' };
+      mockAmountHuman = '100';
+
+      const { rerender } = render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          isInputFocused={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('100');
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100');
+
+      jest.clearAllMocks();
+      mockIsPredictBalanceSelected = true;
+      mockSelectedPaymentToken = undefined;
+
+      rerender(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          isInputFocused={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
+      expect(mockUpdateTokenAmountCallback).not.toHaveBeenCalled();
+
+      jest.clearAllMocks();
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = {
+        address: '0xAbC123',
+        chainId: '0X1',
+      };
+
+      rerender(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          isInputFocused={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
       expect(mockUpdateTokenAmountCallback).not.toHaveBeenCalled();
     });
   });

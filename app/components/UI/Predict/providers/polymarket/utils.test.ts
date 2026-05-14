@@ -23,8 +23,10 @@ import {
   getIsApprovedForAll,
   getOrderBook,
   getRawBalance,
+  parsePolymarketEvents,
   previewOrder,
 } from './utils';
+import type { PolymarketApiEvent, PolymarketApiTeam } from './types';
 
 const mockSignTypedMessage = jest.fn();
 
@@ -112,6 +114,94 @@ describe('polymarket utils', () => {
     } as ReturnType<
       typeof Engine.context.NetworkController.getNetworkClientById
     >);
+  });
+
+  it('parses World Cup game events with game metadata when team data is available', () => {
+    const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+      usa: {
+        id: 'team-usa',
+        name: 'United States',
+        logo: 'usa.png',
+        abbreviation: 'usa',
+        color: 'red',
+        alias: 'USA',
+        league: 'fifwc',
+      },
+      can: {
+        id: 'team-can',
+        name: 'Canada',
+        logo: 'can.png',
+        abbreviation: 'can',
+        color: 'white',
+        alias: 'CAN',
+        league: 'fifwc',
+      },
+    };
+    const event: PolymarketApiEvent = {
+      id: 'event-1',
+      slug: 'fifwc-usa-can-2026-06-12',
+      title: 'United States vs Canada',
+      description: 'World Cup match',
+      icon: 'icon.png',
+      closed: false,
+      series: [
+        {
+          id: '11433',
+          slug: 'world-cup',
+          title: 'World Cup',
+          recurrence: 'none',
+        },
+      ],
+      markets: [
+        {
+          conditionId: 'condition-1',
+          question: 'United States vs Canada',
+          description: 'Market description',
+          icon: 'icon.png',
+          image: 'image.png',
+          groupItemTitle: 'United States',
+          sportsMarketType: 'moneyline',
+          status: 'open',
+          volumeNum: 100,
+          liquidity: 100,
+          negRisk: false,
+          clobTokenIds: '["token-yes","token-no"]',
+          outcomes: '["Yes","No"]',
+          outcomePrices: '["0.5","0.5"]',
+          closed: false,
+          active: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+        },
+      ],
+      tags: [
+        { id: 'games', label: 'Games', slug: 'games' },
+        { id: 'world-cup', label: 'World Cup', slug: 'fifa-world-cup' },
+      ],
+      liquidity: 100,
+      volume: 100,
+      gameId: 'game-1',
+      startTime: '2026-06-12T20:00:00.000Z',
+      live: false,
+      ended: false,
+    };
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) => teamsByAbbreviation[abbreviation],
+    });
+
+    expect(market.game).toEqual(
+      expect.objectContaining({
+        id: 'game-1',
+        league: 'fifwc',
+        startTime: '2026-06-12T20:00:00.000Z',
+        status: 'scheduled',
+        homeTeam: expect.objectContaining({ abbreviation: 'usa' }),
+        awayTeam: expect.objectContaining({ abbreviation: 'can' }),
+      }),
+    );
   });
 
   it('creates API keys against the canonical CLOB host', async () => {
