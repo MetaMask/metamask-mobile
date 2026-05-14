@@ -9358,5 +9358,8 @@
       "social": "Social",
       "other": "Other"
     }
+  },
+  "stepper_card": {
+    "more_information": "More information"
   }
 }
