@@ -343,19 +343,23 @@ export const formatUsd = (value: string | number): string =>
  * @example formatCompactUsd(25000)   // '$25K'
  * @example formatCompactUsd(500)     // '$500'
  */
-export const formatCompactUsd = (value: number): string => {
+export const formatCompactUsd = (
+  value: number,
+  options?: { maximumFractionDigits?: number },
+): string => {
   const abs = Math.abs(value);
   const sign = value < 0 ? '-' : '';
+  const maximumFractionDigits = options?.maximumFractionDigits ?? 1;
+  const formatCompactValue = (compact: number) =>
+    `${Number(compact.toFixed(maximumFractionDigits))}`;
 
   if (abs >= 1_000_000) {
     const compact = abs / 1_000_000;
-    const formatted = compact % 1 === 0 ? `${compact}` : compact.toFixed(1);
-    return `${sign}$${formatted}M`;
+    return `${sign}$${formatCompactValue(compact)}M`;
   }
   if (abs >= 1_000) {
     const compact = abs / 1_000;
-    const formatted = compact % 1 === 0 ? `${compact}` : compact.toFixed(1);
-    return `${sign}$${formatted}K`;
+    return `${sign}$${formatCompactValue(compact)}K`;
   }
   return `${sign}$${abs}`;
 };

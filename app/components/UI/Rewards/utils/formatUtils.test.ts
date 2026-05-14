@@ -1652,5 +1652,11 @@ describe('formatUtils', () => {
     it('formats negative thousands', () => {
       expect(formatCompactUsd(-75_000)).toBe('-$75K');
     });
+
+    it('formats compact values without decimals when requested', () => {
+      expect(formatCompactUsd(123_456, { maximumFractionDigits: 0 })).toBe(
+        '$123K',
+      );
+    });
   });
 });

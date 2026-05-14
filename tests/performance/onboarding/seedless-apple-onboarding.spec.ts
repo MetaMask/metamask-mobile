@@ -16,7 +16,7 @@ import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSucce
 import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
-
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
     let rejectedCount = 0;
@@ -118,6 +118,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       if (isNewUser) {
         await CreatePasswordView.enterPassword(password);
         await CreatePasswordView.reEnterPassword(password);
+        await PlaywrightGestures.hideKeyboard();
+
         await CreatePasswordView.tapIUnderstandCheckBox();
         await CreatePasswordView.tapCreatePasswordButton();
 

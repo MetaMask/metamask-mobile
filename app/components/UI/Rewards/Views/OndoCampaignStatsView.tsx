@@ -128,6 +128,10 @@ const OndoCampaignStatsView: React.FC = () => {
     ? formatUsd(portfolioData.summary.netDeposit)
     : '-';
 
+  const totalInflowValue = portfolioData?.summary
+    ? formatUsd(portfolioData.summary.totalUsdDeposited)
+    : '-';
+
   const hasCashedOut = portfolioData?.summary
     ? parseFloat(portfolioData.summary.totalCashedOut) > 0
     : false;
@@ -268,9 +272,16 @@ const OndoCampaignStatsView: React.FC = () => {
               </Box>
             )}
 
-            {/* Days held (when outflow row present) */}
+            {/* Total inflow | Days held (when outflow row present) */}
             {!isCampaignComplete && hasCashedOut && (
               <Box flexDirection={BoxFlexDirection.Row}>
+                <StatCell
+                  label={strings(
+                    'rewards.ondo_campaign_stats.label_total_inflow',
+                  )}
+                  value={totalInflowValue}
+                  isLoading={portfolioLoading}
+                />
                 <StatCell
                   label={strings('rewards.ondo_campaign_stats.label_days_held')}
                   value={daysHeldValue}
@@ -278,7 +289,6 @@ const OndoCampaignStatsView: React.FC = () => {
                   valueColor={TextColor.TextDefault}
                   suffix={isQualified ? <CheckIcon /> : undefined}
                 />
-                <Box twClassName="flex-1" />
               </Box>
             )}
 
