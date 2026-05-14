@@ -1146,20 +1146,6 @@ export class PredictController extends BaseController<
     });
 
     try {
-      // === DEBUG === FORCED_TEST_FAILURE injection. Remove before merging.
-      // Pre-clears `transactionId` so the auto-retry logic skips this order
-      // and we get a clean failure that surfaces the Retry toast.
-      // eslint-disable-next-line no-console
-      console.log('=== DEBUG === [PredictController] forced failure injection');
-      this.update((state) => {
-        if (state.activeBuyOrders[activeOrderAddress]) {
-          state.activeBuyOrders[activeOrderAddress].transactionId = undefined;
-        }
-      });
-      if ((true as boolean) === true) {
-        throw new Error('FORCED_TEST_FAILURE');
-      }
-
       const provider = this.provider;
 
       const signer = this.getSigner(activeOrderAddress);
