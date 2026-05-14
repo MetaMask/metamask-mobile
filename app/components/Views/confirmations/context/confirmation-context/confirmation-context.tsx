@@ -2,10 +2,12 @@ import { noop } from 'lodash';
 import React, { useContext, useMemo, useState } from 'react';
 
 export interface ConfirmationContextParams {
+  headlessBuyError: string | undefined;
   isFooterVisible?: boolean;
   isHeadlessBuyInProgress: boolean;
   isTransactionValueUpdating: boolean;
   isTransactionDataUpdating: boolean;
+  setHeadlessBuyError: (error: string | undefined) => void;
   setIsFooterVisible: (isFooterVisible: boolean) => void;
   setIsHeadlessBuyInProgress: (isHeadlessBuyInProgress: boolean) => void;
   setIsTransactionValueUpdating: (isTransactionValueUpdating: boolean) => void;
@@ -15,10 +17,12 @@ export interface ConfirmationContextParams {
 // This context is used to share the valuable information between the components
 // that are used to render the confirmation
 const ConfirmationContext = React.createContext<ConfirmationContextParams>({
+  headlessBuyError: undefined,
   isFooterVisible: true,
   isHeadlessBuyInProgress: false,
   isTransactionDataUpdating: false,
   isTransactionValueUpdating: false,
+  setHeadlessBuyError: noop,
   setIsFooterVisible: noop,
   setIsHeadlessBuyInProgress: noop,
   setIsTransactionDataUpdating: noop,
@@ -37,6 +41,10 @@ export const ConfirmationContextProvider: React.FC<
 
   const [isFooterVisible, setIsFooterVisible] = useState<boolean>();
 
+  const [headlessBuyError, setHeadlessBuyError] = useState<
+    string | undefined
+  >();
+
   const [isHeadlessBuyInProgress, setIsHeadlessBuyInProgress] = useState(false);
 
   const [isTransactionDataUpdating, setIsTransactionDataUpdating] =
@@ -44,20 +52,24 @@ export const ConfirmationContextProvider: React.FC<
 
   const contextValue = useMemo(
     () => ({
+      headlessBuyError,
       isFooterVisible,
       isHeadlessBuyInProgress,
       isTransactionDataUpdating,
       isTransactionValueUpdating,
+      setHeadlessBuyError,
       setIsFooterVisible,
       setIsHeadlessBuyInProgress,
       setIsTransactionDataUpdating,
       setIsTransactionValueUpdating,
     }),
     [
+      headlessBuyError,
       isFooterVisible,
       isHeadlessBuyInProgress,
       isTransactionDataUpdating,
       isTransactionValueUpdating,
+      setHeadlessBuyError,
       setIsFooterVisible,
       setIsHeadlessBuyInProgress,
       setIsTransactionDataUpdating,
