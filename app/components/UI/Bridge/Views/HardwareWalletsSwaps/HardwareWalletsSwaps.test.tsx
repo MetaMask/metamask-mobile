@@ -11,6 +11,7 @@ import {
   HardwareWalletsSwapsState,
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsStepKind,
+  HardwareWalletsSwapsStepStatus,
 } from './HardwareWalletsSwaps.state';
 import { HardwareWalletsSwaps } from './HardwareWalletsSwaps';
 import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds';
@@ -131,11 +132,11 @@ const renderScreen = (
           steps: [
             {
               kind: HardwareWalletsSwapsStepKind.Approval,
-              status: 'waiting',
+              status: HardwareWalletsSwapsStepStatus.Waiting,
             },
             {
               kind: HardwareWalletsSwapsStepKind.Transaction,
-              status: 'waiting',
+              status: HardwareWalletsSwapsStepStatus.Waiting,
             },
           ],
           ...hardwareWalletsSwaps,
@@ -176,11 +177,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'signed',
+              status: HardwareWalletsSwapsStepStatus.Signed,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'signed',
+              status: HardwareWalletsSwapsStepStatus.Signed,
         },
       ],
     });
@@ -196,11 +197,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'waiting' as const,
+          status: HardwareWalletsSwapsStepStatus.Waiting as const,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'waiting' as const,
+          status: HardwareWalletsSwapsStepStatus.Waiting as const,
         },
       ],
       expectedTrigger: 'reset',
@@ -210,11 +211,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'signing' as const,
+          status: HardwareWalletsSwapsStepStatus.Signing as const,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'waiting' as const,
+          status: HardwareWalletsSwapsStepStatus.Waiting as const,
         },
       ],
       expectedTrigger: 'wallet_locked',
@@ -224,11 +225,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'rejected' as const,
+          status: HardwareWalletsSwapsStepStatus.Rejected as const,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'waiting' as const,
+          status: HardwareWalletsSwapsStepStatus.Waiting as const,
         },
       ],
       expectedTrigger: 'error',
@@ -239,11 +240,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'signed' as const,
+          status: HardwareWalletsSwapsStepStatus.Signed as const,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'signed' as const,
+          status: HardwareWalletsSwapsStepStatus.Signed as const,
         },
       ],
       expectedTrigger: 'found',
@@ -260,11 +261,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'waiting' as const,
+          status: HardwareWalletsSwapsStepStatus.Waiting as const,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'waiting' as const,
+          status: HardwareWalletsSwapsStepStatus.Waiting as const,
         },
       ],
       expectedTrigger: 'wallet_disconnected',
@@ -309,11 +310,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'rejected',
+              status: HardwareWalletsSwapsStepStatus.Rejected,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'waiting',
+          status: HardwareWalletsSwapsStepStatus.Waiting,
         },
       ],
     });
@@ -359,11 +360,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'waiting',
+          status: HardwareWalletsSwapsStepStatus.Waiting,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'waiting',
+          status: HardwareWalletsSwapsStepStatus.Waiting,
         },
       ],
     });
@@ -418,11 +419,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'signed',
+              status: HardwareWalletsSwapsStepStatus.Signed,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'signed',
+              status: HardwareWalletsSwapsStepStatus.Signed,
         },
       ],
     });
@@ -439,11 +440,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'waiting',
+          status: HardwareWalletsSwapsStepStatus.Waiting,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'waiting',
+          status: HardwareWalletsSwapsStepStatus.Waiting,
         },
       ],
     });
@@ -466,11 +467,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'waiting',
+          status: HardwareWalletsSwapsStepStatus.Waiting,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'waiting',
+          status: HardwareWalletsSwapsStepStatus.Waiting,
         },
       ],
     });
@@ -493,11 +494,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'waiting',
+          status: HardwareWalletsSwapsStepStatus.Waiting,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'waiting',
+          status: HardwareWalletsSwapsStepStatus.Waiting,
         },
       ],
     });
@@ -520,11 +521,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'signing',
+              status: HardwareWalletsSwapsStepStatus.Signing,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'waiting',
+          status: HardwareWalletsSwapsStepStatus.Waiting,
         },
       ],
     });
@@ -541,11 +542,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'signed',
+              status: HardwareWalletsSwapsStepStatus.Signed,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'signed',
+              status: HardwareWalletsSwapsStepStatus.Signed,
         },
       ],
     });
@@ -588,11 +589,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'signed',
+              status: HardwareWalletsSwapsStepStatus.Signed,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'signed',
+              status: HardwareWalletsSwapsStepStatus.Signed,
         },
       ],
     });
@@ -608,11 +609,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'signing',
+              status: HardwareWalletsSwapsStepStatus.Signing,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'signed',
+              status: HardwareWalletsSwapsStepStatus.Signed,
         },
       ],
     });
@@ -631,11 +632,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'rejected',
+              status: HardwareWalletsSwapsStepStatus.Rejected,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'waiting',
+          status: HardwareWalletsSwapsStepStatus.Waiting,
         },
       ],
     });
@@ -660,12 +661,12 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'waiting',
+          status: HardwareWalletsSwapsStepStatus.Waiting,
           address: '0x1234567890abcdef',
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'waiting',
+          status: HardwareWalletsSwapsStepStatus.Waiting,
           address: '0xabcdef1234567890',
         },
       ],
@@ -680,11 +681,11 @@ describe('HardwareWalletsSwaps', () => {
       steps: [
         {
           kind: HardwareWalletsSwapsStepKind.Approval,
-          status: 'signing' as const,
+          status: HardwareWalletsSwapsStepStatus.Signing as const,
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: 'waiting' as const,
+          status: HardwareWalletsSwapsStepStatus.Waiting as const,
         },
       ],
     });
@@ -710,5 +711,313 @@ describe('HardwareWalletsSwaps', () => {
     });
 
     expect(Logger.error).toHaveBeenCalled();
+  });
+
+  it('dispatches TRANSACTION_FAILED when no cached params on submission', async () => {
+    const { getBridgeSubmissionCache } = jest.requireMock(
+      '../../hooks/bridgeSubmissionCache',
+    );
+    getBridgeSubmissionCache.mockReturnValue(null);
+
+    const { store } = renderScreen({});
+
+    await waitFor(() => {
+      const state = store.getState();
+      expect(state.bridge.hardwareWalletsSwaps.status).toBe(
+        HardwareWalletsSwapsStatus.Failed,
+      );
+    });
+  });
+
+  it('dispatches TRANSACTION_FAILED when no wallet address on submission', async () => {
+    const { getBridgeSubmissionCache } = jest.requireMock(
+      '../../hooks/bridgeSubmissionCache',
+    );
+    getBridgeSubmissionCache.mockReturnValue(defaultCachedParams);
+    jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined);
+
+    const { store } = renderScreen({});
+
+    await waitFor(() => {
+      const state = store.getState();
+      expect(state.bridge.hardwareWalletsSwaps.status).toBe(
+        HardwareWalletsSwapsStatus.Failed,
+      );
+    });
+  });
+
+  it('dispatches TRANSACTION_FAILED when submitBridgeTx throws and state is non-terminal', async () => {
+    const { getBridgeSubmissionCache } = jest.requireMock(
+      '../../hooks/bridgeSubmissionCache',
+    );
+    getBridgeSubmissionCache.mockReturnValue(defaultCachedParams);
+    mockSubmitBridgeTx.mockRejectedValue(new Error('submission error'));
+
+    const { store } = renderScreen({});
+
+    await waitFor(() => {
+      const state = store.getState();
+      expect(state.bridge.hardwareWalletsSwaps.status).toBe(
+        HardwareWalletsSwapsStatus.Failed,
+      );
+    });
+  });
+
+  it('does not dispatch TRANSACTION_FAILED when submitBridgeTx throws but state is already terminal', async () => {
+    const { getBridgeSubmissionCache } = jest.requireMock(
+      '../../hooks/bridgeSubmissionCache',
+    );
+    getBridgeSubmissionCache.mockReturnValue(defaultCachedParams);
+    mockSubmitBridgeTx.mockRejectedValue(new Error('submission error'));
+
+    const { store } = renderScreen({
+      status: HardwareWalletsSwapsStatus.Rejected,
+      steps: [
+        {
+          kind: HardwareWalletsSwapsStepKind.Approval,
+              status: HardwareWalletsSwapsStepStatus.Rejected,
+        },
+        {
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+      ],
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const state = store.getState();
+    expect(state.bridge.hardwareWalletsSwaps.status).toBe(
+      HardwareWalletsSwapsStatus.Rejected,
+    );
+  });
+
+  it('skips initial submission when hasInitialSubmissionRef is true', async () => {
+    const { getBridgeSubmissionCache } = jest.requireMock(
+      '../../hooks/bridgeSubmissionCache',
+    );
+    getBridgeSubmissionCache.mockReturnValue(defaultCachedParams);
+    mockSubmitBridgeTx.mockResolvedValue({ success: true });
+
+    renderScreen({});
+
+    await waitFor(() => {
+      expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
+    });
+
+    mockSubmitBridgeTx.mockClear();
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+  });
+
+  it('dispatches TRANSACTION_FAILED when waiting but no cache', async () => {
+    const { getBridgeSubmissionCache } = jest.requireMock(
+      '../../hooks/bridgeSubmissionCache',
+    );
+    getBridgeSubmissionCache.mockReturnValue(null);
+
+    const { store } = renderScreen({
+      status: HardwareWalletsSwapsStatus.Waiting,
+      currentStep: 1,
+      totalSteps: 2,
+      steps: [
+        {
+          kind: HardwareWalletsSwapsStepKind.Approval,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+        {
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+      ],
+    });
+
+    await waitFor(() => {
+      const state = store.getState();
+      expect(state.bridge.hardwareWalletsSwaps.status).toBe(
+        HardwareWalletsSwapsStatus.Failed,
+      );
+    });
+  });
+
+  it('renders Disconnected animation trigger', () => {
+    const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+    renderScreen({
+      status: HardwareWalletsSwapsStatus.Disconnected,
+      disconnectedStep: 1,
+      steps: [
+        {
+          kind: HardwareWalletsSwapsStepKind.Approval,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+        {
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+      ],
+    });
+
+    expect(__getLastMockedMethods()?.fireState).toHaveBeenCalledWith(
+      'wallet_states',
+      'wallet_disconnected',
+    );
+
+    setTimeoutSpy.mockRestore();
+  });
+
+  it('renders Failed animation trigger', () => {
+    const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+    renderScreen({
+      status: HardwareWalletsSwapsStatus.Failed,
+      steps: [
+        {
+          kind: HardwareWalletsSwapsStepKind.Approval,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+        {
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+      ],
+    });
+
+    expect(__getLastMockedMethods()?.fireState).toHaveBeenCalledWith(
+      'wallet_states',
+      'error',
+    );
+
+    setTimeoutSpy.mockRestore();
+  });
+
+  it('renders the signing title with step counter when signing is active', () => {
+    const { getByTestId, UNSAFE_root } = renderScreen({
+      currentStep: 1,
+      steps: [
+        {
+          kind: HardwareWalletsSwapsStepKind.Approval,
+              status: HardwareWalletsSwapsStepStatus.Signing,
+        },
+        {
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+      ],
+    });
+
+    expect(
+      getByTestId(HardwareWalletsSwapsSelectorsIDs.TITLE),
+    ).toBeTruthy();
+
+    const activityIndicators = UNSAFE_root.findAllByType(
+      require('react-native').ActivityIndicator,
+    );
+    expect(activityIndicators.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('renders the rejected state title', () => {
+    const { getByTestId } = renderScreen({
+      status: HardwareWalletsSwapsStatus.Rejected,
+      steps: [
+        {
+          kind: HardwareWalletsSwapsStepKind.Approval,
+              status: HardwareWalletsSwapsStepStatus.Rejected,
+        },
+        {
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+      ],
+    });
+
+    expect(
+      getByTestId(HardwareWalletsSwapsSelectorsIDs.TITLE).props.children,
+    ).toBe('You rejected this transaction on your device');
+  });
+
+  it('renders the failed state title', () => {
+    const { getByTestId } = renderScreen({
+      status: HardwareWalletsSwapsStatus.Failed,
+      steps: [
+        {
+          kind: HardwareWalletsSwapsStepKind.Approval,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+        {
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+      ],
+    });
+
+    expect(
+      getByTestId(HardwareWalletsSwapsSelectorsIDs.TITLE).props.children,
+    ).toBe('Transaction failed');
+  });
+
+  it('does not show cancel button in Submitted state', () => {
+    const { queryByTestId } = renderScreen({
+      status: HardwareWalletsSwapsStatus.Submitted,
+      currentStep: 2,
+      steps: [
+        {
+          kind: HardwareWalletsSwapsStepKind.Approval,
+              status: HardwareWalletsSwapsStepStatus.Signed,
+        },
+        {
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+              status: HardwareWalletsSwapsStepStatus.Signed,
+        },
+      ],
+    });
+
+    expect(
+      queryByTestId(HardwareWalletsSwapsSelectorsIDs.CANCEL_BUTTON),
+    ).toBeNull();
+  });
+
+  it('renders step row with signed check icon', () => {
+    const { getByTestId } = renderScreen({
+      currentStep: 2,
+      steps: [
+        {
+          kind: HardwareWalletsSwapsStepKind.Approval,
+              status: HardwareWalletsSwapsStepStatus.Signed,
+        },
+        {
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+      ],
+    });
+
+    expect(
+      getByTestId(`${HardwareWalletsSwapsSelectorsIDs.STEP_ROW}-0`),
+    ).toBeTruthy();
+  });
+
+  it('renders step row with rejected close icon and rejected description', () => {
+    const { getByText } = renderScreen({
+      status: HardwareWalletsSwapsStatus.Rejected,
+      steps: [
+        {
+          kind: HardwareWalletsSwapsStepKind.Approval,
+              status: HardwareWalletsSwapsStepStatus.Rejected,
+        },
+        {
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+      ],
+    });
+
+    expect(getByText('Rejected')).toBeTruthy();
   });
 });

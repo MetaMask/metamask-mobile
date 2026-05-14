@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { useHwQrState } from './useHwQrState';
 import { updateHardwareWalletsSwaps } from '../../../../../../core/redux/slices/bridge';
-import { HardwareWalletsSwapsStatus } from '../HardwareWalletsSwaps.state';
+import { HardwareWalletsSwapsStatus, HardwareWalletsSwapsEventType } from '../HardwareWalletsSwaps.state';
 
 jest.mock('../../../../../../core/HardwareWallet', () => ({
   useHardwareWallet: jest.fn(),
@@ -112,7 +112,7 @@ describe('useHwQrState', () => {
 
     expect(mockQr.qr.cancelQRScanRequestIfPresent).toHaveBeenCalledTimes(1);
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-      type: 'REJECTED',
+      type: HardwareWalletsSwapsEventType.Rejected,
     });
   });
 

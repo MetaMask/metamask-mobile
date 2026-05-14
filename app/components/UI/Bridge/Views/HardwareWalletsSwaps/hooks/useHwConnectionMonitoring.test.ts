@@ -3,7 +3,7 @@ import { renderHook } from '@testing-library/react-native';
 import { ConnectionStatus, ErrorCode } from '@metamask/hw-wallet-sdk';
 import { useHwConnectionMonitoring } from './useHwConnectionMonitoring';
 import { updateHardwareWalletsSwaps } from '../../../../../../core/redux/slices/bridge';
-import { HardwareWalletsSwapsStatus } from '../HardwareWalletsSwaps.state';
+import { HardwareWalletsSwapsStatus, HardwareWalletsSwapsEventType } from '../HardwareWalletsSwaps.state';
 
 jest.mock('../../../../../../core/HardwareWallet', () => ({
   useHardwareWallet: jest.fn(),
@@ -98,7 +98,7 @@ describe('useHwConnectionMonitoring', () => {
     renderAndTransitionToWaiting(createDisconnectedState());
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-      type: 'DEVICE_DISCONNECTED',
+      type: HardwareWalletsSwapsEventType.DeviceDisconnected,
     });
   });
 
@@ -141,10 +141,10 @@ describe('useHwConnectionMonitoring', () => {
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(2);
     expect(updateHardwareWalletsSwaps).toHaveBeenNthCalledWith(1, {
-      type: 'DEVICE_DISCONNECTED',
+      type: HardwareWalletsSwapsEventType.DeviceDisconnected,
     });
     expect(updateHardwareWalletsSwaps).toHaveBeenNthCalledWith(2, {
-      type: 'DEVICE_DISCONNECTED',
+      type: HardwareWalletsSwapsEventType.DeviceDisconnected,
     });
   });
 
@@ -157,7 +157,7 @@ describe('useHwConnectionMonitoring', () => {
     renderAndTransitionToWaiting(createErrorState(error));
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-      type: 'DEVICE_DISCONNECTED',
+      type: HardwareWalletsSwapsEventType.DeviceDisconnected,
     });
   });
 
@@ -181,7 +181,7 @@ describe('useHwConnectionMonitoring', () => {
     renderAndTransitionToWaiting(createErrorState(error));
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-      type: 'DEVICE_DISCONNECTED',
+      type: HardwareWalletsSwapsEventType.DeviceDisconnected,
     });
   });
 
@@ -195,7 +195,7 @@ describe('useHwConnectionMonitoring', () => {
     renderAndTransitionToWaiting(createErrorState(error));
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-      type: 'REJECTED',
+      type: HardwareWalletsSwapsEventType.Rejected,
     });
   });
 

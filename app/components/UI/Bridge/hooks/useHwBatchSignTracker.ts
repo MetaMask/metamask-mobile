@@ -11,7 +11,7 @@ import {
   useHardwareWallet,
 } from '../../../../core/HardwareWallet';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
-import { HardwareWalletsSwapsStepKind } from '../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
+import { HardwareWalletsSwapsStepKind, HardwareWalletsSwapsEventType } from '../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
 
 const APPROVAL_TYPES: Set<TransactionType> = new Set([
   TransactionType.bridgeApproval,
@@ -166,6 +166,10 @@ export function useHwBatchSignTracker({
           const handleApprovalRejection = (): void => {
             if (hasHandledRejection) return;
             hasHandledRejection = true;
+            if (batchGenerationRef.current !== myGeneration) {
+              console.log('[HW-BatchSign] Stale batch rejection — ignoring', { requestId });
+              return;
+            }
 
             if (!deviceConfirmedReady) {
               console.log('[HW-BatchSign] Device not ready — re-queueing for automatic retry', { requestId });
@@ -188,7 +192,7 @@ export function useHwBatchSignTracker({
               { ignoreMissing: true, logErrors: false },
             );
             dispatchRef.current(
-              updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }),
+              updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.TransactionFailed }),
             );
           };
 
@@ -284,12 +288,15 @@ export function useHwBatchSignTracker({
             currentBatchIdRef.current = transactionMeta.batchId;
             console.log('[HW-BatchSign] Set currentBatchId', transactionMeta.batchId);
           }
+        } else if (currentBatchIdRef.current === null) {
+          currentBatchIdRef.current = undefined;
+          console.log('[HW-BatchSign] Non-batch tx after cancellation — resetting to accept-all mode');
         }
         trackedTxIdsRef.current.add(transactionMeta.id);
         setConfirmationTxId(transactionMeta.id);
         dispatchRef.current(
           updateHardwareWalletsSwaps({
-            type: 'SIGNING',
+            type: HardwareWalletsSwapsEventType.Signing,
             payload: { stepKind },
           }),
         );
@@ -304,7 +311,7 @@ export function useHwBatchSignTracker({
         }
         dispatchRef.current(
           updateHardwareWalletsSwaps({
-            type: 'SIGNED',
+            type: HardwareWalletsSwapsEventType.Signed,
             payload: { stepKind },
           }),
         );
@@ -332,7 +339,7 @@ export function useHwBatchSignTracker({
       console.log('[HW-BatchSign] transactionRejected — dispatching REJECTED', { txId: transactionMeta.id, stepKind });
       dispatchRef.current(
         updateHardwareWalletsSwaps({
-          type: 'REJECTED',
+          type: HardwareWalletsSwapsEventType.Rejected,
           payload: { stepKind },
         }),
       );
@@ -356,7 +363,7 @@ export function useHwBatchSignTracker({
 
       console.log('[HW-BatchSign] transactionFailed — dispatching TRANSACTION_FAILED', { txId: transactionMeta.id });
       dispatchRef.current(
-        updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }),
+        updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.TransactionFailed }),
       );
       handledTxIds.add(transactionMeta.id);
       trackedTxIdsRef.current.delete(transactionMeta.id);

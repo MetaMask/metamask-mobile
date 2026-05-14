@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { useHardwareWallet } from '../../../../../../core/HardwareWallet';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { updateHardwareWalletsSwaps } from '../../../../../../core/redux/slices/bridge';
-import { HardwareWalletsSwapsStatus } from '../HardwareWalletsSwaps.state';
+import { HardwareWalletsSwapsStatus, HardwareWalletsSwapsEventType } from '../HardwareWalletsSwaps.state';
 
 interface UseHwQrStateOptions {
   isEnabled: boolean;
@@ -44,7 +44,7 @@ export function useHwQrState({
   const handleQrSignatureCancel = useCallback(() => {
     console.log('[HW-QrState] QR signature cancelled — dispatching REJECTED');
     qr.cancelQRScanRequestIfPresent();
-    dispatch(updateHardwareWalletsSwaps({ type: 'REJECTED' }));
+    dispatch(updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.Rejected }));
   }, [qr, dispatch]);
 
   return {

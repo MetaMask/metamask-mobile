@@ -6,7 +6,7 @@ import {
 } from '@metamask/transaction-controller';
 import { useHwBatchSignTracker } from './useHwBatchSignTracker';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
-import { HardwareWalletsSwapsStepKind } from '../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
+import { HardwareWalletsSwapsStepKind, HardwareWalletsSwapsEventType } from '../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
 
 jest.mock('../../../../core/Engine', () => ({
   rejectPendingApproval: jest.fn(),
@@ -165,7 +165,7 @@ describe('useHwBatchSignTracker', () => {
     });
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-      type: 'SIGNING',
+      type: HardwareWalletsSwapsEventType.Signing,
       payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
     });
   });
@@ -190,7 +190,7 @@ describe('useHwBatchSignTracker', () => {
     });
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-      type: 'SIGNING',
+      type: HardwareWalletsSwapsEventType.Signing,
       payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
     });
   });
@@ -215,7 +215,7 @@ describe('useHwBatchSignTracker', () => {
     });
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-      type: 'SIGNED',
+      type: HardwareWalletsSwapsEventType.Signed,
       payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
     });
   });
@@ -240,7 +240,7 @@ describe('useHwBatchSignTracker', () => {
     });
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-      type: 'SIGNED',
+      type: HardwareWalletsSwapsEventType.Signed,
       payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
     });
   });
@@ -265,7 +265,7 @@ describe('useHwBatchSignTracker', () => {
     });
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-      type: 'REJECTED',
+      type: HardwareWalletsSwapsEventType.Rejected,
       payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
     });
   });
@@ -290,7 +290,7 @@ describe('useHwBatchSignTracker', () => {
     });
 
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-      type: 'TRANSACTION_FAILED',
+      type: HardwareWalletsSwapsEventType.TransactionFailed,
     });
   });
 
@@ -385,7 +385,7 @@ describe('useHwBatchSignTracker', () => {
       });
 
       expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-        type: 'SIGNED',
+        type: HardwareWalletsSwapsEventType.Signed,
         payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
       });
     });
@@ -412,7 +412,7 @@ describe('useHwBatchSignTracker', () => {
       });
 
       expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-        type: 'SIGNING',
+        type: HardwareWalletsSwapsEventType.Signing,
         payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
       });
 
@@ -428,7 +428,7 @@ describe('useHwBatchSignTracker', () => {
       });
 
       expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-        type: 'SIGNED',
+        type: HardwareWalletsSwapsEventType.Signed,
         payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
       });
     });
@@ -753,7 +753,7 @@ describe('useHwBatchSignTracker', () => {
 
       await waitFor(() => {
         expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
-          type: 'TRANSACTION_FAILED',
+          type: HardwareWalletsSwapsEventType.TransactionFailed,
         });
         expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledTimes(1);
       });
@@ -822,7 +822,7 @@ describe('useHwBatchSignTracker', () => {
 
       expect(Engine.rejectPendingApproval).not.toHaveBeenCalled();
       expect(updateHardwareWalletsSwaps).not.toHaveBeenCalledWith({
-        type: 'TRANSACTION_FAILED',
+        type: HardwareWalletsSwapsEventType.TransactionFailed,
       });
     });
 

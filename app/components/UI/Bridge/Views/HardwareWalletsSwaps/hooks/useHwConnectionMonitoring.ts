@@ -5,7 +5,7 @@ import { useHardwareWallet } from '../../../../../../core/HardwareWallet';
 import { isUserCancellation } from '../../../../../../core/HardwareWallet/errors/helpers';
 import { parseErrorByType } from '../../../../../../core/HardwareWallet/errors/parser';
 import { updateHardwareWalletsSwaps } from '../../../../../../core/redux/slices/bridge';
-import { HardwareWalletsSwapsStatus } from '../HardwareWalletsSwaps.state';
+import { HardwareWalletsSwapsStatus, HardwareWalletsSwapsEventType } from '../HardwareWalletsSwaps.state';
 
 interface UseHwConnectionMonitoringOptions {
   isEnabled: boolean;
@@ -53,7 +53,7 @@ export function useHwConnectionMonitoring({
       console.log('[HW-ConnectionMonitor] Dispatching DEVICE_DISCONNECTED');
       handledErrorRef.current = 'disconnected';
       isDisconnectedRef.current = true;
-      dispatch(updateHardwareWalletsSwaps({ type: 'DEVICE_DISCONNECTED' }));
+      dispatch(updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.DeviceDisconnected }));
       return;
     }
 
@@ -78,7 +78,7 @@ export function useHwConnectionMonitoring({
         return;
       }
       isDisconnectedRef.current = true;
-      dispatch(updateHardwareWalletsSwaps({ type: 'DEVICE_DISCONNECTED' }));
+      dispatch(updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.DeviceDisconnected }));
       return;
     }
 
@@ -86,7 +86,7 @@ export function useHwConnectionMonitoring({
       console.log('[HW-ConnectionMonitor] User cancellation detected — dispatching REJECTED');
       dispatch(
         updateHardwareWalletsSwaps({
-          type: 'REJECTED',
+          type: HardwareWalletsSwapsEventType.Rejected,
         }),
       );
       return;

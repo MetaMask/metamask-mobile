@@ -3,6 +3,9 @@ import { useDispatch } from 'react-redux';
 import { updateHardwareWalletsSwaps } from '../../../../../../core/redux/slices/bridge';
 import { HardwareWalletsSwapsStatus } from '../HardwareWalletsSwaps.state';
 
+/**
+ * Options for the hardware wallet confirmation transaction monitoring hook.
+ */
 interface UseHwConfirmationMonitoringOptions {
   isEnabled: boolean;
   currentStatus: HardwareWalletsSwapsStatus;
