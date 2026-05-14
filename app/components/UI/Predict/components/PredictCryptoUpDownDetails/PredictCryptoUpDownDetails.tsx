@@ -217,6 +217,8 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     () => getYesPercentage(selectedMarket, selectedOpenOutcomes),
     [selectedMarket, selectedOpenOutcomes],
   );
+  const canClaim = Boolean(onClaimPress && hasPositivePnl);
+  const shouldRenderActions = Boolean(onBetPress || canClaim);
 
   const handleCurrentPriceChange = useCallback((value: number) => {
     setCurrentPrice(value);
@@ -518,11 +520,11 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         </Box>
       </ScrollView>
 
-      {onBetPress && (
+      {shouldRenderActions && (
         <Box twClassName="px-4 pb-4">
           <PredictMarketDetailsActions
             isClaimablePositionsLoading={isClaimablePositionsLoading}
-            hasPositivePnl={hasPositivePnl}
+            hasPositivePnl={canClaim}
             marketStatus={selectedMarket.status as PredictMarketStatus}
             singleOutcomeMarket={selectedMarket.outcomes.length === 1}
             isMarketLoading={isMarketLoading}

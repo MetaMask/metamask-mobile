@@ -7,7 +7,10 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import PredictCryptoUpDownDetails from './PredictCryptoUpDownDetails';
-import { PredictCryptoUpDownDetailsSelectorsIDs } from '../../Predict.testIds';
+import {
+  PredictCryptoUpDownDetailsSelectorsIDs,
+  PredictMarketDetailsSelectorsIDs,
+} from '../../Predict.testIds';
 import {
   Recurrence,
   type PredictMarket,
@@ -168,6 +171,33 @@ jest.mock('../PredictCryptoUpDownChart', () => {
     )),
   };
 });
+
+jest.mock(
+  '../../views/PredictMarketDetails/components/PredictMarketDetailsActions',
+  () => {
+    const React = jest.requireActual('react');
+    const { TouchableOpacity } = jest.requireActual('react-native');
+
+    return {
+      __esModule: true,
+      default: jest.fn(
+        ({
+          hasPositivePnl,
+          onClaimPress,
+        }: {
+          hasPositivePnl: boolean;
+          onClaimPress: () => void;
+        }) =>
+          hasPositivePnl
+            ? React.createElement(TouchableOpacity, {
+                testID: 'predict-market-details-claim-winnings-button',
+                onPress: onClaimPress,
+              })
+            : null,
+      ),
+    };
+  },
+);
 
 const createMockMarket = (
   overrides: Partial<PredictMarket> = {},
@@ -371,6 +401,29 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(
       screen.getByTestId('mock-predict-crypto-up-down-chart'),
     ).toBeOnTheScreen();
+  });
+
+  it('renders claim action without a buy callback when positive pnl is available', () => {
+    const market = createMockMarket();
+    const onClaimPress = jest.fn();
+
+    render(
+      <PredictCryptoUpDownDetails
+        market={market}
+        onBack={mockOnBack}
+        onClaimPress={onClaimPress}
+        hasPositivePnl
+      />,
+    );
+
+    const claimButton = screen.getByTestId(
+      PredictMarketDetailsSelectorsIDs.CLAIM_WINNINGS_BUTTON,
+    );
+    expect(claimButton).toBeOnTheScreen();
+
+    fireEvent.press(claimButton);
+
+    expect(onClaimPress).toHaveBeenCalledTimes(1);
   });
 
   it('attaches pull-to-refresh props to the scroll view', () => {
