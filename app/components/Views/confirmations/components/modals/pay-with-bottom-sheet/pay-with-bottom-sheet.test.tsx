@@ -13,6 +13,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 
 jest.mock('../../../hooks/pay/usePayWithSections');
 jest.mock('../../../hooks/pay/useDismissOnPayTokenChange');
+jest.mock('../../../hooks/pay/useDismissOnFiatPaymentChange');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { type RefObject, useCallback, useRef } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -10,6 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import PayWithSection from '../../UI/pay-with-section';
+import { useDismissOnFiatPaymentChange } from '../../../hooks/pay/useDismissOnFiatPaymentChange';
 import { useDismissOnPayTokenChange } from '../../../hooks/pay/useDismissOnPayTokenChange';
 import { usePayWithSections } from '../../../hooks/pay/usePayWithSections';
 
@@ -19,7 +20,16 @@ export function PayWithBottomSheet() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { sections } = usePayWithSections();
-  useDismissOnPayTokenChange();
+  /**
+   * Shared latch coordinating the two dismiss hooks. A single controller write
+   * (e.g. `TransactionPayController.updatePaymentToken` clearing `fiatPayment`)
+   * can flip both observed values in the same flush; without the shared latch
+   * each hook would call `navigation.goBack()` independently and pop two
+   * routes instead of one.
+   */
+  const sharedDismissedRef: RefObject<boolean> = useRef<boolean>(false);
+  useDismissOnPayTokenChange(sharedDismissedRef);
+  useDismissOnFiatPaymentChange(sharedDismissedRef);
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();

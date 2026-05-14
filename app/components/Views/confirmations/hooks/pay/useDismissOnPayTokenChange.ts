@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { RefObject, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { isMatchingPayToken } from '../../utils/transaction-pay';
 import { useTransactionPayToken } from './useTransactionPayToken';
@@ -12,12 +12,21 @@ import { useTransactionPayToken } from './useTransactionPayToken';
  * The initial `payToken` is captured on mount, so the hook does not fire
  * for the value that was already on the controller when the sheet opened.
  */
-export function useDismissOnPayTokenChange(): void {
+export function useDismissOnPayTokenChange(
+  dismissedRef?: RefObject<boolean>,
+): void {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const initialPayTokenRef = useRef(payToken);
+  const localDismissedRef = useRef<boolean>(false);
+  const effectiveDismissedRef: { current: boolean } =
+    dismissedRef ?? localDismissedRef;
 
   useEffect(() => {
+    if (effectiveDismissedRef.current) {
+      return;
+    }
+
     const initial = initialPayTokenRef.current;
     const matchesInitial =
       (!initial && !payToken) ||
@@ -32,6 +41,7 @@ export function useDismissOnPayTokenChange(): void {
       return;
     }
 
+    effectiveDismissedRef.current = true;
     navigation.goBack();
-  }, [navigation, payToken]);
+  }, [effectiveDismissedRef, navigation, payToken]);
 }

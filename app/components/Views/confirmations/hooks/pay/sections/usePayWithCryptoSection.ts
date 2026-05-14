@@ -24,6 +24,7 @@ import { SetPayTokenRequest } from '../useAutomaticTransactionPayToken';
 import { useLastUsedPaymentMethod } from '../useLastUsedPaymentMethod';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
+import { useTransactionPayFiatPayment } from '../useTransactionPayData';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 
 interface PayWithCryptoSectionParams {
@@ -62,6 +63,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     selectToken,
   } = usePayWithSelectedToken({ preferredToken: resolvedPreferredToken });
   const { isLastUsed } = useLastUsedPaymentMethod();
+  const fiatPayment = useTransactionPayFiatPayment();
+  const hasFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
 
   const handleOtherAssetsPress = useCallback(() => {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
@@ -96,10 +99,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     const rows: PayWithRowConfig[] = [];
 
     if (preferredToken) {
-      const isPreferredTokenSelected = isMatchingPayToken(
-        selectedToken,
-        preferredToken,
-      );
+      const isPreferredTokenSelected =
+        !hasFiatPaymentSelected &&
+        isMatchingPayToken(selectedToken, preferredToken);
 
       rows.push({
         id: 'crypto-preferred-token',
@@ -121,6 +123,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     }
 
     if (isSelectedDistinctFromAutomatic && selectedTokenDisplay) {
+      const isSelectedTokenChecked = !hasFiatPaymentSelected;
+
       rows.push({
         id: 'crypto-selected-token',
         icon: React.createElement(TokenIcon, {
@@ -132,12 +136,12 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
         subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
           balance: selectedTokenBalance,
         }),
-        isSelected: true,
+        isSelected: isSelectedTokenChecked,
         isLastUsed: isLastUsed(
           selectedTokenDisplay.address,
           selectedTokenDisplay.chainId,
         ),
-        trailingElement: 'checkmark',
+        trailingElement: isSelectedTokenChecked ? 'checkmark' : 'none',
         testID: PAY_WITH_CRYPTO_SELECTED_TOKEN_ROW_TEST_ID,
       });
     }
@@ -167,6 +171,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   }, [
     handleOtherAssetsPress,
     handlePreferredTokenPress,
+    hasFiatPaymentSelected,
     hasTokens,
     isLastUsed,
     isSelectedDistinctFromAutomatic,

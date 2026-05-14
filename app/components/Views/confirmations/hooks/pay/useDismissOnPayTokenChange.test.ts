@@ -1,3 +1,4 @@
+import React from 'react';
 import { renderHook } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
@@ -122,5 +123,60 @@ describe('useDismissOnPayTokenChange', () => {
     rerender();
 
     expect(goBackMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not dismiss again on subsequent token changes after the first dismissal', () => {
+    const { rerender } = renderHook(() => useDismissOnPayTokenChange());
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: TOKEN_B,
+      setPayToken: setPayTokenMock,
+    });
+
+    rerender();
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+      setPayToken: setPayTokenMock,
+    });
+
+    rerender();
+
+    expect(goBackMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('respects an external shared dismissed ref and does not dismiss when already latched', () => {
+    const sharedRef: React.RefObject<boolean> = { current: true };
+
+    const { rerender } = renderHook(() =>
+      useDismissOnPayTokenChange(sharedRef),
+    );
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: TOKEN_B,
+      setPayToken: setPayTokenMock,
+    });
+
+    rerender();
+
+    expect(goBackMock).not.toHaveBeenCalled();
+  });
+
+  it('sets the external shared dismissed ref to true when it fires', () => {
+    const sharedRef: React.RefObject<boolean> = { current: false };
+
+    const { rerender } = renderHook(() =>
+      useDismissOnPayTokenChange(sharedRef),
+    );
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: TOKEN_B,
+      setPayToken: setPayTokenMock,
+    });
+
+    rerender();
+
+    expect(goBackMock).toHaveBeenCalledTimes(1);
+    expect(sharedRef.current).toBe(true);
   });
 });
