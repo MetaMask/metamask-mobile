@@ -1,7 +1,7 @@
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import { WhatsHappeningSource } from '../../../../components/Views/Homepage/Sections/WhatsHappening/constants';
+import { WhatsHappeningSource } from '../../../../components/UI/WhatsHappening/constants';
 
 const navigateToFallback = () => {
   NavigationService.navigation.navigate(Routes.WALLET.HOME);
