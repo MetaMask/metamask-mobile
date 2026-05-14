@@ -31,7 +31,7 @@ describeForPlatforms('BackupAndSyncSettings identity sync toggles', () => {
     runAfterInteractionsSpy.mockRestore();
   });
 
-  it('syncs new accounts when account sync is enabled and excludes accounts created when sync is disabled', async () => {
+  it('disables account sync through user storage', async () => {
     const setFeatureSpy = jest.spyOn(
       Engine.context.UserStorageController,
       'setIsBackupAndSyncFeatureEnabled',
@@ -60,7 +60,7 @@ describeForPlatforms('BackupAndSyncSettings identity sync toggles', () => {
     setFeatureSpy.mockRestore();
   });
 
-  it('should sync new contacts when contact sync is enabled and exclude contacts created when sync is disabled', async () => {
+  it('disables contact sync through user storage', async () => {
     const setFeatureSpy = jest.spyOn(
       Engine.context.UserStorageController,
       'setIsBackupAndSyncFeatureEnabled',

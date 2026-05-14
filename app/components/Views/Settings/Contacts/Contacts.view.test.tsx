@@ -40,7 +40,12 @@ describeForPlatforms('Contact syncing component views', () => {
     );
 
     await waitFor(() => {
-      fireEvent.press(getByTestId(AddContactViewSelectorsIDs.ADD_BUTTON));
+      expect(getByTestId(AddContactViewSelectorsIDs.ADD_BUTTON)).toBeEnabled();
+    });
+
+    fireEvent.press(getByTestId(AddContactViewSelectorsIDs.ADD_BUTTON));
+
+    await waitFor(() => {
       expect(setContactSpy).toHaveBeenCalledWith(
         SYNCED_CONTACT.address,
         SYNCED_CONTACT.name,
