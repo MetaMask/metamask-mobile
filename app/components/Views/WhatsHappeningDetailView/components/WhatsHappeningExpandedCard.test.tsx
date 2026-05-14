@@ -96,6 +96,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText(baseItem.title)).toBeOnTheScreen();
@@ -109,6 +110,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText('Bullish')).toBeOnTheScreen();
@@ -121,6 +123,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText('AI')).toBeOnTheScreen();
@@ -135,6 +138,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText('Neutral')).toBeOnTheScreen();
@@ -148,6 +152,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.queryByText('Neutral')).toBeNull();
@@ -164,6 +169,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText('Related Assets')).toBeOnTheScreen();
@@ -180,6 +186,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText('Tesla')).toBeOnTheScreen();
@@ -196,6 +203,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText('Related Assets')).toBeOnTheScreen();
@@ -212,6 +220,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.queryByText('Related Assets')).toBeNull();
@@ -226,6 +235,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     fireEvent.press(screen.getByText('Trade'));
@@ -237,7 +247,7 @@ describe('WhatsHappeningExpandedCard', () => {
     });
   });
 
-  it('calls onSourcesPress with the item articles when the sources footer is pressed', () => {
+  it('calls onSourcesPress with the item articles when the sources row is pressed', () => {
     const mockOnSourcesPress = jest.fn();
     const article = {
       title: 'Test article',
@@ -247,9 +257,10 @@ describe('WhatsHappeningExpandedCard', () => {
     };
     const item = { ...baseItem, articles: [article] };
 
-    const { getUniqueSourcesByFavicon } = jest.requireMock(
+    const { formatRelativeTime, getUniqueSourcesByFavicon } = jest.requireMock(
       '../../../UI/MarketInsights/utils/marketInsightsFormatting',
     );
+    (formatRelativeTime as jest.Mock).mockReturnValueOnce('1d ago');
     (getUniqueSourcesByFavicon as jest.Mock).mockReturnValueOnce([
       { name: 'coindesk.com', type: 'news', url: 'https://coindesk.com' },
     ]);
@@ -260,12 +271,14 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
         onSourcesPress={mockOnSourcesPress}
       />,
     );
 
     fireEvent.press(screen.getByText('coindesk.com'));
     expect(mockOnSourcesPress).toHaveBeenCalledWith([article]);
+    expect(screen.getByText('1d ago')).toBeOnTheScreen();
   });
 
   it('passes perpsPriceBySymbol from hook to PerpsRow', () => {
@@ -284,6 +297,7 @@ describe('WhatsHappeningExpandedCard', () => {
         cardIndex={0}
         cardWidth={CARD_WIDTH}
         cardHeight={CARD_HEIGHT}
+        source="homepage"
       />,
     );
     expect(screen.getByText('$172.50')).toBeOnTheScreen();

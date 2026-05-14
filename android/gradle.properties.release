@@ -1,7 +1,8 @@
 # Gradle settings for GitHub Actions release/production builds (LG runner, 48GB RAM)
 
 # JVM: 8GB heap to leave room for Metro workers + Kotlin daemon
-org.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=512m -XX:+UseG1GC -XX:G1HeapRegionSize=8m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+# MaxMetaspaceSize 2g to match gradle.properties.github (512m causes daemon OOM)
+org.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=2g -XX:+UseG1GC -XX:G1HeapRegionSize=8m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
 
 org.gradle.parallel=true
 org.gradle.configureondemand=true
@@ -16,8 +17,8 @@ org.gradle.vfs.watch=false
 kotlin.incremental=true
 kotlin.incremental.android=true
 kotlin.caching.enabled=true
-# Kotlin daemon: 2GB cap to prevent memory contention
-kotlin.daemon.jvmargs=-Xmx2g -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError
+# Kotlin daemon: 2GB heap, 1GB metaspace to match gradle.properties.github
+kotlin.daemon.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError
 
 # File system optimizations
 org.gradle.vfs.verbose=false

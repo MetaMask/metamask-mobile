@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
-import { Linking } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   FontWeight,
@@ -17,7 +18,11 @@ import ArticleRow from '../../../UI/MarketInsights/components/ArticleRow';
 import { isSafeUrl } from '../../../UI/MarketInsights/utils/marketInsightsFormatting';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { WhatsHappeningInteractionType } from '../../Homepage/Sections/WhatsHappening/constants';
+import Routes from '../../../../constants/navigation/Routes';
+import {
+  WhatsHappeningInteractionType,
+  type WhatsHappeningSourceValue,
+} from '../../Homepage/Sections/WhatsHappening/constants';
 import { getWhatsHappeningEventProps } from '../../Homepage/Sections/WhatsHappening/eventProperties';
 import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
 
@@ -26,31 +31,42 @@ interface WhatsHappeningSourcesBottomSheetProps {
   articles: Article[];
   item: WhatsHappeningItem;
   cardIndex: number;
+  source: WhatsHappeningSourceValue;
 }
 
 const WhatsHappeningSourcesBottomSheet: React.FC<
   WhatsHappeningSourcesBottomSheetProps
-> = ({ onClose, articles, item, cardIndex }) => {
+> = ({ onClose, articles, item, cardIndex, source }) => {
   const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const handleSourcePress = useCallback(
     (url: string) => {
+      if (!isSafeUrl(url)) {
+        return;
+      }
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTION)
+        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTED)
           .addProperties({
-            ...getWhatsHappeningEventProps(item, cardIndex),
+            ...getWhatsHappeningEventProps(item, cardIndex, source),
             interaction_type: WhatsHappeningInteractionType.SourceClick,
-            source: url,
+            article_url: url,
           })
           .build(),
       );
-      if (isSafeUrl(url)) {
-        Linking.openURL(url);
-      }
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: url,
+          timestamp: Date.now(),
+          fromTrending: true,
+          fromWhatsHappening: true,
+        },
+      });
     },
-    [item, cardIndex, trackEvent, createEventBuilder],
+    [item, cardIndex, source, trackEvent, createEventBuilder, navigation],
   );
 
   return (
