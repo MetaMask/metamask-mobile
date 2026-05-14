@@ -17963,7 +17963,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tommasini/react-native-scrollable-tab-view@npm:^1.1.1":
+"@tommasini/react-native-scrollable-tab-view@npm:1.1.1":
   version: 1.1.1
   resolution: "@tommasini/react-native-scrollable-tab-view@npm:1.1.1"
   dependencies:
@@ -17975,6 +17975,21 @@ __metadata:
   peerDependencies:
     react-native: ">=0.20.0"
   checksum: 10/ea8f999983c9201dc4fa0743feebfb1e56c2e10b2ddddda0e9ff4145dd82386b03e2af8fc6b9295ac85066b21b10be02df4dc30682c07c71d3a4078a1e8c2e88
+  languageName: node
+  linkType: hard
+
+"@tommasini/react-native-scrollable-tab-view@patch:@tommasini/react-native-scrollable-tab-view@npm%3A1.1.1#~/.yarn/patches/@tommasini-react-native-scrollable-tab-view-npm-1.1.1-153a9df479.patch":
+  version: 1.1.1
+  resolution: "@tommasini/react-native-scrollable-tab-view@patch:@tommasini/react-native-scrollable-tab-view@npm%3A1.1.1#~/.yarn/patches/@tommasini-react-native-scrollable-tab-view-npm-1.1.1-153a9df479.patch::version=1.1.1&hash=851ebf"
+  dependencies:
+    "@react-native-community/viewpager": "npm:3.3.0"
+    create-react-class: "npm:^15.6.2"
+    deprecated-react-native-prop-types: "npm:^2.3.0"
+    prop-types: "npm:^15.6.0"
+    react-timer-mixin: "npm:^0.13.3"
+  peerDependencies:
+    react-native: ">=0.20.0"
+  checksum: 10/7ab44b78d8bcaa8b773cd0f02d0f5dc081dab4ad4104b06229d5e4105b954568a11509503d3c9f75497139ba34c2efbda9c3123ef29ec357e7a93b476fbb0e47
   languageName: node
   linkType: hard
 
@@ -35481,7 +35496,7 @@ __metadata:
     "@testing-library/react": "npm:14.0.0"
     "@testing-library/react-hooks": "npm:^8.0.1"
     "@testing-library/react-native": "npm:^13.2.0"
-    "@tommasini/react-native-scrollable-tab-view": "npm:^1.1.1"
+    "@tommasini/react-native-scrollable-tab-view": "patch:@tommasini/react-native-scrollable-tab-view@npm%3A1.1.1#~/.yarn/patches/@tommasini-react-native-scrollable-tab-view-npm-1.1.1-153a9df479.patch"
     "@tradle/react-native-http": "npm:2.0.1"
     "@types/better-sqlite3": "npm:^7.6.13"
     "@types/bnjs4": "npm:@types/bn.js@^4.11.6"

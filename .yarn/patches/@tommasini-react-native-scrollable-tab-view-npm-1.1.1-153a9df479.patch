@@ -1,7 +1,7 @@
-diff --git a/node_modules/@tommasini/react-native-scrollable-tab-view/DefaultTabBar.js b/node_modules/@tommasini/react-native-scrollable-tab-view/DefaultTabBar.js
-index 81a8a70..812c3e6 100644
---- a/node_modules/@tommasini/react-native-scrollable-tab-view/DefaultTabBar.js
-+++ b/node_modules/@tommasini/react-native-scrollable-tab-view/DefaultTabBar.js
+diff --git a/DefaultTabBar.js b/DefaultTabBar.js
+index 81a8a70576a2336fbfce44f429b80acb6bacb2c1..f8916b181efe7ba4ab598d3e6fb114774a3ec164 100644
+--- a/DefaultTabBar.js
++++ b/DefaultTabBar.js
 @@ -23,6 +23,7 @@ const DefaultTabBar = createReactClass({
      tabStyle: DeprecatedPropTypes.ViewPropTypes.style,
      renderTab: PropTypes.func,
@@ -45,10 +45,18 @@ index 81a8a70..812c3e6 100644
            ]}
          />
        </View>
-diff --git a/node_modules/@tommasini/react-native-scrollable-tab-view/index.js b/node_modules/@tommasini/react-native-scrollable-tab-view/index.js
-index dc9d4f4..4965309 100644
---- a/node_modules/@tommasini/react-native-scrollable-tab-view/index.js
-+++ b/node_modules/@tommasini/react-native-scrollable-tab-view/index.js
+@@ -105,7 +108,6 @@ const styles = StyleSheet.create({
+   tabs: {
+     height: 50,
+     flexDirection: 'row',
+-    justifyContent: 'space-around',
+     borderWidth: 1,
+     borderTopWidth: 0,
+     borderLeftWidth: 0,
+diff --git a/index.js b/index.js
+index dc9d4f4e0bb7b5a165e0bcc89133e4bf6cdfff91..496530970bce3754e76362737be4c3491d159f05 100644
+--- a/index.js
++++ b/index.js
 @@ -13,17 +13,14 @@ const {
    InteractionManager,
  } = ReactNative;
