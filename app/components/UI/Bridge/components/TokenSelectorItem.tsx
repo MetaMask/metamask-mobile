@@ -457,15 +457,35 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
                 <TokenBalanceView
                   balance={tokenBalance}
                   isSelected={shouldShowSelectedStyle}
-                  textStyle={styles.rightValue}
-                  {...TOP_ROW_BALANCE_TEXT_STYLE}
+                  textStyle={[
+                    styles.rightValue,
+                    tokenBalanceTextProps?.textStyle,
+                  ]}
+                  textVariant={
+                    tokenBalanceTextProps?.textVariant ??
+                    TOP_ROW_BALANCE_TEXT_STYLE.textVariant
+                  }
+                  textColor={
+                    tokenBalanceTextProps?.textColor ??
+                    TOP_ROW_BALANCE_TEXT_STYLE.textColor
+                  }
                 />
               ) : (
                 <FiatBalanceView
                   balance={fiatBalance}
                   isSelected={shouldShowSelectedStyle}
-                  textStyle={styles.rightValue}
-                  {...TOP_ROW_BALANCE_TEXT_STYLE}
+                  textStyle={[
+                    styles.rightValue,
+                    tokenBalanceTextProps?.textStyle,
+                  ]}
+                  textVariant={
+                    tokenBalanceTextProps?.textVariant ??
+                    TOP_ROW_BALANCE_TEXT_STYLE.textVariant
+                  }
+                  textColor={
+                    tokenBalanceTextProps?.textColor ??
+                    TOP_ROW_BALANCE_TEXT_STYLE.textColor
+                  }
                 />
               )}
             </Box>
@@ -499,15 +519,35 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
                 <FiatBalanceView
                   balance={fiatBalance}
                   isSelected={shouldShowSelectedStyle}
-                  textStyle={styles.rightValue}
-                  {...BOTTOM_ROW_BALANCE_TEXT_STYLE}
+                  textStyle={[
+                    styles.rightValue,
+                    tokenBalanceTextProps?.textStyle,
+                  ]}
+                  textVariant={
+                    tokenBalanceTextProps?.textVariant ??
+                    BOTTOM_ROW_BALANCE_TEXT_STYLE.textVariant
+                  }
+                  textColor={
+                    tokenBalanceTextProps?.textColor ??
+                    BOTTOM_ROW_BALANCE_TEXT_STYLE.textColor
+                  }
                 />
               ) : (
                 <TokenBalanceView
                   balance={tokenBalance}
                   isSelected={shouldShowSelectedStyle}
-                  textStyle={styles.rightValue}
-                  {...BOTTOM_ROW_BALANCE_TEXT_STYLE}
+                  textStyle={[
+                    styles.rightValue,
+                    tokenBalanceTextProps?.textStyle,
+                  ]}
+                  textVariant={
+                    tokenBalanceTextProps?.textVariant ??
+                    BOTTOM_ROW_BALANCE_TEXT_STYLE.textVariant
+                  }
+                  textColor={
+                    tokenBalanceTextProps?.textColor ??
+                    BOTTOM_ROW_BALANCE_TEXT_STYLE.textColor
+                  }
                 />
               )}
             </Box>
