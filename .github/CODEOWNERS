@@ -144,7 +144,7 @@ app/components/UI/Bridge                                 @MetaMask/swaps-enginee
 app/core/Engine/controllers/bridge-controller            @MetaMask/swaps-engineers
 app/core/Engine/controllers/bridge-status-controller     @MetaMask/swaps-engineers
 
-# Notifications Team
+# Engagement Team
 **/*Braze*/ @MetaMask/engagement
 **/*Braze* @MetaMask/engagement
 **/*braze*/ @MetaMask/engagement
@@ -155,6 +155,8 @@ app/components/Views/Settings/NotificationsSettings @MetaMask/engagement
 **/Notification/** @MetaMask/engagement
 **/notifications/** @MetaMask/engagement
 **/notification/** @MetaMask/engagement
+**/Engagement/** @MetaMask/engagement
+**/engagement/** @MetaMask/engagement
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
