@@ -79,7 +79,7 @@ export function TransactionDetails() {
   );
 }
 
-function getTitle(transactionMeta: TransactionMeta) {
+export function getTitle(transactionMeta: TransactionMeta) {
   if (
     hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
   ) {

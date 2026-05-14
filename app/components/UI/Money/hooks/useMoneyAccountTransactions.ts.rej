@@ -1,0 +1,114 @@
+diff a/app/components/UI/Money/hooks/useMoneyAccountTransactions.ts b/app/components/UI/Money/hooks/useMoneyAccountTransactions.ts	(rejected hunks)
+@@ -1,7 +1,11 @@
+ import { useMemo } from 'react';
+ import { useSelector } from 'react-redux';
+ import { toChecksumHexAddress } from '@metamask/controller-utils';
+-import type { TransactionMeta } from '@metamask/transaction-controller';
++import {
++  type TransactionMeta,
++  TransactionStatus,
++  TransactionType,
++} from '@metamask/transaction-controller';
+ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+ import { selectMoneyActivityMockDataEnabledFlag } from '../selectors/featureFlags';
+ import MOCK_MONEY_TRANSACTIONS from '../constants/mockActivityData';
+@@ -9,6 +13,7 @@ import {
+   isMoneyActivityDeposit,
+   isMoneyActivityTransfer,
+ } from '../constants/moneyActivityFilters';
++import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
+ 
+ export interface UseMoneyAccountTransactionsResult {
+   /** Confirmed + submitted (filtered) merged, sorted by time descending */
+@@ -25,12 +30,13 @@ export interface UseMoneyAccountTransactionsResult {
+ /**
+  * Money account activity. When `moneyActivityMockDataEnabled` is on (remote or
+  * `MM_MONEY_ACTIVITY_MOCK_DATA_ENABLED`), returns static mock rows for UI/QA.
+- * Otherwise returns empty lists until a dedicated Money transactions controller
+- * is integrated.
++ * Otherwise reads real transactions from TransactionController, filtered to
++ * those involving the primary Money account address.
+  */
+ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult {
+   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+   const mockDataEnabled = useSelector(selectMoneyActivityMockDataEnabledFlag);
++  const nonReplacedTransactions = useSelector(selectNonReplacedTransactions);
+ 
+   const moneyAddress = useMemo(() => {
+     const raw = primaryMoneyAccount?.address;
+@@ -46,17 +52,67 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
+       moneyAddress,
+     };
+ 
+-    if (!mockDataEnabled) {
+-      return empty;
++    if (mockDataEnabled) {
++      const allTransactions = [...MOCK_MONEY_TRANSACTIONS];
++      return {
++        allTransactions,
++        deposits: allTransactions.filter(isMoneyActivityDeposit),
++        transfers: allTransactions.filter(isMoneyActivityTransfer),
++        submittedTransactions: [],
++        moneyAddress,
++      };
+     }
+ 
+-    const allTransactions = [...MOCK_MONEY_TRANSACTIONS];
++    console.log('[useMoneyAccountTransactions] moneyAddress:', moneyAddress);
++    console.log(
++      '[useMoneyAccountTransactions] all transactions from TransactionController:',
++      nonReplacedTransactions.map((tx) => ({
++        id: tx.id,
++        type: tx.type,
++        status: tx.status,
++        from: tx.txParams?.from,
++        to: tx.txParams?.to,
++        nestedTypes: tx.nestedTransactions?.map((n) => n.type),
++      })),
++    );
++
++    const moneyTransactions = nonReplacedTransactions
++      .filter((tx) => {
++        // Direct moneyAccountDeposit transaction.
++        if (tx.type === TransactionType.moneyAccountDeposit) {
++          return true;
++        }
++        // EIP-7702 batch where moneyAccountDeposit is a nested call.
++        return (
++          tx.nestedTransactions?.some(
++            (nested) => nested.type === TransactionType.moneyAccountDeposit,
++          ) ?? false
++        );
++      })
++      .sort((a, b) => (b?.time ?? 0) - (a?.time ?? 0));
++
++    console.log(
++      '[useMoneyAccountTransactions] filtered money transactions:',
++      moneyTransactions.map((tx) => ({
++        id: tx.id,
++        type: tx.type,
++        status: tx.status,
++        from: tx.txParams?.from,
++        to: tx.txParams?.to,
++        nestedTypes: tx.nestedTransactions?.map((n) => n.type),
++      })),
++    );
++
++    const submittedTransactions = moneyTransactions.filter(
++      (tx) => tx.status === TransactionStatus.submitted,
++    );
++
+     return {
+-      allTransactions,
+-      deposits: allTransactions.filter(isMoneyActivityDeposit),
+-      transfers: allTransactions.filter(isMoneyActivityTransfer),
+-      submittedTransactions: [],
++      allTransactions: moneyTransactions,
++      deposits: moneyTransactions.filter(isMoneyActivityDeposit),
++      transfers: moneyTransactions.filter(isMoneyActivityTransfer),
++      submittedTransactions,
+       moneyAddress,
+     };
+-  }, [mockDataEnabled, moneyAddress]);
++  }, [mockDataEnabled, moneyAddress, nonReplacedTransactions]);
+ }

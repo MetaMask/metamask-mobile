@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { Linking, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
@@ -14,7 +14,15 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import Tag from '../../../../../component-library/components/Tags/Tag';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconName as ComponentLibraryIconName,
+  IconColor as ComponentLibraryIconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
@@ -25,6 +33,15 @@ import {
 } from '../../../Earn/constants/musd';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { useSelector } from 'react-redux';
+import {
+  selectMoneyShowMoneyAccountAddress,
+  selectMoneyAccountVaultConfig,
+} from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { findBlockExplorerUrlForChain } from '../../../../../util/networks';
+import { renderShortAddress } from '../../../../../util/address';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 
@@ -46,6 +63,19 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { getChainIdForBuyFlow } = useMusdConversionFlowData();
   const { goToBuy } = useRampNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
+
+  const showMoneyAccountAddress = useSelector(
+    selectMoneyShowMoneyAccountAddress,
+  );
+  const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  const moneyAccountAddress = primaryMoneyAccount?.address;
+
+  const blockExplorerUrl = vaultConfig?.chainId
+    ? findBlockExplorerUrlForChain(vaultConfig.chainId, networkConfigurations)
+    : undefined;
 
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
@@ -87,6 +117,18 @@ const MoneyAddMoneySheet: React.FC = () => {
   } else {
     moveMusdLabel = strings('money.add_money_sheet.move_musd_no_amount');
   }
+
+  const handleCopyAddress = useCallback(() => {
+    if (moneyAccountAddress) {
+      Clipboard.setString(moneyAccountAddress);
+    }
+  }, [moneyAccountAddress]);
+
+  const handleOpenExplorer = useCallback(() => {
+    if (blockExplorerUrl && moneyAccountAddress) {
+      Linking.openURL(`${blockExplorerUrl}/address/${moneyAccountAddress}`);
+    }
+  }, [blockExplorerUrl, moneyAccountAddress]);
 
   const options: Option[] = [
     {
@@ -163,21 +205,74 @@ const MoneyAddMoneySheet: React.FC = () => {
           <Icon
             name={IconName.Arrow2Down}
             size={IconSize.Lg}
-            color={IconColor.IconMuted}
+            color={
+              showMoneyAccountAddress && moneyAccountAddress
+                ? IconColor.IconDefault
+                : IconColor.IconMuted
+            }
           />
-          <View style={styles.disabledRowContent}>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              {strings('money.add_money_sheet.receive_external')}
-            </Text>
-            <Tag
-              label={strings('money.add_money_sheet.coming_soon')}
-              style={styles.comingSoonTag}
-            />
-          </View>
+
+          {/* This is intended to be for development  
+            Until we have implemented the receive by address flow
+            */}
+
+          {showMoneyAccountAddress && moneyAccountAddress ? (
+            <>
+              <View style={styles.addressRowContent}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings('money.add_money_sheet.receive_external')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  testID={MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ADDRESS}
+                >
+                  {renderShortAddress(moneyAccountAddress)}
+                </Text>
+              </View>
+              <View style={styles.addressActions}>
+                <ButtonIcon
+                  testID={MoneyAddMoneySheetTestIds.COPY_ADDRESS_BUTTON}
+                  iconName={ComponentLibraryIconName.Copy}
+                  iconColor={ComponentLibraryIconColor.Default}
+                  size={ButtonIconSizes.Lg}
+                  onPress={handleCopyAddress}
+                  accessibilityLabel={strings(
+                    'money.add_money_sheet.copy_address',
+                  )}
+                />
+                {blockExplorerUrl ? (
+                  <ButtonIcon
+                    testID={MoneyAddMoneySheetTestIds.EXPLORER_BUTTON}
+                    iconName={ComponentLibraryIconName.Export}
+                    iconColor={ComponentLibraryIconColor.Default}
+                    size={ButtonIconSizes.Lg}
+                    onPress={handleOpenExplorer}
+                    accessibilityLabel={strings(
+                      'money.add_money_sheet.view_on_explorer',
+                    )}
+                  />
+                ) : null}
+              </View>
+            </>
+          ) : (
+            <View style={styles.disabledRowContent}>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+              >
+                {strings('money.add_money_sheet.receive_external')}
+              </Text>
+              <Tag
+                label={strings('money.add_money_sheet.coming_soon')}
+                style={styles.comingSoonTag}
+              />
+            </View>
+          )}
         </View>
       </View>
     </BottomSheet>

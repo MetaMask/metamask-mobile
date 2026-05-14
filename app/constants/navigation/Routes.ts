@@ -442,6 +442,7 @@ const Routes = {
       EARNINGS_INFO_SHEET: 'MoneyEarningsInfoSheet',
       MONEY_BALANCE_INFO_SHEET: 'MoneyBalanceInfoSheet',
       EARN_CRYPTO_INFO_SHEET: 'MoneyEarnCryptoInfoSheet',
+      TRANSACTION_DETAILS_SHEET: 'MoneyTransactionDetailsSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {

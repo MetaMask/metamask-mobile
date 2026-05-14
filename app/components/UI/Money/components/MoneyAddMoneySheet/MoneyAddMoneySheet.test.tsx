@@ -11,6 +11,12 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+import {
+  selectMoneyShowMoneyAccountAddress,
+  selectMoneyAccountVaultConfig,
+} from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
@@ -45,6 +51,28 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountDeposit: jest.fn(),
+}));
+
+// Selectors added by the "show money account address" feature — mock them so
+// the test store doesn't need a fully-hydrated engine.backgroundState.
+jest.mock('../../../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/moneyAccount',
+  () => ({
+    selectMoneyShowMoneyAccountAddress: jest.fn(),
+    selectMoneyAccountVaultConfig: jest.fn(),
+  }),
+);
+
+// Preserve all real networkController exports so downstream selectors that
+// run at module init time (e.g. multichainAccounts) still get valid functions;
+// only override selectNetworkConfigurations to avoid touching engine state.
+jest.mock('../../../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../../../selectors/networkController'),
+  selectNetworkConfigurations: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -93,6 +121,14 @@ describe('MoneyAddMoneySheet', () => {
     (useMoneyAccountDeposit as jest.Mock).mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     });
+
+    // Feature flag off by default → shows "Coming soon" for the receive row.
+    (selectMoneyShowMoneyAccountAddress as jest.Mock).mockReturnValue(false);
+    (selectMoneyAccountVaultConfig as jest.Mock).mockReturnValue(undefined);
+    // No money account address → address UI is hidden.
+    (selectPrimaryMoneyAccount as jest.Mock).mockReturnValue(undefined);
+    // Network configurations not needed when vaultConfig is undefined.
+    (selectNetworkConfigurations as jest.Mock).mockReturnValue({});
   });
 
   it('renders all four options', () => {

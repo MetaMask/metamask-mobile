@@ -6685,7 +6685,9 @@
       "move_musd_no_amount": "Transfer your mUSD",
       "move_musd_description": "From your balance",
       "receive_external": "Receive from external wallet",
-      "coming_soon": "Coming soon"
+      "coming_soon": "Coming soon",
+      "copy_address": "Copy address",
+      "view_on_explorer": "View on explorer"
     },
     "more_sheet": {
       "title": "More",

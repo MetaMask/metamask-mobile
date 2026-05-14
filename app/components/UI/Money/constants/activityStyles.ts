@@ -19,13 +19,24 @@ const OUTGOING_EVM_TYPES: EvmTransactionType[] = [
   EvmTransactionType.simpleSend,
 ];
 
+function hasOutgoingNestedType(tx: TransactionMeta): boolean {
+  return (
+    tx.nestedTransactions?.some(
+      (nested) => nested.type && OUTGOING_EVM_TYPES.includes(nested.type),
+    ) ?? false
+  );
+}
+
 /**
  * +/- prefix for Money rows backed by {@link TransactionMeta} (mUSD pegged 1:1 to USD).
  */
 export function getMoneyAmountPrefixForTransactionMeta(
   tx: TransactionMeta,
 ): string {
-  if (tx.type && OUTGOING_EVM_TYPES.includes(tx.type)) {
+  if (
+    (tx.type && OUTGOING_EVM_TYPES.includes(tx.type)) ||
+    hasOutgoingNestedType(tx)
+  ) {
     return '-';
   }
   return '+';
@@ -49,10 +60,19 @@ export function getMusdDisplayAmountFromTransactionMeta(
 
 export function isIncomingMoneyTransactionMeta(tx: TransactionMeta): boolean {
   const t = tx.type;
-  if (!t) return false;
-  return (
+  if (
     t === EvmTransactionType.incoming ||
     t === EvmTransactionType.moneyAccountDeposit ||
     t === EvmTransactionType.musdConversion
+  ) {
+    return true;
+  }
+  // EIP-7702 batch deposits: moneyAccountDeposit sits in nestedTransactions
+  return (
+    tx.nestedTransactions?.some(
+      (nested) =>
+        nested.type === EvmTransactionType.moneyAccountDeposit ||
+        nested.type === EvmTransactionType.musdConversion,
+    ) ?? false
   );
 }

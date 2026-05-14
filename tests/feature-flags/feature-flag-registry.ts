@@ -3189,6 +3189,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyShowMoneyAccountAddress: {
+    name: 'moneyShowMoneyAccountAddress',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   nonZeroUnusedApprovals: {
     name: 'nonZeroUnusedApprovals',
     type: FeatureFlagType.Remote,

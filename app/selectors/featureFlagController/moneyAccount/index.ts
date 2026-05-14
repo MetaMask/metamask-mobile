@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
+import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 
 interface MoneyAccountFeatureFlag {
   moneyAccountDepositEnabled?: boolean;
@@ -39,6 +40,20 @@ export const DEV_VAULT_CONFIG: MoneyAccountVaultConfig = {
   accountantAddress: '0x7382c5b8B51B8C4f127B3123C1039581BAA5A06B',
   lensAddress: '0xA816ECd922de94c6879AD23B9A884dB257F20947',
 };
+
+/**
+ * Selects whether the money account address display is enabled.
+ * This is a version-gated feature flag that shows the money account address
+ * (with copy and block explorer buttons) in the "Add..." bottom sheet
+ * instead of the "Coming soon" placeholder.
+ */
+export const selectMoneyShowMoneyAccountAddress = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.moneyShowMoneyAccountAddress;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
 
 export const selectMoneyAccountVaultConfig = createSelector(
   selectRemoteFeatureFlags,

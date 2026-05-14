@@ -5,18 +5,36 @@ import {
 
 export function isMoneyActivityDeposit(tx: TransactionMeta): boolean {
   const t = tx.type;
-  return (
+  if (
     t === TransactionType.incoming ||
     t === TransactionType.moneyAccountDeposit ||
     t === TransactionType.musdConversion
+  ) {
+    return true;
+  }
+  // EIP-7702 batch deposits: moneyAccountDeposit sits in nestedTransactions
+  return (
+    tx.nestedTransactions?.some(
+      (nested) =>
+        nested.type === TransactionType.moneyAccountDeposit ||
+        nested.type === TransactionType.musdConversion,
+    ) ?? false
   );
 }
 
 export function isMoneyActivityTransfer(tx: TransactionMeta): boolean {
   const t = tx.type;
-  return (
+  if (
     t === TransactionType.moneyAccountWithdraw ||
     t === TransactionType.simpleSend
+  ) {
+    return true;
+  }
+  // EIP-7702 batch withdrawals: moneyAccountWithdraw sits in nestedTransactions
+  return (
+    tx.nestedTransactions?.some(
+      (nested) => nested.type === TransactionType.moneyAccountWithdraw,
+    ) ?? false
   );
 }
 
