@@ -8598,7 +8598,8 @@
       "title_claim": "Claim Benefit",
       "action": "Claim",
       "empty-list": "You don’t have any benefits right now.",
-      "powered_by": "Powered by"
+      "powered_by": "Powered by",
+      "available_count": "{{count}} available"
     },
     "end_of_season_rewards": {
       "confirm_label_default": "Confirm",
