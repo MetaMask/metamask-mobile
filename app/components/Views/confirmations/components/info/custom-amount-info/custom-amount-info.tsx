@@ -244,7 +244,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             </>
           )}
           {isResultReady && (
-            <Box gap={8}>
+            <Box>
               {supportAccountSelection && <PayAccountSelector />}
               {disablePay !== true && hasTokens && <PayWithRow />}
               {showPaymentDetails && (

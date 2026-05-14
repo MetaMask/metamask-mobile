@@ -1,10 +1,9 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Linking, View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Linking } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { MUSD_CONVERSION_APY } from '../constants/musd';
-import { MUSD_EVENTS_CONSTANTS } from '../constants/events';
 import { strings } from '../../../../../locales/i18n';
 import {
   ButtonIcon,
@@ -12,11 +11,12 @@ import {
   IconColor,
   IconName,
 } from '@metamask/design-system-react-native';
+import useNavbar from '../../../Views/confirmations/hooks/ui/useNavbar';
 import { TooltipModal } from '../../../Views/confirmations/components/UI/Tooltip/Tooltip';
 import AppConstants from '../../../../core/AppConstants';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import useNavbar from '../../../Views/confirmations/hooks/ui/useNavbar';
+import { MUSD_EVENTS_CONSTANTS } from '../constants/events';
 
 const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
   headerRight: {
     marginRight: 16,
   },
-  termsLink: {
+  termsText: {
     textDecorationLine: 'underline',
   },
 });
@@ -43,6 +43,7 @@ const styles = StyleSheet.create({
  */
 export function useMusdConversionNavbar() {
   const [tooltipOpen, setTooltipOpen] = useState(false);
+
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const renderHeaderTitle = useCallback(
@@ -72,7 +73,19 @@ export function useMusdConversionNavbar() {
     [],
   );
 
-  const handleOpenTooltip = useCallback(() => setTooltipOpen(true), []);
+  const handleTermsOfUsePressed = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
+        .addProperties({
+          location: EVENT_LOCATIONS.CUSTOM_AMOUNT_NAVBAR,
+          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+        })
+        .build(),
+    );
+    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
+  }, [createEventBuilder, trackEvent]);
+
+  const onInfoPress = useCallback(() => setTooltipOpen(true), []);
 
   const renderHeaderRight = useCallback(
     () => (
@@ -81,11 +94,11 @@ export function useMusdConversionNavbar() {
           iconName={IconName.Info}
           size={ButtonIconSize.Md}
           iconProps={{ color: IconColor.IconDefault }}
-          onPress={handleOpenTooltip}
+          onPress={onInfoPress}
         />
       </View>
     ),
-    [handleOpenTooltip],
+    [onInfoPress],
   );
 
   const overrides = useMemo(
@@ -105,39 +118,25 @@ export function useMusdConversionNavbar() {
     overrides,
   );
 
-  const handleTermsPress = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
-        .addProperties({
-          location: EVENT_LOCATIONS.CUSTOM_AMOUNT_NAVBAR,
-          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
-        })
-        .build(),
-    );
-    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
-  }, [createEventBuilder, trackEvent]);
-
-  const tooltipContent = (
-    <Text variant={TextVariant.BodyMD}>
-      {strings('earn.musd_conversion.convert_tooltip_description', {
-        percentage: MUSD_CONVERSION_APY,
-      })}{' '}
-      <Text
-        variant={TextVariant.BodyMD}
-        style={styles.termsLink}
-        onPress={handleTermsPress}
-        testID="musd-conversion-navbar-tooltip-terms-link"
-      >
-        {strings('earn.musd_conversion.education.terms_apply')}
-      </Text>
-    </Text>
-  );
-
   const TooltipNode = (
     <TooltipModal
       open={tooltipOpen}
       setOpen={setTooltipOpen}
-      content={tooltipContent}
+      content={
+        <Text variant={TextVariant.BodyMD}>
+          {strings('earn.musd_conversion.convert_tooltip_description', {
+            percentage: MUSD_CONVERSION_APY,
+          })}{' '}
+          <Text
+            variant={TextVariant.BodyMD}
+            style={styles.termsText}
+            onPress={handleTermsOfUsePressed}
+            testID="musd-conversion-navbar-tooltip-terms-link"
+          >
+            {strings('earn.musd_conversion.education.terms_apply')}
+          </Text>
+        </Text>
+      }
       title={strings('earn.musd_conversion.convert_and_get_percentage_bonus', {
         percentage: MUSD_CONVERSION_APY,
       })}

@@ -1,26 +1,20 @@
 import React from 'react';
-import { Linking } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { renderHook } from '@testing-library/react-hooks';
+import { Linking } from 'react-native';
 import { useMusdConversionNavbar } from './useMusdConversionNavbar';
 import useNavbar from '../../../Views/confirmations/hooks/ui/useNavbar';
 import { strings } from '../../../../../locales/i18n';
 import { NavbarOverrides } from '../../../Views/confirmations/components/UI/navbar/navbar';
 import { MUSD_CONVERSION_APY } from '../constants/musd';
-import { MUSD_EVENTS_CONSTANTS } from '../constants/events';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AppConstants from '../../../../core/AppConstants';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MUSD_EVENTS_CONSTANTS } from '../constants/events';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockAddProperties = jest.fn();
 const mockBuild = jest.fn();
-
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => key),
-}));
-
-jest.mock('../../../Views/confirmations/hooks/ui/useNavbar');
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -28,6 +22,12 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
+
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => key),
+}));
+
+jest.mock('../../../Views/confirmations/hooks/ui/useNavbar');
 
 const mockUseNavbar = useNavbar as jest.MockedFunction<typeof useNavbar>;
 const mockStrings = strings as jest.MockedFunction<typeof strings>;
@@ -69,7 +69,6 @@ describe('useMusdConversionNavbar', () => {
   it('returns a TooltipNode element', () => {
     const { result } = renderHook(() => useMusdConversionNavbar());
 
-    expect(result.current.TooltipNode).toBeDefined();
     expect(React.isValidElement(result.current.TooltipNode)).toBe(true);
   });
 
@@ -151,7 +150,7 @@ describe('useMusdConversionNavbar', () => {
     expect(getByTestId('button-icon')).toBeOnTheScreen();
   });
 
-  it('opens the tooltip modal when the info button is pressed', () => {
+  it('opens tooltip modal when info button is pressed', () => {
     let capturedOverrides: NavbarOverrides | undefined;
     mockUseNavbar.mockImplementation((_title, _addBackButton, overrides) => {
       capturedOverrides = overrides;
@@ -177,7 +176,7 @@ describe('useMusdConversionNavbar', () => {
     ).toBeOnTheScreen();
   });
 
-  it('tracks the terms-of-use event and opens the URL when the terms link is pressed', () => {
+  it('opens bonus terms of use and tracks event when "Terms apply" is pressed', () => {
     const openUrlSpy = jest
       .spyOn(Linking, 'openURL')
       .mockResolvedValueOnce(undefined);
