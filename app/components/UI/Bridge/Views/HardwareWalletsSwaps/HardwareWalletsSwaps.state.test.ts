@@ -1,5 +1,6 @@
 import {
   hardwareWalletsSwapsReducer,
+  type HardwareWalletsSwapsEvent,
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsStepKind,
   HardwareWalletsSwapsStepStatus,
@@ -454,10 +455,11 @@ describe('hardwareWalletsSwapsReducer', () => {
       initialHardwareWalletsSwapsState,
       { type: HardwareWalletsSwapsEventType.Start, payload: { totalSteps: 2 } },
     );
+    const unknownEvent = {
+      type: 'UNKNOWN_EVENT',
+    } as unknown as HardwareWalletsSwapsEvent;
 
-    const result = hardwareWalletsSwapsReducer(state, {
-      type: 'UNKNOWN_EVENT' as HardwareWalletsSwapsEventType,
-    });
+    const result = hardwareWalletsSwapsReducer(state, unknownEvent);
 
     expect(result).toBe(state);
   });
