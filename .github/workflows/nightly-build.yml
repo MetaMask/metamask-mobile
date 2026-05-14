@@ -43,7 +43,7 @@ jobs:
       source_branch: main
       environment: rc
       testflight_group: 'MetaMask BETA & Release Candidates'
-      distribute_external: true
+      distribute_external: false
     secrets: inherit
 
   # ── Android exp: ephemeral branch + build ──────────────────────────────
