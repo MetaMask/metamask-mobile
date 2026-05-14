@@ -497,6 +497,26 @@ describe('parseErrorByType', () => {
     });
   });
 
+  describe('when error is a non-Error object with known Ledger shape', () => {
+    it('parses object with disconnect error name', () => {
+      const result = parseErrorByType(
+        { name: 'DisconnectedDevice' },
+        walletType,
+      );
+
+      expect(result.code).toBe(ErrorCode.DeviceDisconnected);
+    });
+
+    it('parses object with TransportStatusError name and statusCode', () => {
+      const result = parseErrorByType(
+        { name: 'TransportStatusError', statusCode: 0x6985 },
+        walletType,
+      );
+
+      expect(result.code).toBe(ErrorCode.UserRejected);
+    });
+  });
+
   describe('wallet type is included in error', () => {
     it('includes Ledger wallet type in metadata', () => {
       const result = parseErrorByType(
