@@ -5969,6 +5969,96 @@ describe('HyperLiquidProvider', () => {
       expect(result.orderId).toBeDefined();
     });
 
+    it('retries builder fee approval on subsequent order after initial failure', async () => {
+      const mockedCache = TradingReadinessCache as jest.Mocked<
+        typeof TradingReadinessCache
+      >;
+
+      // First order: builder fee approval fails
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          maxBuilderFee: jest
+            .fn()
+            .mockResolvedValueOnce(0) // first order: check — not approved
+            .mockResolvedValueOnce(0) // second order (retry): check — not approved
+            .mockResolvedValueOnce(0.001), // second order (retry): verification — now approved
+        }),
+      );
+
+      const mockApproveBuilderFee = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('Network timeout'))
+        .mockResolvedValueOnce({ status: 'ok' });
+
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          approveBuilderFee: mockApproveBuilderFee,
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      // First order — builder fee fails but order proceeds (non-blocking)
+      const result1 = await provider.placeOrder(orderParams);
+      expect(result1.success).toBe(true);
+
+      // Simulate cached failure state — getBuilderFee returns { attempted: true, success: false }
+      mockedCache.getBuilderFee.mockReturnValue({
+        attempted: true,
+        success: false,
+      });
+
+      // Second order — should retry builder fee approval (not skip due to cached failure)
+      const result2 = await provider.placeOrder(orderParams);
+      expect(result2.success).toBe(true);
+
+      // approveBuilderFee called twice: first attempt (failed) + retry (success)
+      expect(mockApproveBuilderFee).toHaveBeenCalledTimes(2);
+    });
+
+    it('skips builder fee retry when previous attempt succeeded', async () => {
+      const mockedCache = TradingReadinessCache as jest.Mocked<
+        typeof TradingReadinessCache
+      >;
+
+      // Simulate successful cache
+      mockedCache.getBuilderFee.mockReturnValue({
+        attempted: true,
+        success: true,
+      });
+
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(createMockInfoClient());
+
+      const mockApproveBuilderFee = jest.fn();
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          approveBuilderFee: mockApproveBuilderFee,
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+      expect(result.success).toBe(true);
+
+      // Should not retry — cache shows success
+      expect(mockApproveBuilderFee).not.toHaveBeenCalled();
+    });
+
     it('leaves builder fee cache empty when wrapped KEYRING_LOCKED is thrown', async () => {
       const wrappedKeyringLockedError = Object.assign(
         new Error('Failed to sign typed data with viem wallet'),

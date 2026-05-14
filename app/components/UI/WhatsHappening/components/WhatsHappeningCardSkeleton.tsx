@@ -29,15 +29,19 @@ const WhatsHappeningCardSkeleton: React.FC = () => {
           <WhatsHappeningSkeletonLineStack
             tw={tw}
             gapClass="gap-1"
-            lineClassNames={['w-full h-4 rounded', 'w-[75%] h-4 rounded']}
+            lineClassNames={[
+              'w-full h-4 rounded',
+              'w-[90%] h-4 rounded',
+              'w-[75%] h-4 rounded',
+            ]}
           />
-          {/* Asset pills + date */}
-          <View style={tw.style('gap-2')}>
-            <View style={tw.style('flex-row gap-1')}>
-              <View style={tw.style('w-[40px] h-5 rounded-full')} />
-              <View style={tw.style('w-[40px] h-5 rounded-full')} />
+          {/* Asset avatar + label (left) and date (right) */}
+          <View style={tw.style('flex-row items-center justify-between')}>
+            <View style={tw.style('flex-row items-center gap-1')}>
+              <View style={tw.style('w-4 h-4 rounded-full')} />
+              <View style={tw.style('w-[50px] h-3 rounded')} />
             </View>
-            <View style={tw.style('w-[60px] h-3 rounded')} />
+            <View style={tw.style('w-[40px] h-3 rounded')} />
           </View>
         </View>
       </WhatsHappeningSkeletonShimmer>

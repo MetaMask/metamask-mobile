@@ -172,9 +172,9 @@ runs:
         sudo chown -R "$(id -u):$(id -g)" "$CACHE_PATH" /opt/android-sdk/.temp
       shell: bash
 
-    # Restore exact system image from cache
+    # Restore exact system image from cache (GitHub only — Namespace uses nscloud-cache-action in callers)
     - name: Restore Android system image from cache
-      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && inputs.runner_provider != 'namespace' }}
       id: android-system-image-cache
       uses: actions/cache/restore@v4
       with:
@@ -226,6 +226,7 @@ runs:
         ${{
           inputs.platform == 'android' &&
           inputs.setup-simulator == 'true' &&
+          inputs.runner_provider != 'namespace' &&
           steps.android-system-image-cache.outputs.cache-hit != 'true' &&
           github.event_name != 'pull_request' &&
           github.event_name != 'pull_request_target' &&
@@ -306,6 +307,7 @@ runs:
         command: ${{ steps.get-corepack-command.outputs.COREPACK_COMMAND }}
 
     - name: Restore Yarn cache
+      if: ${{ inputs.runner_provider != 'namespace' }}
       uses: actions/cache@v4
       with:
         path: |
@@ -353,7 +355,7 @@ runs:
       shell: bash
 
     - name: Restore Bundler cache
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
       uses: actions/cache@v4
       with:
         path: ios/vendor/bundle
@@ -410,7 +412,7 @@ runs:
       shell: bash
 
     - name: Restore CocoaPods specs cache
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
       id: cocoapods-specs-cache
       uses: actions/cache@v4
       with:
