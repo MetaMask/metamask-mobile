@@ -1,5 +1,4 @@
 import React from 'react';
-import { Linking } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import WhatsHappeningSourcesBottomSheet from './WhatsHappeningSourcesBottomSheet';
@@ -12,6 +11,12 @@ const mockCreateEventBuilder = jest.fn((eventName: string) => ({
     build: jest.fn(() => ({ category: eventName, properties })),
   })),
   build: jest.fn(() => ({ category: eventName })),
+}));
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -61,7 +66,6 @@ jest.mock('../../../UI/MarketInsights/utils/marketInsightsFormatting', () => ({
   getFaviconUrl: jest.fn((url: string) => `https://favicon/${url}`),
 }));
 
-const mockOpenURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
 const mockIsSafeUrl = jest.requireMock(
   '../../../UI/MarketInsights/utils/marketInsightsFormatting',
 ).isSafeUrl;
@@ -119,7 +123,7 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
     expect(screen.getByText('cointelegraph.com')).toBeOnTheScreen();
   });
 
-  it('opens the article URL when a row is pressed and URL is safe', () => {
+  it('opens the article URL in the in-app browser when a row is pressed and URL is safe', () => {
     renderWithProvider(
       <WhatsHappeningSourcesBottomSheet
         onClose={jest.fn()}
@@ -130,10 +134,20 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
       />,
     );
     fireEvent.press(screen.getByText('coindesk.com'));
-    expect(mockOpenURL).toHaveBeenCalledWith('https://coindesk.com/fed-pauses');
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'BrowserTabHome',
+      expect.objectContaining({
+        screen: 'BrowserView',
+        params: expect.objectContaining({
+          newTabUrl: 'https://coindesk.com/fed-pauses',
+          fromTrending: true,
+          fromWhatsHappening: true,
+        }),
+      }),
+    );
   });
 
-  it('does not open the URL when isSafeUrl returns false', () => {
+  it('does not open the browser when isSafeUrl returns false', () => {
     mockIsSafeUrl.mockReturnValue(false);
     renderWithProvider(
       <WhatsHappeningSourcesBottomSheet
@@ -145,7 +159,7 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
       />,
     );
     fireEvent.press(screen.getByText('coindesk.com'));
-    expect(mockOpenURL).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('renders the sheet title', () => {
@@ -205,7 +219,7 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
     );
   });
 
-  it('still tracks the source_click interaction even when the URL is unsafe', () => {
+  it('does not track the interaction when the URL is unsafe', () => {
     mockIsSafeUrl.mockReturnValue(false);
     renderWithProvider(
       <WhatsHappeningSourcesBottomSheet
@@ -217,7 +231,7 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
       />,
     );
     fireEvent.press(screen.getByText('coindesk.com'));
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
       MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
     );
   });
