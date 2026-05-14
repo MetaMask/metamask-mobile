@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Linking } from 'react-native';
+import { Linking, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
@@ -279,7 +279,7 @@ const AgenticCliDashboardWebview: React.FC = () => {
   }
 
   return (
-    <SafeAreaView edges={['bottom']} style={tw.style('flex-1 bg-default')}>
+    <View style={tw.style('flex-1 bg-default')}>
       <WebView
         ref={webViewRef}
         source={{
@@ -295,7 +295,7 @@ const AgenticCliDashboardWebview: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         androidLayerType="hardware"
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
