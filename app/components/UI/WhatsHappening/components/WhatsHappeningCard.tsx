@@ -32,6 +32,8 @@ interface WhatsHappeningCardProps {
   cardIndex: number;
   source: WhatsHappeningSourceValue;
   onPress?: (item: WhatsHappeningItem) => void;
+  /** Tailwind height class so the carousel can keep all cards visually aligned. */
+  twHeightClassName?: string;
 }
 
 const MAX_VISIBLE_ASSET_ICONS = 3;
@@ -41,6 +43,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   cardIndex,
   source,
   onPress,
+  twHeightClassName = '',
 }) => {
   const tw = useTailwind();
   const formattedDate = useMemo(
@@ -90,7 +93,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
         onPress={handlePress}
         activeOpacity={0.7}
         style={tw.style(
-          'w-[280px] h-[254px] rounded-2xl bg-background-muted overflow-hidden p-4 justify-between gap-3',
+          `w-[280px] ${twHeightClassName} rounded-2xl bg-background-muted overflow-hidden p-4 justify-between gap-3`,
         )}
       >
         <Box gap={3}>
