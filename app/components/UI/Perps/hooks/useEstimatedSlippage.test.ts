@@ -8,8 +8,24 @@ function makeOrderBook(
 ): OrderBookData {
   return {
     midPrice,
-    asks: asks.map((a) => ({ ...a, numOrders: '1' })),
-    bids: bids.map((b) => ({ ...b, numOrders: '1' })),
+    asks: asks.map((a) => ({
+      ...a,
+      numOrders: '1',
+      total: '0',
+      notional: '0',
+      totalNotional: '0',
+    })),
+    bids: bids.map((b) => ({
+      ...b,
+      numOrders: '1',
+      total: '0',
+      notional: '0',
+      totalNotional: '0',
+    })),
+    spread: '0',
+    spreadPercentage: '0',
+    lastUpdated: Date.now(),
+    maxTotal: '0',
   } as OrderBookData;
 }
 

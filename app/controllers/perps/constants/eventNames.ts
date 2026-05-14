@@ -330,7 +330,6 @@ export const PERPS_EVENT_VALUE = {
     // Slippage interactions
     SLIPPAGE_CONFIG_OPENED: 'slippage_config_opened',
     SLIPPAGE_CONFIG_CHANGED: 'slippage_config_changed',
-    SLIPPAGE_LIMIT_BLOCKED_ORDER: 'slippage_limit_blocked_order',
   },
   ACTION_TYPE: {
     START_TRADING: 'start_trading',

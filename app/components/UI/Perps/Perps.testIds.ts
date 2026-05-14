@@ -566,6 +566,20 @@ export const PerpsOrderViewSelectorsIDs = {
 };
 
 // ========================================
+// PERPS SLIPPAGE CONFIG BOTTOM SHEET SELECTORS
+// ========================================
+
+export const PerpsSlippageConfigSelectorsIDs = {
+  INPUT: 'perps-slippage-config-input',
+  ERROR: 'perps-slippage-config-error',
+  SAVE: 'perps-slippage-config-save',
+} as const;
+
+export const getPerpsSlippageConfigSelector = {
+  preset: (pct: number) => `perps-slippage-config-preset-${pct}`,
+};
+
+// ========================================
 // PERPS LIMIT PRICE BOTTOM SHEET SELECTORS
 // ========================================
 

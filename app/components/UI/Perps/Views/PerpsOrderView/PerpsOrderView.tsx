@@ -94,6 +94,7 @@ import {
   type OrderParams,
   type OrderType,
   type Position,
+  ORDER_SLIPPAGE_CONFIG,
 } from '@metamask/perps-controller';
 import { useEstimatedSlippage } from '../../hooks/useEstimatedSlippage';
 import { formatSlippagePct } from '../../utils/slippageFormat';
@@ -1111,7 +1112,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           priceAtCalculation: effectivePrice, // Price snapshot when size was calculated (for slippage validation)
           maxSlippageBps:
             orderForm.type === 'limit'
-              ? 100 // 1% for limit orders (fixed)
+              ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps // 1% for limit orders (fixed)
               : maxSlippageBps, // User-configured for market orders (already in bps)
           // Only add TP/SL/Limit if they are truthy and/or not empty strings
           ...(orderForm.type === 'limit' && orderForm.limitPrice
@@ -1562,7 +1563,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         PERPS_EVENT_VALUE.INTERACTION_TYPE
                           .SLIPPAGE_CONFIG_OPENED,
                       [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-                      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: maxSlippageBps,
+                      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]:
+                        bpsToPercent(maxSlippageBps),
                     });
                   }}
                 >
@@ -2097,7 +2099,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
               PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_CHANGED,
             [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-            [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: valueBps,
+            [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: bpsToPercent(valueBps),
             [PERPS_EVENT_PROPERTY.SETTING_TYPE]:
               PERPS_EVENT_VALUE.SETTING_TYPE.SLIPPAGE,
           });

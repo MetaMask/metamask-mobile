@@ -24,6 +24,10 @@ import {
   percentToBps,
 } from '../../constants/slippageConfig';
 import { createStyles } from './PerpsSlippageBottomSheet.styles';
+import {
+  PerpsSlippageConfigSelectorsIDs,
+  getPerpsSlippageConfigSelector,
+} from '../../Perps.testIds';
 
 interface PerpsSlippageBottomSheetProps {
   isVisible: boolean;
@@ -113,7 +117,7 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
           ]}
         >
           <TextInput
-            testID="perps-slippage-config-input"
+            testID={PerpsSlippageConfigSelectorsIDs.INPUT}
             style={styles.input}
             value={draftValue}
             onChangeText={setDraftValue}
@@ -134,7 +138,7 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
             return (
               <TouchableOpacity
                 key={bps}
-                testID={`perps-slippage-config-preset-${pct}`}
+                testID={getPerpsSlippageConfigSelector.preset(pct)}
                 style={[
                   styles.quickSelectButton,
                   isSelected && styles.quickSelectButtonActive,
@@ -154,7 +158,7 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
 
         {!draftIsValid && !draftIsEmpty && (
           <Text
-            testID="perps-slippage-config-error"
+            testID={PerpsSlippageConfigSelectorsIDs.ERROR}
             variant={TextVariant.BodySM}
             color={TextColor.Error}
             style={styles.errorText}
@@ -175,7 +179,7 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
             size: ButtonSize.Lg,
             onPress: handleSave,
             isDisabled: !draftIsValid,
-            testID: 'perps-slippage-config-save',
+            testID: PerpsSlippageConfigSelectorsIDs.SAVE,
           },
         ]}
       />
