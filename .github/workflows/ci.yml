@@ -574,7 +574,17 @@ jobs:
           cp tests/results/unit-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
-      - uses: actions/upload-artifact@v4
+      - name: Upload coverage unit shard (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: coverage-unit-${{ matrix.shard }}
+          path: ./tests/coverage/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload coverage unit shard (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-unit-${{ matrix.shard }}
           path: ./tests/coverage/
@@ -630,7 +640,15 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
-      - uses: actions/download-artifact@v4
+      - name: Download coverage shards (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          pattern: coverage-*
+          path: tests/coverage/
+      - name: Download coverage shards (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/download-artifact@v4
         with:
           pattern: coverage-*
           path: tests/coverage/
@@ -668,19 +686,49 @@ jobs:
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
       - run: yarn test:validate-coverage
-      - uses: actions/upload-artifact@v4
+      - name: Upload lcov.info (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: lcov.info
           path: ./tests/merged-coverage/lcov.info
           if-no-files-found: error
           retention-days: 7
-      - uses: actions/upload-artifact@v4
+      - name: Upload lcov.info (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: lcov.info
+          path: ./tests/merged-coverage/lcov.info
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload cv-test-stats (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: cv-test-stats
           path: ./cv-test-stats.json
           if-no-files-found: error
           retention-days: 7
-      - uses: actions/upload-artifact@v4
+      - name: Upload cv-test-stats (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cv-test-stats
+          path: ./cv-test-stats.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload unit-test-stats (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: unit-test-stats
+          path: ./unit-test-stats.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload unit-test-stats (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
         with:
           name: unit-test-stats
           path: ./unit-test-stats.json
@@ -688,13 +736,33 @@ jobs:
           retention-days: 7
       - name: Generate CV test coverage report
         run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html --reporter json-summary
-      - uses: actions/upload-artifact@v4
+      - name: Upload cv-test-coverage-html (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: cv-test-coverage-html
           path: ./tests/coverage-cv-lcov/
           if-no-files-found: error
           retention-days: 7
-      - uses: actions/upload-artifact@v4
+      - name: Upload cv-test-coverage-html (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cv-test-coverage-html
+          path: ./tests/coverage-cv-lcov/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload cv-test-coverage-summary (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: cv-test-coverage-summary
+          path: ./tests/coverage-cv-lcov/coverage-summary.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload cv-test-coverage-summary (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
         with:
           name: cv-test-coverage-summary
           path: ./tests/coverage-cv-lcov/coverage-summary.json
@@ -702,7 +770,17 @@ jobs:
           retention-days: 7
       - name: Generate unit test coverage summary
         run: yarn nyc report --temp-dir ./tests/coverage-unit-merged --report-dir ./tests/coverage-unit-lcov --reporter json-summary
-      - uses: actions/upload-artifact@v4
+      - name: Upload unit-test-coverage-summary (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: unit-test-coverage-summary
+          path: ./tests/coverage-unit-lcov/coverage-summary.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload unit-test-coverage-summary (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
         with:
           name: unit-test-coverage-summary
           path: ./tests/coverage-unit-lcov/coverage-summary.json
@@ -777,7 +855,17 @@ jobs:
           cp tests/results/cv-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
-      - uses: actions/upload-artifact@v4
+      - name: Upload coverage CV shard (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: coverage-cv-${{ matrix.shard }}
+          path: ./tests/coverage/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload coverage CV shard (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-cv-${{ matrix.shard }}
           path: ./tests/coverage/
@@ -976,7 +1064,15 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-      - uses: actions/download-artifact@v4
+      - name: Download lcov.info (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: lcov.info
+          path: coverage/
+      - name: Download lcov.info (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/download-artifact@v4
         with:
           name: lcov.info
           path: coverage/
