@@ -549,7 +549,10 @@ export async function withFixtures(
   let mockServerPort;
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
-  const accountActivityWsServer = new LocalWebSocketServer('accountActivity');
+  const accountActivityWsServer = new LocalWebSocketServer(
+    'accountActivity',
+    ResourceType.ACCOUNT_ACTIVITY_WS,
+  );
   let testError: Error | null = null;
 
   try {
