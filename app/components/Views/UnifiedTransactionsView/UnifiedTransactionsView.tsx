@@ -28,7 +28,7 @@ import {
   selectEVMEnabledNetworks,
   selectNonEVMEnabledNetworks,
 } from '../../../selectors/networkEnablementController';
-import { selectLocalTransactions } from '../../../selectors/transactionController';
+import { selectLocalTransactions } from '../../../selectors/activity';
 import { baseStyles } from '../../../styles/common';
 import { areAddressesEqual, isHardwareAccount } from '../../../util/address';
 import { getBlockExplorerAddressUrl } from '../../../util/networks';
