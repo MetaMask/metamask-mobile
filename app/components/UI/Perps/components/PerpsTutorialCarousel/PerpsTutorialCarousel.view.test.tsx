@@ -64,6 +64,20 @@ const setupFirstTimeTutorial = () => {
   return { navigationDispatch };
 };
 
+const expectRoutedToPerpsHome = (navigationDispatch: jest.Mock) => {
+  expect(navigationDispatch).toHaveBeenCalledWith(
+    expect.objectContaining({
+      type: 'REPLACE',
+      payload: expect.objectContaining({
+        name: Routes.PERPS.ROOT,
+        params: expect.objectContaining({
+          screen: Routes.PERPS.PERPS_HOME,
+        }),
+      }),
+    }),
+  );
+};
+
 describe('PerpsTutorialCarousel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -93,12 +107,10 @@ describe('PerpsTutorialCarousel', () => {
     fireEvent.press(screen.getByTestId(PerpsTutorialSelectorsIDs.SKIP_BUTTON));
 
     expect(markTutorialCompleted).toHaveBeenCalledTimes(1);
-    expect(navigationDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'REPLACE' }),
-    );
+    expectRoutedToPerpsHome(navigationDispatch);
   });
 
-  it('lets a first-time no-funds trader complete the tutorial', async () => {
+  it('routes a first-time no-funds trader to Perps home after completing the tutorial', async () => {
     const markTutorialCompleted = Engine.context.PerpsController
       .markTutorialCompleted as jest.Mock;
 
@@ -145,9 +157,7 @@ describe('PerpsTutorialCarousel', () => {
 
     await waitFor(() => {
       expect(markTutorialCompleted).toHaveBeenCalledTimes(1);
-      expect(navigationDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'REPLACE' }),
-      );
+      expectRoutedToPerpsHome(navigationDispatch);
     });
   });
 });
