@@ -25,6 +25,21 @@ import {
   Text,
 } from '@metamask/design-system-react-native';
 
+/** Local UI only — `yarn start` dev builds. Remove or keep behind `__DEV__` before shipping. */
+const MOCK_STAKE_CONFIRMATION_PARAMS = {
+  amountWei: '100000000000000000',
+  amountFiat: '123.45',
+  annualRewardsETH: '0.01 ETH',
+  annualRewardsFiat: '$12.34',
+  annualRewardRate: '3.2%',
+  chainId: '1',
+};
+
+const MOCK_UNSTAKE_CONFIRMATION_PARAMS = {
+  amountWei: '500000000000000000',
+  amountFiat: '1234.56',
+};
+
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
   hasStakedPositions: boolean;
@@ -103,33 +118,76 @@ const StakingButtons = ({
     );
   };
 
+  const onMockStakeConfirmationPress = () => {
+    navigate('StakeScreens', {
+      screen: Routes.STAKING.STAKE_CONFIRMATION,
+      params: MOCK_STAKE_CONFIRMATION_PARAMS,
+    });
+  };
+
+  const onMockUnstakeConfirmationPress = () => {
+    navigate('StakeScreens', {
+      screen: Routes.STAKING.UNSTAKE_CONFIRMATION,
+      params: MOCK_UNSTAKE_CONFIRMATION_PARAMS,
+    });
+  };
+
   return (
-    <View style={[styles.balanceButtonsContainer, style]}>
-      {hasEthToUnstake && (
-        <Button
-          testID={'unstake-button'}
-          style={styles.balanceActionButton}
-          variant={ButtonVariant.Secondary}
-          onPress={onUnstakePress}
-          size={ButtonSize.Md}
+    <View style={style}>
+      <View style={styles.balanceButtonsContainer}>
+        {!hasEthToUnstake && (
+          <Button
+            testID={'unstake-button'}
+            style={styles.balanceActionButton}
+            variant={ButtonVariant.Secondary}
+            onPress={onUnstakePress}
+            size={ButtonSize.Md}
+          >
+            <Text>{strings('stake.unstake')}</Text>
+          </Button>
+        )}
+        {isPooledStakingEnabled && isEligible && (
+          <Button
+            testID={'stake-more-button'}
+            style={styles.balanceActionButton}
+            variant={ButtonVariant.Secondary}
+            onPress={onStakePress}
+            size={ButtonSize.Md}
+          >
+            <Text>
+              {hasStakedPositions
+                ? strings('stake.stake_more')
+                : strings('stake.stake')}
+            </Text>
+          </Button>
+        )}
+      </View>
+      {__DEV__ && (
+        <View
+          style={[
+            styles.balanceButtonsContainer,
+            { marginTop: 12, flexWrap: 'wrap' },
+          ]}
         >
-          <Text>{strings('stake.unstake')}</Text>
-        </Button>
-      )}
-      {isPooledStakingEnabled && isEligible && (
-        <Button
-          testID={'stake-more-button'}
-          style={styles.balanceActionButton}
-          variant={ButtonVariant.Secondary}
-          onPress={onStakePress}
-          size={ButtonSize.Md}
-        >
-          <Text>
-            {hasStakedPositions
-              ? strings('stake.stake_more')
-              : strings('stake.stake')}
-          </Text>
-        </Button>
+          <Button
+            testID={'mock-stake-confirmation-button'}
+            style={styles.balanceActionButton}
+            variant={ButtonVariant.Secondary}
+            onPress={onMockStakeConfirmationPress}
+            size={ButtonSize.Md}
+          >
+            <Text>Mock stake confirm</Text>
+          </Button>
+          <Button
+            testID={'mock-unstake-confirmation-button'}
+            style={styles.balanceActionButton}
+            variant={ButtonVariant.Secondary}
+            onPress={onMockUnstakeConfirmationPress}
+            size={ButtonSize.Md}
+          >
+            <Text>Mock unstake confirm</Text>
+          </Button>
+        </View>
       )}
     </View>
   );

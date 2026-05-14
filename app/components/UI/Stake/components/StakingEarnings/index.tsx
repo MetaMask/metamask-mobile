@@ -71,7 +71,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
     });
   };
 
-  if (!isStakingSupportedChain || !hasEarnPooledStakes) return <></>;
+  // if (!isStakingSupportedChain || !hasEarnPooledStakes) return <></>;
 
   return (
     <View style={styles.stakingEarningsContainer}>
