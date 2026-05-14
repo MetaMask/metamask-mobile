@@ -1,149 +1,216 @@
-import React from 'react';
-import { Image, StyleSheet } from 'react-native';
-import {
-  Box,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import moneyAccountCoins from '../../../../../images/money-account-coins.png';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import { Box } from '@metamask/design-system-react-native';
+import moneyOnboardingStepperStep1 from '../../../../../images/money-onboarding-stepper-step-1.png';
+import moneyOnboardingStepperStep2 from '../../../../../images/money-onboarding-stepper-step-2.png';
 import { strings } from '../../../../../../locales/i18n';
-import MoneyProgressBar from '../MoneyProgressBar';
-import { MoneyOnboardingCardTestIds } from './MoneyOnboardingCard.testIds';
-import { useStyles } from '../../../../../component-library/hooks';
-import stylesheet from './MoneyOnboardingCard.styles';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
+import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
+import { BigNumber } from 'bignumber.js';
+import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { useSelector } from 'react-redux';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
+import { selectIsCardholder } from '../../../../../selectors/cardController';
+import useMoneyAccountCardLinkage from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import { useMoneyOnboardingStep } from '../../hooks/useMoneyOnboardingStep';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import StepperCard, {
+  type StepperCardStep,
+} from '../../../../../component-library/components/StepperCard';
 
-const NOOP = () => undefined;
+const MoneyOnboardingCard = () => {
+  const navigation = useNavigation();
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const { currentStep, incrementStep } = useMoneyOnboardingStep();
 
-interface MoneyOnboardingCardProps {
-  /**
-   * Handler fired when the CTA button is pressed.
-   */
-  onCtaPress?: () => void;
-  /**
-   * @deprecated Use onCtaPress instead.
-   * Handler fired when the "Add" action is pressed. Opens the Add money sheet (MUSD-487).
-   */
-  onAddPress?: () => void;
-  /**
-   * 1-based index of the currently completed step. Defaults to 1.
-   */
-  currentStep?: number;
-  /**
-   * Total number of onboarding steps. Defaults to 2.
-   */
-  totalSteps?: number;
-  /**
-   * Controls step 2 content: 'get-card' (default) shows card acquisition,
-   * 'link-card' shows card linking messaging.
-   */
-  variant?: 'get-card' | 'link-card';
-}
+  const { tokenTotal, isAggregatedBalanceLoading, apyPercent } =
+    useMoneyAccountBalance();
 
-const STEP_CONTENT = {
-  1: {
-    title: 'money.onboarding.title',
-    description: 'money.onboarding.description',
-    cta: 'money.onboarding.add',
-  },
-  2: {
-    title: 'money.onboarding.step2_title',
-    description: 'money.onboarding.step2_description',
-    cta: 'money.onboarding.step2_cta',
-  },
-} as const;
+  // Auto-skip step 1 ("Fund your account") once the Money account has a
+  // non-zero balance. We wait for the balance to finish loading to avoid a
+  // false skip when the balance is genuinely zero.
+  useEffect(() => {
+    if (
+      !isAggregatedBalanceLoading &&
+      tokenTotal?.isGreaterThan(0) &&
+      currentStep === 0
+    ) {
+      incrementStep();
+    }
+  }, [isAggregatedBalanceLoading, tokenTotal, currentStep, incrementStep]);
 
-const STEP_2_LINK_CARD = {
-  title: 'money.onboarding.link_card_title',
-  description: 'money.onboarding.link_card_description',
-  cta: 'money.onboarding.link_card_cta',
-} as const;
+  const { tokens } = useMusdConversionTokens();
 
-const MoneyOnboardingCard = ({
-  onCtaPress,
-  onAddPress,
-  currentStep = 1,
-  totalSteps = 2,
-  variant = 'get-card',
-}: MoneyOnboardingCardProps) => {
-  const { styles } = useStyles(stylesheet, {});
+  const isCardholder = useSelector(selectIsCardholder);
 
-  const isLinkCard = variant === 'link-card' && currentStep === 2;
-  const content = isLinkCard
-    ? STEP_2_LINK_CARD
-    : (STEP_CONTENT[currentStep as keyof typeof STEP_CONTENT] ??
-      STEP_CONTENT[1]);
-  const handleCtaPress = onCtaPress ?? onAddPress ?? NOOP;
+  // Note: moneyAccountCardToken is null if the card is not linked.
+  const { moneyAccountCardToken, canLink, linkInBackground } =
+    useMoneyAccountCardLinkage();
+
+  const conversionTokensFiatTotal = tokens.reduce(
+    (acc, token) => acc.plus(new BigNumber(token.fiat?.balance ?? 0)),
+    new BigNumber(0),
+  );
+
+  const conversionTokensFiatTotalFormatted = moneyFormatFiat(
+    conversionTokensFiatTotal,
+    currentCurrency,
+  );
+
+  const { tokenBalanceAggregated: musdTokenBalanceAcrossChains } =
+    useMusdBalance();
+
+  const handleAddPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+    });
+  }, [navigation]);
+
+  const handleApyInfoPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
+      params: { apy: apyPercent },
+    });
+  }, [navigation, apyPercent]);
+
+  const getStep1Content = useCallback((): StepperCardStep => {
+    const aggregatedMusdBalanceBN = new BigNumber(musdTokenBalanceAcrossChains);
+
+    // Case 1: Has crypto but no mUSD
+    if (
+      !conversionTokensFiatTotal.isZero() &&
+      aggregatedMusdBalanceBN.isZero()
+    ) {
+      return {
+        title: strings('money.onboarding.step_1.title'),
+        description: strings(
+          'money.onboarding.step_1.description_has_crypto_no_musd',
+          {
+            cryptoAmountFiatFormatted: conversionTokensFiatTotalFormatted,
+          },
+        ),
+        onDescriptionTooltipPress: handleApyInfoPress,
+        primaryCta: {
+          text: strings('money.onboarding.step_1.cta'),
+          onPress: handleAddPress,
+        },
+        image: moneyOnboardingStepperStep1,
+      };
+    }
+
+    // Case 2: Has mUSD
+    if (!aggregatedMusdBalanceBN.isZero()) {
+      return {
+        title: strings('money.onboarding.step_1.title'),
+        description: strings('money.onboarding.step_1.description_has_musd', {
+          musdTokenAmountFormatted: new BigNumber(
+            musdTokenBalanceAcrossChains,
+          ).toFixed(2),
+        }),
+        onDescriptionTooltipPress: handleApyInfoPress,
+        primaryCta: {
+          text: strings('money.onboarding.step_1.cta'),
+          onPress: handleAddPress,
+        },
+        image: moneyOnboardingStepperStep1,
+      };
+    }
+
+    // Default case: No crypto or mUSD balance
+    return {
+      title: strings('money.onboarding.step_1.title'),
+      description: strings(
+        'money.onboarding.step_1.description_no_crypto_no_musd',
+      ),
+      primaryCta: {
+        text: strings('money.onboarding.step_1.cta'),
+        onPress: handleAddPress,
+      },
+      image: moneyOnboardingStepperStep1,
+    };
+  }, [
+    conversionTokensFiatTotal,
+    conversionTokensFiatTotalFormatted,
+    handleAddPress,
+    handleApyInfoPress,
+    musdTokenBalanceAcrossChains,
+  ]);
+
+  const handleLinkCardPress = useCallback(() => {
+    if (canLink) {
+      linkInBackground();
+    }
+  }, [canLink, linkInBackground]);
+
+  const handleSkipPress = useCallback(() => {
+    incrementStep();
+  }, [incrementStep]);
+
+  const handleGetCardPress = useCallback(() => {
+    navigation.navigate(Routes.CARD.ROOT);
+  }, [navigation]);
+
+  const getStep2Content = useCallback((): StepperCardStep => {
+    // Case 1: Has card but not linked
+    if (isCardholder && !moneyAccountCardToken) {
+      return {
+        title: strings('money.onboarding.step_2.unlinked_card_account.title'),
+        description: strings(
+          'money.onboarding.step_2.unlinked_card_account.description',
+        ),
+        primaryCta: {
+          text: strings(
+            'money.onboarding.step_2.unlinked_card_account.cta_primary',
+          ),
+          onPress: handleLinkCardPress,
+        },
+        secondaryCta: {
+          text: strings(
+            'money.onboarding.step_2.unlinked_card_account.cta_secondary',
+          ),
+          onPress: handleAddPress,
+        },
+        image: moneyOnboardingStepperStep2,
+      };
+    }
+    // Default case: No card account
+    return {
+      title: strings('money.onboarding.step_2.no_card_account.title'),
+      description: strings(
+        'money.onboarding.step_2.no_card_account.description',
+      ),
+      primaryCta: {
+        text: strings('money.onboarding.step_2.no_card_account.cta_primary'),
+        onPress: handleGetCardPress,
+      },
+      secondaryCta: {
+        text: strings('money.onboarding.step_2.no_card_account.cta_secondary'),
+        onPress: handleSkipPress,
+      },
+      image: moneyOnboardingStepperStep2,
+    };
+  }, [
+    handleAddPress,
+    handleGetCardPress,
+    handleLinkCardPress,
+    handleSkipPress,
+    isCardholder,
+    moneyAccountCardToken,
+  ]);
+
+  const steps = useMemo(
+    () => [getStep1Content(), getStep2Content()],
+    [getStep1Content, getStep2Content],
+  );
 
   return (
-    <Box
-      twClassName="mx-4 my-3 rounded-2xl bg-muted overflow-hidden"
-      testID={MoneyOnboardingCardTestIds.CONTAINER}
-    >
-      <Box twClassName="p-4 gap-2">
-        <Text
-          variant={TextVariant.HeadingSm}
-          fontWeight={FontWeight.Bold}
-          testID={MoneyOnboardingCardTestIds.STEP_LABEL}
-        >
-          {strings('money.onboarding.step_progress', {
-            current: currentStep,
-            total: totalSteps,
-          })}
-        </Text>
-        <MoneyProgressBar
-          current={currentStep}
-          total={totalSteps}
-          testID={MoneyOnboardingCardTestIds.PROGRESS_BAR}
-        />
-      </Box>
-
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="h-[200px]"
-        testID={MoneyOnboardingCardTestIds.COIN_ILLUSTRATION}
-      >
-        <Image
-          source={moneyAccountCoins}
-          style={styles.coinIllustration}
-          resizeMode="cover"
-        />
-      </Box>
-
-      <Box twClassName="p-4 gap-4">
-        <Box twClassName="gap-1">
-          <Text
-            variant={TextVariant.HeadingLg}
-            fontWeight={FontWeight.Bold}
-            testID={MoneyOnboardingCardTestIds.TITLE}
-          >
-            {strings(content.title)}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            testID={MoneyOnboardingCardTestIds.DESCRIPTION}
-          >
-            {strings(content.description)}
-          </Text>
-        </Box>
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleCtaPress}
-          testID={MoneyOnboardingCardTestIds.CTA_BUTTON}
-        >
-          {strings(content.cta)}
-        </Button>
-      </Box>
+    <Box twClassName="pb-4 mx-4 my-3">
+      <StepperCard
+        steps={steps}
+        currentStep={currentStep}
+        testID="money-onboarding-card"
+      />
     </Box>
   );
 };
