@@ -40,7 +40,10 @@ jobs:
     needs:
       - get_requirements
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -133,7 +136,10 @@ jobs:
     needs:
       - get_requirements
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
       - name: Configure Namespace cache
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
@@ -178,7 +184,10 @@ jobs:
     needs:
       - get_requirements
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
       - name: Configure Namespace cache
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
@@ -225,7 +234,12 @@ jobs:
           - test:depcheck
           - test:tgz-check
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        with:
+          fetch-depth: 2
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
         with:
           fetch-depth: 2
       - name: Configure Namespace cache
@@ -271,7 +285,10 @@ jobs:
       contents: read
       statuses: write
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
       - name: Configure Namespace cache
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
@@ -494,7 +511,10 @@ jobs:
     needs: [js-bundle-size-check]
     if: ${{ github.ref == 'refs/heads/main' }}
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
 
       - name: Download iOS bundle (Namespace)
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -540,7 +560,10 @@ jobs:
     needs:
       - get_requirements
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
       - name: Download actionlint
         id: download-actionlint
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
@@ -559,7 +582,10 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
       - name: Configure Namespace cache
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
@@ -630,7 +656,10 @@ jobs:
     needs: [unit-tests, component-view-tests]
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
       - name: Configure Namespace cache
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
@@ -829,7 +858,10 @@ jobs:
       matrix:
         shard: [1, 2]
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
       - name: Configure Namespace cache
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
@@ -910,8 +942,17 @@ jobs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        with:
+          sparse-checkout: |
+            .github/actions/smart-e2e-selection
+          sparse-checkout-cone-mode: false
+          fetch-depth: 1
+
       - name: Checkout for action definition
         uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
         with:
           sparse-checkout: |
             .github/actions/smart-e2e-selection
@@ -1047,7 +1088,10 @@ jobs:
     permissions:
       pull-requests: write
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
 
       - name: Download fixture validation results (Namespace)
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1080,7 +1124,12 @@ jobs:
     needs: merge-unit-and-component-view-tests
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        with:
+          fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
         with:
           fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
       - name: Configure Namespace cache
@@ -1142,8 +1191,11 @@ jobs:
     needs: sonar-cloud
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - name: Checkout code
         uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
       - name: SonarCloud Quality Gate Status
         id: sonar-status
         env:
@@ -1214,7 +1266,15 @@ jobs:
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/actions/ci-status-gate
+
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
         with:
           fetch-depth: 1
           sparse-checkout: |

@@ -234,11 +234,72 @@ describe('MusdCalculatorTab', () => {
     });
   });
 
-  it('caps typed amounts at the slider maximum', async () => {
+  it('allows typed amounts above the slider maximum', async () => {
     const { getByTestId, getByText } = render(<MusdCalculatorTab />);
     const amountInput = getByTestId('musd-slider-amount-display');
 
     fireEvent.changeText(amountInput, '12000');
+
+    await waitFor(() => {
+      expect(amountInput).toHaveProp('value', '12000');
+      expect(getByText(/\$360/)).toBeOnTheScreen();
+    });
+  });
+
+  it('compacts yearly earnings when the input amount is at the compact threshold', async () => {
+    const { getByTestId, getByText } = render(<MusdCalculatorTab />);
+    const amountInput = getByTestId('musd-slider-amount-display');
+
+    fireEvent.changeText(amountInput, '2552222');
+
+    await waitFor(() => {
+      expect(amountInput).toHaveProp('value', '2552222');
+      expect(getByText(/\$77K/)).toBeOnTheScreen();
+    });
+  });
+
+  it('caps typed amounts at the input maximum', async () => {
+    const { getByTestId, getByText } = render(<MusdCalculatorTab />);
+    const amountInput = getByTestId('musd-slider-amount-display');
+
+    fireEvent.changeText(amountInput, '12000000');
+
+    await waitFor(() => {
+      expect(amountInput).toHaveProp('value', '10000000');
+      expect(getByText(/\$300K/)).toBeOnTheScreen();
+    });
+  });
+
+  it('formats compact yearly earnings without decimals', async () => {
+    const { getByTestId, getByText } = render(<MusdCalculatorTab />);
+    const amountInput = getByTestId('musd-slider-amount-display');
+
+    fireEvent.changeText(amountInput, '4115200');
+
+    await waitFor(() => {
+      expect(amountInput).toHaveProp('value', '4115200');
+      expect(getByText(/\$123K/)).toBeOnTheScreen();
+    });
+  });
+
+  it('returns typed amounts above the slider maximum to the slider scale after touching the slider', async () => {
+    const { getByTestId, getByText } = render(<MusdCalculatorTab />);
+    const amountInput = getByTestId('musd-slider-amount-display');
+    const track = getByTestId('musd-slider-track');
+
+    fireEvent(track, 'layout', {
+      nativeEvent: { layout: { width: 300, height: 32, x: 0, y: 0 } },
+    });
+    fireEvent.changeText(amountInput, '12000');
+
+    await waitFor(() => {
+      expect(amountInput).toHaveProp('value', '12000');
+      expect(getByText(/\$360/)).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      mockTapGestureHandlers.onEnd?.({ x: 300 });
+    });
 
     await waitFor(() => {
       expect(amountInput).toHaveProp('value', '10000');

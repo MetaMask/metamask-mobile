@@ -13,7 +13,13 @@ import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
+import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { useConfirmActions } from '../useConfirmActions';
 
+jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: jest.fn(),
+}));
+jest.mock('../useConfirmActions');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../gas/useIsGaslessSupported');
 
@@ -53,6 +59,8 @@ describe('useGasSponsorshipWarningAlert', () => {
     useTransactionMetadataRequest,
   );
   const mockUseIsGaslessSupported = jest.mocked(useIsGaslessSupported);
+  const mockUseRampNavigation = jest.mocked(useRampNavigation);
+  const mockUseConfirmActions = jest.mocked(useConfirmActions);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -60,6 +68,16 @@ describe('useGasSponsorshipWarningAlert', () => {
       isSupported: true,
       isSmartTransaction: false,
       pending: false,
+    });
+    mockUseConfirmActions.mockReturnValue({
+      onReject: jest.fn(),
+      onConfirm: jest.fn(),
+    });
+    mockUseRampNavigation.mockReturnValue({
+      goToBuy: jest.fn(),
+      goToAggregator: jest.fn(),
+      goToSell: jest.fn(),
+      goToDeposit: jest.fn(),
     });
   });
 
@@ -80,11 +98,11 @@ describe('useGasSponsorshipWarningAlert', () => {
 
       expect(result.current).toHaveLength(1);
       expect(result.current[0]).toMatchObject({
-        isBlocking: false,
+        isBlocking: true,
         key: AlertKeys.GasSponsorshipReserveBalance,
         field: RowAlertKey.EstimatedFee,
-        severity: Severity.Warning,
-        title: 'Gas sponsorship unavailable',
+        severity: Severity.Danger,
+        title: 'Reserve balance is required',
       });
     });
 
