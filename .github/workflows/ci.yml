@@ -466,7 +466,15 @@ jobs:
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
             -d "$BODY"
 
-      - name: Upload iOS bundle
+      - name: Upload iOS bundle (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: ios-bundle
+          path: ios/main.jsbundle
+          retention-days: 7
+      - name: Upload iOS bundle (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ios-bundle
@@ -481,7 +489,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Download iOS bundle
+      - name: Download iOS bundle (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: ios-bundle
+          path: ios
+      - name: Download iOS bundle (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/download-artifact@v4
         with:
           name: ios-bundle
@@ -1026,7 +1041,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Download fixture validation results
+      - name: Download fixture validation results (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        continue-on-error: true
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: test-e2e-main-validate-e2e-fixtures-junit-results
+          path: fixture-results/
+      - name: Download fixture validation results (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
