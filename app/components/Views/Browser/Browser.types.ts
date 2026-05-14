@@ -10,6 +10,7 @@ export interface BrowserParams {
   fromPerps?: boolean;
   fromBenefit?: boolean;
   fromCard?: boolean;
+  fromWhatsHappening?: boolean;
   linkType?: string;
   url?: string;
 }
