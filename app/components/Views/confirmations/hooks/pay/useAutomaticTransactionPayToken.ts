@@ -177,7 +177,12 @@ export function useAutomaticTransactionPayToken({
   const prevAccountKeyRef = useRef(`${from ?? ''}:${accountOverride ?? ''}`);
   useEffect(() => {
     const accountKey = `${from ?? ''}:${accountOverride ?? ''}`;
-    if (disable || !from || prevAccountKeyRef.current === accountKey) {
+    if (
+      disable ||
+      !from ||
+      prevAccountKeyRef.current === accountKey ||
+      postQuoteTransactionType
+    ) {
       return;
     }
     prevAccountKeyRef.current = accountKey;
@@ -189,7 +194,14 @@ export function useAutomaticTransactionPayToken({
       });
       log('Re-selected pay token after account change', automaticToken);
     }
-  }, [accountOverride, automaticToken, disable, from, setPayToken]);
+  }, [
+    accountOverride,
+    automaticToken,
+    disable,
+    from,
+    postQuoteTransactionType,
+    setPayToken,
+  ]);
 
   return automaticToken;
 }
