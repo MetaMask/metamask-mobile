@@ -17,6 +17,7 @@ import {
 } from './constants/eventNames';
 import { USDC_SYMBOL } from './constants/hyperLiquidConfig';
 import { PerpsMeasurementName } from './constants/performanceMetrics';
+import type { SortOptionId } from './constants/perpsConfig';
 import {
   PERPS_CONSTANTS,
   MARKET_SORTING_CONFIG,
@@ -24,8 +25,8 @@ import {
   PERPS_DISK_CACHE_MARKETS,
   PERPS_DISK_CACHE_USER_DATA,
   buildProviderCacheKey,
+  MAX_SLIPPAGE_BOUNDS,
 } from './constants/perpsConfig';
-import type { SortOptionId } from './constants/perpsConfig';
 import type { PerpsControllerMethodActions } from './PerpsController-method-action-types';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { AggregatedPerpsProvider } from './providers/AggregatedPerpsProvider';
@@ -4841,8 +4842,13 @@ export class PerpsController extends BaseController<
    * @param bps - Max slippage in basis points (e.g. 300 = 3%). Clamped to 10–1000, snapped to step of 10.
    */
   setMaxSlippage(bps: number): void {
-    const clamped = Math.min(1000, Math.max(10, bps));
-    const snapped = Math.round(clamped / 10) * 10;
+    const clamped = Math.min(
+      MAX_SLIPPAGE_BOUNDS.MaxBps,
+      Math.max(MAX_SLIPPAGE_BOUNDS.MinBps, bps),
+    );
+    const snapped =
+      Math.round(clamped / MAX_SLIPPAGE_BOUNDS.StepBps) *
+      MAX_SLIPPAGE_BOUNDS.StepBps;
     this.update((state) => {
       state.maxSlippageBps = snapped;
     });

@@ -107,6 +107,16 @@ export const ORDER_SLIPPAGE_CONFIG = {
 } as const;
 
 /**
+ * Bounds and step for the user-configurable max slippage preference (basis points).
+ * Shared by the controller (`setMaxSlippage`) and UI (`slippageConfig.ts`).
+ */
+export const MAX_SLIPPAGE_BOUNDS = {
+  MinBps: 10,
+  MaxBps: 1000,
+  StepBps: 10,
+} as const;
+
+/**
  * Max order amount buffer to reduce "Insufficient margin" rejections from the exchange.
  * When the user selects 100% (slider or Max), we cap the order at (1 - this) of the
  * theoretical max so that fees, rounding, and exchange-side margin checks are covered.
