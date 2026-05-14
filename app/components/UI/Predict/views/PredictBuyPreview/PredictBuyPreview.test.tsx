@@ -2600,5 +2600,21 @@ describe('PredictBuyPreview', () => {
 
       expect(trackBetslipDismissed).not.toHaveBeenCalled();
     });
+
+    it('resets dismissedViaBackRef on mount so a previous back-button session does not bleed into next swipe', () => {
+      // Simulate a stale true value left over from a previous session
+      predictBuyPreviewDismissedViaBackRef.current = true;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      // ref should be cleared on mount — swipe dismissal must not be misclassified
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dismissalMethod: PredictDismissalMethod.SWIPE,
+        }),
+      );
+    });
   });
 });

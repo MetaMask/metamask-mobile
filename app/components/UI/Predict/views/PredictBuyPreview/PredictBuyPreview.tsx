@@ -117,6 +117,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     predictBuyPreviewSessionRef.mountTimestamp = mountTimestampRef.current;
     predictBuyPreviewSessionRef.hadEnteredAmount = false;
     predictBuyPreviewOrderInitiatedRef.current = false;
+    predictBuyPreviewDismissedViaBackRef.current = false;
     return () => {
       predictBuyPreviewSessionRef.hadEnteredAmount = false;
     };
