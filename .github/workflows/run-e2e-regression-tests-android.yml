@@ -222,6 +222,7 @@ jobs:
         with:
           name: e2e-regression-android-all-test-artifacts
           path: all-test-artifacts/
+          retention-days: 7
       - name: Upload all test artifacts (XMLs + Screenshots) (current)
         if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
@@ -229,6 +230,7 @@ jobs:
         with:
           name: e2e-regression-android-all-test-artifacts
           path: all-test-artifacts/
+          retention-days: 7
 
       - name: Generate Test Summary
         id: summary
