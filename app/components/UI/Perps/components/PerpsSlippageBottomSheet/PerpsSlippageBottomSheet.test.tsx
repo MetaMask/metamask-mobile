@@ -138,10 +138,18 @@ describe('PerpsSlippageBottomSheet', () => {
   it('renders quick pick buttons', () => {
     render(<PerpsSlippageBottomSheet {...defaultProps} />);
     // Quick picks: 0.5%, 1%, 3%, 5%
-    expect(screen.getByTestId('perps-slippage-config-preset-0.5')).toBeTruthy();
-    expect(screen.getByTestId('perps-slippage-config-preset-1')).toBeTruthy();
-    expect(screen.getByTestId('perps-slippage-config-preset-3')).toBeTruthy();
-    expect(screen.getByTestId('perps-slippage-config-preset-5')).toBeTruthy();
+    expect(
+      screen.getByTestId('perps-slippage-config-preset-0.5'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('perps-slippage-config-preset-1'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('perps-slippage-config-preset-3'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('perps-slippage-config-preset-5'),
+    ).toBeOnTheScreen();
   });
 
   it('updates input when quick pick is pressed', () => {
@@ -165,7 +173,7 @@ describe('PerpsSlippageBottomSheet', () => {
     fireEvent.changeText(input, '99');
     expect(
       screen.getByTestId(PerpsSlippageConfigSelectorsIDs.ERROR),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('does not show error for empty input', () => {
