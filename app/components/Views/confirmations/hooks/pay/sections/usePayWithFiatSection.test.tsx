@@ -112,11 +112,15 @@ describe('usePayWithFiatSection', () => {
 
     const row = result.current?.rows[0];
     expect(React.isValidElement(row?.icon)).toBe(true);
-    expect((row?.icon as React.ReactElement).type).toBe(PaymentMethodIcon);
-    expect((row?.icon as React.ReactElement).props).toMatchObject({
+    const iconElement = row?.icon as React.ReactElement<{
+      paymentMethodType?: string;
+      color?: string;
+    }>;
+    expect(iconElement.type).toBe(PaymentMethodIcon);
+    expect(iconElement.props).toMatchObject({
       paymentMethodType: 'debit-credit-card',
     });
-    expect(typeof (row?.icon as React.ReactElement).props.color).toBe('string');
+    expect(typeof iconElement.props.color).toBe('string');
   });
 
   it('omits paymentMethodType on the icon when the highlighted item has no paymentType', () => {
@@ -127,9 +131,10 @@ describe('usePayWithFiatSection', () => {
     const { result } = renderHook(() => usePayWithFiatSection());
 
     const row = result.current?.rows[0];
-    expect(
-      (row?.icon as React.ReactElement).props.paymentMethodType,
-    ).toBeUndefined();
+    const iconElement = row?.icon as React.ReactElement<{
+      paymentMethodType?: string;
+    }>;
+    expect(iconElement.props.paymentMethodType).toBeUndefined();
   });
 
   it('falls back to the item name when paymentType is missing for the row id', () => {
