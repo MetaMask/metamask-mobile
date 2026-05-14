@@ -29,7 +29,7 @@ const EarnScreenStack = () => {
       <Stack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         component={Confirm}
-        options={emptyNavHeaderOptions}
+        options={{ ...emptyNavHeaderOptions, presentation: 'card' }}
       />
       <Stack.Screen
         name={Routes.EARN.MUSD.CONVERSION_EDUCATION}
