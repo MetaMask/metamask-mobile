@@ -49,11 +49,13 @@ const PEEK_WIDTH = 24;
 const styles = StyleSheet.create({
   avatar: { width: AVATAR_SIZE, height: AVATAR_SIZE },
   cardGap: { marginRight: CARD_GAP },
-  // Asymmetric padding: left aligns the first card; the extra right padding
-  // ensures maxScroll >= snapToInterval so the last card can snap flush-left.
+  // Asymmetric padding: left aligns the first card; paddingRight = CARD_GAP +
+  // PEEK_WIDTH makes maxScroll exactly equal to snapToInterval so the last
+  // card snaps flush with the left edge (paddingRight = screenWidth -
+  // HORIZONTAL_PADDING - cardWidth, which simplifies to CARD_GAP + PEEK_WIDTH).
   carouselContent: {
     paddingLeft: HORIZONTAL_PADDING,
-    paddingRight: HORIZONTAL_PADDING + CARD_GAP + PEEK_WIDTH,
+    paddingRight: CARD_GAP + PEEK_WIDTH,
   },
 });
 
@@ -124,9 +126,10 @@ const EarnRewardsPreview: React.FC = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { width: screenWidth } = useWindowDimensions();
-  // Each card stops short of the right edge so the next card peeks through.
-  const cardWidth =
-    screenWidth - HORIZONTAL_PADDING * 2 - CARD_GAP - PEEK_WIDTH;
+  // Only the left padding consumes viewport space at scroll position 0.
+  // The right side is filled by CARD_GAP + the next card's peek, so only one
+  // HORIZONTAL_PADDING is subtracted.
+  const cardWidth = screenWidth - HORIZONTAL_PADDING - CARD_GAP - PEEK_WIDTH;
 
   // mUSD geo check - hide for UK users, require positive geo confirmation to avoid flash
   const geoLocation = useSelector(selectGeolocationLocation);
