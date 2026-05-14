@@ -7,7 +7,21 @@ const HANDSHAKE_CHANNEL_REGEX =
 
 export interface ConnectionType {
   name: 'agentic-cli';
+  dashboardUrl?: string;
+  dashboardAuthUrl?: string;
 }
+
+const isOptionalHttpUrl = (url: unknown): boolean => {
+  if (url === undefined) return true;
+  if (typeof url !== 'string' || url.length > 1024) return false;
+
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
 
 /**
  * Represents an incoming connection request parsed from a QR code or deep link.
@@ -172,13 +186,15 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
   }
 
   // Normal dapp requests omit connectionType. Agentic CLI requests use the
-  // built-in MWP untrusted handshake.
+  // built-in MWP untrusted handshake and may pass dashboard endpoints.
   if (obj.connectionType !== undefined) {
     if (
       !obj.connectionType ||
       typeof obj.connectionType !== 'object' ||
       Array.isArray(obj.connectionType) ||
-      obj.connectionType.name !== 'agentic-cli'
+      obj.connectionType.name !== 'agentic-cli' ||
+      !isOptionalHttpUrl(obj.connectionType.dashboardUrl) ||
+      !isOptionalHttpUrl(obj.connectionType.dashboardAuthUrl)
     ) {
       return false;
     }

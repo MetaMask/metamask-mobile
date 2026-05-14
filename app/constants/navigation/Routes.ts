@@ -531,6 +531,10 @@ const Routes = {
   SDK: {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
+  AGENTIC_CLI_DASHBOARD_WEBVIEW: {
+    ID: 'AgenticCliDashboardWebview',
+    CONFIRM: 'AgenticCliDashboardConfirmation',
+  },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
   SECURITY_TRUST: 'SecurityTrust',
 };
