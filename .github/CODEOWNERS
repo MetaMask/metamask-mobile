@@ -130,6 +130,7 @@ app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-e
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
 **/Identity/**                                              @MetaMask/accounts-engineers
 **/identity/**                                              @MetaMask/accounts-engineers
+app/components/UI/Bridge/Views/HardwareWalletsSwaps/        @MetaMask/accounts-engineers
 
 # Co-owned by accounts and mobile-core-ux
 app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
