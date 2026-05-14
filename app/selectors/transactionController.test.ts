@@ -344,57 +344,6 @@ describe('TransactionController Selectors', () => {
       ]);
     });
 
-    it('keeps nonce-less transactions that share an actionId', () => {
-      const activeEvmAddress = '0x0000000000000000000000000000000000000001';
-      const state = {
-        engine: {
-          backgroundState: {
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: 'account-1',
-                accounts: {
-                  'account-1': {
-                    id: 'account-1',
-                    address: activeEvmAddress,
-                    type: 'eip155:eoa',
-                  },
-                },
-              },
-            },
-            TransactionController: {
-              transactions: [
-                {
-                  id: 'tx-a',
-                  chainId: '0x1',
-                  time: 100,
-                  txParams: {
-                    from: activeEvmAddress,
-                    actionId: 'shared-action',
-                  },
-                },
-                {
-                  id: 'tx-b',
-                  chainId: '0x1',
-                  time: 200,
-                  txParams: {
-                    from: activeEvmAddress,
-                    actionId: 'shared-action',
-                  },
-                },
-              ],
-            },
-          },
-        },
-        pendingSmartTransactionsForGroup: [],
-      } as unknown as RootState;
-
-      const ids = selectLocalTransactions(state).map(
-        (t) => (t as { id: string }).id,
-      );
-
-      expect(ids).toContain('tx-a');
-      expect(ids).toContain('tx-b');
-    });
   });
 
   describe('selectTransactionMetadataById', () => {

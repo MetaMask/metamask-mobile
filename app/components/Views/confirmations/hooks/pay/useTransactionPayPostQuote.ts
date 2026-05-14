@@ -6,6 +6,7 @@ import { useTransactionPayWithdraw } from './useTransactionPayWithdraw';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { computeProxyAddress } from '../../../../UI/Predict/providers/polymarket/safe/utils';
 import { hasTransactionType } from '../../utils/transaction';
+import { usePredictAccountState } from '../../../../UI/Predict/hooks/usePredictAccountState';
 
 const log = createProjectLogger('transaction-pay-post-quote');
 
@@ -37,12 +38,23 @@ export function useTransactionPayPostQuote(): void {
     TransactionType.predictWithdraw,
   ]);
 
+  const { data: accountState } = usePredictAccountState({
+    enabled: isPredictWithdraw,
+  });
+
+  const isDepositWalletWithdraw =
+    isPredictWithdraw && accountState?.walletType === 'deposit-wallet';
+
   useEffect(() => {
     if (
       !canSelectWithdrawToken ||
       !transactionId ||
       isSet.current === transactionId
     ) {
+      return;
+    }
+
+    if (isPredictWithdraw && !accountState) {
       return;
     }
 
@@ -55,7 +67,7 @@ export function useTransactionPayPostQuote(): void {
       // on the user's address directly (HyperCore -> Relay for perps; vault
       // teller -> user for money account).
       const refundTo =
-        isPerpsWithdraw || isMoneyAccountWithdraw
+        isPerpsWithdraw || isMoneyAccountWithdraw || isDepositWalletWithdraw
           ? undefined
           : from
             ? computeProxyAddress(from)
@@ -71,6 +83,10 @@ export function useTransactionPayPostQuote(): void {
         if (isPerpsWithdraw) {
           config.isHyperliquidSource = true;
         }
+
+        if (isDepositWalletWithdraw) {
+          config.isPolymarketDepositWallet = true;
+        }
       });
 
       isSet.current = transactionId;
@@ -80,11 +96,8 @@ export function useTransactionPayPostQuote(): void {
         refundTo,
         isPerpsWithdraw,
         isMoneyAccountWithdraw,
+        isDepositWalletWithdraw,
       });
-
-      if (isPredictWithdraw) {
-        applyDepositWalletFlag(transactionId);
-      }
     } catch (error) {
       log('Error initializing post-quote transaction', {
         error,
@@ -92,49 +105,13 @@ export function useTransactionPayPostQuote(): void {
       });
     }
   }, [
+    accountState,
     canSelectWithdrawToken,
+    isDepositWalletWithdraw,
     isMoneyAccountWithdraw,
     isPerpsWithdraw,
     isPredictWithdraw,
     transactionId,
     transactionMeta?.txParams?.from,
   ]);
-}
-
-// Deposit-wallet Predict withdrawals need a follow-up flag set after
-// resolving the user's Polymarket account state. The strategy switch
-// also drops refundTo because the bridge mints its own deposit address.
-async function applyDepositWalletFlag(transactionId: string): Promise<void> {
-  try {
-    const isDepositWallet = await isPolymarketDepositWalletWithdraw();
-    if (!isDepositWallet) {
-      return;
-    }
-    Engine.context.TransactionPayController.setTransactionConfig(
-      transactionId,
-      (config) => {
-        config.isPolymarketDepositWallet = true;
-        config.refundTo = undefined;
-      },
-    );
-    log('Marked transaction as Polymarket deposit-wallet withdraw', {
-      transactionId,
-    });
-  } catch (error) {
-    log('Failed to apply Polymarket deposit-wallet flag', {
-      error,
-      transactionId,
-    });
-  }
-}
-
-async function isPolymarketDepositWalletWithdraw(): Promise<boolean> {
-  try {
-    const accountState =
-      await Engine.context.PredictController.getAccountState();
-    return accountState.walletType === 'deposit-wallet';
-  } catch (error) {
-    log('Failed to resolve Polymarket account state', { error });
-    return false;
-  }
 }
