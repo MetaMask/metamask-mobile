@@ -726,7 +726,8 @@ describe('useHwBatchSignTracker', () => {
     it('clears transaction_batch dedupe and dispatches failed when hardware operation rejects', async () => {
       const batchId = 'batch-approval-rejected-001';
       mockExecuteHardwareWalletOperation.mockImplementationOnce(
-        async ({ onRejected }) => {
+        async ({ execute, onRejected }) => {
+          await execute();
           await onRejected?.();
           return false;
         },
@@ -748,14 +749,13 @@ describe('useHwBatchSignTracker', () => {
 
       await act(async () => {
         await handler!();
-        await handler!();
       });
 
       await waitFor(() => {
         expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
           type: 'TRANSACTION_FAILED',
         });
-        expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledTimes(2);
+        expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -824,6 +824,74 @@ describe('useHwBatchSignTracker', () => {
       expect(updateHardwareWalletsSwaps).not.toHaveBeenCalledWith({
         type: 'TRANSACTION_FAILED',
       });
+    });
+
+    it('processes only one approval when stateChange fires concurrently', async () => {
+      const batchId = 'batch-concurrent-001';
+      (
+        Engine.context.ApprovalController.state as any
+      ).pendingApprovals = {
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      };
+
+      renderHook(() =>
+        useHwBatchSignTracker({ fromAddress: FROM_ADDRESS, isEnabled: true }),
+      );
+
+      const handler = mockSubscribe.mock.calls.find(
+        ([event]: [string]) =>
+          event === 'ApprovalController:stateChange',
+      )?.[1];
+
+      await act(async () => {
+        handler!();
+        handler!();
+        handler!();
+      });
+
+      expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledTimes(1);
+      expect(Engine.context.ApprovalController.acceptRequest).toHaveBeenCalledTimes(1);
+    });
+
+    it('processes multiple distinct approvals sequentially', async () => {
+      const batchId1 = 'batch-seq-001';
+      const batchId2 = 'batch-seq-002';
+      const callOrder: string[] = [];
+      mockExecuteHardwareWalletOperation
+        .mockImplementationOnce(async ({ execute }) => {
+          callOrder.push('start-1');
+          await execute();
+          callOrder.push('end-1');
+          return true;
+        })
+        .mockImplementationOnce(async ({ execute }) => {
+          callOrder.push('start-2');
+          await execute();
+          callOrder.push('end-2');
+          return true;
+        });
+
+      (
+        Engine.context.ApprovalController.state as any
+      ).pendingApprovals = {
+        [batchId1]: { id: batchId1, type: 'transaction_batch' },
+        [batchId2]: { id: batchId2, type: 'transaction_batch' },
+      };
+
+      renderHook(() =>
+        useHwBatchSignTracker({ fromAddress: FROM_ADDRESS, isEnabled: true }),
+      );
+
+      const handler = mockSubscribe.mock.calls.find(
+        ([event]: [string]) =>
+          event === 'ApprovalController:stateChange',
+      )?.[1];
+
+      await act(async () => {
+        await handler!();
+      });
+
+      expect(callOrder).toEqual(['start-1', 'end-1', 'start-2', 'end-2']);
     });
   });
 });

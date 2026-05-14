@@ -83,6 +83,9 @@ export function useHwBatchSignTracker({
   const trackedTxIdsRef = useRef<Set<string>>(new Set());
   const pendingAbortTxIdsRef = useRef<Set<string>>(new Set());
   const acceptedApprovalIdsRef = useRef<Set<string>>(new Set());
+  const approvalQueueRef = useRef<string[]>([]);
+  const isProcessingQueueRef = useRef(false);
+  const batchGenerationRef = useRef(0);
   const [confirmationTxId, setConfirmationTxId] = useState<
     string | undefined
   >();
@@ -98,10 +101,26 @@ export function useHwBatchSignTracker({
 
   const cancelCurrentBatch = useCallback(async () => {
     const txIds = [...trackedTxIdsRef.current];
+    console.log('[HW-BatchSign] cancelCurrentBatch — aborting tracked txs:', txIds);
     trackedTxIdsRef.current = new Set();
     signedBatchIdsRef.current = new Set();
+    acceptedApprovalIdsRef.current = new Set();
+    approvalQueueRef.current = [];
+    isProcessingQueueRef.current = false;
+    batchGenerationRef.current += 1;
     currentBatchIdRef.current = null;
     setConfirmationTxId(undefined);
+
+    const pendingApprovals = Engine.context.ApprovalController.state.pendingApprovals ?? {};
+    for (const [requestId, request] of Object.entries(pendingApprovals)) {
+      if (request.type === 'transaction_batch') {
+        console.log('[HW-BatchSign] cancelCurrentBatch — rejecting pending transaction_batch', { requestId });
+        Engine.rejectPendingApproval(requestId, new Error('Batch cancelled'), {
+          ignoreMissing: true,
+          logErrors: false,
+        });
+      }
+    }
 
     if (txIds.length === 0) return;
 
@@ -128,64 +147,93 @@ export function useHwBatchSignTracker({
     const targetFrom = fromAddress.toLowerCase();
     const handledTxIds = new Set<string>();
 
-    const acceptRequestWithHardwareWalletOperation = (
-      requestId: string,
-      dispatchFailureOnReject = false,
-    ) => {
-      const hardwareWalletOperation = hardwareWalletOperationRef.current;
-      let hasHandledRejection = false;
-      const handleApprovalRejection = (): void => {
-        if (hasHandledRejection) return;
-        hasHandledRejection = true;
-        const isLateSignedBatchRejection =
-          dispatchFailureOnReject &&
-          currentBatchIdRef.current === requestId &&
-          signedBatchIdsRef.current.has(requestId);
-        if (isLateSignedBatchRejection) {
-          return;
-        }
-        acceptedApprovalIdsRef.current.delete(requestId);
-        Engine.rejectPendingApproval(
-          requestId,
-          new Error('User rejected the transaction'),
-          { ignoreMissing: true, logErrors: false },
-        );
-        if (dispatchFailureOnReject) {
-          dispatchRef.current(
-            updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }),
-          );
-        }
-      };
+    const approvalQueue = approvalQueueRef.current;
+    const isProcessingQueue = () => isProcessingQueueRef.current;
+    const setProcessingQueue = (val: boolean) => { isProcessingQueueRef.current = val; };
 
-      executeHardwareWalletOperation({
-        address: fromAddress,
-        operationType: 'transaction',
-        ensureDeviceReady: hardwareWalletOperation.ensureDeviceReady,
-        setPendingOperationAddress:
-          hardwareWalletOperation.setPendingOperationAddress,
-        showAwaitingConfirmation:
-          hardwareWalletOperation.showAwaitingConfirmation,
-        hideAwaitingConfirmation: hardwareWalletOperation.hideAwaitingConfirmation,
-        showHardwareWalletError: hardwareWalletOperation.showHardwareWalletError,
-        execute: async () => {
-          await Engine.context.ApprovalController.acceptRequest(
-            requestId,
-            undefined,
-            {
-              waitForResult: true,
-            },
-          );
-        },
-        onRejected: handleApprovalRejection,
-      })
-        .catch(() => {
-          handleApprovalRejection();
-        });
+    const processApprovalQueue = async () => {
+      if (isProcessingQueue()) return;
+      setProcessingQueue(true);
+
+      try {
+        const myGeneration = batchGenerationRef.current;
+        while (approvalQueue.length > 0) {
+          if (batchGenerationRef.current !== myGeneration) break;
+          const requestId = approvalQueue.shift()!;
+          let deviceConfirmedReady = false;
+          let hasHandledRejection = false;
+
+          const handleApprovalRejection = (): void => {
+            if (hasHandledRejection) return;
+            hasHandledRejection = true;
+
+            if (!deviceConfirmedReady) {
+              console.log('[HW-BatchSign] Device not ready — re-queueing for automatic retry', { requestId });
+              approvalQueue.unshift(requestId);
+              return;
+            }
+
+            const isLateSignedBatchRejection =
+              currentBatchIdRef.current === requestId &&
+              signedBatchIdsRef.current.has(requestId);
+            if (isLateSignedBatchRejection) {
+              console.log('[HW-BatchSign] Skipping rejection — late signed batch rejection', { requestId });
+              return;
+            }
+            console.log('[HW-BatchSign] Rejecting approval and cleaning up', { requestId });
+            acceptedApprovalIdsRef.current.delete(requestId);
+            Engine.rejectPendingApproval(
+              requestId,
+              new Error('User rejected the transaction'),
+              { ignoreMissing: true, logErrors: false },
+            );
+            dispatchRef.current(
+              updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }),
+            );
+          };
+
+          try {
+            const hardwareWalletOperation = hardwareWalletOperationRef.current;
+            const result = await executeHardwareWalletOperation({
+              address: fromAddress,
+              operationType: 'transaction',
+              ensureDeviceReady: hardwareWalletOperation.ensureDeviceReady,
+              setPendingOperationAddress:
+                hardwareWalletOperation.setPendingOperationAddress,
+              showAwaitingConfirmation:
+                hardwareWalletOperation.showAwaitingConfirmation,
+              hideAwaitingConfirmation:
+                hardwareWalletOperation.hideAwaitingConfirmation,
+              showHardwareWalletError:
+                hardwareWalletOperation.showHardwareWalletError,
+              execute: async () => {
+                deviceConfirmedReady = true;
+                console.log('[HW-BatchSign] Executing ApprovalController.acceptRequest', { requestId });
+                await Engine.context.ApprovalController.acceptRequest(
+                  requestId,
+                  undefined,
+                  { waitForResult: true },
+                );
+                console.log('[HW-BatchSign] ApprovalController.acceptRequest completed', { requestId });
+              },
+              onRejected: handleApprovalRejection,
+            });
+            if (result) {
+              acceptedApprovalIdsRef.current.delete(requestId);
+            }
+          } catch {
+            handleApprovalRejection();
+          }
+        }
+      } finally {
+        setProcessingQueue(false);
+      }
     };
 
-    const acceptPendingApprovals = async () => {
+    const enqueuePendingApprovals = () => {
       const { ApprovalController } = Engine.context;
       const pendingApprovals = ApprovalController.state.pendingApprovals ?? {};
+      console.log('[HW-BatchSign] enqueuePendingApprovals — count:', Object.keys(pendingApprovals).length);
 
       for (const [requestId, request] of Object.entries(pendingApprovals)) {
         if (acceptedApprovalIdsRef.current.has(requestId)) {
@@ -197,14 +245,18 @@ export function useHwBatchSignTracker({
             (tx: TransactionMeta) => tx.id === requestId,
           );
           if (txMeta && matchesTx(txMeta, targetFrom)) {
+            console.log('[HW-BatchSign] Enqueuing pending transaction approval', { requestId, txType: txMeta.type });
             acceptedApprovalIdsRef.current.add(requestId);
-            acceptRequestWithHardwareWalletOperation(requestId);
+            approvalQueue.push(requestId);
           }
         } else if (request.type === 'transaction_batch') {
+          console.log('[HW-BatchSign] Enqueuing pending transaction_batch approval', { requestId });
           acceptedApprovalIdsRef.current.add(requestId);
-          acceptRequestWithHardwareWalletOperation(requestId, true);
+          approvalQueue.push(requestId);
         }
       }
+
+      processApprovalQueue();
     };
 
     const handleStatusUpdated = ({
@@ -216,12 +268,21 @@ export function useHwBatchSignTracker({
 
       const { status, type } = transactionMeta;
       const stepKind = getStepKind(type as TransactionType);
+      console.log('[HW-BatchSign] transactionStatusUpdated', {
+        txId: transactionMeta.id,
+        status,
+        type,
+        stepKind,
+        batchId: transactionMeta.batchId,
+      });
 
       if (status === TransactionStatus.approved) {
+        console.log('[HW-BatchSign] Transaction approved — dispatching SIGNING', { txId: transactionMeta.id, stepKind });
         if (transactionMeta.batchId) {
           seenBatchIdsRef.current.add(transactionMeta.batchId);
           if (!currentBatchIdRef.current) {
             currentBatchIdRef.current = transactionMeta.batchId;
+            console.log('[HW-BatchSign] Set currentBatchId', transactionMeta.batchId);
           }
         }
         trackedTxIdsRef.current.add(transactionMeta.id);
@@ -234,8 +295,10 @@ export function useHwBatchSignTracker({
         );
       } else if (status === TransactionStatus.signed) {
         if (!isFromCurrentBatch(transactionMeta)) {
+          console.log('[HW-BatchSign] Signed tx not from current batch — ignoring', { txId: transactionMeta.id, batchId: transactionMeta.batchId });
           return;
         }
+        console.log('[HW-BatchSign] Transaction signed — dispatching SIGNED', { txId: transactionMeta.id, stepKind });
         if (transactionMeta.batchId) {
           signedBatchIdsRef.current.add(transactionMeta.batchId);
         }
@@ -248,6 +311,7 @@ export function useHwBatchSignTracker({
         handledTxIds.add(transactionMeta.id);
         trackedTxIdsRef.current.delete(transactionMeta.id);
         if (trackedTxIdsRef.current.size === 0) {
+          console.log('[HW-BatchSign] All tracked txs resolved — clearing confirmationTxId');
           setConfirmationTxId(undefined);
         }
       }
@@ -265,6 +329,7 @@ export function useHwBatchSignTracker({
       }
 
       const stepKind = getStepKind(transactionMeta.type as TransactionType);
+      console.log('[HW-BatchSign] transactionRejected — dispatching REJECTED', { txId: transactionMeta.id, stepKind });
       dispatchRef.current(
         updateHardwareWalletsSwaps({
           type: 'REJECTED',
@@ -289,6 +354,7 @@ export function useHwBatchSignTracker({
         return;
       }
 
+      console.log('[HW-BatchSign] transactionFailed — dispatching TRANSACTION_FAILED', { txId: transactionMeta.id });
       dispatchRef.current(
         updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }),
       );
@@ -313,7 +379,7 @@ export function useHwBatchSignTracker({
     );
     Engine.controllerMessenger.subscribe(
       'ApprovalController:stateChange',
-      acceptPendingApprovals,
+      enqueuePendingApprovals,
     );
 
     return () => {
@@ -331,7 +397,7 @@ export function useHwBatchSignTracker({
       );
       Engine.controllerMessenger.unsubscribe(
         'ApprovalController:stateChange',
-        acceptPendingApprovals,
+        enqueuePendingApprovals,
       );
     };
   }, [fromAddress, isEnabled, isFromCurrentBatch]);

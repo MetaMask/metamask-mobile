@@ -112,7 +112,6 @@ describe('MissingPriceModal', () => {
     } as ReturnType<typeof useBridgeQuoteData>);
     mockUseBridgeConfirm.mockReturnValue({
       handleConfirm: mockConfirmBridge,
-      cancelCurrentBatch: jest.fn(),
     });
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSourceToken) {

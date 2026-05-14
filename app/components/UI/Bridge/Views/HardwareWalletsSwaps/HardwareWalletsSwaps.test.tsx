@@ -318,9 +318,11 @@ describe('HardwareWalletsSwaps', () => {
       ],
     });
 
-    fireEvent.press(
-      getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
-    );
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
+      );
+    });
 
     const state = store.getState();
     expect(state.bridge.hardwareWalletsSwaps.status).toBe(
@@ -402,7 +404,7 @@ describe('HardwareWalletsSwaps', () => {
     ).toBeNull();
   });
 
-  it('dispatches RETRY when reconnect is pressed', () => {
+  it('dispatches RETRY when reconnect is pressed', async () => {
     const { getByTestId, store } = renderScreen({
       status: HardwareWalletsSwapsStatus.Disconnected,
       disconnectedStep: 1,
@@ -418,9 +420,11 @@ describe('HardwareWalletsSwaps', () => {
       ],
     });
 
-    fireEvent.press(
-      getByTestId(HardwareWalletsSwapsSelectorsIDs.RECONNECT_BUTTON),
-    );
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(HardwareWalletsSwapsSelectorsIDs.RECONNECT_BUTTON),
+      );
+    });
 
     const state = store.getState();
     expect(state.bridge.hardwareWalletsSwaps.status).toBe(

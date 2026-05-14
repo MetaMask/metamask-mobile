@@ -28,15 +28,21 @@ export function useHwQrState({
   }, [pendingScanRequest]);
 
   const showInlineQrSigning = useMemo(
-    () =>
-      isEnabled &&
-      isQrHardwareWallet &&
-      Boolean(pendingScanRequest) &&
-      currentStatus === HardwareWalletsSwapsStatus.Waiting,
+    () => {
+      const result = isEnabled &&
+        isQrHardwareWallet &&
+        Boolean(pendingScanRequest) &&
+        currentStatus === HardwareWalletsSwapsStatus.Waiting;
+      if (result) {
+        console.log('[HW-QrState] showInlineQrSigning=true', { isQrHardwareWallet, hasPendingScan: Boolean(pendingScanRequest), currentStatus });
+      }
+      return result;
+    },
     [isEnabled, isQrHardwareWallet, pendingScanRequest, currentStatus],
   );
 
   const handleQrSignatureCancel = useCallback(() => {
+    console.log('[HW-QrState] QR signature cancelled — dispatching REJECTED');
     qr.cancelQRScanRequestIfPresent();
     dispatch(updateHardwareWalletsSwaps({ type: 'REJECTED' }));
   }, [qr, dispatch]);

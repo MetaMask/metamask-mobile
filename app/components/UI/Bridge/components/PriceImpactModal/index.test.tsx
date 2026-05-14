@@ -210,7 +210,6 @@ describe('PriceImpactModal', () => {
     mockUseLatestBalance.mockReturnValue(undefined);
     mockUseBridgeConfirm.mockReturnValue({
       handleConfirm: mockConfirmBridge,
-      cancelCurrentBatch: jest.fn(),
     });
     mockUseBridgeQuoteData.mockReturnValue({
       formattedQuoteData: undefined,

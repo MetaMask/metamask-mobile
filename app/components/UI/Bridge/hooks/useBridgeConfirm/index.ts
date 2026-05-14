@@ -3,25 +3,16 @@ import type { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { useNavigation } from '@react-navigation/native';
 import {
   resetHardwareWalletsSwaps,
-  selectHardwareWalletsSwaps,
   setIsSubmittingTx,
   updateHardwareWalletsSwaps,
 } from '../../../../../core/redux/slices/bridge';
-import { HardwareWalletsSwapsStatus } from '../../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
 import Routes from '../../../../../constants/navigation/Routes';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { isHardwareAccount } from '../../../../../util/address';
-import { useHwBatchSignTracker } from '../useHwBatchSignTracker';
-import {
-  setBridgeSubmissionCache,
-  clearBridgeSubmissionCache,
-} from '../bridgeSubmissionCache';
-import { useHwConnectionMonitoring } from '../../Views/HardwareWalletsSwaps/hooks/useHwConnectionMonitoring';
-import { useHwQrState } from '../../Views/HardwareWalletsSwaps/hooks/useHwQrState';
-import { useHwConfirmationMonitoring } from '../../Views/HardwareWalletsSwaps/hooks/useHwConfirmationMonitoring';
+import { setBridgeSubmissionCache } from '../bridgeSubmissionCache';
 
 interface Params {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] | null;
@@ -38,81 +29,51 @@ export const useBridgeConfirm = ({
   const navigation = useNavigation();
   const { submitBridgeTx } = useSubmitBridgeTx();
   const walletAddress = useSelector(selectSourceWalletAddress);
-  const progress = useSelector(selectHardwareWalletsSwaps);
-  const progressStatus = progress?.status ?? HardwareWalletsSwapsStatus.Idle;
   const isHardwareWalletAccount = walletAddress
     ? Boolean(isHardwareAccount(walletAddress))
     : false;
 
-  const { cancelCurrentBatch, confirmationTxId } = useHwBatchSignTracker({
-    fromAddress: walletAddress ?? undefined,
-    isEnabled: isHardwareWalletAccount,
-  });
-
-  useHwConnectionMonitoring({
-    isEnabled: isHardwareWalletAccount,
-    currentStatus: progressStatus,
-  });
-
-  useHwQrState({
-    isEnabled: isHardwareWalletAccount,
-    currentStatus: progressStatus,
-  });
-
-  useHwConfirmationMonitoring({
-    isEnabled: isHardwareWalletAccount,
-    currentStatus: progressStatus,
-    confirmationTxId,
-    isDeviceDisconnected:
-      progressStatus === HardwareWalletsSwapsStatus.Disconnected,
-  });
-
   const handleConfirm = async () => {
-    const isHardwareWalletBridgeSubmission =
-      Boolean(activeQuote && walletAddress) && isHardwareWalletAccount;
+    if (!activeQuote || !walletAddress) return;
+
+    const isHardwareWalletBridgeSubmission = isHardwareWalletAccount;
+
+    dispatch(setIsSubmittingTx(true));
 
     try {
-      if (activeQuote && walletAddress) {
-        dispatch(setIsSubmittingTx(true));
-
-        if (isHardwareWalletBridgeSubmission) {
-          dispatch(resetHardwareWalletsSwaps());
-          dispatch(
-            updateHardwareWalletsSwaps({
-              type: 'START',
-              payload: { totalSteps: activeQuote.approval ? 2 : 1 },
-            }),
-          );
-          setBridgeSubmissionCache({
-            quoteResponse: activeQuote,
-            location,
-            transactionActiveAbTests,
-          });
-          navigation.navigate(Routes.BRIDGE.ROOT, {
-            screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
-          });
-        }
-
-        await submitBridgeTx({
+      if (isHardwareWalletBridgeSubmission) {
+        dispatch(resetHardwareWalletsSwaps());
+        dispatch(
+          updateHardwareWalletsSwaps({
+            type: 'START',
+            payload: { totalSteps: activeQuote.approval ? 2 : 1 },
+          }),
+        );
+        setBridgeSubmissionCache({
           quoteResponse: activeQuote,
           location,
           transactionActiveAbTests,
         });
+        navigation.navigate(Routes.BRIDGE.ROOT, {
+          screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+        });
+        return;
       }
+
+      await submitBridgeTx({
+        quoteResponse: activeQuote,
+        location,
+        transactionActiveAbTests,
+      });
     } catch (error) {
       console.error('Error submitting bridge tx', error);
-      if (isHardwareWalletBridgeSubmission) {
-        dispatch(updateHardwareWalletsSwaps({ type: 'TRANSACTION_FAILED' }));
-      }
     } finally {
       dispatch(setIsSubmittingTx(false));
       if (!isHardwareWalletBridgeSubmission) {
         navigation.navigate(Routes.TRANSACTIONS_VIEW);
-      } else {
-        clearBridgeSubmissionCache();
       }
     }
   };
 
-  return { handleConfirm, cancelCurrentBatch };
+  return { handleConfirm };
 };

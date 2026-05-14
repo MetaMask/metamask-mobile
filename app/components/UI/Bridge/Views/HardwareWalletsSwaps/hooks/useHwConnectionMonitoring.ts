@@ -45,10 +45,12 @@ export function useHwConnectionMonitoring({
     }
 
     if (connectionState.status === ConnectionStatus.Disconnected) {
+      console.log('[HW-ConnectionMonitor] Disconnected detected', { hasActiveSigning, isDisconnected: isDisconnectedRef.current });
       if (!hasActiveSigning) {
         return;
       }
       if (handledErrorRef.current === 'disconnected') return;
+      console.log('[HW-ConnectionMonitor] Dispatching DEVICE_DISCONNECTED');
       handledErrorRef.current = 'disconnected';
       isDisconnectedRef.current = true;
       dispatch(updateHardwareWalletsSwaps({ type: 'DEVICE_DISCONNECTED' }));
@@ -61,6 +63,7 @@ export function useHwConnectionMonitoring({
     }
 
     const { error } = connectionState;
+    console.log('[HW-ConnectionMonitor] Error state detected', { error: String(error), hasActiveSigning });
     if (handledErrorRef.current === error) return;
     handledErrorRef.current = error;
 
@@ -70,6 +73,7 @@ export function useHwConnectionMonitoring({
       parsedError.code === ErrorCode.ConnectionClosed ||
       parsedError.code === ErrorCode.DeviceDisconnected
     ) {
+      console.log('[HW-ConnectionMonitor] Parsed as connection/disconnect error — dispatching DEVICE_DISCONNECTED');
       if (!hasActiveSigning) {
         return;
       }
@@ -79,6 +83,7 @@ export function useHwConnectionMonitoring({
     }
 
     if (error && isUserCancellation(error)) {
+      console.log('[HW-ConnectionMonitor] User cancellation detected — dispatching REJECTED');
       dispatch(
         updateHardwareWalletsSwaps({
           type: 'REJECTED',
