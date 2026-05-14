@@ -10903,5 +10903,52 @@ describe('HyperLiquidProvider', () => {
       });
       expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
     });
+
+    it('walletRegistered cache hit skips the probe entirely', async () => {
+      // Arrange: pre-warm the walletRegistered cache so #isWalletOnHyperliquid
+      // returns true without calling userNonFundingLedgerUpdates.
+      const mockedCache = TradingReadinessCache as jest.Mocked<
+        typeof TradingReadinessCache
+      >;
+      mockedCache.getWalletRegistered.mockReturnValue({ registered: true });
+
+      const exchangeClient = createMockExchangeClient();
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+      const infoClient = createMockInfoClient({
+        userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
+      });
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(infoClient);
+      stubGetAccountState('5000');
+
+      await provider.withdraw(withdrawParams).catch(() => undefined);
+
+      // The ledger probe should never fire because the cache was hit.
+      expect(infoClient.userNonFundingLedgerUpdates).not.toHaveBeenCalled();
+    });
+
+    it('probe failure fails open — allows migration to proceed', async () => {
+      // Arrange: probe throws (transient network), should fail open (return true)
+      // and allow the migration to proceed.
+      const exchangeClient = createMockExchangeClient();
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+          userNonFundingLedgerUpdates: jest
+            .fn()
+            .mockRejectedValue(new Error('Network timeout')),
+        }),
+      );
+      stubGetAccountState('5000');
+
+      await provider.withdraw(withdrawParams).catch(() => undefined);
+
+      // Probe failed open → migration ran → agentSetAbstraction was called.
+      expect(exchangeClient.agentSetAbstraction).toHaveBeenCalled();
+    });
   });
 });
