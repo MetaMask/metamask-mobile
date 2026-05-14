@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
-import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { useTheme } from '../../../../util/theme';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
 import { upgradeMoneyAccount } from '../../../../actions/money';
@@ -16,11 +19,12 @@ import MoneyApyInfoSheet from '../components/MoneyApyInfoSheet';
 import MoneyEarningsInfoSheet from '../components/MoneyEarningsInfoSheet';
 import MoneyBalanceInfoSheet from '../components/MoneyBalanceInfoSheet';
 import MoneyLinkCardSheet from '../components/MoneyLinkCardSheet';
+import MoneyEarnCryptoInfoSheet from '../components/MoneyEarnCryptoInfoSheet';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 
-const Stack = createStackNavigator();
-const ModalStack = createStackNavigator();
+const Stack = createNativeStackNavigator();
+const ModalStack = createNativeStackNavigator();
 
 const MoneyScreenStack = () => {
   const { colors } = useTheme();
@@ -31,7 +35,7 @@ const MoneyScreenStack = () => {
       initialRouteName={Routes.MONEY.HOME}
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: colors.background.default },
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
       <Stack.Screen name={Routes.MONEY.HOME} component={MoneyHomeView} />
@@ -59,8 +63,8 @@ const MoneyScreenStack = () => {
 const MoneyModalStack = () => (
   <ModalStack.Navigator
     screenOptions={{
-      ...clearStackNavigatorOptions,
-      presentation: 'transparentModal',
+      ...clearNativeStackNavigatorOptions,
+      ...transparentModalScreenOptions,
     }}
   >
     <ModalStack.Screen
@@ -96,6 +100,11 @@ const MoneyModalStack = () => (
     <ModalStack.Screen
       name={Routes.MONEY.MODALS.LINK_CARD_SHEET}
       component={MoneyLinkCardSheet}
+      options={{ headerShown: false }}
+    />
+    <ModalStack.Screen
+      name={Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET}
+      component={MoneyEarnCryptoInfoSheet}
       options={{ headerShown: false }}
     />
   </ModalStack.Navigator>
