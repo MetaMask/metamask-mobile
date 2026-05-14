@@ -1,6 +1,10 @@
 import { useCallback } from 'react';
 import { createProjectLogger } from '@metamask/utils';
-import { useHeadlessBuy } from '../../../../UI/Ramp/headless';
+import { strings } from '../../../../../../locales/i18n';
+import {
+  useHeadlessBuy,
+  type HeadlessBuyError,
+} from '../../../../UI/Ramp/headless';
 import type { Quote } from '../../../../UI/Ramp/types';
 import Engine from '../../../../../core/Engine';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -12,7 +16,8 @@ const log = createProjectLogger('fiat-confirm');
 export function useFiatConfirm() {
   const transactionMetadata = useTransactionMetadataRequest();
   const fiatPayment = useTransactionPayFiatPayment();
-  const { setIsHeadlessBuyInProgress } = useConfirmationContext();
+  const { setIsHeadlessBuyInProgress, setHeadlessBuyError } =
+    useConfirmationContext();
   const { startHeadlessBuy } = useHeadlessBuy();
 
   const isFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
@@ -33,6 +38,7 @@ export function useFiatConfirm() {
     }
 
     setIsHeadlessBuyInProgress(true);
+    setHeadlessBuyError(undefined);
 
     startHeadlessBuy(
       {
@@ -54,16 +60,21 @@ export function useFiatConfirm() {
             },
           });
         },
-        onError: () => {
+        onError: (error: HeadlessBuyError) => {
           setIsHeadlessBuyInProgress(false);
+          setHeadlessBuyError(
+            error.message ?? strings('alert_system.headless_buy_error.message'),
+          );
         },
         onClose: () => {
           setIsHeadlessBuyInProgress(false);
+          setHeadlessBuyError(undefined);
         },
       },
     );
   }, [
     fiatPayment,
+    setHeadlessBuyError,
     setIsHeadlessBuyInProgress,
     startHeadlessBuy,
     transactionMetadata?.id,

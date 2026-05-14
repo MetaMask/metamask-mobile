@@ -120,6 +120,10 @@
     "account_no_funds": {
       "message": "No funds available. Use a different account."
     },
+    "headless_buy_error": {
+      "title": "Fiat purchase failed",
+      "message": "Something went wrong with your fiat purchase. Please try again."
+    },
     "mmpay_hardware_account": {
       "title": "Wallet not supported",
       "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."

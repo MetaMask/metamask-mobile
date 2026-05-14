@@ -25,6 +25,7 @@ const TRANSACTION_ID_MOCK = 'tx-123';
 describe('useFiatConfirm', () => {
   const startHeadlessBuyMock = jest.fn();
   const setIsHeadlessBuyInProgressMock = jest.fn();
+  const setHeadlessBuyErrorMock = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -35,6 +36,7 @@ describe('useFiatConfirm', () => {
 
     jest.mocked(useConfirmationContext).mockReturnValue({
       setIsHeadlessBuyInProgress: setIsHeadlessBuyInProgressMock,
+      setHeadlessBuyError: setHeadlessBuyErrorMock,
     } as unknown as ReturnType<typeof useConfirmationContext>);
 
     jest.mocked(useTransactionMetadataRequest).mockReturnValue({
@@ -222,7 +224,24 @@ describe('useFiatConfirm', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('resets headless buy in progress on error', () => {
+    it('clears previous error when starting a new fiat confirm', () => {
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(undefined);
+    });
+
+    it('sets headless buy error with error.message on error callback', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',
         amountFiat: '50.00',
@@ -239,13 +258,43 @@ describe('useFiatConfirm', () => {
       const callbacks = startHeadlessBuyMock.mock.calls[0][1];
 
       act(() => {
-        callbacks.onError(new Error('something went wrong'));
+        callbacks.onError({
+          code: 'AUTH_FAILED',
+          message: 'Authentication failed',
+        });
       });
 
       expect(setIsHeadlessBuyInProgressMock).toHaveBeenCalledWith(false);
+      expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(
+        'Authentication failed',
+      );
     });
 
-    it('resets headless buy in progress on close', () => {
+    it('sets headless buy error with fallback message when error.message is absent', () => {
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      const callbacks = startHeadlessBuyMock.mock.calls[0][1];
+
+      act(() => {
+        callbacks.onError({ code: 'UNKNOWN' });
+      });
+
+      expect(setIsHeadlessBuyInProgressMock).toHaveBeenCalledWith(false);
+      expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(expect.any(String));
+    });
+
+    it('clears error and resets headless buy in progress on close', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',
         amountFiat: '50.00',
@@ -266,6 +315,7 @@ describe('useFiatConfirm', () => {
       });
 
       expect(setIsHeadlessBuyInProgressMock).toHaveBeenCalledWith(false);
+      expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(undefined);
     });
   });
 });
