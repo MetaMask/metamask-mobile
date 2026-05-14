@@ -140,10 +140,6 @@ export class OAuthService {
         throw new Error('No user id found');
       }
 
-      if (isE2EMockOAuth()) {
-        return QAMockOAuthService.mockSeedlessHandleResult(accountName);
-      }
-
       const authConnectionConfig = getAuthConnectionIdFromClientId({
         clientId,
         authConnection,
@@ -214,6 +210,14 @@ export class OAuthService {
     );
 
     this.#dispatchPostLogin(result);
+
+    ReduxService.store.dispatch(
+      setSeedlessOnboarding({
+        clientId: loginHandler.options.clientId,
+        authConnection: loginHandler.authConnection,
+      }),
+    );
+
     return result;
   };
 
