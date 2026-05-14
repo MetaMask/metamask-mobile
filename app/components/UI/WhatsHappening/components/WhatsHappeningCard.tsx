@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, memo } from 'react';
+import React, { useCallback, memo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -7,9 +7,6 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import type { WhatsHappeningItem } from '../types';
 import {
@@ -17,15 +14,12 @@ import {
   getImpactBackgroundClass,
   getImpactTextColor,
 } from '../util/impact';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
-import RelatedAssetAvatar from '../../../Views/WhatsHappeningDetailView/components/RelatedAssetAvatar';
-import { getRelatedAssetImageSource } from '../../../Views/WhatsHappeningDetailView/utils/getRelatedAssetImageSource';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useViewportTracking } from '../../MarketInsights/hooks/useViewportTracking';
-import { formatRelativeTime } from '../../MarketInsights/utils/marketInsightsFormatting';
 import { getWhatsHappeningEventProps } from '../eventProperties';
 import type { WhatsHappeningSourceValue } from '../constants';
+import WhatsHappeningAssetSlider from './WhatsHappeningAssetSlider';
 
 interface WhatsHappeningCardProps {
   item: WhatsHappeningItem;
@@ -34,8 +28,6 @@ interface WhatsHappeningCardProps {
   onPress?: (item: WhatsHappeningItem) => void;
 }
 
-const MAX_VISIBLE_ASSET_ICONS = 3;
-
 const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   item,
   cardIndex,
@@ -43,11 +35,6 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   onPress,
 }) => {
   const tw = useTailwind();
-  const formattedDate = useMemo(
-    () =>
-      item.date ? formatRelativeTime(item.date, { nowLabel: 'now' }) : null,
-    [item.date],
-  );
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handlePress = () => onPress?.(item);
@@ -64,25 +51,6 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
 
   const { ref: cardRef, onLayout: onVisibilityLayout } =
     useViewportTracking(handleVisible);
-
-  const visibleAssets = useMemo(
-    () => item.relatedAssets.slice(0, MAX_VISIBLE_ASSET_ICONS),
-    [item.relatedAssets],
-  );
-  const visibleAssetImages = useMemo(
-    () => visibleAssets.map(getRelatedAssetImageSource),
-    [visibleAssets],
-  );
-  const firstAsset = item.relatedAssets[0];
-  const remainingAssetCount = Math.max(0, item.relatedAssets.length - 1);
-  const firstAssetDisplaySymbol = firstAsset
-    ? getPerpsDisplaySymbol(firstAsset.symbol)
-    : null;
-  const assetLabel = firstAssetDisplaySymbol
-    ? remainingAssetCount > 0
-      ? `${firstAssetDisplaySymbol} +${remainingAssetCount}`
-      : firstAssetDisplaySymbol
-    : null;
 
   return (
     <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
@@ -126,55 +94,9 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
           </Text>
         </Box>
 
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          gap={2}
-        >
-          {assetLabel && (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={1}
-              twClassName="flex-shrink"
-            >
-              {visibleAssets.length > 0 && (
-                <Box flexDirection={BoxFlexDirection.Row}>
-                  {visibleAssets.map((asset, index) => (
-                    <Box
-                      key={asset.sourceAssetId}
-                      twClassName={index > 0 ? '-ml-1' : ''}
-                    >
-                      <RelatedAssetAvatar
-                        name={asset.name}
-                        image={visibleAssetImages[index]}
-                        size={16}
-                      />
-                    </Box>
-                  ))}
-                </Box>
-              )}
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
-                numberOfLines={1}
-              >
-                {assetLabel}
-              </Text>
-            </Box>
-          )}
-
-          {formattedDate && (
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-            >
-              {formattedDate}
-            </Text>
-          )}
-        </Box>
+        {item.relatedAssets.length > 0 ? (
+          <WhatsHappeningAssetSlider assets={item.relatedAssets} />
+        ) : null}
       </TouchableOpacity>
     </View>
   );

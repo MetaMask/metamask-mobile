@@ -1,0 +1,75 @@
+import React, { memo, useMemo } from 'react';
+import { Pressable } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import type { RelatedAsset } from '@metamask/ai-controllers';
+import {
+  Box,
+  BoxAlignItems,
+  BoxBackgroundColor,
+  BoxFlexDirection,
+  Text,
+  TextColor,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import RelatedAssetAvatar from '../../../Views/WhatsHappeningDetailView/components/RelatedAssetAvatar';
+import { getRelatedAssetImageSource } from '../../../Views/WhatsHappeningDetailView/utils/getRelatedAssetImageSource';
+import useTradeNavigation from '../../../Views/WhatsHappeningDetailView/hooks/useTradeNavigation';
+
+const AVATAR_SIZE = 16;
+
+export interface WhatsHappeningAssetPillProps {
+  asset: RelatedAsset;
+}
+
+const WhatsHappeningAssetPill: React.FC<WhatsHappeningAssetPillProps> = ({
+  asset,
+}) => {
+  const tw = useTailwind();
+  const { handleTrade, canTrade } = useTradeNavigation(asset);
+  const image = useMemo(() => getRelatedAssetImageSource(asset), [asset]);
+  const displaySymbol = useMemo(
+    () => getPerpsDisplaySymbol(asset.symbol),
+    [asset.symbol],
+  );
+
+  const inner = (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={2}
+      backgroundColor={BoxBackgroundColor.BackgroundMuted}
+      paddingHorizontal={2}
+      paddingVertical={1}
+      twClassName="rounded-full"
+    >
+      <RelatedAssetAvatar name={asset.name} image={image} size={AVATAR_SIZE} />
+      <Text
+        variant={TextVariant.BodyXs}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
+        numberOfLines={1}
+      >
+        {displaySymbol}
+      </Text>
+    </Box>
+  );
+
+  if (canTrade) {
+    return (
+      <Pressable
+        onPress={handleTrade}
+        accessibilityRole="button"
+        accessibilityLabel={displaySymbol}
+        style={({ pressed }) => tw.style('shrink', pressed && 'opacity-80')}
+      >
+        {inner}
+      </Pressable>
+    );
+  }
+
+  return inner;
+};
+
+export default memo(WhatsHappeningAssetPill);

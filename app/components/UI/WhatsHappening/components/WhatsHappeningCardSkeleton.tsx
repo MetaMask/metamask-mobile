@@ -35,13 +35,12 @@ const WhatsHappeningCardSkeleton: React.FC = () => {
               'w-[75%] h-4 rounded',
             ]}
           />
-          {/* Asset avatar + label (left) and date (right) */}
-          <View style={tw.style('flex-row items-center justify-between')}>
-            <View style={tw.style('flex-row items-center gap-1')}>
-              <View style={tw.style('w-4 h-4 rounded-full')} />
-              <View style={tw.style('w-[50px] h-3 rounded')} />
-            </View>
-            <View style={tw.style('w-[40px] h-3 rounded')} />
+          {/* Asset pill slider (compact chips) */}
+          <View style={tw.style('flex-row gap-2')}>
+            <View style={tw.style('h-7 w-[52px] rounded-full')} />
+            <View style={tw.style('h-7 w-[48px] rounded-full')} />
+            <View style={tw.style('h-7 w-[56px] rounded-full')} />
+            <View style={tw.style('h-7 w-[44px] rounded-full')} />
           </View>
         </View>
       </WhatsHappeningSkeletonShimmer>
