@@ -62,7 +62,6 @@ import {
   setupAccountActivityMocks,
   resetAccountActivityMockState,
 } from '../../websocket/account-activity-mocks';
-import { mockSwapPopularTokens } from '../../helpers/swap/swap-mocks';
 
 const logger = createLogger({
   name: 'FixtureHelper',
