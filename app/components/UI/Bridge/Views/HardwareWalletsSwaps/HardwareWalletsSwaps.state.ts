@@ -255,6 +255,15 @@ export function hardwareWalletsSwapsReducer(
       };
     }
     case HardwareWalletsSwapsEventType.DeviceDisconnected:
+      if (
+        state.status === HardwareWalletsSwapsStatus.Rejected ||
+        state.status === HardwareWalletsSwapsStatus.Submitted ||
+        state.status === HardwareWalletsSwapsStatus.Failed ||
+        state.status === HardwareWalletsSwapsStatus.Disconnected ||
+        state.status === HardwareWalletsSwapsStatus.Cancelled
+      ) {
+        return state;
+      }
       return {
         ...state,
         status: HardwareWalletsSwapsStatus.Disconnected,
