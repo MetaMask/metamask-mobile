@@ -22,6 +22,7 @@ import { getTokenTransferData } from '../../../Views/confirmations/utils/transac
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { calcTokenAmount } from '../../../../util/transactions';
 import { ARBITRUM_USDC } from '../../../Views/confirmations/constants/perps';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 /**
  * Determines the close direction category for aggregation purposes.
@@ -311,6 +312,11 @@ export function transformFillsToTransactions(
       console.error('Unknown fill direction', fill);
       return acc;
     } else {
+      DevLogger.log(
+        '[TAT-3090] BUG_MARKER: unhandled fill direction',
+        direction,
+        fill,
+      );
       console.error('Unknown action', fill);
       return acc;
     }
