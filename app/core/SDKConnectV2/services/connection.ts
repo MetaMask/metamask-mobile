@@ -39,6 +39,12 @@ const REJECTION_MESSAGE_PATTERNS: readonly string[] = [
   'user rejected',
 ];
 
+interface AuthTokenMessagePayload {
+  type: 'auth-token';
+  token: string;
+  scope?: string;
+}
+
 const isRejectionMessage = (message: unknown): boolean => {
   if (typeof message !== 'string') return false;
   const lower = message.toLowerCase();
@@ -71,6 +77,10 @@ export class Connection {
     this.client = client;
     this.hostApp = hostApp;
     this.bridge = new RPCBridgeAdapter(this.info);
+
+    this.client.on('display_otp', (otp, deadline) => {
+      this.hostApp.showOtpCode(this.info, otp, deadline);
+    });
 
     this.client.on('message', async (payload) => {
       const data =
@@ -128,16 +138,17 @@ export class Connection {
 
       // If the payload includes an id, its a JSON-RPC response, otherwise its a notification
       if ('data' in payload && 'id' in payload.data) {
-        const responseData = payload.data;
+        const jsonRpcResponseData = payload.data;
         // Check if the response is an error (JSON-RPC error responses have an 'error' property)
         const isError =
-          'error' in responseData && responseData.error !== undefined;
+          'error' in jsonRpcResponseData &&
+          jsonRpcResponseData.error !== undefined;
 
         if (isError) {
-          const errCode = responseData.error.code as number;
+          const errCode = jsonRpcResponseData.error.code as number;
           const errMessage =
-            (responseData.error as Record<string, unknown>).message ??
-            (responseData.error as Record<string, unknown>).reason;
+            (jsonRpcResponseData.error as Record<string, unknown>).message ??
+            (jsonRpcResponseData.error as Record<string, unknown>).reason;
 
           logger.warn('RPC error response', {
             connectionId: this.id,
@@ -194,6 +205,16 @@ export class Connection {
    */
   public async connect(sessionRequest: SessionRequest): Promise<void> {
     await this.client.connect({ sessionRequest });
+  }
+
+  public async sendAuthToken(authToken: string, scope?: string): Promise<void> {
+    const payload: AuthTokenMessagePayload = {
+      type: 'auth-token',
+      token: authToken,
+    };
+    if (scope !== undefined) payload.scope = scope;
+
+    await this.client.sendResponse(payload);
   }
 
   /**

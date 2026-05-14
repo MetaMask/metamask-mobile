@@ -285,6 +285,7 @@ const Routes = {
   WEBVIEW: {
     MAIN: 'Webview',
     SIMPLE: 'SimpleWebview',
+    CLI_AUTH: 'CliAuthWebview',
   },
   WALLET: {
     HOME: 'WalletTabHome',
