@@ -55,47 +55,16 @@ import { PredictDismissalMethod } from '../constants/eventNames';
 import { parseAnalyticsProperties } from '../utils/analytics';
 
 let _providerMounted = false;
-let _lastBuyParams: PredictBuyPreviewParams | null = null;
-let _isBuySheetVisible = false;
-let _openBuySheetFromToast: ((params: PredictBuyPreviewParams) => void) | null =
-  null;
 
 /**
  * Returns whether `PredictPreviewSheetProvider` is currently mounted somewhere
- * in the tree.
+ * in the tree. Used by `usePredictToastRegistrations` to decide whether to
+ * suppress the order failure toast — when the provider is mounted, its
+ * state-based trigger surfaces a persistent Retry toast and the legacy plain
+ * toast would be a duplicate.
  */
 export function isPredictSheetProviderMounted(): boolean {
   return _providerMounted;
-}
-
-/**
- * Returns whether the buy bet slip is currently rendered on screen. Used by
- * `usePredictToastRegistrations` to decide whether to suppress the order
- * failure toast — when the sheet is visible, the inline error banner inside
- * the sheet handles the failure, so the toast would be a duplicate.
- */
-export function isPredictBuySheetVisible(): boolean {
-  return _isBuySheetVisible;
-}
-
-/**
- * Returns the params from the most recent `openBuySheet` call, or `null` if
- * the user has never opened a buy sheet in this session. Used by the failure
- * toast's "Try again" action to know which market to reopen.
- */
-export function getPredictLastBuyParams(): PredictBuyPreviewParams | null {
-  return _lastBuyParams;
-}
-
-/**
- * Reopens the buy bet slip with the most recent params. Used by the failure
- * toast's "Try again" action so the user lands back on the same market with
- * the inline `order_failed` banner already showing.
- */
-export function reopenPredictBuySheet(): void {
-  if (_openBuySheetFromToast && _lastBuyParams) {
-    _openBuySheetFromToast(_lastBuyParams);
-  }
 }
 
 const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
@@ -222,22 +191,27 @@ export const PredictPreviewSheetProvider: React.FC<
    */
   const lastBuyParamsRef = useRef<PredictBuyPreviewParams | null>(null);
 
+  /**
+   * Holds the latest theme so the failure-toast effect can read its colors
+   * without listing them as deps (which would re-run the effect on theme
+   * changes and risk re-firing the toast for a still-truthy error).
+   */
+  const themeRef = useRef(theme);
+  themeRef.current = theme;
+
   useEffect(() => {
     _providerMounted = true;
     return () => {
       _providerMounted = false;
-      _lastBuyParams = null;
-      _isBuySheetVisible = false;
-      _openBuySheetFromToast = null;
+      // Dismiss any lingering Retry toast so its onPress closures don't try
+      // to setState on the now-unmounted provider.
+      ToastService.closeToast();
     };
   }, []);
 
   const openBuySheet = useCallback(
     (params: PredictBuyPreviewParams) => {
       lastBuyParamsRef.current = params;
-      // Module-level mirror used by the failure toast outside the React tree.
-      // eslint-disable-next-line react-compiler/react-compiler
-      _lastBuyParams = params;
       if (bottomSheetEnabled) {
         setBuyParams(params);
         buyNonceRef.current += 1;
@@ -274,22 +248,6 @@ export const PredictPreviewSheetProvider: React.FC<
     }
   }, [sellParams, sellNonce]);
 
-  // Mirror buy-sheet visibility to a module-level flag so toast handlers
-  // outside the React tree can decide whether to suppress a duplicate toast
-  // (the inline banner inside the sheet covers errors when it is visible).
-  useEffect(() => {
-    _isBuySheetVisible = !!buyParams;
-  }, [buyParams]);
-
-  // Expose `openBuySheet` to the module-level reopen API consumed by the
-  // failure toast's "Try again" action.
-  useEffect(() => {
-    _openBuySheetFromToast = openBuySheet;
-    return () => {
-      _openBuySheetFromToast = null;
-    };
-  }, [openBuySheet]);
-
   // State-based trigger for the "Try again" failure toast. Mirrors the
   // original auto-reopen condition (which fired whenever `activeOrder.error`
   // transitioned to truthy while the sheet was dismissed and we still had
@@ -325,7 +283,7 @@ export const PredictPreviewSheetProvider: React.FC<
       ],
       iconName: IconName.Error,
       iconColor: IconColor.Error,
-      backgroundColor: theme.colors.accent04.normal,
+      backgroundColor: themeRef.current.colors.accent04.normal,
       hasNoTimeout: true,
       compact: true,
       linkButtonOptions: {
@@ -350,7 +308,6 @@ export const PredictPreviewSheetProvider: React.FC<
     bottomSheetEnabled,
     openBuySheet,
     clearOrderError,
-    theme.colors.accent04.normal,
   ]);
 
   const BuyComponent = useMemo(

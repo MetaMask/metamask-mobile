@@ -11,16 +11,11 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
-import {
-  ButtonIconVariant,
-  type ToastRef,
-} from '../../../../component-library/components/Toast/Toast.types';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import type { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import ToastService from '../../../../core/ToastService';
-import Engine from '../../../../core/Engine';
 import type { PredictTransactionStatusChangedPayload } from '../controllers/PredictController';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { formatPrice } from '../utils/format';
@@ -32,11 +27,7 @@ import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
-import {
-  getPredictLastBuyParams,
-  isPredictBuySheetVisible,
-  reopenPredictBuySheet,
-} from '../contexts/PredictPreviewSheetContext';
+import { isPredictSheetProviderMounted } from '../contexts/PredictPreviewSheetContext';
 
 const showPendingToast = ({
   showToast,
@@ -110,49 +101,31 @@ const showErrorToast = ({
   onRetry,
   backgroundColor,
   iconColor,
-  hasNoTimeout = false,
-  onClose,
-  compact = false,
 }: {
   showToast: ToastRef['showToast'];
   title: string;
-  description?: string;
+  description: string;
   retryLabel?: string;
   onRetry?: () => void;
   backgroundColor: string;
   iconColor: string;
-  hasNoTimeout?: boolean;
-  onClose?: () => void;
-  compact?: boolean;
 }) =>
   showToast({
     variant: ToastVariants.Icon,
-    labelOptions: description
-      ? [
-          { label: title, isBold: true },
-          { label: '\n', isBold: false },
-          { label: description, isBold: false },
-        ]
-      : [{ label: title, isBold: true }],
+    labelOptions: [
+      { label: title, isBold: true },
+      { label: '\n', isBold: false },
+      { label: description, isBold: false },
+    ],
     iconName: IconName.Error,
     iconColor,
     backgroundColor,
-    hasNoTimeout,
-    compact,
+    hasNoTimeout: false,
     ...(retryLabel && onRetry
       ? {
           linkButtonOptions: {
             label: retryLabel,
             onPress: onRetry,
-          },
-        }
-      : {}),
-    ...(onClose
-      ? {
-          closeButtonOptions: {
-            variant: ButtonIconVariant.Icon,
-            iconName: IconName.Close,
-            onPress: onClose,
           },
         }
       : {}),
@@ -394,41 +367,13 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'failed') {
-          // When the slip is currently visible, the inline order_failed banner
-          // inside the slip handles the error. Suppress the toast to avoid
-          // duplicate UI.
-          if (bottomSheetEnabled && isPredictBuySheetVisible()) {
+          // When the bottom-sheet flow is on and the provider is mounted,
+          // the provider's state-based trigger (in PredictPreviewSheetContext)
+          // surfaces a persistent Retry toast for the same error. Skip here
+          // to avoid double-firing.
+          if (bottomSheetEnabled && isPredictSheetProviderMounted()) {
             return;
           }
-
-          // When the bottom-sheet flow is on and we have remembered params
-          // from a previous openBuySheet, surface a "Retry" link in the
-          // toast that reopens the bet slip with the same market context.
-          const lastBuyParams = bottomSheetEnabled
-            ? getPredictLastBuyParams()
-            : null;
-
-          if (lastBuyParams) {
-            showErrorToast({
-              showToast,
-              title: strings('predict.order.prediction_failed'),
-              retryLabel: strings('predict.order.retry'),
-              onRetry: () => {
-                reopenPredictBuySheet();
-                ToastService.closeToast();
-              },
-              hasNoTimeout: true,
-              compact: true,
-              onClose: () => {
-                Engine.context.PredictController.clearOrderError();
-                ToastService.closeToast();
-              },
-              backgroundColor: theme.colors.accent04.normal,
-              iconColor: theme.colors.error.default,
-            });
-            return;
-          }
-
           showErrorToast({
             showToast,
             title: strings('predict.order.prediction_failed'),

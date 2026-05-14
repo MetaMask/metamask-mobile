@@ -3,11 +3,8 @@ import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import {
-  getPredictLastBuyParams,
-  isPredictBuySheetVisible,
   isPredictSheetProviderMounted,
   PredictPreviewSheetProvider,
-  reopenPredictBuySheet,
   usePredictPreviewSheet,
 } from './PredictPreviewSheetContext';
 import type {
@@ -226,6 +223,13 @@ describe('PredictPreviewSheetContext', () => {
     mockSelectPredictWithAnyTokenEnabledFlag.mockImplementation(
       () => mockPayWithAnyTokenEnabled,
     );
+    // Explicit toast/clearOrderError mock resets — `jest.clearAllMocks()`
+    // covers them but reset them by name for clarity and resilience to
+    // any future module-scope mock that doesn't get auto-cleared.
+    mockToastShowToast.mockReset();
+    mockToastCloseToast.mockReset();
+    mockClearOrderError.mockReset();
+    mockTrackBetslipDismissed.mockReset();
   });
 
   it('provides openBuySheet and openSellSheet to consumers', () => {
@@ -515,7 +519,7 @@ describe('PredictPreviewSheetContext', () => {
       expect(mockToastCloseToast).toHaveBeenCalledTimes(1);
     });
 
-    it('Tapping the close button on the Try again toast clears the order error and closes the toast', () => {
+    it('clears the order error and closes the toast when the user taps the close button on the Retry toast', () => {
       const { rerender } = render(
         <PredictPreviewSheetProvider>
           <TestConsumer />
@@ -630,87 +634,17 @@ describe('PredictPreviewSheetContext', () => {
       expect(mockToastShowToast).toHaveBeenCalledTimes(1);
     });
 
-    it('getPredictLastBuyParams returns the most recent params passed to openBuySheet', () => {
-      expect(getPredictLastBuyParams()).toBeNull();
-
-      render(
-        <PredictPreviewSheetProvider>
-          <TestConsumer />
-        </PredictPreviewSheetProvider>,
-      );
-
-      fireEvent.press(screen.getByTestId('open-buy'));
-
-      expect(getPredictLastBuyParams()).toEqual(buyParams);
-    });
-
-    it('isPredictBuySheetVisible reflects whether the buy sheet is on screen', () => {
-      expect(isPredictBuySheetVisible()).toBe(false);
-
-      render(
-        <PredictPreviewSheetProvider>
-          <TestConsumer />
-        </PredictPreviewSheetProvider>,
-      );
-
-      expect(isPredictBuySheetVisible()).toBe(false);
-
-      fireEvent.press(screen.getByTestId('open-buy'));
-      expect(isPredictBuySheetVisible()).toBe(true);
-
-      fireEvent.press(screen.getByTestId('dismiss-sheet'));
-      expect(isPredictBuySheetVisible()).toBe(false);
-    });
-
-    it('reopenPredictBuySheet re-opens the buy sheet with the last params', () => {
-      render(
-        <PredictPreviewSheetProvider>
-          <TestConsumer />
-        </PredictPreviewSheetProvider>,
-      );
-
-      fireEvent.press(screen.getByTestId('open-buy'));
-      fireEvent.press(screen.getByTestId('dismiss-sheet'));
-      expect(
-        screen.queryByTestId('predict-buy-preview-sheet'),
-      ).not.toBeOnTheScreen();
-
-      act(() => {
-        reopenPredictBuySheet();
-      });
-
-      expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
-    });
-
-    it('reopenPredictBuySheet is a no-op when no buy sheet has ever been opened', () => {
-      render(
-        <PredictPreviewSheetProvider>
-          <TestConsumer />
-        </PredictPreviewSheetProvider>,
-      );
-
-      act(() => {
-        reopenPredictBuySheet();
-      });
-
-      expect(
-        screen.queryByTestId('predict-buy-preview-sheet'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('reopenPredictBuySheet is a no-op after the provider unmounts', () => {
+    it('closes any persistent toast on provider unmount', () => {
       const { unmount } = render(
         <PredictPreviewSheetProvider>
           <TestConsumer />
         </PredictPreviewSheetProvider>,
       );
 
-      fireEvent.press(screen.getByTestId('open-buy'));
+      mockToastCloseToast.mockClear();
       unmount();
 
-      // After unmount, the module-level reopen handler is cleared so the call
-      // is a no-op (and must not throw).
-      expect(() => reopenPredictBuySheet()).not.toThrow();
+      expect(mockToastCloseToast).toHaveBeenCalledTimes(1);
     });
   });
 

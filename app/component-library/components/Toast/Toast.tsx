@@ -75,10 +75,10 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const baseStyle: StyleProp<ViewStyle> = useMemo(
     () => [
       styles.base,
-      toastOptions?.compact ? styles.base_compact : null,
+      toastOptions?.compact ? styles.baseCompact : null,
       animatedStyle,
     ],
-    [styles.base, styles.base_compact, animatedStyle, toastOptions?.compact],
+    [styles.base, styles.baseCompact, animatedStyle, toastOptions?.compact],
   );
 
   const resetState = () => setToastOptions(undefined);
@@ -209,6 +209,9 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const renderAvatar = () => {
+    const avatarStyle = toastOptions?.compact
+      ? [styles.avatar, styles.compactAvatar]
+      : styles.avatar;
     switch (toastOptions?.variant) {
       case ToastVariants.Plain:
         return null;
@@ -223,7 +226,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             // should receive avatar type as props
             type={accountAvatarType}
             size={AvatarSize.Md}
-            style={styles.avatar}
+            style={avatarStyle}
           />
         );
       }
@@ -235,7 +238,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             name={networkName}
             imageSource={networkImageSource}
             size={AvatarSize.Md}
-            style={styles.avatar}
+            style={avatarStyle}
           />
         );
       }
@@ -246,7 +249,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             variant={AvatarVariant.Favicon}
             imageSource={appIconSource}
             size={AvatarSize.Md}
-            style={styles.avatar}
+            style={avatarStyle}
           />
         );
       }
@@ -258,7 +261,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             name={iconName}
             iconColor={iconColor}
             backgroundColor={backgroundColor}
-            style={styles.avatar}
+            style={avatarStyle}
           />
         );
       }
@@ -283,7 +286,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         <>
           {isStartAccessoryValid ? startAccessory : renderAvatar()}
           <View
-            style={styles.compactLabelContainer}
+            style={[styles.labelsContainer, styles.labelsContainerCompact]}
             testID={ToastSelectorsIDs.CONTAINER}
           >
             {renderLabel(labelOptions)}

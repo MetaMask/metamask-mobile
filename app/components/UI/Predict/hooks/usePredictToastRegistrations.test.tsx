@@ -101,40 +101,14 @@ jest.mock('../../../../selectors/networkController', () => ({
 }));
 
 let mockBottomSheetEnabled = false;
-let mockBuySheetVisible = false;
-let mockLastBuyParams: { market?: { id: string } } | null = null;
-const mockReopenPredictBuySheet = jest.fn();
-const mockClearOrderError = jest.fn();
-const mockToastClose = jest.fn();
+let mockProviderMounted = false;
 
 jest.mock('../selectors/featureFlags', () => ({
   selectPredictBottomSheetEnabledFlag: jest.fn(() => mockBottomSheetEnabled),
 }));
 
 jest.mock('../contexts/PredictPreviewSheetContext', () => ({
-  isPredictBuySheetVisible: jest.fn(() => mockBuySheetVisible),
-  getPredictLastBuyParams: jest.fn(() => mockLastBuyParams),
-  reopenPredictBuySheet: (...args: unknown[]) =>
-    mockReopenPredictBuySheet(...args),
-}));
-
-jest.mock('../../../../core/ToastService', () => ({
-  __esModule: true,
-  default: {
-    showToast: jest.fn(),
-    closeToast: (...args: unknown[]) => mockToastClose(...args),
-  },
-}));
-
-jest.mock('../../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      PredictController: {
-        clearOrderError: (...args: unknown[]) => mockClearOrderError(...args),
-      },
-    },
-  },
+  isPredictSheetProviderMounted: jest.fn(() => mockProviderMounted),
 }));
 
 describe('usePredictToastRegistrations', () => {
@@ -151,8 +125,7 @@ describe('usePredictToastRegistrations', () => {
     jest.useFakeTimers();
 
     mockBottomSheetEnabled = false;
-    mockBuySheetVisible = false;
-    mockLastBuyParams = null;
+    mockProviderMounted = false;
     mockWithdrawTransaction = { amount: 123.45 };
 
     mockDeposit.mockResolvedValue(undefined);
@@ -945,9 +918,9 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
-    it('suppresses the failure toast when bottom sheet flag is ON and the slip is visible', () => {
+    it('suppresses the failure toast when bottom sheet flag is ON and provider is mounted (state-based trigger handles it)', () => {
       mockBottomSheetEnabled = true;
-      mockBuySheetVisible = true;
+      mockProviderMounted = true;
       const handler = getHandler();
 
       handler(
@@ -962,45 +935,9 @@ describe('usePredictToastRegistrations', () => {
       expect(showToast).not.toHaveBeenCalled();
     });
 
-    it('shows a persistent Try again toast with close button when bottom sheet flag is ON, slip is closed, and last buy params exist', () => {
+    it('shows the plain failure toast when bottom sheet flag is ON but provider is not mounted (fallback)', () => {
       mockBottomSheetEnabled = true;
-      mockBuySheetVisible = false;
-      mockLastBuyParams = { market: { id: 'market-1' } };
-      const handler = getHandler();
-
-      handler(
-        {
-          type: 'order',
-          status: 'failed',
-          senderAddress: selectedAddress,
-        },
-        showToast,
-      );
-
-      expect(showToast).toHaveBeenCalledTimes(1);
-      const toastCall = showToast.mock.calls[0][0];
-      expect(toastCall.hasNoTimeout).toBe(true);
-      expect(toastCall.linkButtonOptions).toEqual(
-        expect.objectContaining({ label: expect.any(String) }),
-      );
-      expect(toastCall.closeButtonOptions).toEqual(
-        expect.objectContaining({ variant: 'Icon' }),
-      );
-
-      // Tap Try again -> reopens slip + closes toast
-      toastCall.linkButtonOptions.onPress();
-      expect(mockReopenPredictBuySheet).toHaveBeenCalledTimes(1);
-      expect(mockToastClose).toHaveBeenCalledTimes(1);
-
-      // Tap close button -> clears error + closes toast
-      mockToastClose.mockClear();
-      toastCall.closeButtonOptions.onPress();
-      expect(mockClearOrderError).toHaveBeenCalledTimes(1);
-      expect(mockToastClose).toHaveBeenCalledTimes(1);
-    });
-
-    it('shows the legacy plain failure toast when bottom sheet flag is OFF', () => {
-      mockBottomSheetEnabled = false;
+      mockProviderMounted = false;
       const handler = getHandler();
 
       handler(
@@ -1020,10 +957,8 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
-    it('falls back to plain toast when bottom sheet flag is ON but no last buy params recorded', () => {
-      mockBottomSheetEnabled = true;
-      mockBuySheetVisible = false;
-      mockLastBuyParams = null;
+    it('shows the legacy plain failure toast when bottom sheet flag is OFF', () => {
+      mockBottomSheetEnabled = false;
       const handler = getHandler();
 
       handler(

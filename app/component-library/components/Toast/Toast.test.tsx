@@ -5,8 +5,14 @@ import { render, screen, act } from '@testing-library/react-native';
 
 // Internal dependencies.
 import Toast from './Toast';
-import { ToastRef, ToastVariants, ToastOptions } from './Toast.types';
+import {
+  ButtonIconVariant,
+  ToastRef,
+  ToastVariants,
+  ToastOptions,
+} from './Toast.types';
 import { ToastSelectorsIDs } from './ToastModal.testIds';
+import { IconName } from '../Icons/Icon';
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
 
@@ -184,5 +190,60 @@ describe('Toast', () => {
     const flat = StyleSheet.flatten(labelsContainer.props.style);
 
     expect(flat.justifyContent).toBe('flex-start');
+  });
+
+  describe('compact mode', () => {
+    it('renders label, action button and close button on a single row and centers vertically', async () => {
+      const onRetry = jest.fn();
+      const onClose = jest.fn();
+      const toastOptions: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Failed', isBold: true }],
+        hasNoTimeout: true,
+        compact: true,
+        linkButtonOptions: { label: 'Retry', onPress: onRetry },
+        closeButtonOptions: {
+          variant: ButtonIconVariant.Icon,
+          iconName: IconName.Close,
+          onPress: onClose,
+        },
+      };
+
+      render(<Toast ref={toastRef} />);
+
+      await act(async () => {
+        toastRef.current?.showToast(toastOptions);
+        jest.runAllTimers();
+      });
+
+      // Label and action button are both rendered.
+      expect(screen.getByText('Failed')).toBeOnTheScreen();
+      expect(screen.getByText('Retry')).toBeOnTheScreen();
+
+      // Compact label container centers vertically (flex-start in default mode).
+      const labelsContainer = screen.getByTestId(ToastSelectorsIDs.CONTAINER);
+      const flat = StyleSheet.flatten(labelsContainer.props.style);
+      expect(flat.justifyContent).toBe('center');
+    });
+
+    it('hides descriptionOptions when compact is true', async () => {
+      const toastOptions: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Title' }],
+        descriptionOptions: { description: 'This should be hidden' },
+        hasNoTimeout: true,
+        compact: true,
+      };
+
+      render(<Toast ref={toastRef} />);
+
+      await act(async () => {
+        toastRef.current?.showToast(toastOptions);
+        jest.runAllTimers();
+      });
+
+      expect(screen.getByText('Title')).toBeOnTheScreen();
+      expect(screen.queryByText('This should be hidden')).toBeNull();
+    });
   });
 });
