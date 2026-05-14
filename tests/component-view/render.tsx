@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text } from 'react-native';
+import { useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider, {
   renderScreen,
@@ -14,6 +15,23 @@ export function renderComponentViewScreen(
 ) {
   return renderScreen(Component, options, providerValues, initialParams);
 }
+
+export const getRouteProbeTestId = (routeName: string) => `route-${routeName}`;
+
+export const getRouteParamsProbeTestId = (routeName: string) =>
+  `route-${routeName}-params`;
+
+export const createRouteParamsProbe =
+  (routeName: string): React.FC =>
+  () => {
+    const route = useRoute();
+
+    return (
+      <Text testID={getRouteParamsProbeTestId(routeName)}>
+        {JSON.stringify(route.params)}
+      </Text>
+    );
+  };
 
 /**
  * Render a screen with additional registered routes to assert navigation without mocking.
@@ -33,7 +51,7 @@ export function renderScreenWithRoutes(
 
   const DefaultRouteProbe =
     (routeName: string): React.FC =>
-    () => <Text testID={`route-${routeName}`}>{routeName}</Text>;
+    () => <Text testID={getRouteProbeTestId(routeName)}>{routeName}</Text>;
 
   const stackTree = (
     <Stack.Navigator>

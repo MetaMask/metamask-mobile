@@ -13,6 +13,8 @@ jest.mock('../../app/core/Engine', () => {
           keyrings: [],
         },
         removeAccount: jest.fn().mockResolvedValue(undefined),
+        verifyPassword: jest.fn().mockResolvedValue(undefined),
+        exportAccount: jest.fn().mockResolvedValue(''),
         getAccountKeyringType: jest.fn().mockReturnValue('HD Key Tree'),
       },
       AccountsController: {
@@ -31,6 +33,7 @@ jest.mock('../../app/core/Engine', () => {
         setAccountGroupName: jest.fn(),
       },
       MultichainAccountService: {
+        alignWallets: jest.fn().mockResolvedValue(undefined),
         createNextMultichainAccountGroup: jest.fn().mockResolvedValue({
           id: 'entropy:wallet1/1',
           metadata: { name: 'Account 2' },

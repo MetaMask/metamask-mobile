@@ -6,13 +6,30 @@ import renderWithProvider, {
 import type { RootState } from '../../../app/reducers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { AccountGroupId } from '@metamask/account-api';
+import { CaipChainId } from '@metamask/utils';
 import Engine from '../../../app/core/Engine';
 import Routes from '../../../app/constants/navigation/Routes';
-import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
+import {
+  createRouteParamsProbe,
+  renderComponentViewScreen,
+  renderScreenWithRoutes,
+} from '../render';
+import { deepMerge } from '../stateFixture';
 import MultichainAccountSelectorList from '../../../app/component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
 import { AccountGroupDetails } from '../../../app/components/Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails';
 import { EditMultichainAccountName } from '../../../app/components/Views/MultichainAccounts/sheets/EditMultichainAccountName';
 import { DeleteAccount } from '../../../app/components/Views/MultichainAccounts/sheets/DeleteAccount/DeleteAccount';
+import MultichainPermissionsSummary, {
+  type MultichainPermissionsSummaryProps,
+} from '../../../app/components/Views/MultichainAccounts/MultichainPermissionsSummary/MultichainPermissionsSummary';
+import MultichainAccountsIntroModal from '../../../app/components/Views/MultichainAccounts/IntroModal/MultichainAccountsIntroModal';
+import LearnMoreBottomSheet from '../../../app/components/Views/MultichainAccounts/IntroModal/LearnMoreBottomSheet';
+import { PrivateKeyList } from '../../../app/components/Views/MultichainAccounts/PrivateKeyList/PrivateKeyList';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../app/component-library/components/Avatars/Avatar';
 import {
   buildMultichainAccountsFixture,
   type MultichainAccountsFixture,
@@ -65,14 +82,16 @@ interface FixtureRendererOptions {
 function getFixture(options: FixtureRendererOptions = {}) {
   const fixture = options.fixture ?? buildMultichainAccountsFixture();
   if (options.overrides) {
-    fixture.state = {
-      ...fixture.state,
-      ...options.overrides,
-    } as DeepPartial<RootState>;
+    fixture.state = deepMerge(
+      fixture.state as Record<string, unknown>,
+      options.overrides as Record<string, unknown>,
+    ) as DeepPartial<RootState>;
   }
   syncEngineAccounts(fixture);
   return fixture;
 }
+
+const BrowserRouteProbe = createRouteParamsProbe(Routes.BROWSER.HOME);
 
 interface AccountSelectorRendererOptions extends FixtureRendererOptions {
   selectedAccountGroups?: AccountGroupObject[];
@@ -118,10 +137,25 @@ export function renderMultichainAccountSelectorList(
   };
 }
 
+interface AccountGroupDetailsRendererOptions extends FixtureRendererOptions {
+  accountGroup?: AccountGroupObject;
+}
+
+const MultichainAccountDetailActionsRouteProbe = createRouteParamsProbe(
+  Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+);
+const AddressListRouteProbe = createRouteParamsProbe(
+  Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
+);
+const PrivateKeyListRouteProbe = createRouteParamsProbe(
+  Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
+);
+
 export function renderAccountGroupDetailsWithRoutes(
-  options: FixtureRendererOptions = {},
+  options: AccountGroupDetailsRendererOptions = {},
 ) {
   const fixture = getFixture(options);
+  const accountGroup = options.accountGroup ?? fixture.groups.account1;
   return {
     ...renderScreenWithRoutes(
       AccountGroupDetails as unknown as React.ComponentType,
@@ -132,11 +166,24 @@ export function renderAccountGroupDetailsWithRoutes(
           Component:
             EditMultichainAccountName as unknown as React.ComponentType<unknown>,
         },
+        {
+          name: Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+          Component: MultichainAccountDetailActionsRouteProbe,
+        },
+        {
+          name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
+          Component: AddressListRouteProbe,
+        },
+        {
+          name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
+          Component: PrivateKeyListRouteProbe,
+        },
       ],
       { state: fixture.state },
-      { accountGroup: fixture.groups.account1 },
+      { accountGroup },
     ),
     fixture,
+    accountGroup,
   };
 }
 
@@ -180,6 +227,95 @@ export function renderDeleteAccountWithRoutes(
     ),
     fixture,
     account,
+  };
+}
+
+export function renderMultichainAccountsIntroModal(
+  options: FixtureRendererOptions = {},
+) {
+  const fixture = getFixture(options);
+  return {
+    ...renderScreenWithRoutes(
+      MultichainAccountsIntroModal as unknown as React.ComponentType,
+      { name: Routes.MODAL.MULTICHAIN_ACCOUNTS_INTRO },
+      [
+        { name: Routes.BROWSER.HOME, Component: BrowserRouteProbe },
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+      ],
+      { state: fixture.state },
+    ),
+    fixture,
+  };
+}
+
+export function renderLearnMoreBottomSheet(
+  options: FixtureRendererOptions = {},
+) {
+  const fixture = getFixture(options);
+  return {
+    ...renderScreenWithRoutes(
+      LearnMoreBottomSheet as unknown as React.ComponentType,
+      { name: Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE },
+      [{ name: Routes.MODAL.ROOT_MODAL_FLOW }],
+      { state: fixture.state },
+    ),
+    fixture,
+  };
+}
+
+export function renderPrivateKeyList(options: FixtureRendererOptions = {}) {
+  const fixture = getFixture(options);
+  return {
+    ...renderComponentViewScreen(
+      PrivateKeyList as unknown as React.ComponentType,
+      { name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST },
+      { state: fixture.state },
+      {
+        groupId: fixture.groups.account1.id,
+        title: fixture.groups.account1.metadata.name,
+      },
+    ),
+    fixture,
+  };
+}
+
+interface PermissionsSummaryRendererOptions extends FixtureRendererOptions {
+  props?: Partial<MultichainPermissionsSummaryProps>;
+}
+
+export function renderMultichainPermissionsSummary(
+  options: PermissionsSummaryRendererOptions = {},
+) {
+  const fixture = getFixture(options);
+  const SummaryScreen = () => (
+    <MultichainPermissionsSummary
+      currentPageInformation={{
+        currentEnsName: '',
+        icon: 'https://metamask.io/favicon.ico',
+        url: 'https://portfolio.metamask.io',
+      }}
+      selectedAccountGroupIds={[fixture.groups.account1.id as AccountGroupId]}
+      networkAvatars={[
+        {
+          name: 'Ethereum Main Network',
+          imageSource: { uri: 'ethereum-mainnet.png' },
+          size: AvatarSize.Xs,
+          variant: AvatarVariant.Network,
+          caipChainId: 'eip155:1' as CaipChainId,
+        },
+      ]}
+      {...options.props}
+    />
+  );
+
+  return {
+    ...renderScreenWithRoutes(
+      SummaryScreen,
+      { name: 'MultichainPermissionsSummary' },
+      [{ name: Routes.MODAL.ROOT_MODAL_FLOW }, { name: Routes.BROWSER.HOME }],
+      { state: fixture.state },
+    ),
+    fixture,
   };
 }
 
