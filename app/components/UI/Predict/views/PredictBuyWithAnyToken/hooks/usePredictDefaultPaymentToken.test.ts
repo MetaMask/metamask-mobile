@@ -192,14 +192,25 @@ describe('usePredictDefaultPaymentToken', () => {
     expect(mockOnPaymentTokenChange).not.toHaveBeenCalled();
   });
 
-  it('falls back to predict balance when tokens array is empty', () => {
+  it('waits for account tokens before falling back or auto-selecting', () => {
     mockPredictBalance = 0.5;
     mockTokens = [];
 
-    renderHook(() => usePredictDefaultPaymentToken());
+    const { rerender } = renderHook(() => usePredictDefaultPaymentToken());
 
     expect(mockOnPaymentTokenChange).not.toHaveBeenCalled();
-    expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
+    expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
+
+    mockTokens = [
+      createEvmErc20Token({ address: '0x1', symbol: 'USDC', fiatBalance: 100 }),
+    ];
+
+    rerender({});
+
+    expect(mockOnPaymentTokenChange).toHaveBeenCalledWith(
+      expect.objectContaining({ address: '0x1', symbol: 'USDC' }),
+    );
+    expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
   });
 
   it('falls back to predict balance when no tokens have positive fiat balance', () => {
@@ -281,6 +292,43 @@ describe('usePredictDefaultPaymentToken', () => {
 
     const { rerender } = renderHook(() => usePredictDefaultPaymentToken());
     rerender({});
+    rerender({});
+
+    expect(mockOnPaymentTokenChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not auto-select again when the same sheet returns to PREVIEW after a manual Predict balance selection', () => {
+    mockPredictBalance = 0.5;
+    mockTokens = [
+      createEvmErc20Token({ address: '0x1', symbol: 'USDC', fiatBalance: 100 }),
+    ];
+
+    const { rerender } = renderHook(() => usePredictDefaultPaymentToken());
+
+    expect(mockOnPaymentTokenChange).toHaveBeenCalledTimes(1);
+
+    mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
+    rerender({});
+
+    mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+    rerender({});
+
+    expect(mockOnPaymentTokenChange).toHaveBeenCalledTimes(1);
+    expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
+  });
+
+  it('still initializes when the active order reaches PREVIEW for the first time', () => {
+    mockPredictBalance = 0.5;
+    mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
+    mockTokens = [
+      createEvmErc20Token({ address: '0x1', symbol: 'USDC', fiatBalance: 100 }),
+    ];
+
+    const { rerender } = renderHook(() => usePredictDefaultPaymentToken());
+
+    expect(mockOnPaymentTokenChange).not.toHaveBeenCalled();
+
+    mockActiveOrder = { state: ActiveOrderState.PREVIEW };
     rerender({});
 
     expect(mockOnPaymentTokenChange).toHaveBeenCalledTimes(1);

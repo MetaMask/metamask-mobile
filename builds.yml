@@ -36,6 +36,7 @@ _public_envs: &public_envs # Servers (production)
   RAMPS_ENVIRONMENT: 'production'
   RAMP_DEV_BUILD: 'false'
   BRIDGE_USE_DEV_APIS: 'false'
+  MM_BATCH_SELL_ENABLED: 'false'
   RAMP_INTERNAL_BUILD: 'false'
   IS_TEST: 'false'
   SEEDLESS_ONBOARDING_ENABLED: 'true'
@@ -214,24 +215,7 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_main
 
-  # Release candidate with pre-imported wallet (system tests / performance tests)
-  # Same as main-rc but bakes in ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD so the app
-  # starts with an imported wallet, skipping onboarding. Used by run-system-tests.yml.
-  main-rc-with-srp:
-    script_name: main-rc
-    github_environment: build-rc
-    signing: *signing_rc
-    env:
-      <<: *public_envs
-      METAMASK_ENVIRONMENT: 'rc'
-      METAMASK_BUILD_TYPE: 'main'
-    secrets:
-      <<: *secrets
-      ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
-      PREDEFINED_PASSWORD: 'E2E_PASSWORD'
-    code_fencing: *code_fencing_main
-
-  # Test builds
+  # Test builds (QA)
   main-test:
     github_environment: build-uat
     signing: *signing_uat
