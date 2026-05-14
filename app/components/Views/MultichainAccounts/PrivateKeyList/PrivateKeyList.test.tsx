@@ -3,6 +3,12 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
+import {
+  IconName,
+  Toast,
+  ToastCloseButtonVariant,
+  ToastVariant,
+} from '@metamask/design-system-react-native';
 
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
@@ -62,6 +68,27 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
+
+jest.mock('../../../../core/ClipboardManager', () => ({
+  setStringExpire: jest.fn(),
+}));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+
+  return {
+    ...actualDesignSystem,
+    Toast: Object.assign(
+      jest.fn(() => null),
+      {
+        show: jest.fn(),
+        hide: jest.fn(),
+      },
+    ),
+  };
+});
 
 const mockEthEoaAccount = {
   ...createMockInternalAccount(
@@ -237,6 +264,56 @@ describe('PrivateKeyList', () => {
     );
     expect(getTextInNavHeader(TITLE)).toBeOnTheScreen();
     unmount();
+  });
+
+  it('copies a private key and shows the design system toast', async () => {
+    const { getByTestId, findByTestId, getAllByTestId } =
+      renderWithPrivateKeyList();
+    const mockClipboardManager = jest.requireMock(
+      '../../../../core/ClipboardManager',
+    ) as { setStringExpire: jest.Mock };
+
+    fireEvent.changeText(
+      getByTestId(PrivateKeyListIds.PASSWORD_INPUT),
+      'correct-password',
+    );
+    fireEvent.press(getByTestId(PrivateKeyListIds.CONTINUE_BUTTON));
+
+    await findByTestId(PrivateKeyListIds.LIST);
+
+    fireEvent.press(
+      getAllByTestId(PrivateKeyListIds.COPY_TO_CLIPBOARD_BUTTON)[0],
+    );
+
+    await waitFor(() => {
+      expect(mockClipboardManager.setStringExpire).toHaveBeenCalledWith(
+        `mock-private-key-for-${mockEthEoaAccount.address}`,
+      );
+    });
+
+    const toastShowMock = jest.mocked(Toast.show);
+
+    await waitFor(() => {
+      expect(toastShowMock).toHaveBeenCalledWith({
+        variant: ToastVariant.Plain,
+        labelOptions: [
+          {
+            label: strings('multichain_accounts.private_key_list.copied'),
+          },
+        ],
+        hasNoTimeout: false,
+        closeButtonOptions: {
+          variant: ToastCloseButtonVariant.Icon,
+          iconName: IconName.Close,
+          onPress: expect.any(Function),
+        },
+      });
+    });
+
+    const toastOptions = toastShowMock.mock.calls[0][0];
+    toastOptions.closeButtonOptions?.onPress?.();
+
+    expect(Toast.hide).toHaveBeenCalled();
   });
 
   it('clears wrong-password error and shows list when correct password is entered after wrong', async () => {

@@ -1,7 +1,13 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
+import {
+  IconName,
+  Toast,
+  ToastCloseButtonVariant,
+  ToastVariant,
+} from '@metamask/design-system-react-native';
 
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -10,6 +16,8 @@ import { AddressList } from './AddressList';
 import { MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
 import { toFormattedAddress } from '../../../../util/address';
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
+import { strings } from '../../../../../locales/i18n';
+import { AddressListIds } from './AddressList.testIds';
 
 const ACCOUNT_WALLET_ID = 'entropy:wallet-id-1' as AccountWalletId;
 const ACCOUNT_GROUP_ID = 'entropy:wallet-id-1/1' as AccountGroupId;
@@ -54,6 +62,23 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../../../core/ClipboardManager', () => ({
   setString: jest.fn(),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+
+  return {
+    ...actualDesignSystem,
+    Toast: Object.assign(
+      jest.fn(() => null),
+      {
+        show: jest.fn(),
+        hide: jest.fn(),
+      },
+    ),
+  };
+});
 
 const mockEthEoaAccount = {
   ...createMockInternalAccount(
@@ -193,6 +218,27 @@ describe('AddressList', () => {
     });
   });
 
+  it('calls navigation.goBack from the header back button', () => {
+    renderWithAddressList();
+
+    const navOptionsWithHeader = mockSetOptions.mock.calls
+      .map(([opts]) => opts)
+      .find(
+        (opts) =>
+          opts &&
+          opts.headerShown === true &&
+          typeof opts.header === 'function',
+      );
+
+    expect(navOptionsWithHeader).toBeDefined();
+
+    const { getByTestId, unmount } = render(navOptionsWithHeader.header());
+    fireEvent.press(getByTestId(AddressListIds.GO_BACK));
+
+    expect(mockGoBack).toHaveBeenCalled();
+    unmount();
+  });
+
   it('does not set navigation options when title is not provided', () => {
     const { useParams } = jest.requireMock(
       '../../../../util/navigation/navUtils',
@@ -306,6 +352,39 @@ describe('AddressList', () => {
       const addPropertiesCall = mockAddProperties.mock.calls[0][0];
 
       expect(addPropertiesCall).toHaveProperty('location', 'address-list');
+    });
+
+    it('shows and dismisses the design system copy toast', async () => {
+      const { getAllByTestId } = renderWithAddressList();
+
+      const copyButton = getAllByTestId(
+        'multichain-address-row-copy-button',
+      )[0];
+      fireEvent.press(copyButton);
+
+      const toastShowMock = jest.mocked(Toast.show);
+
+      await waitFor(() => {
+        expect(toastShowMock).toHaveBeenCalledWith({
+          variant: ToastVariant.Plain,
+          labelOptions: [
+            {
+              label: strings('notifications.address_copied_to_clipboard'),
+            },
+          ],
+          hasNoTimeout: false,
+          closeButtonOptions: {
+            variant: ToastCloseButtonVariant.Icon,
+            iconName: IconName.Close,
+            onPress: expect.any(Function),
+          },
+        });
+      });
+
+      const toastOptions = toastShowMock.mock.calls[0][0];
+      toastOptions.closeButtonOptions?.onPress?.();
+
+      expect(Toast.hide).toHaveBeenCalled();
     });
   });
 });
