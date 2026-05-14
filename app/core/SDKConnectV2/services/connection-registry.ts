@@ -19,12 +19,12 @@ import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
 import { rpcErrors } from '@metamask/rpc-errors';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
-import Logger from '../../../util/Logger';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import type { IMetaMetricsEvent } from '../../Analytics/MetaMetrics.types';
 import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import { SDK } from '@metamask/profile-sync-controller';
 
 /**
@@ -58,8 +58,8 @@ function trackMwpEvent(
  * evicted before the new one is created.
  */
 export const MAX_CONNECTIONS = 20;
-
 const CLI_DASHBOARD_TOKEN_PATH = '/api/v2/mm-qr-login/token';
+const ENGINE_READY_POLL_MS = 250;
 
 interface CliDashboardTokenResponse {
   access_token?: unknown;
@@ -177,28 +177,6 @@ export class ConnectionRegistry {
         await this.handleConnectDeeplink(url);
       }
     } catch (error) {
-      // Report to Sentry so we have visibility into deeplink dispatch failures.
-      // The local logger.error below is dev-only console output and never
-      // reaches Sentry on its own.
-      //
-      // NOTE: the `feature` tag is intentionally `mm-connect` even though
-      // this file lives under `SDKConnectV2/`. The product name has
-      // converged on "MetaMask Connect" (MMC); the internal directory,
-      // class, and logger names (`SDKConnectV2`, `ConnectionRegistry`,
-      // `[SDKConnectV2]` log prefix) still use the older nomenclature
-      // and need to migrate. Tagging Sentry with the public-facing
-      // feature name now avoids having to rename Sentry dashboards/
-      // alerts later when the code catches up.
-      Logger.error(error as Error, {
-        tags: {
-          feature: 'mm-connect',
-          operation: 'handle_mwp_deeplink',
-        },
-        context: {
-          name: 'mwp_deeplink',
-          data: { url: redactUrl(url) },
-        },
-      });
       logger.error('Failed to handle MWP deeplink:', error);
     }
   }
@@ -278,9 +256,10 @@ export class ConnectionRegistry {
     let conn: Connection | undefined;
     let connInfo: ConnectionInfo | undefined;
     let connReq: ConnectionRequest | undefined;
-    let didConnectionFail = false;
+    let agenticCliStage: string | undefined;
 
     try {
+      agenticCliStage = 'parse-connection-request';
       connReq = this.parseConnectionRequest(url);
 
       trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
@@ -311,25 +290,59 @@ export class ConnectionRegistry {
       }
 
       const isAgenticCli = this.isAgenticCli(connReq);
+      if (isAgenticCli) {
+        logger.debug('Agentic CLI QR flow: parsed request', {
+          id: connReq.sessionRequest.id,
+          hasDashboardUrl: Boolean(connReq.connectionType?.dashboardUrl),
+          hasDashboardAuthUrl: Boolean(
+            connReq.connectionType?.dashboardAuthUrl,
+          ),
+        });
+      }
+
+      if (isAgenticCli) {
+        agenticCliStage = 'wait-for-keyring-unlock';
+        logger.debug('Agentic CLI QR flow: waiting for keyring unlock');
+        await this.waitForKeyringUnlock();
+        logger.debug('Agentic CLI QR flow: keyring unlocked');
+      }
 
       if (!isAgenticCli) {
         await this.evictIfAtCapacity();
       }
 
       connInfo = this.toConnectionInfo(connReq);
-
       this.hostapp.showConnectionLoading(connInfo);
+      if (isAgenticCli) {
+        agenticCliStage = 'create-mwp-connection';
+        logger.debug('Agentic CLI QR flow: creating MWP connection', {
+          id: connInfo.id,
+        });
+      }
       conn = await Connection.create(
         connInfo,
         this.keymanager,
         this.RELAY_URL,
         this.hostapp,
       );
+      if (isAgenticCli) {
+        agenticCliStage = 'mwp-connect';
+        logger.debug('Agentic CLI QR flow: MWP connect start', {
+          id: connInfo.id,
+        });
+      }
       await conn.connect(this.toSessionRequest(connReq));
+      if (isAgenticCli) {
+        logger.debug('Agentic CLI QR flow: MWP connect success', {
+          id: connInfo.id,
+        });
+      }
 
       if (isAgenticCli) {
         try {
-          await this.handleAgenticCliAuth(connInfo, conn);
+          await this.handleAgenticCliAuth(connReq, connInfo, conn, (stage) => {
+            agenticCliStage = stage;
+          });
         } finally {
           conn = undefined;
         }
@@ -342,33 +355,11 @@ export class ConnectionRegistry {
 
       logger.debug('Handled connect deeplink.', connInfo?.id);
     } catch (error) {
-      // Report to Sentry so we have visibility into connect-deeplink
-      // failures. The local logger.error below is dev-only console output
-      // and never reaches Sentry on its own.
-      //
-      // NOTE: `feature: 'mm-connect'` is intentional — see the matching
-      // comment in handleMwpDeeplink above for why the tag uses the
-      // public-facing product name even though this directory is named
-      // `SDKConnectV2/`.
-      Logger.error(error as Error, {
-        tags: {
-          feature: 'mm-connect',
-          operation: 'handle_connect_deeplink',
-        },
-        context: {
-          name: 'mwp_deeplink',
-          data: {
-            url: redactUrl(url),
-            dapp_url: connReq?.metadata?.dapp?.url,
-            dapp_name: connReq?.metadata?.dapp?.name,
-            sdk_version: connReq?.metadata?.sdk?.version,
-            sdk_platform: connReq?.metadata?.sdk?.platform,
-          },
-        },
+      logger.error('Failed to handle connect deeplink:', error, {
+        agenticCliStage,
+        url: redactUrl(url),
       });
-      logger.error('Failed to handle connect deeplink:', error, redactUrl(url));
       this.hostapp.showConnectionError();
-      didConnectionFail = true;
 
       // Track the failure before cleanup so the event fires even if
       // disconnect() throws.
@@ -397,24 +388,7 @@ export class ConnectionRegistry {
         }
       }
     } finally {
-      // Loading-toast dismissal rules:
-      // - On failure, always dismiss the loading toast. Otherwise the user
-      //   would briefly see both a "loading" toast and the error toast at
-      //   the same time, and the loading toast would linger after the error
-      //   toast auto-dismisses.
-      // - On success for direct deeplink flows (initialMessage present), the
-      //   connection request includes the initial RPC, so an approval will
-      //   surface immediately after the MWP handshake — it's safe to dismiss
-      //   the loading toast right away.
-      // - On success for QR flows (no initialMessage), the dapp sends
-      //   wallet_createSession separately after the handshake. There may be
-      //   a noticeable delay before the approval appears, so we keep the
-      //   loading toast visible and let it autodismiss naturally.
-      const isQrFlow = connReq?.sessionRequest.initialMessage === undefined;
-      const shouldHideLoadingToast = didConnectionFail || !isQrFlow;
-      if (connInfo && shouldHideLoadingToast) {
-        this.hostapp.hideConnectionLoading(connInfo);
-      }
+      if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
     }
   }
 
@@ -515,6 +489,35 @@ export class ConnectionRegistry {
     return connReq.connectionType?.name === 'agentic-cli';
   }
 
+  private async waitForKeyringUnlock(): Promise<void> {
+    while (true) {
+      try {
+        if (Engine.context.KeyringController.isUnlocked()) {
+          return;
+        }
+
+        await new Promise<void>((resolve) => {
+          const handler = () => {
+            Engine.controllerMessenger.unsubscribe(
+              'KeyringController:unlock',
+              handler,
+            );
+            resolve();
+          };
+          Engine.controllerMessenger.subscribe(
+            'KeyringController:unlock',
+            handler,
+          );
+        });
+        return;
+      } catch {
+        await new Promise((resolve) =>
+          setTimeout(resolve, ENGINE_READY_POLL_MS),
+        );
+      }
+    }
+  }
+
   private toSessionRequest(connReq: ConnectionRequest): SessionRequest {
     if (!this.isAgenticCli(connReq)) {
       return connReq.sessionRequest;
@@ -527,20 +530,42 @@ export class ConnectionRegistry {
   }
 
   private async handleAgenticCliAuth(
+    connReq: ConnectionRequest,
     connInfo: ConnectionInfo,
     conn: Connection,
+    setStage: (stage: string) => void,
   ): Promise<void> {
     try {
+      const entropySourceId = this.getPrimaryEntropySourceId();
+      setStage('get-hydra-token');
+      logger.debug('Agentic CLI QR flow: bearer token start', {
+        entropySourceId,
+      });
       const hydraToken =
-        await Engine.context.AuthenticationController.getBearerToken();
-      const dashboardAccessToken =
-        await this.getCliDashboardAccessToken(hydraToken);
+        await Engine.context.AuthenticationController.getBearerToken(
+          entropySourceId,
+        );
+      logger.debug('Agentic CLI QR flow: bearer token success');
+      setStage('get-dashboard-token');
+      logger.debug('Agentic CLI QR flow: dashboard token start');
+      const dashboardAccessToken = await this.getCliDashboardAccessToken(
+        hydraToken,
+        connReq.connectionType?.dashboardAuthUrl,
+      );
+      logger.debug('Agentic CLI QR flow: dashboard token success');
+      setStage('dashboard-webview');
+      logger.debug('Agentic CLI QR flow: dashboard webview start');
       const authToken = await this.hostapp.requestCliAuthToken(
         connInfo,
         dashboardAccessToken,
+        connReq.connectionType?.dashboardUrl,
       );
+      logger.debug('Agentic CLI QR flow: dashboard webview success');
 
+      setStage('send-auth-token-to-cli');
+      logger.debug('Agentic CLI QR flow: send auth token start');
       await conn.sendAuthToken(authToken);
+      logger.debug('Agentic CLI QR flow: send auth token success');
     } finally {
       try {
         await this.cleanupConnection(conn);
@@ -554,9 +579,19 @@ export class ConnectionRegistry {
     }
   }
 
-  private getCliDashboardTokenUrl(): string {
-    // AuthenticationController always mints PRD bearer tokens, even in
-    // dev/uat mobile builds. Dev/uat authentication APIs reject those tokens.
+  private getPrimaryEntropySourceId(): string | undefined {
+    const keyrings = Engine.context.KeyringController.state.keyrings;
+    return (
+      keyrings.find((keyring) => keyring.type === KeyringTypes.hd)?.metadata
+        .id ?? keyrings[0]?.metadata.id
+    );
+  }
+
+  private getCliDashboardTokenUrl(dashboardAuthUrl?: string): string {
+    if (dashboardAuthUrl) {
+      return dashboardAuthUrl;
+    }
+
     const url = new URL(SDK.getEnvUrls(SDK.Env.DEV).authApiUrl);
     url.pathname = CLI_DASHBOARD_TOKEN_PATH;
     return url.toString();
@@ -564,13 +599,22 @@ export class ConnectionRegistry {
 
   private async getCliDashboardAccessToken(
     hydraToken: string,
+    dashboardAuthUrl?: string,
   ): Promise<string> {
-    const response = await fetch(this.getCliDashboardTokenUrl(), {
+    const tokenUrl = this.getCliDashboardTokenUrl(dashboardAuthUrl);
+    logger.debug('Agentic CLI QR flow: dashboard token request', {
+      url: redactUrl(tokenUrl),
+    });
+    const response = await fetch(tokenUrl, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${hydraToken}`,
       },
       body: '',
+    });
+    logger.debug('Agentic CLI QR flow: dashboard token response', {
+      status: response.status,
+      ok: response.ok,
     });
 
     if (!response.ok) {

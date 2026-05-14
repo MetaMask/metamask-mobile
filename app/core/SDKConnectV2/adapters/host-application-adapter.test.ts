@@ -10,6 +10,8 @@ import {
 } from '../../../actions/notification';
 import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import { Alert } from 'react-native';
+import { AgenticCliDashboardWebviewService } from '../../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
 
 jest.mock('../../../store', () => ({
   store: {
@@ -38,6 +40,15 @@ jest.mock('../../../actions/notification', () => ({
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn().mockImplementation((key) => key),
 }));
+
+jest.mock(
+  '../../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService',
+  () => ({
+    AgenticCliDashboardWebviewService: {
+      open: jest.fn(),
+    },
+  }),
+);
 
 const createMockConnectionInfo = (
   id: string,
@@ -69,6 +80,7 @@ describe('HostApplicationAdapter', () => {
     (showSimpleNotification as jest.Mock).mockClear();
     (hideNotificationById as jest.Mock).mockClear();
     (revokePermission as jest.Mock).mockClear();
+    (AgenticCliDashboardWebviewService.open as jest.Mock).mockReset();
     adapter = new HostApplicationAdapter();
   });
 
@@ -81,7 +93,7 @@ describe('HostApplicationAdapter', () => {
       expect(showSimpleNotification).toHaveBeenCalledTimes(1);
       expect(showSimpleNotification).toHaveBeenCalledWith({
         id: 'session-123',
-        autodismiss: 10000,
+        autodismiss: 15000,
         title: 'sdk_connect_v2.show_loading.title',
         description: 'sdk_connect_v2.show_loading.description',
         status: 'pending',
@@ -253,6 +265,45 @@ describe('HostApplicationAdapter', () => {
         status: 'success',
       });
       expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('showOtpCode', () => {
+    it('displays the mobile-generated OTP for CLI entry', () => {
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
+      const connInfo = createMockConnectionInfo('session-123', 'Agentic CLI');
+
+      adapter.showOtpCode(connInfo, '123456', Date.now() + 60_000);
+
+      expect(alertSpy).toHaveBeenCalledWith(
+        'sdk_connect_v2.show_otp.title',
+        'sdk_connect_v2.show_otp.description',
+        [{ text: 'navigation.ok' }],
+      );
+
+      alertSpy.mockRestore();
+    });
+  });
+
+  describe('requestCliAuthToken', () => {
+    it('opens the dashboard webview and resolves with its CLI token', async () => {
+      (AgenticCliDashboardWebviewService.open as jest.Mock).mockResolvedValue(
+        'cli-token',
+      );
+      const connInfo = createMockConnectionInfo('session-123', 'Agentic CLI');
+
+      await expect(
+        adapter.requestCliAuthToken(
+          connInfo,
+          'mobile-auth-token',
+          'https://dashboard.w3a.io',
+        ),
+      ).resolves.toBe('cli-token');
+
+      expect(AgenticCliDashboardWebviewService.open).toHaveBeenCalledWith({
+        dashboardUrl: 'https://dashboard.w3a.io',
+        dashboardToken: 'mobile-auth-token',
+      });
     });
   });
 

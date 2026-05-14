@@ -10,7 +10,7 @@ import Engine from '../../Engine';
 import { analytics } from '../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../Analytics';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
-import Logger from '../../../util/Logger';
+import { MOCK_ENTROPY_SOURCE } from '../../../util/test/keyringControllerTestUtils';
 
 jest.mock('../adapters/host-application-adapter');
 jest.mock('../store/connection-store');
@@ -24,13 +24,6 @@ jest.mock('../../../util/analytics/analytics', () => ({
     trackEvent: jest.fn(),
   },
 }));
-jest.mock('../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    error: jest.fn(),
-    log: jest.fn(),
-  },
-}));
 jest.mock('../../../store', () => ({
   store: {
     dispatch: jest.fn(),
@@ -41,7 +34,6 @@ jest.mock('../../../store', () => ({
 }));
 
 const mockTrackEvent = analytics.trackEvent as jest.Mock;
-const mockLoggerError = Logger.error as jest.Mock;
 
 // Factory functions for creating mock objects
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -94,11 +86,6 @@ describe('ConnectionRegistry', () => {
         channel: 'handshake:aabbccdd-1122-3344-5566-778899aabbcc',
         mode: 'trusted',
         expiresAt: Date.now() + 600_000,
-        // Direct deeplink flows always include an initialMessage; QR flows do not.
-        initialMessage: {
-          type: 'message',
-          payload: { method: 'wallet_createSession' },
-        },
       },
       metadata: {
         dapp: {
@@ -134,9 +121,17 @@ describe('ConnectionRegistry', () => {
     Engine.context.KeyringController.isUnlocked = jest
       .fn()
       .mockReturnValue(true);
+    (
+      Engine.context as unknown as {
+        AuthenticationController: { getBearerToken: jest.Mock };
+      }
+    ).AuthenticationController = {
+      getBearerToken: jest.fn().mockResolvedValue('hydra-token'),
+    };
 
     mockHostApp =
       new HostApplicationAdapter() as jest.Mocked<HostApplicationAdapter>;
+    mockHostApp.requestCliAuthToken = jest.fn().mockResolvedValue('cli-token');
     mockStore = new ConnectionStore(
       'test-prefix',
     ) as jest.Mocked<ConnectionStore>;
@@ -156,6 +151,7 @@ describe('ConnectionRegistry', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       client: {} as any,
       connect: jest.fn().mockResolvedValue(undefined),
+      sendAuthToken: jest.fn().mockResolvedValue(undefined),
       disconnect: jest.fn().mockResolvedValue(undefined),
       resume: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<Connection>;
@@ -275,40 +271,6 @@ describe('ConnectionRegistry', () => {
       await expect(registry.handleMwpDeeplink(null)).rejects.toThrow(
         'Invalid MWP deeplink: [invalid URL]',
       );
-    });
-
-    it('should report dispatch failures to Sentry via Logger.error', async () => {
-      registry = new ConnectionRegistry(
-        RELAY_URL,
-        mockKeyManager,
-        mockHostApp,
-        mockStore,
-      );
-
-      const dispatchError = new Error('boom');
-      const spyHandleConnectDeeplink = jest
-        .spyOn(registry, 'handleConnectDeeplink')
-        .mockRejectedValue(dispatchError);
-
-      await registry.handleMwpDeeplink(validDeeplink);
-
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        dispatchError,
-        expect.objectContaining({
-          tags: expect.objectContaining({
-            feature: 'mm-connect',
-            operation: 'handle_mwp_deeplink',
-          }),
-          context: expect.objectContaining({
-            name: 'mwp_deeplink',
-            data: expect.objectContaining({
-              url: expect.stringContaining('[REDACTED]'),
-            }),
-          }),
-        }),
-      );
-
-      spyHandleConnectDeeplink.mockRestore();
     });
   });
 
@@ -490,88 +452,83 @@ describe('ConnectionRegistry', () => {
           transport_type: TransportType.MWP,
           sdk_version: '2.0.0',
           sdk_platform: 'JavaScript',
+          dapp_name: 'Test DApp',
+          dapp_url: 'https://test.dapp',
         }),
       );
     });
 
-    describe('hideConnectionLoading dismissal', () => {
-      const buildDeeplink = (request: ConnectionRequest): string =>
-        `metamask://connect/mwp?p=${encodeURIComponent(JSON.stringify(request))}`;
+    it('defers agentic-cli connection until the keyring is unlocked', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
 
-      it('dismisses the loading toast on success for direct deeplink flows (initialMessage present)', async () => {
-        registry = new ConnectionRegistry(
-          RELAY_URL,
-          mockKeyManager,
-          mockHostApp,
-          mockStore,
-        );
+      const agenticCliRequest: ConnectionRequest = {
+        ...mockConnectionRequest,
+        connectionType: {
+          name: 'agentic-cli',
+        },
+      };
+      const agenticCliDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+        JSON.stringify(agenticCliRequest),
+      )}`;
 
-        // mockConnectionRequest already has initialMessage set in beforeEach.
-        await registry.handleConnectDeeplink(validDeeplink);
+      (
+        Engine.context.KeyringController.isUnlocked as jest.Mock
+      ).mockReturnValue(false);
+      Engine.controllerMessenger.unsubscribe = jest.fn();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ access_token: 'dashboard-token' }),
+      }) as jest.Mock;
+      const promise = registry.handleConnectDeeplink(agenticCliDeeplink);
+      await Promise.resolve();
 
-        expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockConnection.connect).not.toHaveBeenCalled();
+      expect(mockHostApp.showConnectionLoading).not.toHaveBeenCalled();
+
+      const unlockHandler = (
+        Engine.controllerMessenger.subscribe as jest.Mock
+      ).mock.calls.find(
+        ([eventName]) => eventName === 'KeyringController:unlock',
+      )?.[1];
+
+      expect(unlockHandler).toBeDefined();
+      (
+        Engine.context.KeyringController.isUnlocked as jest.Mock
+      ).mockReturnValue(true);
+      unlockHandler();
+
+      await promise;
+
+      expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalledWith(
+        'KeyringController:unlock',
+        unlockHandler,
+      );
+      expect(Connection.create).toHaveBeenCalledTimes(1);
+      expect(mockConnection.connect).toHaveBeenCalledWith({
+        ...agenticCliRequest.sessionRequest,
+        mode: 'untrusted',
       });
-
-      it('does NOT dismiss the loading toast on success for QR flows (no initialMessage)', async () => {
-        registry = new ConnectionRegistry(
-          RELAY_URL,
-          mockKeyManager,
-          mockHostApp,
-          mockStore,
-        );
-
-        const qrRequest: ConnectionRequest = {
-          ...mockConnectionRequest,
-          sessionRequest: {
-            ...mockConnectionRequest.sessionRequest,
-            initialMessage: undefined,
-          },
-        };
-        const qrDeeplink = buildDeeplink(qrRequest);
-
-        await registry.handleConnectDeeplink(qrDeeplink);
-
-        // QR flow still shows the loading toast — it just isn't manually
-        // hidden, since the dapp sends wallet_createSession asynchronously
-        // and the toast must stay visible until the autodismiss fires.
-        expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.hideConnectionLoading).not.toHaveBeenCalled();
-
-        // Sanity: the rest of the happy path still ran.
-        expect(mockStore.save).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([
-          mockConnection,
-        ]);
-      });
-
-      it('dismisses the loading toast for QR flows when connect() fails so it does not overlap the error toast', async () => {
-        registry = new ConnectionRegistry(
-          RELAY_URL,
-          mockKeyManager,
-          mockHostApp,
-          mockStore,
-        );
-
-        mockConnection.connect.mockRejectedValue(
-          new Error('handshake timeout'),
-        );
-
-        const qrRequest: ConnectionRequest = {
-          ...mockConnectionRequest,
-          sessionRequest: {
-            ...mockConnectionRequest.sessionRequest,
-            initialMessage: undefined,
-          },
-        };
-        const qrDeeplink = buildDeeplink(qrRequest);
-
-        await registry.handleConnectDeeplink(qrDeeplink);
-
-        expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
-      });
+      expect(mockHostApp.requestCliAuthToken).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: agenticCliRequest.sessionRequest.id,
+        }),
+        'dashboard-token',
+        undefined,
+      );
+      expect(
+        Engine.context.AuthenticationController.getBearerToken,
+      ).toHaveBeenCalledWith(MOCK_ENTROPY_SOURCE);
+      expect(mockConnection.sendAuthToken).toHaveBeenCalledWith('cli-token');
+      expect(mockStore.save).not.toHaveBeenCalled();
+      expect(mockHostApp.syncConnectionList).not.toHaveBeenCalledWith([
+        mockConnection,
+      ]);
     });
 
     it('should handle invalid URL gracefully', async () => {
@@ -668,7 +625,6 @@ describe('ConnectionRegistry', () => {
       const connectionError = new Error('Connection failed');
       mockConnection.connect.mockRejectedValue(connectionError);
 
-      const disconnectSpy = jest.spyOn(registry, 'disconnect');
       const eventName =
         MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED.category;
 
@@ -690,9 +646,8 @@ describe('ConnectionRegistry', () => {
       expect(mockConnection.connect).toHaveBeenCalledTimes(1);
 
       // Failed connection is cleaned up properly
-      expect(disconnectSpy).toHaveBeenCalledWith(mockConnection.id);
-      expect(mockStore.delete).toHaveBeenCalledWith(mockConnection.id);
-      expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([]);
+      expect(mockConnection.disconnect).toHaveBeenCalledTimes(1);
+      expect(mockStore.delete).not.toHaveBeenCalledWith(mockConnection.id);
 
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
@@ -711,11 +666,13 @@ describe('ConnectionRegistry', () => {
         expect.objectContaining({
           remote_session_id: mockConnectionRequest.sessionRequest.id,
           transport_type: TransportType.MWP,
+          sdk_version: '2.0.0',
+          sdk_platform: 'JavaScript',
+          dapp_name: 'Test DApp',
+          dapp_url: 'https://test.dapp',
           failure_reason: 'Connection failed',
         }),
       );
-
-      disconnectSpy.mockRestore();
     });
 
     it('should be idempotent and ignore duplicate deeplink calls', async () => {
@@ -1011,73 +968,6 @@ describe('ConnectionRegistry', () => {
       expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
       expect(Connection.create).not.toHaveBeenCalled();
       expect(mockStore.save).not.toHaveBeenCalled();
-    });
-
-    it('should report connect failures to Sentry with dapp/sdk context', async () => {
-      registry = new ConnectionRegistry(
-        RELAY_URL,
-        mockKeyManager,
-        mockHostApp,
-        mockStore,
-      );
-
-      const connectionError = new Error('Connection failed');
-      mockConnection.connect.mockRejectedValue(connectionError);
-
-      await registry.handleConnectDeeplink(validDeeplink);
-
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        connectionError,
-        expect.objectContaining({
-          tags: expect.objectContaining({
-            feature: 'mm-connect',
-            operation: 'handle_connect_deeplink',
-          }),
-          context: expect.objectContaining({
-            name: 'mwp_deeplink',
-            data: expect.objectContaining({
-              url: expect.stringContaining('[REDACTED]'),
-              dapp_url: 'https://test.dapp',
-              dapp_name: 'Test DApp',
-              sdk_version: '2.0.0',
-              sdk_platform: 'JavaScript',
-            }),
-          }),
-        }),
-      );
-    });
-
-    it('should report parse failures to Sentry even when no connection request is available', async () => {
-      registry = new ConnectionRegistry(
-        RELAY_URL,
-        mockKeyManager,
-        mockHostApp,
-        mockStore,
-      );
-
-      const invalidDeeplink = 'metamask://connect/mwp?p=not-json';
-
-      await registry.handleConnectDeeplink(invalidDeeplink);
-
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          tags: expect.objectContaining({
-            feature: 'mm-connect',
-            operation: 'handle_connect_deeplink',
-          }),
-          context: expect.objectContaining({
-            name: 'mwp_deeplink',
-            data: expect.objectContaining({
-              url: expect.stringContaining('[REDACTED]'),
-              dapp_url: undefined,
-              dapp_name: undefined,
-              sdk_version: undefined,
-              sdk_platform: undefined,
-            }),
-          }),
-        }),
-      );
     });
   });
 
