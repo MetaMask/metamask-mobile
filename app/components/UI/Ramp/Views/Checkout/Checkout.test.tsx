@@ -810,10 +810,11 @@ describe('Checkout', () => {
 
       await act(async () => {
         fireEvent.press(getByTestId('trigger-http-error-main-uri'));
+        fireEvent.press(getByTestId('trigger-http-error-main-uri'));
       });
 
-      expect(mockFailSession).toHaveBeenCalledWith('hs-1', expect.any(Error));
-      expect(mockParentPop).toHaveBeenCalled();
+      expect(mockFailSession).toHaveBeenCalledTimes(1);
+      expect(mockParentPop).toHaveBeenCalledTimes(1);
     });
 
     it('treats an empty provider callback as user dismissal when headless', async () => {
@@ -838,11 +839,10 @@ describe('Checkout', () => {
       const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
 
       fireEvent.press(getByTestId('checkout-close-button'));
+      fireEvent.press(getByTestId('checkout-close-button'));
 
-      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
-        reason: 'user_dismissed',
-      });
-      expect(mockParentPop).toHaveBeenCalled();
+      expect(mockCloseSession).toHaveBeenCalledTimes(1);
+      expect(mockParentPop).toHaveBeenCalledTimes(1);
     });
 
     it('closes and dismisses the headless flow when Checkout unmounts with a live session', () => {

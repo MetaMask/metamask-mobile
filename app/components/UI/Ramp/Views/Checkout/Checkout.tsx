@@ -203,7 +203,10 @@ const Checkout = () => {
 
   const failHeadlessCheckout = useCallback(
     (checkoutError: unknown) => {
-      if (!failSession(headlessSessionId, checkoutError)) {
+      if (
+        hasTerminatedHeadlessSessionRef.current ||
+        !failSession(headlessSessionId, checkoutError)
+      ) {
         return false;
       }
       hasTerminatedHeadlessSessionRef.current = true;
@@ -438,6 +441,9 @@ const Checkout = () => {
   const handleClosePress = useCallback(() => {
     handleCancelPress();
     if (headlessSessionId) {
+      if (hasTerminatedHeadlessSessionRef.current) {
+        return;
+      }
       hasTerminatedHeadlessSessionRef.current = true;
       closeSession(headlessSessionId, { reason: 'user_dismissed' });
       dismissActiveHeadlessFlow();
