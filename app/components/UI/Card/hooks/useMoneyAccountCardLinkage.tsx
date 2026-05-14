@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -8,6 +9,7 @@ import {
 } from '@metamask/design-system-react-native';
 import type { MoneyAccount } from '@metamask/money-account-controller';
 import Engine from '../../../../core/Engine';
+import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import {
@@ -21,12 +23,14 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import {
   selectCardDelegationSettings,
   selectIsCardAuthenticated,
+  selectIsMoneyAccountDelegatedForCard,
 } from '../../../../selectors/cardController';
 import { selectMoneyEnableMoneyAccountFlag } from '../../Money/selectors/featureFlags';
 import {
   hasMoneyAccountCardRequirements,
   resolveMoneyAccountCardToken,
 } from '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
+import { CardLinkageInProgressError } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { CardFundingToken } from '../types';
 import { UserCancelledError } from './useCardDelegation';
@@ -49,7 +53,8 @@ export interface UseMoneyAccountCardLinkageReturn {
   isLinking: boolean;
   error: Error | null;
 
-  linkInBackground: () => Promise<boolean>;
+  openLinkCardSheet: () => void;
+  confirmLinkInBackground: () => Promise<boolean>;
   reset: () => void;
 }
 
@@ -65,6 +70,7 @@ export const useMoneyAccountCardLinkage =
   (): UseMoneyAccountCardLinkageReturn => {
     const { toastRef } = useContext(ToastContext);
     const theme = useTheme();
+    const navigation = useNavigation();
 
     const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
     const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
@@ -73,6 +79,9 @@ export const useMoneyAccountCardLinkage =
     );
     const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
     const delegationSettings = useSelector(selectCardDelegationSettings);
+    const isAlreadyDelegated = useSelector(
+      selectIsMoneyAccountDelegatedForCard,
+    );
 
     const [status, setStatus] = useState<LinkageStatus>('idle');
     const [error, setError] = useState<Error | null>(null);
@@ -89,7 +98,10 @@ export const useMoneyAccountCardLinkage =
     });
 
     const canLink = Boolean(
-      hasRequirements && isCardAuthenticated && moneyAccountCardToken,
+      hasRequirements &&
+        isCardAuthenticated &&
+        moneyAccountCardToken &&
+        !isAlreadyDelegated,
     );
 
     const showPendingToast = useCallback(() => {
@@ -152,9 +164,23 @@ export const useMoneyAccountCardLinkage =
       });
     }, [theme.colors.error.default, theme.colors.error.muted, toastRef]);
 
-    const linkInBackground = useCallback(async (): Promise<boolean> => {
+    const openLinkCardSheet = useCallback((): void => {
       if (!canLink || !primaryMoneyAccount?.address) {
         showErrorToast();
+        return;
+      }
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.LINK_CARD_SHEET,
+      });
+    }, [canLink, primaryMoneyAccount?.address, navigation, showErrorToast]);
+
+    const confirmLinkInBackground = useCallback(async (): Promise<boolean> => {
+      if (!canLink || !primaryMoneyAccount?.address) {
+        showErrorToast();
+        return false;
+      }
+
+      if (Engine.context.CardController.isLinkageInProgress()) {
         return false;
       }
 
@@ -176,6 +202,12 @@ export const useMoneyAccountCardLinkage =
 
         if (linkageError instanceof UserCancelledError) {
           setStatus('cancelled');
+          return false;
+        }
+
+        if (linkageError instanceof CardLinkageInProgressError) {
+          setStatus('idle');
+          setError(null);
           return false;
         }
 
@@ -209,7 +241,8 @@ export const useMoneyAccountCardLinkage =
       isLinking: status === 'pending',
       error,
 
-      linkInBackground,
+      openLinkCardSheet,
+      confirmLinkInBackground,
       reset,
     };
   };
