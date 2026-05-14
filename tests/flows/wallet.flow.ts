@@ -231,6 +231,9 @@ export const importWalletWithRecoveryPhrase = async ({
 
     await MetaMetricsOptInView.tapAgreeButton();
   }
+  if (optInToMetrics) {
+    await OnboardingInterestQuestionnaireView.tapContinueButton();
+  }
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
