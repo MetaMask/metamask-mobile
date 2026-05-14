@@ -1,5 +1,8 @@
 import React from 'react';
-import { TransactionMeta, TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
 import { useNetworkName } from '../../../hooks/useNetworkName';
