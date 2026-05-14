@@ -51,9 +51,7 @@ const MoneyActivityItem = ({
     [tx.chainId, showNetworkBadge],
   );
 
-  // For ERC-20 source tokens use the token's own image URI.
-  // For native tokens (e.g. ETH) fall back to the source chain's network icon.
-  // If neither is available, fall back to the mUSD icon.
+  // use the token's own image URI, or the source chain's network icon, or the mUSD icon
   const tokenAvatarImageSource = useMemo(() => {
     if (display.sourceTokenImage) {
       return { uri: display.sourceTokenImage };
