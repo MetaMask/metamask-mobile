@@ -155,8 +155,13 @@ jobs:
           mkdir -p ${{ steps.determine-target-paths.outputs.apk-target-path }}
           mkdir -p ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
 
-      - name: Download Android build artifacts
-        if: ${{ inputs.platform == 'android' }}
+      - name: Download Android build artifacts (Namespace)
+        if: ${{ inputs.platform == 'android' && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          path: artifacts/
+      - name: Download Android build artifacts (current)
+        if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' }}
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
@@ -178,8 +183,13 @@ jobs:
           # Create required directories
           mkdir -p ios/build/Build/Products/Release-iphonesimulator/
 
-      - name: Download iOS build artifacts
-        if: ${{ inputs.platform == 'ios' }}
+      - name: Download iOS build artifacts (Namespace)
+        if: ${{ inputs.platform == 'ios' && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          path: artifacts/
+      - name: Download iOS build artifacts (current)
+        if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
         uses: actions/download-artifact@v4
         with:
           path: artifacts/

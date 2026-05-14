@@ -190,7 +190,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download shards test artifacts (XMLs + Screenshots)
+      - name: Download shards test artifacts (XMLs + Screenshots) (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        continue-on-error: true
+        with:
+          path: all-test-artifacts/
+          pattern: '*-android-*-test-*'
+      - name: Download shards test artifacts (XMLs + Screenshots) (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/download-artifact@v4
         continue-on-error: true
         with:
