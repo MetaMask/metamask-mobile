@@ -755,6 +755,16 @@ const Wallet = ({
     sourcePage: 'MainView',
   });
 
+  /** Trade checklist primary — Segment location per TMCU-680. */
+  const goToSwapsFromOnboardingChecklist = useCallback(() => {
+    goToSwaps(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      ActionLocation.ONBOARDING_CHECKLIST,
+    );
+  }, [goToSwaps]);
   const handleWalletHomeOnboardingNotificationsPrimary = useCallback(() => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.NOTIFICATIONS,
@@ -1451,30 +1461,33 @@ const Wallet = ({
     </View>
   );
 
+  /** Same wiring as legacy `content` cluster — homepage v1 header paths must hide main actions and pass checklist callbacks. */
+  const walletHomeAccountGroupBalanceProps = {
+    onCoordinatedFlowExit: runWalletHomePostOnboardingComplete,
+    suspendRiveForCurtain: postOnboardingExitAnimating,
+    onTradePrimaryPress: goToSwapsFromOnboardingChecklist,
+    onNotificationsPrimaryPress: handleWalletHomeOnboardingNotificationsPrimary,
+  };
+
+  const walletHomeMainAssetDetailsActions = showWalletHomeMainActions ? (
+    <AssetDetailsActions
+      displayBuyButton={displayBuyButton}
+      displaySwapsButton={displaySwapsButton}
+      goToSwaps={goToSwaps}
+      onReceive={onReceive}
+      onSend={onSend}
+      buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+      swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+      sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+      receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+    />
+  ) : null;
+
   const portfolioHeaderBase = (
     <>
       {bannerContent}
-      <AccountGroupBalance
-        onCoordinatedFlowExit={runWalletHomePostOnboardingComplete}
-        suspendRiveForCurtain={postOnboardingExitAnimating}
-        onTradePrimaryPress={goToSwaps}
-        onNotificationsPrimaryPress={
-          handleWalletHomeOnboardingNotificationsPrimary
-        }
-      />
-      {showWalletHomeMainActions ? (
-        <AssetDetailsActions
-          displayBuyButton={displayBuyButton}
-          displaySwapsButton={displaySwapsButton}
-          goToSwaps={goToSwaps}
-          onReceive={onReceive}
-          onSend={onSend}
-          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-        />
-      ) : null}
+      <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
+      {walletHomeMainAssetDetailsActions}
       {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
       {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
     </>
@@ -1484,28 +1497,9 @@ const Wallet = ({
     <>
       {bannerContent}
       <View style={styles.accountGroupBalanceContainer}>
-        <AccountGroupBalance
-          onCoordinatedFlowExit={runWalletHomePostOnboardingComplete}
-          suspendRiveForCurtain={postOnboardingExitAnimating}
-          onTradePrimaryPress={goToSwaps}
-          onNotificationsPrimaryPress={
-            handleWalletHomeOnboardingNotificationsPrimary
-          }
-        />
+        <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       </View>
-      {showWalletHomeMainActions ? (
-        <AssetDetailsActions
-          displayBuyButton={displayBuyButton}
-          displaySwapsButton={displaySwapsButton}
-          goToSwaps={goToSwaps}
-          onReceive={onReceive}
-          onSend={onSend}
-          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-        />
-      ) : null}
+      {walletHomeMainAssetDetailsActions}
       {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
       {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
     </>
@@ -1536,30 +1530,9 @@ const Wallet = ({
           testID={WalletViewSelectorsIDs.WALLET_TOP_CLUSTER_INNER}
           style={styles.walletTopCluster}
         >
-          <AccountGroupBalance
-            onCoordinatedFlowExit={runWalletHomePostOnboardingComplete}
-            suspendRiveForCurtain={postOnboardingExitAnimating}
-            onTradePrimaryPress={goToSwaps}
-            onNotificationsPrimaryPress={
-              handleWalletHomeOnboardingNotificationsPrimary
-            }
-          />
+          <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
 
-          {showWalletHomeMainActions ? (
-            <AssetDetailsActions
-              displayBuyButton={displayBuyButton}
-              displaySwapsButton={displaySwapsButton}
-              goToSwaps={goToSwaps}
-              onReceive={onReceive}
-              onSend={onSend}
-              buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-              swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-              sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-              receiveButtonActionID={
-                WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
-              }
-            />
-          ) : null}
+          {walletHomeMainAssetDetailsActions}
         </View>
 
         <Reanimated.View
