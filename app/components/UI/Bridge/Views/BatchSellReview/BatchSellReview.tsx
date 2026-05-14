@@ -182,6 +182,7 @@ export function BatchSellReview() {
         }),
         totalReceived: placeholderAmount,
         minimumReceived: placeholderAmount,
+        isLoading: !HAS_QUOTES,
       },
     });
   }, [

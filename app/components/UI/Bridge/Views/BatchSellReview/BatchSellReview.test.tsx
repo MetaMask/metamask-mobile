@@ -221,6 +221,7 @@ describe('BatchSellReview', () => {
         ],
         totalReceived: '-- USDC',
         minimumReceived: '-- USDC',
+        isLoading: true,
       },
     });
   });

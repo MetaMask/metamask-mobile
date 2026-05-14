@@ -17,19 +17,16 @@ import { strings } from '../../../../../../locales/i18n';
 export function BatchSellQuoteDetailsModal() {
   const navigation =
     useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
-  const { tokenData, totalReceived, minimumReceived } =
-    useParams<BatchSellQuoteDetailsModalParams>();
+  const quoteDetailsParams = useParams<BatchSellQuoteDetailsModalParams>();
+  const { tokenData, totalReceived, minimumReceived, isLoading } =
+    quoteDetailsParams;
   const handleOpenMinimumReceivedInfo = () => {
     navigation.replace(
       Routes.BRIDGE.MODALS.BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL,
       {
         sourceModal: {
           screen: Routes.BRIDGE.MODALS.BATCH_SELL_QUOTE_DETAILS_MODAL,
-          params: {
-            tokenData,
-            totalReceived,
-            minimumReceived,
-          },
+          params: quoteDetailsParams,
         },
       },
     );
@@ -53,6 +50,7 @@ export function BatchSellQuoteDetailsModal() {
         tokenData={tokenData}
         totalReceived={totalReceived}
         minimumReceived={minimumReceived}
+        isLoading={isLoading}
         onMinimumReceivedInfoPress={handleOpenMinimumReceivedInfo}
       />
     </BottomSheet>

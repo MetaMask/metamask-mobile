@@ -16,6 +16,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { BatchSellQuoteDetailsModalSelectorsIDs } from './BatchSellQuoteDetailsModal.testIds';
 import {
   BatchSellQuoteDetailsProps,
@@ -23,8 +24,17 @@ import {
 } from './BatchSellQuoteDetailsModal.types';
 import { strings } from '../../../../../../locales/i18n';
 
-function QuoteDetailsRow({ row }: { row: BatchSellQuoteDetailsTokenData }) {
-  const rowKey = row.key ?? row.tokenSymbol;
+const VALUE_SKELETON_WIDTH = 114;
+const VALUE_SKELETON_HEIGHT = 24;
+
+function QuoteDetailsRow({
+  tokenData,
+  isLoading,
+}: {
+  tokenData: BatchSellQuoteDetailsTokenData;
+  isLoading?: boolean;
+}) {
+  const rowKey = tokenData.key ?? tokenData.tokenSymbol;
 
   return (
     <Box
@@ -45,18 +55,27 @@ function QuoteDetailsRow({ row }: { row: BatchSellQuoteDetailsTokenData }) {
         twClassName="min-w-0 flex-1"
       >
         {strings('bridge.batch_sell_quote_details_row', {
-          tokenSymbol: row.tokenSymbol,
-          slippage: row.slippage,
+          tokenSymbol: tokenData.tokenSymbol,
+          slippage: tokenData.slippage,
         })}
       </Text>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
-        numberOfLines={1}
-      >
-        {row.receivedAmount}
-      </Text>
+      {isLoading ? (
+        <Skeleton
+          width={VALUE_SKELETON_WIDTH}
+          height={VALUE_SKELETON_HEIGHT}
+          twClassName="rounded-lg"
+          testID={`${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-${rowKey}`}
+        />
+      ) : (
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          numberOfLines={1}
+        >
+          {tokenData.receivedAmount}
+        </Text>
+      )}
     </Box>
   );
 }
@@ -67,12 +86,16 @@ function SummaryRow({
   testID,
   hasInfoIcon = false,
   onInfoPress,
+  isLoading,
+  skeletonTestID,
 }: {
   label: string;
   value: string;
   testID: string;
   hasInfoIcon?: boolean;
   onInfoPress?: () => void;
+  isLoading?: boolean;
+  skeletonTestID?: string;
 }) {
   return (
     <Box
@@ -118,14 +141,23 @@ function SummaryRow({
           )
         ) : null}
       </Box>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.SuccessDefault}
-        numberOfLines={1}
-      >
-        {value}
-      </Text>
+      {isLoading ? (
+        <Skeleton
+          width={VALUE_SKELETON_WIDTH}
+          height={VALUE_SKELETON_HEIGHT}
+          twClassName="rounded-lg"
+          testID={skeletonTestID}
+        />
+      ) : (
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.SuccessDefault}
+          numberOfLines={1}
+        >
+          {value}
+        </Text>
+      )}
     </Box>
   );
 }
@@ -134,13 +166,18 @@ export function BatchSellQuoteDetails({
   tokenData,
   totalReceived,
   minimumReceived,
+  isLoading = false,
   onMinimumReceivedInfoPress,
 }: BatchSellQuoteDetailsProps) {
   return (
     <Box twClassName="pb-4">
       <Box paddingTop={2} paddingBottom={2}>
-        {tokenData.map((row) => (
-          <QuoteDetailsRow key={row.key ?? row.tokenSymbol} row={row} />
+        {tokenData.map((token) => (
+          <QuoteDetailsRow
+            key={token.key ?? token.tokenSymbol}
+            tokenData={token}
+            isLoading={isLoading}
+          />
         ))}
       </Box>
       <Box paddingHorizontal={4}>
@@ -149,6 +186,10 @@ export function BatchSellQuoteDetails({
             label={strings('bridge.batch_sell_total_received')}
             value={totalReceived}
             testID={BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_ROW}
+            isLoading={isLoading}
+            skeletonTestID={
+              BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_SKELETON
+            }
           />
           <SummaryRow
             label={strings('bridge.batch_sell_minimum_received')}
@@ -156,6 +197,10 @@ export function BatchSellQuoteDetails({
             testID={BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_ROW}
             hasInfoIcon
             onInfoPress={onMinimumReceivedInfoPress}
+            isLoading={isLoading}
+            skeletonTestID={
+              BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_SKELETON
+            }
           />
         </Box>
       </Box>

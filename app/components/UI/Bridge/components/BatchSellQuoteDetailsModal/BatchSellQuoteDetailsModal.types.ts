@@ -9,6 +9,7 @@ export interface BatchSellQuoteDetailsProps {
   tokenData: BatchSellQuoteDetailsTokenData[];
   totalReceived: string;
   minimumReceived: string;
+  isLoading?: boolean;
   onMinimumReceivedInfoPress?: () => void;
 }
 

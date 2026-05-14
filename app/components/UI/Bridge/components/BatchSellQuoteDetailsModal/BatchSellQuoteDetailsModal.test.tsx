@@ -103,6 +103,42 @@ describe('BatchSellQuoteDetailsModal', () => {
     expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
   });
 
+  it('renders skeletons for quote amounts while loading', () => {
+    const { getByTestId, getByText, queryByText } = renderModal({
+      isLoading: true,
+    });
+
+    expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
+    expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-eth`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-uni`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_INFO_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+    expect(queryByText('3,456.78 USDC')).toBeNull();
+    expect(queryByText('7,638.23 USDC')).toBeNull();
+  });
+
   it('calls onMinimumReceivedInfoPress when the info button is pressed', () => {
     const onMinimumReceivedInfoPress = jest.fn();
     const props: BatchSellQuoteDetailsProps = {
