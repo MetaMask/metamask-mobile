@@ -96,7 +96,8 @@ jobs:
 
       - name: Find reusable build from prior run
         id: find-reusable-build
-        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
+        # Match Android: skip cross-run GitHub artifact reuse on Namespace until backend parity is proven.
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
