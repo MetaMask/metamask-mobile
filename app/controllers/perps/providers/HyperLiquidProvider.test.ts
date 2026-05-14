@@ -10910,7 +10910,10 @@ describe('HyperLiquidProvider', () => {
       const mockedCache = TradingReadinessCache as jest.Mocked<
         typeof TradingReadinessCache
       >;
-      mockedCache.getWalletRegistered.mockReturnValue({ registered: true });
+      mockedCache.getWalletRegistered.mockReturnValue({
+        known: true,
+        registered: true,
+      });
 
       const exchangeClient = createMockExchangeClient();
       mockClientService.getExchangeClient = jest
