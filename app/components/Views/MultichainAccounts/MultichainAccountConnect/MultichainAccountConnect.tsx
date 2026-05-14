@@ -2,7 +2,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -15,10 +14,11 @@ import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 // External dependencies.
 import { strings } from '../../../../../locales/i18n.js';
 import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast/index.ts';
-import { ToastOptions } from '../../../../component-library/components/Toast/Toast.types.ts';
+  Box,
+  Toast,
+  ToastVariant,
+  type ToastOptions,
+} from '@metamask/design-system-react-native';
 import { USER_INTENT } from '../../../../constants/permissions.ts';
 import { MetaMetricsEvents } from '../../../../core/Analytics/index.ts';
 import Engine from '../../../../core/Engine/index.ts';
@@ -49,12 +49,9 @@ import useFavicon from '../../../hooks/useFavicon/useFavicon.ts';
 import {
   AccountConnectProps,
   AccountConnectScreens,
+  NetworkAvatarProps,
 } from '../../AccountConnect/AccountConnect.types.ts';
 import { getNetworkImageSource } from '../../../../util/networks/index.js';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar/index.ts';
 import {
   EvmAndMultichainNetworkConfigurationsWithCaipChainId,
   getSelectedMultichainNetwork,
@@ -97,7 +94,6 @@ import { getPermissions } from '../../../../selectors/snaps/index.ts';
 import { useSDKV2Connection } from '../../../hooks/useSDKV2Connection';
 import { useAccountGroupsForPermissions } from '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions.ts';
 import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMultiSelector/index.ts';
-import { Box } from '@metamask/design-system-react-native';
 import { TESTNET_CAIP_IDS } from '../../../../constants/network.js';
 import { getCaip25AccountIdsFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountIdsFromAccountGroupAndScope.ts';
 import { isSnapId } from '@metamask/snaps-utils';
@@ -123,6 +119,9 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
     {children}
   </Box>
 );
+
+const NETWORK_AVATAR_SIZE = '16' as NetworkAvatarProps['size'];
+const NETWORK_AVATAR_VARIANT = 'Network' as NetworkAvatarProps['variant'];
 
 const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -397,13 +396,15 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         .filter(
           (selectedChainId) => !NON_EVM_TESTNET_IDS.includes(selectedChainId),
         )
-        .map((selectedChainId) => ({
-          size: AvatarSize.Xs,
-          name: networkConfigurations[selectedChainId]?.name || '',
-          imageSource: getNetworkImageSource({ chainId: selectedChainId }),
-          variant: AvatarVariant.Network,
-          caipChainId: selectedChainId,
-        })),
+        .map(
+          (selectedChainId): NetworkAvatarProps => ({
+            size: NETWORK_AVATAR_SIZE,
+            name: networkConfigurations[selectedChainId]?.name || '',
+            imageSource: getNetworkImageSource({ chainId: selectedChainId }),
+            variant: NETWORK_AVATAR_VARIANT,
+            caipChainId: selectedChainId,
+          }),
+        ),
     [networkConfigurations, selectedChainIds],
   );
 
@@ -470,8 +471,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
   const isMountedRef = useRef(true);
-
-  const { toastRef } = useContext(ToastContext);
 
   const accountsLength = useSelector(selectAccountsLength);
 
@@ -719,8 +718,8 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
           ? [{ label: strings('toast.permissions_updated') }]
           : [];
 
-      toastRef?.current?.showToast({
-        variant: ToastVariants.App,
+      Toast.show({
+        variant: ToastVariant.App,
         labelOptions,
         appIconSource: faviconSource,
         hasNoTimeout: false,
@@ -745,7 +744,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     createEventBuilder,
     accountsLength,
     originSource,
-    toastRef,
     faviconSource,
     referrer,
   ]);
@@ -996,6 +994,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         </ScreenContainer>
       )}
       {renderPhishingModal()}
+      <Toast />
     </Box>
   );
 };

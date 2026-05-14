@@ -3,7 +3,6 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
-  useContext,
   useLayoutEffect,
 } from 'react';
 import { TextInput, Linking } from 'react-native';
@@ -26,12 +25,15 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Toast,
+  ToastCloseButtonVariant,
+  ToastVariant,
+  IconName,
 } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import MultichainAddressRow from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
 import getHeaderCompactStandardNavbarOptions from '../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
-import { ToastContext } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
 import {
   useParams,
@@ -75,7 +77,6 @@ export const PrivateKeyList = () => {
   const theme = useTheme();
   const { bottom: bottomInset } = useSafeAreaInsets();
 
-  const { toastRef } = useContext(ToastContext);
   const [password, setPassword] = useState<string>('');
   const [wrongPassword, setWrongPassword] = useState<boolean>(false);
   const [reveal, setReveal] = useState<boolean>(false);
@@ -185,16 +186,29 @@ export const PrivateKeyList = () => {
         address={item.account.address}
         copyParams={{
           toastMessage: strings('multichain_accounts.private_key_list.copied'),
-          toastRef,
           callback: async () => {
             await ClipboardManager.setStringExpire(
               privateKeys[item.account.id],
             );
+            Toast.show({
+              variant: ToastVariant.Plain,
+              labelOptions: [
+                {
+                  label: strings('multichain_accounts.private_key_list.copied'),
+                },
+              ],
+              hasNoTimeout: false,
+              closeButtonOptions: {
+                variant: ToastCloseButtonVariant.Icon,
+                iconName: IconName.Close,
+                onPress: () => Toast.hide(),
+              },
+            });
           },
         }}
       />
     ),
-    [privateKeys, toastRef],
+    [privateKeys],
   );
 
   const privateKeyBannerDescription = useMemo(
@@ -323,6 +337,7 @@ export const PrivateKeyList = () => {
       />
 
       {reveal ? renderPrivateKeyList() : renderPassword()}
+      <Toast />
     </Box>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useLayoutEffect } from 'react';
+import React, { useCallback, useLayoutEffect } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -7,7 +7,12 @@ import { FlashList } from '@shopify/flash-list';
 import { useStyles } from '../../../hooks/useStyles';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../../selectors/multichainAccounts/accounts';
-import { IconName } from '@metamask/design-system-react-native';
+import {
+  IconName,
+  Toast,
+  ToastCloseButtonVariant,
+  ToastVariant,
+} from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
@@ -22,7 +27,6 @@ import styleSheet from './styles';
 import type { AddressListProps, AddressItem } from './types';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import getHeaderCompactStandardNavbarOptions from '../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
-import { ToastContext } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 
@@ -39,7 +43,6 @@ export const createAddressListNavigationDetails =
 export const AddressList = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { groupId, title, onLoad } = useParams<AddressListProps>();
@@ -71,8 +74,23 @@ export const AddressList = () => {
           address={item.account.address}
           copyParams={{
             toastMessage: strings('notifications.address_copied_to_clipboard'),
-            callback: copyAddressToClipboard,
-            toastRef,
+            callback: async () => {
+              await copyAddressToClipboard();
+              Toast.show({
+                variant: ToastVariant.Plain,
+                labelOptions: [
+                  {
+                    label: strings('notifications.address_copied_to_clipboard'),
+                  },
+                ],
+                hasNoTimeout: false,
+                closeButtonOptions: {
+                  variant: ToastCloseButtonVariant.Icon,
+                  iconName: IconName.Close,
+                  onPress: () => Toast.hide(),
+                },
+              });
+            },
           }}
           icons={[
             {
@@ -98,7 +116,7 @@ export const AddressList = () => {
         />
       );
     },
-    [navigation, groupId, toastRef, trackEvent, createEventBuilder],
+    [navigation, groupId, trackEvent, createEventBuilder],
   );
 
   useLayoutEffect(() => {
@@ -123,6 +141,7 @@ export const AddressList = () => {
         renderItem={renderAddressItem}
         onLoad={onLoad}
       />
+      <Toast />
     </View>
   );
 };
