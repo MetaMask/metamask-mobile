@@ -20,7 +20,8 @@ import {
  * @deprecated Please update your code to use the individual badge components from `@metamask/design-system-react-native`
  * such as `BadgeNetwork`, `BadgeStatus`, `BadgeCount`, or `BadgeIcon`.
  * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BadgeNetwork/README.md}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BadgeNetwork/README.md|MMDS README}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#deprecated-aggregate-badge-component|Migration Guide}
  */
 const Badge = ({ variant, ...props }: BadgeProps) => {
   switch (variant) {
