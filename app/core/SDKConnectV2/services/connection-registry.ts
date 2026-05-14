@@ -2,6 +2,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import {
   IKeyManager,
   DEFAULT_SESSION_TTL,
+  type SessionRequest,
 } from '@metamask/mobile-wallet-protocol-core';
 import {
   ConnectionRequest,
@@ -24,6 +25,7 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import type { IMetaMetricsEvent } from '../../Analytics/MetaMetrics.types';
 import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
+import { SDK } from '@metamask/profile-sync-controller';
 
 /**
  * Fire-and-forget analytics helper. Never throws — a broken analytics
@@ -56,6 +58,12 @@ function trackMwpEvent(
  * evicted before the new one is created.
  */
 export const MAX_CONNECTIONS = 20;
+
+const CLI_DASHBOARD_TOKEN_PATH = '/api/v2/mm-qr-login/token';
+
+interface CliDashboardTokenResponse {
+  access_token?: unknown;
+}
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -301,7 +309,12 @@ export class ConnectionRegistry {
           message: 'External transactions cannot use internal origins',
         });
       }
-      await this.evictIfAtCapacity();
+
+      const isAgenticCli = this.isAgenticCli(connReq);
+
+      if (!isAgenticCli) {
+        await this.evictIfAtCapacity();
+      }
 
       connInfo = this.toConnectionInfo(connReq);
 
@@ -312,7 +325,17 @@ export class ConnectionRegistry {
         this.RELAY_URL,
         this.hostapp,
       );
-      await conn.connect(connReq.sessionRequest);
+      await conn.connect(this.toSessionRequest(connReq));
+
+      if (isAgenticCli) {
+        try {
+          await this.handleAgenticCliAuth(connInfo, conn);
+        } finally {
+          conn = undefined;
+        }
+        return;
+      }
+
       this.connections.set(conn.id, conn);
       await this.store.save(connInfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
@@ -362,7 +385,17 @@ export class ConnectionRegistry {
         failure_reason: error instanceof Error ? error.message : String(error),
       });
 
-      if (conn) await this.disconnect(conn.id);
+      if (conn) {
+        try {
+          await this.cleanupConnection(conn);
+        } catch (cleanupError) {
+          logger.error(
+            'Failed to clean up failed connection:',
+            conn.id,
+            cleanupError,
+          );
+        }
+      }
     } finally {
       // Loading-toast dismissal rules:
       // - On failure, always dismiss the loading toast. Otherwise the user
@@ -425,6 +458,15 @@ export class ConnectionRegistry {
     logger.debug('Connection disconnected:', id);
   }
 
+  private async cleanupConnection(conn: Connection): Promise<void> {
+    if (this.connections.has(conn.id)) {
+      await this.disconnect(conn.id);
+      return;
+    }
+
+    await conn.disconnect();
+  }
+
   /**
    * Parse the connection request from the deeplink URL.
    * @param url The full deeplink URL that triggered the connection.
@@ -467,6 +509,86 @@ export class ConnectionRegistry {
       metadata: connReq.metadata,
       expiresAt: Date.now() + DEFAULT_SESSION_TTL,
     };
+  }
+
+  private isAgenticCli(connReq: ConnectionRequest): boolean {
+    return connReq.connectionType?.name === 'agentic-cli';
+  }
+
+  private toSessionRequest(connReq: ConnectionRequest): SessionRequest {
+    if (!this.isAgenticCli(connReq)) {
+      return connReq.sessionRequest;
+    }
+
+    return {
+      ...connReq.sessionRequest,
+      mode: 'untrusted',
+    };
+  }
+
+  private async handleAgenticCliAuth(
+    connInfo: ConnectionInfo,
+    conn: Connection,
+  ): Promise<void> {
+    try {
+      const hydraToken =
+        await Engine.context.AuthenticationController.getBearerToken();
+      const dashboardAccessToken =
+        await this.getCliDashboardAccessToken(hydraToken);
+      const authToken = await this.hostapp.requestCliAuthToken(
+        connInfo,
+        dashboardAccessToken,
+      );
+
+      await conn.sendAuthToken(authToken);
+    } finally {
+      try {
+        await this.cleanupConnection(conn);
+      } catch (error) {
+        logger.error(
+          'Failed to clean up temporary CLI connection:',
+          conn.id,
+          error,
+        );
+      }
+    }
+  }
+
+  private getCliDashboardTokenUrl(): string {
+    // AuthenticationController always mints PRD bearer tokens, even in
+    // dev/uat mobile builds. Dev/uat authentication APIs reject those tokens.
+    const url = new URL(SDK.getEnvUrls(SDK.Env.DEV).authApiUrl);
+    url.pathname = CLI_DASHBOARD_TOKEN_PATH;
+    return url.toString();
+  }
+
+  private async getCliDashboardAccessToken(
+    hydraToken: string,
+  ): Promise<string> {
+    const response = await fetch(this.getCliDashboardTokenUrl(), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${hydraToken}`,
+      },
+      body: '',
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => response.statusText);
+      throw new Error(
+        `Failed to get CLI dashboard token: ${response.status} ${errorBody}`,
+      );
+    }
+
+    const data = (await response.json()) as CliDashboardTokenResponse;
+
+    if (typeof data.access_token !== 'string' || !data.access_token) {
+      throw new Error(
+        'Failed to get CLI dashboard token: missing access_token',
+      );
+    }
+
+    return data.access_token;
   }
 
   /**
