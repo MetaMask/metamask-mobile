@@ -94,6 +94,16 @@ export type PredictControllerTrackShareActionAction = {
   handler: PredictController['trackShareAction'];
 };
 
+/**
+ * Track Predict Betslip Dismissed analytics event
+ *
+ * @public
+ */
+export type PredictControllerTrackBetslipDismissedAction = {
+  type: `PredictController:trackBetslipDismissed`;
+  handler: PredictController['trackBetslipDismissed'];
+};
+
 export type PredictControllerPreviewOrderAction = {
   type: `PredictController:previewOrder`;
   handler: PredictController['previewOrder'];
@@ -238,9 +248,19 @@ export type PredictControllerPrepareWithdrawAction = {
   handler: PredictController['prepareWithdraw'];
 };
 
+export type PredictControllerBeforePublishAction = {
+  type: `PredictController:beforePublish`;
+  handler: PredictController['beforePublish'];
+};
+
 export type PredictControllerBeforeSignAction = {
   type: `PredictController:beforeSign`;
   handler: PredictController['beforeSign'];
+};
+
+export type PredictControllerPublishAction = {
+  type: `PredictController:publish`;
+  handler: PredictController['publish'];
 };
 
 export type PredictControllerClearWithdrawTransactionAction = {
@@ -268,6 +288,7 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackGeoBlockTriggeredAction
   | PredictControllerTrackFeedViewedAction
   | PredictControllerTrackShareActionAction
+  | PredictControllerTrackBetslipDismissedAction
   | PredictControllerPreviewOrderAction
   | PredictControllerPlaceOrderAction
   | PredictControllerClaimWithConfirmationAction
@@ -289,5 +310,7 @@ export type PredictControllerMethodActions =
   | PredictControllerGetAccountStateAction
   | PredictControllerGetBalanceAction
   | PredictControllerPrepareWithdrawAction
+  | PredictControllerBeforePublishAction
   | PredictControllerBeforeSignAction
+  | PredictControllerPublishAction
   | PredictControllerClearWithdrawTransactionAction;

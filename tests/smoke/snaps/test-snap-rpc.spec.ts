@@ -19,6 +19,7 @@ describe(SmokeSnaps('Snap RPC Tests'), () => {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           await mockBip32Snap(mockServer);
           await mockJsonRpcSnap(mockServer);

@@ -1,5 +1,14 @@
 import axios, { isAxiosError } from 'axios';
 import { BaanxService } from '../services/BaanxService';
+import { CardStatus, CardType } from '../../../../../components/UI/Card/types';
+import {
+  CardAccountStatus,
+  CardAction,
+  CardDetails,
+  CardFundingAsset,
+  FundingAssetStatus,
+} from '../provider-types';
+import { BaanxProvider } from './BaanxProvider';
 
 jest.mock('axios');
 jest.mock('../../../../../util/Logger');
@@ -259,6 +268,114 @@ describe('BaanxService', () => {
           headers: expect.objectContaining({ 'x-us-env': 'true' }),
         }),
       );
+    });
+  });
+});
+
+describe('BaanxProvider', () => {
+  describe('buildActions', () => {
+    const provider = new BaanxProvider({ service: {} as BaanxService });
+    const buildActions = (
+      asset: CardFundingAsset | null,
+      card: CardDetails | null,
+      account: CardAccountStatus | null,
+    ) =>
+      (
+        provider as unknown as {
+          buildActions: (
+            asset: CardFundingAsset | null,
+            card: CardDetails | null,
+            account: CardAccountStatus | null,
+          ) => CardAction[];
+        }
+      ).buildActions(asset, card, account);
+
+    const asset: CardFundingAsset = {
+      symbol: 'USDC',
+      name: 'USD Coin',
+      address: '0xusdc',
+      walletAddress: '0xwallet',
+      decimals: 6,
+      chainId: 'eip155:59144',
+      spendableBalance: '100',
+      spendingCap: '100',
+      priority: 1,
+      status: FundingAssetStatus.Active,
+    };
+
+    const account: CardAccountStatus = {
+      verificationStatus: 'VERIFIED',
+      provisioningEligible: true,
+      holderName: 'Test User',
+      shippingAddress: null,
+    };
+
+    const card: CardDetails = {
+      id: 'card-1',
+      status: CardStatus.ACTIVE,
+      type: CardType.VIRTUAL,
+      lastFour: '1234',
+      isFreezable: true,
+    };
+
+    it('keeps add funds available when the card is frozen', () => {
+      expect(
+        buildActions(asset, { ...card, status: CardStatus.FROZEN }, account),
+      ).toStrictEqual([{ type: 'add_funds', enabled: true }]);
+    });
+
+    it('does not show add funds when the card is blocked', () => {
+      expect(
+        buildActions(asset, { ...card, status: CardStatus.BLOCKED }, account),
+      ).toStrictEqual([]);
+    });
+  });
+
+  describe('generateCardDelegationSignatureMessage', () => {
+    const provider = new BaanxProvider({ service: {} as BaanxService });
+    const ADDRESS = '0x000000000000000000000000000000000000dEaD';
+    const NONCE = 'nonce-xyz';
+
+    it('builds the EVM SIWE message with chain id parsed from CAIP and an Expiration Time', () => {
+      const message = provider.generateCardDelegationSignatureMessage({
+        network: 'monad',
+        address: ADDRESS,
+        nonce: NONCE,
+        caipChainId: 'eip155:143',
+      });
+
+      expect(message).toContain('sign in with your Ethereum account');
+      expect(message).toContain(ADDRESS);
+      expect(message).toContain('Chain ID: 143');
+      expect(message).toContain(`Nonce: ${NONCE}`);
+      expect(message).toMatch(/Issued At: \S+/);
+      expect(message).toMatch(/Expiration Time: \S+/);
+    });
+
+    it('falls back to Linea (59144) when caipChainId has no numeric segment for EVM', () => {
+      const message = provider.generateCardDelegationSignatureMessage({
+        network: 'linea',
+        address: ADDRESS,
+        nonce: NONCE,
+        caipChainId: 'eip155',
+      });
+
+      expect(message).toContain('Chain ID: 59144');
+    });
+
+    it('builds the Solana SIWE message with chain id 1, no Expiration Time, and Solana wording', () => {
+      const message = provider.generateCardDelegationSignatureMessage({
+        network: 'solana',
+        address: ADDRESS,
+        nonce: NONCE,
+      });
+
+      expect(message).toContain('sign in with your Solana account');
+      expect(message).toContain(ADDRESS);
+      expect(message).toContain('Chain ID: 1');
+      expect(message).toContain(`Nonce: ${NONCE}`);
+      expect(message).toMatch(/Issued At: \S+/);
+      expect(message).not.toContain('Expiration Time');
     });
   });
 });

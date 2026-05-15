@@ -55,6 +55,10 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
+import type {
+  PredictControllerBeforePublishAction,
+  PredictControllerPublishAction,
+} from '../../../../components/UI/Predict/controllers/PredictController-method-action-types';
 
 export function getTransactionControllerMessenger(
   rootMessenger: RootMessenger,
@@ -73,6 +77,7 @@ export function getTransactionControllerMessenger(
       'AccountsController:getSelectedAccount',
       'AccountsController:getState',
       `ApprovalController:addRequest`,
+      'KeyringController:getState',
       'KeyringController:signEip7702Authorization',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
@@ -113,7 +118,9 @@ type InitMessengerActions =
   | TransactionPayControllerGetDelegationTransactionAction
   | TransactionPayControllerGetStateAction
   | TransactionPayControllerGetStrategyAction
-  | AnalyticsControllerActions;
+  | AnalyticsControllerActions
+  | PredictControllerBeforePublishAction
+  | PredictControllerPublishAction;
 
 type InitMessengerEvents =
   | BridgeStatusControllerEvents
@@ -172,6 +179,28 @@ export function getTransactionControllerInitMessenger(
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
       'AnalyticsController:trackEvent',
+      'PredictController:beforePublish',
+      'PredictController:publish',
+      // Missing actions to use fiat payment hook from publish hook
+      // Actions below are provided by patched controllers not yet in upstream types
+      // @ts-expect-error See above
+      'AssetsController:getStateForTransactionPay',
+      // @ts-expect-error See above
+      'BridgeController:fetchQuotes',
+      // @ts-expect-error See above
+      'GasFeeController:getState',
+      // @ts-expect-error See above
+      'RampsController:getOrder',
+      // @ts-expect-error See above
+      'RampsController:getQuotes',
+      // @ts-expect-error See above
+      'RampsController:getState',
+      // @ts-expect-error See above
+      'TokenBalancesController:getState',
+      // @ts-expect-error See above
+      'TokenRatesController:getState',
+      // @ts-expect-error See above
+      'TokensController:getState',
     ],
     events: [
       'BridgeStatusController:stateChange',

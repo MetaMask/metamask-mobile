@@ -17,7 +17,6 @@ import {
   validateEmail,
   formatPercentChange,
   isPercentChangeNonNegative,
-  formatComputedAt,
   getChainHex,
   getAssetReference,
   parseCaip19,
@@ -26,7 +25,7 @@ import {
   formatUsd,
   formatSignedUsd,
   formatCompactUsd,
-  sanitizeOndoTokenName,
+  formatOrdinalRank,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
@@ -43,24 +42,33 @@ jest.mock('../../../../util/date', () => ({
 
 // Mock i18n strings
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const t: Record<string, string> = {
-      'rewards.events.to': 'to',
-      'rewards.events.type.swap': 'Swap',
-      'rewards.events.type.referral_action': 'Referral action',
-      'rewards.events.type.sign_up_bonus': 'Sign up bonus',
-      'rewards.events.type.loyalty_bonus': 'Loyalty bonus',
-      'rewards.events.type.one_time_bonus': 'One-time bonus',
-      'rewards.events.type.open_position': 'Opened position',
-      'rewards.events.type.close_position': 'Closed position',
-      'rewards.events.type.take_profit': 'Take profit',
-      'rewards.events.type.stop_loss': 'Stop loss',
-      'rewards.events.type.uncategorized_event': 'Uncategorized event',
-      'perps.market.long': 'Long',
-      'perps.market.short': 'Short',
-    };
-    return t[key] || key;
-  }),
+  strings: jest.fn(
+    (key: string, params: Record<string, string> | undefined) => {
+      const t: Record<string, string> = {
+        'rewards.events.to': 'to',
+        'rewards.events.type.swap': 'Swap',
+        'rewards.events.type.referral_action': 'Referral action',
+        'rewards.events.type.sign_up_bonus': 'Sign up bonus',
+        'rewards.events.type.loyalty_bonus': 'Loyalty bonus',
+        'rewards.events.type.one_time_bonus': 'One-time bonus',
+        'rewards.events.type.open_position': 'Opened position',
+        'rewards.events.type.close_position': 'Closed position',
+        'rewards.events.type.take_profit': 'Take profit',
+        'rewards.events.type.stop_loss': 'Stop loss',
+        'rewards.events.type.uncategorized_event': 'Uncategorized event',
+        'perps.market.long': 'Long',
+        'perps.market.short': 'Short',
+        'rewards.perps_trading_campaign.last_updated': 'Last updated: {{time}}',
+      };
+      let template = t[key] ?? key;
+      if (params) {
+        for (const [paramKey, value] of Object.entries(params)) {
+          template = template.split(`{{${paramKey}}}`).join(value);
+        }
+      }
+      return template;
+    },
+  ),
   default: {
     locale: 'en-US',
   },
@@ -1368,6 +1376,60 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('formatOrdinalRank', () => {
+    it('formats 1 as 1st', () => {
+      expect(formatOrdinalRank(1)).toBe('1st');
+    });
+
+    it('formats 2 as 2nd', () => {
+      expect(formatOrdinalRank(2)).toBe('2nd');
+    });
+
+    it('formats 3 as 3rd', () => {
+      expect(formatOrdinalRank(3)).toBe('3rd');
+    });
+
+    it('formats 4 as 4th', () => {
+      expect(formatOrdinalRank(4)).toBe('4th');
+    });
+
+    it('formats 11 as 11th', () => {
+      expect(formatOrdinalRank(11)).toBe('11th');
+    });
+
+    it('formats 12 as 12th', () => {
+      expect(formatOrdinalRank(12)).toBe('12th');
+    });
+
+    it('formats 13 as 13th', () => {
+      expect(formatOrdinalRank(13)).toBe('13th');
+    });
+
+    it('formats 21 as 21st', () => {
+      expect(formatOrdinalRank(21)).toBe('21st');
+    });
+
+    it('formats 22 as 22nd', () => {
+      expect(formatOrdinalRank(22)).toBe('22nd');
+    });
+
+    it('formats 23 as 23rd', () => {
+      expect(formatOrdinalRank(23)).toBe('23rd');
+    });
+
+    it('formats 111 as 111th', () => {
+      expect(formatOrdinalRank(111)).toBe('111th');
+    });
+
+    it('uses absolute value for negative ranks', () => {
+      expect(formatOrdinalRank(-5)).toBe('5th');
+    });
+
+    it('floors non-integer ranks', () => {
+      expect(formatOrdinalRank(3.7)).toBe('3rd');
+    });
+  });
+
   describe('isPercentChangeNonNegative', () => {
     it('returns true for positive number', () => {
       expect(isPercentChangeNonNegative(0.15)).toBe(true);
@@ -1387,25 +1449,6 @@ describe('formatUtils', () => {
 
     it('returns false for non-numeric string', () => {
       expect(isPercentChangeNonNegative('—')).toBe(false);
-    });
-  });
-
-  describe('formatComputedAt', () => {
-    it('returns empty string for null', () => {
-      expect(formatComputedAt(null)).toBe('');
-    });
-
-    it('returns empty string for empty string', () => {
-      expect(formatComputedAt('')).toBe('');
-    });
-
-    it('returns HH:MM:SS for a valid ISO timestamp', () => {
-      const result = formatComputedAt('2026-03-28T14:30:45.000Z');
-      expect(result).toMatch(/^\d{2}:\d{2}:\d{2}$/);
-    });
-
-    it('returns empty string for unparseable value', () => {
-      expect(formatComputedAt('not-a-date')).toBe('');
     });
   });
 
@@ -1556,8 +1599,20 @@ describe('formatUtils', () => {
       expect(formatSignedUsd('0')).toBe('$0.00');
     });
 
-    it('returns raw string for non-numeric input', () => {
-      expect(formatSignedUsd('abc')).toBe('abc');
+    it('prepends + for positive number input', () => {
+      expect(formatSignedUsd(5000)).toBe('+$5,000.00');
+    });
+
+    it('formats negative number input', () => {
+      expect(formatSignedUsd(-1250.5)).toBe('$-1,250.50');
+    });
+
+    it('returns em dash for non-numeric string', () => {
+      expect(formatSignedUsd('abc')).toBe('—');
+    });
+
+    it('returns em dash for empty string', () => {
+      expect(formatSignedUsd('')).toBe('—');
     });
   });
 
@@ -1597,60 +1652,11 @@ describe('formatUtils', () => {
     it('formats negative thousands', () => {
       expect(formatCompactUsd(-75_000)).toBe('-$75K');
     });
-  });
 
-  describe('sanitizeOndoTokenName', () => {
-    it('strips "(Ondo Tokenized)" suffix and trims', () => {
-      expect(sanitizeOndoTokenName('US Dollar (Ondo Tokenized)')).toBe(
-        'US Dollar',
+    it('formats compact values without decimals when requested', () => {
+      expect(formatCompactUsd(123_456, { maximumFractionDigits: 0 })).toBe(
+        '$123K',
       );
-    });
-
-    it('strips "Ondo Tokenized " prefix (trending token API format)', () => {
-      expect(sanitizeOndoTokenName('Ondo Tokenized Apple')).toBe('Apple');
-    });
-
-    it('is case-insensitive for suffix form', () => {
-      expect(sanitizeOndoTokenName('Token (ondo tokenized)')).toBe('Token');
-    });
-
-    it('is case-insensitive for prefix form', () => {
-      expect(sanitizeOndoTokenName('ONDO TOKENIZED Apple')).toBe('Apple');
-    });
-
-    it('truncates to 28 characters with ellipsis', () => {
-      expect(sanitizeOndoTokenName('A Very Long Token Name That Exceeds')).toBe(
-        'A Very Long Token Name That...',
-      );
-    });
-
-    it('strips suffix then truncates with ellipsis', () => {
-      const long = 'Extremely Long Name Here That Keeps Going (Ondo Tokenized)';
-      expect(sanitizeOndoTokenName(long)).toBe(
-        'Extremely Long Name Here Tha...',
-      );
-    });
-
-    it('strips prefix then truncates with ellipsis', () => {
-      expect(
-        sanitizeOndoTokenName(
-          'Ondo Tokenized Extremely Long Name That Exceeds',
-        ),
-      ).toBe('Extremely Long Name That Exc...');
-    });
-
-    it('does not add ellipsis when exactly 28 characters', () => {
-      expect(sanitizeOndoTokenName('1234567890123456789012345678')).toBe(
-        '1234567890123456789012345678',
-      );
-    });
-
-    it('leaves unrelated names unchanged', () => {
-      expect(sanitizeOndoTokenName('OUSG')).toBe('OUSG');
-    });
-
-    it('returns empty string for an empty input', () => {
-      expect(sanitizeOndoTokenName('')).toBe('');
     });
   });
 });

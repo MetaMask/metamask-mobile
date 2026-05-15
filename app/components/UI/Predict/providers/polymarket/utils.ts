@@ -6,6 +6,7 @@ import { ethers } from 'ethers';
 import { Interface } from 'ethers/lib/utils';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
 import {
   OnchainTradeParams,
   PredictMarketStatus,
@@ -16,7 +17,6 @@ import {
   type PredictMarket,
   type PredictPosition,
   PredictActivity,
-  Result,
   PredictOutcome,
   PredictOutcomeGroup,
   PredictOutcomeToken,
@@ -48,7 +48,7 @@ import {
   GROUP_ORDER,
   SPORTS_MARKET_TYPE_PRIORITIES,
   HASH_ZERO_BYTES32,
-  MATIC_CONTRACTS,
+  MATIC_CONTRACTS_V2,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
@@ -57,16 +57,14 @@ import {
   SLIPPAGE_SELL,
   SPORTS_MARKET_TYPE_TO_GROUP,
 } from './constants';
-import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
+  ClobFeeDetails,
   ClobHeaders,
-  ClobOrderObject,
+  ClobMarketInfo,
   COLLATERAL_TOKEN_DECIMALS,
   ContractConfig,
   L2HeaderArgs,
-  OrderData,
-  OrderResponse,
   OrderSummary,
   PolymarketApiEvent,
   PolymarketApiActivity,
@@ -76,10 +74,40 @@ import {
   TickSize,
   OrderBook,
 } from './types';
-import { PREDICT_ERROR_CODES } from '../../constants/errors';
+import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PredictFeeCollection } from '../../types/flags';
+import { roundToFiveDecimals } from '../../utils/orders';
+import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
 
 export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
+
+/**
+ * Parse a fetch `Response` body as JSON, raising a contextual error when the
+ * body is not valid JSON. Without this wrapper the bare
+ * `await response.json()` call only surfaces "JSON Parse error: Unexpected
+ * character: <" with no clue which endpoint returned HTML, which masks the
+ * underlying problem (e.g. an upstream proxy/error page reaching the client).
+ */
+async function parseJsonOrThrow<T>(
+  response: Response,
+  url: string,
+): Promise<T> {
+  const text = await response.text();
+  try {
+    return JSON.parse(text) as T;
+  } catch (parseError) {
+    const snippet = text.slice(0, 200).replace(/\s+/gu, ' ');
+    DevLogger.log('Polymarket: non-JSON response from endpoint', {
+      url,
+      status: response.status,
+      contentType: response.headers.get('content-type'),
+      bodySnippet: snippet,
+    });
+    throw new Error(
+      `Polymarket fetch returned non-JSON (status ${response.status}) from ${url}: ${snippet}`,
+    );
+  }
+}
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
@@ -203,85 +231,282 @@ export const getL2Headers = async ({
   return headers;
 };
 
-function getClobEndpoint({
-  clobVersion = 'v1',
-  clobBaseUrl,
-}: {
-  clobVersion?: 'v1' | 'v2';
-  clobBaseUrl?: string;
-}): string {
+function getClobEndpoint(): string {
   const { CLOB_ENDPOINT } = getPolymarketEndpoints();
-
-  if (clobVersion === 'v2') {
-    return clobBaseUrl ?? CLOB_ENDPOINT;
-  }
-
   return CLOB_ENDPOINT;
 }
 
-export const deriveApiKey = async ({
-  address,
-  clobVersion = 'v1',
-  clobBaseUrl,
-}: {
-  address: string;
-  clobVersion?: 'v1' | 'v2';
-  clobBaseUrl?: string;
-}) => {
-  const headers = await getL1Headers({ address });
-  const response = await fetch(
-    `${getClobEndpoint({ clobVersion, clobBaseUrl })}/auth/derive-api-key`,
-    {
-      method: 'GET',
-      headers,
+const clobMarketInfoCache = new Map<string, ClobMarketInfo>();
+const reportedClobMarketInfoFailures = new Set<string>();
+
+const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const isOptionalFiniteNumber = (value: unknown): boolean =>
+  value === undefined || (typeof value === 'number' && Number.isFinite(value));
+
+const isOptionalNullableFiniteNumber = (value: unknown): boolean =>
+  value === undefined ||
+  value === null ||
+  (typeof value === 'number' && Number.isFinite(value));
+
+const isOptionalNullableBoolean = (value: unknown): boolean =>
+  value === undefined || value === null || typeof value === 'boolean';
+
+const isClobFeeDetails = (value: unknown): value is ClobFeeDetails =>
+  isObjectRecord(value) &&
+  isOptionalNullableFiniteNumber(value.r) &&
+  isOptionalNullableFiniteNumber(value.e) &&
+  isOptionalNullableBoolean(value.to);
+
+const isClobMarketInfo = (value: unknown): value is ClobMarketInfo =>
+  isObjectRecord(value) &&
+  (value.fd === undefined || isClobFeeDetails(value.fd)) &&
+  isOptionalFiniteNumber(value.mts) &&
+  isOptionalFiniteNumber(value.mos);
+
+const ensureClobMarketInfoError = (error: unknown): Error => {
+  if (error instanceof Error) {
+    return error;
+  }
+
+  return new Error(String(error));
+};
+
+const getClobMarketInfoFailureContext = (conditionId: string) => ({
+  tags: {
+    feature: PREDICT_CONSTANTS.FEATURE_NAME,
+    provider: POLYMARKET_PROVIDER_ID,
+  },
+  context: {
+    name: 'PolymarketUtils',
+    data: {
+      method: 'getClobMarketInfo',
+      conditionId,
     },
-  );
+  },
+});
+
+export const clearClobMarketInfoSessionState = () => {
+  clobMarketInfoCache.clear();
+  reportedClobMarketInfoFailures.clear();
+};
+
+export const clearClobMarketInfoCache = () => {
+  clobMarketInfoCache.clear();
+};
+
+export const deriveApiKey = async ({ address }: { address: string }) => {
+  const headers = await getL1Headers({ address });
+  const url = `${getClobEndpoint()}/auth/derive-api-key`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers,
+  });
   if (!response.ok) {
     throw new Error('Failed to derive API key');
   }
-  const apiKeyRaw = await response.json();
-  return apiKeyRaw as ApiKeyCreds;
+  const apiKeyRaw = await parseJsonOrThrow<ApiKeyCreds>(response, url);
+  return apiKeyRaw;
 };
 
-export const createApiKey = async ({
-  address,
-  clobVersion = 'v1',
-  clobBaseUrl,
-}: {
-  address: string;
-  clobVersion?: 'v1' | 'v2';
-  clobBaseUrl?: string;
-}) => {
+export const createApiKey = async ({ address }: { address: string }) => {
   const headers = await getL1Headers({ address });
-  const response = await fetch(
-    `${getClobEndpoint({ clobVersion, clobBaseUrl })}/auth/api-key`,
-    {
-      method: 'POST',
-      headers,
-      body: '',
-    },
-  );
+  const url = `${getClobEndpoint()}/auth/api-key`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: '',
+  });
   if (response.status === 400) {
-    return await deriveApiKey({ address, clobVersion, clobBaseUrl });
+    return await deriveApiKey({ address });
   }
-  const apiKeyRaw = await response.json();
-  return apiKeyRaw as ApiKeyCreds;
+  const apiKeyRaw = await parseJsonOrThrow<ApiKeyCreds>(response, url);
+  return apiKeyRaw;
 };
 
 export const priceValid = (price: number, tickSize: TickSize): boolean =>
   price >= parseFloat(tickSize) && price <= 1 - parseFloat(tickSize);
 
-export const getOrderBook = async ({
-  tokenId,
-  clobVersion = 'v1',
-  clobBaseUrl,
+export const getClobMarketInfo = async ({
+  conditionId,
 }: {
-  tokenId: string;
-  clobVersion?: 'v1' | 'v2';
-  clobBaseUrl?: string;
-}) => {
+  conditionId: string;
+}): Promise<ClobMarketInfo> => {
+  const cachedMarketInfo = clobMarketInfoCache.get(conditionId);
+
+  if (cachedMarketInfo) {
+    return cachedMarketInfo;
+  }
+
   const response = await fetch(
-    `${getClobEndpoint({ clobVersion, clobBaseUrl })}/book?token_id=${tokenId}`,
+    `${getClobEndpoint()}/clob-markets/${conditionId}`,
+    {
+      method: 'GET',
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to get CLOB market info');
+  }
+
+  const marketInfo = await response.json();
+
+  if (!isClobMarketInfo(marketInfo)) {
+    throw new Error('Invalid CLOB market info response');
+  }
+
+  clobMarketInfoCache.set(conditionId, marketInfo);
+  reportedClobMarketInfoFailures.delete(conditionId);
+  return marketInfo;
+};
+
+export const getClobMarketInfoSafe = async ({
+  conditionId,
+}: {
+  conditionId: string;
+}): Promise<ClobMarketInfo | undefined> => {
+  try {
+    return await getClobMarketInfo({ conditionId });
+  } catch (error) {
+    if (!reportedClobMarketInfoFailures.has(conditionId)) {
+      Logger.error(
+        ensureClobMarketInfoError(error),
+        getClobMarketInfoFailureContext(conditionId),
+      );
+      reportedClobMarketInfoFailures.add(conditionId);
+    }
+
+    return undefined;
+  }
+};
+
+const isValidFeeMetadata = (
+  marketInfo?: ClobMarketInfo,
+): marketInfo is ClobMarketInfo & {
+  fd: { r: number; e: number };
+} => {
+  const rate = marketInfo?.fd?.r;
+  const exponent = marketInfo?.fd?.e;
+
+  return (
+    typeof rate === 'number' &&
+    Number.isFinite(rate) &&
+    rate >= 0 &&
+    typeof exponent === 'number' &&
+    Number.isFinite(exponent) &&
+    exponent >= 0
+  );
+};
+
+const calculateMarketFeeAtPrice = ({
+  amountUsd,
+  rate,
+  exponent,
+  price,
+}: {
+  amountUsd: number;
+  rate: number;
+  exponent: number;
+  price: number;
+}): number => {
+  if (
+    amountUsd <= 0 ||
+    rate <= 0 ||
+    price <= 0 ||
+    price >= 1 ||
+    !Number.isFinite(price)
+  ) {
+    return 0;
+  }
+
+  const fee =
+    amountUsd * rate * price ** (exponent - 1) * (1 - price) ** exponent;
+
+  return Number.isFinite(fee) && fee > 0 ? fee : 0;
+};
+
+export const calculateConservativeBuyMarketFee = ({
+  preview,
+  marketInfo,
+}: {
+  preview: OrderPreview;
+  marketInfo?: ClobMarketInfo;
+}): number => {
+  if (preview.side !== Side.BUY || !isValidFeeMetadata(marketInfo)) {
+    return 0;
+  }
+
+  const amountUsd = preview.maxAmountSpent;
+  const minAmountReceivedWithSlippage =
+    getMinAmountReceivedWithSlippage(preview);
+
+  if (
+    amountUsd <= 0 ||
+    preview.minAmountReceived <= 0 ||
+    minAmountReceivedWithSlippage <= 0
+  ) {
+    return 0;
+  }
+
+  const snapshotAvgPrice = amountUsd / preview.minAmountReceived;
+  const worstAllowedAvgPrice = amountUsd / minAmountReceivedWithSlippage;
+  const leftEndpoint = Math.min(snapshotAvgPrice, worstAllowedAvgPrice);
+  const rightEndpoint = Math.max(snapshotAvgPrice, worstAllowedAvgPrice);
+
+  if (
+    !Number.isFinite(leftEndpoint) ||
+    !Number.isFinite(rightEndpoint) ||
+    leftEndpoint <= 0 ||
+    rightEndpoint >= 1
+  ) {
+    return 0;
+  }
+
+  const { r: rate, e: exponent } = marketInfo.fd;
+
+  /*
+   * Polymarket's CLOB fee model prices buy market fees as:
+   *
+   *   fee(p) = amountUsd * rate * p^(exponent - 1) * (1 - p)^exponent
+   *
+   * The exact fill price can move within the user's allowed slippage range, so
+   * a "conservative" estimate means charging the highest fee possible over the
+   * interval between the preview snapshot average price and the worst allowed
+   * average price. A smooth single-variable curve reaches its maximum either at
+   * one of the interval endpoints or, when it falls inside the interval, at the
+   * critical point where the derivative is zero:
+   *
+   *   p* = (exponent - 1) / (2 * exponent - 1)
+   */
+  const candidates = [leftEndpoint, rightEndpoint];
+  const criticalPoint = (exponent - 1) / (2 * exponent - 1);
+
+  if (
+    Number.isFinite(criticalPoint) &&
+    criticalPoint > leftEndpoint &&
+    criticalPoint < rightEndpoint
+  ) {
+    candidates.push(criticalPoint);
+  }
+
+  const conservativeMarketFee = Math.max(
+    ...candidates.map((price) =>
+      calculateMarketFeeAtPrice({
+        amountUsd,
+        rate,
+        exponent,
+        price,
+      }),
+    ),
+  );
+
+  return roundToFiveDecimals(conservativeMarketFee);
+};
+
+export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
+  const response = await fetch(
+    `${getClobEndpoint()}/book?token_id=${tokenId}`,
     {
       method: 'GET',
     },
@@ -299,120 +524,17 @@ export const getOrderBook = async ({
   return responseData;
 };
 
-interface FeeRateResponse {
-  base_fee?: number;
-}
-
-const DEFAULT_FEE_RATE_BPS = '0';
-
-export const getFeeRateBps = async ({
-  tokenId,
-}: {
-  tokenId: string;
-}): Promise<string> => {
-  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
-
-  try {
-    const response = await fetch(
-      `${CLOB_ENDPOINT}/fee-rate?token_id=${tokenId}`,
-      {
-        method: 'GET',
-      },
-    );
-
-    if (!response.ok) {
-      let errorMessage = `Request failed with status ${response.status}`;
-      const responseData = (await response.json().catch(() => undefined)) as
-        | { error?: string }
-        | undefined;
-      if (responseData?.error) {
-        errorMessage = responseData.error;
-      }
-
-      DevLogger.log('Polymarket fee-rate request failed, using zero fee', {
-        tokenId,
-        status: response.status,
-        errorMessage,
-      });
-      return DEFAULT_FEE_RATE_BPS;
-    }
-
-    const responseData = (await response.json()) as FeeRateResponse;
-    const baseFee = responseData.base_fee;
-    if (
-      typeof baseFee !== 'number' ||
-      !Number.isFinite(baseFee) ||
-      baseFee < 0
-    ) {
-      DevLogger.log('Polymarket fee-rate response invalid, using zero fee', {
-        tokenId,
-        baseFee,
-      });
-      return DEFAULT_FEE_RATE_BPS;
-    }
-
-    return Math.round(baseFee).toString();
-  } catch (error) {
-    DevLogger.log('Polymarket fee-rate request threw, using zero fee', {
-      tokenId,
-      error,
-    });
-    return DEFAULT_FEE_RATE_BPS;
-  }
-};
-
 export const generateSalt = (): Hex =>
   `0x${BigInt(Math.floor(Math.random() * 1000000)).toString(16)}`;
 
 export const getContractConfig = (chainID: number): ContractConfig => {
   switch (chainID) {
     case POLYGON_MAINNET_CHAIN_ID:
-      return MATIC_CONTRACTS;
+      return MATIC_CONTRACTS_V2;
     default:
-      throw new Error(
-        'MetaMask Predict is only supported on Polygon mainnet and Amoy testnet',
-      );
+      throw new Error('MetaMask Predict is only supported on Polygon mainnet');
   }
 };
-
-export const getOrderTypedData = ({
-  order,
-  chainId,
-  verifyingContract,
-}: {
-  order: OrderData & { salt: string };
-  chainId: number;
-  verifyingContract: string;
-}) => ({
-  primaryType: 'Order',
-  domain: {
-    name: 'Polymarket CTF Exchange',
-    version: '1',
-    chainId,
-    verifyingContract,
-  },
-  types: {
-    EIP712Domain: [
-      ...EIP712Domain,
-      { name: 'verifyingContract', type: 'address' },
-    ],
-    Order: [
-      { name: 'salt', type: 'uint256' },
-      { name: 'maker', type: 'address' },
-      { name: 'signer', type: 'address' },
-      { name: 'taker', type: 'address' },
-      { name: 'tokenId', type: 'uint256' },
-      { name: 'makerAmount', type: 'uint256' },
-      { name: 'takerAmount', type: 'uint256' },
-      { name: 'expiration', type: 'uint256' },
-      { name: 'nonce', type: 'uint256' },
-      { name: 'feeRateBps', type: 'uint256' },
-      { name: 'side', type: 'uint8' },
-      { name: 'signatureType', type: 'uint8' },
-    ],
-  },
-  message: order,
-});
 
 export const encodeApprove = ({
   spender,
@@ -450,82 +572,6 @@ export const encodeErc20Transfer = ({
 function replaceAll(s: string, search: string, replace: string) {
   return s.split(search).join(replace);
 }
-
-export const submitClobOrder = async ({
-  headers,
-  clobOrder,
-  feeAuthorization,
-  executor,
-  allowancesTx,
-}: {
-  headers: ClobHeaders;
-  clobOrder: ClobOrderObject;
-  feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
-  executor?: string;
-  allowancesTx?: { to: string; data: string };
-}): Promise<Result<OrderResponse>> => {
-  const { CLOB_RELAYER } = getPolymarketEndpoints();
-  const url = `${CLOB_RELAYER}/order`;
-  const body: ClobOrderObject & {
-    feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
-    executor?: string;
-    allowancesTx?: { to: string; data: string };
-  } = {
-    ...clobOrder,
-    feeAuthorization,
-    ...(executor && { executor }),
-    ...(allowancesTx && { allowancesTx }),
-  };
-
-  // For our relayer, we need to replace the underscores with dashes
-  // since underscores are not standardly allowed in headers
-  headers = {
-    ...headers,
-    ...Object.entries(headers)
-      .map(([key, value]) => ({
-        [key.replace(/_/g, '-')]: value,
-      }))
-      .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
-  };
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-    });
-
-    if (response.status === 403) {
-      return {
-        success: false,
-        error: 'You are unable to access this provider.',
-      };
-    }
-
-    let responseData;
-    try {
-      responseData = (await response.json()) as OrderResponse;
-    } catch (error) {
-      responseData = undefined;
-    }
-
-    if (!response.ok || !responseData || responseData?.success === false) {
-      const error = responseData?.errorMsg ?? response.statusText;
-      return {
-        success: false,
-        error,
-      };
-    }
-
-    return { success: true, response: responseData };
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Unknown error';
-    return {
-      success: false,
-      error: `Failed to submit CLOB order: ${msg}`,
-    };
-  }
-};
 
 const normalizeSportsMarketType = (type: string): string => {
   const lower = type.toLowerCase();
@@ -1201,6 +1247,9 @@ export const fetchEventsFromPolymarketApi = async (
 
     queryParamsEvents = `${limitParam}&${active}&${archived}&${closed}&${ascending}&${offsetParam}&${liquidity}&${volume}`;
     queryParamsEvents += categoryTagMap[category];
+    if (customQueryParams) {
+      queryParamsEvents += `&${customQueryParams}`;
+    }
   }
 
   const limitPerType = `limit_per_type=${limit}`;
@@ -1663,6 +1712,14 @@ export const getAllowanceCalls = (params: { address: string }) => {
   return calls;
 };
 
+const parseNumericRpcResult = (res: string): bigint => {
+  if (res === '0x') {
+    return 0n;
+  }
+
+  return BigInt(res);
+};
+
 export const getAllowance = async ({
   tokenAddress,
   owner,
@@ -1693,8 +1750,8 @@ export const getAllowance = async ({
     },
   ]);
 
-  // Decode the result
-  const allowance = BigInt(res);
+  // Treat empty hex responses as zero to avoid breaking on sparse/mock RPCs.
+  const allowance = parseNumericRpcResult(res);
   return allowance;
 };
 
@@ -1729,7 +1786,7 @@ export const getIsApprovedForAll = async ({
   ]);
 
   // Decode the result - convert hex to boolean
-  const isApproved = BigInt(res) !== 0n;
+  const isApproved = parseNumericRpcResult(res) !== 0n;
   return isApproved;
 };
 
@@ -1780,7 +1837,7 @@ export const getRawBalance = async ({
     },
   ]);
 
-  return BigInt(res);
+  return parseNumericRpcResult(res);
 };
 
 export const getBalance = async ({
@@ -1936,27 +1993,18 @@ export const roundOrderAmount = ({
 export const previewOrder = async (
   params: Omit<PreviewOrderParams, 'providerId'> & {
     feeCollection?: PredictFeeCollection;
-    isV2?: boolean;
-    clobBaseUrl?: string;
   },
 ): Promise<OrderPreview> => {
-  const {
-    marketId,
-    outcomeId,
-    outcomeTokenId,
-    side,
-    size,
-    feeCollection,
-    isV2,
-    clobBaseUrl,
-  } = params;
-  const [book, feeRateBps] = await Promise.all([
+  const { marketId, outcomeId, outcomeTokenId, side, size, feeCollection } =
+    params;
+  const [book, feeRateBps, marketInfo] = await Promise.all([
     getOrderBook({
       tokenId: outcomeTokenId,
-      clobVersion: isV2 ? 'v2' : 'v1',
-      clobBaseUrl: isV2 ? clobBaseUrl : undefined,
     }),
-    isV2 ? Promise.resolve('0') : getFeeRateBps({ tokenId: outcomeTokenId }),
+    Promise.resolve('0'),
+    side === Side.BUY
+      ? getClobMarketInfoSafe({ conditionId: outcomeId })
+      : Promise.resolve(undefined),
   ]);
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
@@ -1977,7 +2025,7 @@ export const previewOrder = async (
       amount: shareAmount,
       decimals: roundConfig.amount,
     });
-    return {
+    const preview: OrderPreview = {
       marketId,
       outcomeId,
       outcomeTokenId,
@@ -1991,11 +2039,24 @@ export const previewOrder = async (
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
       feeRateBps,
-      fees: await calculateFees({
-        feeCollection,
-        marketId,
-        userBetAmount: makerAmount,
-      }),
+    };
+
+    const serviceFees = await calculateFees({
+      feeCollection,
+      marketId,
+      userBetAmount: makerAmount,
+    });
+    const marketFee = calculateConservativeBuyMarketFee({
+      preview,
+      marketInfo,
+    });
+
+    return {
+      ...preview,
+      fees: {
+        ...serviceFees,
+        marketFee,
+      },
     };
   }
   const { bids } = book;

@@ -30,7 +30,7 @@ type MarginRequiredParams = {
 };
 
 type MaxAllowedAmountParams = {
-  availableBalance: number;
+  spendableBalance: number;
   assetPrice: number;
   assetSzDecimals: number;
   leverage: number;
@@ -146,13 +146,13 @@ export function calculateMarginRequired(params: MarginRequiredParams): string {
 }
 
 export function getMaxAllowedAmount(params: MaxAllowedAmountParams): number {
-  const { availableBalance, assetPrice, assetSzDecimals, leverage } = params;
-  if (availableBalance === 0 || !assetPrice || assetSzDecimals === undefined) {
+  const { spendableBalance, assetPrice, assetSzDecimals, leverage } = params;
+  if (spendableBalance === 0 || !assetPrice || assetSzDecimals === undefined) {
     return 0;
   }
 
-  // The theoretical maximum is simply availableBalance * leverage
-  const theoreticalMax = availableBalance * leverage;
+  // The theoretical maximum is simply spendableBalance * leverage
+  const theoreticalMax = spendableBalance * leverage;
 
   // But we need to account for position size rounding
   // Find the largest whole dollar amount that fits within this limit
@@ -169,7 +169,7 @@ export function getMaxAllowedAmount(params: MaxAllowedAmountParams): number {
   const requiredMargin = actualNotionalValue / leverage;
 
   // If rounding caused us to exceed available balance, step down by one position increment
-  if (requiredMargin > availableBalance) {
+  if (requiredMargin > spendableBalance) {
     const minPositionSizeIncrement = 1 / Math.pow(10, assetSzDecimals);
     const positionSizeIncrementUsd = Math.ceil(
       minPositionSizeIncrement * assetPrice,

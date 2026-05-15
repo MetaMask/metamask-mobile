@@ -25,7 +25,7 @@ import OnboardingSuccessView from '../page-objects/Onboarding/OnboardingSuccessV
 import ImportWalletView from '../page-objects/Onboarding/ImportWalletView';
 import OnboardingView from '../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../page-objects/Onboarding/OnboardingSheet';
-import Accounts from '../../wdio/helpers/Accounts';
+import Accounts from '../utils/Accounts';
 import EnableDeviceNotificationsAlert from '../page-objects/Onboarding/EnableDeviceNotificationsAlert';
 import ProtectYourWalletModal from '../page-objects/Onboarding/ProtectYourWalletModal';
 import SkipAccountSecurityModal from '../page-objects/Onboarding/SkipAccountSecurityModal';
@@ -40,7 +40,7 @@ import PlaywrightUtilities from '../framework/PlaywrightUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
-
+import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 const logger = createLogger({
   name: 'WalletFlow',
 });
@@ -231,6 +231,9 @@ export const importWalletWithRecoveryPhrase = async ({
 
     await MetaMetricsOptInView.tapAgreeButton();
   }
+  if (optInToMetrics) {
+    await OnboardingInterestQuestionnaireView.tapContinueButton();
+  }
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
@@ -341,6 +344,10 @@ export const CreateNewWallet = async ({
 
   await MetaMetricsOptInView.tapAgreeButton();
   await device.disableSynchronization(); // Detox is hanging after wallet creation
+
+  if (optInToMetrics) {
+    await OnboardingInterestQuestionnaireView.tapContinueButton();
+  }
 
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',

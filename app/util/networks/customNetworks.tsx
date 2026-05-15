@@ -159,7 +159,7 @@ export const PopularList = [
     ticker: 'SEI',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://seitrace.com/',
+      blockExplorerUrl: 'https://seiscan.io/',
       imageUrl: 'SEI',
       imageSource: require('../../images/sei.png'),
     },
@@ -188,6 +188,19 @@ export const PopularList = [
       blockExplorerUrl: 'https://megaeth.blockscout.com/',
       imageUrl: 'MEGAETH',
       imageSource: require('../../images/megaeth-mainnet-logo.png'),
+    },
+  },
+  {
+    chainId: toHex('4217'),
+    nickname: 'Tempo',
+    rpcUrl: `https://rpc.tempo.xyz/`,
+    failoverRpcUrls: [],
+    ticker: 'USD',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explore.tempo.xyz/',
+      imageUrl: 'TEMPO',
+      imageSource: require('../../images/tempo.png'),
     },
   },
 ];

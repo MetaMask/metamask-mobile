@@ -16,6 +16,7 @@ describe(SmokeSnaps('Get File Snap Tests'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           await mockGetFileSnap(mockServer);
         },

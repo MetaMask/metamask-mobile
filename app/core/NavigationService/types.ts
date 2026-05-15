@@ -47,6 +47,7 @@ import type { OnboardingSheetParams } from '../../components/Views/OnboardingShe
 // Modal params
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/types';
 import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/OptinMetrics.types';
+import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 
 // Perps navigation params
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
@@ -210,7 +211,7 @@ import type {
   WebviewParams,
   SimpleWebviewParams,
 } from '../../components/Views/Webview/Webview.types';
-import type { WhatsHappeningItem } from '../../components/Views/Homepage/Sections/WhatsHappening/types';
+import type { WhatsHappeningSourceValue } from '../../components/UI/WhatsHappening/constants';
 
 /**
  * Generic type for nested navigation params.
@@ -222,7 +223,7 @@ export interface NestedNavigationParams {
   [key: string]: unknown;
 }
 
-import { SectionId } from '../../components/Views/TrendingView/sections.config';
+import type { SearchFeedId } from '../../components/Views/TrendingView/search/useExploreSearch';
 
 type TraderPositionViewParams =
   | {
@@ -346,12 +347,12 @@ export interface RootStackParamList extends ParamListBase {
   TrendingView: undefined;
   TrendingFeed: undefined;
   WhatsHappeningDetailView:
-    | { items: WhatsHappeningItem[]; initialIndex: number }
+    | { initialIndex?: number; source: WhatsHappeningSourceValue }
     | undefined;
-  SitesFullView: undefined;
+  SitesFullView: { mode?: 'favorites' } | undefined;
   ExploreSearch: undefined;
   ExploreSectionResultsFullView: {
-    sectionId: SectionId;
+    feedId: SearchFeedId;
     title: string;
     searchQuery: string;
     data: unknown[];
@@ -414,6 +415,7 @@ export interface RootStackParamList extends ParamListBase {
   ImportFromSecretRecoveryPhrase: undefined;
   ChoosePassword: ChoosePasswordRouteParams | undefined;
   OptinMetrics: OptinMetricsRouteParams | undefined;
+  OnboardingInterestQuestionnaire: OnboardingInterestQuestionnaireRouteParams;
   SocialLoginSuccessExistingUser: undefined;
   /** OAuth unlock screen nested in OnboardingNav (see Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE). */
   OnboardingOAuthRehydrate: OnboardingOAuthRehydrateParams | undefined;
@@ -523,6 +525,7 @@ export interface RootStackParamList extends ParamListBase {
   Bridge: BridgeRouteParams | undefined;
   BridgeView: BridgeRouteParams | undefined;
   BridgeTokenSelector: BridgeTokenSelectorRouteParams | undefined;
+  BatchSellTokenSelect: undefined;
   BridgeModals: undefined;
   DefaultSlippageModal: DefaultSlippageModalParams | undefined;
   CustomSlippageModal: CustomSlippageModalParams | undefined;

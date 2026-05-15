@@ -42,6 +42,7 @@ import { POLYMARKET_NEW_FEED } from './market-feed-responses/polymarket-new-feed
 import {
   PROXY_WALLET_ADDRESS,
   USER_WALLET_ADDRESS,
+  LEGACY_SAFE_WALLET_ADDRESS,
   SAFE_FACTORY_ADDRESS,
   USDC_CONTRACT_ADDRESS,
   POLYGON_PUSD_TOKEN_ADDRESS,
@@ -211,8 +212,13 @@ export const POLYMARKET_EVENT_DETAILS_MOCKS = async (mockServer: Mockttp) => {
     .forGet('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      return Boolean(url?.includes('gamma-api.polymarket.com/events/'));
+      // Match only /events/{numericId}, NOT /events/pagination or
+      // /events?parent_event_id=... — those have their own dedicated mocks.
+      return Boolean(
+        url && /gamma-api\.polymarket\.com\/events\/[0-9]+/.test(url),
+      );
     })
+    .asPriority(PRIORITY.BASE)
     .thenCallback((request) => {
       const url = new URL(request.url).searchParams.get('url');
       const eventIdMatch = url?.match(/\/events\/([0-9]+)$/);
@@ -492,6 +498,50 @@ export async function POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(
 }
 
 /**
+ * Mock for Polymarket CLOB API key endpoints.
+ *
+ * The real Polymarket server always returns 400 for POST /auth/api-key on the
+ * test wallet, which causes `createApiKey` to fall back to
+ * GET /auth/derive-api-key.  Both paths are mocked here so the order-placement
+ * flow never makes real network calls — eliminating the Android CI failure
+ * caused by `clob.polymarket.com` being unreachable in that environment.
+ *
+ * The `secret` value is a valid base64 string; `getL2Headers` decodes it with
+ * `Buffer.from(secret, 'base64')` before computing the HMAC.  The relayer mock
+ * does not validate HMAC headers, so the exact credential values don't matter.
+ */
+export const POLYMARKET_CLOB_AUTH_MOCKS = async (mockServer: Mockttp) => {
+  // POST /auth/api-key always returns 400 for the test wallet, triggering the
+  // derive-api-key fallback.  Replicate that behaviour so createApiKey takes
+  // the correct code path without touching the real server.
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(url?.includes('clob.polymarket.com/auth/api-key'));
+    })
+    .asPriority(PRIORITY.BASE)
+    .thenReply(400, JSON.stringify({ error: 'Could not create api key' }), {
+      'content-type': 'application/json',
+    });
+
+  // GET /auth/derive-api-key — the actual credential source used at runtime.
+  // The returned values are only used to compute HMAC headers; the relayer
+  // mock does not validate those headers, so any non-empty strings suffice.
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(url?.includes('clob.polymarket.com/auth/derive-api-key'));
+    })
+    .asPriority(PRIORITY.BASE)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: { apiKey: 'e2e-key', secret: 'e2e-secret', passphrase: 'e2e-pass' },
+    }));
+};
+
+/**
  * Mock for Polymarket CLOB prices API
  * Returns BUY (best ask) and SELL (best bid) prices for outcome tokens
  * This is used to display current market prices in the UI
@@ -609,6 +659,273 @@ export const POLYMARKET_FEE_RATE_MOCKS = async (mockServer: Mockttp) => {
     .asPriority(PRIORITY.BASE)
     .thenReply(200, JSON.stringify({ base_fee: 0 }), {
       'content-type': 'application/json',
+    });
+};
+
+export const POLYMARKET_CLOB_MARKET_INFO_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /^https:\/\/clob\.polymarket\.com\/clob-markets\/0x[a-fA-F0-9]+$/,
+    responseCode: 200,
+    response: {
+      fd: {
+        r: 0,
+        e: 0,
+        to: false,
+      },
+      mts: 0.01,
+      mos: 5,
+    },
+  });
+};
+
+/**
+ * Mock for Polymarket CLOB prices-history API
+ * Returns an empty history series — sufficient for predict happy-path specs
+ * that render the chart (consumer treats non-array history as empty).
+ */
+export const POLYMARKET_PRICES_HISTORY_MOCKS = async (mockServer: Mockttp) => {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(url?.includes('clob.polymarket.com/prices-history'));
+    })
+    .asPriority(PRIORITY.BASE)
+    .thenReply(200, JSON.stringify({ history: [] }), {
+      'content-type': 'application/json',
+    });
+};
+
+/**
+ * Static team metadata for sports leagues used by predict E2E fixtures.
+ * Covers NBA + NFL teams referenced in event slugs (see polymarket-positions-response.ts).
+ *
+ * The wallet's TeamsCache stores teams by abbreviation, and buildGameData
+ * (gameParser.ts) returns null when either home or away team is missing —
+ * which causes market.game to be undefined and the wallet to fall back to
+ * the non-game market detail layout (no picks list). So returning realistic
+ * team data here is required for the new PredictGameDetailsContent path.
+ */
+const POLYMARKET_TEAMS_BY_LEAGUE: Record<
+  string,
+  {
+    id: string;
+    name: string;
+    logo: string;
+    abbreviation: string;
+    color: string;
+    alias: string;
+    league: string;
+  }[]
+> = {
+  nba: [
+    {
+      id: 'nba-sas',
+      name: 'San Antonio Spurs',
+      logo: '',
+      abbreviation: 'sas',
+      color: '#000000',
+      alias: 'Spurs',
+      league: 'nba',
+    },
+    {
+      id: 'nba-nop',
+      name: 'New Orleans Pelicans',
+      logo: '',
+      abbreviation: 'nop',
+      color: '#0C2340',
+      alias: 'Pelicans',
+      league: 'nba',
+    },
+    {
+      id: 'nba-bos',
+      name: 'Boston Celtics',
+      logo: '',
+      abbreviation: 'bos',
+      color: '#007A33',
+      alias: 'Celtics',
+      league: 'nba',
+    },
+    {
+      id: 'nba-bkn',
+      name: 'Brooklyn Nets',
+      logo: '',
+      abbreviation: 'bkn',
+      color: '#000000',
+      alias: 'Nets',
+      league: 'nba',
+    },
+  ],
+  nfl: [
+    {
+      id: 'nfl-buf',
+      name: 'Buffalo Bills',
+      logo: '',
+      abbreviation: 'buf',
+      color: '#00338D',
+      alias: 'Bills',
+      league: 'nfl',
+    },
+    {
+      id: 'nfl-atl',
+      name: 'Atlanta Falcons',
+      logo: '',
+      abbreviation: 'atl',
+      color: '#A71930',
+      alias: 'Falcons',
+      league: 'nfl',
+    },
+    {
+      id: 'nfl-chi',
+      name: 'Chicago Bears',
+      logo: '',
+      abbreviation: 'chi',
+      color: '#0B162A',
+      alias: 'Bears',
+      league: 'nfl',
+    },
+    {
+      id: 'nfl-was',
+      name: 'Washington Commanders',
+      logo: '',
+      abbreviation: 'was',
+      color: '#5A1414',
+      alias: 'Commanders',
+      league: 'nfl',
+    },
+    {
+      id: 'nfl-den',
+      name: 'Denver Broncos',
+      logo: '',
+      abbreviation: 'den',
+      color: '#FB4F14',
+      alias: 'Broncos',
+      league: 'nfl',
+    },
+    {
+      id: 'nfl-nyj',
+      name: 'New York Jets',
+      logo: '',
+      abbreviation: 'nyj',
+      color: '#125740',
+      alias: 'Jets',
+      league: 'nfl',
+    },
+    {
+      id: 'nfl-det',
+      name: 'Detroit Lions',
+      logo: '',
+      abbreviation: 'det',
+      color: '#0076B6',
+      alias: 'Lions',
+      league: 'nfl',
+    },
+    {
+      id: 'nfl-kc',
+      name: 'Kansas City Chiefs',
+      logo: '',
+      abbreviation: 'kc',
+      color: '#E31837',
+      alias: 'Chiefs',
+      league: 'nfl',
+    },
+    {
+      id: 'nfl-jax',
+      name: 'Jacksonville Jaguars',
+      logo: '',
+      abbreviation: 'jax',
+      color: '#006778',
+      alias: 'Jaguars',
+      league: 'nfl',
+    },
+    {
+      id: 'nfl-pit',
+      name: 'Pittsburgh Steelers',
+      logo: '',
+      abbreviation: 'pit',
+      color: '#FFB612',
+      alias: 'Steelers',
+      league: 'nfl',
+    },
+    {
+      id: 'nfl-cin',
+      name: 'Cincinnati Bengals',
+      logo: '',
+      abbreviation: 'cin',
+      color: '#FB4F14',
+      alias: 'Bengals',
+      league: 'nfl',
+    },
+    {
+      id: 'nfl-sea',
+      name: 'Seattle Seahawks',
+      logo: '',
+      abbreviation: 'sea',
+      color: '#002244',
+      alias: 'Seahawks',
+      league: 'nfl',
+    },
+    {
+      id: 'nfl-sf',
+      name: 'San Francisco 49ers',
+      logo: '',
+      abbreviation: 'sf',
+      color: '#AA0000',
+      alias: '49ers',
+      league: 'nfl',
+    },
+    {
+      id: 'nfl-tb',
+      name: 'Tampa Bay Buccaneers',
+      logo: '',
+      abbreviation: 'tb',
+      color: '#D50A0A',
+      alias: 'Buccaneers',
+      league: 'nfl',
+    },
+    {
+      id: 'nfl-dal',
+      name: 'Dallas Cowboys',
+      logo: '',
+      abbreviation: 'dal',
+      color: '#003594',
+      alias: 'Cowboys',
+      league: 'nfl',
+    },
+  ],
+};
+
+/**
+ * Mock for Polymarket gamma-api /teams API
+ * Returns the full list of teams for the queried league. The wallet's
+ * TeamsCache filters by requested abbreviations, so returning all teams
+ * for the league is safe and avoids per-test fixture maintenance.
+ */
+export const POLYMARKET_TEAMS_MOCKS = async (mockServer: Mockttp) => {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(url?.includes('gamma-api.polymarket.com/teams'));
+    })
+    .asPriority(PRIORITY.BASE)
+    .thenCallback((request) => {
+      const proxiedUrlParam = new URL(request.url).searchParams.get('url');
+      let league = '';
+      try {
+        const polymarketUrl = new URL(proxiedUrlParam ?? '');
+        league = polymarketUrl.searchParams.get('league') ?? '';
+      } catch {
+        league = '';
+      }
+      const teams = POLYMARKET_TEAMS_BY_LEAGUE[league] ?? [];
+      return {
+        statusCode: 200,
+        json: teams,
+      };
     });
 };
 
@@ -922,23 +1239,41 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
           // Safe Factory call - return proxy wallet address
           result = MOCK_RPC_RESPONSES.SAFE_FACTORY_RESULT;
         } else if (
-          toAddress?.toLowerCase() === USDC_CONTRACT_ADDRESS.toLowerCase()
+          toAddress?.toLowerCase() === POLYGON_PUSD_TOKEN_ADDRESS.toLowerCase()
         ) {
-          // USDC contract call - check function selector
+          // pUSD contract call (post-CLOB-v1 migration: Predict balance lives in pUSD).
+          // Return the current global balance for balanceOf so the displayed Predict
+          // balance comes from pUSD, matching production state for v2 users.
           if (callData?.toLowerCase()?.startsWith('0x70a08231')) {
             // balanceOf(address) selector - return current global balance
             result = currentUSDCBalance;
           } else if (callData?.toLowerCase()?.startsWith('0xdd62ed3e')) {
-            // allowance(address,address) selector - return max allowance (uint256 max)
-            // This indicates full allowance is granted
+            // allowance(address,address) selector - max allowance
+            result =
+              '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+          } else {
+            result = currentUSDCBalance;
+          }
+        } else if (
+          toAddress?.toLowerCase() === USDC_CONTRACT_ADDRESS.toLowerCase()
+        ) {
+          // Legacy Safe USDC.e contract call. Post-migration this balance is 0
+          // so deposit/withdraw/claim/trade flows do not append the legacy sweep
+          // maintenance transactions during E2E. Allowances stay maxed so any
+          // unrelated reads still see the wallet as fully approved.
+          if (callData?.toLowerCase()?.startsWith('0x70a08231')) {
+            // balanceOf(address) selector - ABI-encoded 0 (no legacy balance to sweep)
+            result = MOCK_RPC_RESPONSES.ZERO_UINT256_RESULT;
+          } else if (callData?.toLowerCase()?.startsWith('0xdd62ed3e')) {
+            // allowance(address,address) selector - max allowance
             result =
               '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
           } else if (callData?.toLowerCase()?.startsWith('0x6352211e')) {
-            // ownerOf(uint256) selector - return owner of the token
+            // ownerOf(uint256) selector
             result = '0x';
           } else {
-            // Other USDC contract calls - return current global balance as fallback
-            result = currentUSDCBalance;
+            // Other legacy USDC.e contract calls default to ABI-encoded zero.
+            result = MOCK_RPC_RESPONSES.ZERO_UINT256_RESULT;
           }
         } else if (
           toAddress?.toLowerCase() === MULTICALL_CONTRACT_ADDRESS.toLowerCase()
@@ -968,7 +1303,9 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
           result = MOCK_RPC_RESPONSES.EMPTY_RESULT;
         }
       } else if (body?.method === 'eth_blockNumber') {
-        // Return current block number (dynamically updated to invalidate cache)
+        // Auto-advance so PendingTransactionTracker detects new blocks and
+        // polls eth_getTransactionReceipt, allowing relay deposits to confirm.
+        currentBlockNumber++;
         result = `0x${currentBlockNumber.toString(16)}`;
       } else if (body?.method === 'eth_getBalance') {
         result = MOCK_RPC_RESPONSES.ETH_BALANCE_RESULT;
@@ -1431,7 +1768,7 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
         return false;
       }
 
-      // Parse body to ensure this is a USDC balance call
+      // Parse body to ensure this is a pUSD balance call
       try {
         const bodyText = await request.body.getText();
         const body = bodyText ? JSON.parse(bodyText) : undefined;
@@ -1441,9 +1778,9 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
         const toAddress = body?.params?.[0]?.to?.toLowerCase();
         const callData = body?.params?.[0]?.data;
         const isMatch =
-          toAddress === USDC_CONTRACT_ADDRESS.toLowerCase() &&
+          toAddress === POLYGON_PUSD_TOKEN_ADDRESS.toLowerCase() &&
           callData?.toLowerCase()?.startsWith('0x70a08231');
-        // Only match USDC balanceOf calls
+        // Only match pUSD balanceOf calls (post-CLOB-v1 Predict balance source)
         return isMatch;
       } catch (error) {
         return false;
@@ -1502,15 +1839,23 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
 
         // Verify the request matches cash-out order structure
         // Only check consistent fields - allow variable values for dynamic fields (salt, tokenId, amounts, signature, owner)
+        // CLOB v2 SELL order shape — see
+        // app/components/UI/Predict/providers/polymarket/protocol/orderCodec.ts
+        // (`buildProtocolUnsignedOrder`/`serializeProtocolRelayerOrder`).
+        // v2 orders have `timestamp`, `metadata`, `builder`; v1-only fields
+        // (`taker`, `nonce`, `feeRateBps`) were removed when CLOB v1 support
+        // was dropped, so this matcher must not check them.
         return (
           order &&
           (body.orderType === 'FOK' || body.orderType === 'FAK') &&
           order.maker?.toLowerCase() === PROXY_WALLET_ADDRESS.toLowerCase() &&
           order.signer?.toLowerCase() === USER_WALLET_ADDRESS.toLowerCase() &&
-          order.taker === '0x0000000000000000000000000000000000000000' &&
           order.expiration === '0' &&
-          order.nonce === '0' &&
-          typeof order.feeRateBps === 'string' &&
+          typeof order.timestamp === 'string' &&
+          typeof order.metadata === 'string' &&
+          order.metadata.startsWith('0x') &&
+          typeof order.builder === 'string' &&
+          order.builder.startsWith('0x') &&
           order.side === 'SELL' &&
           order.signatureType === 2 &&
           typeof order.salt === 'number' &&
@@ -1814,6 +2159,55 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
 };
 
 /**
+ * Marks the default fixture account's computed Polymarket legacy Safe as deployed.
+ * Use this for E2E flows that must exercise the legacy Safe path.
+ * @param mockServer - The mockttp server instance
+ */
+export const POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  await mockServer
+    .forPost('/proxy')
+    .matching(async (request) => {
+      const urlParam = new URL(request.url).searchParams.get('url');
+      const isPolygonRPC = Boolean(
+        urlParam?.includes('polygon') || urlParam?.includes('infura'),
+      );
+
+      if (!isPolygonRPC) {
+        return false;
+      }
+
+      try {
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : undefined;
+
+        return (
+          body?.method === 'eth_getCode' &&
+          body?.params?.[0]?.toLowerCase() ===
+            LEGACY_SAFE_WALLET_ADDRESS.toLowerCase()
+        );
+      } catch (error) {
+        return false;
+      }
+    })
+    .asPriority(PRIORITY.API_OVERRIDE)
+    .thenCallback(async (request) => {
+      const bodyText = await safeGetBodyText(request);
+      const body = bodyText ? JSON.parse(bodyText) : undefined;
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          id: body?.id ?? 1,
+          jsonrpc: '2.0',
+          result: MOCK_RPC_RESPONSES.CONTRACT_CODE_RESULT,
+        }),
+      };
+    });
+};
+
+/**
  * Dedicated mock for loading USDC balance specifically for withdraw flow
  * This ensures balance refresh for withdraw/deposit flows doesn't interfere with cash-out
  * @param mockServer - The mockttp server instance
@@ -1834,12 +2228,14 @@ export const POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS = async (
         try {
           const bodyText = await request.body.getText();
           const body = bodyText ? JSON.parse(bodyText) : undefined;
-          const isUSDCBalanceCall =
+          // Match pUSD balanceOf calls — post-CLOB-v1 migration the Predict
+          // balance lives in pUSD, so withdraw flow refreshes target pUSD.
+          const isPusdBalanceCall =
             body?.method === 'eth_call' &&
             body?.params?.[0]?.to?.toLowerCase() ===
-              USDC_CONTRACT_ADDRESS.toLowerCase();
+              POLYGON_PUSD_TOKEN_ADDRESS.toLowerCase();
 
-          return isUSDCBalanceCall;
+          return isPusdBalanceCall;
         } catch (error) {
           return false;
         }
@@ -2140,6 +2536,10 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_EVENT_DETAILS_MOCKS(mockServer);
   await POLYMARKET_ORDER_BOOK_MOCKS(mockServer);
   await POLYMARKET_PRICES_MOCKS(mockServer); // Mock for CLOB prices API
+  await POLYMARKET_PRICES_HISTORY_MOCKS(mockServer); // Mock for CLOB prices-history API (chart series)
+  await POLYMARKET_TEAMS_MOCKS(mockServer); // Mock for gamma-api /teams (sports league team metadata)
   await POLYMARKET_FEE_RATE_MOCKS(mockServer);
+  await POLYMARKET_CLOB_MARKET_INFO_MOCKS(mockServer);
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
+  await POLYMARKET_CLOB_AUTH_MOCKS(mockServer);
 };

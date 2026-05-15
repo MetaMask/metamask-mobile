@@ -17,6 +17,7 @@ describe(SmokeSnaps('UI Links Snap Test'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           await mockDialogSnap(mockServer);
         },

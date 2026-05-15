@@ -17,6 +17,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           await mockBip32Snap(mockServer);
         },

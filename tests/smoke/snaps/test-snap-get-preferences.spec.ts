@@ -21,6 +21,7 @@ describe(SmokeSnaps('Get Preferences Snap Tests'), () => {
           .build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           await mockPreferencesSnap(mockServer);
         },

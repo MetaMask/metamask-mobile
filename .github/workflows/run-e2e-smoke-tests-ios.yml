@@ -13,6 +13,11 @@ on:
         required: false
         type: string
         default: ''
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
 
 permissions:
   contents: read
@@ -34,7 +39,7 @@ jobs:
       total_splits: 4
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   swap-ios-smoke:
@@ -52,7 +57,7 @@ jobs:
       total_splits: 2
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   stake-ios-smoke:
@@ -70,7 +75,7 @@ jobs:
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   perps-ios-smoke:
@@ -88,7 +93,7 @@ jobs:
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   wallet-platform-ios-smoke:
@@ -106,7 +111,7 @@ jobs:
       total_splits: 3
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   identity-ios-smoke:
@@ -124,7 +129,7 @@ jobs:
       total_splits: 2
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   accounts-ios-smoke:
@@ -142,7 +147,7 @@ jobs:
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   network-abstraction-ios-smoke:
@@ -160,7 +165,7 @@ jobs:
       total_splits: 2
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   network-expansion-ios-smoke:
@@ -178,7 +183,7 @@ jobs:
       total_splits: 2
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   prediction-market-ios-smoke:
@@ -196,7 +201,7 @@ jobs:
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   money-ios-smoke:
@@ -214,7 +219,7 @@ jobs:
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   multichain-api-ios-smoke:
@@ -232,7 +237,7 @@ jobs:
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   seedless-onboarding-ios-smoke:
@@ -250,7 +255,7 @@ jobs:
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   browser-ios-smoke:
@@ -268,7 +273,7 @@ jobs:
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   snaps-ios-smoke:
@@ -286,12 +291,12 @@ jobs:
       total_splits: 4
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   report-ios-smoke-tests:
     name: Report iOS Smoke Tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
     needs:
       - confirmations-ios-smoke
@@ -310,8 +315,13 @@ jobs:
       - browser-ios-smoke
       - snaps-ios-smoke
     steps:
+      - name: Checkout (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+
       - name: Checkout
         uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

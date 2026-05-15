@@ -1,4 +1,9 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import {
+  renderHook,
+  act,
+  waitFor,
+  cleanup,
+} from '@testing-library/react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { usePredictMarketData } from './usePredictMarketData';
@@ -137,7 +142,16 @@ describe('usePredictMarketData', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Force-unmount any hooks left over from the test so their pending
+    // promises / state-setters don't leak into the next test (e.g. the
+    // "marks fetching when enabled becomes true" case below uses a
+    // never-resolving promise; without cleanup the hook stays mounted
+    // and the worker can be force-killed by jest's watchdog under load,
+    // showing up as an unrelated `waitFor` timeout in a sibling test).
+    await act(async () => {
+      cleanup();
+    });
     jest.clearAllMocks();
   });
 
@@ -145,6 +159,31 @@ describe('usePredictMarketData', () => {
     renderHook(() => usePredictMarketData({ enabled: false }));
 
     expect(mockGetMarkets).not.toHaveBeenCalled();
+  });
+
+  it('marks fetching when enabled becomes true before async fetch settles (no empty flash)', () => {
+    mockGetMarkets.mockImplementation(
+      () =>
+        new Promise<PredictMarket[]>((_resolve) => {
+          /* unresolved until test ends */
+        }),
+    );
+
+    const { result, rerender, unmount } = renderHook(
+      ({ enabled }: { enabled: boolean }) => usePredictMarketData({ enabled }),
+      { initialProps: { enabled: false } },
+    );
+
+    expect(result.current.isFetching).toBe(false);
+
+    rerender({ enabled: true });
+
+    expect(result.current.isFetching).toBe(true);
+    expect(result.current.marketData).toEqual([]);
+
+    // Explicitly release the hook so the never-resolving promise above
+    // doesn't keep an in-flight fetch alive across tests.
+    unmount();
   });
 
   it('should fetch market data successfully', async () => {

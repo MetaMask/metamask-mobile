@@ -16,6 +16,7 @@ describe(SmokeSnaps('WASM Snap Tests'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           await mockWasmSnap(mockServer);
         },
