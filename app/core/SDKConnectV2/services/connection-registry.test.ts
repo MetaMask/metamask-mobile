@@ -502,7 +502,7 @@ describe('ConnectionRegistry', () => {
         ]);
       });
 
-      it('does NOT dismiss the loading toast for QR flows even when connect() fails', async () => {
+      it('dismisses the loading toast for QR flows when connect() fails so it does not overlap the error toast', async () => {
         registry = new ConnectionRegistry(
           RELAY_URL,
           mockKeyManager,
@@ -527,7 +527,7 @@ describe('ConnectionRegistry', () => {
 
         expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
         expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.hideConnectionLoading).not.toHaveBeenCalled();
+        expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
       });
     });
 

@@ -247,6 +247,7 @@ export class ConnectionRegistry {
     let conn: Connection | undefined;
     let connInfo: ConnectionInfo | undefined;
     let connReq: ConnectionRequest | undefined;
+    let didConnectionFail = false;
 
     try {
       connReq = this.parseConnectionRequest(url);
@@ -297,6 +298,7 @@ export class ConnectionRegistry {
     } catch (error) {
       logger.error('Failed to handle connect deeplink:', error, redactUrl(url));
       this.hostapp.showConnectionError();
+      didConnectionFail = true;
 
       // Track the failure before cleanup so the event fires even if
       // disconnect() throws.
@@ -315,13 +317,22 @@ export class ConnectionRegistry {
 
       if (conn) await this.disconnect(conn.id);
     } finally {
-      // For direct deeplink flows from native browser / react native, the connection request will have an initial message in the session request.
-      // This means an approval will be shown to the user soon after the MWP handshake is complete, so we can safely dismiss the loading toast.
-      // For QR flow, the connection request will not have an initial message in the session request because the dapp is expected to send it separately after the MWP handshake is complete.
-      // Because there may be a longer delay until the wallet receives the initial message from the dapp directly, we should not dismiss the loading toast immediately after the MWP handshake is complete.
-
+      // Loading-toast dismissal rules:
+      // - On failure, always dismiss the loading toast. Otherwise the user
+      //   would briefly see both a "loading" toast and the error toast at
+      //   the same time, and the loading toast would linger after the error
+      //   toast auto-dismisses.
+      // - On success for direct deeplink flows (initialMessage present), the
+      //   connection request includes the initial RPC, so an approval will
+      //   surface immediately after the MWP handshake — it's safe to dismiss
+      //   the loading toast right away.
+      // - On success for QR flows (no initialMessage), the dapp sends
+      //   wallet_createSession separately after the handshake. There may be
+      //   a noticeable delay before the approval appears, so we keep the
+      //   loading toast visible and let it autodismiss naturally.
       const isQrFlow = connReq?.sessionRequest.initialMessage === undefined;
-      if (connInfo && !isQrFlow) {
+      const shouldHideLoadingToast = didConnectionFail || !isQrFlow;
+      if (connInfo && shouldHideLoadingToast) {
         this.hostapp.hideConnectionLoading(connInfo);
       }
     }
