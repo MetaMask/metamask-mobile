@@ -55,10 +55,15 @@ export const selectShouldShowWalletHomeOnboardingSteps = createSelector(
   (eligible, steps) => eligible && steps?.suppressedReason === null,
 );
 
-export const selectInWalletHomeOnboardingFlow = createSelector(
-  selectHomepageSectionsV1Enabled,
-  selectWalletHomeOnboardingStepsEnabled,
-  selectShouldShowWalletHomeOnboardingSteps,
-  (sectionsV1, stepsEnabled, shouldShow) =>
-    sectionsV1 && stepsEnabled && shouldShow,
-);
+// Plain (non-memoized) composition: a module-load `createSelector(...)` would
+// dereference these imported selectors at evaluation time, and this module is
+// eagerly pulled in via `app/reducers/index.ts`. Any suite that builds a store
+// while partially mocking `featureFlagController/homepage` would then hit
+// reselect's "input-selectors must be functions" assertion at require time and
+// take down the whole file. Composing at call time keeps it mock/cycle-safe;
+// the body is a trivial boolean AND over already-memoized selectors, so there
+// is nothing to memoize.
+export const selectInWalletHomeOnboardingFlow = (state: RootState): boolean =>
+  selectHomepageSectionsV1Enabled(state) &&
+  selectWalletHomeOnboardingStepsEnabled(state) &&
+  selectShouldShowWalletHomeOnboardingSteps(state);
