@@ -1,5 +1,4 @@
 import React, { useCallback, useRef, useState } from 'react';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -9,6 +8,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  HeaderStandard,
   Text,
 } from '@metamask/design-system-react-native';
 import { DefaultSlippageButtonGroup } from './DefaultSlippageButtonGroup';
@@ -80,9 +80,12 @@ export const DefaultSlippageModal = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('bridge.slippage')}
         onClose={handleClose}
+        closeButtonProps={{
+          accessibilityLabel: strings('bridge.close'),
+        }}
       />
       <View style={styles.descriptionContainer}>
         <Text style={styles.descriptionText}>
