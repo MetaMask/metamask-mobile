@@ -74,7 +74,7 @@ function getLabelForTransactionType(type: TransactionType | undefined): string {
     case TransactionType.simpleSend:
       return strings('money.transaction.sent');
     default:
-      return strings('money.transaction.deposited');
+      return strings('money.transaction.received');
   }
 }
 
@@ -119,8 +119,7 @@ function buildSourceTokenAmount(
   decimals: number,
   symbol: string,
 ): string {
-  const decimalStr = String(Number(rawAmount));
-  const humanReadable = fromTokenMinimalUnit(decimalStr, decimals);
+  const humanReadable = fromTokenMinimalUnit(rawAmount, decimals);
   const num = parseFloat(humanReadable);
   if (isNaN(num)) {
     return '';
