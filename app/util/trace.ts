@@ -574,7 +574,7 @@ export async function hasMetricsConsent(): Promise<boolean> {
       }
     }
   } catch {
-    // Fall through to legacy storage
+    return false;
   }
 
   // Fallback: legacy METRICS_OPT_IN (migration 108, may be stale)
