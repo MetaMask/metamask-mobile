@@ -16,7 +16,7 @@ index 45e323e8fe045f2d9c74c912a446cfc81ce35b6b..eb18ab413aa5a01a72b9b3d7b583800c
  
    // Add a dependency on OpenSSL
 -  implementation 'io.github.ronickg:openssl:3.3.2'
-+  implementation 'io.github.ronickg:openssl:3.6.0-1'
++  implementation 'io.github.ronickg:openssl:3.3.2-1'
  }
  
  // Resolves "LOCAL_SRC_FILES points to a missing file, Check that libfb.so exists or that its path is correct".

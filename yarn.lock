@@ -40484,14 +40484,14 @@ __metadata:
 
 "react-native-quick-crypto@patch:react-native-quick-crypto@npm%3A0.7.15#~/.yarn/patches/react-native-quick-crypto-npm-0.7.15-85c4f4892e.patch":
   version: 0.7.15
-  resolution: "react-native-quick-crypto@patch:react-native-quick-crypto@npm%3A0.7.15#~/.yarn/patches/react-native-quick-crypto-npm-0.7.15-85c4f4892e.patch::version=0.7.15&hash=b8c5f5"
+  resolution: "react-native-quick-crypto@patch:react-native-quick-crypto@npm%3A0.7.15#~/.yarn/patches/react-native-quick-crypto-npm-0.7.15-85c4f4892e.patch::version=0.7.15&hash=3855c3"
   dependencies:
     "@craftzdog/react-native-buffer": "npm:^6.0.5"
     events: "npm:^3.3.0"
     readable-stream: "npm:^4.5.2"
     string_decoder: "npm:^1.3.0"
     util: "npm:^0.12.5"
-  checksum: 10/f12f97d0c0337b3304b1d89d1d26aed4cea9464e8673ee93117c0417e7a14acc80994db3e97184e353d4f567a521cbfbb0852943ae6be9b9f85b050529a8ea6e
+  checksum: 10/a4add6110cecd4471ad16c1c5f5297ff56eb56c4aaf5561a18675a0f2bfc2d3345f7a2ec567614fcc6fdb297c09b76c4d1bdf06f6b7556efdc782b2de1974904
   languageName: node
   linkType: hard
 
