@@ -22,16 +22,16 @@ import {
 } from '@metamask/utils';
 import {
   Caip25CaveatType,
+  type Caip25CaveatValue,
   Caip25EndowmentPermissionName,
   getCaipAccountIdsFromCaip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 
 import Engine from '../../../Engine';
-import { addPermittedAccounts, sortMultichainAccountsByLastSelected, getPermittedChains } from '../../../Permissions';
+import { addPermittedAccounts, updatePermittedChains, sortMultichainAccountsByLastSelected, getPermittedChains } from '../../../Permissions';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import {
-  collectRequestedChainsForNamespace,
   doesProposalIncludeNamespace,
 } from '../utils';
 import type {
@@ -97,14 +97,6 @@ const normalizeTronAccountIdOutbound = (caipAccountId: CaipAccountId): CaipAccou
   const normalizedCaipChainId = normalizeCaipChainIdOutbound(chainId);
   return `${normalizedCaipChainId}:${address}`;
 };
-
-/**
- * List Tron EOA addresses currently managed by the wallet.
- */
-const listTronEoaAddresses = (): string[] =>
-  Engine.context.AccountsController.listAccounts()
-    .filter((account: { type: string }) => account.type === TrxAccountType.Eoa)
-    .map((account: { address: string }) => account.address);
 
 /**
  * Build this chain's namespace slice from the wallet's current state
@@ -407,112 +399,29 @@ const mapRequestOutbound = ({
  * channel. No-op if the wallet has no Tron EOAs. Errors are swallowed and
  * logged to mirror the previous best-effort behavior.
  */
-const seedPermissions = (channelId: string): void => {
-  try {
-    const tronAddresses = listTronEoaAddresses();
-    if (tronAddresses.length === 0) {
-      return;
-    }
-    const tronCaipAccountIds = tronAddresses.map(
-      (address) => `${TrxScope.Mainnet}:${address}` as CaipAccountId,
-    );
-    addPermittedAccounts(channelId, tronCaipAccountIds);
-    DevLogger.log(
-      'WC2::session_proposal Tron accounts added to permissions',
-      tronCaipAccountIds,
-    );
-  } catch (err) {
-    DevLogger.log(
-      'WC2::session_proposal error adding Tron account permissions',
-      err,
-    );
-  }
-};
-
-/**
- * Build the `tron` namespace slice for the approved WalletConnect
- * session, given the dapp proposal and any Tron addresses already
- * surfaced via scoped permissions.
- *
- * Returns `undefined` when the proposal doesn't reference Tron, leaving
- * the caller's namespaces map untouched.
- */
-const buildNamespace = ({
+const enrichCaveatValue = ({
   proposal,
-  existingAccounts = [],
-  existingMethods,
-  existingEvents,
+  caveatValue,
 }: {
   proposal: ProposalParams;
-  existingAccounts?: string[];
-  existingMethods?: string[];
-  existingEvents?: string[];
-}): NamespaceConfig | undefined => {
+  caveatValue: Caip25CaveatValue;
+}): Caip25CaveatValue => {
   if (
-    !doesProposalIncludeNamespace({
+    doesProposalIncludeNamespace({
       proposal,
       namespace: KnownCaipNamespace.Tron,
     })
   ) {
-    return undefined;
+    return {
+      ...caveatValue,
+      optionalScopes: {
+        ...caveatValue.optionalScopes,
+        [TrxScope.Mainnet]: { accounts: [] }
+      },
+    };
   }
 
-  const allNamespaces = {
-    ...(proposal.optionalNamespaces ?? {}),
-    ...(proposal.requiredNamespaces ?? {}),
-  };
-  const requestedTronChains = collectRequestedChainsForNamespace({
-    proposal,
-    namespace: KnownCaipNamespace.Tron,
-  });
-  const tronChains =
-    requestedTronChains.length > 0
-      ? requestedTronChains
-      : [DEFAULT_TRON_CHAIN_ID];
-
-  const requestedTronMethods = allNamespaces.tron?.methods ?? [];
-  const requestedTronEvents = allNamespaces.tron?.events ?? [];
-
-  const existingAddresses = Array.from(
-    new Set(
-      existingAccounts
-        .map((account) => {
-          const parts = account.split(':');
-          return parts.length >= 3 ? parts.slice(2).join(':') : '';
-        })
-        .filter(Boolean),
-    ),
-  );
-  const fallbackAddresses =
-    existingAddresses.length > 0 ? [] : listTronEoaAddresses();
-  const tronAddresses = Array.from(
-    new Set([...existingAddresses, ...fallbackAddresses]),
-  );
-
-  const slice: NamespaceConfig = {
-    chains: tronChains,
-    methods:
-      requestedTronMethods.length > 0
-        ? requestedTronMethods
-        : (existingMethods ?? [...TRON_METHODS]),
-    events:
-      requestedTronEvents.length > 0
-        ? requestedTronEvents
-        : (existingEvents ?? [...TRON_EVENTS]),
-    accounts: tronAddresses.flatMap((address) =>
-      tronChains.map((chainId) => `${chainId}:${address}` as CaipAccountId),
-    ),
-  };
-
-  DevLogger.log('[wc][multichain/tron.buildNamespace] built tron namespace', {
-    requestedTronChains,
-    finalTronChains: slice.chains,
-    accountsCount: slice.accounts.length,
-    addressSource:
-      existingAddresses.length > 0 ? 'scopedPermissions' : 'accountsController',
-  });
-
-  return slice;
+  return caveatValue;
 };
 
 /**
@@ -526,19 +435,8 @@ export const tronAdapter: ChainAdapter = {
   namespace: KnownCaipNamespace.Tron,
   redirectMethods: ['tron_signTransaction', 'tron_signMessage'],
   approvedMethods: ['tron_signTransaction', 'tron_signMessage'],
-  seedPermissions: ({ proposal, channelId }) => {
-    if (
-      !doesProposalIncludeNamespace({
-        proposal,
-        namespace: KnownCaipNamespace.Tron,
-      })
-    ) {
-      return;
-    }
-    seedPermissions(channelId);
-  },
+  enrichCaveatValue,
   getScopedPermissions,
-  buildNamespace,
   normalizeCaipChainIdInbound,
   normalizeCaipChainIdOutbound,
   mapRequestInbound,

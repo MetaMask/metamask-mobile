@@ -43,12 +43,14 @@ import {
 
 import {
   Caip25CaveatType,
+  type Caip25CaveatValue,
   Caip25EndowmentPermissionName,
+  getCaipAccountIdsFromCaip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
 import WalletConnect2Session from './WalletConnect2Session';
 import { CaipChainId, KnownCaipNamespace } from '@metamask/utils';
 import {
-  seedAdapterPermissions,
+  enrichCaveatValueWithAdapterPermissions,
   doesProposalIncludeNamespace,
   getAdaptersScopedPermissions,
 } from './multichain';
@@ -619,14 +621,21 @@ export class WC2Manager {
 
     try {
       // Create a modified CAIP-25 caveat value that includes the current chain
-      const caveatValue = getDefaultCaip25CaveatValue();
+      let caveatValue = getDefaultCaip25CaveatValue();
+
+      // Let every non-EVM adapter enrich the CAIP-25 caveat value before
+      // we persist permissions.
+      const enrichedCaveatValue = enrichCaveatValueWithAdapterPermissions({
+        proposal: proposal.params,
+        caveatValue: caveatValue,
+      });
 
       // Important: Use hostname as the origin for permission request to ensure consistency
       DevLogger.log(
         `WC2::session_proposal requestPermissions for hostname and channelId`,
         {
           hostname,
-          caveatValue,
+          caveatValue: enrichedCaveatValue,
           channelId,
         },
       );
@@ -638,7 +647,7 @@ export class WC2Manager {
             caveats: [
               {
                 type: Caip25CaveatType,
-                value: caveatValue,
+                value: enrichedCaveatValue,
               },
             ],
           },
@@ -669,10 +678,6 @@ export class WC2Manager {
           );
         }
       }
-
-      // Let every non-EVM adapter seed its own accounts into the CAIP-25
-      // caveat. No-op for chains that aren't enabled or have no accounts.
-      await seedAdapterPermissions({ proposal: proposal.params, channelId });
     } catch (err) {
       DevLogger.log(`WC2::session_proposal requestPermissions error`, {
         err,

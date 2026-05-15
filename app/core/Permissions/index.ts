@@ -8,9 +8,6 @@ import {
   parseCaipAccountId,
   parseCaipChainId,
 } from '@metamask/utils';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
-import { TrxScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   Caip25CaveatType,
@@ -19,7 +16,6 @@ import {
   getAllScopesFromCaip25CaveatValue,
   getCaipAccountIdsFromCaip25CaveatValue,
   getEthAccounts,
-  getPermittedEthChainIds,
   isInternalAccountInPermittedAccountIds,
   setChainIdsInCaip25CaveatValue,
   setNonSCACaipAccountIdsInCaip25CaveatValue,
@@ -225,17 +221,12 @@ export const getPermittedCaipChainIdsByHostname = (
 
 /**
  * Returns a default CAIP-25 caveat value.
- * Each chain appends its optional scope below (feature-flagged).
  * @returns Default {@link Caip25CaveatValue}
  */
 export const getDefaultCaip25CaveatValue = (): Caip25CaveatValue => {
   const optionalScopes: Caip25CaveatValue['optionalScopes'] = {
     'wallet:eip155': { accounts: [] },
   };
-
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  optionalScopes[TrxScope.Mainnet] = { accounts: [] };
-  ///: END:ONLY_INCLUDE_IF
 
   return {
     requiredScopes: {},

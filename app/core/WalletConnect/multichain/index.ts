@@ -11,8 +11,7 @@
  */
 
 export {
-  seedAdapterPermissions,
-  buildAdapterNamespaces,
+  enrichCaveatValueWithAdapterPermissions,
   getAdaptersScopedPermissions,
   normalizeCaipChainIdInbound,
   normalizeCaipChainIdOutbound,

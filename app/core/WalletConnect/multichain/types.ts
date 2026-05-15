@@ -4,7 +4,7 @@
  * Each non-EVM chain (Tron today, Solana / Bitcoin tomorrow) ships a
  * `ChainAdapter` that knows how to:
  * - detect interest in a dapp proposal,
- * - seed the CAIP-25 caveat with this chain's accounts,
+ * - enrich the CAIP-25 caveat value for this chain,
  * - build the namespace slice for the WalletConnect session,
  * - map WC-shaped requests into the Snap's parameter shape,
  * - normalize the Snap response back into what dapps expect.
@@ -18,6 +18,7 @@ import type {
   KnownCaipNamespace,
   CaipAccountId,
 } from '@metamask/utils';
+import type { Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
 import { type WalletKitTypes } from '@reown/walletkit';
 
 /** Shape of a single namespace slice in WalletConnect's approved namespaces map. */
@@ -79,16 +80,13 @@ export interface ChainAdapter {
   approvedMethods: readonly string[];
 
   /**
-   * Seed this chain's accounts into the CAIP-25 caveat for the given
-   * WalletConnect channel. Called once per session proposal before
-   * namespaces are built. Adapters that only want to seed when the dapp
-   * explicitly requests this namespace must call
-   * `doesProposalIncludeNamespace` themselves.
+   * Enrich this chain's CAIP-25 caveat value for the given
+   * WalletConnect session proposal before permissions are requested.
    */
-  seedPermissions?(args: {
+  enrichCaveatValue?(args: {
     proposal: ProposalParams;
-    channelId: string;
-  }): void | Promise<void>;
+    caveatValue: Caip25CaveatValue;
+  }): Caip25CaveatValue;
 
   /**
    * Build this chain's namespace slice from the wallet's current state
@@ -96,13 +94,6 @@ export interface ChainAdapter {
    * any dapp proposal.
    */
   getScopedPermissions(args: { channelId: string }): Promise<NamespaceConfig | undefined>;
-
-  /**
-   * Build this chain's namespace slice for the WC session. Return
-   * `undefined` to skip (e.g. proposal doesn't reference us, or no
-   * accounts available).
-   */
-  buildNamespace(args: BuildNamespaceArgs): NamespaceConfig | undefined;
 
   /**
    * Normalize a CAIP chain id from WC into the shape the Snap expects.

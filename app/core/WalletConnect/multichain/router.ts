@@ -19,18 +19,18 @@ export const callMultichainRoutingService = async ({
   requestId: number;
   mappedRequest: SnapMappedRequest;
 }): Promise<unknown> => Engine.controllerMessenger.call(
-    'MultichainRoutingService:handleRequest',
-    {
-      connectedAddresses,
-      origin: `wc-${channelId}`,
-      scope,
-      request: {
-        jsonrpc: '2.0' as const,
-        id: requestId,
-        method: mappedRequest.method,
-        ...(mappedRequest.params
-          ? { params: mappedRequest.params as Record<string, Json> | Json[] }
-          : {}),
-      },
+  'MultichainRoutingService:handleRequest',
+  {
+    connectedAddresses,
+    origin: channelId,
+    scope,
+    request: {
+      jsonrpc: '2.0' as const,
+      id: requestId,
+      method: mappedRequest.method,
+      ...(mappedRequest.params
+        ? { params: mappedRequest.params as Record<string, Json> | Json[] }
+        : {}),
     },
-  );
+  },
+);

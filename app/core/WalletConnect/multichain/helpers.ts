@@ -14,6 +14,7 @@ import {
   type CaipAccountId,
   type KnownCaipNamespace,
 } from '@metamask/utils';
+import type { Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 import { getAllAdapters, getAdapter } from './registry';
@@ -25,61 +26,34 @@ import type {
 } from './types';
 
 /**
- * Run every adapter's pre-approval hook for the given session proposal.
- * Adapters typically use this to seed Tron/Solana/etc. accounts into
- * the CAIP-25 caveat for the channel before namespaces are built.
+ * Run every adapter caveat-enrichment hook for the given session proposal.
+ * Adapters can use this to enrich the CAIP-25 caveat value before it is
+ * persisted for the channel.
  *
  * Failures are logged but never rethrown so one chain's hook can't
  * abort the whole session approval.
  */
-export const seedAdapterPermissions = async ({
-  proposal,
-  channelId,
-}: {
+export const enrichCaveatValueWithAdapterPermissions = ({ proposal, caveatValue }: {
   proposal: ProposalParams;
-  channelId: string;
-}): Promise<void> => {
+  caveatValue: Caip25CaveatValue;
+}): Caip25CaveatValue => {
+  let enrichedCaveatValue: Caip25CaveatValue = caveatValue;
   for (const adapter of getAllAdapters()) {
     try {
-      await adapter.seedPermissions?.({ proposal, channelId });
+      enrichedCaveatValue =
+        adapter.enrichCaveatValue?.({
+          proposal,
+          caveatValue: enrichedCaveatValue,
+        }) ?? enrichedCaveatValue;
     } catch (err) {
       DevLogger.log(
-        `[wc][multichain] onBeforeApprove failed for ${adapter.namespace}`,
+        `[wc][multichain] enrichCaveatValue failed for ${adapter.namespace}`,
         err,
       );
     }
   }
-};
 
-/**
- * Ask every registered adapter to build its namespace slice from the
- * dapp proposal and any pre-existing approved namespaces. Returns only
- * the slices that the adapters chose to produce — the EVM `eip155`
- * namespace is built elsewhere and merged in by the caller.
- */
-export const buildAdapterNamespaces = ({
-  proposal,
-  existingNamespaces = {},
-}: {
-  proposal: ProposalParams;
-  existingNamespaces?: Partial<
-    Record<KnownCaipNamespace, Partial<NamespaceConfig>>
-  >;
-}): ApprovedNamespaces => {
-  const namespaces: ApprovedNamespaces = {};
-  for (const adapter of getAllAdapters()) {
-    const existing = existingNamespaces[adapter.namespace];
-    const config = adapter.buildNamespace({
-      proposal,
-      existingAccounts: existing?.accounts,
-      existingMethods: existing?.methods,
-      existingEvents: existing?.events,
-    });
-    if (config) {
-      namespaces[adapter.namespace] = config;
-    }
-  }
-  return namespaces;
+  return enrichedCaveatValue;
 };
 
 /**
