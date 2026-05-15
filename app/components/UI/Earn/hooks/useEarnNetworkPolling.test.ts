@@ -26,6 +26,8 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+import { toHex } from '@metamask/controller-utils';
+import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import useEarnNetworkPolling from './useEarnNetworkPolling';
 import { RootState } from '../../../../reducers';
@@ -35,6 +37,10 @@ import useCurrencyRatePolling from '../../../hooks/AssetPolling/useCurrencyRateP
 import useTokenRatesPolling from '../../../hooks/AssetPolling/useTokenRatesPolling';
 import useTokenDetectionPolling from '../../../hooks/AssetPolling/useTokenDetectionPolling';
 import Engine from '../../../../core/Engine';
+
+const LENDING_CHAIN_IDS = Object.keys(CHAIN_ID_TO_AAVE_POOL_CONTRACT).map(
+  (chainId) => toHex(chainId),
+);
 
 // Mock console.warn to avoid noise in tests
 const originalConsoleWarn = console.warn;
@@ -121,23 +127,24 @@ describe('useEarnNetworkPolling', () => {
     });
   });
 
-  it('should initialize with empty chain IDs and network client IDs', () => {
+  it('should initialize with lending chain IDs', () => {
     renderHookWithProvider(() => useEarnNetworkPolling(), {
       state: mockState,
     });
 
-    // Initially called with empty arrays
+    const expectedChainIds = expect.arrayContaining(LENDING_CHAIN_IDS);
+
     expect(mockUseTokenBalancesPolling).toHaveBeenCalledWith({
-      chainIds: [],
+      chainIds: expectedChainIds,
     });
     expect(mockUseCurrencyRatePolling).toHaveBeenCalledWith({
-      chainIds: [],
+      chainIds: expectedChainIds,
     });
     expect(mockUseTokenRatesPolling).toHaveBeenCalledWith({
-      chainIds: [],
+      chainIds: expectedChainIds,
     });
     expect(mockUseTokenDetectionPolling).toHaveBeenCalledWith({
-      chainIds: [],
+      chainIds: expectedChainIds,
       address: mockSelectedAccount.address,
     });
   });
