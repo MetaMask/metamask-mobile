@@ -427,9 +427,46 @@ describe('usePerpsBalanceTokenFilter', () => {
       const { result } = renderHook(() => usePerpsBalanceTokenFilter());
       const output = result.current(inputTokens);
 
-      expect(output).toBe(inputTokens);
       expect(output).toHaveLength(1);
+      expect(isHighlightedItemOutsideAssetList(output[0])).toBe(false);
       expect((output[0] as AssetType).address).toBe('0xabc');
+    });
+
+    it('still applies the allowlist filter when the new Pay With bottom sheet is enabled', () => {
+      mockIsPayWithBottomSheetEnabled.mockReturnValue(true);
+      const allowlistKey = `${chainId}.0xusdc`.toLowerCase();
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector === selectPerpsAccountState)
+            return { spendableBalance: '100.00' };
+          if (selector === selectPerpsPayWithAnyTokenAllowlistAssets)
+            return [allowlistKey];
+          return [];
+        },
+      );
+      const inputTokens: AssetType[] = [
+        {
+          address: '0xusdc',
+          chainId,
+          symbol: 'USDC',
+          name: 'USD Coin',
+          balance: '500',
+        } as AssetType,
+        {
+          address: '0xother',
+          chainId,
+          symbol: 'OTHER',
+          name: 'Other',
+          balance: '100',
+        } as AssetType,
+      ];
+
+      const { result } = renderHook(() => usePerpsBalanceTokenFilter());
+      const output = result.current(inputTokens);
+
+      expect(output).toHaveLength(1);
+      expect(isHighlightedItemOutsideAssetList(output[0])).toBe(false);
+      expect((output[0] as AssetType).address).toBe('0xusdc');
     });
   });
 });
