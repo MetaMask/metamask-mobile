@@ -39,41 +39,19 @@ import {
   setBatchSellTokenSlippages,
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
-import AppConstants from '../../../../../core/AppConstants';
 import { BridgeToken } from '../../types';
 import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
+import { getBatchSellInitialSlippage } from '../../components/SlippageModal/utils';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
 
 const DEFAULT_PERCENT = 100;
-const DEFAULT_BATCH_SELL_SLIPPAGE =
-  AppConstants.SWAPS.DEFAULT_SLIPPAGE.toString();
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
 // TODO(SWAPS-4439): When Batch Sell quote fetching is wired, pass
 // batchSellSlippages[assetId] into each token's BridgeController quote request.
 const HAS_QUOTES = false;
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
-
-function hasOwnSlippageValue(
-  slippages: Record<string, string | undefined>,
-  assetId: string | undefined,
-): assetId is string {
-  // Missing key means initialize to default; existing key with undefined means user selected Auto.
-  return (
-    assetId !== undefined &&
-    Object.prototype.hasOwnProperty.call(slippages, assetId)
-  );
-}
-
-function getBatchSellSlippageValue(
-  slippages: Record<string, string | undefined>,
-  assetId: string | undefined,
-) {
-  return hasOwnSlippageValue(slippages, assetId)
-    ? slippages[assetId]
-    : DEFAULT_BATCH_SELL_SLIPPAGE;
-}
 
 function areBatchSellSlippageMapsEqual(
   first: Record<string, string | undefined>,
@@ -143,7 +121,7 @@ export function BatchSellReview() {
 
       if (!assetId) return slippageByAssetId;
 
-      slippageByAssetId[assetId] = getBatchSellSlippageValue(
+      slippageByAssetId[assetId] = getBatchSellInitialSlippage(
         batchSellSlippages,
         assetId,
       );
