@@ -1,8 +1,9 @@
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
 import { Hex } from '@metamask/utils';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectUseTokenDetection } from '../../../../selectors/preferencesController';
 import useCurrencyRatePolling from '../../../hooks/AssetPolling/useCurrencyRatePolling';
@@ -60,6 +61,14 @@ export const useEarnNetworkPolling = () => {
     chainIds: useTokenDetection ? LENDING_CHAIN_IDS : [],
     address: selectedAccount?.address as Hex,
   });
+
+  // Import tokens from all lending chains
+  useEffect(() => {
+    Engine.context.TokenDetectionController.detectTokens({
+      chainIds: LENDING_CHAIN_IDS,
+      selectedAddress: selectedAccount?.address as Hex,
+    }).catch(console.error);
+  }, [selectedAccount?.address, useTokenDetection]);
 
   return null;
 };
