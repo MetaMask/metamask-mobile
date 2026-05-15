@@ -52,6 +52,9 @@ function engineState(
           moneyAccounts: MOCK_MONEY_ACCOUNTS,
         },
         KeyringController: MOCK_KEYRING_CONTROLLER,
+        TransactionController: {
+          transactions: [],
+        },
       },
     },
   } as ProviderValues['state'];
