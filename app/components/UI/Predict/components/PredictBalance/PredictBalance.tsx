@@ -48,13 +48,11 @@ import { PREDICT_BALANCE_TEST_IDS } from './PredictBalance.testIds';
 interface PredictBalanceProps {
   onLayout?: (height: number) => void;
   onDepositWalletWithdrawPress?: () => void;
-  navigationStack?: string;
 }
 
 const PredictBalance: React.FC<PredictBalanceProps> = ({
   onLayout,
   onDepositWalletWithdrawPress,
-  navigationStack,
 }) => {
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
@@ -65,8 +63,8 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
 
   const queryClient = useQueryClient();
   const { data: balance = 0, isLoading } = usePredictBalance();
-  const { deposit, isDepositPending } = usePredictDeposit({ navigationStack });
-  const { withdraw } = usePredictWithdraw({ navigationStack });
+  const { deposit, isDepositPending } = usePredictDeposit();
+  const { withdraw } = usePredictWithdraw();
   const { executeGuardedAction } = usePredictActionGuard({
     navigation,
   });

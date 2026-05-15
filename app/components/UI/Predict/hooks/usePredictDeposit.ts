@@ -6,6 +6,7 @@ import Logger from '../../../../util/Logger';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import Routes from '../../../../constants/navigation/Routes';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { selectPredictPendingDepositByAddress } from '../selectors/predictController';
 import {
@@ -22,13 +23,7 @@ interface PredictDepositAnalyticsParams {
   analyticsProperties?: PlaceOrderParams['analyticsProperties'];
 }
 
-interface UsePredictDepositOptions {
-  navigationStack?: string;
-}
-
-export const usePredictDeposit = ({
-  navigationStack,
-}: UsePredictDepositOptions = {}) => {
+export const usePredictDeposit = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
@@ -52,7 +47,7 @@ export const usePredictDeposit = ({
       try {
         navigateToConfirmation({
           loader: ConfirmationLoader.CustomAmount,
-          stack: navigationStack,
+          stack: Routes.PREDICT.ROOT,
         });
 
         depositWithConfirmation({}).catch((err) => {
@@ -103,7 +98,6 @@ export const usePredictDeposit = ({
       }
     },
     [
-      navigationStack,
       depositWithConfirmation,
       navigateToConfirmation,
       navigation,

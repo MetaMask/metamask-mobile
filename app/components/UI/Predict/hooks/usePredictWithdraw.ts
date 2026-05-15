@@ -11,14 +11,9 @@ import {
 } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
 import { selectPredictWithdrawTransaction } from '../selectors/predictController';
+import Routes from '../../../../constants/navigation/Routes';
 
-interface UsePredictWithdrawOptions {
-  navigationStack?: string;
-}
-
-export const usePredictWithdraw = ({
-  navigationStack,
-}: UsePredictWithdrawOptions = {}) => {
+export const usePredictWithdraw = () => {
   const { prepareWithdraw } = usePredictTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation();
@@ -30,7 +25,7 @@ export const usePredictWithdraw = ({
     try {
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
-        stack: navigationStack,
+        stack: Routes.PREDICT.ROOT,
       });
 
       const response = await prepareWithdraw({});
@@ -58,13 +53,7 @@ export const usePredictWithdraw = ({
 
       console.error('Failed to proceed with withdraw:', err);
     }
-  }, [
-    navigationStack,
-    navigateToConfirmation,
-    navigation,
-    prepareWithdraw,
-    toastRef,
-  ]);
+  }, [navigateToConfirmation, navigation, prepareWithdraw, toastRef]);
 
   return { withdraw, withdrawTransaction };
 };

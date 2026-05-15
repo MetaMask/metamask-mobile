@@ -3,6 +3,7 @@ import { usePredictDeposit } from './usePredictDeposit';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
@@ -155,41 +156,8 @@ describe('usePredictDeposit', () => {
     // Assert
     expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
-      stack: undefined,
+      stack: Routes.PREDICT.ROOT,
     });
-  });
-
-  it('passes navigationStack to navigateToConfirmation when provided', async () => {
-    // Arrange
-    const { result } = renderHook(() =>
-      usePredictDeposit({ navigationStack: 'PredictStack' }),
-    );
-
-    // Act
-    await act(async () => {
-      await result.current.deposit();
-    });
-
-    // Assert
-    expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
-      stack: 'PredictStack',
-    });
-  });
-
-  it('omits stack from navigateToConfirmation when navigationStack is not provided', async () => {
-    // Arrange
-    const { result } = renderHook(() => usePredictDeposit());
-
-    // Act
-    await act(async () => {
-      await result.current.deposit();
-    });
-
-    // Assert
-    expect(mockNavigateToConfirmation).toHaveBeenCalledWith(
-      expect.objectContaining({ stack: undefined }),
-    );
   });
 
   it('calls depositWithConfirmation when deposit is called', async () => {

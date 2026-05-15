@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import Routes from '../../../../constants/navigation/Routes';
 
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 // Create mock functions
@@ -206,35 +207,8 @@ describe('usePredictWithdraw', () => {
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         loader: ConfirmationLoader.CustomAmount,
-        stack: undefined,
+        stack: Routes.PREDICT.ROOT,
       });
-    });
-
-    it('passes navigationStack to navigateToConfirmation when provided', async () => {
-      mockPrepareWithdraw.mockResolvedValue({ success: true });
-
-      const { result } = renderHook(() =>
-        usePredictWithdraw({ navigationStack: 'PredictStack' }),
-      );
-
-      await result.current.withdraw();
-
-      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-        loader: ConfirmationLoader.CustomAmount,
-        stack: 'PredictStack',
-      });
-    });
-
-    it('omits stack from navigateToConfirmation when navigationStack is not provided', async () => {
-      mockPrepareWithdraw.mockResolvedValue({ success: true });
-
-      const { result } = setupUsePredictWithdrawTest();
-
-      await result.current.withdraw();
-
-      expect(mockNavigateToConfirmation).toHaveBeenCalledWith(
-        expect.objectContaining({ stack: undefined }),
-      );
     });
 
     it('calls prepareWithdraw with empty options object', async () => {
