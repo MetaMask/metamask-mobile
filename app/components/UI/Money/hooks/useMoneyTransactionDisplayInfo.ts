@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   type TransactionMeta,
+  type RequiredAsset,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { type Hex } from '@metamask/utils';
@@ -104,15 +105,9 @@ function getLabel(tx: TransactionMeta): string {
 
 /**
  * Returns the first required asset from a pay transaction, if present.
- * `requiredAssets` is a MetaMask Pay extension on TransactionMeta.
  */
-function getRequiredAsset(
-  tx: TransactionMeta,
-): { address: string; amount: string } | undefined {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (tx as any).requiredAssets?.[0] as
-    | { address: string; amount: string }
-    | undefined;
+function getRequiredAsset(tx: TransactionMeta): RequiredAsset | undefined {
+  return tx.requiredAssets?.[0];
 }
 
 /**
