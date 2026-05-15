@@ -81,6 +81,12 @@ export const handleSocialTraderPositionUrl = ({
       );
     }
 
+    // Push Position on top of whatever the user was on. Back returns there:
+    // - cold-start push: returns to Wallet Home (the app's initial route).
+    // - in-app notification tap: returns to the Notifications panel.
+    // - row tap from Profile (in-app): returns to Profile.
+    // The trader's name in the position header is the affordance for
+    // navigating onward to the trader's Profile.
     NavigationService.navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
       positionId,
       traderId,
