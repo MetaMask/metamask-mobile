@@ -187,41 +187,12 @@ const isUrlAllowed = (url: string): boolean => {
 const isUrlSuppressedFromLogs = (url: string): boolean =>
   SUPPRESSED_LOGS_URLS.some((pattern: RegExp) => pattern.test(url));
 
-// Response headers that callers may rely on (e.g. react-native-blob-util's
-// tarball download asserts that `content-length` is present in respInfo).
-// Other upstream headers are dropped to avoid leaking proxy-internal state.
-const FORWARDED_RESPONSE_HEADERS = [
-  'content-length',
-  'content-type',
-  'content-encoding',
-  'content-disposition',
-  'etag',
-  'last-modified',
-];
-
-const extractForwardedResponseHeaders = (
-  response: Response,
-): Record<string, string> => {
-  const forwarded: Record<string, string> = {};
-  for (const name of FORWARDED_RESPONSE_HEADERS) {
-    const value = response.headers.get(name);
-    if (value !== null) {
-      forwarded[name] = value;
-    }
-  }
-  return forwarded;
-};
-
 const handleDirectFetch = async (
   url: string,
   method: string,
   headers: Headers,
   requestBody?: string,
-): Promise<{
-  statusCode: number;
-  body: string;
-  headers: Record<string, string>;
-}> => {
+): Promise<{ statusCode: number; body: string }> => {
   try {
     const fetchHeaders: HeadersInit = {};
     for (const [key, value] of Object.entries(headers)) {
@@ -237,11 +208,7 @@ const handleDirectFetch = async (
     });
 
     const responseBody = await response.text();
-    return {
-      statusCode: response.status,
-      body: responseBody,
-      headers: extractForwardedResponseHeaders(response),
-    };
+    return { statusCode: response.status, body: responseBody };
   } catch (error) {
     if (!isUrlSuppressedFromLogs(url)) {
       logger.error('Error forwarding request:', url, error);
@@ -249,7 +216,6 @@ const handleDirectFetch = async (
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Failed to forward request' }),
-      headers: { 'content-type': 'application/json' },
     };
   }
 };
