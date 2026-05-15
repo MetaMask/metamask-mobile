@@ -62,7 +62,6 @@ import {
   setupAccountActivityMocks,
   resetAccountActivityMockState,
 } from '../../websocket/account-activity-mocks';
-import { mockSwapPopularTokens } from '../../helpers/swap/swap-mocks';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -517,7 +516,6 @@ export async function withFixtures(
     skipReactNativeReload = false,
     useCommandQueueServer = false,
     analyticsExpectations,
-    shouldPrefetchSwapTokens = true,
     disableSynchronization = false,
   } = options;
 
@@ -704,11 +702,6 @@ export async function withFixtures(
         cleanupErrors.push(analyticsError as Error);
         logger.error('Analytics expectations failed');
       }
-    }
-
-    if (mockServerInstance && shouldPrefetchSwapTokens) {
-      logger.debug('Mocking swap popular tokens fetch');
-      await mockSwapPopularTokens(mockServerInstance.server);
     }
 
     // Enter drain mode AFTER endTestfn / analyticsExpectations so analytics events are still captured,
