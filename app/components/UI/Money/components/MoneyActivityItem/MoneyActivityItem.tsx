@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Pressable } from 'react-native';
 import {
   Box,
@@ -43,13 +43,9 @@ const MoneyActivityItem = ({
 
   const display = useMoneyTransactionDisplayInfo(tx, moneyAddress);
 
-  const networkImageSource = useMemo(
-    () =>
-      showNetworkBadge
-        ? getNetworkImageSource({ chainId: tx.chainId })
-        : undefined,
-    [tx.chainId, showNetworkBadge],
-  );
+  const networkImageSource = showNetworkBadge
+    ? getNetworkImageSource({ chainId: tx.chainId })
+    : undefined;
 
   const amountColor = display.isIncoming
     ? TextColor.SuccessDefault
