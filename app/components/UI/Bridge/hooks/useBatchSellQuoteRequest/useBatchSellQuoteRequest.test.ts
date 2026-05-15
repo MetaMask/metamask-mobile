@@ -33,7 +33,7 @@ jest.mock('../../../../../selectors/bridge', () => ({
     gasIncluded: false,
     gasIncluded7702: false,
   })),
-  selectSourceWalletAddress: jest.fn(() => mockWalletAddress),
+  selectBatchSellSourceWalletAddress: jest.fn(() => mockWalletAddress),
 }));
 
 jest.mock('../../../../../selectors/smartTransactionsController', () => ({

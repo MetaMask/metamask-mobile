@@ -15,8 +15,8 @@ import {
   selectBatchSellSourceTokens,
 } from '../../../../../core/redux/slices/bridge';
 import {
+  selectBatchSellSourceWalletAddress,
   selectGasIncludedQuoteParams,
-  selectSourceWalletAddress,
 } from '../../../../../selectors/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { getDecimalChainId } from '../../../../../util/networks';
@@ -149,7 +149,7 @@ export function useBatchSellQuoteRequest() {
   );
   const destToken = useSelector(selectBatchSellDestToken);
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
-  const walletAddress = useSelector(selectSourceWalletAddress);
+  const walletAddress = useSelector(selectBatchSellSourceWalletAddress);
   const { gasIncluded, gasIncluded7702 } = useSelector(
     selectGasIncludedQuoteParams,
   );
