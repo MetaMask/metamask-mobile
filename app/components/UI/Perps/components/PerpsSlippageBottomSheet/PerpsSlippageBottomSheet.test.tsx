@@ -182,7 +182,7 @@ describe('PerpsSlippageBottomSheet', () => {
     fireEvent.changeText(input, '');
     expect(
       screen.queryByTestId(PerpsSlippageConfigSelectorsIDs.ERROR),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('does not call onSave when value is invalid', () => {
