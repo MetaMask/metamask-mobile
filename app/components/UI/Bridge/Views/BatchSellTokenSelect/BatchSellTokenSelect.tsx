@@ -4,6 +4,7 @@ import { ListRenderItemInfo, Pressable } from 'react-native';
 import { FlatList, ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
+import BigNumber from 'bignumber.js';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   AvatarBaseShape,
@@ -26,7 +27,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { CaipChainId } from '@metamask/utils';
+import { CaipAssetType, CaipChainId } from '@metamask/utils';
 
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -34,7 +35,10 @@ import {
   resetBridgeState,
   selectBatchSellDestStablecoins,
   selectBatchSellDestStablecoinsByChain,
+  setBatchSellDestToken,
+  setBatchSellSourceTokenAmounts,
   setBatchSellSourceTokens,
+  setBatchSellTokenSlippages,
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
@@ -54,9 +58,51 @@ import {
 import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
 import { BatchSellTokenRow } from './BatchSellTokenRow';
 import { BatchSellEmptyState } from './BatchSellEmptyState';
+import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
+import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
 
 const getTokenKey = (token: BridgeToken) =>
   `${formatChainIdToCaip(token.chainId)}:${token.address}`;
+
+function getBatchSellSourceTokenAmount(token: BridgeToken, percent: number) {
+  if (percent <= 0) return '0';
+  if (!token.balance) return undefined;
+
+  const sourceAmount = new BigNumber(token.balance).times(percent).div(100);
+
+  return sourceAmount.isFinite() ? sourceAmount.toFixed() : undefined;
+}
+
+function getDefaultBatchSellSlippages(selectedTokens: BridgeToken[]) {
+  return selectedTokens.reduce<Partial<Record<CaipAssetType, string>>>(
+    (slippagesByAssetId, token) => {
+      const assetId = getBridgeTokenAssetId(token);
+
+      if (assetId) {
+        slippagesByAssetId[assetId] = DEFAULT_BATCH_SELL_SLIPPAGE;
+      }
+
+      return slippagesByAssetId;
+    },
+    {},
+  );
+}
+
+function getDefaultBatchSellSourceTokenAmounts(selectedTokens: BridgeToken[]) {
+  return selectedTokens.reduce<Partial<Record<CaipAssetType, string>>>(
+    (sourceAmountsByAssetId, token) => {
+      const assetId = getBridgeTokenAssetId(token);
+      const amount = getBatchSellSourceTokenAmount(token, 100);
+
+      if (assetId) {
+        sourceAmountsByAssetId[assetId] = amount;
+      }
+
+      return sourceAmountsByAssetId;
+    },
+    {},
+  );
+}
 
 export function BatchSellTokenSelect() {
   const navigation = useNavigation();
@@ -85,13 +131,9 @@ export function BatchSellTokenSelect() {
   >(() => sortedEligibleChains[0]?.chainId);
   const [selectedTokens, setSelectedTokens] = useState<BridgeToken[]>([]);
 
-  // Reset bridge state when component unmounts.
-  useEffect(
-    () => () => {
-      dispatch(resetBridgeState());
-    },
-    [dispatch],
-  );
+  useEffect(() => {
+    dispatch(resetBridgeState());
+  }, [dispatch]);
 
   useEffect(() => {
     // Default to the highest-value chain once balances load, but preserve a
@@ -222,6 +264,22 @@ export function BatchSellTokenSelect() {
     }
 
     dispatch(setBatchSellSourceTokens(selectedTokens));
+    dispatch(
+      setBatchSellSourceTokenAmounts(
+        getDefaultBatchSellSourceTokenAmounts(selectedTokens),
+      ),
+    );
+    dispatch(
+      setBatchSellDestToken(
+        getBatchSellDestinationToken(
+          selectedTokens[0].chainId,
+          destinationStablecoins,
+        ),
+      ),
+    );
+    dispatch(
+      setBatchSellTokenSlippages(getDefaultBatchSellSlippages(selectedTokens)),
+    );
     navigation.navigate(Routes.BRIDGE.BATCH_SELL_REVIEW);
   }, [destinationStablecoins, dispatch, navigation, selectedTokens]);
 

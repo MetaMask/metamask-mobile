@@ -9,6 +9,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
+const mockCancelBatchSellQuoteParams = jest.fn();
+const mockUpdateBatchSellQuoteParams = Object.assign(jest.fn(), {
+  cancel: mockCancelBatchSellQuoteParams,
+});
 const defaultSelectedTokens: BridgeToken[] = [
   {
     address: '0x1111111111111111111111111111111111111111',
@@ -51,6 +55,9 @@ let mockSelectedDestinationToken: BridgeToken | undefined = usdcToken;
 let mockDestinationTokens: BridgeToken[] = [usdcToken];
 let mockBatchSellSlippages: Partial<Record<CaipAssetType, string | undefined>> =
   {};
+let mockBatchSellSourceTokenAmounts: Partial<
+  Record<CaipAssetType, string | undefined>
+> = {};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -68,10 +75,31 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBatchSellDestStablecoins: jest.fn(() => mockDestinationTokens),
   selectBatchSellDestToken: jest.fn(() => mockSelectedDestinationToken),
   selectBatchSellSlippages: jest.fn(() => mockBatchSellSlippages),
+  selectBatchSellSourceTokenAmounts: jest.fn(
+    () => mockBatchSellSourceTokenAmounts,
+  ),
   setBatchSellDestToken: jest.fn((token: BridgeToken) => ({
     type: 'bridge/setBatchSellDestToken',
     payload: token,
   })),
+  setBatchSellSourceTokenAmount: jest.fn(
+    ({
+      assetId,
+      amount,
+    }: {
+      assetId: CaipAssetType;
+      amount: string | undefined;
+    }) => ({
+      type: 'bridge/setBatchSellSourceTokenAmount',
+      payload: { assetId, amount },
+    }),
+  ),
+  setBatchSellSourceTokenAmounts: jest.fn(
+    (amounts: Partial<Record<CaipAssetType, string | undefined>>) => ({
+      type: 'bridge/setBatchSellSourceTokenAmounts',
+      payload: amounts,
+    }),
+  ),
   setBatchSellSourceTokens: jest.fn((tokens: BridgeToken[]) => ({
     type: 'bridge/setBatchSellSourceTokens',
     payload: tokens,
@@ -87,6 +115,18 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
+}));
+
+jest.mock('../../hooks/useBatchSellQuoteRequest', () => ({
+  getBatchSellAtomicSourceAmount: jest.fn(
+    (token: { balance?: string }, amount?: string) =>
+      token.balance && amount && Number(amount) > 0 ? '1' : undefined,
+  ),
+  getBatchSellSourceTokenAmount: jest.fn(
+    (token: { balance?: string }, percent: number) =>
+      token.balance && percent > 0 ? token.balance : '0',
+  ),
+  useBatchSellQuoteRequest: jest.fn(() => mockUpdateBatchSellQuoteParams),
 }));
 
 jest.mock('./BatchSellReviewTokenRow', () => {
@@ -137,6 +177,10 @@ describe('BatchSellReview', () => {
     mockSelectedDestinationToken = usdcToken;
     mockDestinationTokens = [usdcToken];
     mockBatchSellSlippages = {};
+    mockBatchSellSourceTokenAmounts = {
+      'eip155:1/erc20:0x1111111111111111111111111111111111111111': '1.498',
+      'eip155:1/erc20:0x2222222222222222222222222222222222222222': '154.297',
+    };
   });
 
   it('renders the quote loading screen', () => {
@@ -310,13 +354,27 @@ describe('BatchSellReview', () => {
     });
   });
 
-  it('resets bridge state on unmount', () => {
+  it('updates Batch Sell quote params when Redux inputs are present', () => {
+    render(<BatchSellReview />);
+
+    expect(mockUpdateBatchSellQuoteParams).toHaveBeenCalled();
+  });
+
+  it('cancels the Batch Sell quote params update on unmount', () => {
+    const { unmount } = render(<BatchSellReview />);
+
+    unmount();
+
+    expect(mockCancelBatchSellQuoteParams).toHaveBeenCalled();
+  });
+
+  it('leaves bridge state intact on unmount', () => {
     const { unmount } = render(<BatchSellReview />);
 
     mockDispatch.mockClear();
     unmount();
 
-    expect(mockDispatch).toHaveBeenCalledWith({
+    expect(mockDispatch).not.toHaveBeenCalledWith({
       type: 'bridge/resetBridgeState',
     });
   });

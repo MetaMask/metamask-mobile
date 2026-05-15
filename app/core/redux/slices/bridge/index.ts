@@ -95,6 +95,9 @@ export interface BridgeState {
    */
   selectedQuoteRequestId: string | undefined;
   batchSellSourceTokens: BridgeToken[];
+  batchSellSourceTokenAmounts: Partial<
+    Record<CaipAssetType, string | undefined>
+  >;
   batchSellDestToken: BridgeToken | undefined;
   batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>;
 }
@@ -123,6 +126,7 @@ export const initialState: BridgeState = {
 
   // Batch Sell
   batchSellSourceTokens: [],
+  batchSellSourceTokenAmounts: {},
   batchSellDestToken: undefined,
   batchSellSlippages: {},
 };
@@ -259,6 +263,22 @@ const slice = createSlice({
     },
     setBatchSellSourceTokens: (state, action: PayloadAction<BridgeToken[]>) => {
       state.batchSellSourceTokens = action.payload.map(normalizeBridgeToken);
+    },
+    setBatchSellSourceTokenAmount: (
+      state,
+      action: PayloadAction<{
+        assetId: CaipAssetType;
+        amount: string | undefined;
+      }>,
+    ) => {
+      state.batchSellSourceTokenAmounts[action.payload.assetId] =
+        action.payload.amount;
+    },
+    setBatchSellSourceTokenAmounts: (
+      state,
+      action: PayloadAction<BridgeState['batchSellSourceTokenAmounts']>,
+    ) => {
+      state.batchSellSourceTokenAmounts = action.payload;
     },
     setBatchSellDestToken: (
       state,
@@ -574,6 +594,11 @@ export const selectBatchSellSourceTokens = createSelector(
   (bridgeState) => bridgeState.batchSellSourceTokens,
 );
 
+export const selectBatchSellSourceTokenAmounts = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.batchSellSourceTokenAmounts ?? {},
+);
+
 export const selectBatchSellDestToken = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.batchSellDestToken,
@@ -873,6 +898,8 @@ export const {
   setVisiblePillChainIds,
   setSelectedQuoteRequestId,
   setBatchSellSourceTokens,
+  setBatchSellSourceTokenAmount,
+  setBatchSellSourceTokenAmounts,
   setBatchSellDestToken,
   setBatchSellTokenSlippage,
   setBatchSellTokenSlippages,

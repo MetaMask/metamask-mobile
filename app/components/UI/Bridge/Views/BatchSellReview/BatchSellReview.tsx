@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
@@ -29,12 +29,14 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
-  resetBridgeState,
   selectBatchSellSlippages,
   selectBatchSellDestToken,
   selectBatchSellDestStablecoins,
+  selectBatchSellSourceTokenAmounts,
   selectBatchSellSourceTokens,
   setBatchSellDestToken,
+  setBatchSellSourceTokenAmount,
+  setBatchSellSourceTokenAmounts,
   setBatchSellSourceTokens,
   setBatchSellTokenSlippages,
 } from '../../../../../core/redux/slices/bridge';
@@ -49,11 +51,14 @@ import {
 import { BatchSellFinalReviewSourceTokenData } from '../../components/BatchSellFinalReviewModal/BatchSellFinalReviewModal.types';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
+import {
+  getBatchSellAtomicSourceAmount,
+  getBatchSellSourceTokenAmount,
+  useBatchSellQuoteRequest,
+} from '../../hooks/useBatchSellQuoteRequest';
 
 const DEFAULT_PERCENT = 100;
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
-// TODO(SWAPS-4439): When Batch Sell quote fetching is wired, pass
-// batchSellSlippages[assetId] into each token's BridgeController quote request.
 const HAS_QUOTES = true;
 const QUOTE_DETAILS_PLACEHOLDER_AMOUNT = '--';
 const NETWORK_FEE_PLACEHOLDER = '1.20 USDC';
@@ -75,7 +80,7 @@ function getSourceTokenData(
   return sourceTokenData;
 }
 
-function areBatchSellSlippageMapsEqual(
+function areBatchSellValueMapsEqual(
   first: Record<string, string | undefined>,
   second: Record<string, string | undefined>,
 ) {
@@ -103,10 +108,29 @@ export function BatchSellReview() {
   );
   const selectedDestinationToken = useSelector(selectBatchSellDestToken);
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
+  const batchSellSourceTokenAmounts = useSelector(
+    selectBatchSellSourceTokenAmounts,
+  );
   const isRemoveTokenDisabled = selectedTokens.length <= 2;
   const [percentsByTokenKey, setPercentsByTokenKey] = useState<
     Record<string, number>
   >({});
+  const updateBatchSellQuoteParams = useBatchSellQuoteRequest();
+  const hasValidBatchSellInputs = useMemo(
+    () =>
+      Boolean(selectedDestinationToken) &&
+      selectedTokens.some((token) => {
+        const assetId = getBridgeTokenAssetId(token);
+        return (
+          assetId &&
+          getBatchSellAtomicSourceAmount(
+            token,
+            batchSellSourceTokenAmounts[assetId],
+          )
+        );
+      }),
+    [batchSellSourceTokenAmounts, selectedDestinationToken, selectedTokens],
+  );
 
   // Seed the selected destination token on entry so the pill always reads from Redux.
   useEffect(() => {
@@ -126,13 +150,47 @@ export function BatchSellReview() {
     );
   }, [selectedTokens]);
 
-  // Reset bridge state when component unmounts.
-  useEffect(
-    () => () => {
-      dispatch(resetBridgeState());
-    },
-    [dispatch],
-  );
+  useEffect(() => {
+    if (hasValidBatchSellInputs) {
+      updateBatchSellQuoteParams();
+    }
+
+    return () => {
+      updateBatchSellQuoteParams.cancel();
+    };
+  }, [hasValidBatchSellInputs, updateBatchSellQuoteParams]);
+
+  useEffect(() => {
+    const nextSourceTokenAmounts = selectedTokens.reduce<
+      Record<string, string | undefined>
+    >((sourceAmountsByAssetId, token) => {
+      const assetId = getBridgeTokenAssetId(token);
+
+      if (!assetId) return sourceAmountsByAssetId;
+
+      sourceAmountsByAssetId[assetId] =
+        batchSellSourceTokenAmounts[assetId] ??
+        getBatchSellSourceTokenAmount(
+          token,
+          percentsByTokenKey[getTokenKey(token)] ?? DEFAULT_PERCENT,
+        );
+      return sourceAmountsByAssetId;
+    }, {});
+
+    if (
+      !areBatchSellValueMapsEqual(
+        batchSellSourceTokenAmounts,
+        nextSourceTokenAmounts,
+      )
+    ) {
+      dispatch(setBatchSellSourceTokenAmounts(nextSourceTokenAmounts));
+    }
+  }, [
+    batchSellSourceTokenAmounts,
+    dispatch,
+    percentsByTokenKey,
+    selectedTokens,
+  ]);
 
   useEffect(() => {
     // Keep Redux slippages aligned with selected tokens when the user removes tokens.
@@ -150,7 +208,7 @@ export function BatchSellReview() {
       return slippageByAssetId;
     }, {});
 
-    if (!areBatchSellSlippageMapsEqual(batchSellSlippages, nextSlippage)) {
+    if (!areBatchSellValueMapsEqual(batchSellSlippages, nextSlippage)) {
       dispatch(setBatchSellTokenSlippages(nextSlippage));
     }
   }, [batchSellSlippages, dispatch, selectedTokens]);
@@ -161,8 +219,22 @@ export function BatchSellReview() {
         ...currentPercents,
         [tokenKey]: percent,
       }));
+
+      const token = selectedTokens.find(
+        (selectedToken) => getTokenKey(selectedToken) === tokenKey,
+      );
+      const assetId = token ? getBridgeTokenAssetId(token) : undefined;
+
+      if (!token || !assetId) return;
+
+      dispatch(
+        setBatchSellSourceTokenAmount({
+          assetId,
+          amount: getBatchSellSourceTokenAmount(token, percent),
+        }),
+      );
     },
-    [],
+    [dispatch, selectedTokens],
   );
 
   const handleBackPress = useCallback(() => {

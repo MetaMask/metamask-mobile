@@ -24,6 +24,9 @@ import reducer, {
   selectIsRwaSwap,
   setBatchSellSourceTokens,
   selectBatchSellSourceTokens,
+  setBatchSellSourceTokenAmount,
+  setBatchSellSourceTokenAmounts,
+  selectBatchSellSourceTokenAmounts,
   setBatchSellDestToken,
   selectBatchSellDestToken,
   selectBatchSellDestStablecoins,
@@ -98,6 +101,7 @@ describe('bridge slice', () => {
         selectedQuoteRequestId: undefined,
         abTestContext: undefined,
         batchSellSourceTokens: [],
+        batchSellSourceTokenAmounts: {},
         batchSellDestToken: undefined,
         batchSellSlippages: {},
       });
@@ -279,6 +283,50 @@ describe('bridge slice', () => {
       } as RootState;
 
       expect(selectBatchSellSourceTokens(mockState)).toEqual([mockToken]);
+    });
+
+    it('sets Batch Sell source token amount by asset ID', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+
+      const state = reducer(
+        initialState,
+        setBatchSellSourceTokenAmount({ assetId, amount: '1.5' }),
+      );
+
+      expect(state.batchSellSourceTokenAmounts[assetId]).toBe('1.5');
+    });
+
+    it('replaces Batch Sell source token amount map', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+
+      const state = reducer(
+        {
+          ...initialState,
+          batchSellSourceTokenAmounts: {
+            'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7': '0.5',
+          },
+        },
+        setBatchSellSourceTokenAmounts({ [assetId]: '3' }),
+      );
+
+      expect(state.batchSellSourceTokenAmounts).toEqual({ [assetId]: '3' });
+    });
+
+    it('selects Batch Sell source token amount map', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+      const mockState = {
+        bridge: {
+          ...initialState,
+          batchSellSourceTokenAmounts: { [assetId]: '2' },
+        },
+      } as RootState;
+
+      expect(selectBatchSellSourceTokenAmounts(mockState)).toEqual({
+        [assetId]: '2',
+      });
     });
 
     it('sets Batch Sell destination token metadata', () => {
