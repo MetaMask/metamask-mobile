@@ -4,7 +4,6 @@ import { View, Switch, Linking, InteractionManager } from 'react-native';
 // import { useNavigation } from '@react-navigation/native';
 
 import {
-  FontWeight,
   Text,
   TextVariant,
   TextColor,
@@ -167,18 +166,9 @@ const BackupAndSyncToggle = ({
           testID={BACKUP_AND_SYNC_TOGGLE_TEST_IDS.TOGGLE}
         />
       </View>
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextAlternative}
-      >
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {strings('backupAndSync.enable.description')}
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.InfoDefault}
-          onPress={handleLink}
-        >
+        <Text color={TextColor.InfoDefault} onPress={handleLink}>
           {strings('backupAndSync.privacyLink')}
         </Text>
       </Text>

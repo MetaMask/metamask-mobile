@@ -2,7 +2,7 @@ import { colors } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   setting: {
-    marginTop: 24,
+    marginTop: 8,
     paddingTop: 16,
     borderTopColor: colors.dark.border.muted,
     borderTopWidth: 1,
