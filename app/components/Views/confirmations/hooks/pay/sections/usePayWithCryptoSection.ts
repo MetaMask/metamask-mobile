@@ -25,6 +25,7 @@ import { useLastUsedPaymentMethod } from '../useLastUsedPaymentMethod';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
 import { useTransactionPayFiatPayment } from '../useTransactionPayData';
+import { useTransactionPayToken } from '../useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 
 interface PayWithCryptoSectionParams {
@@ -60,8 +61,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const {
     isSelectedDistinctFromAutomatic,
     selectedToken: selectedTokenDisplay,
-    selectToken,
   } = usePayWithSelectedToken({ preferredToken: resolvedPreferredToken });
+  const { setPayToken } = useTransactionPayToken();
   const { isLastUsed } = useLastUsedPaymentMethod();
   const fiatPayment = useTransactionPayFiatPayment();
   const hasFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
@@ -74,12 +75,12 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     if (!preferredToken) {
       return;
     }
-    selectToken({
+    setPayToken({
       address: preferredToken.address,
       chainId: preferredToken.chainId,
     });
     navigation.goBack();
-  }, [navigation, preferredToken, selectToken]);
+  }, [navigation, preferredToken, setPayToken]);
 
   const preferredTokenBalance = useMemo(
     () => formatFiat(new BigNumber(preferredToken?.balanceUsd ?? '0')),
@@ -122,9 +123,11 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       });
     }
 
-    if (isSelectedDistinctFromAutomatic && selectedTokenDisplay) {
-      const isSelectedTokenChecked = !hasFiatPaymentSelected;
-
+    if (
+      isSelectedDistinctFromAutomatic &&
+      selectedTokenDisplay &&
+      !hasFiatPaymentSelected
+    ) {
       rows.push({
         id: 'crypto-selected-token',
         icon: React.createElement(TokenIcon, {
@@ -136,12 +139,12 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
         subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
           balance: selectedTokenBalance,
         }),
-        isSelected: isSelectedTokenChecked,
+        isSelected: true,
         isLastUsed: isLastUsed(
           selectedTokenDisplay.address,
           selectedTokenDisplay.chainId,
         ),
-        trailingElement: isSelectedTokenChecked ? 'checkmark' : 'none',
+        trailingElement: 'checkmark',
         testID: PAY_WITH_CRYPTO_SELECTED_TOKEN_ROW_TEST_ID,
       });
     }

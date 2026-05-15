@@ -13,6 +13,7 @@ import { useLastUsedPaymentMethod } from '../useLastUsedPaymentMethod';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
 import { useTransactionPayFiatPayment } from '../useTransactionPayData';
+import { useTransactionPayToken } from '../useTransactionPayToken';
 import { usePayWithCryptoSection } from './usePayWithCryptoSection';
 
 jest.mock('@react-navigation/native', () => ({
@@ -40,6 +41,7 @@ jest.mock('../useLastUsedPaymentMethod');
 jest.mock('../usePayWithPreferredToken');
 jest.mock('../usePayWithSelectedToken');
 jest.mock('../useTransactionPayData');
+jest.mock('../useTransactionPayToken');
 
 const TOKEN_MOCK: TransactionPaymentToken = {
   address: '0x1234567890abcdef1234567890abcdef12345678' as Hex,
@@ -72,9 +74,11 @@ describe('usePayWithCryptoSection', () => {
   const useTransactionPayFiatPaymentMock = jest.mocked(
     useTransactionPayFiatPayment,
   );
+  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const navigateMock = jest.fn();
   const goBackMock = jest.fn();
   const selectTokenMock = jest.fn();
+  const setPayTokenMock = jest.fn();
   const isLastUsedMock = jest.fn().mockReturnValue(false);
 
   beforeEach(() => {
@@ -108,6 +112,10 @@ describe('usePayWithCryptoSection', () => {
       isLastUsed: isLastUsedMock,
     });
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: TOKEN_MOCK,
+      setPayToken: setPayTokenMock,
+    });
   });
 
   it('passes route preferred payment token params to both pay-with hooks', () => {
@@ -387,7 +395,7 @@ describe('usePayWithCryptoSection', () => {
       result.current?.rows[0].onPress?.();
     });
 
-    expect(selectTokenMock).toHaveBeenCalledWith({
+    expect(setPayTokenMock).toHaveBeenCalledWith({
       address: TOKEN_MOCK.address,
       chainId: TOKEN_MOCK.chainId,
     });
@@ -401,7 +409,25 @@ describe('usePayWithCryptoSection', () => {
       result.current?.rows[0].onPress?.();
     });
 
-    expect(selectTokenMock).toHaveBeenCalledWith({
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_MOCK.address,
+      chainId: TOKEN_MOCK.chainId,
+    });
+    expect(goBackMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears the fiat selection when the preferred token row is pressed while a fiat method is active', () => {
+    useTransactionPayFiatPaymentMock.mockReturnValue({
+      selectedPaymentMethodId: 'pm-card',
+    });
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    act(() => {
+      result.current?.rows[0].onPress?.();
+    });
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
       address: TOKEN_MOCK.address,
       chainId: TOKEN_MOCK.chainId,
     });
@@ -539,7 +565,7 @@ describe('usePayWithCryptoSection', () => {
     );
   });
 
-  it('suppresses the user-selected token row checkmark when a fiat payment method is selected', () => {
+  it('hides the user-selected token row when a fiat payment method is selected', () => {
     const distinctSelectedToken = {
       ...TOKEN_MOCK,
       address: SELECTED_TOKEN_MOCK.address,
@@ -566,11 +592,6 @@ describe('usePayWithCryptoSection', () => {
       (row) => row.id === 'crypto-selected-token',
     );
 
-    expect(selectedRow).toEqual(
-      expect.objectContaining({
-        isSelected: false,
-        trailingElement: 'none',
-      }),
-    );
+    expect(selectedRow).toBeUndefined();
   });
 });
