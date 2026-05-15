@@ -76,7 +76,7 @@ describe('NotificationsView - header', () => {
 
     expect(
       getByTestId(NotificationMenuViewSelectorsIDs.TITLE).props.children,
-    ).toBe(strings('notifications.title'));
+    ).toBe(strings('app_settings.notifications_title'));
   });
 
   it('finds close button and invokes navigation when pressed', async () => {
