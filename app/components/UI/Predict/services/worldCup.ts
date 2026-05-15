@@ -7,7 +7,7 @@ export const PREDICT_WORLD_CUP_AVAILABILITY_LIMIT = 1;
 interface FetchPredictWorldCupMarketsParams {
   queryParams: string;
   limit?: number;
-  offset?: number;
+  afterCursor?: string | null;
   sortByStartTime?: boolean;
 }
 
@@ -50,15 +50,15 @@ export const sortPredictWorldCupMarketsByStartTime = (
 export const fetchPredictWorldCupMarkets = async ({
   queryParams,
   limit = PREDICT_WORLD_CUP_PAGE_SIZE,
-  offset = 0,
+  afterCursor,
   sortByStartTime = false,
 }: FetchPredictWorldCupMarketsParams): Promise<PredictMarket[]> => {
   const controller = getPredictController();
-  const markets = await controller.getMarkets({
+  const { markets } = await controller.getMarkets({
     category: 'hot',
     customQueryParams: queryParams,
     limit,
-    offset,
+    afterCursor,
   });
 
   return sortByStartTime

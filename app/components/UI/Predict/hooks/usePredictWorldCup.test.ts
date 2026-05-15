@@ -52,7 +52,10 @@ describe('usePredictWorldCupMarkets', () => {
   it('requests All markets with a cached paginated query', async () => {
     const { Wrapper } = createWrapper();
     const allMarket = createMarket({ id: 'all-market' });
-    mockGetMarkets.mockResolvedValue([allMarket]);
+    mockGetMarkets.mockResolvedValue({
+      markets: [allMarket],
+      nextCursor: null,
+    });
 
     const { result } = renderHook(
       () =>
@@ -71,7 +74,7 @@ describe('usePredictWorldCupMarkets', () => {
       customQueryParams:
         'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr&ascending=false',
       limit: 30,
-      offset: 0,
+      afterCursor: null,
     });
     expect(result.current.hasMore).toBe(false);
   });
@@ -79,7 +82,10 @@ describe('usePredictWorldCupMarkets', () => {
   it('requests Props markets with a cached paginated query', async () => {
     const { Wrapper } = createWrapper();
     const propsMarket = createMarket({ id: 'props-market' });
-    mockGetMarkets.mockResolvedValue([propsMarket]);
+    mockGetMarkets.mockResolvedValue({
+      markets: [propsMarket],
+      nextCursor: null,
+    });
 
     const { result } = renderHook(
       () =>
@@ -105,7 +111,10 @@ describe('usePredictWorldCupMarkets', () => {
   it('requests Live markets without pagination', async () => {
     const { Wrapper } = createWrapper();
     const liveMarket = createMarket({ id: 'live-market' });
-    mockGetMarkets.mockResolvedValue([liveMarket]);
+    mockGetMarkets.mockResolvedValue({
+      markets: [liveMarket],
+      nextCursor: null,
+    });
 
     const { result } = renderHook(
       () =>
@@ -137,7 +146,10 @@ describe('usePredictWorldCupMarkets', () => {
       ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
       stages: [{ key: 'group-stage', eventIds: ['123', '456'] }],
     };
-    mockGetMarkets.mockResolvedValue([stageMarket]);
+    mockGetMarkets.mockResolvedValue({
+      markets: [stageMarket],
+      nextCursor: null,
+    });
 
     const { result } = renderHook(
       () =>
@@ -157,7 +169,6 @@ describe('usePredictWorldCupMarkets', () => {
         customQueryParams:
           'active=true&archived=false&closed=false&id=123&id=456',
         limit: 2,
-        offset: 0,
       }),
     );
     expect(result.current.hasMore).toBe(false);
@@ -188,8 +199,8 @@ describe('usePredictWorldCupMarkets', () => {
     const allMarket = createMarket({ id: 'all-market' });
     const liveMarket = createMarket({ id: 'live-market' });
     mockGetMarkets
-      .mockResolvedValueOnce([allMarket])
-      .mockResolvedValueOnce([liveMarket]);
+      .mockResolvedValueOnce({ markets: [allMarket], nextCursor: null })
+      .mockResolvedValueOnce({ markets: [liveMarket], nextCursor: null });
 
     const { result, rerender } = renderHook(
       ({ tabKey }: { tabKey: 'all' | 'live' }) =>

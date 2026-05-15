@@ -94,7 +94,6 @@ const buildMarketsOptions = ({
       fetchPredictWorldCupMarkets({
         queryParams,
         limit,
-        offset,
         sortByStartTime,
       }),
     staleTime: 10_000,

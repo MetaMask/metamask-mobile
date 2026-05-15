@@ -165,7 +165,7 @@ const fetchInfiniteWorldCupMarketsPage = async ({
   fetchPredictWorldCupMarkets({
     queryParams,
     limit: pageSize,
-    offset: typeof pageParam === 'number' ? pageParam : 0,
+    afterCursor: typeof pageParam === 'string' ? pageParam : null,
   });
 
 export const usePredictWorldCupMarkets = ({
