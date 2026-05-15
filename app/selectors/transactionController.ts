@@ -6,6 +6,7 @@ import {
   selectPendingSmartTransactionsForSelectedAccountGroup,
 } from './smartTransactionsController';
 import { selectEvmAddress } from './accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from './multichainAccounts/accountTreeController';
 import {
   TransactionMeta,
   TransactionType,
@@ -26,13 +27,14 @@ function dedupeTransactions(transactions: LocalTransaction[]) {
   const seenTransactions = new Set<string>();
 
   return transactions.filter((transaction) => {
-    const { chainId, txParams } = transaction;
-    const { from, nonce, actionId } = txParams || {};
+    const { chainId, txParams, id, isTransfer } =
+      transaction as TransactionMeta;
+    const { from, nonce } = txParams || {};
     const hash = 'hash' in transaction ? transaction.hash : undefined;
     const isBridgeTransaction = transaction.type === TransactionType.bridge;
     const hasNonce = nonce !== undefined && nonce !== null;
 
-    if (!from) {
+    if (!from || isTransfer !== undefined) {
       return false;
     }
 
@@ -42,7 +44,7 @@ function dedupeTransactions(transactions: LocalTransaction[]) {
         ? `${dedupeKeyPrefix}-bridge-${hash.toLowerCase()}`
         : hasNonce
           ? `${dedupeKeyPrefix}-${nonce}`
-          : `${dedupeKeyPrefix}-${actionId}`;
+          : `${dedupeKeyPrefix}-${id}`;
 
     // Keep only the first local transaction for each dedupe key
     if (seenTransactions.has(dedupeKey)) {
@@ -113,6 +115,35 @@ export const selectRequiredTransactionHashes = createSelector(
         .map((tx) => tx.hash?.toLowerCase())
         .filter((hash): hash is string => Boolean(hash)),
     ),
+);
+
+export const selectRelatedChainIdsByTransactionId = createSelector(
+  selectTransactionsStrict,
+  (transactions) => {
+    const transactionsById = new Map<string, TransactionMeta>(
+      transactions.map((tx) => [tx.id, tx]),
+    );
+
+    return new Map<string, string[]>(
+      transactions
+        .map((tx) => {
+          const childChainIds = (tx.requiredTransactionIds ?? []).map(
+            (childId) => transactionsById.get(childId)?.chainId,
+          );
+
+          const chainIds = [
+            tx.chainId,
+            tx.metamaskPay?.chainId,
+            ...childChainIds,
+          ]
+            .filter((chainId): chainId is Hex => Boolean(chainId))
+            .map((chainId) => chainId.toLowerCase());
+
+          return [tx.id, [...new Set(chainIds)]] satisfies [string, string[]];
+        })
+        .filter(([, chainIds]) => chainIds.length > 0),
+    );
+  },
 );
 
 export const selectTransactions = createDeepEqualSelector(
@@ -217,15 +248,19 @@ export const selectLocalTransactions = createDeepEqualSelector(
   [
     selectNonReplacedTransactions,
     selectPendingSmartTransactionsForSelectedAccountGroup,
+    selectSelectedAccountGroupEvmInternalAccount,
     selectEvmAddress,
     selectRequiredTransactionIds,
   ],
   (
     nonReplacedTransactions,
     pendingSmartTransactions,
-    activeEvmAddress,
+    groupEvmAccount,
+    fallbackEvmAddress,
     requiredTransactionIds,
   ) => {
+    const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
+
     const transactions = nonReplacedTransactions.filter((transaction) => {
       if (requiredTransactionIds.has(transaction.id)) {
         return false;
