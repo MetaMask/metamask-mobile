@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import {
   type TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
@@ -131,6 +132,21 @@ describe('MoneyActivityItem', () => {
     fireEvent.press(getByTestId(`${MoneyActivityItemTestIds.ROW}-tx-row-1`));
 
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows "Failed" in the description slot for a failed transaction', () => {
+    const failedTx = {
+      ...baseTx,
+      status: TransactionStatus.failed,
+    } as unknown as TransactionMeta;
+
+    const { getByText, queryByText } = renderWithProvider(
+      <MoneyActivityItem tx={failedTx} moneyAddress="0x1" />,
+    );
+
+    expect(getByText('Failed')).toBeOnTheScreen();
+    // Normal description should not appear for failed rows
+    expect(queryByText('Description')).toBeNull();
   });
 
   it('renders network badge subtree when showNetworkBadge is true', () => {
