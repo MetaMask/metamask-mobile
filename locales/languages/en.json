@@ -3281,6 +3281,8 @@
       "preferences_title": "Preferences",
       "push_recommended": "Push",
       "in_app": "In-app",
+      "select_all": "Select all",
+      "deselect_all": "Deselect all",
       "select_accounts_title": "Accounts",
       "select_accounts_desc": "Choose which accounts you'd like to get notifications for.",
       "wallet_activity_title": "Wallet Activity",

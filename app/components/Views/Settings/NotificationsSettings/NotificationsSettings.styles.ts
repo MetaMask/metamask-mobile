@@ -36,6 +36,14 @@ const styleSheet = (params: { theme: Theme }) =>
     productAnnouncementContainer: {
       marginTop: 16,
     },
+    walletActivityHeader: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    selectAllButton: {
+      marginLeft: 16,
+    },
     marketingDisclaimer: {
       marginTop: 'auto',
       paddingTop: 16,

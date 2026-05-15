@@ -5,7 +5,7 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import { ScrollView, Switch, View } from 'react-native';
+import { ScrollView, Switch, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
@@ -27,6 +27,8 @@ import { strings } from '../../../../../locales/i18n';
 import SocialAINotificationPreferencesContent from './SocialAINotificationPreferencesContent';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import Routes from '../../../../constants/navigation/Routes';
+import { useWalletActivityAccountSelection } from './AccountsList.hooks';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 
 type NotificationSettingsStyles = ReturnType<typeof styleSheet>;
 
@@ -34,24 +36,67 @@ interface SectionContentProps {
   styles: NotificationSettingsStyles;
 }
 
-const WalletActivitySectionContent = ({ styles }: SectionContentProps) => (
-  <>
-    <View style={styles.line} />
-    <View style={styles.setting}>
-      <Text
-        color={TextColor.TextDefault}
-        variant={TextVariant.HeadingMd}
-        fontWeight={FontWeight.Medium}
-      >
-        {strings('app_settings.notifications_opts.select_accounts_title')}
-      </Text>
-      <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
-        {strings('app_settings.notifications_opts.select_accounts_desc')}
-      </Text>
-    </View>
-    <AccountsList />
-  </>
-);
+const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
+  const {
+    accountProps,
+    notificationAccountListProps,
+    hasEnabledAccount,
+    hasNotificationAccounts,
+    isUpdatingAllAccounts,
+    toggleAllAccounts,
+  } = useWalletActivityAccountSelection();
+
+  return (
+    <>
+      <View style={styles.line} />
+      <View style={styles.setting}>
+        <View style={styles.walletActivityHeader}>
+          <Text
+            color={TextColor.TextDefault}
+            variant={TextVariant.HeadingMd}
+            fontWeight={FontWeight.Medium}
+          >
+            {strings('app_settings.notifications_opts.select_accounts_title')}
+          </Text>
+          {hasNotificationAccounts ? (
+            <TouchableOpacity
+              onPress={toggleAllAccounts}
+              disabled={isUpdatingAllAccounts}
+              accessibilityRole="button"
+              style={styles.selectAllButton}
+              testID={
+                NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATIONS_SELECT_ALL
+              }
+            >
+              <Text
+                color={
+                  isUpdatingAllAccounts
+                    ? TextColor.TextMuted
+                    : TextColor.PrimaryDefault
+                }
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+              >
+                {strings(
+                  hasEnabledAccount
+                    ? 'app_settings.notifications_opts.deselect_all'
+                    : 'app_settings.notifications_opts.select_all',
+                )}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+        <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
+          {strings('app_settings.notifications_opts.select_accounts_desc')}
+        </Text>
+      </View>
+      <AccountsList
+        accountProps={accountProps}
+        notificationAccountListProps={notificationAccountListProps}
+      />
+    </>
+  );
+};
 
 const SocialAISectionContent = ({ styles }: SectionContentProps) => (
   <>
