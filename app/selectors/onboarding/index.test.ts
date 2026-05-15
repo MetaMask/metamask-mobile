@@ -5,6 +5,7 @@ import {
   selectWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingStepsEligible,
   selectShouldShowWalletHomeOnboardingSteps,
+  selectInWalletHomeOnboardingFlow,
 } from '.';
 import { RootState } from '../../reducers';
 import { AccountType } from '../../constants/onboarding';
@@ -86,6 +87,32 @@ describe('Onboarding selectors', () => {
           ...WALLET_HOME_ONBOARDING_STEPS_INITIAL,
           suppressedReason: 'flow_completed',
         }),
+      ).toBe(false);
+    });
+  });
+
+  describe('selectInWalletHomeOnboardingFlow', () => {
+    it('is true when all three inputs are true', () => {
+      expect(
+        selectInWalletHomeOnboardingFlow.resultFunc(true, true, true),
+      ).toBe(true);
+    });
+
+    it('is false when sectionsV1 is false', () => {
+      expect(
+        selectInWalletHomeOnboardingFlow.resultFunc(false, true, true),
+      ).toBe(false);
+    });
+
+    it('is false when stepsEnabled is false', () => {
+      expect(
+        selectInWalletHomeOnboardingFlow.resultFunc(true, false, true),
+      ).toBe(false);
+    });
+
+    it('is false when shouldShow is false', () => {
+      expect(
+        selectInWalletHomeOnboardingFlow.resultFunc(true, true, false),
       ).toBe(false);
     });
   });
