@@ -49,6 +49,7 @@ describe('usePayWithPerpsSection', () => {
   );
 
   const navigateMock = jest.fn();
+  const goBackMock = jest.fn();
   const onPaymentTokenChangeMock = jest.fn();
   const depositWithConfirmationMock = jest.fn();
   const onRejectMock = jest.fn();
@@ -64,6 +65,7 @@ describe('usePayWithPerpsSection', () => {
 
     useNavigationMock.mockReturnValue({
       navigate: navigateMock,
+      goBack: goBackMock,
     } as never);
 
     useFiatFormatterMock.mockReturnValue(formatFiatMock as never);
@@ -162,7 +164,7 @@ describe('usePayWithPerpsSection', () => {
     expect(result.current?.rows[0].subtitle).toBe('$0.00 available');
   });
 
-  it('selects perps balance as payment token when the row is pressed', () => {
+  it('selects perps balance as payment token and dismisses the sheet when the row is pressed', () => {
     const { result } = renderHook(() => usePayWithPerpsSection());
 
     act(() => {
@@ -170,6 +172,7 @@ describe('usePayWithPerpsSection', () => {
     });
 
     expect(onPaymentTokenChangeMock).toHaveBeenCalledWith(null);
+    expect(goBackMock).toHaveBeenCalledTimes(1);
   });
 
   it('rejects approval, triggers deposit confirmation, and navigates with perps header when Add is pressed', async () => {

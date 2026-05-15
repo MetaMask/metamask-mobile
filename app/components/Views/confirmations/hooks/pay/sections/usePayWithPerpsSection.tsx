@@ -48,7 +48,8 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
 
   const handleSelect = useCallback(() => {
     onPaymentTokenChange(null);
-  }, [onPaymentTokenChange]);
+    navigation.goBack();
+  }, [navigation, onPaymentTokenChange]);
 
   const handleAdd = useCallback(async () => {
     onReject();

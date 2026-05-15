@@ -10,9 +10,11 @@ import { TokenIcon, TokenIconVariant } from '../../../components/token-icon';
 import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
+import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { useLastUsedPaymentMethod } from '../useLastUsedPaymentMethod';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
+import { useTransactionPayToken } from '../useTransactionPayToken';
 import { usePayWithCryptoSection } from './usePayWithCryptoSection';
 
 jest.mock('@react-navigation/native', () => ({
@@ -37,9 +39,11 @@ jest.mock('../../../../../../util/navigation/navUtils');
 jest.mock('../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter');
 jest.mock('../../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected');
+jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
 jest.mock('../useLastUsedPaymentMethod');
 jest.mock('../usePayWithPreferredToken');
 jest.mock('../usePayWithSelectedToken');
+jest.mock('../useTransactionPayToken');
 
 const TOKEN_MOCK: TransactionPaymentToken = {
   address: '0x1234567890abcdef1234567890abcdef12345678' as Hex,
@@ -70,9 +74,13 @@ describe('usePayWithCryptoSection', () => {
   const usePayWithSelectedTokenMock = jest.mocked(usePayWithSelectedToken);
   const useLastUsedPaymentMethodMock = jest.mocked(useLastUsedPaymentMethod);
   const useIsPerpsBalanceSelectedMock = jest.mocked(useIsPerpsBalanceSelected);
+  const usePerpsPaymentTokenMock = jest.mocked(usePerpsPaymentToken);
+  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const navigateMock = jest.fn();
   const goBackMock = jest.fn();
   const selectTokenMock = jest.fn();
+  const setPayTokenMock = jest.fn();
+  const onPerpsPaymentTokenChangeMock = jest.fn();
   const isLastUsedMock = jest.fn().mockReturnValue(false);
 
   beforeEach(() => {
@@ -106,6 +114,13 @@ describe('usePayWithCryptoSection', () => {
       isLastUsed: isLastUsedMock,
     });
     useIsPerpsBalanceSelectedMock.mockReturnValue(true);
+    usePerpsPaymentTokenMock.mockReturnValue({
+      onPaymentTokenChange: onPerpsPaymentTokenChangeMock,
+    });
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: TOKEN_MOCK,
+      setPayToken: setPayTokenMock,
+    });
   });
 
   it('passes route preferred payment token params to both pay-with hooks', () => {
@@ -421,10 +436,11 @@ describe('usePayWithCryptoSection', () => {
       result.current?.rows[0].onPress?.();
     });
 
-    expect(selectTokenMock).toHaveBeenCalledWith({
+    expect(setPayTokenMock).toHaveBeenCalledWith({
       address: TOKEN_MOCK.address,
       chainId: TOKEN_MOCK.chainId,
     });
+    expect(onPerpsPaymentTokenChangeMock).not.toHaveBeenCalled();
     expect(goBackMock).toHaveBeenCalledTimes(1);
   });
 
@@ -435,11 +451,61 @@ describe('usePayWithCryptoSection', () => {
       result.current?.rows[0].onPress?.();
     });
 
-    expect(selectTokenMock).toHaveBeenCalledWith({
+    expect(setPayTokenMock).toHaveBeenCalledWith({
       address: TOKEN_MOCK.address,
       chainId: TOKEN_MOCK.chainId,
     });
     expect(goBackMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes the preferred-row tap through onPerpsPaymentTokenChange on perpsDepositAndOrder flows', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDepositAndOrder,
+    } as never);
+    useIsPerpsBalanceSelectedMock.mockReturnValue(true);
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    act(() => {
+      result.current?.rows[0].onPress?.();
+    });
+
+    expect(onPerpsPaymentTokenChangeMock).toHaveBeenCalledWith({
+      address: TOKEN_MOCK.address,
+      chainId: TOKEN_MOCK.chainId,
+    });
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+    expect(goBackMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the user-selected token row when Perps balance is the implicit default on perpsDepositAndOrder flows', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDepositAndOrder,
+    } as never);
+    useIsPerpsBalanceSelectedMock.mockReturnValue(true);
+    const distinctSelectedToken = {
+      ...TOKEN_MOCK,
+      address: SELECTED_TOKEN_MOCK.address,
+      symbol: SELECTED_TOKEN_MOCK.symbol,
+    };
+    usePayWithPreferredTokenMock.mockReturnValue({
+      hasTokens: true,
+      preferredToken: TOKEN_MOCK,
+      selectedToken: distinctSelectedToken,
+    });
+    usePayWithSelectedTokenMock.mockReturnValue({
+      isSelectedDistinctFromAutomatic: true,
+      selectedToken: SELECTED_TOKEN_MOCK,
+      selectToken: selectTokenMock,
+    });
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    const selectedRow = result.current?.rows.find(
+      (row) => row.id === 'crypto-selected-token',
+    );
+
+    expect(selectedRow).toBeUndefined();
   });
 
   it('does not assign a tap handler to the user-selected token row', () => {

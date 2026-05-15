@@ -27,6 +27,8 @@ import { SetPayTokenRequest } from '../useAutomaticTransactionPayToken';
 import { useLastUsedPaymentMethod } from '../useLastUsedPaymentMethod';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
+import { useTransactionPayToken } from '../useTransactionPayToken';
+import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 
 interface PayWithCryptoSectionParams {
@@ -62,8 +64,10 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const {
     isSelectedDistinctFromAutomatic,
     selectedToken: selectedTokenDisplay,
-    selectToken,
   } = usePayWithSelectedToken({ preferredToken: resolvedPreferredToken });
+  const { setPayToken } = useTransactionPayToken();
+  const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
+    usePerpsPaymentToken();
   const { isLastUsed } = useLastUsedPaymentMethod();
   const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
   const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
@@ -80,12 +84,23 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     if (!preferredToken) {
       return;
     }
-    selectToken({
+    const target = {
       address: preferredToken.address,
       chainId: preferredToken.chainId,
-    });
+    };
+    if (isPerpsDepositAndOrder) {
+      onPerpsPaymentTokenChange(target);
+    } else {
+      setPayToken(target);
+    }
     navigation.goBack();
-  }, [navigation, preferredToken, selectToken]);
+  }, [
+    isPerpsDepositAndOrder,
+    navigation,
+    onPerpsPaymentTokenChange,
+    preferredToken,
+    setPayToken,
+  ]);
 
   const preferredTokenBalance = useMemo(
     () => formatFiat(new BigNumber(preferredToken?.balanceUsd ?? '0')),
@@ -134,7 +149,11 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       });
     }
 
-    if (isSelectedDistinctFromAutomatic && selectedTokenDisplay) {
+    if (
+      isSelectedDistinctFromAutomatic &&
+      selectedTokenDisplay &&
+      !isPerpsBalanceImplicitlySelected
+    ) {
       rows.push({
         id: 'crypto-selected-token',
         icon: React.createElement(TokenIcon, {
