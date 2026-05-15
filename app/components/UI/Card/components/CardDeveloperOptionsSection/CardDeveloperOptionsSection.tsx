@@ -6,11 +6,11 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  FontWeight,
-  Text,
+} from '@metamask/design-system-react-native';
+import Text, {
   TextVariant,
   TextColor,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Texts/Text';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -25,17 +25,15 @@ const CardDeveloperOptionsSection = () => {
   return (
     <Box twClassName="mt-2 gap-2">
       <Text
-        color={TextColor.TextDefault}
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
+        color={TextColor.Default}
+        variant={TextVariant.HeadingLG}
         style={tw.style('mt-4')}
       >
         {strings('app_settings.developer_options.card.title')}
       </Text>
       <Text
-        color={TextColor.TextAlternative}
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
+        color={TextColor.Alternative}
+        variant={TextVariant.BodyMD}
         style={tw.style('mt-2')}
       >
         {strings(

@@ -11,21 +11,18 @@ import Icon, {
 import {
   Box,
   BoxFlexDirection,
-  FontWeight,
   ListItem,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 
-const createStyles = (colors) =>
+const createStyles = (colors, titleColor) =>
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
-      paddingTop: 12,
-      paddingBottom: 12,
-      paddingLeft: 16,
-      paddingRight: 16,
+      padding: 16,
     },
     action: {
       paddingLeft: 16,
@@ -95,27 +92,19 @@ const SettingsDrawer = ({
   warning,
   renderArrowRight = true,
   testID,
-  titleColor = TextColor.TextDefault,
+  titleColor = TextColor.Default,
 }) => {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, titleColor);
   return (
     <TouchableOpacity onPress={onPress} testID={testID}>
       <ListItem style={styles.root} gap={16}>
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={titleColor}
-          >
+          <Text variant={TextVariant.BodyLGMedium} color={titleColor}>
             {title}
           </Text>
           {description && (
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {description}
             </Text>
           )}
@@ -127,8 +116,8 @@ const SettingsDrawer = ({
                 name={IconName.Danger}
               />
               <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.ErrorDefault}
+                variant={TextVariant.BodyMD}
+                color={TextColor.Error}
                 style={styles.warningText}
               >
                 {warning}

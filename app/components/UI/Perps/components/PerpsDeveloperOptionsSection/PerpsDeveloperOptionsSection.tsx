@@ -1,10 +1,8 @@
 import React from 'react';
-import {
-  FontWeight,
-  Text,
+import Text, {
   TextColor,
   TextVariant,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Texts/Text';
 import { View, StyleSheet } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -30,9 +28,8 @@ export const PerpsDeveloperOptionsSection = () => {
   return (
     <View style={styles.container}>
       <Text
-        color={TextColor.TextDefault}
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
+        color={TextColor.Default}
+        variant={TextVariant.HeadingLG}
         style={styles.heading}
       >
         {strings('perps.perps_trading')}

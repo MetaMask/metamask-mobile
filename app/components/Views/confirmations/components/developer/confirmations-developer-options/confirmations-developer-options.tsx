@@ -1,16 +1,16 @@
 import React, { useCallback } from 'react';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../../component-library/hooks';
+import styleSheet from '../../../../Settings/DeveloperOptions/DeveloperOptions.styles';
+import { Hex } from '@metamask/utils';
 import {
   Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../../../component-library/hooks';
-import styleSheet from '../../../../Settings/DeveloperOptions/DeveloperOptions.styles';
-import { Hex } from '@metamask/utils';
 import { useTheme } from '@react-navigation/native';
 import { addTransactionBatch } from '../../../../../../util/transaction-controller';
 import { useSelector } from 'react-redux';
@@ -262,17 +262,15 @@ function DeveloperButton({
   return (
     <>
       <Text
-        color={TextColor.TextDefault}
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
+        color={TextColor.Default}
+        variant={TextVariant.HeadingLG}
         style={styles.heading}
       >
         {title}
       </Text>
       <Text
-        color={TextColor.TextAlternative}
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
+        color={TextColor.Alternative}
+        variant={TextVariant.BodyMD}
         style={styles.desc}
       >
         {description}
