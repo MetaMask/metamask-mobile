@@ -241,7 +241,6 @@ builds:
   # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
   # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
   main-e2e-bs-without-srp:
-    script_name: main-e2e-bs
     github_environment: build-e2e
     signing: *signing_uat
     env:
@@ -262,7 +261,6 @@ builds:
   # on feature branches with the same github_environment/signing as all other e2e builds.
   # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
   main-e2e-bs-with-srp:
-    script_name: main-e2e-bs
     github_environment: build-e2e
     signing: *signing_uat
     env:
