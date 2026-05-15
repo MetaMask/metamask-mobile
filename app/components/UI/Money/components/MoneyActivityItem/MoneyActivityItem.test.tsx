@@ -86,6 +86,9 @@ describe('MoneyActivityItem', () => {
       fiatAmount: '$0.00',
       isIncoming: true,
       icon: IconName.Arrow2Down,
+      sourceTokenSymbol: undefined,
+      sourceTokenImage: undefined,
+      sourceTokenChainId: undefined,
     });
   });
 
@@ -119,6 +122,9 @@ describe('MoneyActivityItem', () => {
       fiatAmount: '$0.00',
       isIncoming: false,
       icon: IconName.Arrow2Down,
+      sourceTokenSymbol: undefined,
+      sourceTokenImage: undefined,
+      sourceTokenChainId: undefined,
     });
 
     const { queryByText } = renderWithProvider(
@@ -182,6 +188,9 @@ describe('MoneyActivityItem', () => {
       fiatAmount: '$0.00',
       isIncoming: true,
       icon: IconName.SwapHorizontal,
+      sourceTokenSymbol: undefined,
+      sourceTokenImage: undefined,
+      sourceTokenChainId: undefined,
     });
 
     const { getByTestId } = renderWithProvider(
