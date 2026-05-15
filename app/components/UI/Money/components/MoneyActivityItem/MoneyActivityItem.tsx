@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import { type ImageSourcePropType, Pressable } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -29,6 +29,13 @@ import { MUSD_TOKEN } from '../../../Earn/constants/musd';
 import { useMoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
 import { MoneyActivityItemTestIds } from './MoneyActivityItem.testIds';
 
+function toAvatarImageSource(source: unknown): ImageSourcePropType {
+  if (typeof source === 'string') {
+    return { uri: source };
+  }
+  return source as ImageSourcePropType;
+}
+
 export interface MoneyActivityItemProps {
   tx: TransactionMeta;
   moneyAddress: string | undefined;
@@ -52,19 +59,21 @@ const MoneyActivityItem = ({
     : undefined;
 
   // use the token's own image URI, or the source chain's network icon, or the mUSD icon
-  const tokenAvatarImageSource = display.sourceTokenImage
+  const tokenAvatarImageSource: ImageSourcePropType = display.sourceTokenImage
     ? { uri: display.sourceTokenImage }
     : display.sourceTokenChainId
-    ? getNetworkImageSource({ chainId: display.sourceTokenChainId })
-    : MUSD_TOKEN.imageSource;
+      ? toAvatarImageSource(
+          getNetworkImageSource({ chainId: display.sourceTokenChainId }),
+        )
+      : toAvatarImageSource(MUSD_TOKEN.imageSource);
 
   const isFailed = tx.status === TransactionStatus.failed;
 
   const amountColor = isFailed
     ? TextColor.TextAlternative
     : display.isIncoming
-    ? TextColor.SuccessDefault
-    : TextColor.TextDefault;
+      ? TextColor.SuccessDefault
+      : TextColor.TextDefault;
 
   return (
     <Pressable

@@ -8,7 +8,8 @@ import {
 import { type Hex } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { strings } from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
+import { getIntlNumberFormatter } from '../../../../util/intl';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
@@ -74,7 +75,7 @@ function getLabelForTransactionType(type: TransactionType | undefined): string {
     case TransactionType.simpleSend:
       return strings('money.transaction.sent');
     default:
-      return strings('money.transaction.deposited');
+      return strings('money.transaction.received');
   }
 }
 
@@ -124,11 +125,11 @@ function buildSourceTokenAmount(
   if (isNaN(num)) {
     return '';
   }
-  const formatted = num.toLocaleString('en-US', {
+  const formatted = getIntlNumberFormatter(I18n.locale, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
     useGrouping: true,
-  });
+  }).format(num);
   return `+${formatted} ${symbol}`;
 }
 
