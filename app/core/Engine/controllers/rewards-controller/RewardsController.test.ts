@@ -185,9 +185,7 @@ class TestableRewardsController extends RewardsController {
     return this.state.seasonStatuses[`${subscriptionId}:${seasonId}`] || null;
   }
 
-  public testUpdate(
-    callback: (state: RewardsControllerState) => void | RewardsControllerState,
-  ) {
+  public testUpdate(callback: Parameters<typeof this.update>[0]) {
     this.update(callback);
   }
 }
@@ -16374,6 +16372,7 @@ describe('RewardsController', () => {
       activeBoosts: {},
       campaignParticipantStatus: {},
       campaigns: {},
+      clientVersionRequirements: null,
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -16405,6 +16404,7 @@ describe('RewardsController', () => {
       activeBoosts: {},
       campaignParticipantStatus: {},
       campaigns: {},
+      clientVersionRequirements: null,
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -16441,6 +16441,7 @@ describe('RewardsController', () => {
       activeBoosts: {},
       campaignParticipantStatus: {},
       campaigns: {},
+      clientVersionRequirements: null,
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -20348,6 +20349,10 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getClientVersionRequirements',
       );
+      expect(controller.state.clientVersionRequirements).toEqual({
+        ...mockRequirements,
+        lastFetched: 123,
+      });
     });
 
     it('returns cached result on subsequent calls', async () => {
@@ -20366,6 +20371,59 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:getClientVersionRequirements',
       );
+    });
+
+    it('returns fresh cached version requirements from controller state', async () => {
+      const cachedRequirements = {
+        minimumMobileVersion: '7.72.0',
+        lastFetched: 123,
+      };
+      const cachedController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          clientVersionRequirements: cachedRequirements,
+        },
+      });
+
+      const result = await cachedController.getClientVersionRequirements();
+
+      expect(result).toEqual({
+        minimumMobileVersion: cachedRequirements.minimumMobileVersion,
+      });
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getClientVersionRequirements',
+      );
+    });
+
+    it('refetches cached version requirements after 30 minutes', async () => {
+      const staleFetchedAt = 0;
+      const refetchedAt = 1000 * 60 * 31;
+      jest.spyOn(Date, 'now').mockReturnValue(refetchedAt);
+
+      const cachedController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          clientVersionRequirements: {
+            minimumMobileVersion: '7.71.0',
+            lastFetched: staleFetchedAt,
+          },
+        },
+      });
+      const mockRequirements = {
+        minimumMobileVersion: '7.72.0',
+      };
+      mockMessenger.call.mockResolvedValue(mockRequirements);
+
+      const result = await cachedController.getClientVersionRequirements();
+
+      expect(result).toEqual(mockRequirements);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getClientVersionRequirements',
+      );
+      expect(cachedController.state.clientVersionRequirements).toEqual({
+        ...mockRequirements,
+        lastFetched: refetchedAt,
+      });
     });
 
     it('does not require rewards feature to be enabled', async () => {

@@ -19,6 +19,7 @@ import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecovery
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
+import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
 import CliAuthWebview from '../../Views/SDK/CliAuthWebview/CliAuthWebview';
 import AgenticCliDashboardWebview from '../../Views/AgenticCliDashboardWebview';
@@ -306,6 +307,11 @@ const OnboardingNav = () => {
         name="OptinMetrics"
         component={OptinMetrics}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}
+        component={OnboardingInterestQuestionnaire}
+        options={{ headerShown: false, gestureEnabled: false }}
       />
       <Stack.Screen
         name="AccountStatus"

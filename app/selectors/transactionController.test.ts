@@ -6,6 +6,7 @@ import {
   selectLastWithdrawTokenByType,
   selectLocalTransactions,
   selectNonReplacedTransactions,
+  selectRelatedChainIdsByTransactionId,
   selectRequiredTransactionIds,
   selectRequiredTransactionHashes,
   selectRequiredTransactions,
@@ -25,6 +26,17 @@ jest.mock('./smartTransactionsController', () => ({
   selectPendingSmartTransactionsForSelectedAccountGroup: (state: {
     pendingSmartTransactionsForGroup: SmartTransaction[];
   }) => state.pendingSmartTransactionsForGroup || [],
+}));
+
+jest.mock('./multichainAccounts/accountTreeController', () => ({
+  selectSelectedAccountGroupEvmInternalAccount: (state: {
+    groupEvmAccount?: { address: string } | null;
+  }) => state.groupEvmAccount ?? null,
+}));
+
+jest.mock('./accountsController', () => ({
+  selectEvmAddress: (state: { fallbackEvmAddress?: string }) =>
+    state.fallbackEvmAddress,
 }));
 
 describe('TransactionController Selectors', () => {
@@ -181,35 +193,102 @@ describe('TransactionController Selectors', () => {
     });
   });
 
-  describe('selectLocalTransactions', () => {
-    it('filters required child transactions before nonce dedupe', () => {
-      const activeEvmAddress = '0x0000000000000000000000000000000000000001';
-      const state = {
+  describe('selectRelatedChainIdsByTransactionId', () => {
+    const buildState = (transactions: unknown[]) =>
+      ({
         engine: {
           backgroundState: {
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: 'account-1',
-                accounts: {
-                  'account-1': {
-                    id: 'account-1',
-                    address: activeEvmAddress,
-                    type: 'eip155:eoa',
-                  },
-                },
-              },
-            },
+            TransactionController: { transactions },
+          },
+        },
+      }) as unknown as RootState;
+
+    it('returns the transaction own chain id, lower-cased', () => {
+      const state = buildState([{ id: 'lone', chainId: '0xA4B1' }]);
+
+      expect(selectRelatedChainIdsByTransactionId(state).get('lone')).toEqual([
+        '0xa4b1',
+      ]);
+    });
+
+    it('includes metamaskPay.chainId for gasless MetaMask Pay parents', () => {
+      const state = buildState([
+        {
+          id: 'pay-parent',
+          chainId: '0xA4B1',
+          metamaskPay: { chainId: '0x1' },
+        },
+      ]);
+
+      expect(
+        selectRelatedChainIdsByTransactionId(state).get('pay-parent')?.sort(),
+      ).toEqual(['0x1', '0xa4b1']);
+    });
+
+    it('includes chain ids of required (child) transactions', () => {
+      const state = buildState([
+        {
+          id: 'parent',
+          chainId: '0xA4B1',
+          requiredTransactionIds: ['child-1', 'child-2'],
+        },
+        { id: 'child-1', chainId: '0x1' },
+        { id: 'child-2', chainId: '0xA' },
+      ]);
+
+      expect(
+        selectRelatedChainIdsByTransactionId(state).get('parent')?.sort(),
+      ).toEqual(['0x1', '0xa', '0xa4b1']);
+    });
+
+    it('dedupes overlapping chain ids', () => {
+      const state = buildState([
+        {
+          id: 'parent',
+          chainId: '0x1',
+          metamaskPay: { chainId: '0x1' },
+          requiredTransactionIds: ['child'],
+        },
+        { id: 'child', chainId: '0x1' },
+      ]);
+
+      expect(selectRelatedChainIdsByTransactionId(state).get('parent')).toEqual(
+        ['0x1'],
+      );
+    });
+
+    it('ignores required ids that point to missing children', () => {
+      const state = buildState([
+        { id: 'parent', chainId: '0x1', requiredTransactionIds: ['ghost'] },
+      ]);
+
+      expect(selectRelatedChainIdsByTransactionId(state).get('parent')).toEqual(
+        ['0x1'],
+      );
+    });
+  });
+
+  describe('selectLocalTransactions', () => {
+    const evmAddress = '0x0000000000000000000000000000000000000001';
+
+    const buildLocalTxState = ({
+      groupEvmAccount = { address: evmAddress },
+      transactions,
+    }: {
+      groupEvmAccount?: { address: string } | null;
+      transactions?: unknown[];
+    } = {}) =>
+      ({
+        engine: {
+          backgroundState: {
             TransactionController: {
-              transactions: [
+              transactions: transactions ?? [
                 {
                   id: 'child',
                   hash: '0xCHILD',
                   chainId: '0x1',
                   time: 200,
-                  txParams: {
-                    from: activeEvmAddress,
-                    nonce: '0x1',
-                  },
+                  txParams: { from: evmAddress, nonce: '0x1' },
                 },
                 {
                   id: 'parent',
@@ -217,20 +296,51 @@ describe('TransactionController Selectors', () => {
                   requiredTransactionIds: ['child'],
                   time: 100,
                   type: TransactionType.predictDeposit,
-                  txParams: {
-                    from: activeEvmAddress,
-                    nonce: '0x1',
-                  },
+                  txParams: { from: evmAddress, nonce: '0x1' },
                 },
               ],
             },
           },
         },
+        groupEvmAccount,
         pendingSmartTransactionsForGroup: [],
-      } as unknown as RootState;
+      }) as unknown as RootState;
+
+    it('filters required child transactions before nonce dedupe', () => {
+      expect(selectLocalTransactions(buildLocalTxState())).toStrictEqual([
+        expect.objectContaining({ id: 'parent' }),
+      ]);
+    });
+
+    it('returns no transactions when the selected group has no EVM account', () => {
+      expect(
+        selectLocalTransactions(buildLocalTxState({ groupEvmAccount: null })),
+      ).toStrictEqual([]);
+    });
+
+    it('excludes incoming transactions populated by the TransactionController incoming-transactions feature', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'outgoing',
+            hash: '0xOUTGOING',
+            chainId: '0x1',
+            time: 200,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'incoming-duplicate',
+            hash: '0xOUTGOING',
+            chainId: '0x1',
+            time: 100,
+            isTransfer: true,
+            txParams: { from: evmAddress },
+          },
+        ],
+      });
 
       expect(selectLocalTransactions(state)).toStrictEqual([
-        expect.objectContaining({ id: 'parent' }),
+        expect.objectContaining({ id: 'outgoing' }),
       ]);
     });
   });

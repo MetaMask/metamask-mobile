@@ -63,7 +63,7 @@ const mockWhatsHappeningImpl = jest.fn<React.ReactElement | null, [unknown]>(
   () => null,
 );
 
-jest.mock('../../Homepage/Sections/WhatsHappening', () => {
+jest.mock('../../../UI/WhatsHappening', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { forwardRef } = require('react');
   return {
@@ -120,15 +120,13 @@ describe('NowTab — WhatsHappeningSection integration', () => {
     });
     (mockWhatsHappeningImpl as jest.Mock).mockReturnValue(
       React.createElement('View', {
-        testID: 'homepage-whats-happening-carousel',
+        testID: 'whats-happening-carousel',
       }),
     );
 
     renderNowTab();
 
-    expect(
-      screen.getByTestId('homepage-whats-happening-carousel'),
-    ).toBeOnTheScreen();
+    expect(screen.getByTestId('whats-happening-carousel')).toBeOnTheScreen();
   });
 
   it('does not mount WhatsHappeningSection when the feature flag is disabled', () => {
@@ -141,9 +139,7 @@ describe('NowTab — WhatsHappeningSection integration', () => {
 
     // Section is not even mounted, so the mock should never have been called.
     expect(mockWhatsHappeningImpl).not.toHaveBeenCalled();
-    expect(
-      screen.queryByTestId('homepage-whats-happening-carousel'),
-    ).toBeNull();
+    expect(screen.queryByTestId('whats-happening-carousel')).toBeNull();
   });
 
   it('passes a ref to WhatsHappeningSection so pull-to-refresh can trigger it', () => {
