@@ -17,6 +17,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { PerpsFeedItem } from '../../../TrendingView/feeds/perps/usePerpsFeed';
+import { HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY } from '../../abTestConfig';
 import HomepagePerpsMoversSection from './HomepagePerpsMoversSection';
 
 const mockNavigate = jest.fn();
@@ -60,6 +61,19 @@ jest.mock('../../hooks/useHomeViewedEvent', () => {
 jest.mock('../../hooks/useSectionPerformance', () => ({
   useSectionPerformance: jest.fn(),
 }));
+
+jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
+  useHomepageTrendingTransactionActiveAbTests: jest.fn(() => undefined),
+}));
+
+jest.mock(
+  '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests',
+  () => ({
+    useHomepagePerpsPillsEmptyTransactionActiveAbTests: jest.fn(
+      () => undefined,
+    ),
+  }),
+);
 
 jest.mock('../../../TrendingView/feeds/perps/PerpsPillItem', () => {
   const ReactLib = jest.requireActual('react');
@@ -238,6 +252,7 @@ describe('HomepagePerpsMoversSection', () => {
           PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
         [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
           PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
+        [HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY]: true,
       },
     );
   });
@@ -277,6 +292,7 @@ describe('HomepagePerpsMoversSection', () => {
         totalSectionsLoaded: 6,
         isEmpty: false,
         itemCount: 1,
+        additionalProperties: undefined,
       }),
     );
   });
@@ -289,6 +305,9 @@ describe('HomepagePerpsMoversSection', () => {
     expect(mockedUseHomeViewedEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         sectionName: HomeSectionNames.PERPS,
+        additionalProperties: {
+          [HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY]: true,
+        },
       }),
     );
   });

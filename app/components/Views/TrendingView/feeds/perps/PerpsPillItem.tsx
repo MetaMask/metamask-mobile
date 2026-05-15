@@ -10,6 +10,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { formatPercentChange } from '../formatPercentChange';
 import ExplorePill from '../../components/ExplorePill';
 import type { PerpsFeedItem } from './usePerpsFeed';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const LOGO_SIZE = 24;
 
@@ -27,6 +28,8 @@ interface PerpsPillItemProps {
    * movers stay unchanged; homepage passes `HOME_SECTION` to match `PerpsSection` tiles.
    */
   marketDetailsSource?: PerpsMarketDetailsSource;
+  /** Bound onto market-details route params for downstream transaction attribution. */
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
@@ -34,6 +37,7 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
   onCardPress,
   onNavigateToMarketDetails,
   marketDetailsSource = PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+  transactionActiveAbTests,
 }) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { market } = item;
@@ -51,7 +55,13 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
     }
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
-      params: { market, source: marketDetailsSource },
+      params: {
+        market,
+        source: marketDetailsSource,
+        ...(transactionActiveAbTests?.length
+          ? { transactionActiveAbTests }
+          : {}),
+      },
     });
   };
 

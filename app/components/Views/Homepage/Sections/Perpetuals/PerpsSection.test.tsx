@@ -9,6 +9,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
+import { HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY } from '../../abTestConfig';
 
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
@@ -22,6 +23,19 @@ jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
   useHomepageTrendingTransactionActiveAbTests: () =>
     mockUseHomepageTrendingTransactionActiveAbTests(),
 }));
+
+const mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests = jest.fn<
+  { key: string; value: string; key_value_pair?: string }[] | undefined,
+  []
+>(() => undefined);
+
+jest.mock(
+  '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests',
+  () => ({
+    useHomepagePerpsPillsEmptyTransactionActiveAbTests: () =>
+      mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests(),
+  }),
+);
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
@@ -298,6 +312,9 @@ describe('PerpsSection', () => {
       isRefreshing: false,
     });
     mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
+    mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
+      undefined,
+    );
   });
 
   it('renders section title', () => {
@@ -734,6 +751,19 @@ describe('PerpsSection', () => {
       );
 
       fireEvent.press(screen.getByTestId('perps-market-tile-SOL'));
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
+          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+            PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
+          [HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY]: true,
+        }),
+      );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,

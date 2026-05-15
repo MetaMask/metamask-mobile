@@ -148,11 +148,68 @@ export const HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS: Record<
   },
 };
 
-export const HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+/**
+ * When `true` on **Perp UI Interaction**, allows the per-pills-empty registry
+ * mapping to inject `active_ab_tests` (empty homepage perps surface only).
+ */
+export const HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY =
+  'homepage_perps_pills_ab_exposed' as const;
+
+/**
+ * Shared third argument for `useABTest` on this experiment (exposure +
+ * consistent variation labels).
+ */
+export const HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Homepage Perps empty state pills',
+  variationNames: {
+    control: 'Tile carousel empty state',
+    treatment: 'Explore Perps Movers pills empty state',
+  },
+} as const;
+
+/**
+ * Builds `active_ab_tests` entries for perps transaction flows when the user is
+ * on the homepage perps **empty** surface and the flag assignment is active.
+ */
+export function getHomepagePerpsPillsEmptyTransactionActiveAbTests(
+  isAssignmentActive: boolean,
+  variantName: string,
+): TransactionActiveAbTestEntry[] | undefined {
+  if (!isAssignmentActive) {
+    return undefined;
+  }
+  return [
+    createActiveABTestAssignment(
+      HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
+      variantName,
+    ),
+  ];
+}
+
+/** Must match `HomeSectionNames.PERPS` in `useHomeViewedEvent` (avoid importing here — circular deps). */
+const HOMEPAGE_SECTION_NAME_PERPS = 'perps' as const;
+
+/** `Home Viewed` — homepage perps slot with empty-surface experiment exposure. */
+export const HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_HOME_VIEWED_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
+    validVariants: Object.values(HomepagePerpsPillsEmptyVariant),
+    eventNames: [EVENT_NAME.HOME_VIEWED],
+    injectWhenPropertiesMatch: {
+      section_name: HOMEPAGE_SECTION_NAME_PERPS,
+      [HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY]: true,
+    },
+  };
+
+/** `Perp UI Interaction` — only for interactions tagged from the empty surface. */
+export const HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_PERPS_UI_MAPPING: ABTestAnalyticsMapping =
   {
     flagKey: HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
     validVariants: Object.values(HomepagePerpsPillsEmptyVariant),
     eventNames: [EVENT_NAME.PERPS_UI_INTERACTION],
+    injectWhenPropertiesMatch: {
+      [HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY]: true,
+    },
   };
 
 // ─── Predict positions empty state (wallet Predict section layout) ──────────

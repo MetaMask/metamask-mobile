@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 import { useABTest } from '../../../../../hooks';
 import {
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
+  HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_EXPOSURE_OPTIONS,
   HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
 } from '../../abTestConfig';
 import {
@@ -71,13 +72,7 @@ const HomepagePerpsHomeSlot = forwardRef<
   const { variant: perpsPillsEmptyAbVariant } = useABTest(
     HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
     HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
-    {
-      experimentName: 'Homepage Perps empty state pills',
-      variationNames: {
-        control: 'Tile carousel empty state',
-        treatment: 'Explore Perps Movers pills empty state',
-      },
-    },
+    HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_EXPOSURE_OPTIONS,
   );
 
   const emptyStateUsesExplorePills =

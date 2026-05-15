@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
+  useMemo,
   useRef,
 } from 'react';
 import { View } from 'react-native';
@@ -19,6 +20,10 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
+import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests';
+import { mergeActiveAbTestAssignmentLists } from '../../../../../util/analytics/activeABTestAssignments';
+import { HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY } from '../../abTestConfig';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import PillScrollList from '../../../TrendingView/components/PillScrollList';
@@ -53,6 +58,22 @@ const HomepagePerpsMoversSection = forwardRef<
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PERPS;
     const title = strings('trending.perps_movers');
 
+    const trendingTransactionActiveAbTests =
+      useHomepageTrendingTransactionActiveAbTests();
+    const perpsPillsEmptyTransactionActiveAbTests =
+      useHomepagePerpsPillsEmptyTransactionActiveAbTests(true);
+    const transactionActiveAbTestsForPillsNavigation = useMemo(
+      () =>
+        mergeActiveAbTestAssignmentLists(
+          trendingTransactionActiveAbTests,
+          perpsPillsEmptyTransactionActiveAbTests,
+        ),
+      [
+        trendingTransactionActiveAbTests,
+        perpsPillsEmptyTransactionActiveAbTests,
+      ],
+    );
+
     const perps = usePerpsFeed({
       variant: 'all',
       withTileExtras: false,
@@ -71,9 +92,15 @@ const HomepagePerpsMoversSection = forwardRef<
         navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
           market,
           source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+          ...(transactionActiveAbTestsForPillsNavigation?.length
+            ? {
+                transactionActiveAbTests:
+                  transactionActiveAbTestsForPillsNavigation,
+              }
+            : {}),
         });
       },
-      [navigateToTutorialOrScreen],
+      [navigateToTutorialOrScreen, transactionActiveAbTestsForPillsNavigation],
     );
 
     const refetchPills = perps.refetch;
@@ -100,6 +127,10 @@ const HomepagePerpsMoversSection = forwardRef<
       totalSectionsLoaded,
       isEmpty,
       itemCount,
+      additionalProperties:
+        analyticsName === HomeSectionNames.PERPS
+          ? { [HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY]: true }
+          : undefined,
     });
 
     useSectionPerformance({
@@ -117,6 +148,7 @@ const HomepagePerpsMoversSection = forwardRef<
           PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
         [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
           PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
+        [HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY]: true,
       });
     }, [track]);
 
