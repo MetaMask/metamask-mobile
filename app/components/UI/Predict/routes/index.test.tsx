@@ -98,7 +98,15 @@ jest.mock('../../../Views/confirmations/components/confirm', () => ({
 jest.mock(
   '../../../../constants/navigation/clearStackNavigatorOptions',
   () => ({
-    clearStackNavigatorOptions: {},
+    clearNativeStackNavigatorOptions: {},
+    transparentModalScreenOptions: {},
+  }),
+);
+
+jest.mock(
+  '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations',
+  () => ({
+    useEmptyNavHeaderForConfirmations: () => ({ headerShown: false }),
   }),
 );
 

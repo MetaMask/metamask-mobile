@@ -6,9 +6,11 @@ import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import { selectMusdConversionEducationSeen } from '../../../../../reducers/user/selectors';
+import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
+import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 
 const mockNavigate = jest.fn();
+const mockNavigateToMoneyHome = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -25,15 +27,19 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMoneyNavigation', () => ({
+  __esModule: true,
+  useMoneyNavigation: jest.fn(),
+}));
+
 jest.mock('../../../../../reducers/user/selectors', () => ({
   __esModule: true,
-  selectMusdConversionEducationSeen: jest.fn(),
+  selectMoneyOnboardingSeen: jest.fn(),
 }));
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
-const mockSelectMusdConversionEducationSeen = jest.mocked(
-  selectMusdConversionEducationSeen,
-);
+const mockSelectMoneyOnboardingSeen = jest.mocked(selectMoneyOnboardingSeen);
+const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
 
 const createBalanceMock = (
   overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
@@ -71,7 +77,10 @@ describe('MoneyBalanceCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMoneyAccountBalance.mockReturnValue(createBalanceMock());
-    mockSelectMusdConversionEducationSeen.mockReturnValue(true);
+    mockSelectMoneyOnboardingSeen.mockReturnValue(true);
+    mockUseMoneyNavigation.mockReturnValue({
+      navigateToMoneyHome: mockNavigateToMoneyHome,
+    });
   });
 
   describe('when balance is empty (totalFiatRaw undefined)', () => {
@@ -135,7 +144,7 @@ describe('MoneyBalanceCard', () => {
           totalFiatFormatted: undefined,
         }),
       );
-      mockSelectMusdConversionEducationSeen.mockReturnValue(false);
+      mockSelectMoneyOnboardingSeen.mockReturnValue(false);
     });
 
     it('renders the new-user container testID', () => {
@@ -164,20 +173,12 @@ describe('MoneyBalanceCard', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('navigates to the conversion education flow when Get started is pressed', () => {
+    it('calls navigateToMoneyHome when Get started is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.GET_STARTED_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-        params: {
-          returnTo: {
-            screen: Routes.MONEY.ROOT,
-            params: { screen: Routes.MONEY.HOME },
-          },
-        },
-      });
+      expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -237,14 +238,12 @@ describe('MoneyBalanceCard', () => {
   });
 
   describe('navigation', () => {
-    it('navigates to MONEY home when the card body is pressed', () => {
+    it('calls navigateToMoneyHome when the card body is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.FUNDED_CONTAINER));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT, {
-        screen: Routes.MONEY.HOME,
-      });
+      expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
     });
 
     it('opens the Add money sheet when Add is pressed', () => {
