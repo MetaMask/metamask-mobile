@@ -1,7 +1,8 @@
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { RelatedAsset } from '@metamask/ai-controllers';
+import { useWhatsHappeningAssetPrices } from '../../../Views/WhatsHappeningDetailView/hooks/useWhatsHappeningAssetPrices';
 import WhatsHappeningAssetPill from './WhatsHappeningAssetPill';
 
 export interface WhatsHappeningAssetSliderProps {
@@ -13,7 +14,14 @@ const WhatsHappeningAssetSlider: React.FC<WhatsHappeningAssetSliderProps> = ({
 }) => {
   const tw = useTailwind();
 
-  if (assets.length === 0) {
+  const perpsAssets = useMemo(
+    () => assets.filter((a) => a.hlPerpsMarket?.[0]),
+    [assets],
+  );
+
+  const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(perpsAssets);
+
+  if (perpsAssets.length === 0) {
     return null;
   }
 
@@ -24,8 +32,12 @@ const WhatsHappeningAssetSlider: React.FC<WhatsHappeningAssetSliderProps> = ({
       contentContainerStyle={tw.style('flex-row gap-2 mt-2')}
       nestedScrollEnabled
     >
-      {assets.map((asset) => (
-        <WhatsHappeningAssetPill key={asset.sourceAssetId} asset={asset} />
+      {perpsAssets.map((asset) => (
+        <WhatsHappeningAssetPill
+          key={asset.sourceAssetId}
+          asset={asset}
+          perpsPriceEntry={perpsPriceBySymbol[asset.hlPerpsMarket?.[0] ?? '']}
+        />
       ))}
     </ScrollView>
   );

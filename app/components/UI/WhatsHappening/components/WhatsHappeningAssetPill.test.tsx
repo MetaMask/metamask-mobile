@@ -75,4 +75,39 @@ describe('WhatsHappeningAssetPill', () => {
     expect(screen.queryByLabelText('BTC')).toBeNull();
     expect(screen.getByText('BTC')).toBeOnTheScreen();
   });
+
+  it('shows positive percent change when perpsPriceEntry has a positive value', () => {
+    renderWithProvider(
+      <WhatsHappeningAssetPill
+        asset={baseAsset}
+        perpsPriceEntry={{ price: 95000, percentChange24h: 1.23 }}
+      />,
+    );
+    expect(screen.getByText('+1.23%')).toBeOnTheScreen();
+  });
+
+  it('shows negative percent change when perpsPriceEntry has a negative value', () => {
+    renderWithProvider(
+      <WhatsHappeningAssetPill
+        asset={baseAsset}
+        perpsPriceEntry={{ price: 95000, percentChange24h: -2.5 }}
+      />,
+    );
+    expect(screen.getByText('-2.50%')).toBeOnTheScreen();
+  });
+
+  it('does not render change text when perpsPriceEntry is undefined', () => {
+    renderWithProvider(<WhatsHappeningAssetPill asset={baseAsset} />);
+    expect(screen.queryByText(/%/)).toBeNull();
+  });
+
+  it('does not render change text when percentChange24h is undefined', () => {
+    renderWithProvider(
+      <WhatsHappeningAssetPill
+        asset={baseAsset}
+        perpsPriceEntry={{ price: undefined, percentChange24h: undefined }}
+      />,
+    );
+    expect(screen.queryByText(/%/)).toBeNull();
+  });
 });

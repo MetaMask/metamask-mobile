@@ -16,15 +16,19 @@ import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import RelatedAssetAvatar from '../../../Views/WhatsHappeningDetailView/components/RelatedAssetAvatar';
 import { getRelatedAssetImageSource } from '../../../Views/WhatsHappeningDetailView/utils/getRelatedAssetImageSource';
 import useTradeNavigation from '../../../Views/WhatsHappeningDetailView/hooks/useTradeNavigation';
+import { formatPercentageChange } from '../../../Views/WhatsHappeningDetailView/utils/formatAssetPrice';
+import type { PerpsPriceEntry } from '../../../Views/WhatsHappeningDetailView/hooks/useWhatsHappeningAssetPrices';
 
 const AVATAR_SIZE = 16;
 
 export interface WhatsHappeningAssetPillProps {
   asset: RelatedAsset;
+  perpsPriceEntry?: PerpsPriceEntry;
 }
 
 const WhatsHappeningAssetPill: React.FC<WhatsHappeningAssetPillProps> = ({
   asset,
+  perpsPriceEntry,
 }) => {
   const tw = useTailwind();
   const { handleTrade, canTrade } = useTradeNavigation(asset);
@@ -32,6 +36,10 @@ const WhatsHappeningAssetPill: React.FC<WhatsHappeningAssetPillProps> = ({
   const displaySymbol = useMemo(
     () => getPerpsDisplaySymbol(asset.symbol),
     [asset.symbol],
+  );
+  const { text: changeText, color: changeColor } = useMemo(
+    () => formatPercentageChange(perpsPriceEntry?.percentChange24h),
+    [perpsPriceEntry?.percentChange24h],
   );
 
   const inner = (
@@ -53,6 +61,16 @@ const WhatsHappeningAssetPill: React.FC<WhatsHappeningAssetPillProps> = ({
       >
         {displaySymbol}
       </Text>
+      {changeText ? (
+        <Text
+          variant={TextVariant.BodyXs}
+          fontWeight={FontWeight.Medium}
+          color={changeColor}
+          numberOfLines={1}
+        >
+          {changeText}
+        </Text>
+      ) : null}
     </Box>
   );
 

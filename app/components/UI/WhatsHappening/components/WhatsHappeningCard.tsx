@@ -70,7 +70,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
           'w-[280px] rounded-2xl bg-background-muted overflow-hidden p-4',
         )}
       >
-        <Box gap={3}>
+        <Box gap={3} twClassName="mb-2">
           {(item.impact || formattedDate) && (
             <Box
               flexDirection={BoxFlexDirection.Row}
