@@ -20,6 +20,8 @@ import { ConfirmationsDeveloperOptions } from '../../confirmations/components/de
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
 import { MusdDeveloperOptionsSection } from '../../../UI/Earn/components/MusdDeveloperOptionsSection';
 import { CardDeveloperOptionsSection } from '../../../UI/Card/components/CardDeveloperOptionsSection';
+import { selectMoneyHomeScreenEnabledFlag } from '../../../UI/Money/selectors/featureFlags';
+import { MoneyUiDeveloperOptionsSection } from '../../../UI/Money/components/MoneyUiDeveloperOptionsSection';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -34,6 +36,7 @@ const DeveloperOptions = () => {
   const isMusdConversionEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
+  const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
 
   useEffect(() => {
     navigation.setOptions(
@@ -63,6 +66,7 @@ const DeveloperOptions = () => {
       {isPerpsEnabled && <PerpsDeveloperOptionsSection />}
       <ConfirmationsDeveloperOptions />
       {isMusdConversionEnabled && <MusdDeveloperOptionsSection />}
+      {isMoneyHomeEnabled && <MoneyUiDeveloperOptionsSection />}
       <CardDeveloperOptionsSection />
       <HapticsDeveloperOptionsSection />
     </ScrollView>
