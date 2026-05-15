@@ -57,14 +57,19 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
 
     const moneyTransactions = nonReplacedTransactions
       .filter((tx) => {
-        // Direct moneyAccountDeposit transaction.
-        if (tx.type === TransactionType.moneyAccountDeposit) {
+        // Direct Money account transactions.
+        if (
+          tx.type === TransactionType.moneyAccountDeposit ||
+          tx.type === TransactionType.moneyAccountWithdraw
+        ) {
           return true;
         }
-        // EIP-7702 batch where moneyAccountDeposit is a nested call.
+        // EIP-7702 batch where a Money account call is a nested call.
         return (
           tx.nestedTransactions?.some(
-            (nested) => nested.type === TransactionType.moneyAccountDeposit,
+            (nested) =>
+              nested.type === TransactionType.moneyAccountDeposit ||
+              nested.type === TransactionType.moneyAccountWithdraw,
           ) ?? false
         );
       })
