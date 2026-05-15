@@ -42,7 +42,6 @@ import { areAddressesEqual } from '../../../../../util/address';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { useFetchPopularTokens } from '../useFetchPopularTokens';
-import type { RootState } from '../../../../../reducers';
 
 /**
  * When navigating to the Asset view from trending tokens list, we add a property
