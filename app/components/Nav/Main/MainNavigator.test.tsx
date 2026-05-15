@@ -1385,49 +1385,46 @@ describe('MainNavigator', () => {
     });
 
     describe('Nested navigator components', () => {
-      it('renders WalletTabStackFlow inside WalletTabModalFlow', () => {
+      it('renders WalletView inside WalletTabStackFlow', () => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
         const HomeTabs = getScreenComponent(mainRoot, 'Home');
         const { root: homeRoot } = renderInner(HomeTabs);
-        const WalletTabModalFlow = getScreenComponent(
+        const WalletTabStackFlow = getScreenComponent(
           homeRoot,
           Routes.WALLET.HOME,
           'TabScreen',
-        );
-        const { root: walletModalRoot } = renderInner(WalletTabModalFlow);
-
-        const WalletTabStackFlow = getScreenComponent(
-          walletModalRoot,
-          Routes.WALLET.TAB_STACK_FLOW,
-        );
-        expect(renderInner(WalletTabStackFlow).toJSON()).toBeTruthy();
-      });
-
-      it('renders WalletModalFlow inside WalletTabStackFlow', () => {
-        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
-          state: initialRootState,
-        });
-        const HomeTabs = getScreenComponent(mainRoot, 'Home');
-        const { root: homeRoot } = renderInner(HomeTabs);
-        const WalletTabModalFlow = getScreenComponent(
-          homeRoot,
-          Routes.WALLET.HOME,
-          'TabScreen',
-        );
-        const { root: walletModalRoot } = renderInner(WalletTabModalFlow);
-        const WalletTabStackFlow = getScreenComponent(
-          walletModalRoot,
-          Routes.WALLET.TAB_STACK_FLOW,
         );
         const { root: walletStackRoot } = renderInner(WalletTabStackFlow);
 
-        const WalletModalFlow = getScreenComponent(
-          walletStackRoot,
-          'WalletView',
+        // WalletTabStackFlow now directly contains WalletView (Wallet component)
+        // instead of a nested modal navigator. Verify the screen exists without
+        // rendering Wallet itself (which has many unmocked dependencies).
+        const WalletView = getScreenComponent(walletStackRoot, 'WalletView');
+        expect(WalletView).toBeTruthy();
+      });
+
+      it('renders RevealPrivateCredential inside WalletTabStackFlow', () => {
+        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const HomeTabs = getScreenComponent(mainRoot, 'Home');
+        const { root: homeRoot } = renderInner(HomeTabs);
+        const WalletTabStackFlow = getScreenComponent(
+          homeRoot,
+          Routes.WALLET.HOME,
+          'TabScreen',
         );
-        expect(renderInner(WalletModalFlow).toJSON()).toBeTruthy();
+        const { root: walletStackRoot } = renderInner(WalletTabStackFlow);
+
+        // RevealPrivateCredential is now a sibling screen inside WalletTabStackFlow
+        // (previously it was nested inside WalletModalFlow).
+        const RevealPrivateCredential = getScreenComponent(
+          walletStackRoot,
+          Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+        );
+        expect(RevealPrivateCredential).toBeTruthy();
       });
 
       it('renders AssetStackFlow inside AssetNavigator', () => {
