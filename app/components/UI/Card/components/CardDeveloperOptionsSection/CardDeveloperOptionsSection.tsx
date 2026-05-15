@@ -7,11 +7,11 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
+import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import { strings } from '../../../../../../locales/i18n';
 
 const CardDeveloperOptionsSection = () => {
