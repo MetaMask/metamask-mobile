@@ -1,7 +1,6 @@
 #!/bin/sh
-# Shared skill-tracking logic, dot-sourced from hook-cursor-dispatch.sh and
-# hook-claude-dispatch.sh. Uses underscore-prefixed locals to avoid polluting
-# the caller's variable namespace.
+# Shared skill-tracking logic, executed as a sub-shell from hook-cursor-dispatch.sh
+# and hook-claude-dispatch.sh.
 # $1 = agent name ("cursor" or "claude")
 
 _agent="${1:-unknown}"
@@ -40,7 +39,7 @@ esac
 # Claude Skill tool: name given directly as "skill":"<name>" inside tool_input.
 if [ -z "${_skill_name:-}" ]; then
   _skill_name=$(printf '%s' "$_payload" \
-    | grep -oE '"skill"[[:space:]]*:[[:space:]]*"[a-z0-9][a-z0-9-]*"' \
+    | grep -oE '"skill"[[:space:]]*:[[:space:]]*"[A-Za-z0-9][A-Za-z0-9_-]*"' \
     | sed -E 's#"skill"[[:space:]]*:[[:space:]]*"([^"]+)"#\1#' \
     | head -1)
 fi
@@ -55,11 +54,11 @@ if [ -n "${_skill_name:-}" ]; then
   _timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
 
   mkdir -p "$_log_dir" 2>/dev/null || true
-  # Write the header on first creation so the file is self-describing.
-  if [ ! -f "$_log_file" ]; then
-    printf 'tool_name,tool_type,event_type,agent_vendor,session_id,success,duration_ms,created_at\n' \
-      >> "$_log_file" 2>/dev/null || true
-  fi
+  # Exclusive-create: noclobber ensures only the first concurrent writer creates
+  # the header; all others are silently rejected, preventing duplicate header rows.
+  ( set -C; printf 'tool_name,tool_type,event_type,agent_vendor,session_id,success,duration_ms,created_at\n' \
+    > "$_log_file" ) 2>/dev/null || true
+  # Assumes skill name and session_id never contain commas, quotes, or newlines.
   printf 'skill:%s,skill,start,%s,%s,,,%s\n' \
     "$_skill_name" "$_agent" "${_session_id:-}" "$_timestamp" \
     >> "$_log_file" 2>/dev/null || true

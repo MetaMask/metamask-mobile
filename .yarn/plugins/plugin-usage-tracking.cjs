@@ -1,9 +1,12 @@
 // Yarn Berry plugin — records every yarn script execution to the local CSV
-// events log (~/.tool-usage-collection/metamask-mobile-events.log).
+// events log (defaults to ~/.tool-usage-collection/metamask-mobile-events.log).
 //
-// Appends one CSV line per event directly via fs.appendFileSync — no spawning,
-// no tsx, no SQLite. The log is drained into the DB by dev-tooling-explorer
-// and the nightly cronjob when they start up.
+// Appends one CSV line per event directly via fs.appendFileSync.
+//
+// NOTE: `yarn install` (and other built-in Yarn commands) are NOT tracked.
+// The `wrapScriptExecution` hook only fires for scripts defined in package.json,
+// not for Yarn's own built-in commands. This is a Yarn Berry limitation — no
+// plugin hook exists that wraps built-in command execution.
 
 'use strict';
 
@@ -19,16 +22,7 @@ function makeTrackingPlugin() {
     path.join(os.homedir(), '.tool-usage-collection', 'metamask-mobile-events.log');
   const LOG_DIR = path.dirname(LOG_FILE);
 
-  const DEBUG_LOG = path.join(LOG_DIR, 'plugin-debug.log');
-
-  function debugLog(message) {
-    try {
-      if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
-      fs.appendFileSync(DEBUG_LOG, `[${new Date().toISOString()}] ${message}\n`);
-    } catch {
-      // Nothing we can do if even the debug log fails.
-    }
-  }
+  const HEADER = 'tool_name,tool_type,event_type,agent_vendor,session_id,success,duration_ms,created_at\n';
 
   // Format: tool_name,tool_type,event_type,agent_vendor,session_id,success,duration_ms,created_at
   function appendEvent(toolName, eventType, extra) {
@@ -41,13 +35,17 @@ function makeTrackingPlugin() {
 
     try {
       if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
-      // Write the header on first creation so the file is self-describing.
-      if (!fs.existsSync(LOG_FILE)) {
-        fs.appendFileSync(LOG_FILE, 'tool_name,tool_type,event_type,agent_vendor,session_id,success,duration_ms,created_at\n');
+      // Exclusive-create (O_EXCL): only the first concurrent writer creates the
+      // header; EEXIST from any other writer is silently swallowed, preventing
+      // duplicate header rows when two yarn scripts start in parallel.
+      try {
+        fs.writeFileSync(LOG_FILE, HEADER, { flag: 'wx' });
+      } catch (e) {
+        if (e.code !== 'EEXIST') throw e;
       }
       fs.appendFileSync(LOG_FILE, line + '\n');
-    } catch (err) {
-      debugLog(`append failed: ${err.message}`);
+    } catch {
+      // Silently swallow — nothing we can do if the log write fails.
     }
   }
 

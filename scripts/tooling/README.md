@@ -30,7 +30,7 @@ All four collection paths (Yarn plugin, Claude hook, Cursor preToolUse hook, Cur
 
 ### Log format
 
-One CSV row per event, no header line:
+One CSV row per event, with a header row written on first creation:
 
 ```
 tool_name,tool_type,event_type,agent_vendor,session_id,success,duration_ms,created_at

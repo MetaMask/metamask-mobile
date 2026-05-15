@@ -302,7 +302,12 @@ describe('Cursor slash command prompt payload', () => {
   it('appends one CSV row for a slash command invocation', () => {
     runDispatcher(CURSOR_PROMPT_DISPATCHER, {
       stdin: slashCommandPayload,
-      env: { CI: '', HOME: tmpDir, TOOL_USAGE_COLLECTION_LOG_PATH: logFile },
+      env: {
+        CI: '',                                   // opt-in to collection
+        HOME: tmpDir,                             // resolve SKILL.md via the stub created in beforeEach
+        GIT_DIR: '/dev/null',                     // prevent git rev-parse from resolving the real repo root
+        TOOL_USAGE_COLLECTION_LOG_PATH: logFile,  // write to the per-test temp file
+      },
     });
 
     const lines = dataLines(logFile);
@@ -317,6 +322,20 @@ describe('Cursor slash command prompt payload', () => {
     expect(fields[5]).toBe('');
     expect(fields[6]).toBe('');
     expect(fields[7]).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
+  });
+
+  it('does not log when slash command is not a known skill', () => {
+    const result = runDispatcher(CURSOR_PROMPT_DISPATCHER, {
+      stdin: JSON.stringify({ prompt: '/totally-fake-skill', session_id: 's' }),
+      env: {
+        CI: '',                                   // opt-in to collection
+        HOME: tmpDir,                             // resolve SKILL.md via the stub created in beforeEach
+        GIT_DIR: '/dev/null',                     // prevent git rev-parse from resolving the real repo root
+        TOOL_USAGE_COLLECTION_LOG_PATH: logFile,  // write to the per-test temp file
+      },
+    });
+    expect(result.stdout.trim()).toBe('{"permission":"allow"}');
+    expect(existsSync(logFile)).toBe(false);
   });
 
   it('does not log when prompt is a plain message with no slash command', () => {
@@ -346,7 +365,12 @@ describe('Cursor slash command prompt payload', () => {
   it('extracts session_id from the payload', () => {
     runDispatcher(CURSOR_PROMPT_DISPATCHER, {
       stdin: slashCommandPayload,
-      env: { CI: '', HOME: tmpDir, TOOL_USAGE_COLLECTION_LOG_PATH: logFile },
+      env: {
+        CI: '',                                   // opt-in to collection
+        HOME: tmpDir,                             // resolve SKILL.md via the stub created in beforeEach
+        GIT_DIR: '/dev/null',                     // prevent git rev-parse from resolving the real repo root
+        TOOL_USAGE_COLLECTION_LOG_PATH: logFile,  // write to the per-test temp file
+      },
     });
 
     const fields = dataLines(logFile)[0].split(',');
