@@ -20,6 +20,13 @@ concurrency:
 jobs:
   shadow-ci:
     name: '[shadow] CI'
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      issues: write
+      pull-requests: write
+      statuses: write
     uses: ./.github/workflows/ci.yml
     with:
       runner_provider: namespace
