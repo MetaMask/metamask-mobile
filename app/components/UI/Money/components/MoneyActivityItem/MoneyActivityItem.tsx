@@ -48,15 +48,11 @@ const MoneyActivityItem = ({
     : undefined;
 
   // use the token's own image URI, or the source chain's network icon, or the mUSD icon
-  const tokenAvatarImageSource = useMemo(() => {
-    if (display.sourceTokenImage) {
-      return { uri: display.sourceTokenImage };
-    }
-    if (display.sourceTokenChainId) {
-      return getNetworkImageSource({ chainId: display.sourceTokenChainId });
-    }
-    return MUSD_TOKEN.imageSource;
-  }, [display.sourceTokenImage, display.sourceTokenChainId]);
+  const tokenAvatarImageSource = display.sourceTokenImage
+    ? { uri: display.sourceTokenImage }
+    : display.sourceTokenChainId
+    ? getNetworkImageSource({ chainId: display.sourceTokenChainId })
+    : MUSD_TOKEN.imageSource;
 
   const amountColor = display.isIncoming
     ? TextColor.SuccessDefault
