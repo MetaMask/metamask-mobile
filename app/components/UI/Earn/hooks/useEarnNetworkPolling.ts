@@ -52,25 +52,14 @@ export const useEarnNetworkPolling = () => {
     EVM_SCOPE,
   );
   const useTokenDetection = useSelector(selectUseTokenDetection);
-  const [lendingChainIds, setLendingChainIds] = useState<Hex[]>([]);
 
-  useTokenBalancesPolling({ chainIds: lendingChainIds });
-  useCurrencyRatePolling({ chainIds: lendingChainIds });
-  useTokenRatesPolling({ chainIds: lendingChainIds });
+  useTokenBalancesPolling({ chainIds: LENDING_CHAIN_IDS });
+  useCurrencyRatePolling({ chainIds: LENDING_CHAIN_IDS });
+  useTokenRatesPolling({ chainIds: LENDING_CHAIN_IDS });
   useTokenDetectionPolling({
-    chainIds: useTokenDetection ? lendingChainIds : [],
+    chainIds: useTokenDetection ? LENDING_CHAIN_IDS : [],
     address: selectedAccount?.address as Hex,
   });
-
-  useEffect(() => {
-    const validChainIds: Hex[] = [];
-
-    LENDING_CHAIN_IDS.forEach((chainId) => {
-      validChainIds.push(chainId);
-    });
-
-    setLendingChainIds(validChainIds);
-  }, [setLendingChainIds]);
 
   return null;
 };
