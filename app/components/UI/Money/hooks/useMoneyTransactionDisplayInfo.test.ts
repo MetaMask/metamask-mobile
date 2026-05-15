@@ -198,8 +198,11 @@ describe('useMoneyTransactionDisplayInfo — native token (ETH) primary amount',
    * (i.e. the USD value of the deposit).  Given amount=998537 ($0.998537)
    * and ETH/USD rate=2242, the expected ETH amount is
    * 0.998537 / 2242 ≈ 0.000445 ETH (rounded down to 6dp).
+   *
+   * Note: the code must use usdConversionRate (ETH→USD), not conversionRate
+   * (ETH→currentCurrency), because requiredAsset.amount is always in USD units.
    */
-  it('converts 6-decimal USD amount to ETH via exchange rate', () => {
+  it('converts 6-decimal USD amount to ETH via usdConversionRate', () => {
     const tx = makeTx(TransactionType.moneyAccountDeposit, {
       metamaskPay: { tokenAddress: ETH_ADDRESS, chainId: CHAIN_ID },
       requiredAssets: [{ address: ETH_ADDRESS, amount: '998537' }],
@@ -209,12 +212,37 @@ describe('useMoneyTransactionDisplayInfo — native token (ETH) primary amount',
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       {
         state: makeState({
-          currencyRates: { ETH: { conversionRate: 2242 } },
+          currencyRates: { ETH: { usdConversionRate: 2242 } },
         }),
       },
     );
 
-    // Exact value: 0.998537 / 2242 = 0.00044538...  → toFixed(6, ROUND_DOWN) = "0.000445"
+    // 0.998537 / 2242 = 0.00044538... → toFixed(6, ROUND_DOWN) = "0.000445"
+    expect(result.current.primaryAmount).toBe('+0.000445 ETH');
+  });
+
+  it('uses usdConversionRate not conversionRate — correct result in non-USD currency', () => {
+    // currentCurrency = EUR; ETH/EUR = 2000, ETH/USD = 2242
+    // requiredAsset.amount = 998537 (= $0.998537 USD)
+    // Correct:   0.998537 / 2242 ≈ 0.000445 ETH  (uses usdConversionRate)
+    // Incorrect: 0.998537 / 2000 ≈ 0.000499 ETH  (would use conversionRate)
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: ETH_ADDRESS, chainId: CHAIN_ID },
+      requiredAssets: [{ address: ETH_ADDRESS, amount: '998537' }],
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      {
+        state: makeState({
+          currentCurrency: 'eur',
+          currencyRates: {
+            ETH: { conversionRate: 2000, usdConversionRate: 2242 },
+          },
+        }),
+      },
+    );
+
     expect(result.current.primaryAmount).toBe('+0.000445 ETH');
   });
 
@@ -242,7 +270,7 @@ describe('useMoneyTransactionDisplayInfo — native token (ETH) primary amount',
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       {
         state: makeState({
-          currencyRates: { ETH: { conversionRate: 2242 } },
+          currencyRates: { ETH: { usdConversionRate: 2242 } },
         }),
       },
     );

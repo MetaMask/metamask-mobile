@@ -205,7 +205,7 @@ export function useMoneyTransactionDisplayInfo(
           // NOT in wei.
 
           const nativeToUsdRate = nativeTicker
-            ? currencyRates?.[nativeTicker]?.conversionRate
+            ? currencyRates?.[nativeTicker]?.usdConversionRate
             : undefined;
           const usdValue = new BigNumber(requiredAsset.amount).dividedBy(1e6);
           if (
