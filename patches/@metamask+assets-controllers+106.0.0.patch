@@ -1,0 +1,26 @@
+--- a/node_modules/@metamask/assets-controllers/dist/multi-chain-accounts-service/multi-chain-accounts.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/multi-chain-accounts-service/multi-chain-accounts.cjs
+@@ -2,7 +2,10 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.fetchMultiChainBalancesV4 = exports.fetchMultiChainBalances = exports.fetchSupportedNetworks = exports.MULTICHAIN_ACCOUNTS_DOMAIN = void 0;
+ const controller_utils_1 = require("@metamask/controller-utils");
+-exports.MULTICHAIN_ACCOUNTS_DOMAIN = 'https://accounts.api.cx.metamask.io';
++// MM_DEV_API_ENV patch: switch host to dev-api when MM_DEV_API_ENV=dev.
++exports.MULTICHAIN_ACCOUNTS_DOMAIN = (((typeof process !== 'undefined' && process.env && process.env.MM_DEV_API_ENV) || '').toLowerCase() === 'dev')
++    ? 'https://accounts.dev-api.cx.metamask.io'
++    : 'https://accounts.api.cx.metamask.io';
+ const getBalancesUrl = (address, queryParams) => {
+     const url = new URL(`${exports.MULTICHAIN_ACCOUNTS_DOMAIN}/v2/accounts/${address}/balances`);
+     if (queryParams?.networks !== undefined) {
+--- a/node_modules/@metamask/assets-controllers/dist/multi-chain-accounts-service/multi-chain-accounts.mjs
++++ b/node_modules/@metamask/assets-controllers/dist/multi-chain-accounts-service/multi-chain-accounts.mjs
+@@ -1,5 +1,8 @@
+ import { handleFetch } from "@metamask/controller-utils";
+-export const MULTICHAIN_ACCOUNTS_DOMAIN = 'https://accounts.api.cx.metamask.io';
++// MM_DEV_API_ENV patch: switch host to dev-api when MM_DEV_API_ENV=dev.
++export const MULTICHAIN_ACCOUNTS_DOMAIN = (((typeof process !== 'undefined' && process.env && process.env.MM_DEV_API_ENV) || '').toLowerCase() === 'dev')
++    ? 'https://accounts.dev-api.cx.metamask.io'
++    : 'https://accounts.api.cx.metamask.io';
+ const getBalancesUrl = (address, queryParams) => {
+     const url = new URL(`${MULTICHAIN_ACCOUNTS_DOMAIN}/v2/accounts/${address}/balances`);
+     if (queryParams?.networks !== undefined) {

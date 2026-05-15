@@ -1,0 +1,42 @@
+--- a/node_modules/@metamask/core-backend/dist/api/shared-types.cjs
++++ b/node_modules/@metamask/core-backend/dist/api/shared-types.cjs
+@@ -25,11 +25,14 @@
+ // CONSTANTS
+ // ============================================================================
+ /** API Base URLs */
++// MM_DEV_API_ENV patch: route prod hosts to *.dev-api.* when MM_DEV_API_ENV=dev.
++const __MM_DEV_API_ENV = ((typeof process !== 'undefined' && process.env && process.env.MM_DEV_API_ENV) || '').toLowerCase() === 'dev';
++const __mmApiHost = (u) => __MM_DEV_API_ENV ? u.replace('.api.cx.metamask.io', '.dev-api.cx.metamask.io') : u;
+ exports.API_URLS = {
+-    ACCOUNTS: 'https://accounts.api.cx.metamask.io',
+-    PRICES: 'https://price.api.cx.metamask.io',
+-    TOKEN: 'https://token.api.cx.metamask.io',
+-    TOKENS: 'https://tokens.api.cx.metamask.io',
++    ACCOUNTS: __mmApiHost('https://accounts.api.cx.metamask.io'),
++    PRICES: __mmApiHost('https://price.api.cx.metamask.io'),
++    TOKEN: __mmApiHost('https://token.api.cx.metamask.io'),
++    TOKENS: __mmApiHost('https://tokens.api.cx.metamask.io'),
+ };
+ /** Stale times for different data types (ms) */
+ exports.STALE_TIMES = {
+--- a/node_modules/@metamask/core-backend/dist/api/shared-types.mjs
++++ b/node_modules/@metamask/core-backend/dist/api/shared-types.mjs
+@@ -21,11 +21,14 @@
+ // CONSTANTS
+ // ============================================================================
+ /** API Base URLs */
++// MM_DEV_API_ENV patch: route prod hosts to *.dev-api.* when MM_DEV_API_ENV=dev.
++const __MM_DEV_API_ENV = ((typeof process !== 'undefined' && process.env && process.env.MM_DEV_API_ENV) || '').toLowerCase() === 'dev';
++const __mmApiHost = (u) => __MM_DEV_API_ENV ? u.replace('.api.cx.metamask.io', '.dev-api.cx.metamask.io') : u;
+ export const API_URLS = {
+-    ACCOUNTS: 'https://accounts.api.cx.metamask.io',
+-    PRICES: 'https://price.api.cx.metamask.io',
+-    TOKEN: 'https://token.api.cx.metamask.io',
+-    TOKENS: 'https://tokens.api.cx.metamask.io',
++    ACCOUNTS: __mmApiHost('https://accounts.api.cx.metamask.io'),
++    PRICES: __mmApiHost('https://price.api.cx.metamask.io'),
++    TOKEN: __mmApiHost('https://token.api.cx.metamask.io'),
++    TOKENS: __mmApiHost('https://tokens.api.cx.metamask.io'),
+ };
+ /** Stale times for different data types (ms) */
+ export const STALE_TIMES = {
