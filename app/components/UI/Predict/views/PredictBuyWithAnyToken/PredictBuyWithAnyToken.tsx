@@ -58,6 +58,7 @@ import {
   PredictNavigationParamList,
 } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
+import { isPayWithBottomSheetEnabled } from '../../../../Views/confirmations/utils/transaction-pay';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatPrice } from '../../utils/format';
 import { usePredictBuyError } from './hooks/usePredictBuyError';
@@ -273,6 +274,10 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
 
   const handleChangePaymentMethod = useCallback(() => {
     lockPaymentSelectorNavigation();
+    if (isPayWithBottomSheetEnabled()) {
+      navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
+      return;
+    }
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [lockPaymentSelectorNavigation, navigation]);
 

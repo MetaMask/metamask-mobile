@@ -7070,6 +7070,8 @@
       "crypto": "Crypto",
       "perps": "Perps",
       "perps_account": "Perps account",
+      "predict": "Predict",
+      "predict_account": "Predict account",
       "add": "Add",
       "available_balance": "{{balance}} available",
       "other_assets": "Other assets",

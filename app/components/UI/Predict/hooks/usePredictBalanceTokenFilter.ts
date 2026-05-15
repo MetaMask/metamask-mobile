@@ -9,6 +9,7 @@ import { RootState } from '../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
 import useFiatFormatter from '../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import { POLYGON_PUSD } from '../../../Views/confirmations/constants/predict';
+import { isPayWithBottomSheetEnabled } from '../../../Views/confirmations/utils/transaction-pay';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import {
   AssetType,
@@ -52,6 +53,10 @@ export function usePredictBalanceTokenFilter(
           TransactionType.predictDepositAndOrder,
         ])
       ) {
+        return tokens;
+      }
+
+      if (isPayWithBottomSheetEnabled()) {
         return tokens;
       }
 

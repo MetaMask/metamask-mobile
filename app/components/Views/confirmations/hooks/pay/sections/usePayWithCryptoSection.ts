@@ -18,6 +18,8 @@ import {
   PayWithSectionConfig,
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
+import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { hasTransactionType } from '../../../utils/transaction';
 import {
   isMatchingPayToken,
@@ -28,7 +30,6 @@ import { useLastUsedPaymentMethod } from '../useLastUsedPaymentMethod';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
 import { useTransactionPayToken } from '../useTransactionPayToken';
-import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 
 interface PayWithCryptoSectionParams {
@@ -68,13 +69,24 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const { setPayToken } = useTransactionPayToken();
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();
+  const {
+    onPaymentTokenChange: onPredictPaymentTokenChange,
+    isPredictBalanceSelected,
+  } = usePredictPaymentToken();
   const { isLastUsed } = useLastUsedPaymentMethod();
   const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
   const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.perpsDepositAndOrder,
   ]);
+  const isPredictDepositAndOrder = hasTransactionType(transactionMeta, [
+    TransactionType.predictDepositAndOrder,
+  ]);
   const isPerpsBalanceImplicitlySelected =
     isPerpsDepositAndOrder && isPerpsBalanceSelected;
+  const isPredictBalanceImplicitlySelected =
+    isPredictDepositAndOrder && isPredictBalanceSelected;
+  const isDedicatedSectionDefaultActive =
+    isPerpsBalanceImplicitlySelected || isPredictBalanceImplicitlySelected;
 
   const handleOtherAssetsPress = useCallback(() => {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
@@ -90,14 +102,19 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     };
     if (isPerpsDepositAndOrder) {
       onPerpsPaymentTokenChange(target);
+    } else if (isPredictDepositAndOrder) {
+      onPredictPaymentTokenChange(target);
+      setPayToken(target);
     } else {
       setPayToken(target);
     }
     navigation.goBack();
   }, [
     isPerpsDepositAndOrder,
+    isPredictDepositAndOrder,
     navigation,
     onPerpsPaymentTokenChange,
+    onPredictPaymentTokenChange,
     preferredToken,
     setPayToken,
   ]);
@@ -120,14 +137,15 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     const rows: PayWithRowConfig[] = [];
 
     if (preferredToken) {
-      // In perpsDepositAndOrder flows the PERPS section renders "Perps account"
-      // as the conceptual default ONLY when the user has not explicitly picked a
-      // token (`selectedPaymentToken === null` in `PerpsController`). When the
-      // user opens "Other assets" and picks e.g. BNB, `PerpsController` also
+      // In perps/predict deposit-and-order flows the dedicated section renders
+      // its account balance ("Perps account" / "Predict account") as the
+      // conceptual default ONLY when the user has not explicitly picked a token
+      // (`selectedPaymentToken === null` on the respective controller). When
+      // the user opens "Other assets" and picks e.g. BNB, the controller also
       // stores BNB as `selectedPaymentToken`, and we should honor that
       // selection here with a checkmark.
       const isPreferredTokenSelected =
-        !isPerpsBalanceImplicitlySelected &&
+        !isDedicatedSectionDefaultActive &&
         isMatchingPayToken(selectedToken, preferredToken);
 
       rows.push({
@@ -152,7 +170,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     if (
       isSelectedDistinctFromAutomatic &&
       selectedTokenDisplay &&
-      !isPerpsBalanceImplicitlySelected
+      !isDedicatedSectionDefaultActive
     ) {
       rows.push({
         id: 'crypto-selected-token',
@@ -201,8 +219,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     handleOtherAssetsPress,
     handlePreferredTokenPress,
     hasTokens,
+    isDedicatedSectionDefaultActive,
     isLastUsed,
-    isPerpsBalanceImplicitlySelected,
     isSelectedDistinctFromAutomatic,
     preferredToken,
     preferredTokenBalance,

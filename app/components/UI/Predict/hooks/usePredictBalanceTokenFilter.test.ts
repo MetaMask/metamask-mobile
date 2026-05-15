@@ -6,6 +6,7 @@ import {
   isHighlightedItemInAssetList,
 } from '../../../Views/confirmations/types/token';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
+import { isPayWithBottomSheetEnabled } from '../../../Views/confirmations/utils/transaction-pay';
 import { usePredictBalanceTokenFilter } from './usePredictBalanceTokenFilter';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -52,10 +53,19 @@ jest.mock('../../../Views/confirmations/utils/transaction', () => ({
   hasTransactionType: jest.fn(),
 }));
 
+jest.mock('../../../Views/confirmations/utils/transaction-pay', () => ({
+  ...jest.requireActual('../../../Views/confirmations/utils/transaction-pay'),
+  isPayWithBottomSheetEnabled: jest.fn(() => false),
+}));
+
 const mockHasTransactionType = hasTransactionType as jest.MockedFunction<
   typeof hasTransactionType
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockIsPayWithBottomSheetEnabled =
+  isPayWithBottomSheetEnabled as jest.MockedFunction<
+    typeof isPayWithBottomSheetEnabled
+  >;
 
 const createMockToken = (overrides?: Partial<AssetType>): AssetType => ({
   address: '0xtoken1',
@@ -83,6 +93,7 @@ describe('usePredictBalanceTokenFilter', () => {
     mockHasTransactionType.mockReturnValue(false);
     mockUseSelector.mockReturnValue({ image: 'pusd-token-image' });
     mockNavigate.mockReset();
+    mockIsPayWithBottomSheetEnabled.mockReturnValue(false);
   });
 
   it('returns original tokens when transaction type does not match and forceEnabled is false', () => {
@@ -104,6 +115,17 @@ describe('usePredictBalanceTokenFilter', () => {
 
     expect(filteredTokens).toHaveLength(2);
     expect(isHighlightedItemInAssetList(filteredTokens[0])).toBe(true);
+  });
+
+  it('suppresses the Predict balance HighlightedItem when isPayWithBottomSheetEnabled returns true', () => {
+    const tokens = [createMockToken()];
+    mockHasTransactionType.mockReturnValue(true);
+    mockIsPayWithBottomSheetEnabled.mockReturnValue(true);
+
+    const { result } = renderHook(() => usePredictBalanceTokenFilter());
+    const filteredTokens = result.current(tokens);
+
+    expect(filteredTokens).toEqual(tokens);
   });
 
   it('prepends Predict balance HighlightedItem when forceEnabled is true', () => {
