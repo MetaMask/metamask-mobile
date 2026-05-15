@@ -61,7 +61,7 @@ describe('useTrackSwapPageViewed', () => {
     expect(mockCreateEventBuilder).not.toHaveBeenCalled();
   });
 
-  it('tracks SWAP_PAGE_VIEWED and ASSET_VIEWED with swap page properties when the source token is set', () => {
+  it('tracks SWAP_PAGE_VIEWED and Asset Viewed with swap page properties when the source token is set', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSourceToken) {
         return sourceToken;

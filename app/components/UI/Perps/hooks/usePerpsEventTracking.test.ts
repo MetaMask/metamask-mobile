@@ -68,7 +68,7 @@ describe('usePerpsEventTracking', () => {
       });
     });
 
-    it('tracks ASSET_VIEWED when PERPS_SCREEN_VIEWED is tracked', () => {
+    it('tracks Asset Viewed when PERPS_SCREEN_VIEWED is tracked', () => {
       const { result } = renderHook(() => usePerpsEventTracking());
       const customProps = { screen_type: 'home' };
 

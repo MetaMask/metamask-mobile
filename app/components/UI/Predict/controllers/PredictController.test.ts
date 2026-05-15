@@ -8041,7 +8041,7 @@ describe('PredictController', () => {
           entryPoint: 'test',
           marketDetailsViewed: 'test',
         });
-        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(2);
       });
     });
 

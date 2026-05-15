@@ -47,8 +47,8 @@ describe('enrichWithABTests', () => {
     ]);
   });
 
-  it('injects the same swap AB assignments for ASSET_VIEWED as for Unified SwapBridge Page Viewed', () => {
-    const event = AnalyticsEventBuilder.createEventBuilder('ASSET_VIEWED')
+  it('injects the same swap AB assignments for Asset Viewed as for Unified SwapBridge Page Viewed', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder('Asset Viewed')
       .addProperties({
         trade_type: 'Swaps',
         implementation_type: 'native',

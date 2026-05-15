@@ -410,7 +410,7 @@ enum EVENT_NAME {
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
   SWAP_PAGE_VIEWED = 'Unified SwapBridge Page Viewed',
   /** Unified funnel: Predict / Perps / Swaps screen views (alongside legacy events). */
-  ASSET_VIEWED = 'ASSET_VIEWED',
+  ASSET_VIEWED = 'Asset Viewed',
 
   // Earn
   EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',

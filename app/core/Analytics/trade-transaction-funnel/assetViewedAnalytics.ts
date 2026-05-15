@@ -1,6 +1,6 @@
 /**
- * Trade Transaction funnel — unified Segment `ASSET_VIEWED` payload helpers.
- * `ASSET_VIEWED` is emitted alongside legacy `Predict Feed Viewed`,
+ * Trade Transaction funnel — unified Segment "Asset Viewed" payload helpers.
+ * "Asset Viewed" is emitted alongside legacy `Predict Market Details Opened`,
  * `Perp Screen Viewed`, and `Unified SwapBridge Page Viewed` events.
  */
 export const ASSET_VIEWED_PROPERTY = {

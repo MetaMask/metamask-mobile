@@ -383,12 +383,15 @@ describe('PredictAnalytics', () => {
         gameClock: '14:10',
       });
 
-      const event = getTrackedEvent();
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(2);
 
-      expect(event.name).toBe(
+      const detailsEvent = getTrackEventMock().mock.calls[0][0] as TrackedEvent;
+      const assetViewedEvent = getTrackEventMock().mock.calls[1][0] as TrackedEvent;
+
+      expect(detailsEvent.name).toBe(
         MetaMetricsEvents.PREDICT_MARKET_DETAILS_OPENED.category,
       );
-      expect(event.properties).toMatchObject({
+      expect(detailsEvent.properties).toMatchObject({
         market_id: 'm1',
         market_title: 'Market title',
         market_category: 'sports',
@@ -402,6 +405,27 @@ describe('PredictAnalytics', () => {
         game_status: 'live',
         game_period: '2H',
         game_clock: '14:10',
+      });
+
+      expect(assetViewedEvent.name).toBe(
+        MetaMetricsEvents.ASSET_VIEWED.category,
+      );
+      expect(assetViewedEvent.properties).toMatchObject({
+        market_id: 'm1',
+        market_title: 'Market title',
+        market_category: 'sports',
+        market_tags: ['soccer'],
+        entry_point: 'predict_feed',
+        market_details_viewed: 'about',
+        market_slug: 'market-slug',
+        game_id: 'g1',
+        game_start_time: '2026-04-01T12:00:00.000Z',
+        game_league: 'EPL',
+        game_status: 'live',
+        game_period: '2H',
+        game_clock: '14:10',
+        trade_type: 'Predict',
+        implementation_type: 'native',
       });
       expect(getDevLoggerMock()).toHaveBeenCalledTimes(1);
     });
@@ -456,11 +480,9 @@ describe('PredictAnalytics', () => {
         entryPoint: 'carousel',
       });
 
-      expect(getTrackEventMock()).toHaveBeenCalledTimes(2);
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(1);
 
       const feedEvent = getTrackEventMock().mock.calls[0][0] as TrackedEvent;
-      const assetViewedEvent = getTrackEventMock().mock
-        .calls[1][0] as TrackedEvent;
 
       expect(feedEvent.name).toBe(
         MetaMetricsEvents.PREDICT_FEED_VIEWED.category,
@@ -472,20 +494,6 @@ describe('PredictAnalytics', () => {
         session_time_in_feed: 98,
         is_session_end: false,
         entry_point: 'carousel',
-      });
-
-      expect(assetViewedEvent.name).toBe(
-        MetaMetricsEvents.ASSET_VIEWED.category,
-      );
-      expect(assetViewedEvent.properties).toMatchObject({
-        session_id: 's1',
-        predict_feed_tab: 'trending',
-        num_feed_pages_viewed_in_session: 3,
-        session_time_in_feed: 98,
-        is_session_end: false,
-        entry_point: 'carousel',
-        trade_type: 'Predict',
-        implementation_type: 'native',
       });
     });
 
