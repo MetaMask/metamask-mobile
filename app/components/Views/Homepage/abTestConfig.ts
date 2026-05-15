@@ -156,6 +156,17 @@ export const HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY =
   'homepage_perps_pills_ab_exposed' as const;
 
 /**
+ * Stable reference for `useHomeViewedEvent({ additionalProperties })` — must
+ * not be allocated inline each render (that hook lists this in `useCallback`
+ * deps tied to scroll subscribe / `measureInWindow`).
+ */
+export const HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ADDITIONAL_PROPERTIES: Readonly<
+  Record<string, unknown>
+> = Object.freeze({
+  [HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY]: true,
+});
+
+/**
  * Shared third argument for `useABTest` on this experiment (exposure +
  * consistent variation labels).
  */

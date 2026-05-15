@@ -50,7 +50,10 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
-import { HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY } from '../../abTestConfig';
+import {
+  HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ADDITIONAL_PROPERTIES,
+  HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY,
+} from '../../abTestConfig';
 import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
 } from '../../components/HomepageSectionUnrealizedPnlRow';
@@ -358,6 +361,11 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       ? displayPositions.length + displayOrders.length
       : 0;
 
+    const homeViewedAdditionalProperties =
+      analyticsName === HomeSectionNames.PERPS && !hasItems
+        ? HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ADDITIONAL_PROPERTIES
+        : undefined;
+
     const { onLayout } = useHomeViewedEvent({
       sectionRef: willRender && !positionsOnlyHidden ? sectionViewRef : null,
       isLoading: isLoadingSection,
@@ -366,10 +374,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       totalSectionsLoaded,
       isEmpty,
       itemCount,
-      additionalProperties:
-        analyticsName === HomeSectionNames.PERPS && !hasItems
-          ? { [HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY]: true }
-          : undefined,
+      additionalProperties: homeViewedAdditionalProperties,
     });
 
     useSectionPerformance({

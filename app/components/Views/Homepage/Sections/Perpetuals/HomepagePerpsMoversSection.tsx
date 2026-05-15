@@ -23,7 +23,10 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
 import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests';
 import { mergeActiveAbTestAssignmentLists } from '../../../../../util/analytics/activeABTestAssignments';
-import { HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY } from '../../abTestConfig';
+import {
+  HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ADDITIONAL_PROPERTIES,
+  HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY,
+} from '../../abTestConfig';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import PillScrollList from '../../../TrendingView/components/PillScrollList';
@@ -119,6 +122,11 @@ const HomepagePerpsMoversSection = forwardRef<
     const isEmpty = !perps.isLoading && perps.data.length === 0;
     const itemCount = perps.data.length;
 
+    const homeViewedAdditionalProperties =
+      analyticsName === HomeSectionNames.PERPS
+        ? HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ADDITIONAL_PROPERTIES
+        : undefined;
+
     const { onLayout } = useHomeViewedEvent({
       sectionRef: !isEmpty ? sectionViewRef : null,
       isLoading: isLoadingSection,
@@ -127,10 +135,7 @@ const HomepagePerpsMoversSection = forwardRef<
       totalSectionsLoaded,
       isEmpty,
       itemCount,
-      additionalProperties:
-        analyticsName === HomeSectionNames.PERPS
-          ? { [HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY]: true }
-          : undefined,
+      additionalProperties: homeViewedAdditionalProperties,
     });
 
     useSectionPerformance({
