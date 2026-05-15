@@ -317,7 +317,7 @@
     "@metamask/preinstalled-example-snap": "^0.7.2",
     "@metamask/profile-metrics-controller": "^3.1.0",
     "@metamask/profile-sync-controller": "^28.0.2",
-    "@metamask/ramps-controller": "^13.3.0",
+    "@metamask/ramps-controller": "^13.3.1",
     "@metamask/react-data-query": "^0.2.0",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
     "@metamask/react-native-actionsheet": "2.4.2",
