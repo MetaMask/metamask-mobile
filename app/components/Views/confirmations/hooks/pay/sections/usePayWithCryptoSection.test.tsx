@@ -9,6 +9,7 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { TokenIcon, TokenIconVariant } from '../../../components/token-icon';
 import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
+import { useLastUsedPaymentMethod } from '../useLastUsedPaymentMethod';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
 import { usePayWithCryptoSection } from './usePayWithCryptoSection';
@@ -34,6 +35,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 jest.mock('../../../../../../util/navigation/navUtils');
 jest.mock('../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter');
 jest.mock('../../transactions/useTransactionMetadataRequest');
+jest.mock('../useLastUsedPaymentMethod');
 jest.mock('../usePayWithPreferredToken');
 jest.mock('../usePayWithSelectedToken');
 
@@ -64,9 +66,11 @@ describe('usePayWithCryptoSection', () => {
   );
   const usePayWithPreferredTokenMock = jest.mocked(usePayWithPreferredToken);
   const usePayWithSelectedTokenMock = jest.mocked(usePayWithSelectedToken);
+  const useLastUsedPaymentMethodMock = jest.mocked(useLastUsedPaymentMethod);
   const navigateMock = jest.fn();
   const goBackMock = jest.fn();
   const selectTokenMock = jest.fn();
+  const isLastUsedMock = jest.fn().mockReturnValue(false);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -92,6 +96,11 @@ describe('usePayWithCryptoSection', () => {
         symbol: TOKEN_MOCK.symbol,
       },
       selectToken: selectTokenMock,
+    });
+    isLastUsedMock.mockReturnValue(false);
+    useLastUsedPaymentMethodMock.mockReturnValue({
+      lastUsedToken: undefined,
+      isLastUsed: isLastUsedMock,
     });
   });
 
@@ -429,5 +438,79 @@ describe('usePayWithCryptoSection', () => {
     expect(navigateMock).toHaveBeenCalledWith(
       Routes.CONFIRMATION_PAY_WITH_MODAL,
     );
+  });
+
+  it('marks the preferred row as last used when the last-used token matches it', () => {
+    isLastUsedMock.mockImplementation(
+      (address, chainId) =>
+        address === TOKEN_MOCK.address && chainId === TOKEN_MOCK.chainId,
+    );
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    expect(result.current?.rows[0]).toEqual(
+      expect.objectContaining({
+        id: 'crypto-preferred-token',
+        isLastUsed: true,
+      }),
+    );
+  });
+
+  it('does not mark any row as last used when the last-used token does not match', () => {
+    isLastUsedMock.mockReturnValue(false);
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    for (const row of result.current?.rows ?? []) {
+      expect(row.isLastUsed ?? false).toBe(false);
+    }
+  });
+
+  it('marks the user-selected row as last used when the last-used token matches the selected token', () => {
+    const distinctSelectedToken = {
+      ...TOKEN_MOCK,
+      address: SELECTED_TOKEN_MOCK.address,
+      symbol: SELECTED_TOKEN_MOCK.symbol,
+      balanceUsd: SELECTED_TOKEN_MOCK.balanceUsd,
+    };
+    usePayWithPreferredTokenMock.mockReturnValue({
+      hasTokens: true,
+      preferredToken: TOKEN_MOCK,
+      selectedToken: distinctSelectedToken,
+    });
+    usePayWithSelectedTokenMock.mockReturnValue({
+      isSelectedDistinctFromAutomatic: true,
+      selectedToken: SELECTED_TOKEN_MOCK,
+      selectToken: selectTokenMock,
+    });
+    isLastUsedMock.mockImplementation(
+      (address, chainId) =>
+        address === SELECTED_TOKEN_MOCK.address &&
+        chainId === SELECTED_TOKEN_MOCK.chainId,
+    );
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    const preferredRow = result.current?.rows.find(
+      (row) => row.id === 'crypto-preferred-token',
+    );
+    const selectedRow = result.current?.rows.find(
+      (row) => row.id === 'crypto-selected-token',
+    );
+
+    expect(preferredRow?.isLastUsed ?? false).toBe(false);
+    expect(selectedRow).toEqual(expect.objectContaining({ isLastUsed: true }));
+  });
+
+  it('never marks the other-assets row as last used', () => {
+    isLastUsedMock.mockReturnValue(true);
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    const otherAssetsRow = result.current?.rows.find(
+      (row) => row.id === 'crypto-other-assets',
+    );
+
+    expect(otherAssetsRow?.isLastUsed ?? false).toBe(false);
   });
 });
