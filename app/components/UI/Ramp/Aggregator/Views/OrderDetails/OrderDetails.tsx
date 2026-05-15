@@ -4,6 +4,7 @@ import React, {
   useLayoutEffect,
   useState,
 } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -26,7 +27,6 @@ import {
   updateFiatOrder,
 } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { processFiatOrder } from '../../../index';
 import {
@@ -214,7 +214,7 @@ const OrderDetails = () => {
   if (!order) {
     return (
       <ScreenLayout>
-        <HeaderCompactStandard
+        <HeaderStandard
           includesTopInset
           title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
           onBack={() => navigation.goBack()}
@@ -226,7 +226,7 @@ const OrderDetails = () => {
   if (isLoading) {
     return (
       <ScreenLayout>
-        <HeaderCompactStandard
+        <HeaderStandard
           includesTopInset
           title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
           onBack={() => navigation.goBack()}
@@ -243,7 +243,7 @@ const OrderDetails = () => {
   if (error) {
     return (
       <ScreenLayout>
-        <HeaderCompactStandard
+        <HeaderStandard
           includesTopInset
           title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
           onBack={() => navigation.goBack()}
@@ -261,7 +261,7 @@ const OrderDetails = () => {
 
   return (
     <ScreenLayout>
-      <HeaderCompactStandard
+      <HeaderStandard
         includesTopInset
         title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
         onBack={() => navigation.goBack()}
