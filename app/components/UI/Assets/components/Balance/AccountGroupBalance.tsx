@@ -37,6 +37,7 @@ import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGro
 import BalanceEmptyState from '../../../BalanceEmptyState';
 import WalletHomeOnboardingSteps from '../../../WalletHomeOnboardingSteps';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import { useWalletHomeOnboardingChecklistFundPress } from '../../../WalletHomeOnboardingSteps/useWalletHomeOnboardingChecklistFundPress';
 
 /**
  * Timeout for account group balance fetch
@@ -82,6 +83,8 @@ const AccountGroupBalance = ({
     selectWalletHomeOnboardingSkipInitialBalanceWait,
   );
   const { goToBuy } = useRampNavigation();
+  const onFundPrimaryPressWithChecklistAnalytics =
+    useWalletHomeOnboardingChecklistFundPress(goToBuy);
   const { popularNetworks } = useNetworkEnablement();
 
   // Stabilize chain IDs by content so selector identity doesn't change every render (avoids max depth / infinite loop).
@@ -266,7 +269,7 @@ const AccountGroupBalance = ({
           isAwaitingBalance={awaitBalanceForPostOnboardingSteps}
           onCoordinatedFlowExit={onCoordinatedFlowExit}
           suspendRiveForCurtain={suspendRiveForCurtain}
-          onFundPrimaryPress={goToBuy}
+          onFundPrimaryPress={onFundPrimaryPressWithChecklistAnalytics}
           canAdvanceFundStepAfterBalance={canAdvanceFundStepAfterBalance}
           onTradePrimaryPress={onTradePrimaryPress}
           onNotificationsPrimaryPress={onNotificationsPrimaryPress}

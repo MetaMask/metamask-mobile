@@ -28,8 +28,8 @@ const themeWithCustomBackground = {
   },
 };
 
-jest.mock('@react-navigation/stack', () => ({
-  createStackNavigator: () => ({
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: () => ({
     Navigator: ({
       children,
       screenOptions,
@@ -37,12 +37,12 @@ jest.mock('@react-navigation/stack', () => ({
       children: React.ReactNode;
       screenOptions?: {
         headerShown?: boolean;
-        cardStyle?: { backgroundColor?: string };
+        contentStyle?: { backgroundColor?: string };
       };
     }) => (
       <MockView testID="money-stack-navigator">
-        <MockText testID="money-card-background-color">
-          {screenOptions?.cardStyle?.backgroundColor ?? 'none'}
+        <MockText testID="money-content-background-color">
+          {screenOptions?.contentStyle?.backgroundColor ?? 'none'}
         </MockText>
         {screenOptions?.headerShown === false && (
           <MockText testID="money-header-hidden">header-hidden</MockText>
@@ -80,12 +80,12 @@ describe('MoneyScreenStack', () => {
     expect(getByTestId('money-screen-MoneyActivity')).toBeOnTheScreen();
   });
 
-  it('sets stack card background from theme to avoid flash during inner navigation', () => {
+  it('sets stack content background from theme to avoid flash during inner navigation', () => {
     const { getByTestId } = renderWithProvider(<MoneyScreenStack />, {
       theme: themeWithCustomBackground,
     });
 
-    expect(getByTestId('money-card-background-color')).toHaveTextContent(
+    expect(getByTestId('money-content-background-color')).toHaveTextContent(
       EXPECTED_CARD_BACKGROUND,
     );
   });

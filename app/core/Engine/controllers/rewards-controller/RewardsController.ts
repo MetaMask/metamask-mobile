@@ -4,7 +4,6 @@ import {
   type RewardsControllerState,
   type RewardsAccountState,
   type LoginResponseDto,
-  type PerpsDiscountData,
   type EstimatePointsDto,
   type EstimatedPointsDto,
   type SeasonDtoState,
@@ -46,11 +45,14 @@ import {
   type LineaTokenRewardDto,
   type OffDeviceSubscriptionAccountsState,
   type ClientVersionRequirementDto,
+  type ClientVersionRequirementState,
   type CampaignState,
   type CampaignDtoState,
   type SubscriptionBenefitsState,
   type VipDashboardDto,
   type VipDashboardState,
+  type VipFeesResponseDto,
+  type VipPerpsFeesState,
   BASE32_REGEX,
   CampaignType,
 } from './types';
@@ -99,9 +101,6 @@ export const DEFAULT_BLOCKED_REGIONS = ['UK', 'GB', 'GI'];
 
 const controllerName = 'RewardsController';
 
-// Perps discount refresh threshold
-const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
-
 // Season status cache threshold
 const SEASON_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
@@ -116,6 +115,10 @@ const BENEFITS_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 
 // VIP dashboard cache threshold — disabled while backend still serves hardcoded data
 const VIP_DASHBOARD_CACHE_THRESHOLD_MS = 0;
+
+// VIP perps fees cache threshold — read on every perps trade UI render, so
+// cache for the same 5-minute window as the legacy public-discount path.
+const VIP_PERPS_FEES_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
 
 // Active boosts cache threshold
 const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
@@ -169,6 +172,9 @@ const PERPS_TRADING_CAMPAIGN_VOLUME_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 min
 
 // Perps Trading participant outcome cache threshold
 const PERPS_TRADING_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
+
+// Client version requirements cache threshold
+const CLIENT_VERSION_REQUIREMENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 30; // 30 minutes
 
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
 const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
@@ -300,6 +306,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  clientVersionRequirements: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   pointsEstimateHistory: {
     includeInStateLogs: true,
     persist: true,
@@ -323,6 +335,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     persist: true,
     includeInDebugSnapshot: false,
     usedInUi: true,
+  },
+  vipPerpsFees: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: false,
   },
 };
 
@@ -493,7 +511,6 @@ export class RewardsController extends BaseController<
     string,
     { payload: OndoGmCampaignParticipantOutcomeDto; lastFetched: number }
   > = new Map();
-  #clientVersionRequirements: ClientVersionRequirementDto | null = null;
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
@@ -1396,83 +1413,6 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Update perps fee discount for a given address
-   * @param address - The account address in CAIP-10 format
-   */
-  async #getPerpsFeeDiscountData(
-    account: CaipAccountId,
-  ): Promise<PerpsDiscountData | null> {
-    const accountState = this.#getAccountState(account);
-
-    // Check if we have a cached discount and if threshold hasn't been reached
-    if (
-      accountState?.perpsFeeDiscount !== null &&
-      accountState?.lastPerpsDiscountRateFetched !== null &&
-      accountState?.lastPerpsDiscountRateFetched &&
-      Date.now() - accountState.lastPerpsDiscountRateFetched <
-        PERPS_DISCOUNT_CACHE_THRESHOLD_MS
-    ) {
-      return {
-        hasOptedIn: !!accountState?.hasOptedIn,
-        discountBips: accountState?.perpsFeeDiscount,
-      };
-    }
-
-    try {
-      Logger.log(
-        'RewardsController: Fetching fresh perps discount data via API call for',
-        account,
-      );
-      const perpsDiscountData = await this.messenger.call(
-        'RewardsDataService:getPerpsDiscount',
-        { account },
-      );
-
-      // Make sure all account caip indexes are stored the same way
-      let coercedAccount: CaipAccountId;
-      if (account?.startsWith('eip155') && !account?.startsWith('eip155:0')) {
-        coercedAccount =
-          `eip155:0:${account.split(':')[2]?.toLowerCase()}` as CaipAccountId;
-      } else if (account?.startsWith('eip155')) {
-        coercedAccount = account.toLowerCase() as CaipAccountId;
-      } else {
-        coercedAccount = account;
-      }
-
-      this.update((state) => {
-        // Create account state if it doesn't exist
-        if (!state.accounts[coercedAccount]) {
-          state.accounts[coercedAccount] = {
-            account: coercedAccount,
-            hasOptedIn: perpsDiscountData.hasOptedIn,
-            subscriptionId: null,
-            perpsFeeDiscount: perpsDiscountData.discountBips ?? 0,
-            lastPerpsDiscountRateFetched: Date.now(),
-          };
-        } else {
-          // Update account state
-          state.accounts[coercedAccount].hasOptedIn =
-            perpsDiscountData.hasOptedIn;
-          if (!perpsDiscountData.hasOptedIn) {
-            state.accounts[coercedAccount].subscriptionId = null;
-          }
-          state.accounts[coercedAccount].perpsFeeDiscount =
-            perpsDiscountData.discountBips ?? 0;
-          state.accounts[coercedAccount].lastPerpsDiscountRateFetched =
-            Date.now();
-        }
-      });
-      return perpsDiscountData;
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to update perps fee discount:',
-        error instanceof Error ? error.message : String(error),
-      );
-      return null;
-    }
-  }
-
-  /**
    * Check if the given account (caip-10 format) has opted in to rewards
    * @param account - The account address in CAIP-10 format
    * @returns Promise<boolean> - True if the account has opted in, false otherwise
@@ -1481,11 +1421,7 @@ export class RewardsController extends BaseController<
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) return false;
     const accountState = this.#getAccountState(account);
-    if (accountState?.hasOptedIn) return accountState.hasOptedIn;
-
-    // Right now we'll derive this from either cached map state or perps fee discount api call.
-    const perpsDiscountData = await this.#getPerpsFeeDiscountData(account);
-    return !!perpsDiscountData?.hasOptedIn;
+    return !!accountState?.hasOptedIn;
   }
 
   checkOptInStatusAgainstCache(
@@ -1684,15 +1620,118 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Get perps fee discount for an account with caching and threshold logic
+   * Get perps fee discount for an account.
+   *
+   * When the account's active subscription has VIP enabled, this calls the
+   * authenticated `/vip/fees` endpoint and converts the absolute VIP builder
+   * fee into a discount fraction relative to `baseFeeBips`. Non-VIP accounts
+   * receive no discount.
+   *
    * @param account - The account address in CAIP-10 format
-   * @returns Promise<number> - The discount in basis points
+   * @param baseFeeBips - The perps MetaMask builder base fee in basis points
+   * that the caller would apply absent any discount. Used to convert the VIP
+   * absolute fee into a discount fraction (caller owns the source of truth
+   * for the base fee; the controller is a pure transformer).
+   * @returns Promise resolving to the discount in basis points (0-10000), or null when we can't determine the discount.
    */
-  async getPerpsDiscountForAccount(account: CaipAccountId): Promise<number> {
+  async getPerpsDiscountForAccount(
+    account: CaipAccountId,
+    baseFeeBips: number,
+  ): Promise<number | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) return 0;
-    const perpsDiscountData = await this.#getPerpsFeeDiscountData(account);
-    return perpsDiscountData?.discountBips || 0;
+    if (!rewardsEnabled) return null;
+
+    const vipDiscountBips = await this.#getVipPerpsDiscountBips(
+      account,
+      baseFeeBips,
+    );
+    return vipDiscountBips;
+  }
+
+  /**
+   * Resolve a VIP-driven perps discount for the given account. Returns null
+   * when the account isn't on a VIP-enabled subscription or the fetch fails
+   * — callers should treat null as "no discount" (0). Returns 0 when the
+   * backend returns no builder fee (fees=null) or an invalid builderFeeBips.
+   */
+  async #getVipPerpsDiscountBips(
+    account: CaipAccountId,
+    baseFeeBips: number,
+  ): Promise<number | null> {
+    if (!Number.isFinite(baseFeeBips) || baseFeeBips <= 0) return null;
+
+    const accountState = this.#getAccountState(account);
+    const subscriptionId = accountState?.subscriptionId;
+    if (!subscriptionId) return null;
+
+    const subscription = this.state.subscriptions[subscriptionId];
+    if (!subscription) return null;
+    if (!subscription?.features?.vip?.enabled) return 0;
+
+    let builderFeeBipsRaw: string;
+    const cached = this.state.vipPerpsFees[subscriptionId];
+    if (
+      cached &&
+      Date.now() - cached.lastFetched < VIP_PERPS_FEES_CACHE_THRESHOLD_MS
+    ) {
+      builderFeeBipsRaw = cached.hyperliquidBuilderFeeBips;
+    } else {
+      try {
+        const vipFeeResponse: VipFeesResponseDto = await this.#withAuthRetry(
+          () =>
+            this.messenger.call(
+              'RewardsDataService:getVipFees',
+              subscriptionId,
+            ),
+          subscriptionId,
+        );
+        const rawBuilderFee = vipFeeResponse?.fees?.hyperliquid?.builderFeeBips;
+        if (rawBuilderFee == null) return 0;
+        builderFeeBipsRaw = rawBuilderFee;
+        const next: VipPerpsFeesState = {
+          hyperliquidBuilderFeeBips: builderFeeBipsRaw,
+          lastFetched: Date.now(),
+        };
+        this.update((state) => {
+          state.vipPerpsFees[subscriptionId] = next;
+        });
+      } catch (error) {
+        Logger.log(
+          'RewardsController: VIP fees fetch failed; returning no discount:',
+          error instanceof Error ? error.message : String(error),
+        );
+        return null;
+      }
+    }
+
+    const builderFeeBips = parseFloat(builderFeeBipsRaw);
+    if (!Number.isFinite(builderFeeBips) || builderFeeBips <= 0) {
+      Logger.log(
+        'RewardsController: VIP fees returned an invalid builderFeeBips:',
+        builderFeeBipsRaw,
+      );
+      return 0;
+    }
+
+    // Valid range is [0, 10000]: 0 means VIP fee equals base (no discount),
+    // 10000 means VIP fee is 0 (100% discount). Anything outside that range
+    // would require a negative builder fee or one larger than the base —
+    // both indicate backend misconfig, so log and return 0.
+    const rawDiscountBips = Math.round(
+      10000 * (1 - builderFeeBips / baseFeeBips),
+    );
+    if (rawDiscountBips < 0 || rawDiscountBips > 10000) {
+      Logger.log(
+        'RewardsController: VIP builder fee out of valid range; returning no discount',
+        {
+          builderFeeBips,
+          baseFeeBips,
+          rawDiscountBips,
+        },
+      );
+      return 0;
+    }
+    return rawDiscountBips;
   }
 
   /**
@@ -4463,20 +4502,35 @@ export class RewardsController extends BaseController<
 
   /**
    * Fetch the minimum client version requirements from the public API.
-   * Cached in memory for the controller's lifetime (one fetch per app session).
+   * Cached for 30 minutes using controller state, matching other endpoint caches.
    * This is a public (unauthenticated) endpoint that does not require
    * the rewards feature to be enabled.
    */
   async getClientVersionRequirements(): Promise<ClientVersionRequirementDto> {
-    if (this.#clientVersionRequirements) {
-      return this.#clientVersionRequirements;
+    const cached = this.state.clientVersionRequirements;
+    if (
+      cached &&
+      Date.now() - cached.lastFetched <
+        CLIENT_VERSION_REQUIREMENTS_CACHE_THRESHOLD_MS
+    ) {
+      const { lastFetched, ...payload } = cached;
+      return payload;
     }
 
+    Logger.log(
+      'RewardsController: Fetching fresh client version requirements via API call',
+    );
     const result = (await this.messenger.call(
       'RewardsDataService:getClientVersionRequirements',
     )) as ClientVersionRequirementDto;
 
-    this.#clientVersionRequirements = result;
+    this.update((state) => {
+      state.clientVersionRequirements = {
+        ...result,
+        lastFetched: Date.now(),
+      } as ClientVersionRequirementState;
+    });
+
     return result;
   }
 
