@@ -140,7 +140,8 @@ export type PredictCategory =
   | 'sports'
   | 'crypto'
   | 'politics'
-  | 'hot';
+  | 'hot'
+  | 'world-cup';
 
 // Sports league types
 export type PredictSportsLeague =
