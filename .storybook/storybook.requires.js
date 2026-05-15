@@ -61,7 +61,6 @@ const getStories = () => {
     "./app/component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.stories.tsx": require("../app/component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.stories.tsx"),
     "./app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories.tsx": require("../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories.tsx"),
     "./app/component-library/components-temp/SectionHeader/SectionHeader.stories.tsx": require("../app/component-library/components-temp/SectionHeader/SectionHeader.stories.tsx"),
-    "./app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx": require("../app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx"),
     "./app/component-library/components-temp/TabBar/TabBar.stories.tsx": require("../app/component-library/components-temp/TabBar/TabBar.stories.tsx"),
     "./app/component-library/components-temp/TabEmptyState/TabEmptyState.stories.tsx": require("../app/component-library/components-temp/TabEmptyState/TabEmptyState.stories.tsx"),
     "./app/component-library/components-temp/Tabs/Tabs.stories.tsx": require("../app/component-library/components-temp/Tabs/Tabs.stories.tsx"),
