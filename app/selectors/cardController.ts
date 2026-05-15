@@ -18,6 +18,8 @@ import type {
 import { toCardFundingToken } from '../components/UI/Card/util/toCardTokenAllowance';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { isEthAccount } from '../core/Multichain/utils';
+import { isMoneyAccountDelegatedForCard } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
+import { selectPrimaryMoneyAccount } from './moneyAccountController';
 
 const LINEA_MAINNET_CAIP_CHAIN_ID = 'eip155:59144';
 const CASHBACK_FUNDING_SYMBOL = 'USDC';
@@ -144,4 +146,23 @@ export const selectCardLineaUsdcToken = createSelector(
 
     return asset ? toCardFundingToken(asset) : null;
   },
+);
+
+/**
+ * Returns `true` when the primary Money Account is already delegated for
+ * card spending (Monad USDC funding row with allowance not `NotEnabled`).
+ *
+ * Source of truth for the "this Money Account is already linked to the
+ * card" signal — used by the Money feature to suppress the "Link card"
+ * CTA and by `useMoneyAccountCardLinkage` to make `canLink` fail closed
+ * for already-delegated users.
+ */
+export const selectIsMoneyAccountDelegatedForCard = createSelector(
+  selectCardFundingTokens,
+  selectPrimaryMoneyAccount,
+  (fundingTokens, primaryMoneyAccount): boolean =>
+    isMoneyAccountDelegatedForCard({
+      fundingTokens,
+      moneyAccountAddress: primaryMoneyAccount?.address,
+    }),
 );

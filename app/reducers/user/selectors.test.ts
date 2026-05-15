@@ -8,6 +8,7 @@ import {
   selectUserState,
   selectMusdConversionEducationSeen,
   selectMusdConversionAssetDetailCtasSeen,
+  selectMoneyOnboardingSeen,
   selectTokenOverviewChartType,
 } from './selectors';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
@@ -20,6 +21,7 @@ const mockState = {
     isConnectionRemoved: false,
     musdConversionEducationSeen: false,
     musdConversionAssetDetailCtasSeen: {} as Record<string, boolean>,
+    moneyOnboardingSeen: false,
     tokenOverviewChartType: ChartType.Line as ChartType,
   },
 };
@@ -119,6 +121,39 @@ describe('user state selectors', () => {
         '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
         '0xe708-0xdac17f958d2ee523a2206206994597c13d831ec7': true,
       });
+    });
+  });
+
+  describe('selectMoneyOnboardingSeen', () => {
+    it('returns false when money onboarding has not been seen', () => {
+      mockState.user.moneyOnboardingSeen = false;
+
+      const { result } = renderHook(() =>
+        useSelector(selectMoneyOnboardingSeen),
+      );
+
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when money onboarding has been seen', () => {
+      mockState.user.moneyOnboardingSeen = true;
+
+      const { result } = renderHook(() =>
+        useSelector(selectMoneyOnboardingSeen),
+      );
+
+      expect(result.current).toBe(true);
+    });
+
+    it('defaults to false when moneyOnboardingSeen is not set', () => {
+      // @ts-expect-error - Testing undefined state
+      mockState.user.moneyOnboardingSeen = undefined;
+
+      const { result } = renderHook(() =>
+        useSelector(selectMoneyOnboardingSeen),
+      );
+
+      expect(result.current).toBe(false);
     });
   });
 

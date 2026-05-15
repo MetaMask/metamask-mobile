@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 # Upload IPA to TestFlight via Fastlane
-# This script can be used in both Bitrise and GitHub Actions workflows
 #
 # Usage:
 #   ./scripts/upload-to-testflight.sh <pipeline_name> <branch> [ipa_path] [testflight_group] [distribute_external]
@@ -53,7 +52,6 @@ echo "Group: $TESTFLIGHT_GROUP"
 
 # Extract environment from pipeline name for changelog
 # GitHub Actions passes "github_actions_<build_name>" (e.g. github_actions_main-exp); use segment after first "-" (e.g. exp).
-# Bitrise and others pass pipeline title; use first segment before underscore.
 if [[ "$PIPELINE_NAME" == github_actions_* ]]; then
   suffix="${PIPELINE_NAME#github_actions_}"
   ENVIRONMENT=$(echo "${suffix#*-}" | tr '[:lower:]' '[:upper:]')

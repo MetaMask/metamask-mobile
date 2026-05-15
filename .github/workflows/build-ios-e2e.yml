@@ -75,8 +75,24 @@ jobs:
 
     steps:
       # Get the source code from the repository
+      - name: Checkout repo (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - name: Checkout repo
         uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
+
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          cache: |
+            cocoapods
+            xcode
+          path: |
+            ~/.cache/yarn
+            .metamask
+            .yarn/cache
 
       - name: Check force-builds override
         id: force-builds
@@ -145,7 +161,7 @@ jobs:
 
       - name: Restore Xcode derived data from branch cache
         id: xcode-restore-cache
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -155,15 +171,22 @@ jobs:
           key: ${{ runner.os }}-xcode-${{ github.ref_name }}-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
 
       - name: Restore Xcode derived data from main cache
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' && steps.xcode-restore-cache.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && steps.xcode-restore-cache.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: xcode-restore-cache-main
-        # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
             ios/build
           key: ${{ runner.os }}-xcode-main-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
+
+      # Namespace's built-in cocoapods preset handles the CocoaPods cache paths upstream.
+      # Validated to work without a separate stale-state clear step (A/B tested 2026-05-11).
+      - name: Configure Namespace iOS cache
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' && inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1.4.3
+        with:
+          cache: cocoapods
 
       # Install Node.js, Xcode tools, and other iOS development dependencies.
       - name: Installing iOS Environment Setup
@@ -174,6 +197,7 @@ jobs:
           platform: ios
           setup-simulator: false
           install-foundry: false
+          runner_provider: ${{ inputs.runner_provider }}
 
       - name: Print iOS tool versions
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
@@ -196,7 +220,7 @@ jobs:
         run: find ios -name "*.plist" -exec xattr -c {} \;
 
       - name: Restore .metamask folder
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
         id: restore-metamask
         uses: actions/cache@v4
         with:
@@ -249,7 +273,7 @@ jobs:
           YARN_ENABLE_GLOBAL_CACHE: 'true'
 
       - name: Restore .metamask folder (reuse-hit path)
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build != 'true' }}
         id: restore-metamask-lean
         uses: actions/cache@v4
         with:

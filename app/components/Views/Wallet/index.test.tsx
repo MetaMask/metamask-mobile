@@ -145,6 +145,35 @@ jest.mock('../Homepage/components/HomepageDiscoveryTabs', () => {
   };
 });
 
+// Control carousel/braze banner flags per test (default off so existing tests are unaffected)
+const mockCarouselBannersEnabled = false;
+const mockBrazeBannerHomeEnabled = false;
+jest.mock('../../UI/Carousel/selectors/featureFlags', () => ({
+  selectCarouselBannersFlag: jest.fn(() => mockCarouselBannersEnabled),
+  selectContentfulCarouselEnabledFlag: jest.fn(() => false),
+}));
+jest.mock('../../../selectors/featureFlagController/brazeBannerHome', () => ({
+  selectBrazeBannerHomeFlag: jest.fn(() => mockBrazeBannerHomeEnabled),
+}));
+
+const BRAZE_BANNER_TEST_ID = 'braze-banner-mock';
+const CAROUSEL_TEST_ID = 'carousel-mock';
+
+jest.mock('../../UI/BrazeBanner', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID={BRAZE_BANNER_TEST_ID} />,
+  };
+});
+
+jest.mock('../../UI/Carousel', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    Carousel: () => <View testID={CAROUSEL_TEST_ID} />,
+  };
+});
+
 // Capture the HomepageScrollContext value by rendering a context-aware mock Homepage.
 // The mock is only invoked when mockHomepageSectionsEnabled=true (sections flag on),
 // so existing tests that leave the flag false are completely unaffected.

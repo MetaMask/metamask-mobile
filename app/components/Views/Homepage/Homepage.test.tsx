@@ -172,10 +172,6 @@ jest.mock('../../../selectors/deFiPositionsSectionEnabled', () => ({
   selectDeFiPositionsSectionEnabled: jest.fn(() => true),
 }));
 
-jest.mock('../../../selectors/featureFlagController/whatsHappening', () => ({
-  selectWhatsHappeningEnabled: jest.fn(() => false),
-}));
-
 jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
   selectSocialLeaderboardEnabled: jest.fn(() => false),
 }));
@@ -299,9 +295,6 @@ describe('Homepage', () => {
     jest
       .requireMock('../../../selectors/deFiPositionsSectionEnabled')
       .selectDeFiPositionsSectionEnabled.mockReturnValue(true);
-    jest
-      .requireMock('../../../selectors/featureFlagController/whatsHappening')
-      .selectWhatsHappeningEnabled.mockReturnValue(false);
     jest
       .requireMock('../../../selectors/featureFlagController/socialLeaderboard')
       .selectSocialLeaderboardEnabled.mockReturnValue(false);
@@ -431,11 +424,8 @@ describe('Homepage', () => {
     });
   });
 
-  describe("section indices — Social Leaderboard and What's Happening enabled", () => {
+  describe('section indices — Social Leaderboard enabled', () => {
     beforeEach(() => {
-      jest
-        .requireMock('../../../selectors/featureFlagController/whatsHappening')
-        .selectWhatsHappeningEnabled.mockReturnValue(true);
       jest
         .requireMock(
           '../../../selectors/featureFlagController/socialLeaderboard',
@@ -454,17 +444,16 @@ describe('Homepage', () => {
       expect(callBySectionName('perps')?.sectionIndex).toBe(1);
       expect(callBySectionName('predict')?.sectionIndex).toBe(2);
       expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
-      expect(callBySectionName('whats_happening')?.sectionIndex).toBe(4);
-      expect(callBySectionName('defi')?.sectionIndex).toBe(5);
-      expect(callBySectionName('nfts')?.sectionIndex).toBe(6);
+      expect(callBySectionName('defi')?.sectionIndex).toBe(4);
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(5);
     });
 
-    it("passes totalSectionsLoaded=7 when leaderboard and What's Happening flags are on", () => {
+    it('passes totalSectionsLoaded=6 when Social Leaderboard flag is on', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
       const calls = getUseHomeViewedEventCalls();
       calls.forEach((call) => {
-        expect(call[0]?.totalSectionsLoaded).toBe(7);
+        expect(call[0]?.totalSectionsLoaded).toBe(6);
       });
     });
   });
@@ -568,19 +557,6 @@ describe('Homepage', () => {
       });
     });
 
-    it('includes whats_happening section in treatment variant', () => {
-      jest
-        .requireMock('../../../selectors/featureFlagController/whatsHappening')
-        .selectWhatsHappeningEnabled.mockReturnValue(true);
-
-      renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      const calls = getUseHomeViewedEventCalls();
-      expect(calls.some((c) => c[0]?.sectionName === 'whats_happening')).toBe(
-        true,
-      );
-    });
-
     it('includes top_traders in section order when Social Leaderboard is enabled', () => {
       jest
         .requireMock(
@@ -607,6 +583,34 @@ describe('Homepage', () => {
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(9);
       });
+    });
+  });
+
+  describe('perpsProvidersHoisted + Perps feature flag', () => {
+    it('does not render PerpsSection when perpsProvidersHoisted=true and Perps flag is disabled', () => {
+      jest
+        .requireMock('../../UI/Perps')
+        .selectPerpsEnabledFlag.mockReturnValue(false);
+
+      renderWithProvider(<Homepage perpsProvidersHoisted />, {
+        state: stateWithPreferences,
+      });
+
+      const calls = getUseHomeViewedEventCalls();
+      expect(calls.some((c) => c[0]?.sectionName === 'perps')).toBe(false);
+    });
+
+    it('renders PerpsSection when perpsProvidersHoisted=true and Perps flag is enabled', () => {
+      jest
+        .requireMock('../../UI/Perps')
+        .selectPerpsEnabledFlag.mockReturnValue(true);
+
+      renderWithProvider(<Homepage perpsProvidersHoisted />, {
+        state: stateWithPreferences,
+      });
+
+      const calls = getUseHomeViewedEventCalls();
+      expect(calls.some((c) => c[0]?.sectionName === 'perps')).toBe(true);
     });
   });
 });

@@ -100,17 +100,53 @@ jobs:
       YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
 
     steps:
+      - name: Checkout (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+
       - name: Checkout
         uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
+
+      - name: Configure Namespace cache (Android)
+        if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'android' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          cache: |
+            gradle
+            maven
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+            /home/runner/_work/.gradle/caches
+            /home/runner/_work/.gradle/wrapper
+            /home/runner/_work/.gradle/apk-cache
+
+      - name: Configure Namespace cache (iOS)
+        if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          cache: |
+            cocoapods
+          path: |
+            ~/.cache/yarn
+            .metamask
+            .yarn/cache
+            ~/Library/Detox
 
       - name: Restore .metamask folder
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/cache@v4
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Set up E2E environment
-        timeout-minutes: 25
+        # Namespace iOS smoke runs many matrix jobs in parallel; CocoaPods + yarn need more
+        # headroom than the composite default (see INFRA-3596 / run 25755790077 timeouts).
+        timeout-minutes: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && 45 || 25 }}
         uses: ./.github/actions/setup-e2e-env
         with:
           platform: ${{ inputs.platform }}
@@ -118,6 +154,9 @@ jobs:
           android-avd-name: emulator
           android-api-level: 36
           configure-keystores: false
+          runner_provider: ${{ inputs.runner_provider }}
+          js-retry-timeout-minutes: ${{ inputs.runner_provider == 'namespace' && '20' || '15' }}
+          pod-install-timeout-minutes: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && '22' || '15' }}
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
