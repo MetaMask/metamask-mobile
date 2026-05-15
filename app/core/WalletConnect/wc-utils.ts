@@ -26,8 +26,8 @@ import { wait } from '../SDKConnect/utils/wait.util';
 import { WalletKitTypes } from '@reown/walletkit';
 import { EVM_APPROVED_METHODS, EVM_METHODS_TO_REDIRECT } from './wc-config';
 import {
-  buildAdapterScopedPermissionsNamespaces,
   isRedirectMethodForChain as isNonEVMRedirectMethodForChain,
+  normalizeCaipChainIdOutbound as normalizeNonEvmCaipChainIdOutbound,
 } from './multichain';
 
 export interface WCMultiVersionParams {
@@ -241,6 +241,16 @@ export const getScopedPermissions = async ({
 }: {
   channelId: string;
 }) => {
+  const permittedChains = await getPermittedChains(channelId);
+  const evmChains = permittedChains.filter((chain) =>
+    chain.startsWith(`${KnownCaipNamespace.Eip155}:`),
+  );
+
+  if (evmChains.length === 0) {
+    DevLogger.log(`WC::getScopedPermissions no permitted EVM chains found`);
+    return {};
+  }
+
   // Each chain appends its own block to this map.
   // To add a new chain, add a flag-guarded block below.
   DevLogger.log(`WC::getScopedPermissions channelId=${channelId}`);
@@ -252,10 +262,6 @@ export const getScopedPermissions = async ({
       message: `WalletConnect permissions are in an unexpected format: approved accounts must be an array.`,
     });
   }
-  const permittedChains = await getPermittedChains(channelId);
-  const evmChains = permittedChains.filter((chain) =>
-    chain.startsWith(`${KnownCaipNamespace.Eip155}:`),
-  );
 
   namespaces[KnownCaipNamespace.Eip155] = {
     chains: evmChains,
@@ -267,13 +273,7 @@ export const getScopedPermissions = async ({
     ),
   };
 
-  // Non EVM namespaces
-  const adapterNamespaces = buildAdapterScopedPermissionsNamespaces({
-    channelId,
-    permittedChains,
-  });
-
-  return { ...namespaces, ...adapterNamespaces };
+  return namespaces;
 };
 
 export const isSwitchingChainRequest = (
@@ -467,8 +467,9 @@ export const getChainChangedEmissionForWalletConnect = ({
       (slice?.events ?? []).includes('chainChanged'),
   );
   if (nonEvmEntry) {
-    const firstChain = nonEvmEntry[1]?.chains?.[0] as string;
-    return { chainId: firstChain, data: firstChain };
+    const firstChain = nonEvmEntry[1]?.chains?.[0] as CaipChainId;
+    const wcChainId = normalizeNonEvmCaipChainIdOutbound(firstChain);
+    return { chainId: wcChainId, data: wcChainId };
   }
 
   if (eip155Chain) {

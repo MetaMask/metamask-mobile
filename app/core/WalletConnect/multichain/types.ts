@@ -18,6 +18,7 @@ import type {
   KnownCaipNamespace,
   CaipAccountId,
 } from '@metamask/utils';
+import { type WalletKitTypes } from '@reown/walletkit';
 
 /** Shape of a single namespace slice in WalletConnect's approved namespaces map. */
 export interface NamespaceConfig {
@@ -34,19 +35,9 @@ export interface SnapMappedRequest<Param = unknown> {
 }
 
 /**
- * Minimal shape of a WalletConnect session proposal — kept loose so
- * adapters don't depend on `@walletconnect/types` directly.
+ * Minimal shape of a WalletConnect session proposal
  */
-export interface ProposalLike {
-  requiredNamespaces?: Record<
-    string,
-    { chains?: string[]; methods?: string[]; events?: string[] } | undefined
-  >;
-  optionalNamespaces?: Record<
-    string,
-    { chains?: string[]; methods?: string[]; events?: string[] } | undefined
-  >;
-}
+export type ProposalParams = WalletKitTypes.SessionProposal["params"];
 
 /**
  * Inputs handed to `ChainAdapter.buildNamespace`. The optional
@@ -55,7 +46,7 @@ export interface ProposalLike {
  * permissions, methods/events from an in-flight session).
  */
 export interface BuildNamespaceArgs {
-  proposal: ProposalLike;
+  proposal: ProposalParams;
   existingAccounts?: string[];
   existingMethods?: string[];
   existingEvents?: string[];
@@ -88,20 +79,14 @@ export interface ChainAdapter {
   approvedMethods: readonly string[];
 
   /**
-   * Returns true if the dapp proposal references this namespace,
-   * either via a top-level `<namespace>` key or via a bare
-   * `<namespace>:<ref>` chain id under another namespace.
+   * Seed this chain's accounts into the CAIP-25 caveat for the given
+   * WalletConnect channel. Called once per session proposal before
+   * namespaces are built. Adapters that only want to seed when the dapp
+   * explicitly requests this namespace must call
+   * `doesProposalIncludeNamespace` themselves.
    */
-  proposalReferencesNamespace(proposal: ProposalLike): boolean;
-
-  /**
-   * Optional pre-approval hook. Called once per session proposal,
-   * regardless of whether the proposal references this namespace —
-   * adapters that only want to react when interest is shown must
-   * call `proposalReferencesNamespace` themselves.
-   */
-  onBeforeApprove?(args: {
-    proposal: ProposalLike;
+  seedPermissions?(args: {
+    proposal: ProposalParams;
     channelId: string;
   }): void | Promise<void>;
 
@@ -110,13 +95,7 @@ export interface ChainAdapter {
    * What the wallet is *capable of exposing* for this channel, independent of
    * any dapp proposal.
    */
-  buildScopedPermissionsNamespace({
-    channelId,
-    permittedChains,
-  }: {
-    channelId: string;
-    permittedChains: CaipChainId[];
-  }): NamespaceConfig | undefined;
+  getScopedPermissions(args: { channelId: string }): Promise<NamespaceConfig | undefined>;
 
   /**
    * Build this chain's namespace slice for the WC session. Return

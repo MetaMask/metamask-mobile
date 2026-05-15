@@ -13,8 +13,7 @@
 export {
   seedAdapterPermissions,
   buildAdapterNamespaces,
-  proposalReferencedAdapterNamespaces,
-  buildAdapterScopedPermissionsNamespaces,
+  getAdaptersScopedPermissions,
   normalizeCaipChainIdInbound,
   normalizeCaipChainIdOutbound,
   normalizeCaipAccountIdInbound,
@@ -24,6 +23,10 @@ export {
   getRedirectMethodsForChain,
   isRedirectMethodForChain,
 } from './helpers';
+export {
+  collectRequestedChainsForNamespace,
+  doesProposalIncludeNamespace,
+} from './utils';
 export { callMultichainRoutingService } from './router';
 export {
   getAdapter,
@@ -34,6 +37,6 @@ export type {
   BuildNamespaceArgs,
   ChainAdapter,
   NamespaceConfig,
-  ProposalLike,
+  ProposalParams,
   SnapMappedRequest,
 } from './types';

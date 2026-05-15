@@ -19,7 +19,7 @@ import DevLogger from '../../SDKConnect/utils/DevLogger';
 import { getAllAdapters, getAdapter } from './registry';
 import type {
   NamespaceConfig,
-  ProposalLike,
+  ProposalParams,
   ApprovedNamespaces,
   SnapMappedRequest,
 } from './types';
@@ -36,15 +36,12 @@ export const seedAdapterPermissions = async ({
   proposal,
   channelId,
 }: {
-  proposal: ProposalLike;
+  proposal: ProposalParams;
   channelId: string;
 }): Promise<void> => {
   for (const adapter of getAllAdapters()) {
-    if (!adapter.onBeforeApprove) {
-      continue;
-    }
     try {
-      await adapter.onBeforeApprove({ proposal, channelId });
+      await adapter.seedPermissions?.({ proposal, channelId });
     } catch (err) {
       DevLogger.log(
         `[wc][multichain] onBeforeApprove failed for ${adapter.namespace}`,
@@ -64,7 +61,7 @@ export const buildAdapterNamespaces = ({
   proposal,
   existingNamespaces = {},
 }: {
-  proposal: ProposalLike;
+  proposal: ProposalParams;
   existingNamespaces?: Partial<
     Record<KnownCaipNamespace, Partial<NamespaceConfig>>
   >;
@@ -86,36 +83,16 @@ export const buildAdapterNamespaces = ({
 };
 
 /**
- * Returns the set of CAIP-2 namespaces this dapp proposal references
- * across all registered adapters. Useful for keeping non-EVM keys in
- * the `allowedNamespaceKeys` filter that drops un-requested namespaces
- * from the approved session.
- */
-export const proposalReferencedAdapterNamespaces = (
-  proposal: ProposalLike,
-): string[] =>
-  getAllAdapters()
-    .filter((adapter) => adapter.proposalReferencesNamespace(proposal))
-    .map((adapter) => adapter.namespace);
-
-/**
  * Build this chain's namespace slice from the wallet's current state
  * What the wallet is *capable of exposing* for this channel, independent of
  * any dapp proposal.
  */
-export const buildAdapterScopedPermissionsNamespaces = ({
-  channelId,
-  permittedChains,
-}: {
+export const getAdaptersScopedPermissions = async (args: {
   channelId: string;
-  permittedChains: CaipChainId[];
-}): Record<string, NamespaceConfig> => {
+}): Promise<Record<string, NamespaceConfig>> => {
   const namespaces: Record<string, NamespaceConfig> = {};
   for (const adapter of getAllAdapters()) {
-    const config = adapter.buildScopedPermissionsNamespace({
-      channelId,
-      permittedChains,
-    });
+    const config = await adapter.getScopedPermissions(args);
     if (config) {
       namespaces[adapter.namespace] = config;
     }

@@ -49,12 +49,12 @@ import {
   isEIP155Scope,
 } from './wc-utils';
 import {
-  proposalReferencedAdapterNamespaces,
   callMultichainRoutingService,
   mapRequestInbound,
   mapRequestOutbound,
   normalizeCaipChainIdInbound,
   normalizeCaipAccountIdInbound,
+  getAdaptersScopedPermissions,
 } from './multichain';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { errorCodes, providerErrors, rpcErrors } from '@metamask/rpc-errors';
@@ -370,10 +370,10 @@ class WalletConnect2Session {
    * a `chainChanged` event to the dapp.
    *
    * `accounts` and `chainId` are used only as guards and fallbacks:
-   * - `accounts`: if absent or empty, the function bails out or falls back to
-   *   `getPermittedAccounts`. The list itself is NOT forwarded to WalletConnect.
-   * - `chainId`: if 0, falls back to the currently selected network. Used only
-   *   as a fallback value for the `chainChanged` emission.
+    * - `accounts`: if absent or empty, the function bails out or falls back to `getPermittedAccounts`.
+    * - `accounts`: the list itself is NOT forwarded to WalletConnect.
+    * - `chainId`: if 0, it falls back to the currently selected network.
+    * - `chainId`: it is used only as a fallback value for the `chainChanged` emission.
    *
    * The actual session payload (namespaces + accounts) is always rebuilt from
    * scratch by {@link getScopedPermissions}, which reads live permissions from
@@ -424,9 +424,13 @@ class WalletConnect2Session {
         );
       }
 
-      const namespaces = await getScopedPermissions({
-        channelId: this.channelId,
-      });
+      // Use getScopedPermissions to get properly formatted namespaces
+      const evmNamespaces = await getScopedPermissions({ channelId: this.channelId });
+      const adaptersNamespaces = await getAdaptersScopedPermissions({ channelId: this.channelId });
+      const namespaces = {
+        ...evmNamespaces,
+        ...adaptersNamespaces,
+      };
 
       DevLogger.log(
         `🔴🔴 WC2::updateSession available namespaces`,

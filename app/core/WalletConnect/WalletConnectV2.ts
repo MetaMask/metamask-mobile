@@ -39,8 +39,6 @@ import {
   parseWalletConnectUri,
   showWCLoadingState,
   isValidUrl,
-  getChainChangedEmissionForWalletConnect,
-  shouldEmitChainChangedForWalletConnect,
 } from './wc-utils';
 
 import {
@@ -48,11 +46,11 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import WalletConnect2Session from './WalletConnect2Session';
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, KnownCaipNamespace } from '@metamask/utils';
 import {
-  buildAdapterNamespaces,
-  proposalReferencedAdapterNamespaces,
   seedAdapterPermissions,
+  doesProposalIncludeNamespace,
+  getAdaptersScopedPermissions,
 } from './multichain';
 import NavigationService from '../NavigationService';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
@@ -74,6 +72,9 @@ const PROPOSAL_LOCK_TIMEOUT_MS = 60_000;
 // How long a pairing topic stays in seenTopics. Long enough to block the
 // OS duplicate-delivery burst (~1 s), short enough to allow manual retries.
 const SEEN_TOPIC_TTL_MS = 5_000;
+
+
+console.log('--------------------------- WalletConnectV2', '4o', '1');
 
 export class WC2Manager {
   private static instance: WC2Manager;
@@ -477,6 +478,8 @@ export class WC2Manager {
   }
 
   async onSessionProposal(proposal: WalletKitTypes.SessionProposal) {
+    console.log('--------------------------- WalletConnectV2', 'onSessionProposal', proposal);
+
     const handle = () =>
       Promise.race([
         this._handleSessionProposal(proposal),
@@ -605,20 +608,18 @@ export class WC2Manager {
       updateWC2Metadata({ url, name, icon, id: `${id}`, verifyContext }),
     );
 
+    const doesProposalIncludeEip155 = doesProposalIncludeNamespace({
+      proposal: proposal.params,
+      namespace: KnownCaipNamespace.Eip155,
+    });
+
     // Get the current chain ID to include in permissions
     const walletChainIdHex = selectEvmChainId(store.getState());
     const walletChainIdDecimal = parseInt(walletChainIdHex, 16);
-    const referencedAdapterNamespaces = proposalReferencedAdapterNamespaces(
-      proposal.params,
-    );
-    const isMultichainOrigin = referencedAdapterNamespaces.length > 0;
 
     try {
       // Create a modified CAIP-25 caveat value that includes the current chain
-      const caveatValue = {
-        ...getDefaultCaip25CaveatValue(),
-        isMultichainOrigin,
-      };
+      const caveatValue = getDefaultCaip25CaveatValue();
 
       // Important: Use hostname as the origin for permission request to ensure consistency
       DevLogger.log(
@@ -648,23 +649,25 @@ export class WC2Manager {
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Explicitly add the current chain to permissions
-      try {
-        const hexChainId = `0x${walletChainIdDecimal.toString(
-          16,
-        )}` as `0x${string}`;
-        DevLogger.log(
-          `WC2::session_proposal ensuring chain ${hexChainId} is permitted for ${hostname}`,
-        );
+      if (doesProposalIncludeEip155) {
+        try {
+          const hexChainId = `0x${walletChainIdDecimal.toString(
+            16,
+          )}` as `0x${string}`;
+          DevLogger.log(
+            `WC2::session_proposal ensuring chain ${hexChainId} is permitted for ${hostname}`,
+          );
 
-        updatePermittedChains(channelId, [`eip155:${walletChainIdDecimal}`]);
-        DevLogger.log(
-          `WC2::session_proposal chain permission added successfully`,
-        );
-      } catch (err) {
-        DevLogger.log(
-          `WC2::session_proposal error adding chain permission`,
-          err,
-        );
+          updatePermittedChains(channelId, [`eip155:${walletChainIdDecimal}`]);
+          DevLogger.log(
+            `WC2::session_proposal chain permission added successfully`,
+          );
+        } catch (err) {
+          DevLogger.log(
+            `WC2::session_proposal error adding chain permission`,
+            err,
+          );
+        }
       }
 
       // Let every non-EVM adapter seed its own accounts into the CAIP-25
@@ -696,101 +699,26 @@ export class WC2Manager {
       });
 
       // Use getScopedPermissions to get properly formatted namespaces
-      const namespaces = await getScopedPermissions({ channelId });
+      const evmNamespaces = await getScopedPermissions({ channelId });
+      const adaptersNamespaces = await getAdaptersScopedPermissions({ channelId });
+      const namespaces = {
+        ...evmNamespaces,
+        ...adaptersNamespaces,
+      };
 
-      const requiredNamespaces = proposal.params.requiredNamespaces ?? {};
-      const optionalNamespaces = proposal.params.optionalNamespaces ?? {};
-      const allProposalNamespaces = {
-        ...optionalNamespaces,
-        ...requiredNamespaces,
-      } as Record<
-        string,
-        { chains?: string[]; methods?: string[]; events?: string[] }
-      >;
-      const proposalChains = Object.values(allProposalNamespaces).flatMap(
-        (ns) => ns?.chains ?? [],
-      );
-
-      // Augment the EVM-derived namespaces with each non-EVM adapter's
-      // slice. Adapters look at the dapp proposal + any pre-existing
-      // accounts/methods/events on `namespaces` and either return a
-      // slice or skip themselves.
-      const adapterSlices = buildAdapterNamespaces({
-        proposal: proposal.params,
-        existingNamespaces: namespaces,
-      });
-      Object.assign(namespaces, adapterSlices);
-
-      // Some SDK restore paths still resolve delegated chains (wallet:eip155)
-      // by looking up a `wallet` namespace and reading `.chains`. Mirror
-      // eip155 into the wallet namespace when the proposal requested it.
-      // (EVM-only logic — kept here on purpose.)
-      const requestedWalletNamespace =
-        allProposalNamespaces.wallet ??
-        (proposalChains.some((chain) => chain.startsWith('wallet:'))
-          ? {
-              chains: proposalChains.filter((chain) =>
-                chain.startsWith('wallet:'),
-              ),
-            }
-          : undefined);
-      const requestedWalletEip155 = requestedWalletNamespace?.chains?.some(
-        (chain) => chain === 'wallet:eip155',
-      );
-      if (requestedWalletEip155 && namespaces.eip155) {
-        const walletChains = ['wallet:eip155'];
-        const eip155Accounts = Array.isArray(namespaces.eip155.accounts)
-          ? namespaces.eip155.accounts
-          : [];
-        namespaces.wallet = {
-          chains: walletChains,
-          methods: namespaces.eip155.methods ?? [],
-          events: namespaces.eip155.events ?? [],
-          accounts: eip155Accounts.map((account) => {
-            const [, , address] = account.split(':');
-            return `wallet:eip155:${address}` as `${string}:${string}:${string}`;
-          }),
-        };
-      }
-
-      // Filter out namespaces the dapp never requested. Some dapp universal
-      // providers (e.g. chain-specific Tron adapters) only register sub-
-      // providers for the namespaces they requested and crash during session
-      // rehydration when they encounter approved namespaces they don't know
-      // about (e.g. `Cannot read properties of undefined (reading 'chains')`
-      // when iterating `session.namespaces` and looking up an unknown rpc
-      // provider). Per WalletConnect spec, only namespaces that were present
-      // in required/optional should be approved.
-      const allowedNamespaceKeys = new Set<string>([
-        ...Object.keys(proposal.params.requiredNamespaces ?? {}),
-        ...Object.keys(proposal.params.optionalNamespaces ?? {}),
-      ]);
-      // If the proposal referenced `wallet:eip155` (delegated chain), the
-      // eip155 namespace is implicitly requested as well.
-      if (
-        proposalChains.some((chain) => chain === 'wallet:eip155') ||
-        allowedNamespaceKeys.has('wallet')
-      ) {
-        allowedNamespaceKeys.add('eip155');
-      }
-      // Non-EVM adapters can match a proposal via bare `<ns>:<ref>`
-      // chains under another namespace key, which the simple
-      // `Object.keys(...)` collection above misses. Let each adapter
-      // self-report.
-      for (const ns of proposalReferencedAdapterNamespaces(proposal.params)) {
-        allowedNamespaceKeys.add(ns);
-      }
-      if (allowedNamespaceKeys.size > 0) {
-        for (const key of Object.keys(namespaces)) {
-          if (!allowedNamespaceKeys.has(key)) {
-            DevLogger.log(
-              `WC2::session_proposal dropping unrequested namespace`,
-              { key, allowedNamespaceKeys: Array.from(allowedNamespaceKeys) },
-            );
-            delete namespaces[key];
-          }
+      // Filter out namespaces the dapp never requested.
+      const requiredOrOptionalNamespacesKeys = [
+        ...Object.keys(proposal.params.requiredNamespaces),
+        ...Object.keys(proposal.params.optionalNamespaces),
+      ];
+      const onlyRequiredOrOptionalNamespaces = requiredOrOptionalNamespacesKeys.reduce((acc, key) => {
+        if (namespaces[key]) {
+          acc[key] = namespaces[key];
         }
-      }
+        return acc;
+      }, {} as SessionTypes.Namespaces);
+
+      console.log('--------------------------- WalletConnect2Session', 'proposal.id', proposal.id, 'requiredOrOptionalNamespacesKeys', requiredOrOptionalNamespacesKeys, 'onlyRequiredOrOptionalNamespaces', onlyRequiredOrOptionalNamespaces);
 
       DevLogger.log(`WC2::session_proposal namespaces`, namespaces);
 
@@ -823,37 +751,31 @@ export class WC2Manager {
         accounts: approvedAccounts,
       });
 
-      const activeNamespaces = activeSession.namespaces ?? {};
-      const chainChangedEmission = getChainChangedEmissionForWalletConnect({
-        namespaces: activeNamespaces,
-        fallbackEvmDecimal: walletChainIdDecimal,
-        fallbackEvmHex: walletChainIdHex,
-      });
+      // Since MetaMask has removed the network selector
+      // We decided not to support chain switching for non-EVM
+      // We still keep the chainChanged emission logic for EVM though
+      if (doesProposalIncludeEip155) {
+        // Check if the chain is in the approved chains list before emitting event
+        const caipChainId = `eip155:${walletChainIdDecimal}` as CaipChainId;
+        const approvedChains = namespaces?.eip155?.chains || [];
 
-      const approvedChains = activeNamespaces?.eip155?.chains || [];
-      const emitDecision = shouldEmitChainChangedForWalletConnect({
-        chainId: String(chainChangedEmission.chainId),
-        namespaces: activeNamespaces,
-      });
+        DevLogger.log(`WC2::session_proposal emitSessionEvent`, {
+          topic: activeSession.topic,
+          event: {
+            name: 'chainChanged',
+            data: walletChainIdHex,
+          },
+          chainId: caipChainId,
+          approvedChains,
+        });
 
-      DevLogger.log(`WC2::session_proposal emitSessionEvent`, {
-        topic: activeSession.topic,
-        event: {
-          name: 'chainChanged',
-          data: chainChangedEmission.data,
-        },
-        chainId: chainChangedEmission.chainId as CaipChainId,
-        approvedChains,
-      });
-
-      if (emitDecision.shouldEmit) {
         await this.web3Wallet.emitSessionEvent({
           topic: activeSession.topic,
           event: {
             name: 'chainChanged',
-            data: chainChangedEmission.data,
+            data: walletChainIdHex,
           },
-          chainId: chainChangedEmission.chainId as CaipChainId,
+          chainId: caipChainId,
         });
       }
 
@@ -894,6 +816,7 @@ export class WC2Manager {
   }
 
   private async onSessionRequest(requestEvent: WalletKitTypes.SessionRequest) {
+    console.log('--------------------------- WalletConnectV2', 'onSessionRequest', 'requestEvent', requestEvent);
     const keyringController = (
       Engine.context as { KeyringController: KeyringController }
     ).KeyringController;
@@ -944,8 +867,7 @@ export class WC2Manager {
   }) {
     try {
       Logger.log(
-        `WC2Manager::connect ${wcUri} origin=${origin} redirectUrl=${redirectUrl} navigation=${
-          this.navigation !== undefined
+        `WC2Manager::connect ${wcUri} origin=${origin} redirectUrl=${redirectUrl} navigation=${this.navigation !== undefined
         }`,
       );
 
@@ -956,20 +878,7 @@ export class WC2Manager {
       // First check if the url continas sessionTopic, meaning it is only here from an existing connection (so we don't need to create pairing)
       if (rawParams.sessionTopic) {
         const { sessionTopic } = rawParams;
-        let session = this.sessions[sessionTopic];
-        if (!session) {
-          const activeSession = this.getSession(sessionTopic);
-          if (activeSession) {
-            session = new WalletConnect2Session({
-              web3Wallet: this.web3Wallet,
-              channelId: activeSession.pairingTopic,
-              navigation: this.navigation,
-              deeplink: true,
-              session: activeSession,
-            });
-            this.sessions[sessionTopic] = session;
-          }
-        }
+        const session = this.sessions[sessionTopic];
         if (session) {
           session.setDeeplink(true);
 

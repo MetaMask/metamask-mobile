@@ -28,11 +28,16 @@ import {
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 
 import Engine from '../../../Engine';
-import { addPermittedAccounts, sortMultichainAccountsByLastSelected } from '../../../Permissions';
+import { addPermittedAccounts, sortMultichainAccountsByLastSelected, getPermittedChains } from '../../../Permissions';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import {
+  collectRequestedChainsForNamespace,
+  doesProposalIncludeNamespace,
+} from '../utils';
 import type {
   ChainAdapter,
   NamespaceConfig,
+  ProposalParams,
   SnapMappedRequest,
 } from '../types';
 
@@ -43,7 +48,7 @@ const TRON_METHODS: string[] = ['tron_signTransaction', 'tron_signMessage'];
 const TRON_EVENTS: readonly string[] = [];
 
 /** CAIP-2 prefix used to identify Tron chain ids in proposals. */
-const DEFAULT_TRON_CHAIN_ID: CaipChainId = 'tron:0x2b6653dc';
+const DEFAULT_TRON_CHAIN_ID: CaipChainId = TrxScope.Mainnet;
 
 /**
  * Normalize a CAIP chain ID coming in from a dapp proposal or request params
@@ -94,22 +99,6 @@ const normalizeTronAccountIdOutbound = (caipAccountId: CaipAccountId): CaipAccou
 };
 
 /**
- * Minimal shape of the relevant parts of a WalletConnect session
- * proposal — local typing keeps the dependency on `@walletconnect/types`
- * out of this module.
- */
-interface TronProposalLike {
-  requiredNamespaces?: Record<
-    string,
-    { chains?: string[]; methods?: string[]; events?: string[] } | undefined
-  >;
-  optionalNamespaces?: Record<
-    string,
-    { chains?: string[]; methods?: string[]; events?: string[] } | undefined
-  >;
-}
-
-/**
  * List Tron EOA addresses currently managed by the wallet.
  */
 const listTronEoaAddresses = (): string[] =>
@@ -117,13 +106,15 @@ const listTronEoaAddresses = (): string[] =>
     .filter((account: { type: string }) => account.type === TrxAccountType.Eoa)
     .map((account: { address: string }) => account.address);
 
-const buildScopedPermissionsNamespace = ({
+/**
+ * Build this chain's namespace slice from the wallet's current state
+ */
+const getScopedPermissions = async ({
   channelId,
-  permittedChains,
 }: {
   channelId: string;
-  permittedChains: CaipChainId[];
-}): NamespaceConfig | undefined => {
+}): Promise<NamespaceConfig | undefined> => {
+  const permittedChains = await getPermittedChains(channelId);
   const tronChains = permittedChains
     .filter((chain) => chain.startsWith(`${KnownCaipNamespace.Tron}:`));
 
@@ -416,7 +407,7 @@ const mapRequestOutbound = ({
  * channel. No-op if the wallet has no Tron EOAs. Errors are swallowed and
  * logged to mirror the previous best-effort behavior.
  */
-const seedTronPermissions = (channelId: string): void => {
+const seedPermissions = (channelId: string): void => {
   try {
     const tronAddresses = listTronEoaAddresses();
     if (tronAddresses.length === 0) {
@@ -439,39 +430,6 @@ const seedTronPermissions = (channelId: string): void => {
 };
 
 /**
- * Collect every Tron CAIP-2 chain ID requested by the dapp proposal.
- * Looks at both `requiredNamespaces.tron` and `optionalNamespaces.tron`,
- * plus any bare `tron:<ref>` chain reference appearing under any
- * other namespace key.
- */
-const collectRequestedTronChains = (
-  proposal: TronProposalLike,
-): CaipChainId[] => {
-  const allNamespaces = {
-    ...(proposal.optionalNamespaces ?? {}),
-    ...(proposal.requiredNamespaces ?? {}),
-  };
-  const direct = allNamespaces.tron?.chains ?? [];
-  const bare = Object.values(allNamespaces).flatMap(
-    (ns) =>
-      ns?.chains?.filter((chain) =>
-        chain.startsWith(KnownCaipNamespace.Tron),
-      ) ?? [],
-  );
-  return Array.from(new Set([...direct, ...bare])) as CaipChainId[];
-};
-
-/**
- * Returns `true` when the dapp proposal references Tron in any way:
- * either via a top-level `tron` namespace key or via a bare `tron:<ref>`
- * chain id appearing under another namespace.
- */
-const proposalReferencesNamespace = (proposal: TronProposalLike): boolean =>
-  Boolean(proposal.requiredNamespaces?.tron) ||
-  Boolean(proposal.optionalNamespaces?.tron) ||
-  collectRequestedTronChains(proposal).length > 0;
-
-/**
  * Build the `tron` namespace slice for the approved WalletConnect
  * session, given the dapp proposal and any Tron addresses already
  * surfaced via scoped permissions.
@@ -485,12 +443,17 @@ const buildNamespace = ({
   existingMethods,
   existingEvents,
 }: {
-  proposal: TronProposalLike;
+  proposal: ProposalParams;
   existingAccounts?: string[];
   existingMethods?: string[];
   existingEvents?: string[];
 }): NamespaceConfig | undefined => {
-  if (!proposalReferencesNamespace(proposal)) {
+  if (
+    !doesProposalIncludeNamespace({
+      proposal,
+      namespace: KnownCaipNamespace.Tron,
+    })
+  ) {
     return undefined;
   }
 
@@ -498,7 +461,10 @@ const buildNamespace = ({
     ...(proposal.optionalNamespaces ?? {}),
     ...(proposal.requiredNamespaces ?? {}),
   };
-  const requestedTronChains = collectRequestedTronChains(proposal);
+  const requestedTronChains = collectRequestedChainsForNamespace({
+    proposal,
+    namespace: KnownCaipNamespace.Tron,
+  });
   const tronChains =
     requestedTronChains.length > 0
       ? requestedTronChains
@@ -560,14 +526,18 @@ export const tronAdapter: ChainAdapter = {
   namespace: KnownCaipNamespace.Tron,
   redirectMethods: ['tron_signTransaction', 'tron_signMessage'],
   approvedMethods: ['tron_signTransaction', 'tron_signMessage'],
-  proposalReferencesNamespace,
-  onBeforeApprove: ({ proposal, channelId }) => {
-    if (!proposalReferencesNamespace(proposal)) {
+  seedPermissions: ({ proposal, channelId }) => {
+    if (
+      !doesProposalIncludeNamespace({
+        proposal,
+        namespace: KnownCaipNamespace.Tron,
+      })
+    ) {
       return;
     }
-    seedTronPermissions(channelId);
+    seedPermissions(channelId);
   },
-  buildScopedPermissionsNamespace,
+  getScopedPermissions,
   buildNamespace,
   normalizeCaipChainIdInbound,
   normalizeCaipChainIdOutbound,

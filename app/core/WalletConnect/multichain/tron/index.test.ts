@@ -512,7 +512,7 @@ describe('multichain/tron - tronAdapter', () => {
       requiredNamespaces: { tron: { chains: ['tron:728126428'] } },
     };
 
-    expect(tronAdapter.proposalReferencesNamespace(proposal)).toBe(true);
+    expect(tronAdapter.doesProposalIncludeNamespace(proposal)).toBe(true);
   });
 
   it('skips onBeforeApprove seeding when proposal does not reference tron', () => {
@@ -520,7 +520,7 @@ describe('multichain/tron - tronAdapter', () => {
       { type: TrxAccountType.Eoa, address: 'TAddr' },
     ]);
 
-    tronAdapter.onBeforeApprove?.({
+    tronAdapter.seedPermissions?.({
       proposal: {},
       channelId: 'channel-42',
     });
@@ -533,7 +533,7 @@ describe('multichain/tron - tronAdapter', () => {
       { type: TrxAccountType.Eoa, address: 'TAddr' },
     ]);
 
-    tronAdapter.onBeforeApprove?.({
+    tronAdapter.seedPermissions?.({
       proposal: {
         requiredNamespaces: { tron: { chains: ['tron:728126428'] } },
       },

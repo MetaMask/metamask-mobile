@@ -1,7 +1,6 @@
 import { type CaipChainId, KnownCaipNamespace } from '@metamask/utils';
 import {
   buildAdapterNamespaces,
-  proposalReferencedAdapterNamespaces,
   seedAdapterPermissions,
 } from './helpers';
 import type { ChainAdapter, NamespaceConfig } from './types';
@@ -33,9 +32,9 @@ const createFakeAdapter = (
 ): ChainAdapter => ({
   namespace: (overrides.namespace ?? 'fake') as KnownCaipNamespace,
   redirectMethods: overrides.redirectMethods ?? [],
-  proposalReferencesNamespace:
-    overrides.proposalReferencesNamespace ?? jest.fn().mockReturnValue(false),
-  onBeforeApprove: overrides.onBeforeApprove,
+  doesProposalIncludeNamespace:
+    overrides.doesProposalIncludeNamespace ?? jest.fn().mockReturnValue(false),
+  seedPermissions: overrides.seedPermissions,
   buildNamespace:
     overrides.buildNamespace ?? jest.fn().mockReturnValue(undefined),
   mapRequestInbound:
@@ -44,8 +43,8 @@ const createFakeAdapter = (
   mapRequestOutbound:
     overrides.mapRequestOutbound ??
     jest.fn().mockImplementation(({ result }) => result),
-  buildScopedPermissionsNamespace:
-    overrides.buildScopedPermissionsNamespace ??
+  getScopedPermissions:
+    overrides.getScopedPermissions ??
     jest.fn().mockReturnValue(undefined),
   normalizeCaipChainIdInbound:
     overrides.normalizeCaipChainIdInbound ??
@@ -66,11 +65,11 @@ describe('seedAdapterPermissions', () => {
     mockedGetAllAdapters.mockReturnValue([
       createFakeAdapter({
         namespace: KnownCaipNamespace.Tron,
-        onBeforeApprove: tronHook,
+        seedPermissions: tronHook,
       }),
       createFakeAdapter({
         namespace: KnownCaipNamespace.Solana,
-        onBeforeApprove: solanaHook,
+        seedPermissions: solanaHook,
       }),
     ]);
 
@@ -95,7 +94,7 @@ describe('seedAdapterPermissions', () => {
     const adapterWithoutHook = createFakeAdapter({
       namespace: KnownCaipNamespace.Bip122,
     });
-    delete adapterWithoutHook.onBeforeApprove;
+    delete adapterWithoutHook.seedPermissions;
     mockedGetAllAdapters.mockReturnValue([adapterWithoutHook]);
 
     await expect(
@@ -109,11 +108,11 @@ describe('seedAdapterPermissions', () => {
     mockedGetAllAdapters.mockReturnValue([
       createFakeAdapter({
         namespace: 'a' as KnownCaipNamespace,
-        onBeforeApprove: failingHook,
+        seedPermissions: failingHook,
       }),
       createFakeAdapter({
         namespace: 'b' as KnownCaipNamespace,
-        onBeforeApprove: followingHook,
+        seedPermissions: followingHook,
       }),
     ]);
 
@@ -231,50 +230,6 @@ describe('buildAdapterNamespaces', () => {
   });
 });
 
-describe('proposalReferencedAdapterNamespaces', () => {
-  it('returns the namespaces of all adapters that recognize the proposal', () => {
-    mockedGetAllAdapters.mockReturnValue([
-      createFakeAdapter({
-        namespace: KnownCaipNamespace.Tron,
-        proposalReferencesNamespace: jest.fn().mockReturnValue(true),
-      }),
-      createFakeAdapter({
-        namespace: KnownCaipNamespace.Solana,
-        proposalReferencesNamespace: jest.fn().mockReturnValue(false),
-      }),
-      createFakeAdapter({
-        namespace: KnownCaipNamespace.Bip122,
-        proposalReferencesNamespace: jest.fn().mockReturnValue(true),
-      }),
-    ]);
-
-    const result = proposalReferencedAdapterNamespaces({});
-
-    expect(result).toStrictEqual([
-      KnownCaipNamespace.Tron,
-      KnownCaipNamespace.Bip122,
-    ]);
-  });
-
-  it('returns an empty array when no adapter recognizes the proposal', () => {
-    mockedGetAllAdapters.mockReturnValue([
-      createFakeAdapter({
-        namespace: KnownCaipNamespace.Tron,
-        proposalReferencesNamespace: jest.fn().mockReturnValue(false),
-      }),
-    ]);
-
-    const result = proposalReferencedAdapterNamespaces({});
-
-    expect(result).toStrictEqual([]);
-  });
-
-  it('returns an empty array when no adapters are registered', () => {
-    mockedGetAllAdapters.mockReturnValue([]);
-
-    expect(proposalReferencedAdapterNamespaces({})).toStrictEqual([]);
-  });
-});
 
 describe('mapRequestForSnap', () => {
   it('extracts the CAIP-2 namespace from the scope and looks up the adapter once', () => {
