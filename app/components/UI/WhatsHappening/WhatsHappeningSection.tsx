@@ -37,7 +37,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { getWhatsHappeningEventProps } from './eventProperties';
 
 const CARD_WIDTH = 280;
-const CARD_HEIGHT_CLASS = 'h-[230px]';
+const VIEW_MORE_MIN_HEIGHT_CLASS = 'min-h-[230px]';
 const GAP = 12;
 
 const SNAP_OFFSETS = Array.from(
@@ -163,12 +163,7 @@ const WhatsHappeningSection = forwardRef<
         testID={WhatsHappeningSelectorsIDs.CAROUSEL}
       >
         {isLoading ? (
-          SKELETON_KEYS.map((key) => (
-            <WhatsHappeningCardSkeleton
-              key={key}
-              twHeightClassName={CARD_HEIGHT_CLASS}
-            />
-          ))
+          SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
         ) : (
           <>
             {items.map((item: WhatsHappeningItem, index: number) => (
@@ -178,12 +173,11 @@ const WhatsHappeningSection = forwardRef<
                 cardIndex={index}
                 source={source}
                 onPress={() => handleCardPress(index)}
-                twHeightClassName={CARD_HEIGHT_CLASS}
               />
             ))}
             <ViewMoreCard
               onPress={handleViewAll}
-              twClassName={`w-[180px] ${CARD_HEIGHT_CLASS}`}
+              twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
               textVariant={TextVariant.BodyLg}
             />
           </>

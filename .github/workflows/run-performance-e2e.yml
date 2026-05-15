@@ -133,7 +133,7 @@ jobs:
           fi
 
           echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
-          echo "Branch for Bitrise: $BRANCH_NAME"
+          echo "Branch: $BRANCH_NAME"
 
   read-device-matrix:
     name: Read Device Matrix

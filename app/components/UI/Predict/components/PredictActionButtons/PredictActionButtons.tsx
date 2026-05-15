@@ -3,7 +3,10 @@ import { Box } from '@metamask/design-system-react-native';
 import PredictBetButtons from './PredictBetButtons';
 import PredictClaimButton from './PredictClaimButton';
 import PredictDetailsButtonsSkeleton from '../PredictDetailsButtonsSkeleton';
-import { PredictActionButtonsProps } from './PredictActionButtons.types';
+import {
+  PredictActionButtonsProps,
+  PredictBetButtonLayout,
+} from './PredictActionButtons.types';
 import { PredictMarketStatus, PredictOutcomeToken } from '../../types';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { isDrawCapableLeague } from '../../constants/sports';
@@ -35,6 +38,9 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   isLoading = false,
   isClaimPending = false,
   isCarousel,
+  buttonLayout,
+  buttonGapClassName,
+  buttonContainerClassName,
   testID = BASE_PREDICT_ACTION_BUTTONS_TEST_IDS.PREDICT_ACTION_BUTTON,
 }) => {
   const isGameMarket = Boolean(market.game);
@@ -172,6 +178,9 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
         onBetPress={onBetPress}
         testID={testID}
         isCarousel={isCarousel}
+        buttonLayout={buttonLayout}
+        buttonGapClassName={buttonGapClassName}
+        buttonContainerClassName={buttonContainerClassName}
       />
     );
   }
@@ -184,8 +193,19 @@ function PredictBetButtonsContainer(props: {
   onBetPress: (token: PredictOutcomeToken) => void;
   testID: string;
   isCarousel?: boolean;
+  buttonLayout?: PredictBetButtonLayout;
+  buttonGapClassName?: string;
+  buttonContainerClassName?: string;
 }) {
-  const { buttonConfig, onBetPress, testID, isCarousel } = props;
+  const {
+    buttonConfig,
+    onBetPress,
+    testID,
+    isCarousel,
+    buttonLayout,
+    buttonGapClassName,
+    buttonContainerClassName = 'w-full mt-4',
+  } = props;
   const { yesToken, drawToken, noToken } = buttonConfig;
 
   const onYesPress = useCallback(
@@ -202,7 +222,7 @@ function PredictBetButtonsContainer(props: {
   );
 
   return (
-    <Box twClassName="w-full mt-4">
+    <Box twClassName={buttonContainerClassName}>
       <PredictBetButtons
         yesLabel={buttonConfig.yesLabel}
         yesPrice={buttonConfig.yesPrice}
@@ -217,6 +237,8 @@ function PredictBetButtonsContainer(props: {
         noTeamColor={buttonConfig.noTeamColor}
         testID={`${testID}${PREDICT_ACTION_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON}`}
         isCarousel={isCarousel}
+        layout={buttonLayout}
+        gapClassName={buttonGapClassName}
       />
     </Box>
   );
