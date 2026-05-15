@@ -113,6 +113,7 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.BurnAddress]: 'burn_address',
   [AlertKeys.DomainMismatch]: 'domain_mismatch',
   [AlertKeys.FirstTimeInteraction]: 'first_time_interaction',
+  [AlertKeys.HeadlessBuyError]: 'headless_buy_error',
   [AlertKeys.GasEstimateFailed]: 'gas_estimate_failed',
   [AlertKeys.GasSponsorshipReserveBalance]: 'gas_sponsorship_reserve_balance',
   [AlertKeys.InsufficientBalance]: 'insufficient_balance',

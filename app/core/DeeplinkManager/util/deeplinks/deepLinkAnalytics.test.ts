@@ -13,6 +13,7 @@ import {
   createDeepLinkUsedEventBuilder,
   detectAppInstallation,
 } from './deepLinkAnalytics';
+import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import { DeeplinkUrlParams } from '../../types/deepLink.types';
 import {
   DeepLinkRoute,
@@ -577,6 +578,24 @@ describe('deepLinkAnalytics', () => {
       jest.clearAllMocks();
       const deepLinkAnalytics = jest.requireMock('./deepLinkAnalytics');
       mockDetectAppInstallation = deepLinkAnalytics.detectAppInstallation;
+    });
+
+    it('uses canonical Deep Link Used event name', async () => {
+      mockDetectAppInstallation.mockResolvedValue(true);
+
+      const context: DeepLinkAnalyticsContext = {
+        url: 'https://link.metamask.io/swap',
+        route: DeepLinkRoute.SWAP,
+        urlParams: {},
+        signatureStatus: SignatureStatus.MISSING,
+        interstitialShown: false,
+        interstitialDisabled: false,
+      };
+
+      const { name } = (await createDeepLinkUsedEventBuilder(context)).build();
+
+      expect(name).toBe(MetaMetricsEvents.DEEP_LINK_USED.category);
+      expect(name).not.toBe('Deep link Used');
     });
 
     it('creates event with correct properties for swap route', async () => {
