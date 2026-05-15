@@ -68,6 +68,28 @@ const logger = createLogger({
   name: 'FixtureHelper',
 });
 
+const getMockServerDiagnosticsMetadata = async (
+  mockServerInstance?: MockServerE2E,
+) => {
+  if (!mockServerInstance) {
+    return {
+      appDiagnostics: [],
+      remoteFeatureFlagRequests: {
+        seen: false,
+        count: 0,
+        requests: [],
+        error: 'mock-server-not-started',
+      },
+    };
+  }
+
+  return {
+    appDiagnostics: mockServerInstance.getE2EDiagnostics(),
+    remoteFeatureFlagRequests:
+      await mockServerInstance.getRemoteFeatureFlagRequestDiagnostics(),
+  };
+};
+
 /**
  * Handles the dapps by starting the servers and listening to the ports.
  * @param dapps - The dapps to start.
@@ -669,6 +691,8 @@ export async function withFixtures(
   } catch (error) {
     testError = error as Error;
     logger.error('Error in withFixtures:', error);
+    const mockServerDiagnostics =
+      await getMockServerDiagnosticsMetadata(mockServerInstance);
     await captureE2EDiagnostics({
       reason: 'withFixtures-test-failure',
       error,
@@ -695,6 +719,7 @@ export async function withFixtures(
             status: accountActivityWsServer.getServerStatus(),
           },
         },
+        mockServerDiagnostics,
         options: {
           restartDevice,
           skipReactNativeReload,
@@ -794,6 +819,20 @@ export async function withFixtures(
         mockServerInstance.validateLiveRequests();
       } catch (cleanupError) {
         logger.error('Error during live request validation:', cleanupError);
+        await captureE2EDiagnostics({
+          reason: 'withFixtures-live-request-validation-failure',
+          error: cleanupError,
+          metadata: {
+            mockServerDiagnostics:
+              await getMockServerDiagnosticsMetadata(mockServerInstance),
+            resources: {
+              mockServer: {
+                port: mockServerPort,
+                started: mockServerInstance.isStarted(),
+              },
+            },
+          },
+        });
         cleanupErrors.push(cleanupError as Error);
       }
     }

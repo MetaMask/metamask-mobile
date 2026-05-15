@@ -11,8 +11,11 @@ import {
   TestSpecificMock,
 } from '../framework';
 import {
+  collectSeenProxiedRequests,
+  filterProxiedRequests,
   findMatchingPostEvent,
   processPostRequestBody,
+  type SeenProxiedRequest,
   setupAccountsV2SupportedNetworksMock,
   setupAccountsV4TransactionsMock,
 } from './helpers/mockHelpers.ts';
@@ -93,7 +96,7 @@ interface LiveRequest {
   timestamp: string;
 }
 
-interface E2EDiagnostic {
+export interface E2EDiagnostic {
   timestamp: string;
   payload: unknown;
 }
@@ -105,6 +108,15 @@ export interface InternalMockServer extends Mockttp {
 
 const MAX_E2E_DIAGNOSTICS = 20;
 const MAX_E2E_DIAGNOSTICS_IN_ERROR = 3;
+const REMOTE_FEATURE_FLAGS_URL_REGEX =
+  /^https:\/\/client-config\.api\.cx\.metamask\.io\/v1\/flags\?/u;
+
+export interface RemoteFeatureFlagRequestDiagnostics {
+  seen: boolean;
+  count: number;
+  requests: SeenProxiedRequest[];
+  error?: string;
+}
 
 const stringifyE2EDiagnostic = (payload: unknown): string => {
   try {
@@ -299,6 +311,42 @@ export default class MockServerE2E implements Resource {
       throw new Error('Mock server not started');
     }
     return this._server;
+  }
+
+  getE2EDiagnostics(): E2EDiagnostic[] {
+    return [...(this._server?._e2eDiagnostics ?? [])];
+  }
+
+  async getRemoteFeatureFlagRequestDiagnostics(): Promise<RemoteFeatureFlagRequestDiagnostics> {
+    if (!this._server) {
+      return {
+        seen: false,
+        count: 0,
+        requests: [],
+        error: 'mock-server-not-started',
+      };
+    }
+
+    try {
+      const seen = await collectSeenProxiedRequests(this._server);
+      const requests = filterProxiedRequests(seen, {
+        method: 'GET',
+        urlRegex: REMOTE_FEATURE_FLAGS_URL_REGEX,
+      });
+
+      return {
+        seen: requests.length > 0,
+        count: requests.length,
+        requests,
+      };
+    } catch (error) {
+      return {
+        seen: false,
+        count: 0,
+        requests: [],
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
   }
 
   setServerPort(port: number): void {
