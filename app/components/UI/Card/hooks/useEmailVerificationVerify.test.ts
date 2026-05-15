@@ -90,6 +90,7 @@ describe('useEmailVerificationVerify', () => {
     mockIsSignedIn.mockReturnValue(true);
     mockGetSessionProfile.mockResolvedValue({
       profileId: mockProfileId,
+      canonicalProfileId: mockProfileId,
       identifierId: 'mock-identifier-id',
       metaMetricsId: 'mock-metametrics-id',
     });
@@ -306,6 +307,7 @@ describe('useEmailVerificationVerify', () => {
     it('does not include userExternalId when session profile has empty profileId', async () => {
       mockGetSessionProfile.mockResolvedValue({
         profileId: '',
+        canonicalProfileId: '',
         identifierId: 'mock-identifier-id',
         metaMetricsId: 'mock-metametrics-id',
       });
