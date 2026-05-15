@@ -90,6 +90,7 @@ const StepperCard = ({
                   strings('stepper_card.more_information')
                 }
                 accessibilityRole="button"
+                testID={getTestId('description-tooltip')}
               >
                 <Icon
                   name={IconName.Info}
