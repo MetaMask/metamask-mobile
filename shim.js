@@ -33,8 +33,10 @@ import {
 } from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import {
+  E2E_DIAGNOSTICS_ENDPOINT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  getE2ETestConfigDiagnostics,
   isE2E,
   isTest,
   enableApiCallLogs,
@@ -44,6 +46,16 @@ import { WS_SERVICES } from './tests/websocket/constants.ts';
 import { defaultMockPort } from './tests/api-mocking/mock-config/mockUrlCollection.json';
 
 import './shimPerf';
+
+const getLaunchArgumentKeys = (raw) =>
+  raw && typeof raw === 'object' ? Object.keys(raw).sort() : [];
+
+const recordLaunchArgumentDiagnostics = (raw) => {
+  testConfig.launchArgumentKeys = getLaunchArgumentKeys(raw);
+  testConfig.rawFixtureServerPort = raw?.fixtureServerPort ?? null;
+  testConfig.rawCommandQueueServerPort = raw?.commandQueueServerPort ?? null;
+  testConfig.rawMockServerPort = raw?.mockServerPort ?? null;
+};
 
 // Needed to polyfill random number generation
 import 'react-native-get-random-values';
@@ -108,12 +120,14 @@ if (isE2E) {
 //          See FixtureHelper.ts for the port mapping implementation.
 if (isTest) {
   const raw = LaunchArguments.value();
+  recordLaunchArgumentDiagnostics(raw);
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
     : FALLBACK_FIXTURE_SERVER_PORT;
   testConfig.commandQueueServerPort = raw?.commandQueueServerPort
     ? raw.commandQueueServerPort
     : FALLBACK_COMMAND_QUEUE_SERVER_PORT;
+  testConfig.mockServerPort = raw?.mockServerPort ?? defaultMockPort;
 }
 
 // Fix for https://github.com/facebook/react-native/issues/5667
@@ -269,7 +283,9 @@ if (typeof localStorage !== 'undefined') {
 if (enableApiCallLogs || isTest) {
   (async () => {
     const raw = LaunchArguments.value();
+    recordLaunchArgumentDiagnostics(raw);
     const mockServerPort = raw?.mockServerPort ?? defaultMockPort;
+    testConfig.mockServerPort = mockServerPort;
     const { fetch: originalFetch } = global;
 
     // eslint-disable-next-line no-console
@@ -314,6 +330,35 @@ if (enableApiCallLogs || isTest) {
         break;
       }
     }
+
+    const postE2EDiagnostics = async (phase) => {
+      if (!isMockServerAvailable || !MOCKTTP_URL) {
+        return;
+      }
+
+      const diagnostics = getE2ETestConfigDiagnostics({
+        source: 'shim',
+        phase,
+        platform: Platform.OS,
+        mockServerUrl: MOCKTTP_URL,
+        mockServerAvailable: String(isMockServerAvailable),
+        launchArgFixtureServerPort: raw?.fixtureServerPort ?? 'missing',
+        launchArgCommandQueueServerPort:
+          raw?.commandQueueServerPort ?? 'missing',
+        launchArgMockServerPort: raw?.mockServerPort ?? 'missing',
+      });
+
+      await originalFetch(`${MOCKTTP_URL}${E2E_DIAGNOSTICS_ENDPOINT}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(diagnostics),
+      }).catch((error) => {
+        // eslint-disable-next-line no-console
+        console.warn(`[E2E SHIM] Failed to post diagnostics: ${error.message}`);
+      });
+    };
+
+    await postE2EDiagnostics('mock-server-connected');
 
     // if mockServer is off we route to original destination
     global.fetch = async (url, options) => {

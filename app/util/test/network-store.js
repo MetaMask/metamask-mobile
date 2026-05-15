@@ -1,6 +1,10 @@
 import axios from 'axios';
 import { Platform } from 'react-native';
-import { getFixturesServerPortInApp } from './utils';
+import {
+  appendE2EDiagnosticsToUrl,
+  getE2ETestConfigDiagnostics,
+  getFixturesServerPortInApp,
+} from './utils';
 
 const FETCH_TIMEOUT = 40000; // Timeout in milliseconds
 
@@ -90,15 +94,21 @@ class ReadOnlyNetworkStore {
     // 1. localhost with actual port (works on iOS, might work on Android with adb reverse)
     // 2. 10.0.2.2 with actual port (Android emulator host, direct access without adb reverse!)
     // 3. bs-local.com (BrowserStack)
-    const urls = [`http://localhost:${port}/state.json`];
+    const diagnostics = getE2ETestConfigDiagnostics({
+      source: 'network-store',
+      platform: Platform.OS,
+    });
+    const appendDiagnostics = (url) =>
+      appendE2EDiagnosticsToUrl(url, diagnostics);
+    const urls = [appendDiagnostics(`http://localhost:${port}/state.json`)];
 
     // Android emulator can access host via 10.0.2.2 without adb reverse
     if (isAndroid) {
-      urls.push(`http://10.0.2.2:${port}/state.json`);
+      urls.push(appendDiagnostics(`http://10.0.2.2:${port}/state.json`));
     }
 
     // BrowserStack uses bs-local.com
-    urls.push(`http://bs-local.com:${port}/state.json`);
+    urls.push(appendDiagnostics(`http://bs-local.com:${port}/state.json`));
 
     try {
       for (const url of urls) {
