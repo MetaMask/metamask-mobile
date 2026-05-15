@@ -68,7 +68,7 @@ export const useEarnNetworkPolling = () => {
       chainIds: LENDING_CHAIN_IDS,
       selectedAddress: selectedAccount?.address as Hex,
     }).catch(console.error);
-  }, [selectedAccount?.address, useTokenDetection]);
+  }, [selectedAccount?.address]);
 
   return null;
 };
