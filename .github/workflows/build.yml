@@ -2,18 +2,13 @@ name: Build Mobile App
 
 on:
   workflow_call:
-    # workflow_call inputs cannot use `type: choice`, so the closed sets below
-    # (build_name keys from builds.yml, platform, runner_provider) are enforced
-    # at runtime by the validate-inputs job before any expensive work runs.
     inputs:
       build_name:
-        description: 'Must be a key declared under `builds:` in builds.yml (enforced by validate-inputs).'
         required: true
         type: string
       platform:
-        description: 'Target platform. Must be one of: android, ios, both (enforced by validate-inputs).'
         required: true
-        type: string
+        type: string # android, ios, or both
       skip_version_bump:
         required: false
         type: boolean
@@ -26,12 +21,12 @@ on:
         type: string
         default: ''
       upload_to_sentry:
-        description: 'Upload JS source maps and native debug symbols to Sentry during the build (requires Sentry auth in the build environment)'
+        description: 'If true, enable Sentry CLI upload of JS source maps and native debug symbols during the build'
         required: false
         type: boolean
         default: false
       runner_provider:
-        description: 'Runner provider forwarded from the caller. Must be one of: current, namespace (enforced by validate-inputs).'
+        description: Runner provider forwarded from the caller
         required: false
         type: string
         default: current
@@ -60,51 +55,54 @@ on:
       ios_version_code:
         description: 'ios/MetaMask.xcodeproj/project.pbxproj CURRENT_PROJECT_VERSION at the built commit'
         value: ${{ jobs.emit-build-metadata.outputs.ios_version_code }}
+  workflow_dispatch:
+    inputs:
+      build_name:
+        required: true
+        type: choice
+        options:
+          - main-prod
+          - main-beta
+          - main-rc
+          - main-test
+          - main-e2e
+          - main-exp
+          - main-dev
+          - main-dev-expo
+          - flask-prod
+          - flask-test
+          - flask-e2e
+          - flask-dev
+      platform:
+        required: true
+        type: choice
+        options: [android, ios, both]
+      skip_version_bump:
+        required: false
+        type: boolean
+        default: false
+      upload_to_sentry:
+        description: 'Upload JS source maps and native debug symbols to Sentry during the build (requires Sentry auth in the build environment)'
+        required: false
+        type: boolean
+        default: false
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: true
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  # Enforce the closed sets that workflow_dispatch used to express via `type: choice`.
-  # workflow_call inputs only support string/boolean/number, so we validate at runtime
-  # and fail fast (before checkout / yarn install / version bump / runner allocation).
-  validate-inputs:
-    name: Validate inputs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-          sparse-checkout: |
-            builds.yml
-          sparse-checkout-cone-mode: false
-      - name: Validate inputs against allowed options
-        env:
-          BUILD_NAME: ${{ inputs.build_name }}
-          PLATFORM: ${{ inputs.platform }}
-          RUNNER_PROVIDER: ${{ inputs.runner_provider }}
-        run: |
-          case "$PLATFORM" in
-            android|ios|both) ;;
-            *) echo "::error::Invalid platform '$PLATFORM'. Must be one of: android, ios, both"; exit 1 ;;
-          esac
-          case "$RUNNER_PROVIDER" in
-            current|namespace) ;;
-            *) echo "::error::Invalid runner_provider '$RUNNER_PROVIDER'. Must be one of: current, namespace"; exit 1 ;;
-          esac
-          ALLOWED_BUILDS=$(yq -r '.builds | keys | .[]' builds.yml)
-          if ! echo "$ALLOWED_BUILDS" | grep -Fxq "$BUILD_NAME"; then
-            echo "::error::Invalid build_name '$BUILD_NAME'. Not declared under 'builds:' in builds.yml. Allowed:"
-            echo "$ALLOWED_BUILDS" | sed 's/^/  - /'
-            exit 1
-          fi
-          echo "✅ build_name=$BUILD_NAME, platform=$PLATFORM, runner_provider=$RUNNER_PROVIDER"
-
   # Bump version in repo (package.json, ios/android) before building.
   # Skipped when skip_version_bump=true (e.g. nightly builds where the bump is owned upstream).
   update-build-version:
-    needs: [validate-inputs]
     if: ${{ !inputs.skip_version_bump }}
     uses: ./.github/workflows/update-latest-build-version.yml
     permissions:
