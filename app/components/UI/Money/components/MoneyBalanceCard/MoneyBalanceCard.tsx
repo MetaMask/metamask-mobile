@@ -26,7 +26,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
-import { selectInWalletHomeOnboardingFlow } from '../../../../../selectors/onboarding';
+import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
@@ -47,8 +47,8 @@ const MoneyBalanceCard = () => {
   } = useMoneyAccountBalance();
   const { navigateToMoneyHome } = useMoneyNavigation();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
-  const inWalletHomeOnboardingFlow = useSelector(
-    selectInWalletHomeOnboardingFlow,
+  const walletHomeOnboardingFlowVisible = useSelector(
+    selectWalletHomeOnboardingFlowVisible,
   );
 
   const isEmpty = totalFiatRaw === undefined || totalFiatRaw === '0';
@@ -62,7 +62,7 @@ const MoneyBalanceCard = () => {
   if (isNewUser) {
     balanceText = EMPTY_BALANCE_DISPLAY;
     containerTestId = MoneyBalanceCardTestIds.NEW_USER_CONTAINER;
-    if (inWalletHomeOnboardingFlow) {
+    if (walletHomeOnboardingFlowVisible) {
       buttonVariant = ButtonVariant.Secondary;
       buttonLabel = strings('homepage.sections.money_empty_state.get_started');
       buttonTestId = MoneyBalanceCardTestIds.GET_STARTED_BUTTON;

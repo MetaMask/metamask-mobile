@@ -7,7 +7,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
-import { selectInWalletHomeOnboardingFlow } from '../../../../../selectors/onboarding';
+import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 
 const mockNavigate = jest.fn();
@@ -40,13 +40,13 @@ jest.mock('../../../../../reducers/user/selectors', () => ({
 
 jest.mock('../../../../../selectors/onboarding', () => ({
   __esModule: true,
-  selectInWalletHomeOnboardingFlow: jest.fn(),
+  selectWalletHomeOnboardingFlowVisible: jest.fn(),
 }));
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockSelectMoneyOnboardingSeen = jest.mocked(selectMoneyOnboardingSeen);
-const mockSelectInWalletHomeOnboardingFlow = jest.mocked(
-  selectInWalletHomeOnboardingFlow,
+const mockSelectWalletHomeOnboardingFlowVisible = jest.mocked(
+  selectWalletHomeOnboardingFlowVisible,
 );
 const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
 
@@ -87,7 +87,7 @@ describe('MoneyBalanceCard', () => {
     jest.clearAllMocks();
     mockUseMoneyAccountBalance.mockReturnValue(createBalanceMock());
     mockSelectMoneyOnboardingSeen.mockReturnValue(true);
-    mockSelectInWalletHomeOnboardingFlow.mockReturnValue(false);
+    mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(false);
     mockUseMoneyNavigation.mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
     });
@@ -175,7 +175,7 @@ describe('MoneyBalanceCard', () => {
 
     describe('when the wallet-home onboarding stepper is not displayed', () => {
       beforeEach(() => {
-        mockSelectInWalletHomeOnboardingFlow.mockReturnValue(false);
+        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(false);
       });
 
       it('renders the Earn button with the earn label', () => {
@@ -212,7 +212,7 @@ describe('MoneyBalanceCard', () => {
 
     describe('when the wallet-home onboarding stepper is displayed', () => {
       beforeEach(() => {
-        mockSelectInWalletHomeOnboardingFlow.mockReturnValue(true);
+        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(true);
       });
 
       it('renders the Get started button with the get_started label', () => {
