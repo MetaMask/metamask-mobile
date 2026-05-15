@@ -46,6 +46,7 @@ interface UsePredictBuyInfoParams {
   isBelowMinimum: boolean;
   isInsufficientBalance: boolean;
   isPayFeesLoading: boolean;
+  isPaySystemSettling: boolean;
   blockingPayAlertMessage: string | null;
   outcomeTokenPrice?: number;
   // Inline banner UX (price_changed / order_failed) only exists inside the
@@ -63,6 +64,7 @@ export const usePredictBuyError = ({
   isBelowMinimum,
   isInsufficientBalance,
   isPayFeesLoading,
+  isPaySystemSettling,
   blockingPayAlertMessage,
   outcomeTokenPrice,
   isSheetMode = false,
@@ -96,6 +98,7 @@ export const usePredictBuyError = ({
       !isPlacingOrder &&
       !isConfirming &&
       !isPredictBalanceSelected &&
+      !isPaySystemSettling &&
       !!blockingPayAlertMessage
     ) {
       return {
@@ -141,6 +144,7 @@ export const usePredictBuyError = ({
     isConfirming,
     preview,
     isPayFeesLoading,
+    isPaySystemSettling,
     isPredictBalanceSelected,
     blockingPayAlertMessage,
     activeOrder?.error,
@@ -194,7 +198,11 @@ export const usePredictBuyError = ({
       const bannerWouldSuppress =
         isSheetMode &&
         activeOrder?.error &&
-        !(blockingPayAlertMessage && !isPredictBalanceSelected);
+        !(
+          blockingPayAlertMessage &&
+          !isPredictBalanceSelected &&
+          !isPaySystemSettling
+        );
       if (bannerWouldSuppress) {
         return undefined;
       }
@@ -214,6 +222,7 @@ export const usePredictBuyError = ({
     activeOrder?.error,
     blockingPayAlertMessage,
     isPredictBalanceSelected,
+    isPaySystemSettling,
     isSheetMode,
   ]);
 
@@ -233,7 +242,11 @@ export const usePredictBuyError = ({
         return null;
       }
 
-      if (blockingPayAlertMessage && !isPredictBalanceSelected) {
+      if (
+        blockingPayAlertMessage &&
+        !isPredictBalanceSelected &&
+        !isPaySystemSettling
+      ) {
         return null;
       }
 
@@ -274,6 +287,7 @@ export const usePredictBuyError = ({
       isConfirming,
       blockingPayAlertMessage,
       isPredictBalanceSelected,
+      isPaySystemSettling,
       isSheetMode,
     ]);
 
@@ -298,7 +312,11 @@ export const usePredictBuyError = ({
     !isSheetMode ||
     isPlacingOrder ||
     isConfirming ||
-    Boolean(blockingPayAlertMessage && !isPredictBalanceSelected);
+    Boolean(
+      blockingPayAlertMessage &&
+        !isPredictBalanceSelected &&
+        !isPaySystemSettling,
+    );
 
   const buyErrorBanner =
     currentBuyErrorBanner ??
