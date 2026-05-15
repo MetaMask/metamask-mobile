@@ -164,8 +164,9 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
     {
       // Event details fetched when user taps a prediction row in the trending feed.
       // Returns the same Bitcoin event payload as /events/pagination so the detail
-      // screen renders without crashing.
-      urlEndpoint: /https:\/\/gamma-api\.polymarket\.com\/events\/1(\?.*)?$/,
+      // screen renders without crashing. Matches any numeric event id (highlights,
+      // prefetch) — not only id "1".
+      urlEndpoint: /https:\/\/gamma-api\.polymarket\.com\/events\/\d+(\?.*)?$/,
       responseCode: 200,
       response: {
         id: '1',
