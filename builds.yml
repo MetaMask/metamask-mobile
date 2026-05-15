@@ -215,13 +215,11 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_main
 
-  # BrowserStack performance builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
-  # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
-  # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
-  # on feature branches with the same github_environment/signing as all other e2e builds.
-  # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
-  # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
-  main-e2e-bs-without-srp:
+  # BrowserStack performance builds — base config (device build, no IS_SIM_BUILD).
+  # Used internally by build.sh via loadBuildConfig when building bs variants.
+  # IS_SIM_BUILD is intentionally omitted so the build produces an IPA (device build)
+  # rather than a simulator .app, which is required for BrowserStack App Automate.
+  main-e2e-bs:
     github_environment: build-e2e
     signing: *signing_uat
     env:
@@ -235,13 +233,36 @@ builds:
       RAMP_INTERNAL_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
-    
+
+  # BrowserStack performance builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
+  # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
+  # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
+  # on feature branches with the same github_environment/signing as all other e2e builds.
+  # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
+  # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
+  main-e2e-bs-without-srp:
+    script_name: main-e2e-bs
+    github_environment: build-e2e
+    signing: *signing_uat
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'e2e'
+      METAMASK_BUILD_TYPE: 'main'
+      IS_BROWSERSTACK_BUILD: 'true'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+      E2E_MOCK_OAUTH: 'true'
+      IS_PERFORMANCE_TEST: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+    secrets: *secrets
+    code_fencing: *code_fencing_main
+
   # BrowserStack performance builds — with pre-imported wallet (ADDITIONAL_SRP_1 baked in)
   # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
   # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
   # on feature branches with the same github_environment/signing as all other e2e builds.
   # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
   main-e2e-bs-with-srp:
+    script_name: main-e2e-bs
     github_environment: build-e2e
     signing: *signing_uat
     env:
