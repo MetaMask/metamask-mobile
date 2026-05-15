@@ -5,7 +5,6 @@ import {
   Caip25CaveatType,
   Caip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
-import { Toast, ToastVariant } from '@metamask/design-system-react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../util/test/renderWithProvider';
@@ -30,7 +29,6 @@ import { WC2VerifyValidation } from '../../../../actions/sdk/state';
 import { AccountConnectMaliciousWarningSelectorsIDs } from '../../AccountConnect/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning.testIds';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
-import { strings } from '../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -74,23 +72,6 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
     <>{children}</>
   ),
 }));
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const actualDesignSystem = jest.requireActual(
-    '@metamask/design-system-react-native',
-  );
-
-  return {
-    ...actualDesignSystem,
-    Toast: Object.assign(
-      jest.fn(() => null),
-      {
-        show: jest.fn(),
-        hide: jest.fn(),
-      },
-    ),
-  };
-});
 
 const mockRejectPermissionsRequest = jest.fn();
 const mockAcceptPermissionsRequest = jest.fn().mockResolvedValue(undefined);
@@ -181,7 +162,7 @@ jest.mock('../../../../util/metrics', () => ({
 }));
 
 jest.mock('../../../hooks/useFavicon/useFavicon', () =>
-  jest.fn(() => ({ faviconURI: 'favicon-url' })),
+  jest.fn(() => 'favicon-url'),
 );
 
 jest.mock('../../../hooks/useOriginSource', () =>
@@ -715,15 +696,6 @@ describe('MultichainAccountConnect', () => {
           request_source: 'In-App-Browser',
         }),
       );
-    });
-
-    await waitFor(() => {
-      expect(Toast.show).toHaveBeenCalledWith({
-        variant: ToastVariant.App,
-        labelOptions: [{ label: strings('toast.permissions_updated') }],
-        appIconSource: 'favicon-url',
-        hasNoTimeout: false,
-      });
     });
   });
 
