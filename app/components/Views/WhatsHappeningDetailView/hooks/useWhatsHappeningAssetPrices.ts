@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
 import { usePerpsLivePrices } from '../../../UI/Perps/hooks/stream';
 
 export interface PerpsPriceEntry {

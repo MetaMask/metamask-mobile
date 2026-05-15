@@ -100,8 +100,8 @@ permissions:
   id-token: write
 
 jobs:
-  # Bump version in repo (bitrise.yml, package.json, ios/android) before building.
-  # Skipped when skip_version_bump=true (e.g. nightly builds where Bitrise owns the bump).
+  # Bump version in repo (package.json, ios/android) before building.
+  # Skipped when skip_version_bump=true (e.g. nightly builds where the bump is owned upstream).
   update-build-version:
     if: ${{ !inputs.skip_version_bump }}
     uses: ./.github/workflows/update-latest-build-version.yml
@@ -128,7 +128,13 @@ jobs:
       script_name: ${{ steps.config.outputs.script_name }}
       checkout_ref_for_setup: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        with:
+          fetch-depth: 1
+          ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
       - uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
@@ -204,20 +210,34 @@ jobs:
             exit 1
           fi
           echo "Building at version-bump commit: $COMMIT_HASH"
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' && !inputs.skip_version_bump }}
+        with:
+          ref: ${{ needs.update-build-version.outputs.commit-hash }}
+          submodules: recursive
       - uses: actions/checkout@v4
-        if: ${{ !inputs.skip_version_bump }}
+        if: ${{ inputs.runner_provider != 'namespace' && !inputs.skip_version_bump }}
         with:
           ref: ${{ needs.update-build-version.outputs.commit-hash }}
           submodules: recursive
 
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' && inputs.skip_version_bump && inputs.source_branch != '' }}
+        with:
+          ref: ${{ inputs.source_branch }}
+          submodules: recursive
       - uses: actions/checkout@v4
-        if: ${{ inputs.skip_version_bump && inputs.source_branch != '' }}
+        if: ${{ inputs.runner_provider != 'namespace' && inputs.skip_version_bump && inputs.source_branch != '' }}
         with:
           ref: ${{ inputs.source_branch }}
           submodules: recursive
 
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' && inputs.skip_version_bump && inputs.source_branch == '' }}
+        with:
+          submodules: recursive
       - uses: actions/checkout@v4
-        if: ${{ inputs.skip_version_bump && inputs.source_branch == '' }}
+        if: ${{ inputs.runner_provider != 'namespace' && inputs.skip_version_bump && inputs.source_branch == '' }}
         with:
           submodules: recursive
 
@@ -526,7 +546,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload Android AAB
-        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
+        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug' && steps.rename.outputs.android_aab_path != ''
         uses: actions/upload-artifact@v4
         with:
           name: android-aab-${{ inputs.build_name }}
@@ -562,7 +582,13 @@ jobs:
       android_version_code: ${{ steps.meta.outputs.android_version_code }}
       ios_version_code: ${{ steps.meta.outputs.ios_version_code }}
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        with:
+          fetch-depth: 1
+          ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
       - uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
