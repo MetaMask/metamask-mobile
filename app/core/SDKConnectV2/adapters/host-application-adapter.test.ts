@@ -286,7 +286,7 @@ describe('HostApplicationAdapter', () => {
   });
 
   describe('requestCliAuthToken', () => {
-    it('opens the dashboard webview and resolves with its CLI token', async () => {
+    it('opens the configured dashboard webview and resolves with its CLI token', async () => {
       (AgenticCliDashboardWebviewService.open as jest.Mock).mockResolvedValue(
         'cli-token',
       );
@@ -301,7 +301,7 @@ describe('HostApplicationAdapter', () => {
       ).resolves.toBe('cli-token');
 
       expect(AgenticCliDashboardWebviewService.open).toHaveBeenCalledWith({
-        dashboardUrl: 'https://dashboard.w3a.io',
+        dashboardUrl: 'https://test-dashboard.web3auth.io/agentic/auth',
         dashboardToken: 'mobile-auth-token',
       });
     });
