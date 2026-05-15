@@ -153,6 +153,9 @@ import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccoun
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import Logger from '../../../util/Logger';
 import { useNftDetection } from '../../hooks/useNftDetection';
+import BrazeBanner from '../../UI/BrazeBanner';
+import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
+import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from '../../../core/Braze/constants';
 import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
 
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
