@@ -52,6 +52,10 @@ import {
   AccountConnectScreens,
   NetworkAvatarProps,
 } from '../../AccountConnect/AccountConnect.types.ts';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../component-library/components/Avatars/Avatar';
 import { getNetworkImageSource } from '../../../../util/networks/index.js';
 import {
   EvmAndMultichainNetworkConfigurationsWithCaipChainId,
@@ -121,8 +125,8 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
   </Box>
 );
 
-const NETWORK_AVATAR_SIZE = '16' as NetworkAvatarProps['size'];
-const NETWORK_AVATAR_VARIANT = 'Network' as NetworkAvatarProps['variant'];
+const NETWORK_AVATAR_SIZE = AvatarSize.Xs;
+const NETWORK_AVATAR_VARIANT = AvatarVariant.Network;
 
 const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();

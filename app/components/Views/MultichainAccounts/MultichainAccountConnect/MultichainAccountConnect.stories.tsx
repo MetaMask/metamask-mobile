@@ -2,7 +2,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { AccountGroupType, AccountGroupId } from '@metamask/account-api';
-import { Box, Toast } from '@metamask/design-system-react-native';
+import { Box, Toaster } from '@metamask/design-system-react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import {
@@ -211,7 +211,7 @@ const MultichainAccountConnectMeta = {
         <MockNavigationWrapper>
           <Box twClassName="flex-1 bg-default">
             <Story />
-            <Toast />
+            <Toaster />
           </Box>
         </MockNavigationWrapper>
       </Provider>
