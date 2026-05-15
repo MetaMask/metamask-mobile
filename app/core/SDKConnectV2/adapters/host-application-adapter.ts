@@ -13,7 +13,7 @@ import { strings } from '../../../../locales/i18n';
 import { ConnectionInfo } from '../types/connection-info';
 import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
-import logger from '../services/logger';
+import logger, { redactUrl } from '../services/logger';
 import { AgenticCliDashboardWebviewService } from '../../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
 
 const DASHBOARD_WEBVIEW_URLS = {
@@ -121,10 +121,17 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
   async requestCliAuthToken(
     _conninfo: ConnectionInfo,
     dashboardAccessToken: string,
-    dashboardUrl: string = DEFAULT_DASHBOARD_WEBVIEW_URL,
+    dashboardUrl?: string,
   ): Promise<string> {
+    if (dashboardUrl && dashboardUrl !== DEFAULT_DASHBOARD_WEBVIEW_URL) {
+      logger.debug('Ignoring QR-provided Agentic CLI dashboard URL', {
+        dashboardUrl: redactUrl(dashboardUrl),
+        configuredDashboardUrl: DEFAULT_DASHBOARD_WEBVIEW_URL,
+      });
+    }
+
     return AgenticCliDashboardWebviewService.open({
-      dashboardUrl,
+      dashboardUrl: DEFAULT_DASHBOARD_WEBVIEW_URL,
       dashboardToken: dashboardAccessToken,
     });
   }
