@@ -74,7 +74,7 @@ function getLabelForTransactionType(type: TransactionType | undefined): string {
     case TransactionType.simpleSend:
       return strings('money.transaction.sent');
     default:
-      return strings('money.transaction.received');
+      return strings('money.transaction.deposited');
   }
 }
 
