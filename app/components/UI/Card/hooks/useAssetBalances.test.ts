@@ -131,7 +131,6 @@ describe('useAssetBalances', () => {
       backgroundState: {
         TokensController: {
           allTokens: {},
-          allDetectedTokens: {},
         },
         NetworkController: {
           networkConfigurationsByChainId: {
@@ -218,7 +217,6 @@ describe('useAssetBalances', () => {
               backgroundState: {
                 TokensController: {
                   allTokens: {},
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -449,7 +447,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -546,7 +543,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -694,7 +690,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -754,7 +749,6 @@ describe('useAssetBalances', () => {
               backgroundState: {
                 TokensController: {
                   allTokens: {},
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -804,7 +798,6 @@ describe('useAssetBalances', () => {
               backgroundState: {
                 TokensController: {
                   allTokens: {},
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -870,7 +863,6 @@ describe('useAssetBalances', () => {
               backgroundState: {
                 TokensController: {
                   allTokens: {},
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {},
@@ -1017,7 +1009,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1089,7 +1080,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1161,7 +1151,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1233,7 +1222,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1291,7 +1279,6 @@ describe('useAssetBalances', () => {
               backgroundState: {
                 TokensController: {
                   allTokens: {},
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1356,7 +1343,6 @@ describe('useAssetBalances', () => {
               backgroundState: {
                 TokensController: {
                   allTokens: {},
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1426,7 +1412,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1496,7 +1481,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1877,7 +1861,6 @@ describe('useAssetBalances', () => {
                         'mock-account': [walletAsset],
                       },
                     },
-                    allDetectedTokens: {},
                   },
                   NetworkController: {
                     networkConfigurationsByChainId: {
@@ -1944,7 +1927,6 @@ describe('useAssetBalances', () => {
                         'mock-account': [walletAsset],
                       },
                     },
-                    allDetectedTokens: {},
                   },
                   NetworkController: {
                     networkConfigurationsByChainId: {
@@ -2012,7 +1994,6 @@ describe('useAssetBalances', () => {
                         'mock-account': [walletAsset],
                       },
                     },
-                    allDetectedTokens: {},
                   },
                   NetworkController: {
                     networkConfigurationsByChainId: {
@@ -2079,7 +2060,6 @@ describe('useAssetBalances', () => {
                         'mock-account': [walletAsset],
                       },
                     },
-                    allDetectedTokens: {},
                   },
                   NetworkController: {
                     networkConfigurationsByChainId: {
