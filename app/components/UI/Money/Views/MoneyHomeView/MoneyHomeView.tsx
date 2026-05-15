@@ -2,14 +2,9 @@ import React, { useCallback, useMemo } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
-import {
-  Box,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
@@ -45,8 +40,6 @@ import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
-import { setOnboardingStepperStep } from '../../../../../actions/user';
-
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 type MoneyHomeState = 'empty' | 'milestone' | 'filled';
@@ -62,7 +55,6 @@ const MoneyHomeView = () => {
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const dispatch = useDispatch();
 
   const {
     totalFiatFormatted,
@@ -361,18 +353,6 @@ const MoneyHomeView = () => {
           </>
         )}
         <MoneyFooter onAddMoneyPress={handleAddPress} />
-        {/* TODO: Move into Money UI developer options section */}
-        {__DEV__ && (
-          <Box twClassName="mx-4 my-3">
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Md}
-              onPress={() => dispatch(setOnboardingStepperStep('money', 0))}
-            >
-              [DEV] Reset onboarding stepper
-            </Button>
-          </Box>
-        )}
       </ScrollView>
     </Box>
   );

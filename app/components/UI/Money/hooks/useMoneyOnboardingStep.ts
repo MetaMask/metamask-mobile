@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectOnboardingStepperProgress } from '../../../../reducers/user/selectors';
 import { setOnboardingStepperStep } from '../../../../actions/user';
 
-const MONEY_STEPPER_ID = 'money';
+export const MONEY_STEPPER_ID = 'money';
 
 /**
  * Money-scoped hook for tracking onboarding stepper progress.
