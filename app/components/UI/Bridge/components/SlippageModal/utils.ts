@@ -4,7 +4,7 @@ import AppConstants from '../../../../../core/AppConstants';
 export const DEFAULT_BATCH_SELL_SLIPPAGE =
   AppConstants.SWAPS.DEFAULT_SLIPPAGE.toString();
 
-export function getBatchSellInitialSlippage(
+export function getBatchSellSlippage(
   batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>,
   batchSellAssetId: CaipAssetType,
 ) {
