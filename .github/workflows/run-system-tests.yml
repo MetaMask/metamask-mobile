@@ -4,7 +4,7 @@
 # no Sentry, no performance metrics). Validates that core user flows (login,
 # onboarding, swaps, etc.) work on real devices via BrowserStack.
 #
-# Builds are triggered on Bitrise (same pipeline as performance tests) and
+# Builds are produced via GitHub Actions (same pipeline as performance tests) and
 # uploaded to BrowserStack automatically.
 #
 # Triggers:
@@ -45,7 +45,7 @@ concurrency:
 
 jobs:
   trigger-android-dual-versions:
-    name: Build Android (Bitrise + BrowserStack)
+    name: Build Android (BrowserStack)
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
     if: >-
       github.event_name != 'workflow_dispatch'
@@ -57,7 +57,7 @@ jobs:
     secrets: inherit
 
   trigger-ios-dual-versions:
-    name: Build iOS (Bitrise + BrowserStack)
+    name: Build iOS (BrowserStack)
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
     if: >-
       github.event_name != 'workflow_dispatch'

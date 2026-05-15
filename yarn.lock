@@ -8303,11 +8303,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.23.0":
-  version: 0.23.0
-  resolution: "@metamask/design-system-react-native@npm:0.23.0"
+"@metamask/design-system-react-native@npm:^0.24.0":
+  version: 0.24.0
+  resolution: "@metamask/design-system-react-native@npm:0.24.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.16.0"
+    "@metamask/design-system-shared": "npm:^0.17.0"
     fast-text-encoding: "npm:^1.0.6"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
@@ -8320,18 +8320,18 @@ __metadata:
     react-native-gesture-handler: ">=2.25.0"
     react-native-reanimated: ">=3.17.0"
     react-native-safe-area-context: ">=5.0.0"
-  checksum: 10/76c88e0cb8e263361eeb53b63c90dfc6718502012cc00cc76c18d2ec5e70520b63717ed66c03103c7846f8405934a15cb91e571e87eaa2255963c6657953a270
+  checksum: 10/fb7c4d525077511e0557f2c581e8e99449ab16f0153ea9cc56a4de4d8e2c4aa62af663f72e7dfc3efce0df7f8073c54711c358023968904f114abe6781027065
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.16.0":
-  version: 0.16.0
-  resolution: "@metamask/design-system-shared@npm:0.16.0"
+"@metamask/design-system-shared@npm:^0.17.0":
+  version: 0.17.0
+  resolution: "@metamask/design-system-shared@npm:0.17.0"
   dependencies:
     "@metamask/utils": "npm:^11.11.0"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/3311b3ac9c2e24eb39d6fac9df34e2c2d2390e189ca1a71e335ea7a49f8bc423e2bc4676ce26b1a37e78f27b6ec8178016930c288711f363ca18cdff0a0d44be
+  checksum: 10/168af1fe87414eec9e12f31cea7d9c6081b0671dd6752b3fb4e57311384a2a59f4fd795bc883923d4a2b59162cdae7cdbcdfc3b6ad1bdb432c1f75c6a7b40341
   languageName: node
   linkType: hard
 
@@ -10427,9 +10427,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^22.4.0":
-  version: 22.4.0
-  resolution: "@metamask/transaction-pay-controller@npm:22.4.0"
+"@metamask/transaction-pay-controller@npm:^22.5.0":
+  version: 22.5.0
+  resolution: "@metamask/transaction-pay-controller@npm:22.5.0"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10452,7 +10452,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/3de949b9525531bedcbc7fb24ab3470f38f014f3239b1e32d47654a2d25bffa67aab6ad3da39784a6321fdf36757a7f9c0e85946dfb33bb53d00a2a8ba728d34
+  checksum: 10/611103e0f4a8c2783f8196302830d9befee8973f64e0fdb050f658de3519c6dc01c1bf104788b2d726e8f22e22ed529ac19b7b3e9d53aea945e6676d71bef7e2
   languageName: node
   linkType: hard
 
@@ -35344,7 +35344,7 @@ __metadata:
     "@metamask/core-backend": "npm:^6.3.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.23.0"
+    "@metamask/design-system-react-native": "npm:^0.24.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.4.2"
     "@metamask/design-tokens": "npm:^8.4.0"
     "@metamask/earn-controller": "npm:^12.1.0"
@@ -35442,7 +35442,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^65.4.0"
-    "@metamask/transaction-pay-controller": "npm:^22.4.0"
+    "@metamask/transaction-pay-controller": "npm:^22.5.0"
     "@metamask/tron-wallet-snap": "npm:^1.25.3"
     "@metamask/utils": "npm:^11.11.0"
     "@myx-trade/sdk": "npm:^0.1.265"
