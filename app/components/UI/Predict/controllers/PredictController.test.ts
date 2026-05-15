@@ -289,6 +289,11 @@ describe('PredictController', () => {
       syncDepositWalletBalanceAllowanceForDepositTransaction: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
+    mockPolymarketProvider.getAccountState.mockResolvedValue({
+      address: '0xProxyAddress' as `0x${string}`,
+      isDeployed: true,
+      walletType: 'safe' as const,
+    });
     mockPolymarketProvider.beforePublishDepositWalletDeposit.mockResolvedValue(
       true,
     );
@@ -6186,6 +6191,54 @@ describe('PredictController', () => {
       });
     });
 
+    it('sets gasFeeToken when account walletType is not deposit-wallet', async () => {
+      mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
+        mockWithdrawResponse,
+      );
+      mockPolymarketProvider.getAccountState.mockResolvedValue({
+        address: '0xProxyAddress' as `0x${string}`,
+        isDeployed: true,
+        walletType: 'safe' as const,
+      });
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'batch-safe',
+      });
+
+      await withController(async ({ controller }) => {
+        await controller.prepareWithdraw({});
+
+        expect(addTransactionBatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            gasFeeToken: MATIC_CONTRACTS_V2.collateral,
+          }),
+        );
+      });
+    });
+
+    it('omits gasFeeToken when account walletType is deposit-wallet', async () => {
+      mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
+        mockWithdrawResponse,
+      );
+      mockPolymarketProvider.getAccountState.mockResolvedValue({
+        address: '0xDepositWalletAddress' as `0x${string}`,
+        isDeployed: true,
+        walletType: 'deposit-wallet' as const,
+      });
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'batch-deposit',
+      });
+
+      await withController(async ({ controller }) => {
+        await controller.prepareWithdraw({});
+
+        expect(addTransactionBatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            gasFeeToken: undefined,
+          }),
+        );
+      });
+    });
+
     it('update transaction ID when batch ID is returned', async () => {
       const mockBatchId = 'tx-batch-update';
 
@@ -6418,6 +6471,9 @@ describe('PredictController', () => {
   });
 
   describe('beforeSign', () => {
+    const ERC20_TRANSFER_CALL_DATA =
+      '0xa9059cbb00000000000000000000000012345678901234567890123456789012345678900000000000000000000000000000000000000000000000000000000000011170' as const;
+
     const mockTransactionMeta = {
       id: 'tx-1',
       txParams: {
@@ -6430,7 +6486,7 @@ describe('PredictController', () => {
         {
           id: 'nested-1',
           type: 'predictWithdraw' as const,
-          data: '0xoriginaldata' as `0x${string}`,
+          data: ERC20_TRANSFER_CALL_DATA,
         },
       ],
     };
@@ -6481,6 +6537,63 @@ describe('PredictController', () => {
       });
     });
 
+    it('return undefined when transaction does not match active withdraw transaction id', async () => {
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            chainId: 137,
+            status: PredictWithdrawStatus.IDLE,
+            providerId: POLYMARKET_PROVIDER_ID,
+            predictAddress: '0xPredict' as `0x${string}`,
+            transactionId: 'tx-1',
+            amount: 0,
+          };
+        });
+
+        const result = await controller.beforeSign({
+          transactionMeta: {
+            ...mockTransactionMeta,
+            id: 'tx-2',
+          } as any,
+        });
+
+        expect(result).toBeUndefined();
+        expect(mockPolymarketProvider.signWithdraw).not.toHaveBeenCalled();
+      });
+    });
+
+    it('return undefined when predict withdraw calldata is already signed safe execution data', async () => {
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.withdrawTransaction = {
+            chainId: 137,
+            status: PredictWithdrawStatus.IDLE,
+            providerId: POLYMARKET_PROVIDER_ID,
+            predictAddress: '0xPredict' as `0x${string}`,
+            transactionId: 'tx-1',
+            amount: 0,
+          };
+        });
+
+        const result = await controller.beforeSign({
+          transactionMeta: {
+            ...mockTransactionMeta,
+            nestedTransactions: [
+              {
+                id: 'nested-1',
+                type: 'predictWithdraw' as const,
+                data: '0x6a76120200000000' as `0x${string}`,
+              },
+            ],
+          } as any,
+        });
+
+        expect(result).toBeUndefined();
+        expect(mockPolymarketProvider.signWithdraw).not.toHaveBeenCalled();
+        expect(mockInvalidateQueries).not.toHaveBeenCalled();
+      });
+    });
+
     it('return undefined when provider does not support signWithdraw', async () => {
       await withController(async ({ controller }) => {
         controller.updateStateForTesting((state) => {
@@ -6527,7 +6640,7 @@ describe('PredictController', () => {
         });
 
         expect(mockPolymarketProvider.signWithdraw).toHaveBeenCalledWith({
-          callData: '0xoriginaldata',
+          callData: ERC20_TRANSFER_CALL_DATA,
           signer: expect.objectContaining({
             address: '0x1234567890123456789012345678901234567890',
             signTypedMessage: expect.any(Function),

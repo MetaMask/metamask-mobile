@@ -22,7 +22,7 @@ on:
       build_variant:
         required: false
         type: string
-        description: 'Build variant for Bitrise (rc = release, exp = experimental)'
+        description: 'Build variant (rc = release, exp = experimental)'
         default: 'e2e'
       runner_provider:
         description: Runner provider forwarded from the caller
@@ -93,7 +93,7 @@ jobs:
           fi
 
   trigger-ios-with-srp-build:
-    name: Trigger iOS with-SRP Build on Bitrise
+    name: Trigger iOS with-SRP Build
     needs: [check-builds-needed]
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
     uses: ./.github/workflows/build.yml
@@ -105,7 +105,7 @@ jobs:
     secrets: inherit
 
   trigger-ios-without-srp-build:
-    name: Trigger iOS without-SRP Build on Bitrise
+    name: Trigger iOS without-SRP Build
     needs: [check-builds-needed]
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
     uses: ./.github/workflows/build.yml
