@@ -7924,20 +7924,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-data-service@npm:^0.1.0, @metamask/base-data-service@npm:^0.1.1, @metamask/base-data-service@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "@metamask/base-data-service@npm:0.1.2"
-  dependencies:
-    "@metamask/controller-utils": "npm:^12.0.0"
-    "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/utils": "npm:^11.9.0"
-    "@tanstack/query-core": "npm:^4.43.0"
-    fast-deep-equal: "npm:^3.1.3"
-  checksum: 10/c05e2334e94f8a6d61764ddfec657cb5fc9cd1b29688bbcc3d83bee0ff032de9490319fedf17deb36916da906efd648197c71af4663d68966bdb78b8f1f8c3e2
-  languageName: node
-  linkType: hard
-
-"@metamask/base-data-service@npm:^0.1.3":
+"@metamask/base-data-service@npm:^0.1.0, @metamask/base-data-service@npm:^0.1.1, @metamask/base-data-service@npm:^0.1.2, @metamask/base-data-service@npm:^0.1.3":
   version: 0.1.3
   resolution: "@metamask/base-data-service@npm:0.1.3"
   dependencies:
