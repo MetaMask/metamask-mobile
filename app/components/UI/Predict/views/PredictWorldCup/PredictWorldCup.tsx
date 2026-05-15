@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -33,6 +33,7 @@ import {
 import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import PredictOffline from '../../components/PredictOffline';
+import PulsingLiveDot from '../../components/PulsingLiveDot/PulsingLiveDot';
 import type { PredictWorldCupConfig } from '../../types/flags';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -48,25 +49,10 @@ export const PREDICT_WORLD_CUP_SCREEN_TEST_IDS = {
   SKELETON: 'predict-world-cup-skeleton',
 } as const;
 
-type Tw = ReturnType<typeof useTailwind>;
-
 type WorldCupConfigSubset = Pick<
   PredictWorldCupConfig,
   'seriesId' | 'tagSlug' | 'gamesTagId' | 'stages'
 >;
-
-const LiveIndicator = ({ tw, size = 8 }: { tw: Tw; size?: number }) => (
-  <View
-    style={[
-      tw.style('bg-success-default'),
-      {
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-      },
-    ]}
-  />
-);
 
 interface WorldCupTabContentProps {
   activeTab: PredictWorldCupTabKey;
@@ -111,15 +97,11 @@ const WorldCupTabContent = ({
 
   const renderItem = useCallback(
     ({ item, index }: { item: PredictMarketType; index: number }) => (
-      <Box twClassName="mb-3">
-        <PredictMarket
-          market={item}
-          entryPoint={entryPoint}
-          testID={`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.MARKET_CARD}-${
-            index + 1
-          }`}
-        />
-      </Box>
+      <PredictMarket
+        market={item}
+        entryPoint={entryPoint}
+        testID={`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.MARKET_CARD}-${index + 1}`}
+      />
     ),
     [entryPoint],
   );
@@ -287,7 +269,9 @@ const PredictWorldCup: React.FC = () => {
                 )}
                 testID={`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-${tab.key}`}
               >
-                {tab.isLive && <LiveIndicator tw={tw} />}
+                {tab.isLive && (
+                  <PulsingLiveDot color={tw.color('success-default')} />
+                )}
                 <Text
                   color={
                     isActive

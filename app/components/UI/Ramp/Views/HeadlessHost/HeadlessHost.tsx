@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Button,
   ButtonVariant,
+  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -18,7 +19,6 @@ import {
   useParams,
 } from '../../../../../util/navigation/navUtils';
 import { useStyles } from '../../../../hooks/useStyles';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Logger from '../../../../../util/Logger';
 
 // Imported from concrete files instead of `../../headless` to avoid a
@@ -282,7 +282,7 @@ function HeadlessHost() {
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
-      <HeaderCompactStandard
+      <HeaderStandard
         testID={HEADLESS_HOST_HEADER_TEST_ID}
         title={strings('app_settings.fiat_on_ramp.headless_host.title')}
         onBack={handleBack}

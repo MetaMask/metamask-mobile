@@ -137,6 +137,29 @@ export const deriveAccountMetricProps = (account?: InternalAccount) => {
   };
 };
 
+interface NavigationRouteLike {
+  name?: string;
+  state?: NavigationStateLike;
+}
+
+export interface NavigationStateLike {
+  index?: number;
+  routes?: readonly NavigationRouteLike[];
+}
+
+export const getActiveRouteNameFromNavigationState = (
+  state?: NavigationStateLike,
+): string | undefined => {
+  const routeIndex = typeof state?.index === 'number' ? state.index : 0;
+  const route = state?.routes?.[routeIndex];
+
+  if (!route) {
+    return undefined;
+  }
+
+  return getActiveRouteNameFromNavigationState(route.state) ?? route.name;
+};
+
 // Referral URL builder
 export const REFERRAL_LINK_PATH = 'link.metamask.io/rewards?referral=';
 export const REFERRAL_BASE_URL = `https://${REFERRAL_LINK_PATH}`;
