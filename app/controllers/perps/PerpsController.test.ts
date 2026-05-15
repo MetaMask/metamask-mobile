@@ -927,30 +927,20 @@ describe('PerpsController', () => {
       }
     });
 
-    it('logs initializationError to Sentry when state is Failed', () => {
+    it('does not log to Sentry when state is Failed (failure already logged at source)', () => {
       controller.testSetInitialized(false);
       controller.testUpdate((state) => {
         state.initializationState = InitializationState.Failed;
         state.initializationError = 'WebSocket transport failed';
       });
 
-      expect(() => controller.getActiveProvider()).toThrow();
-      expect(mockInfrastructure.logger.error).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'WebSocket transport failed',
-        }),
-        expect.objectContaining({
-          tags: expect.objectContaining({ feature: 'perps' }),
-          context: expect.objectContaining({
-            data: expect.objectContaining({
-              method: 'getActiveProvider',
-            }),
-          }),
-        }),
+      expect(() => controller.getActiveProvider()).toThrow(
+        PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED,
       );
+      expect(mockInfrastructure.logger.error).not.toHaveBeenCalled();
     });
 
-    it('logs fallback message when initializationError is null on Failed state', () => {
+    it('does not log to Sentry when initializationError is null on Failed state', () => {
       controller.testSetInitialized(false);
       controller.testUpdate((state) => {
         state.initializationState = InitializationState.Failed;
@@ -960,12 +950,7 @@ describe('PerpsController', () => {
       expect(() => controller.getActiveProvider()).toThrow(
         PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED,
       );
-      expect(mockInfrastructure.logger.error).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'Initialization failed',
-        }),
-        expect.any(Object),
-      );
+      expect(mockInfrastructure.logger.error).not.toHaveBeenCalled();
     });
   });
 

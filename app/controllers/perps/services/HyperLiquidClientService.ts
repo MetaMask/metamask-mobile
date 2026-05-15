@@ -138,23 +138,7 @@ export class HyperLiquidClientService {
         throw new Error('Failed to create transports');
       }
 
-      // Wallet adapter implements AbstractViemJsonRpcAccount interface with signTypedData method
-      // ExchangeClient uses HTTP transport for write operations (orders, approvals, etc.)
-      this.#exchangeClient = new ExchangeClient({
-        wallet: wallet as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type widening for SDK compatibility
-        transport: this.#httpTransport,
-      });
-
-      // InfoClient with WebSocket transport (default) - multiplexed requests over single connection
-      this.#infoClient = new InfoClient({ transport: this.#wsTransport });
-
-      // InfoClient with HTTP transport (fallback) - for specific calls if WebSocket has issues
-      this.#infoClientHttp = new InfoClient({ transport: this.#httpTransport });
-
-      // SubscriptionClient uses WebSocket transport for real-time pub/sub (price feeds, position updates)
-      this.#subscriptionClient = new SubscriptionClient({
-        transport: this.#wsTransport,
-      });
+      this.#createAllClients(wallet);
 
       // Wait for WebSocket to actually be ready before setting CONNECTED
       // This ensures we have a real connection, not just client objects
@@ -290,6 +274,33 @@ export class HyperLiquidClientService {
     });
 
     return this.#wsTransport;
+  }
+
+  /**
+   * Create all SDK clients using the current transports.
+   * Shared by initialize() and #handleConnectionDrop() to avoid drift.
+   *
+   * @param wallet - Optional wallet params. Uses stored #walletParams when omitted (reconnection path).
+   */
+  #createAllClients(wallet?: HyperLiquidWalletParams): void {
+    const effectiveWallet = wallet ?? this.#walletParams;
+
+    if (!this.#wsTransport || !this.#httpTransport) {
+      throw new Error('Transports must be created before clients');
+    }
+
+    this.#infoClient = new InfoClient({ transport: this.#wsTransport });
+    this.#infoClientHttp = new InfoClient({ transport: this.#httpTransport });
+    this.#subscriptionClient = new SubscriptionClient({
+      transport: this.#wsTransport,
+    });
+
+    if (effectiveWallet) {
+      this.#exchangeClient = new ExchangeClient({
+        wallet: effectiveWallet as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type widening for SDK compatibility
+        transport: this.#httpTransport,
+      });
+    }
   }
 
   /**
@@ -1195,22 +1206,7 @@ export class HyperLiquidClientService {
       // Recreate transports (both WS and HTTP)
       const newWsTransport = this.#createTransports();
 
-      // Recreate all SDK clients so isInitialized() returns true after reconnection
-      this.#infoClient = new InfoClient({ transport: newWsTransport });
-      this.#subscriptionClient = new SubscriptionClient({
-        transport: newWsTransport,
-      });
-      if (this.#httpTransport) {
-        this.#infoClientHttp = new InfoClient({
-          transport: this.#httpTransport,
-        });
-        if (this.#walletParams) {
-          this.#exchangeClient = new ExchangeClient({
-            wallet: this.#walletParams as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type widening for SDK compatibility
-            transport: this.#httpTransport,
-          });
-        }
-      }
+      this.#createAllClients();
 
       await newWsTransport.ready();
 
