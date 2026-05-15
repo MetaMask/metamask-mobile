@@ -7067,6 +7067,7 @@
     "pay_with_bottom_sheet": {
       "title": "Pay with",
       "last_used": "Last used",
+      "bank_and_card": "Bank and card",
       "crypto": "Crypto",
       "perps": "Perps",
       "perps_account": "Perps account",

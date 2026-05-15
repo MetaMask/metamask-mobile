@@ -29,6 +29,7 @@ import { SetPayTokenRequest } from '../useAutomaticTransactionPayToken';
 import { useLastUsedPaymentMethod } from '../useLastUsedPaymentMethod';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
+import { useTransactionPayFiatPayment } from '../useTransactionPayData';
 import { useTransactionPayToken } from '../useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 
@@ -85,8 +86,12 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     isPerpsDepositAndOrder && isPerpsBalanceSelected;
   const isPredictBalanceImplicitlySelected =
     isPredictDepositAndOrder && isPredictBalanceSelected;
-  const isDedicatedSectionDefaultActive =
-    isPerpsBalanceImplicitlySelected || isPredictBalanceImplicitlySelected;
+  const fiatPayment = useTransactionPayFiatPayment();
+  const hasFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
+  const isDedicatedSectionOwningSelection =
+    isPerpsBalanceImplicitlySelected ||
+    isPredictBalanceImplicitlySelected ||
+    hasFiatPaymentSelected;
 
   const handleOtherAssetsPress = useCallback(() => {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
@@ -137,15 +142,18 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     const rows: PayWithRowConfig[] = [];
 
     if (preferredToken) {
-      // In perps/predict deposit-and-order flows the dedicated section renders
-      // its account balance ("Perps account" / "Predict account") as the
-      // conceptual default ONLY when the user has not explicitly picked a token
-      // (`selectedPaymentToken === null` on the respective controller). When
-      // the user opens "Other assets" and picks e.g. BNB, the controller also
-      // stores BNB as `selectedPaymentToken`, and we should honor that
-      // selection here with a checkmark.
+      // When a dedicated section "owns" the selection — Perps balance is the
+      // implicit default in a perpsDepositAndOrder flow, Predict balance is
+      // the implicit default in a predictDepositAndOrder flow, OR a fiat
+      // payment method has been picked — the Crypto section's preferred-token
+      // row must not render a misleading checkmark, and the user-selected-
+      // token row is hidden below. When the user explicitly picks a crypto
+      // token via "Other assets" in a perps/predict flow, the respective
+      // controller also stores it as `selectedPaymentToken`, and we honor that
+      // selection with a checkmark (handled by `is*BalanceImplicitlySelected`
+      // being false in that case).
       const isPreferredTokenSelected =
-        !isDedicatedSectionDefaultActive &&
+        !isDedicatedSectionOwningSelection &&
         isMatchingPayToken(selectedToken, preferredToken);
 
       rows.push({
@@ -170,7 +178,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     if (
       isSelectedDistinctFromAutomatic &&
       selectedTokenDisplay &&
-      !isDedicatedSectionDefaultActive
+      !isDedicatedSectionOwningSelection
     ) {
       rows.push({
         id: 'crypto-selected-token',
@@ -219,7 +227,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     handleOtherAssetsPress,
     handlePreferredTokenPress,
     hasTokens,
-    isDedicatedSectionDefaultActive,
+    isDedicatedSectionOwningSelection,
     isLastUsed,
     isSelectedDistinctFromAutomatic,
     preferredToken,
