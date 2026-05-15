@@ -51,11 +51,11 @@ import {
 } from '../../../../Earn/constants/musd';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { RewardsMetricsButtons } from '../../../utils';
-import { formatUsd } from '../../../utils/formatUtils';
+import { formatCompactUsd, formatUsd } from '../../../utils/formatUtils';
 import {
   amountToPercent,
   clampAmount,
-  MAX_AMOUNT,
+  MAX_AMOUNT as MAX_SLIDER_AMOUNT,
   MUSD_CALCULATOR_APY,
   percentToAmount,
   SNAP_POINTS,
@@ -87,6 +87,8 @@ const SLIDER_AMOUNT_THROTTLE_MS = 48;
 const INITIAL_AMOUNT = SNAP_POINTS[1];
 const KEYBOARD_EXTRA_SCROLL_HEIGHT = 20;
 const MAX_DECIMAL_PLACES = 2;
+const MAX_INPUT_AMOUNT = 10_000_000;
+const COMPACT_USD_THRESHOLD = 100_000;
 
 const normalizeAmountInput = (value: string) => {
   const numeric = value.replace(/[^0-9.]/g, '');
@@ -103,10 +105,10 @@ const getAmountInputState = (value: string) => {
   const inputValue = normalizeAmountInput(value);
   const numericAmount = Number(inputValue);
 
-  if (Number.isFinite(numericAmount) && numericAmount > MAX_AMOUNT) {
+  if (Number.isFinite(numericAmount) && numericAmount > MAX_INPUT_AMOUNT) {
     return {
-      amount: MAX_AMOUNT,
-      inputValue: String(MAX_AMOUNT),
+      amount: MAX_INPUT_AMOUNT,
+      inputValue: String(MAX_INPUT_AMOUNT),
     };
   }
 
@@ -126,7 +128,9 @@ const useMusdSlider = (
   const lastThrottledAmountSyncRef = useRef(0);
 
   useEffect(() => {
-    thumbLinearPctShared.value = amountToPercent(amount);
+    thumbLinearPctShared.value = amountToPercent(
+      Math.min(amount, MAX_SLIDER_AMOUNT),
+    );
   }, [amount, thumbLinearPctShared]);
 
   const syncAmountFromLinearPct = useCallback(
@@ -262,6 +266,10 @@ const MusdCalculatorTab: React.FC = () => {
 
   const yearlyEarnings = amount * MUSD_CALCULATOR_APY;
   const dailyEarnings = yearlyEarnings / 365;
+  const yearlyEarningsLabel =
+    amount >= COMPACT_USD_THRESHOLD
+      ? formatCompactUsd(yearlyEarnings, { maximumFractionDigits: 0 })
+      : formatUsd(yearlyEarnings);
 
   const handleBuyMusd = useCallback(() => {
     trackEvent(
@@ -356,7 +364,7 @@ const MusdCalculatorTab: React.FC = () => {
                 twClassName="text-[64px] leading-[72px] font-semibold"
               >
                 {strings('rewards.musd.yearly_positive_prefix')}
-                {formatUsd(yearlyEarnings)}
+                {yearlyEarningsLabel}
               </Text>
               <Text
                 variant={TextVariant.HeadingMd}

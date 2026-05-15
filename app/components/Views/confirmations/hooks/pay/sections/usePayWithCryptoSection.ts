@@ -21,6 +21,7 @@ import {
   resolvePreferredPayToken,
 } from '../../../utils/transaction-pay';
 import { SetPayTokenRequest } from '../useAutomaticTransactionPayToken';
+import { useLastUsedPaymentMethod } from '../useLastUsedPaymentMethod';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
@@ -60,6 +61,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     selectedToken: selectedTokenDisplay,
     selectToken,
   } = usePayWithSelectedToken({ preferredToken: resolvedPreferredToken });
+  const { isLastUsed } = useLastUsedPaymentMethod();
 
   const handleOtherAssetsPress = useCallback(() => {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
@@ -111,6 +113,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
           balance: preferredTokenBalance,
         }),
         isSelected: isPreferredTokenSelected,
+        isLastUsed: isLastUsed(preferredToken.address, preferredToken.chainId),
         trailingElement: isPreferredTokenSelected ? 'checkmark' : 'none',
         onPress: handlePreferredTokenPress,
         testID: PAY_WITH_CRYPTO_PREFERRED_TOKEN_ROW_TEST_ID,
@@ -130,6 +133,10 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
           balance: selectedTokenBalance,
         }),
         isSelected: true,
+        isLastUsed: isLastUsed(
+          selectedTokenDisplay.address,
+          selectedTokenDisplay.chainId,
+        ),
         trailingElement: 'checkmark',
         testID: PAY_WITH_CRYPTO_SELECTED_TOKEN_ROW_TEST_ID,
       });
@@ -161,6 +168,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     handleOtherAssetsPress,
     handlePreferredTokenPress,
     hasTokens,
+    isLastUsed,
     isSelectedDistinctFromAutomatic,
     preferredToken,
     preferredTokenBalance,

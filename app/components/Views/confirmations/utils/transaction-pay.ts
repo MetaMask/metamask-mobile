@@ -344,3 +344,11 @@ export function resolvePreferredPayToken({
 
   return undefined;
 }
+
+/**
+ * Temporary build-time feature gate for the new Pay With bottom sheet UI.
+ * Remove this helper and its callers once the bottom sheet ships behind the
+ * remote `confirmations_pay_fiat` flag.
+ */
+export const isPayWithBottomSheetEnabled = (): boolean =>
+  process.env.MM_DEV_PAY_WITH_BOTTOM_SHEET === 'true';

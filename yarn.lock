@@ -7870,16 +7870,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/authenticated-user-storage@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@metamask/authenticated-user-storage@npm:1.0.0"
+"@metamask/authenticated-user-storage@npm:^1.0.0, @metamask/authenticated-user-storage@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@metamask/authenticated-user-storage@npm:1.0.1"
   dependencies:
-    "@metamask/base-data-service": "npm:^0.1.1"
-    "@metamask/controller-utils": "npm:^11.20.0"
-    "@metamask/messenger": "npm:^1.1.1"
+    "@metamask/base-data-service": "npm:^0.1.2"
+    "@metamask/controller-utils": "npm:^12.0.0"
+    "@metamask/messenger": "npm:^1.2.0"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/eba2d55d4a85c99c02fd6fa3371cf779be24f03175c08ea2a22f6b0e13b675c7cd5e420149044f804595cf3da25f7176446d891bcf2ce1389a0792a818076ab3
+  checksum: 10/e6ae2f9a094536e269ec73f87a9939701bf2ce9fd3bf32671da49341da8d13179d55a4e34a1c9d899e48e707c7a1d12e36faaf1f0b4e5fe82445ca43b5265fc5
   languageName: node
   linkType: hard
 
@@ -7911,16 +7911,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-data-service@npm:^0.1.0, @metamask/base-data-service@npm:^0.1.1":
-  version: 0.1.1
-  resolution: "@metamask/base-data-service@npm:0.1.1"
+"@metamask/base-data-service@npm:^0.1.0, @metamask/base-data-service@npm:^0.1.1, @metamask/base-data-service@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "@metamask/base-data-service@npm:0.1.2"
   dependencies:
-    "@metamask/controller-utils": "npm:^11.19.0"
-    "@metamask/messenger": "npm:^1.0.0"
+    "@metamask/controller-utils": "npm:^12.0.0"
+    "@metamask/messenger": "npm:^1.2.0"
     "@metamask/utils": "npm:^11.9.0"
     "@tanstack/query-core": "npm:^4.43.0"
     fast-deep-equal: "npm:^3.1.3"
-  checksum: 10/b746cfaad6625d61e0d5e3202488d1f3139ef1e4b8f04c7b07a3e0fbe474c1307c73bacb1cf5d9288e946719137c52f1bc1fd40e9e44800f65b8729bbed7311d
+  checksum: 10/c05e2334e94f8a6d61764ddfec657cb5fc9cd1b29688bbcc3d83bee0ff032de9490319fedf17deb36916da906efd648197c71af4663d68966bdb78b8f1f8c3e2
   languageName: node
   linkType: hard
 
@@ -8118,17 +8118,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/chomp-api-service@npm:3.0.0, @metamask/chomp-api-service@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@metamask/chomp-api-service@npm:3.0.0"
+"@metamask/chomp-api-service@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@metamask/chomp-api-service@npm:3.1.0"
   dependencies:
-    "@metamask/base-data-service": "npm:^0.1.1"
-    "@metamask/controller-utils": "npm:^11.20.0"
+    "@metamask/base-data-service": "npm:^0.1.2"
+    "@metamask/controller-utils": "npm:^12.0.0"
     "@metamask/messenger": "npm:^1.2.0"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.9.0"
     "@tanstack/query-core": "npm:^4.43.0"
-  checksum: 10/9d4a4c4eeaaef91535fe161c79b7bd95d3aff536b2c061d07b71276ba640ca8b6d235ac2c4695d3a70b429373cf42ded3c645603e8081753a8136f4e0aa84a44
+  checksum: 10/b1b9b83841bac0bbd21f569588785a3744b9fe61790003a5ebcf5c0188be99cf7049f75a85814a2214a673d370226dd970129a9d7a45a4a28d49657ab0184a40
   languageName: node
   linkType: hard
 
@@ -8225,19 +8225,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/core-backend@npm:^6.1.1, @metamask/core-backend@npm:^6.2.0, @metamask/core-backend@npm:^6.2.1, @metamask/core-backend@npm:^6.2.2":
-  version: 6.2.2
-  resolution: "@metamask/core-backend@npm:6.2.2"
+"@metamask/core-backend@npm:^6.1.1, @metamask/core-backend@npm:^6.2.1, @metamask/core-backend@npm:^6.2.2, @metamask/core-backend@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "@metamask/core-backend@npm:6.3.0"
   dependencies:
-    "@metamask/accounts-controller": "npm:^38.1.0"
-    "@metamask/controller-utils": "npm:^12.0.0"
+    "@metamask/accounts-controller": "npm:^38.1.1"
+    "@metamask/controller-utils": "npm:^12.1.0"
     "@metamask/keyring-controller": "npm:^25.5.0"
     "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/profile-sync-controller": "npm:^28.0.2"
+    "@metamask/profile-sync-controller": "npm:^28.1.0"
     "@metamask/utils": "npm:^11.9.0"
     "@tanstack/query-core": "npm:^5.62.16"
+    async-mutex: "npm:^0.5.0"
     uuid: "npm:^8.3.2"
-  checksum: 10/5a2b60e9b37b24932ff54b8db6c073f413a32b30eef1778953066df6a5699a4ad6d48c723f9c6d318db497de97d089e31df5bbf8e599fa141a927cc14d744f31
+  checksum: 10/4823dc2d9ac77e405190eb7aca87c14ddc1cc2d30092872c48a2dbf45672f64859a36bc298fa2673cfcd14165525216dad4f3d9242c7f2ec743a71c175045928
   languageName: node
   linkType: hard
 
@@ -8254,6 +8255,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/delegation-controller@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@metamask/delegation-controller@npm:3.0.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.1"
+    "@metamask/keyring-controller": "npm:^25.2.0"
+    "@metamask/messenger": "npm:^1.1.1"
+    "@metamask/utils": "npm:^11.9.0"
+  checksum: 10/39805fa41088f3e816d4ef650a81f724e4b52528ade882fd3580436acccdc2da4072658abe00d33fb27d597e88f97d104e140718d7e67b132ff1b9bba0887fa4
+  languageName: node
+  linkType: hard
+
 "@metamask/delegation-core@npm:^0.2.0":
   version: 0.2.0
   resolution: "@metamask/delegation-core@npm:0.2.0"
@@ -8265,6 +8278,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/delegation-core@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@metamask/delegation-core@npm:2.0.0"
+  dependencies:
+    "@metamask/abi-utils": "npm:^3.0.0"
+    "@metamask/utils": "npm:^11.4.0"
+    "@noble/hashes": "npm:^1.8.0"
+  checksum: 10/b473160e4cb4a6d463c6015de6e90d057034d2e8f2905068e1f44f93c8247618c5d84a155e86dfaa125dacb040951643517b9a76961bf8d215c194dc4d1cc0ad
+  languageName: node
+  linkType: hard
+
 "@metamask/delegation-deployments@npm:^0.12.0":
   version: 0.12.0
   resolution: "@metamask/delegation-deployments@npm:0.12.0"
@@ -8272,18 +8296,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/delegation-deployments@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@metamask/delegation-deployments@npm:1.0.0"
-  checksum: 10/d81e3e875f6a2506f2e6302ba981a609a311c3a4388033ec7e23e45606f27163c6ee8dcd13b1dde7dd6e0eb0186af8b03616b4ff30b334451b8d60381ef8a108
+"@metamask/delegation-deployments@npm:^1.0.0, @metamask/delegation-deployments@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "@metamask/delegation-deployments@npm:1.3.0"
+  checksum: 10/58f4aafb5f0e3cbc543811cbc0100efab4ed67b9c9794b83192962153e4edbe12fd6ab6fa7be689503309862a65eb7fde771f632893d38ab54f8171aa682b34f
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.23.0":
-  version: 0.23.0
-  resolution: "@metamask/design-system-react-native@npm:0.23.0"
+"@metamask/design-system-react-native@npm:^0.24.0":
+  version: 0.24.0
+  resolution: "@metamask/design-system-react-native@npm:0.24.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.16.0"
+    "@metamask/design-system-shared": "npm:^0.17.0"
     fast-text-encoding: "npm:^1.0.6"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
@@ -8296,18 +8320,18 @@ __metadata:
     react-native-gesture-handler: ">=2.25.0"
     react-native-reanimated: ">=3.17.0"
     react-native-safe-area-context: ">=5.0.0"
-  checksum: 10/76c88e0cb8e263361eeb53b63c90dfc6718502012cc00cc76c18d2ec5e70520b63717ed66c03103c7846f8405934a15cb91e571e87eaa2255963c6657953a270
+  checksum: 10/fb7c4d525077511e0557f2c581e8e99449ab16f0153ea9cc56a4de4d8e2c4aa62af663f72e7dfc3efce0df7f8073c54711c358023968904f114abe6781027065
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.16.0":
-  version: 0.16.0
-  resolution: "@metamask/design-system-shared@npm:0.16.0"
+"@metamask/design-system-shared@npm:^0.17.0":
+  version: 0.17.0
+  resolution: "@metamask/design-system-shared@npm:0.17.0"
   dependencies:
     "@metamask/utils": "npm:^11.11.0"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/3311b3ac9c2e24eb39d6fac9df34e2c2d2390e189ca1a71e335ea7a49f8bc423e2bc4676ce26b1a37e78f27b6ec8178016930c288711f363ca18cdff0a0d44be
+  checksum: 10/168af1fe87414eec9e12f31cea7d9c6081b0671dd6752b3fb4e57311384a2a59f4fd795bc883923d4a2b59162cdae7cdbcdfc3b6ad1bdb432c1f75c6a7b40341
   languageName: node
   linkType: hard
 
@@ -9163,17 +9187,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-upgrade-controller@npm:^1.3.1":
-  version: 1.3.1
-  resolution: "@metamask/money-account-upgrade-controller@npm:1.3.1"
+"@metamask/money-account-upgrade-controller@npm:^2.0.0":
+  version: 2.0.1
+  resolution: "@metamask/money-account-upgrade-controller@npm:2.0.1"
   dependencies:
+    "@metamask/authenticated-user-storage": "npm:^1.0.1"
     "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/chomp-api-service": "npm:^3.0.0"
-    "@metamask/keyring-controller": "npm:^25.4.0"
+    "@metamask/chomp-api-service": "npm:^3.1.0"
+    "@metamask/delegation-controller": "npm:^3.0.0"
+    "@metamask/delegation-core": "npm:^2.0.0"
+    "@metamask/delegation-deployments": "npm:^1.3.0"
+    "@metamask/keyring-controller": "npm:^25.5.0"
     "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/network-controller": "npm:^30.1.0"
+    "@metamask/network-controller": "npm:^32.0.0"
     "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/c89c07556f2c99ca72c3358d00bdde78bf9c3666794bf3847dcee2b4f312920037fcdb500b0bd22a1366cc3fb948d0ebec9dd0375cc633f728cdeedd7064bf99
+  checksum: 10/5a903ccde41188f9e61a0200f79b8bae540c0ca31d8b7e4089708c876eaba46accdd7b2b5e110e7228d724b35e8f279b2fc5e257f3dc9d5d0f2b764416f968fe
   languageName: node
   linkType: hard
 
@@ -17936,7 +17964,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tommasini/react-native-scrollable-tab-view@npm:^1.1.1":
+"@tommasini/react-native-scrollable-tab-view@npm:1.1.1":
   version: 1.1.1
   resolution: "@tommasini/react-native-scrollable-tab-view@npm:1.1.1"
   dependencies:
@@ -17948,6 +17976,21 @@ __metadata:
   peerDependencies:
     react-native: ">=0.20.0"
   checksum: 10/ea8f999983c9201dc4fa0743feebfb1e56c2e10b2ddddda0e9ff4145dd82386b03e2af8fc6b9295ac85066b21b10be02df4dc30682c07c71d3a4078a1e8c2e88
+  languageName: node
+  linkType: hard
+
+"@tommasini/react-native-scrollable-tab-view@patch:@tommasini/react-native-scrollable-tab-view@npm%3A1.1.1#~/.yarn/patches/@tommasini-react-native-scrollable-tab-view-npm-1.1.1-153a9df479.patch":
+  version: 1.1.1
+  resolution: "@tommasini/react-native-scrollable-tab-view@patch:@tommasini/react-native-scrollable-tab-view@npm%3A1.1.1#~/.yarn/patches/@tommasini-react-native-scrollable-tab-view-npm-1.1.1-153a9df479.patch::version=1.1.1&hash=851ebf"
+  dependencies:
+    "@react-native-community/viewpager": "npm:3.3.0"
+    create-react-class: "npm:^15.6.2"
+    deprecated-react-native-prop-types: "npm:^2.3.0"
+    prop-types: "npm:^15.6.0"
+    react-timer-mixin: "npm:^0.13.3"
+  peerDependencies:
+    react-native: ">=0.20.0"
+  checksum: 10/7ab44b78d8bcaa8b773cd0f02d0f5dc081dab4ad4104b06229d5e4105b954568a11509503d3c9f75497139ba34c2efbda9c3123ef29ec357e7a93b476fbb0e47
   languageName: node
   linkType: hard
 
@@ -35293,15 +35336,15 @@ __metadata:
     "@metamask/browser-playground": "npm:0.3.0"
     "@metamask/build-utils": "npm:^3.0.0"
     "@metamask/chain-agnostic-permission": "npm:^1.5.0"
-    "@metamask/chomp-api-service": "npm:3.0.0"
+    "@metamask/chomp-api-service": "npm:^3.1.0"
     "@metamask/client-controller": "npm:^1.0.1"
     "@metamask/compliance-controller": "npm:2.0.0"
     "@metamask/connectivity-controller": "npm:^0.1.0"
     "@metamask/controller-utils": "npm:^12.0.0"
-    "@metamask/core-backend": "npm:^6.2.0"
+    "@metamask/core-backend": "npm:^6.3.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.23.0"
+    "@metamask/design-system-react-native": "npm:^0.24.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.4.2"
     "@metamask/design-tokens": "npm:^8.4.0"
     "@metamask/earn-controller": "npm:^12.1.0"
@@ -35346,7 +35389,7 @@ __metadata:
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
     "@metamask/money-account-balance-service": "npm:^1.0.0"
     "@metamask/money-account-controller": "npm:^0.2.0"
-    "@metamask/money-account-upgrade-controller": "npm:^1.3.1"
+    "@metamask/money-account-upgrade-controller": "npm:^2.0.0"
     "@metamask/multichain-account-service": "npm:^8.0.1"
     "@metamask/multichain-api-client": "npm:^0.10.1"
     "@metamask/multichain-api-middleware": "npm:^3.1.1"
@@ -35454,7 +35497,7 @@ __metadata:
     "@testing-library/react": "npm:14.0.0"
     "@testing-library/react-hooks": "npm:^8.0.1"
     "@testing-library/react-native": "npm:^13.2.0"
-    "@tommasini/react-native-scrollable-tab-view": "npm:^1.1.1"
+    "@tommasini/react-native-scrollable-tab-view": "patch:@tommasini/react-native-scrollable-tab-view@npm%3A1.1.1#~/.yarn/patches/@tommasini-react-native-scrollable-tab-view-npm-1.1.1-153a9df479.patch"
     "@tradle/react-native-http": "npm:2.0.1"
     "@types/better-sqlite3": "npm:^7.6.13"
     "@types/bnjs4": "npm:@types/bn.js@^4.11.6"
