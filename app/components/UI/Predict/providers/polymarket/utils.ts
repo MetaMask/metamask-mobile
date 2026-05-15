@@ -1112,6 +1112,9 @@ export const parsePolymarketEvents = (
         volume: event.volume,
         game,
         ...(seriesData && { series: seriesData }),
+        ...(event.parentEventId !== undefined && {
+          parentMarketId: event.parentEventId,
+        }),
       };
     },
   );
