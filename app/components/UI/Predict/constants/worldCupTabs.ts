@@ -10,16 +10,32 @@ export const PREDICT_WORLD_CUP_TAB_KEYS = {
 
 export type PredictWorldCupTabKey = string;
 
+export interface PredictWorldCupTabAvailability {
+  live: boolean;
+  props: boolean;
+  stages: Record<string, boolean>;
+}
+
 export const getPredictWorldCupAvailableTabKeys = (
   config?: Pick<PredictWorldCupConfig, 'stages'>,
+  availability?: PredictWorldCupTabAvailability,
 ): string[] => [
-  ...Object.values(PREDICT_WORLD_CUP_TAB_KEYS),
-  ...(config?.stages ?? []).map((stage) => stage.key),
+  PREDICT_WORLD_CUP_TAB_KEYS.ALL,
+  ...(!availability || availability.live
+    ? [PREDICT_WORLD_CUP_TAB_KEYS.LIVE]
+    : []),
+  ...(!availability || availability.props
+    ? [PREDICT_WORLD_CUP_TAB_KEYS.PROPS]
+    : []),
+  ...(config?.stages ?? [])
+    .filter((stage) => !availability || availability.stages[stage.key])
+    .map((stage) => stage.key),
 ];
 
 export const resolvePredictWorldCupInitialTab = (
   requestedTab?: string | null,
   config?: Pick<PredictWorldCupConfig, 'stages'>,
+  availability?: PredictWorldCupTabAvailability,
 ): PredictWorldCupTabKey => {
   const normalizedTab = requestedTab?.toLowerCase();
 
@@ -27,7 +43,10 @@ export const resolvePredictWorldCupInitialTab = (
     return PREDICT_WORLD_CUP_TAB_KEYS.ALL;
   }
 
-  const availableTabKeys = getPredictWorldCupAvailableTabKeys(config);
+  const availableTabKeys = getPredictWorldCupAvailableTabKeys(
+    config,
+    availability,
+  );
 
   return availableTabKeys.includes(normalizedTab)
     ? normalizedTab
