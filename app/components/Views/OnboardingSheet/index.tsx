@@ -5,7 +5,6 @@ import { AppThemeKey } from '../../../util/theme/models';
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
-import TelegramIcon from 'images/telegram.svg';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
@@ -18,6 +17,9 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  Icon,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -39,6 +41,9 @@ type OnboardingSheetRouteProp = RouteProp<
   { OnboardingSheet: OnboardingSheetParams },
   'OnboardingSheet'
 >;
+
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex -- Telegram brand blue does not exist as a design token.
+const TELEGRAM_BLUE = '#29B6F6';
 
 const OnboardingSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -182,7 +187,11 @@ const OnboardingSheet = () => {
             onPress={onPressContinueWithTelegramAction}
             testID={OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON}
             startAccessory={
-              <TelegramIcon width={24} height={24} name={'telegram'} />
+              <Icon
+                name={IconName.Telegram}
+                size={IconSize.Lg}
+                style={tw.style({ color: TELEGRAM_BLUE })}
+              />
             }
             isFullWidth
             size={ButtonSize.Lg}
