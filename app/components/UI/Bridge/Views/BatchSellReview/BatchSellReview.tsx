@@ -42,8 +42,8 @@ import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
 import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
 import {
+  DEFAULT_BATCH_SELL_SLIPPAGE,
   getBatchSellInitialSlippage,
-  getBatchSellSlippageValue,
   getSlippageDisplayValue,
 } from '../../components/SlippageModal/utils';
 import { BatchSellFinalReviewSourceTokenData } from '../../components/BatchSellFinalReviewModal/BatchSellFinalReviewModal.types';
@@ -183,7 +183,9 @@ export function BatchSellReview() {
     return {
       tokenData: selectedTokens.map((token) => {
         const assetId = getBridgeTokenAssetId(token);
-        const slippage = getBatchSellSlippageValue(batchSellSlippages, assetId);
+        const slippage = assetId
+          ? getBatchSellInitialSlippage(batchSellSlippages, assetId)
+          : DEFAULT_BATCH_SELL_SLIPPAGE;
 
         return {
           key: getTokenKey(token),
