@@ -29,6 +29,26 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock(
+  '../../../Views/WhatsHappeningDetailView/hooks/useWhatsHappeningAssetPrices',
+  () => ({
+    useWhatsHappeningAssetPrices: jest.fn(() => ({
+      perpsPriceBySymbol: {},
+    })),
+  }),
+);
+
+jest.mock(
+  '../../../Views/WhatsHappeningDetailView/hooks/useTradeNavigation',
+  () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+      handleTrade: jest.fn(),
+      canTrade: true,
+    })),
+  }),
+);
+
+jest.mock(
   '../../../Views/WhatsHappeningDetailView/components/RelatedAssetAvatar',
   () => 'RelatedAssetAvatar',
 );
