@@ -137,7 +137,7 @@ const TrendingTokenRowItem = ({
   testIdInstanceKey,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const currentCurrency = useSelector(selectCurrentCurrency) || 'USD';
+  const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
 
   const caipChainId = useMemo(
     () => getCaipChainIdFromAssetId(token.assetId),
