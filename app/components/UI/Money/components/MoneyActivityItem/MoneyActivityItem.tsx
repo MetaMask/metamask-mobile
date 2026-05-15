@@ -28,7 +28,7 @@ import { MoneyActivityItemTestIds } from './MoneyActivityItem.testIds';
 export interface MoneyActivityItemProps {
   tx: TransactionMeta;
   moneyAddress: string | undefined;
-  onPress?: () => void;
+  onPress?: (transactionId: string) => void;
   /** When true, shows the chain network badge on the token avatar. Defaults to false. */
   showNetworkBadge?: boolean;
 }
@@ -47,6 +47,17 @@ const MoneyActivityItem = ({
     ? getNetworkImageSource({ chainId: tx.chainId })
     : undefined;
 
+  // use the token's own image URI, or the source chain's network icon, or the mUSD icon
+  const tokenAvatarImageSource = useMemo(() => {
+    if (display.sourceTokenImage) {
+      return { uri: display.sourceTokenImage };
+    }
+    if (display.sourceTokenChainId) {
+      return getNetworkImageSource({ chainId: display.sourceTokenChainId });
+    }
+    return MUSD_TOKEN.imageSource;
+  }, [display.sourceTokenImage, display.sourceTokenChainId]);
+
   const amountColor = display.isIncoming
     ? TextColor.SuccessDefault
     : TextColor.TextDefault;
@@ -54,7 +65,7 @@ const MoneyActivityItem = ({
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={onPress}
+      onPress={onPress ? () => onPress(tx.id) : undefined}
       testID={`${MoneyActivityItemTestIds.ROW}-${tx.id}`}
       style={({ pressed }) =>
         tw.style(
@@ -77,16 +88,16 @@ const MoneyActivityItem = ({
           }
         >
           <AvatarToken
-            name={MUSD_TOKEN.name}
-            imageSource={MUSD_TOKEN.imageSource}
+            name={display.sourceTokenSymbol ?? MUSD_TOKEN.name}
+            imageSource={tokenAvatarImageSource}
             size={AvatarSize.Lg}
           />
         </BadgeWrapper>
       ) : (
         <Box twClassName="self-center">
           <AvatarToken
-            name={MUSD_TOKEN.name}
-            imageSource={MUSD_TOKEN.imageSource}
+            name={display.sourceTokenSymbol ?? MUSD_TOKEN.name}
+            imageSource={tokenAvatarImageSource}
             size={AvatarSize.Lg}
           />
         </Box>
