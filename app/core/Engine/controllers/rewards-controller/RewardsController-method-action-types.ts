@@ -300,9 +300,13 @@ export type RewardsControllerGetSeasonStatusAction = {
 };
 
 /**
- * Invalidate a specific subscription and its linked accounts
- * This is a surgical approach that only affects the specified subscription,
- * preserving other subscriptions' state.
+ * Invalidate local state for a subscription and its linked rewards accounts.
+ *
+ * Removes the subscription metadata entry, resets any linked rewards account
+ * state to opted-out, resets the active rewards account when it belongs to
+ * the subscription, and removes the stored session token. This intentionally
+ * does not clear rewards API caches such as vipDashboard; pair it with
+ * invalidateSubscriptionCache when cached data must be removed.
  *
  * @param subscriptionId - The subscription ID to invalidate
  */
@@ -733,8 +737,14 @@ export type RewardsControllerInvalidateReferralDetailsCacheAction = {
 /**
  * Invalidate cached data for a subscription
  *
- * @param subscriptionId - The subscription ID to invalidate cache for
- * @param seasonId - The season ID (defaults to current season)
+ * Clears cached rewards API data only. This does not alter linked account
+ * auth state, subscription metadata, or stored session tokens; pair it with
+ * invalidateSubscriptionAndAccounts when auth/account state must be reset.
+ *
+ * @param options - Cache invalidation scope
+ * @param options.subscriptionId - The subscription ID to invalidate cache for
+ * @param options.seasonId - Optional season ID to limit invalidation to season-scoped cache entries
+ * @param options.campaignId - Optional campaign ID to limit invalidation to campaign-scoped cache entries
  */
 export type RewardsControllerInvalidateSubscriptionCacheAction = {
   type: `RewardsController:invalidateSubscriptionCache`;
