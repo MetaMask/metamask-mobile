@@ -235,6 +235,7 @@ const TrendingTokenRowItem = ({
           {formatMarketStats(
             token.marketCap ?? 0,
             token.aggregatedUsdVolume ?? 0,
+            currentCurrency,
           )}
         </Text>
       </View>
