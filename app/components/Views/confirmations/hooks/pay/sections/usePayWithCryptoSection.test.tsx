@@ -94,6 +94,7 @@ describe('usePayWithCryptoSection', () => {
     useNavigationMock.mockReturnValue({
       navigate: navigateMock,
       goBack: goBackMock,
+      isFocused: jest.fn().mockReturnValue(true),
     } as never);
     useParamsMock.mockReturnValue({});
     useTransactionMetadataRequestMock.mockReturnValue(undefined);
@@ -567,6 +568,7 @@ describe('usePayWithCryptoSection', () => {
 
     expect(navigateMock).toHaveBeenCalledWith(
       Routes.CONFIRMATION_PAY_WITH_MODAL,
+      { dismissOnSelectCount: 2 },
     );
   });
 
