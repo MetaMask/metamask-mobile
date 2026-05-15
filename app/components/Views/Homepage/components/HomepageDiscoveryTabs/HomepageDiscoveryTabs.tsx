@@ -31,6 +31,7 @@ import {
   getStreamManagerInstance,
 } from '../../../../UI/Perps/providers/PerpsStreamManager';
 import { PredictPreviewSheetProvider } from '../../../../UI/Predict/contexts';
+import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
 import { IconName } from '../../../../../component-library/components/Icons/Icon/Icon.types';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -391,6 +392,7 @@ const HomepageDiscoveryTabs = forwardRef<
                       walletHeaderTranslateY={walletHeaderTranslateY}
                       walletHeaderHeight={walletHeaderHeight}
                       onHeaderHiddenChange={animateIcons}
+                      navigationStack={Routes.PREDICT.ROOT}
                     />
                   </PredictPreviewSheetProvider>
                 </DiscoveryTabView>

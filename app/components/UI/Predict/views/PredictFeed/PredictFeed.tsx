@@ -101,10 +101,12 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
 
 const PredictFeedHeader: React.FC<{
   onDepositWalletWithdrawPress?: () => void;
-}> = ({ onDepositWalletWithdrawPress }) => (
+  navigationStack?: string;
+}> = ({ onDepositWalletWithdrawPress, navigationStack }) => (
   <Box twClassName="py-4">
     <PredictBalance
       onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+      navigationStack={navigationStack}
     />
   </Box>
 );
@@ -151,6 +153,7 @@ interface AnimatedHeaderProps {
   onHeaderLayout: (event: LayoutChangeEvent) => void;
   onTabBarLayout: (event: LayoutChangeEvent) => void;
   onDepositWalletWithdrawPress?: () => void;
+  navigationStack?: string;
 }
 
 const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
@@ -164,6 +167,7 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   onHeaderLayout,
   onTabBarLayout,
   onDepositWalletWithdrawPress,
+  navigationStack,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -203,6 +207,7 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
       >
         <PredictFeedHeader
           onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+          navigationStack={navigationStack}
         />
         {isFeaturedCarouselEnabled && (
           <Box twClassName="pb-3">
@@ -620,6 +625,7 @@ interface PredictFeedProps {
   onHeaderHiddenChange?: (hidden: boolean) => void;
   walletHeaderTranslateY?: SharedValue<number>;
   walletHeaderHeight?: number;
+  navigationStack?: string;
 }
 
 const PredictFeed: React.FC<PredictFeedProps> = ({
@@ -627,6 +633,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
   onHeaderHiddenChange,
   walletHeaderTranslateY,
   walletHeaderHeight,
+  navigationStack,
 }) => {
   const { tabs, activeIndex, setActiveIndex, initialTabKey } = usePredictTabs();
 
@@ -773,6 +780,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
             onHeaderLayout={onHeaderLayout}
             onTabBarLayout={onTabBarLayout}
             onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
+            navigationStack={navigationStack}
           />
 
           {layoutReady && (

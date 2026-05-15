@@ -22,7 +22,13 @@ interface PredictDepositAnalyticsParams {
   analyticsProperties?: PlaceOrderParams['analyticsProperties'];
 }
 
-export const usePredictDeposit = () => {
+interface UsePredictDepositOptions {
+  navigationStack?: string;
+}
+
+export const usePredictDeposit = ({
+  navigationStack,
+}: UsePredictDepositOptions = {}) => {
   const { navigateToConfirmation } = useConfirmNavigation();
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
@@ -46,6 +52,7 @@ export const usePredictDeposit = () => {
       try {
         navigateToConfirmation({
           loader: ConfirmationLoader.CustomAmount,
+          stack: navigationStack,
         });
 
         depositWithConfirmation({}).catch((err) => {
@@ -96,6 +103,7 @@ export const usePredictDeposit = () => {
       }
     },
     [
+      navigationStack,
       depositWithConfirmation,
       navigateToConfirmation,
       navigation,

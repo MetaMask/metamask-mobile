@@ -206,7 +206,35 @@ describe('usePredictWithdraw', () => {
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         loader: ConfirmationLoader.CustomAmount,
+        stack: undefined,
       });
+    });
+
+    it('passes navigationStack to navigateToConfirmation when provided', async () => {
+      mockPrepareWithdraw.mockResolvedValue({ success: true });
+
+      const { result } = renderHook(() =>
+        usePredictWithdraw({ navigationStack: 'PredictStack' }),
+      );
+
+      await result.current.withdraw();
+
+      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+        loader: ConfirmationLoader.CustomAmount,
+        stack: 'PredictStack',
+      });
+    });
+
+    it('omits stack from navigateToConfirmation when navigationStack is not provided', async () => {
+      mockPrepareWithdraw.mockResolvedValue({ success: true });
+
+      const { result } = setupUsePredictWithdrawTest();
+
+      await result.current.withdraw();
+
+      expect(mockNavigateToConfirmation).toHaveBeenCalledWith(
+        expect.objectContaining({ stack: undefined }),
+      );
     });
 
     it('calls prepareWithdraw with empty options object', async () => {

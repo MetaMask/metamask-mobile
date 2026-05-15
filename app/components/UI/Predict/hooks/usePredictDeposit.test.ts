@@ -155,7 +155,41 @@ describe('usePredictDeposit', () => {
     // Assert
     expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
+      stack: undefined,
     });
+  });
+
+  it('passes navigationStack to navigateToConfirmation when provided', async () => {
+    // Arrange
+    const { result } = renderHook(() =>
+      usePredictDeposit({ navigationStack: 'PredictStack' }),
+    );
+
+    // Act
+    await act(async () => {
+      await result.current.deposit();
+    });
+
+    // Assert
+    expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+      loader: ConfirmationLoader.CustomAmount,
+      stack: 'PredictStack',
+    });
+  });
+
+  it('omits stack from navigateToConfirmation when navigationStack is not provided', async () => {
+    // Arrange
+    const { result } = renderHook(() => usePredictDeposit());
+
+    // Act
+    await act(async () => {
+      await result.current.deposit();
+    });
+
+    // Assert
+    expect(mockNavigateToConfirmation).toHaveBeenCalledWith(
+      expect.objectContaining({ stack: undefined }),
+    );
   });
 
   it('calls depositWithConfirmation when deposit is called', async () => {

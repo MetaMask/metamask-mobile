@@ -12,7 +12,13 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { selectPredictWithdrawTransaction } from '../selectors/predictController';
 
-export const usePredictWithdraw = () => {
+interface UsePredictWithdrawOptions {
+  navigationStack?: string;
+}
+
+export const usePredictWithdraw = ({
+  navigationStack,
+}: UsePredictWithdrawOptions = {}) => {
   const { prepareWithdraw } = usePredictTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation();
@@ -24,6 +30,7 @@ export const usePredictWithdraw = () => {
     try {
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
+        stack: navigationStack,
       });
 
       const response = await prepareWithdraw({});
@@ -51,7 +58,13 @@ export const usePredictWithdraw = () => {
 
       console.error('Failed to proceed with withdraw:', err);
     }
-  }, [navigateToConfirmation, navigation, prepareWithdraw, toastRef]);
+  }, [
+    navigationStack,
+    navigateToConfirmation,
+    navigation,
+    prepareWithdraw,
+    toastRef,
+  ]);
 
   return { withdraw, withdrawTransaction };
 };
