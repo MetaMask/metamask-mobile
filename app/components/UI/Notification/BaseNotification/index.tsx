@@ -1,66 +1,41 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
-import PropTypes from 'prop-types';
-import { fontStyles, baseStyles } from '../../../../styles/common';
+import { TouchableOpacity, View } from 'react-native';
+// TODO(ds-icon-migration): swap react-native-vector-icons for DS Icon as part
+// of the icon migration. Glyph proportions differ at 36pt; deferring to keep
+// the toast layout pixel-faithful until designs are reviewed.
+/* eslint-disable @typescript-eslint/no-deprecated */
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import AnimatedSpinner from '../../AnimatedSpinner';
-import { strings } from '../../../../../locales/i18n';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
-import Text from '../../../Base/Text';
-import { useTheme } from '../../../../util/theme';
+/* eslint-enable @typescript-eslint/no-deprecated */
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
+
+import { baseStyles } from '../../../../styles/common';
+import { strings } from '../../../../../locales/i18n';
+import { useStyles } from '../../../../component-library/hooks';
+import { Theme } from '../../../../util/theme/models';
 import { ToastSelectorsIDs } from '../../../../component-library/components/Toast/ToastModal.testIds';
 
-const createStyles = (colors) =>
-  StyleSheet.create({
-    floatingBackground: {
-      backgroundColor: colors.background.default,
-      marginHorizontal: 16,
-      borderRadius: 8,
-    },
-    defaultFlashFloating: {
-      backgroundColor: colors.overlay.alternative,
-      padding: 16,
-      flexDirection: 'row',
-      flex: 1,
-      borderRadius: 8,
-    },
-    flashLabel: {
-      flex: 1,
-      flexDirection: 'column',
-      color: colors.overlay.inverse,
-    },
-    flashText: {
-      flex: 1,
-      fontSize: 12,
-      lineHeight: 18,
-      color: colors.overlay.inverse,
-    },
-    flashTitle: {
-      flex: 1,
-      fontSize: 14,
-      marginBottom: 2,
-      lineHeight: 18,
-      color: colors.overlay.inverse,
-      ...fontStyles.bold,
-    },
-    flashIcon: {
-      marginRight: 15,
-    },
-    closeTouchable: {
-      flex: 0.1,
-      flexDirection: 'column',
-      alignItems: 'flex-end',
-    },
-    closeIcon: {
-      flex: 1,
-      color: colors.overlay.inverse,
-      alignItems: 'flex-start',
-      marginTop: -8,
-    },
-  });
+import AnimatedSpinner from '../../AnimatedSpinner';
+import styleSheet from './BaseNotification.styles';
+import {
+  BaseNotificationData,
+  BaseNotificationProps,
+  BaseNotificationStatus,
+} from './BaseNotification.types';
 
-export const getIcon = (status, colors, styles) => {
+type Styles = ReturnType<typeof styleSheet>;
+
+export const getIcon = (
+  status: BaseNotificationStatus | undefined,
+  colors: Theme['colors'],
+  styles: Styles,
+) => {
   switch (status) {
     case 'pending':
     case 'pending_withdrawal':
@@ -94,7 +69,7 @@ export const getIcon = (status, colors, styles) => {
     case 'import_success':
       return (
         <IonicIcon
-          color={colors.background.default}
+          color={colors.icon.default}
           size={36}
           name="checkmark"
           style={styles.checkIcon}
@@ -118,10 +93,15 @@ export const getIcon = (status, colors, styles) => {
           style={styles.checkIcon}
         />
       );
+    default:
+      return null;
   }
 };
 
-const getTitle = (status, { nonce, amount, assetType }) => {
+const getTitle = (
+  status: BaseNotificationStatus | undefined,
+  { nonce, amount, assetType }: BaseNotificationData,
+): string | undefined => {
   switch (status) {
     case 'pending':
       return strings('notifications.pending_title');
@@ -129,72 +109,62 @@ const getTitle = (status, { nonce, amount, assetType }) => {
       return strings('notifications.pending_deposit_title');
     case 'pending_withdrawal':
       return strings('notifications.pending_withdrawal_title');
-    case 'success':
-      if (nonce && !isNaN(parseInt(nonce))) {
-        return strings('notifications.success_title', {
-          nonce: parseInt(nonce),
-        });
+    case 'success': {
+      const parsed = nonce != null ? parseInt(String(nonce)) : NaN;
+      if (!Number.isNaN(parsed)) {
+        return strings('notifications.success_title', { nonce: parsed });
       }
-      // For transactions without nonce (e.g., EIP-7702), show without nonce
       return strings('notifications.success_title', { nonce: '' })
         .replace(' # ', ' ')
         .trim();
+    }
     case 'success_deposit':
       return strings('notifications.success_deposit_title');
     case 'success_withdrawal':
       return strings('notifications.success_withdrawal_title');
     case 'received':
-      return strings('notifications.received_title', {
-        amount,
-        assetType,
-      });
-    case 'speedup':
-      if (nonce && !isNaN(parseInt(nonce))) {
-        return strings('notifications.speedup_title', {
-          nonce: parseInt(nonce),
-        });
+      return strings('notifications.received_title', { amount, assetType });
+    case 'speedup': {
+      const parsed = nonce != null ? parseInt(String(nonce)) : NaN;
+      if (!Number.isNaN(parsed)) {
+        return strings('notifications.speedup_title', { nonce: parsed });
       }
-      // For transactions without nonce, show without nonce
       return strings('notifications.speedup_title', { nonce: '' })
         .replace(' #', '')
         .trim();
+    }
     case 'received_payment':
       return strings('notifications.received_payment_title');
     case 'cancelled':
       return strings('notifications.cancelled_title');
     case 'error':
       return strings('notifications.error_title');
+    default:
+      return undefined;
   }
 };
 
-export const getDescription = (status, { amount = null, type = null }) => {
+export const getDescription = (
+  status: BaseNotificationStatus | undefined,
+  { amount = null, type = null }: BaseNotificationData,
+): string => {
   if (amount && typeof amount !== 'object' && type) {
     return strings(`notifications.${type}_${status}_message`, { amount });
   }
   return strings(`notifications.${status}_message`);
 };
 
-/**
- * BaseNotification component used to render in-app notifications
- */
-/**
- * @param {object} props
- * @param {string} [props.status]
- * @param {{ description?: string | null, title?: string | null }} [props.data]
- * @param {() => void} [props.onPress]
- * @param {() => void} [props.onHide]
- * @param {boolean} [props.autoDismiss]
- */
-const BaseNotification = ({
+const BaseNotification: React.FC<BaseNotificationProps> = ({
   status,
-  data = null,
-  data: { description = null, title = null },
+  data,
   onPress,
   onHide,
   autoDismiss = false,
 }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles, theme } = useStyles(styleSheet, {});
+  const { colors } = theme;
+  const safeData: BaseNotificationData = data ?? {};
+  const { description = null, title = null } = safeData;
 
   return (
     <View style={baseStyles.flexGrow}>
@@ -209,13 +179,20 @@ const BaseNotification = ({
           </View>
           <View style={styles.flashLabel}>
             <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              color={TextColor.TextDefault}
               style={styles.flashTitle}
               testID={ToastSelectorsIDs.NOTIFICATION_TITLE}
             >
-              {!title ? getTitle(status, data) : title}
+              {!title ? getTitle(status, safeData) : title}
             </Text>
-            <Text style={styles.flashText}>
-              {!description ? getDescription(status, data) : description}
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextDefault}
+              style={styles.flashText}
+            >
+              {!description ? getDescription(status, safeData) : description}
             </Text>
           </View>
           <View>
@@ -229,14 +206,6 @@ const BaseNotification = ({
       </View>
     </View>
   );
-};
-
-BaseNotification.propTypes = {
-  status: PropTypes.string,
-  data: PropTypes.object,
-  onPress: PropTypes.func,
-  onHide: PropTypes.func,
-  autoDismiss: PropTypes.bool,
 };
 
 export default BaseNotification;
