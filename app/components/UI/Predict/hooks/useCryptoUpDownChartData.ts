@@ -23,6 +23,12 @@ import type {
 } from '../../Charts/LivelineChart/LivelineChart.types';
 
 const EMPTY_DATA: LivelinePoint[] = [];
+const LIVE_CHART_WINDOW_SECS = 30;
+const LIVE_CHART_RETENTION_SECS = LIVE_CHART_WINDOW_SECS * 2;
+const LIVE_CHART_MAX_POINTS = LIVE_CHART_RETENTION_SECS * 60;
+const CURRENT_TIMESTAMP_TOLERANCE_SECS = 5;
+const MIN_LIVE_POINT_DELTA_SECS = 0.001;
+
 const mergeLivelinePoints = (
   historicalData: LivelinePoint[],
   liveData: LivelinePoint[],
@@ -40,6 +46,45 @@ const mergeLivelinePoints = (
   liveData.forEach((point) => byTime.set(point.time, point));
 
   return Array.from(byTime.values()).sort((a, b) => a.time - b.time);
+};
+
+const trimLivePoints = (
+  points: LivelinePoint[],
+  latestTime: number,
+): LivelinePoint[] => {
+  const cutoff = latestTime - LIVE_CHART_RETENTION_SECS;
+  const retainedPoints = points.filter((point) => point.time >= cutoff);
+
+  if (retainedPoints.length <= LIVE_CHART_MAX_POINTS) {
+    return retainedPoints;
+  }
+
+  return retainedPoints.slice(-LIVE_CHART_MAX_POINTS);
+};
+
+const getLivePointTime = (
+  timestamp: number,
+  previousPointTime?: number,
+): number => {
+  const sourceTime = toTimestampSeconds(timestamp);
+  const nowSecs = Date.now() / 1000;
+
+  if (!Number.isFinite(sourceTime)) {
+    return nowSecs;
+  }
+
+  const isCurrentTimestamp =
+    Math.abs(sourceTime - nowSecs) <= CURRENT_TIMESTAMP_TOLERANCE_SECS;
+
+  if (
+    isCurrentTimestamp &&
+    typeof previousPointTime === 'number' &&
+    sourceTime <= previousPointTime
+  ) {
+    return Math.max(nowSecs, previousPointTime + MIN_LIVE_POINT_DELTA_SECS);
+  }
+
+  return sourceTime;
 };
 
 export interface UseCryptoUpDownChartDataResult {
@@ -87,11 +132,9 @@ export const useCryptoUpDownChartData = (
   const stableHistoricalDataRef = useRef<LivelinePoint[]>(EMPTY_DATA);
   const fallbackStartPointRef = useRef<LivelinePoint[]>(EMPTY_DATA);
   const frozenRef = useRef(false);
-  const durationSecsRef = useRef(durationSecs);
   const liveMarketRef = useRef({ id: market.id, liveEndDateMs });
   const marketIdRef = useRef(market.id);
   const frozenMarketIdRef = useRef(frozenMarketId);
-  durationSecsRef.current = durationSecs;
   liveMarketRef.current = { id: market.id, liveEndDateMs };
   marketIdRef.current = market.id;
   frozenMarketIdRef.current = frozenMarketId;
@@ -159,17 +202,15 @@ export const useCryptoUpDownChartData = (
       return;
     }
 
-    const timeSecs = toTimestampSeconds(update.timestamp);
-    const point: LivelinePoint = {
-      time: timeSecs,
-      value: update.price,
-    };
-
     setLiveValue(update.price);
     setLivePoints((points) => {
+      const timeSecs = getLivePointTime(update.timestamp, points.at(-1)?.time);
+      const point: LivelinePoint = {
+        time: timeSecs,
+        value: update.price,
+      };
       const nextPoints = mergeLivelinePoints(points, [point]);
-      const cutoff = timeSecs - durationSecsRef.current * 2;
-      return nextPoints.filter((nextPoint) => nextPoint.time >= cutoff);
+      return trimLivePoints(nextPoints, timeSecs);
     });
     if (liveLoadingRef.current) {
       liveLoadingRef.current = false;
@@ -292,7 +333,7 @@ export const useCryptoUpDownChartData = (
       value: 0,
       loading: true,
       isLive,
-      window: durationSecs,
+      window: LIVE_CHART_WINDOW_SECS,
     };
   }
 
@@ -302,7 +343,7 @@ export const useCryptoUpDownChartData = (
       value: displayedLiveValue,
       loading: isLive && (!symbol || (liveLoading && !hasRenderableLiveData)),
       isLive,
-      window: durationSecs,
+      window: LIVE_CHART_WINDOW_SECS,
     };
   }
 
