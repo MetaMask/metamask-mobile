@@ -19,6 +19,9 @@ const mockWalletModule = {
   addListener: mockAddListener,
 };
 
+// Mock the native wallet module so dynamic import() returns our mock
+jest.mock('@expensify/react-native-wallet', () => mockWalletModule);
+
 // Mock Logger
 jest.mock('../../../../../../util/Logger', () => ({
   log: jest.fn(),
@@ -37,12 +40,18 @@ jest.mock('../../constants', () => ({
 
 /**
  * Helper to inject mock wallet module into adapter
+ * Since the adapter uses dynamic imports, we need to manually inject the mock
  */
-function injectMockModule(adapter: AppleWalletAdapter): void {
+async function injectMockModule(adapter: AppleWalletAdapter): Promise<void> {
+  // Wait for the constructor's module load to complete first
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const loadPromise = (adapter as any).moduleLoadPromise;
+  if (loadPromise) {
+    await loadPromise;
+  }
+  // Now override with our mock (in case the real module import set something different)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (adapter as any).walletModule = mockWalletModule;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (adapter as any).moduleLoadPromise = Promise.resolve();
 }
 
 describe('AppleWalletAdapter', () => {
@@ -68,7 +77,7 @@ describe('AppleWalletAdapter', () => {
     issuerEncryptCallback: mockIssuerEncryptCallback,
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     // Set platform to iOS for most tests
     Object.defineProperty(Platform, 'OS', {
@@ -76,7 +85,8 @@ describe('AppleWalletAdapter', () => {
       writable: true,
     });
     adapter = new AppleWalletAdapter();
-    injectMockModule(adapter);
+    // Inject mock module for tests that need it
+    await injectMockModule(adapter);
   });
 
   afterEach(() => {
@@ -169,7 +179,7 @@ describe('AppleWalletAdapter', () => {
           writable: true,
         });
         const androidAdapter = new AppleWalletAdapter();
-        injectMockModule(androidAdapter);
+        await injectMockModule(androidAdapter);
 
         const result = await androidAdapter.provisionCard(mockProvisionParams);
 

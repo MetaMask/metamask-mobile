@@ -58,6 +58,12 @@ export const selectMusdConversionAssetDetailCtasSeen = (state: RootState) =>
   state.user?.musdConversionAssetDetailCtasSeen ?? {};
 
 /**
+ * Selects the moneyOnboardingSeen state
+ */
+export const selectMoneyOnboardingSeen = (state: RootState) =>
+  state.user?.moneyOnboardingSeen ?? false;
+
+/**
  * Selects the token overview chart type preference
  */
 export const selectTokenOverviewChartType = (state: RootState) =>

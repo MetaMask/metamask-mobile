@@ -24,6 +24,7 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails';
 import { predictCashOutFlowAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-cash-out.analytics';
+import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
@@ -68,7 +69,9 @@ describe(SmokePredictions('Predictions'), () => {
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
 
-        await PredictDetailsPage.tapCashOutButton();
+        await PredictDetailsPage.tapGameCashOutButton(
+          SPURS_PELICANS_POSITION_ID,
+        );
         await Assertions.expectElementToBeVisible(PredictCashOutPage.container);
 
         await Assertions.expectElementToBeVisible(

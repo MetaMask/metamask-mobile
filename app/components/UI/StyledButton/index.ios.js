@@ -81,7 +81,7 @@ export default class StyledButton extends PureComponent {
       testID,
       disabledContainerStyle,
     } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+    const colors = this.context?.colors || mockTheme.colors;
     const { fontStyle, containerStyle } = getStyles(type, colors);
 
     return (

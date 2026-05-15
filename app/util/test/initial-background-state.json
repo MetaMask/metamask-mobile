@@ -49,9 +49,6 @@
     "allIgnoredTokens": {},
     "allDetectedTokens": {}
   },
-  "TokenListController": {
-    "tokensChainsCache": {}
-  },
   "CurrencyRateController": {
     "currentCurrency": "usd",
     "currencyRates": {
@@ -238,6 +235,66 @@
             "networkClientId": "base-mainnet",
             "type": "infura",
             "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0x8f": {
+        "blockExplorerUrls": [],
+        "chainId": "0x8f",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Monad Mainnet",
+        "nativeCurrency": "MON",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "monad-mainnet",
+            "type": "infura",
+            "url": "https://monad-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0x10e6": {
+        "blockExplorerUrls": [],
+        "chainId": "0x10e6",
+        "defaultRpcEndpointIndex": 0,
+        "name": "MegaETH Mainnet",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "megaeth-mainnet",
+            "type": "infura",
+            "url": "https://megaeth-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0x144": {
+        "blockExplorerUrls": [],
+        "chainId": "0x144",
+        "defaultRpcEndpointIndex": 0,
+        "name": "ZKsync Era",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "zksync-mainnet",
+            "type": "infura",
+            "url": "https://zksync-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xa86a": {
+        "blockExplorerUrls": [],
+        "chainId": "0xa86a",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Avalanche Mainnet",
+        "nativeCurrency": "AVAX",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "avalanche-mainnet",
+            "type": "infura",
+            "url": "https://avalanche-mainnet.infura.io/v3/{infuraProjectId}"
           }
         ]
       }
@@ -751,11 +808,14 @@
     "perpsTradingCampaignLeaderboard": {},
     "perpsTradingCampaignLeaderboardPositions": {},
     "perpsTradingCampaignVolume": {},
+    "clientVersionRequirements": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
     "subscriptionBenefits": {},
+    "vipDashboard": {},
+    "vipPerpsFees": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null
@@ -835,5 +895,6 @@
   },
   "MoneyAccountController": {
     "moneyAccounts": {}
-  }
+  },
+  "MoneyAccountUpgradeController": {}
 }

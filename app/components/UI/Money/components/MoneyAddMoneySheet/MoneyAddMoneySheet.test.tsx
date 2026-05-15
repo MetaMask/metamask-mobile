@@ -102,12 +102,40 @@ describe('MoneyAddMoneySheet', () => {
 
     expect(getByText('Convert crypto')).toBeOnTheScreen();
     expect(getByText('Deposit funds')).toBeOnTheScreen();
-    expect(getByText('Move your $1,203.89 mUSD')).toBeOnTheScreen();
+    expect(getByText('Transfer your $1,203.89 mUSD')).toBeOnTheScreen();
     expect(getByText('Receive from external wallet')).toBeOnTheScreen();
     expect(getByText('Coming soon')).toBeOnTheScreen();
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the "Add funds" title', () => {
+    const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(getByText('Add funds')).toBeOnTheScreen();
+  });
+
+  it('renders a description under the Convert crypto row', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_DESCRIPTION),
+    ).toBeOnTheScreen();
+    expect(getByText('From any account')).toBeOnTheScreen();
+  });
+
+  it('renders a description under the Deposit funds row', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_DESCRIPTION),
+    ).toBeOnTheScreen();
+    expect(getByText('From debit card or bank')).toBeOnTheScreen();
   });
 
   it('preserves the locale fiat prefix in the Move mUSD row', () => {
@@ -116,7 +144,7 @@ describe('MoneyAddMoneySheet', () => {
     });
     const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
-    expect(getByText('Move your CA$1,500.00 mUSD')).toBeOnTheScreen();
+    expect(getByText('Transfer your CA$1,500.00 mUSD')).toBeOnTheScreen();
   });
 
   it('falls back to the no-amount copy when the mUSD balance is unavailable', () => {
@@ -125,7 +153,7 @@ describe('MoneyAddMoneySheet', () => {
     });
     const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
-    expect(getByText('Move your mUSD')).toBeOnTheScreen();
+    expect(getByText('Transfer your mUSD')).toBeOnTheScreen();
   });
 
   it('navigates to the Ramps buy flow with mUSD pre-selected when Deposit funds is pressed', () => {
@@ -149,7 +177,7 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith(BigInt(0));
+    expect(mockInitiateDeposit).toHaveBeenCalledWith();
   });
 
   it('closes the sheet when Move mUSD is pressed (interim, no flow wired yet)', () => {

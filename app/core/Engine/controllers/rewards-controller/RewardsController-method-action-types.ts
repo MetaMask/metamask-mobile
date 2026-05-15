@@ -171,10 +171,19 @@ export type RewardsControllerGetOptInStatusAction = {
 };
 
 /**
- * Get perps fee discount for an account with caching and threshold logic
+ * Get perps fee discount for an account.
+ *
+ * When the account's active subscription has VIP enabled, this calls the
+ * authenticated `/vip/fees` endpoint and converts the absolute VIP builder
+ * fee into a discount fraction relative to `baseFeeBips`. Non-VIP accounts
+ * receive no discount.
  *
  * @param account - The account address in CAIP-10 format
- * @returns Promise<number> - The discount in basis points
+ * @param baseFeeBips - The perps MetaMask builder base fee in basis points
+ * that the caller would apply absent any discount. Used to convert the VIP
+ * absolute fee into a discount fraction (caller owns the source of truth
+ * for the base fee; the controller is a pure transformer).
+ * @returns Promise resolving to the discount in basis points (0-10000), or null when we can't determine the discount.
  */
 export type RewardsControllerGetPerpsDiscountForAccountAction = {
   type: `RewardsController:getPerpsDiscountForAccount`;
@@ -530,7 +539,10 @@ export type RewardsControllerGetPerpsTradingCampaignParticipantOutcomeAction = {
 /**
  * Get the current user's position on the campaign leaderboard.
  * This is an authenticated endpoint.
- * Results are cached for 5 minutes.
+ * Always fetches fresh from the API so the user's rank stays in sync with
+ * their latest trades; the result is mirrored to
+ * `state.ondoCampaignLeaderboardPositions` so selectors can read the latest
+ * snapshot.
  *
  * @param campaignId - The campaign ID to get position for.
  * @param subscriptionId - The subscription ID for authentication.
@@ -549,9 +561,10 @@ export type RewardsControllerGetOndoCampaignParticipantOutcomeAction = {
 /**
  * Get the current user's Ondo GM portfolio for a campaign.
  * This is an authenticated endpoint.
- * Results are cached for 5 minutes under
+ * Always fetches fresh from the API; the result is mirrored to
  * `state.ondoCampaignPortfolio[subscriptionId:campaignId]` as
- * {@link OndoGmPortfolioState}. Null API responses are not written to the cache.
+ * {@link OndoGmPortfolioState} so selectors can read the latest snapshot.
+ * Null API responses are not written to the cache.
  *
  * @param campaignId - The campaign ID to get portfolio for.
  * @param subscriptionId - The subscription ID for authentication.
@@ -564,9 +577,11 @@ export type RewardsControllerGetOndoCampaignPortfolioPositionAction = {
 
 /**
  * Get paginated activity for an Ondo GM campaign.
- * First page is cached for 1 minute; subsequent pages are always fetched fresh.
- * When `forceFresh` is true the cache is bypassed but a last-updated check
- * avoids redundant fetches if the server data hasn't changed.
+ * Always fetches fresh from the API; the first-page result is mirrored to
+ * `state.ondoCampaignActivity` so selectors can read the latest snapshot.
+ * Subsequent pages (cursor provided) are fetched directly without going
+ * through the cache. When `forceFresh` is true a last-updated check avoids
+ * redundant fetches if the server data hasn't changed.
  *
  * @param params - Campaign ID, subscription ID, pagination cursor, and optional forceFresh flag.
  * @returns Paginated activity entries.
@@ -645,6 +660,17 @@ export type RewardsControllerGetBenefitsAction = {
 };
 
 /**
+ * Get the VIP dashboard with caching.
+ *
+ * @param subscriptionId - The subscription ID for authentication
+ * @returns Promise<VipDashboardState | null> - The dashboard data, or null when the user is not VIP
+ */
+export type RewardsControllerGetVIPDashboardAction = {
+  type: `RewardsController:getVIPDashboard`;
+  handler: RewardsController['getVIPDashboard'];
+};
+
+/**
  * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
  *
  * @param subscriptionId - The subscription ID for authentication
@@ -685,7 +711,7 @@ export type RewardsControllerApplyBonusCodeAction = {
 
 /**
  * Fetch the minimum client version requirements from the public API.
- * Cached in memory for the controller's lifetime (one fetch per app session).
+ * Cached for 30 minutes using controller state, matching other endpoint caches.
  * This is a public (unauthenticated) endpoint that does not require
  * the rewards feature to be enabled.
  */
@@ -731,7 +757,10 @@ export type RewardsControllerGetPerpsTradingCampaignLeaderboardAction = {
 /**
  * Get the current user's position on the perps trading campaign leaderboard.
  * This is an authenticated endpoint.
- * Results are cached for 5 minutes.
+ * Always fetches fresh from the API so the user's rank stays in sync with
+ * their latest trades; the result is mirrored to
+ * `state.perpsTradingCampaignLeaderboardPositions` so selectors can read the
+ * latest snapshot.
  *
  * @param campaignId - The campaign ID to get position for.
  * @param subscriptionId - The subscription ID for authentication.
@@ -821,6 +850,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerGetBenefitsAction
+  | RewardsControllerGetVIPDashboardAction
   | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction

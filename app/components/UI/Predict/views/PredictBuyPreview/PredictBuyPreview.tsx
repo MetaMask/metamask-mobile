@@ -73,6 +73,11 @@ import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { MINIMUM_BET } from '../../constants/transactions';
+import {
+  getPredictBuyAllInCost,
+  getPredictExchangeFee,
+  roundUpToCents,
+} from '../../utils/orders';
 
 /**
  * Module-level ref so PredictPreviewSheetContext can distinguish a programmatic
@@ -220,10 +225,6 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     previousValueRef.current = currentValue;
   }, [currentValue, isCalculating]);
 
-  const errorMessage = isOrderNotFilled
-    ? undefined
-    : (previewError ?? placeOrderError);
-
   // Track Predict Trade Transaction with initiated status when screen mounts
   useEffect(() => {
     const controller = Engine.context.PredictController;
@@ -242,15 +243,34 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const isRateLimited = preview?.rateLimited ?? false;
 
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
-  const providerFee = preview?.fees?.providerFee ?? 0;
-  const total = currentValue + providerFee + metamaskFee;
+  const exchangeFee = getPredictExchangeFee(preview?.fees);
+  const previewAllInCost = getPredictBuyAllInCost(preview);
+  const total =
+    currentValue > 0 && preview
+      ? previewAllInCost
+      : roundUpToCents(currentValue);
 
   const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
+  const isInsufficientBalance =
+    currentValue > 0 &&
+    !isBelowMinimum &&
+    !isBalanceLoading &&
+    !!preview &&
+    previewAllInCost > balance;
+  const insufficientBalanceError = isInsufficientBalance
+    ? strings('predict.order.no_funds_enough')
+    : undefined;
+
+  const errorMessage = isOrderNotFilled
+    ? undefined
+    : (previewError ?? placeOrderError ?? insufficientBalanceError);
+
   const canPlaceBet =
     currentValue >= MINIMUM_BET &&
     preview &&
     !isLoading &&
     !isBalanceLoading &&
+    !isInsufficientBalance &&
     !isRateLimited;
 
   const rewardsFeeAmountUsd =
@@ -277,14 +297,20 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   }, [dispatch, result, isSheetMode, onClose]);
 
   const onPlaceBet = useCallback(async () => {
-    if (!preview || isBelowMinimum) return;
+    if (!preview || isBelowMinimum || isInsufficientBalance) return;
 
     predictBuyPreviewOrderInitiatedRef.current = true;
     await placeOrder({
       analyticsProperties,
       preview,
     });
-  }, [preview, isBelowMinimum, placeOrder, analyticsProperties]);
+  }, [
+    preview,
+    isBelowMinimum,
+    isInsufficientBalance,
+    placeOrder,
+    analyticsProperties,
+  ]);
 
   const handleFeesInfoPress = useCallback(() => {
     setIsFeeBreakdownVisible(true);
@@ -402,7 +428,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
             amount={currentValueUSDString}
             onPress={() => keypadRef.current?.handleAmountPress()}
             isActive={isInputFocused}
-            hasError={false}
+            hasError={isInsufficientBalance}
           />
         </Box>
         {/* Available balance */}
@@ -481,7 +507,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       <ButtonHero
         testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
         onPress={onPlaceBet}
-        disabled={!canPlaceBet}
+        isDisabled={!canPlaceBet}
         isLoading={isLoading}
         size={ButtonSizeHero.Lg}
         style={tw.style('w-full')}
@@ -594,7 +620,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
           ref={feeBreakdownSheetRef}
-          providerFee={providerFee}
+          providerFee={exchangeFee}
           metamaskFee={metamaskFee}
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
           contractCount={preview?.minAmountReceived ?? 0}

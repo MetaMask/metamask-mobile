@@ -21,13 +21,14 @@ import type {
   SeasonMetadataDto,
   LineaTokenRewardDto,
   CampaignDto,
+  VipDashboardDto,
+  VipFeesResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import {
   canChangeRewardsEnvUrl,
   getDefaultRewardsApiBaseUrlForMetaMaskEnv,
 } from '../utils/rewards-api-url';
-import type { CaipAccountId } from '@metamask/utils';
 import AppConstants from '../../../../AppConstants';
 
 // Mock dependencies
@@ -120,10 +121,6 @@ describe('RewardsDataService', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsDataService:getPerpsDiscount',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:mobileOptin',
         expect.any(Function),
       );
@@ -208,6 +205,14 @@ describe('RewardsDataService', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getVIPDashboard',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getVipFees',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:postBenefitImpression',
         expect.any(Function),
       );
@@ -288,6 +293,7 @@ describe('RewardsDataService', () => {
       id: 'test-subscription-id',
       referralCode: 'test-referral-code',
       accounts: [],
+      features: { vip: { enabled: false } },
     };
 
     it('should successfully join an account to a subscription', async () => {
@@ -441,6 +447,7 @@ describe('RewardsDataService', () => {
         id: 'test-subscription-id',
         referralCode: 'test-referral-code',
         accounts: [],
+        features: { vip: { enabled: false } },
       },
     };
 
@@ -996,76 +1003,6 @@ describe('RewardsDataService', () => {
 
       await expect(service.estimatePoints(mockEstimateRequest)).rejects.toThrow(
         'Points estimation failed: 400',
-      );
-    });
-  });
-
-  describe('getPerpsDiscount', () => {
-    const testAddress = 'eip155:1:0x123456789' as CaipAccountId;
-
-    it('should successfully get perps discount', async () => {
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue('1,550'),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      const result = await service.getPerpsDiscount({
-        account: testAddress as CaipAccountId,
-      });
-
-      expect(result).toEqual({
-        hasOptedIn: true,
-        discountBips: 550,
-      });
-      expect(mockFetch).toHaveBeenCalledWith(
-        `https://uat.rewards.test/public/rewards/perps-fee-discount/${testAddress}`,
-        expect.objectContaining({
-          method: 'GET',
-        }),
-      );
-    });
-
-    it('should parse not opted in response', async () => {
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue('0,1000'),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      const result = await service.getPerpsDiscount({
-        account: testAddress as CaipAccountId,
-      });
-
-      expect(result).toEqual({
-        hasOptedIn: false,
-        discountBips: 1000,
-      });
-    });
-
-    it('should handle perps discount errors', async () => {
-      const mockResponse = {
-        ok: false,
-        status: 404,
-      } as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      await expect(
-        service.getPerpsDiscount({ account: testAddress as CaipAccountId }),
-      ).rejects.toThrow('Get Perps discount failed: 404');
-    });
-
-    it('should handle invalid response format', async () => {
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue('invalid_format'),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      await expect(
-        service.getPerpsDiscount({ account: testAddress as CaipAccountId }),
-      ).rejects.toThrow(
-        'Invalid perps discount response format: invalid_format',
       );
     });
   });
@@ -1995,6 +1932,7 @@ describe('RewardsDataService', () => {
       id: 'test-subscription-id',
       referralCode: 'test-referral-code',
       accounts: [],
+      features: { vip: { enabled: false } },
     },
   };
 
@@ -2142,6 +2080,7 @@ describe('RewardsDataService', () => {
           id: 'sub-789',
           referralCode: 'REF123',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
       };
 
@@ -2177,6 +2116,7 @@ describe('RewardsDataService', () => {
           id: 'sol-789',
           referralCode: 'REF123',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
       };
 
@@ -2218,6 +2158,7 @@ describe('RewardsDataService', () => {
           id: 'sub-789',
           referralCode: 'AUTO123',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
       };
 
@@ -4454,6 +4395,176 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getVIPDashboard', () => {
+    const mockSubscriptionId = 'sub-vip';
+    const mockToken = 'test-bearer-token';
+    const mockVIPDashboard: VipDashboardDto = {
+      program: { id: 'vip', name: 'VIP Pilot' },
+      period: {
+        start: '2026-03-31T00:00:00.000Z',
+        end: '2026-04-30T23:59:59.999Z',
+      },
+      currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
+      nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
+      progress: {
+        percent: 72,
+        remainingSwapsUsd: 800000,
+        remainingPerpsUsd: 3600000,
+        estimatedDaysToNextTier: 4,
+        status: 'on_track',
+      },
+      fees: {
+        swapsBps: 15,
+        perpsBps: 4,
+        nextTierSwapsBps: 12,
+        nextTierPerpsBps: 3,
+      },
+      volume: {
+        swapsUsd: 4100000,
+        perpsUsd: 2300000,
+      },
+      pointsAllocation: {
+        earned: 24400000,
+        max: 100000000,
+        percent: 24.4,
+      },
+      tiers: [
+        {
+          id: 'gold-fox-vip-3',
+          name: 'Gold Fox 3',
+          tier: 3,
+          swapsRequirementUsd: 7000000,
+          perpsRequirementUsd: 35000000,
+          swapsBps: 15,
+          perpsBps: 4,
+          status: 'current',
+        },
+      ],
+      localizedText: {
+        period: 'Mar 31 - Apr 30',
+        progressToNextTier: 'Subline',
+        swapsFeeTitle: 'Swaps fee',
+        perpsFeeTitle: 'Perps fee',
+        nextTierSwapsFeeDelta: '↓ 12 bps next tier',
+        nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+        volumeTitle: 'Volume',
+        statusMessage: 'On track',
+        pointsTitle: 'Points',
+        pointsAllocationTitle: 'Earn VIP allocations',
+        pointsAllocationDescription: 'Body copy',
+      },
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockVIPDashboard),
+      } as unknown as Response);
+    });
+
+    it('fetches VIP dashboard using the expected endpoint and auth headers', async () => {
+      const result = await service.getVIPDashboard(mockSubscriptionId);
+
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/me',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockVIPDashboard);
+    });
+
+    it('returns null when the user is not VIP', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+      } as Response);
+
+      await expect(service.getVIPDashboard(mockSubscriptionId)).resolves.toBe(
+        null,
+      );
+    });
+
+    it('throws when get VIP dashboard response is not ok', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      await expect(service.getVIPDashboard(mockSubscriptionId)).rejects.toThrow(
+        'Get VIP dashboard failed: 500',
+      );
+    });
+  });
+
+  describe('getVipFees', () => {
+    const mockSubscriptionId = 'sub-vip-fees';
+    const mockToken = 'test-bearer-token';
+    const mockVipFees: VipFeesResponseDto = {
+      vipTier: 1,
+      fees: {
+        hyperliquid: {
+          builderCode: '0xbuilder',
+          builderFeeBips: '5',
+        },
+        swaps: { feeBips: '50' },
+      },
+      updatedAt: '2026-05-01T00:00:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockVipFees),
+      } as unknown as Response);
+    });
+
+    it('fetches VIP fees using the expected endpoint and auth headers', async () => {
+      const result = await service.getVipFees(mockSubscriptionId);
+
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/fees',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockVipFees);
+    });
+
+    it('throws when the VIP fees response is not ok', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      await expect(service.getVipFees(mockSubscriptionId)).rejects.toThrow(
+        'Get VIP fees failed: 500',
+      );
+    });
+  });
+
   describe('postBenefitImpression', () => {
     const mockSubscriptionId = 'sub-benefits';
     const mockBenefitId = 42;
@@ -5185,7 +5296,6 @@ describe('RewardsDataService', () => {
       rank: 4,
       pnl: 12.5,
       notionalVolume: 8000,
-      marginDeployed: 1200,
       qualified: true,
       neighbors: [],
       computedAt: '2025-08-15T12:00:00.000Z',

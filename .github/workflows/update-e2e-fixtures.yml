@@ -22,6 +22,14 @@ on:
         description: 'PR number to update fixtures for'
         required: true
         type: string
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: false
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
 
 jobs:
   # ── issue_comment dispatcher ──────────────────────────────────────────
@@ -34,8 +42,12 @@ jobs:
         github.event.issue.pull_request &&
         startsWith(github.event.comment.body, '@metamaskbot update-mobile-fixture')
       }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
@@ -72,7 +84,7 @@ jobs:
   is-fork-pull-request:
     name: Validate PR
     if: ${{ github.event_name == 'workflow_dispatch' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     timeout-minutes: 5
     outputs:
       IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
@@ -89,7 +101,7 @@ jobs:
 
   prepare:
     name: Prepare build artifacts
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     timeout-minutes: 10
     needs: is-fork-pull-request
     if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
@@ -97,6 +109,7 @@ jobs:
       COMMIT_SHA: ${{ steps.commit-sha.outputs.COMMIT_SHA }}
       BRANCH: ${{ steps.branch.outputs.BRANCH }}
       PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
+      RUN_ID: ${{ steps.validate-ci.outputs.RUN_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -117,7 +130,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
 
-      - name: Download iOS build artifact from CI
+      - name: Validate CI run and resolve RUN_ID
+        id: validate-ci
         run: |
           COMMIT_SHA_FULL=$(git rev-parse HEAD)
           BRANCH="${{ steps.branch.outputs.BRANCH }}"
@@ -136,6 +150,7 @@ jobs:
           RUN_CONCLUSION=$(echo "$RUN_INFO" | jq -r '.conclusion')
           RUN_HEAD_SHA=$(echo "$RUN_INFO" | jq -r '.headSha')
           RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
+          echo "RUN_ID=${RUN_ID}" >> "$GITHUB_OUTPUT"
 
           echo "CI workflow run: ${RUN_URL}"
           echo "Status: ${RUN_STATUS}, Conclusion: ${RUN_CONCLUSION}"
@@ -157,30 +172,15 @@ jobs:
             echo "::warning title=CI did not succeed::The CI workflow concluded with '${RUN_CONCLUSION}'. The iOS build artifact may not be available. View CI: ${RUN_URL}"
           fi
 
-          echo "::group::Downloading iOS app artifact"
-          echo "Attempting to download iOS app artifact from CI run ${RUN_ID}..."
-
-          if ! gh run download "${RUN_ID}" -n main-qa-MetaMask.app -D ios-app-artifact; then
-            echo "::endgroup::"
-            echo "::error title=iOS artifact not found::Failed to download 'main-qa-MetaMask.app' artifact. Possible causes:%0A- The 'Build iOS Apps' job has not completed%0A- The iOS build was skipped (no iOS-impacting changes)%0A- The iOS build failed%0A%0ACheck the CI workflow: ${RUN_URL}"
-            exit 1
-          fi
-
-          echo "::endgroup::"
-          echo "✅ Successfully downloaded iOS app artifact."
+          echo "✅ CI run validated. RUN_ID=${RUN_ID}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Cache iOS app artifact
-        uses: actions/cache/save@v4
-        with:
-          path: ios-app-artifact
-          key: ios-app-${{ steps.commit-sha.outputs.COMMIT_SHA }}
-
   update-fixtures:
     name: Export & update fixtures
-    needs: [prepare]
-    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe
+    needs: [is-fork-pull-request, prepare]
+    if: ${{ needs.prepare.result == 'success' && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-e2e' || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe", "low-priority"]')) }}
     timeout-minutes: 30
 
     env:
@@ -199,11 +199,6 @@ jobs:
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
       SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
       SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
-      MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-      MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-      MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-      MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-      MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
       SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
       MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
       MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
@@ -236,31 +231,33 @@ jobs:
           yarn detox clean-framework-cache
           yarn detox build-framework-cache
 
-      - name: Restore iOS app artifact
-        uses: actions/cache/restore@v4
-        with:
-          path: ios-app-artifact
-          key: ios-app-${{ needs.prepare.outputs.COMMIT_SHA }}
-          fail-on-cache-miss: true
-
-      - name: Place iOS app artifact
+      - name: Download iOS app artifact from CI
         run: |
-          mkdir -p artifacts/main-qa-MetaMask.app
-          cp -R ios-app-artifact/* artifacts/main-qa-MetaMask.app/
+          RUN_ID="${{ needs.prepare.outputs.RUN_ID }}"
+          echo "Downloading iOS artifact from CI run ${RUN_ID}..."
+
+          # gh run download uses the ListArtifacts API, which includes artifacts from all
+          # attempts of a run — including earlier attempts when only failed jobs were re-run.
+          if ! gh run download "${RUN_ID}" \
+              -n main-qa-MetaMask.app \
+              -D artifacts/main-qa-MetaMask.app; then
+            echo "::error title=iOS artifact not found::Failed to download 'main-qa-MetaMask.app' artifact from run ${RUN_ID}. Possible causes:%0A- The 'Build iOS Apps' job has not completed%0A- The iOS build was skipped (no iOS-impacting changes)%0A- The iOS build failed%0A%0ACheck the CI workflow: https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
+            exit 1
+          fi
+          echo "✅ Downloaded iOS artifact."
         env:
-          PREBUILT_IOS_APP_PATH: artifacts/main-qa-MetaMask.app
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run fixture validation spec
         timeout-minutes: 30
         run: |
           IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' \
             yarn detox test -c ios.sim.main.ci --headless \
-            tests/regression/fixtures/fixture-validation.spec.ts
+            tests/smoke/fixtures/fixture-validation.spec.ts
         env:
           PREBUILT_IOS_APP_PATH: artifacts/main-qa-MetaMask.app
 
       - name: Cache updated fixture
-        if: ${{ !cancelled() }}
         uses: actions/cache/save@v4
         with:
           path: tests/framework/fixtures/json/default-fixture.json
@@ -268,7 +265,7 @@ jobs:
 
   commit-updated-fixtures:
     name: Commit the updated fixtures
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     timeout-minutes: 10
     permissions:
       contents: write
@@ -277,7 +274,7 @@ jobs:
       - prepare
       - is-fork-pull-request
       - update-fixtures
-    if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
+    if: ${{ !cancelled() && needs.update-fixtures.result == 'success' && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -304,17 +301,20 @@ jobs:
             echo "HAS_CHANGES=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Set up Node.js for prettier
+      - name: Set up Node.js
         if: steps.fixture-changes.outputs.HAS_CHANGES == 'true'
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+          cache: yarn
+
+      - name: Install dependencies
+        if: steps.fixture-changes.outputs.HAS_CHANGES == 'true'
+        run: yarn install --immutable
 
       - name: Format updated fixture with prettier
         if: steps.fixture-changes.outputs.HAS_CHANGES == 'true'
-        run: |
-          npm install --no-save --ignore-scripts prettier@^3.6.2
-          ./node_modules/.bin/prettier --write tests/framework/fixtures/json/default-fixture.json
+        run: yarn prettier --write tests/framework/fixtures/json/default-fixture.json
 
       # Note: Commits pushed with the default GITHUB_TOKEN do not trigger
       # downstream CI workflows (GitHub anti-loop protection). This is
@@ -343,7 +343,7 @@ jobs:
 
   check-status:
     name: Check whether the fixture update succeeded
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     timeout-minutes: 5
     if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     needs:
@@ -364,7 +364,7 @@ jobs:
   failure-comment:
     name: Comment about the fixture update failure
     if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     timeout-minutes: 5
     permissions:
       contents: read
