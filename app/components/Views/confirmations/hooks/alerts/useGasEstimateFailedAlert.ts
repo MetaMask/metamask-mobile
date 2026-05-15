@@ -5,21 +5,15 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { useEstimationFailed } from '../gas/useEstimationFailed';
-import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
+import { useIsCurrentTransactionGasSponsored } from './useIsCurrentTransactionGasSponsored';
 
 export const useGasEstimateFailedAlert = (): Alert[] => {
   const estimationFailed = useEstimationFailed();
-  const {
-    isSupported: isGaslessSupported,
-    pending: isGaslessSupportCheckPending,
-  } = useIsGaslessSupported();
+  const { isCurrentTransactionGasSponsored } =
+    useIsCurrentTransactionGasSponsored();
 
   return useMemo(() => {
-    if (
-      !estimationFailed ||
-      isGaslessSupportCheckPending ||
-      isGaslessSupported
-    ) {
+    if (!estimationFailed || isCurrentTransactionGasSponsored) {
       return [];
     }
 
@@ -33,5 +27,5 @@ export const useGasEstimateFailedAlert = (): Alert[] => {
         severity: Severity.Warning,
       },
     ];
-  }, [estimationFailed, isGaslessSupportCheckPending, isGaslessSupported]);
+  }, [estimationFailed, isCurrentTransactionGasSponsored]);
 };

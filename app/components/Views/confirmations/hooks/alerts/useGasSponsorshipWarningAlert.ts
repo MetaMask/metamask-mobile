@@ -7,10 +7,10 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { useConfirmActions } from '../useConfirmActions';
+import { useIsCurrentTransactionGasSponsored } from './useIsCurrentTransactionGasSponsored';
 
 /**
  * Configuration for gas sponsorship warning rules per chain.
@@ -92,12 +92,12 @@ function hasGasSponsorshipWarning(
  */
 export const useGasSponsorshipWarningAlert = (): Alert[] => {
   const transactionMetadata = useTransactionMetadataRequest();
-  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
+  const { isCurrentTransactionGasSponsored } =
+    useIsCurrentTransactionGasSponsored();
   const { goToBuy } = useRampNavigation();
   const { onReject } = useConfirmActions();
 
-  const { chainId, isGasFeeSponsored, simulationData } =
-    transactionMetadata ?? {};
+  const { chainId, simulationData } = transactionMetadata ?? {};
 
   const callTraceErrors = (
     simulationData as SimulationDataWithCallTraceErrors | undefined
@@ -114,9 +114,8 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
 
   // Only show warning when:
   // 1. We have a warning match from configured rules
-  // 2. Gas fee is NOT currently sponsored (the warning explains why)
-  // 3. Gasless is supported on this network (otherwise sponsorship wouldn't be expected)
-  const shouldShow = hasWarning && !isGasFeeSponsored && isGaslessSupported;
+  // 2. Gas Sponsorship is expected to be enabled for this transaction.
+  const shouldShow = hasWarning && isCurrentTransactionGasSponsored;
 
   return useMemo(() => {
     if (!shouldShow || !chainId) {

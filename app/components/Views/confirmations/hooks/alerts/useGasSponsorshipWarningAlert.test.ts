@@ -8,20 +8,20 @@ import type { Hex } from '@metamask/utils';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useGasSponsorshipWarningAlert } from './useGasSponsorshipWarningAlert';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { useConfirmActions } from '../useConfirmActions';
+import { useIsCurrentTransactionGasSponsored } from './useIsCurrentTransactionGasSponsored';
 
 jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(),
 }));
 jest.mock('../useConfirmActions');
 jest.mock('../transactions/useTransactionMetadataRequest');
-jest.mock('../gas/useIsGaslessSupported');
+jest.mock('./useIsCurrentTransactionGasSponsored');
 
 const MONAD_CHAIN_ID = NETWORKS_CHAIN_ID.MONAD as Hex;
 const MAINNET_CHAIN_ID = '0x1' as Hex;
@@ -58,17 +58,14 @@ describe('useGasSponsorshipWarningAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
-  const mockUseIsGaslessSupported = jest.mocked(useIsGaslessSupported);
   const mockUseRampNavigation = jest.mocked(useRampNavigation);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
+  const mockUseIsCurrentTransactionGasSponsored = jest.mocked(
+    useIsCurrentTransactionGasSponsored,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseIsGaslessSupported.mockReturnValue({
-      isSupported: true,
-      isSmartTransaction: false,
-      pending: false,
-    });
     mockUseConfirmActions.mockReturnValue({
       onReject: jest.fn(),
       onConfirm: jest.fn(),
@@ -78,6 +75,9 @@ describe('useGasSponsorshipWarningAlert', () => {
       goToAggregator: jest.fn(),
       goToSell: jest.fn(),
       goToDeposit: jest.fn(),
+    });
+    mockUseIsCurrentTransactionGasSponsored.mockReturnValue({
+      isCurrentTransactionGasSponsored: true,
     });
   });
 
@@ -224,26 +224,9 @@ describe('useGasSponsorshipWarningAlert', () => {
       expect(result.current).toEqual([]);
     });
 
-    it('when isGasFeeSponsored is true', () => {
-      const transactionMeta = createMockTransactionMeta({
-        chainId: MONAD_CHAIN_ID,
-        isGasFeeSponsored: true,
-        simulationData: createMockSimulationData(['reserve balance violation']),
-      });
-      mockUseTransactionMetadataRequest.mockReturnValue(transactionMeta);
-
-      const { result } = renderHookWithProvider(() =>
-        useGasSponsorshipWarningAlert(),
-      );
-
-      expect(result.current).toEqual([]);
-    });
-
-    it('when gasless is not supported on the network', () => {
-      mockUseIsGaslessSupported.mockReturnValue({
-        isSupported: false,
-        isSmartTransaction: false,
-        pending: false,
+    it('when gas sponsorship is not supported for this transaction', () => {
+      mockUseIsCurrentTransactionGasSponsored.mockReturnValue({
+        isCurrentTransactionGasSponsored: false,
       });
       const transactionMeta = createMockTransactionMeta({
         chainId: MONAD_CHAIN_ID,
