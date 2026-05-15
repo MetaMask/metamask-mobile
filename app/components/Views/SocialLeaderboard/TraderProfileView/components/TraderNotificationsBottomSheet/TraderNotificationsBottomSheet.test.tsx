@@ -328,19 +328,16 @@ describe('TraderNotificationsBottomSheet', () => {
         ),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.SETTINGS_VIEW,
-        {
-          screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
-          params: {
-            type: 'socialAI',
-            title: strings('app_settings.notifications_opts.social_ai_title'),
-            description: strings(
-              'app_settings.notifications_opts.social_ai_desc',
-            ),
-          },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
+        screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
+        params: {
+          type: 'socialAI',
+          title: strings('app_settings.notifications_opts.social_ai_title'),
+          description: strings(
+            'app_settings.notifications_opts.social_ai_desc',
+          ),
         },
-      );
+      });
     });
 
     it('navigates to notification settings when preferences do not exist yet', () => {

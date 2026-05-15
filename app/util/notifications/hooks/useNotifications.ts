@@ -107,14 +107,17 @@ export function useContiguousLoading(
 export function useEnableNotifications(props = { nudgeEnablePush: true }) {
   const { togglePushNotification, loading: pushLoading } =
     usePushNotificationsToggle(props);
-  const isMetamaskNotificationsEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
+  const isMetamaskNotificationsEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
   const loading = useSelector(selectIsUpdatingMetamaskNotifications);
   const [error, setError] = useState<unknown>(null);
   const hasMarketingConsent = useSelector(selectHasMarketingConsent);
   const isFeatureAnnouncementsEnabled = useSelector(
     selectIsFeatureAnnouncementsEnabled,
   );
-  const productAnnouncementEnabled = isFeatureAnnouncementsEnabled || !isMetamaskNotificationsEnabled;
+  const productAnnouncementEnabled =
+    isFeatureAnnouncementsEnabled || !isMetamaskNotificationsEnabled;
   const enableNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
     setError(null);

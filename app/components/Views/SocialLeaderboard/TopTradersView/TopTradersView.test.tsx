@@ -133,18 +133,15 @@ describe('TopTradersView', () => {
     fireEvent.press(
       screen.getByTestId(TopTradersViewSelectorsIDs.NOTIFICATION_BUTTON),
     );
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SETTINGS_VIEW,
-      {
-        screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
-        params: {
-          type: 'socialAI',
-          title: 'Trading Signals',
-          description:
-            'Updates from traders and assets you follow, plus currated market news',
-        },
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
+      screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
+      params: {
+        type: 'socialAI',
+        title: 'Trading Signals',
+        description:
+          'Updates from traders and assets you follow, plus currated market news',
       },
-    );
+    });
   });
 
   it('navigates to notification settings when preferences do not exist yet', () => {

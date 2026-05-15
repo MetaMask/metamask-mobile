@@ -77,7 +77,9 @@ const buildPreferences = (
 type QueryResult = ReturnType<typeof useQuery>;
 
 const makeQueryResult = (
-  overrides: Partial<Omit<QueryResult, 'isLoading'> & { isLoading: boolean }> = {},
+  overrides: Partial<
+    Omit<QueryResult, 'isLoading'> & { isLoading: boolean }
+  > = {},
 ): QueryResult =>
   ({
     data: undefined,

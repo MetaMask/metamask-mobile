@@ -38,8 +38,8 @@ export const useNotificationStoragePreferences = () => {
 
   const enqueuePersist = useCallback(
     async <
-      PreferenceType extends NotificationStoragePreferenceSection =
-        NotificationStoragePreferenceSection,
+      PreferenceType extends
+        NotificationStoragePreferenceSection = NotificationStoragePreferenceSection,
     >(
       nextPreferences: NotificationStoragePreferences,
       updatedType?: PreferenceType,
@@ -76,7 +76,9 @@ export const useNotificationStoragePreferences = () => {
     ) => {
       if (!data) {
         Logger.error(
-          new Error(`No notification preferences found when updating ${type} section, enable notifications first`),
+          new Error(
+            `No notification preferences found when updating ${type} section, enable notifications first`,
+          ),
         );
         return;
       }
@@ -92,7 +94,7 @@ export const useNotificationStoragePreferences = () => {
           ({
             ...(previousPreferences ?? nextPreferences),
             [type]: nextSectionPreferences,
-          } as NotificationStoragePreferences),
+          }) as NotificationStoragePreferences,
       );
 
       try {
@@ -113,7 +115,9 @@ export const useNotificationStoragePreferences = () => {
     ) => {
       if (!data) {
         Logger.error(
-          new Error('No notification preferences found when updating preference, enable notifications first'),
+          new Error(
+            'No notification preferences found when updating preference, enable notifications first',
+          ),
         );
         return;
       }

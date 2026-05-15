@@ -113,15 +113,18 @@ export const useNotificationPreferences =
     // Each mutation captures its generation; only rolls back if still current.
     const generationRef = useRef(0);
 
-    const enqueuePersist = useCallback((nextSocialAI: SocialAIPreference) => {
-      const next = writeChainRef.current.then(async () => {
-        await updatePreferencesSection('socialAI', nextSocialAI);
-      });
-      // Swallow the chain's error so one failure doesn't jam subsequent
-      // writes. The returned promise still rejects for the caller.
-      writeChainRef.current = next.catch(() => undefined);
-      return next;
-    }, [updatePreferencesSection]);
+    const enqueuePersist = useCallback(
+      (nextSocialAI: SocialAIPreference) => {
+        const next = writeChainRef.current.then(async () => {
+          await updatePreferencesSection('socialAI', nextSocialAI);
+        });
+        // Swallow the chain's error so one failure doesn't jam subsequent
+        // writes. The returned promise still rejects for the caller.
+        writeChainRef.current = next.catch(() => undefined);
+        return next;
+      },
+      [updatePreferencesSection],
+    );
 
     const applyChange = useCallback(
       async (updater: (prev: SocialAIPreference) => SocialAIPreference) => {
