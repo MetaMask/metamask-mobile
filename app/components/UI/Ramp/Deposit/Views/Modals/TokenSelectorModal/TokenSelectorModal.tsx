@@ -14,7 +14,6 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
 import TextFieldSearch from '../../../../../../../component-library/components/Form/TextFieldSearch';
 
@@ -31,7 +30,10 @@ import { useDepositCryptoCurrencyNetworkName } from '../../../hooks/useDepositCr
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
-import { TextColor } from '@metamask/design-system-react-native';
+import {
+  HeaderStandard,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import useAnalytics from '../../../../hooks/useAnalytics';
 import { getRampRoutingDecision } from '../../../../../../../reducers/fiatOrders';
 
@@ -168,7 +170,7 @@ function TokenSelectorModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={
           isEditingNetworkFilter
             ? strings('deposit.networks_filter_selector.select_network')
