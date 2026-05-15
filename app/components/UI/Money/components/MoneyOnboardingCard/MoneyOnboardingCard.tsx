@@ -19,26 +19,17 @@ import StepperCard, {
   type StepperCardStep,
 } from '../../../../../component-library/components/StepperCard';
 
+// REMINDER: Must be updated when the number of steps is changed.
+export const MONEY_ONBOARDING_TOTAL_STEPS = 2;
+
 const MoneyOnboardingCard = () => {
   const navigation = useNavigation();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const { currentStep, incrementStep } = useMoneyOnboardingStep();
 
-  const { tokenTotal, isAggregatedBalanceLoading, apyPercent } =
-    useMoneyAccountBalance();
+  const isOnboardingCardVisible = currentStep < MONEY_ONBOARDING_TOTAL_STEPS;
 
-  // Auto-skip step 1 ("Fund your account") once the Money account has a
-  // non-zero balance. We wait for the balance to finish loading to avoid a
-  // false skip when the balance is genuinely zero.
-  useEffect(() => {
-    if (
-      !isAggregatedBalanceLoading &&
-      tokenTotal?.isGreaterThan(0) &&
-      currentStep === 0
-    ) {
-      incrementStep();
-    }
-  }, [isAggregatedBalanceLoading, tokenTotal, currentStep, incrementStep]);
+  const { apyPercent } = useMoneyAccountBalance();
 
   const { tokens } = useMusdConversionTokens();
 
@@ -173,7 +164,7 @@ const MoneyOnboardingCard = () => {
           text: strings(
             'money.onboarding.step_2.unlinked_card_account.cta_secondary',
           ),
-          onPress: handleAddPress,
+          onPress: handleSkipPress,
         },
         image: moneyOnboardingStepperStep2,
       };
@@ -195,7 +186,6 @@ const MoneyOnboardingCard = () => {
       image: moneyOnboardingStepperStep2,
     };
   }, [
-    handleAddPress,
     handleGetCardPress,
     handleLinkCardPress,
     handleSkipPress,
@@ -203,10 +193,15 @@ const MoneyOnboardingCard = () => {
     moneyAccountCardToken,
   ]);
 
+  // REMINDER: To update MONEY_ONBOARDING_TOTAL_STEPS when the number of steps is changed.
   const steps = useMemo(
     () => [getStep1Content(), getStep2Content()],
     [getStep1Content, getStep2Content],
   );
+
+  if (!isOnboardingCardVisible) {
+    return null;
+  }
 
   return (
     <Box twClassName="pb-4 mx-4 my-3">

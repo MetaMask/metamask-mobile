@@ -34,6 +34,12 @@ interface MoneyEarningsProps {
    * Opens the Earnings tooltip bottom sheet.
    */
   onInfoPress?: () => void;
+  /**
+   * When true, suppresses the top padding on the container. Use when there is
+   * no visual element directly above (e.g. the onboarding card is hidden) so
+   * the section sits flush against the preceding component's bottom padding.
+   */
+  compact?: boolean;
 }
 
 const ValueText = ({
@@ -61,8 +67,12 @@ const MoneyEarnings = ({
   yearlyEarnings,
   isLoading = false,
   onInfoPress,
+  compact = false,
 }: MoneyEarningsProps) => (
-  <Box twClassName="px-4 py-6" testID={MoneyEarningsTestIds.CONTAINER}>
+  <Box
+    twClassName={`px-4 ${compact ? 'pb-6' : 'py-6'}`}
+    testID={MoneyEarningsTestIds.CONTAINER}
+  >
     <MoneySectionHeader
       title={strings('money.earnings.title')}
       onInfoPress={onInfoPress}
