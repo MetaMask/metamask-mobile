@@ -464,25 +464,6 @@ describe('useMoneyTransactionDisplayInfo — native token (ETH) primary amount',
 
     expect(result.current.primaryAmount).toBe('');
   });
-
-  it('sets sourceTokenChainId for native tokens so the network logo can be shown', () => {
-    const tx = makeTx(TransactionType.moneyAccountDeposit, {
-      metamaskPay: { tokenAddress: ETH_ADDRESS, chainId: CHAIN_ID },
-      requiredAssets: [{ address: ETH_ADDRESS, amount: '998537' }],
-    });
-
-    const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(tx, undefined),
-      {
-        state: makeState({
-          currencyRates: { ETH: { usdConversionRate: 2242 } },
-        }),
-      },
-    );
-
-    expect(result.current.sourceTokenChainId).toBe(CHAIN_ID);
-    expect(result.current.sourceTokenImage).toBeUndefined();
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -511,8 +492,9 @@ describe('useMoneyTransactionDisplayInfo — fiat amount fallback', () => {
 // ---------------------------------------------------------------------------
 
 describe('useMoneyTransactionDisplayInfo — token resolution edge cases', () => {
-  it('leaves sourceTokenSymbol undefined when token is not in state and address is not native', () => {
+  it('leaves primaryAmount empty when token is not in state and address is not native', () => {
     // USDC address but NOT present in TokensController state → not native, not erc-20
+    // → sourceTokenSymbol is undefined → primaryAmount stays empty
     const tx = makeTx(TransactionType.moneyAccountDeposit, {
       metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
       requiredAssets: [{ address: USDC_ADDRESS, amount: '1000000' }],
@@ -524,11 +506,10 @@ describe('useMoneyTransactionDisplayInfo — token resolution edge cases', () =>
       { state: makeState() },
     );
 
-    expect(result.current.sourceTokenSymbol).toBeUndefined();
     expect(result.current.primaryAmount).toBe('');
   });
 
-  it('leaves sourceTokenSymbol undefined when getNativeTokenAddress throws for unknown chainId', () => {
+  it('leaves primaryAmount empty when getNativeTokenAddress throws for unknown chainId', () => {
     // Use a chainId our mock does not support → isNativeTokenAddress catch → returns false.
     // We also include the chain in networkConfigurationsByChainId so that
     // selectTickerByChainId does not error if the reselect stability check
@@ -560,8 +541,7 @@ describe('useMoneyTransactionDisplayInfo — token resolution edge cases', () =>
       { state: stateWithPolygon },
     );
 
-    expect(result.current.sourceTokenSymbol).toBeUndefined();
-    expect(result.current.sourceTokenChainId).toBeUndefined();
+    expect(result.current.primaryAmount).toBe('');
   });
 });
 

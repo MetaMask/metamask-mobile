@@ -38,10 +38,6 @@ export interface MoneyTransactionDisplayInfo {
   fiatAmount: string;
   isIncoming: boolean;
   icon: IconName;
-  sourceTokenSymbol: string | undefined;
-  sourceTokenImage: string | undefined;
-  /** Set only for native tokens (e.g. ETH) so the item can render the network logo. */
-  sourceTokenChainId: Hex | undefined;
 }
 
 function titleKeyToLabel(key: MoneyActivityTitleKey): string {
@@ -254,10 +250,6 @@ export function useMoneyTransactionDisplayInfo(
     const isNative = Boolean(nativeTicker);
 
     const sourceTokenSymbol = payToken?.symbol ?? nativeTicker;
-    const sourceTokenImage = payToken?.image;
-
-    const sourceTokenChainId =
-      isNative && payTokenChainId ? payTokenChainId : undefined;
 
     // --- Primary amount ---
     // Prefer transferInformation (set on simple confirmed txs).
@@ -325,9 +317,6 @@ export function useMoneyTransactionDisplayInfo(
       fiatAmount,
       isIncoming: isIncomingMoneyTransactionMeta(tx),
       icon: getIcon(tx),
-      sourceTokenSymbol,
-      sourceTokenImage,
-      sourceTokenChainId,
     };
   }, [
     tx,
@@ -337,6 +326,5 @@ export function useMoneyTransactionDisplayInfo(
     tokenMarketData,
     payToken,
     nativeTicker,
-    payTokenChainId,
   ]);
 }
