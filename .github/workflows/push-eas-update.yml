@@ -95,13 +95,13 @@ jobs:
   verify-release-branch:
     name: Verify release branch (production only)
     runs-on: ubuntu-latest
-    env:
-      PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      GITHUB_REPOSITORY: ${{ github.repository }}
-      TARGET_CHANNEL: ${{ env.TARGET_CHANNEL }}
     steps:
       - name: Enforce release branch for production channel
+        env:
+          PR_NUMBER: ${{ inputs.pr_number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          TARGET_CHANNEL: ${{ inputs.channel }}
         run: |
           set -euo pipefail
 
