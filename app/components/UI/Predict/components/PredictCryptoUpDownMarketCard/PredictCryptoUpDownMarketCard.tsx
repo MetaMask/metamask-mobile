@@ -5,9 +5,14 @@ import Svg, {
   Defs,
   LinearGradient,
   Line as SvgLine,
+  Path,
   Stop,
 } from 'react-native-svg';
-import { curveCatmullRom } from 'd3-shape';
+import Animated, {
+  useAnimatedProps,
+  useFrameCallback,
+  useSharedValue,
+} from 'react-native-reanimated';
 import {
   Box,
   BoxAlignItems,
@@ -25,7 +30,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { AreaChart, LineChart } from 'react-native-svg-charts';
 import { useTheme } from '../../../../../util/theme';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
@@ -64,9 +68,14 @@ import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { PredictCryptoUpDownMarketCardSelectorsIDs } from '../../Predict.testIds';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import type { LivelinePoint } from '../../../Charts/LivelineChart/LivelineChart.types';
 
-const SPARKLINE_POINT_LIMIT = 48;
+const SPARKLINE_POINT_LIMIT = 120;
+const SPARKLINE_WINDOW_SECS = 30;
+const SPARKLINE_SEED_POINT_COUNT = 24;
+const SPARKLINE_CLOCK_TOLERANCE_SECS = 10;
 const SPARKLINE_HEIGHT = 126;
+const SPARKLINE_WIDTH = 100;
 const SPARKLINE_RANGE_PADDING_RATIO = 0.12;
 const SPARKLINE_CONTENT_INSET = { top: 6, bottom: 0, left: 0, right: 0 };
 const TARGET_LABEL_OFFSET = 12;
@@ -81,11 +90,22 @@ const FALLBACK_SPARKLINE_DATA = [
   0.42, 0.72, 0.86, 0.79, 0.46, 0.58, 0.5, 0.18, 0.28, 0.12, 0.24, 0.62, 0.58,
   0.42, 0.24, 0.14, 0.2, 0.28, 0.3,
 ];
+const FALLBACK_SPARKLINE_POINTS = FALLBACK_SPARKLINE_DATA.map(
+  (value, index) => ({
+    time:
+      -SPARKLINE_WINDOW_SECS +
+      (index / (FALLBACK_SPARKLINE_DATA.length - 1)) * SPARKLINE_WINDOW_SECS,
+    value,
+  }),
+);
 const CRYPTO_ACCENT_DEFAULT = 'rgb(245, 158, 11)';
 const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
 };
-const SPARKLINE_CURVE = curveCatmullRom.alpha(0.35);
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+const AnimatedLine = Animated.createAnimatedComponent(SvgLine);
+
+type SparklinePoint = LivelinePoint;
 
 interface PredictCryptoUpDownMarketCardProps {
   market: PredictMarketWithSeries;
@@ -132,11 +152,69 @@ const formatCents = (price?: number) => {
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 
-const getSparklineDisplayData = (data: number[]) =>
-  data.length >= 2 ? data : FALLBACK_SPARKLINE_DATA;
+const downsampleSparklinePoints = (points: SparklinePoint[]) => {
+  if (points.length <= SPARKLINE_POINT_LIMIT) {
+    return points;
+  }
 
-const getSparklineRange = (data: number[], targetPrice?: number) => {
-  const displayData = data.length >= 2 ? data : FALLBACK_SPARKLINE_DATA;
+  const lastIndex = points.length - 1;
+  return Array.from({ length: SPARKLINE_POINT_LIMIT }, (_, index) => {
+    const sourceIndex = Math.round(
+      (index / (SPARKLINE_POINT_LIMIT - 1)) * lastIndex,
+    );
+    return points[sourceIndex];
+  });
+};
+
+const getSparklineDisplayPoints = (points: SparklinePoint[]) => {
+  const finitePoints = points.filter(
+    (point) =>
+      Number.isFinite(point.time) &&
+      Number.isFinite(point.value) &&
+      point.time > 0,
+  );
+
+  if (finitePoints.length < 2) {
+    return FALLBACK_SPARKLINE_POINTS;
+  }
+
+  const latestTime = finitePoints.at(-1)?.time ?? 0;
+  const windowStart = latestTime - SPARKLINE_WINDOW_SECS;
+  const visiblePoints = finitePoints.filter(
+    (point) => point.time >= windowStart,
+  );
+
+  if (visiblePoints.length >= SPARKLINE_SEED_POINT_COUNT) {
+    return downsampleSparklinePoints(visiblePoints);
+  }
+
+  const firstVisibleTime = visiblePoints[0]?.time ?? latestTime;
+  const seedSource = finitePoints
+    .filter((point) => point.time < firstVisibleTime)
+    .slice(-SPARKLINE_SEED_POINT_COUNT);
+
+  if (seedSource.length === 0) {
+    return downsampleSparklinePoints(
+      visiblePoints.length >= 2 ? visiblePoints : finitePoints.slice(-2),
+    );
+  }
+
+  const seedEndTime = Math.max(windowStart, firstVisibleTime - 0.001);
+  const seedPoints = seedSource.map((point, index) => ({
+    ...point,
+    time:
+      seedSource.length === 1
+        ? windowStart
+        : windowStart +
+          (index / (seedSource.length - 1)) * (seedEndTime - windowStart),
+  }));
+
+  return downsampleSparklinePoints([...seedPoints, ...visiblePoints]);
+};
+
+const getSparklineRange = (points: SparklinePoint[], targetPrice?: number) => {
+  const displayPoints = points.length >= 2 ? points : FALLBACK_SPARKLINE_POINTS;
+  const displayData = displayPoints.map((point) => point.value);
   const values =
     typeof targetPrice === 'number' && Number.isFinite(targetPrice)
       ? [...displayData, targetPrice]
@@ -151,6 +229,115 @@ const getSparklineRange = (data: number[], targetPrice?: number) => {
     yMin: minValue - rangePadding,
     yMax: maxValue + rangePadding,
   };
+};
+
+const getSparklineY = (value: number, yMin: number, yMax: number) => {
+  if (yMax === yMin) {
+    return SPARKLINE_HEIGHT / 2;
+  }
+
+  const drawableHeight =
+    SPARKLINE_HEIGHT -
+    SPARKLINE_CONTENT_INSET.top -
+    SPARKLINE_CONTENT_INSET.bottom;
+
+  return (
+    SPARKLINE_CONTENT_INSET.top +
+    ((yMax - value) / (yMax - yMin)) * drawableHeight
+  );
+};
+
+const getSparklineX = (time: number, now: number) => {
+  'worklet';
+  const windowStart = now - SPARKLINE_WINDOW_SECS;
+  return Math.min(
+    Math.max(
+      ((time - windowStart) / SPARKLINE_WINDOW_SECS) * SPARKLINE_WIDTH,
+      0,
+    ),
+    SPARKLINE_WIDTH,
+  );
+};
+
+const getSparklineYWorklet = (value: number, yMin: number, yMax: number) => {
+  'worklet';
+  if (yMax === yMin) {
+    return SPARKLINE_HEIGHT / 2;
+  }
+
+  const drawableHeight =
+    SPARKLINE_HEIGHT -
+    SPARKLINE_CONTENT_INSET.top -
+    SPARKLINE_CONTENT_INSET.bottom;
+
+  return (
+    SPARKLINE_CONTENT_INSET.top +
+    ((yMax - value) / (yMax - yMin)) * drawableHeight
+  );
+};
+
+const buildSmoothLinePath = (
+  points: SparklinePoint[],
+  now: number,
+  yMin: number,
+  yMax: number,
+) => {
+  'worklet';
+  if (points.length < 2) {
+    return '';
+  }
+
+  const screenPoints = points.map((point) => ({
+    x: getSparklineX(point.time, now),
+    y: getSparklineYWorklet(point.value, yMin, yMax),
+  }));
+  const lastPoint = points[points.length - 1];
+  const liveTipX = getSparklineX(now, now);
+
+  if (liveTipX - screenPoints[screenPoints.length - 1].x > 0.1) {
+    screenPoints.push({
+      x: liveTipX,
+      y: getSparklineYWorklet(lastPoint.value, yMin, yMax),
+    });
+  }
+
+  let path = `M${screenPoints[0].x},${screenPoints[0].y}`;
+
+  for (let index = 0; index < screenPoints.length - 1; index++) {
+    const current = screenPoints[index];
+    const next = screenPoints[index + 1];
+    const previous = screenPoints[index - 1] ?? current;
+    const afterNext = screenPoints[index + 2] ?? next;
+    const cp1x = current.x + (next.x - previous.x) / 6;
+    const cp1y = current.y + (next.y - previous.y) / 6;
+    const cp2x = next.x - (afterNext.x - current.x) / 6;
+    const cp2y = next.y - (afterNext.y - current.y) / 6;
+    path += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${next.x},${next.y}`;
+  }
+
+  return path;
+};
+
+const buildSmoothAreaPath = (
+  points: SparklinePoint[],
+  now: number,
+  yMin: number,
+  yMax: number,
+) => {
+  'worklet';
+  const linePath = buildSmoothLinePath(points, now, yMin, yMax);
+
+  if (!linePath) {
+    return '';
+  }
+
+  const firstX = getSparklineX(points[0].time, now);
+  const lastX = getSparklineX(now, now);
+
+  return `M${firstX},${SPARKLINE_HEIGHT} ${linePath.replace(
+    /^M/,
+    'L',
+  )} L${lastX},${SPARKLINE_HEIGHT} Z`;
 };
 
 const getTargetLineTop = ({
@@ -170,74 +357,105 @@ const getTargetLineTop = ({
     return 43;
   }
 
-  const drawableHeight =
-    SPARKLINE_HEIGHT -
-    SPARKLINE_CONTENT_INSET.top -
-    SPARKLINE_CONTENT_INSET.bottom;
-
-  return (
-    SPARKLINE_CONTENT_INSET.top +
-    ((yMax - targetPrice) / (yMax - yMin)) * drawableHeight
-  );
-};
-
-const TargetLine = ({
-  targetPrice,
-  color,
-  y,
-}: {
-  targetPrice?: number;
-  color: string;
-  y?: (value: number) => number;
-}) => {
-  if (
-    typeof targetPrice !== 'number' ||
-    !Number.isFinite(targetPrice) ||
-    typeof y !== 'function'
-  ) {
-    return null;
-  }
-
-  return (
-    <SvgLine
-      x1="56%"
-      x2="82%"
-      y1={y(targetPrice)}
-      y2={y(targetPrice)}
-      stroke={color}
-      strokeOpacity={0.7}
-      strokeWidth={1}
-    />
-  );
+  return getSparklineY(targetPrice, yMin, yMax);
 };
 
 const Sparkline = ({
-  data,
+  points,
   color,
   targetPrice,
 }: {
-  data: number[];
+  points: SparklinePoint[];
   color: string;
   targetPrice?: number;
 }) => {
   const tw = useTailwind();
-  const displayData = getSparklineDisplayData(data);
-  const { yMin, yMax } = getSparklineRange(data, targetPrice);
+  const displayPoints = getSparklineDisplayPoints(points);
+  const { yMin, yMax } = getSparklineRange(displayPoints, targetPrice);
+  const latestTime = displayPoints.at(-1)?.time ?? 0;
+  const shouldUseWallClock =
+    latestTime > 0 &&
+    Math.abs(Date.now() / 1000 - latestTime) <= SPARKLINE_CLOCK_TOLERANCE_SECS;
+  const animatedPoints = useSharedValue<SparklinePoint[]>(displayPoints);
+  const animatedYMin = useSharedValue(yMin);
+  const animatedYMax = useSharedValue(yMax);
+  const animatedTargetPrice = useSharedValue(targetPrice ?? Number.NaN);
+  const animatedNow = useSharedValue(latestTime);
+  const animatedUseWallClock = useSharedValue(shouldUseWallClock);
+
+  useEffect(() => {
+    animatedPoints.value = displayPoints;
+    animatedYMin.value = yMin;
+    animatedYMax.value = yMax;
+    animatedTargetPrice.value = targetPrice ?? Number.NaN;
+    animatedUseWallClock.value = shouldUseWallClock;
+    if (!shouldUseWallClock || latestTime > animatedNow.value) {
+      animatedNow.value = latestTime;
+    }
+  }, [
+    animatedNow,
+    animatedPoints,
+    animatedTargetPrice,
+    animatedUseWallClock,
+    animatedYMax,
+    animatedYMin,
+    displayPoints,
+    latestTime,
+    shouldUseWallClock,
+    targetPrice,
+    yMax,
+    yMin,
+  ]);
+
+  useFrameCallback(() => {
+    if (animatedUseWallClock.value) {
+      animatedNow.value = Date.now() / 1000;
+    }
+  });
+
+  const areaAnimatedProps = useAnimatedProps(() => ({
+    d: buildSmoothAreaPath(
+      animatedPoints.value,
+      animatedNow.value,
+      animatedYMin.value,
+      animatedYMax.value,
+    ),
+  }));
+
+  const lineAnimatedProps = useAnimatedProps(() => ({
+    d: buildSmoothLinePath(
+      animatedPoints.value,
+      animatedNow.value,
+      animatedYMin.value,
+      animatedYMax.value,
+    ),
+  }));
+
+  const targetLineAnimatedProps = useAnimatedProps(() => {
+    const target = animatedTargetPrice.value;
+
+    if (!Number.isFinite(target)) {
+      return { y1: 0, y2: 0, opacity: 0 };
+    }
+
+    const targetY = getSparklineYWorklet(
+      target,
+      animatedYMin.value,
+      animatedYMax.value,
+    );
+
+    return { y1: targetY, y2: targetY, opacity: 1 };
+  });
 
   return (
     <Box
       testID={PredictCryptoUpDownMarketCardSelectorsIDs.SPARKLINE}
       twClassName="h-[126px] w-full"
     >
-      <AreaChart
+      <Svg
         style={tw.style(`h-[${SPARKLINE_HEIGHT}px] w-full`)}
-        data={displayData}
-        svg={{ fill: 'url(#cryptoFeedSparklineGradient)' }}
-        contentInset={SPARKLINE_CONTENT_INSET}
-        yMin={yMin}
-        yMax={yMax}
-        numberOfTicks={2}
-        curve={SPARKLINE_CURVE}
+        viewBox={`0 0 ${SPARKLINE_WIDTH} ${SPARKLINE_HEIGHT}`}
+        preserveAspectRatio="none"
       >
         <Defs key="crypto-feed-sparkline-gradient">
           <LinearGradient
@@ -247,25 +465,44 @@ const Sparkline = ({
             x2="0"
             y2="1"
           >
-            <Stop offset="0" stopColor={color} stopOpacity={0.42} />
-            <Stop offset="0.42" stopColor={color} stopOpacity={0.22} />
-            <Stop offset="0.82" stopColor={color} stopOpacity={0.04} />
+            <Stop offset="0" stopColor={color} stopOpacity={0.62} />
+            <Stop offset="0.48" stopColor={color} stopOpacity={0.28} />
+            <Stop offset="0.78" stopColor={color} stopOpacity={0.1} />
             <Stop offset="1" stopColor={color} stopOpacity={0} />
           </LinearGradient>
         </Defs>
-      </AreaChart>
-      <LineChart
-        style={tw.style(`absolute inset-0 h-[${SPARKLINE_HEIGHT}px] w-full`)}
-        data={displayData}
-        svg={{ stroke: color, strokeWidth: 3 }}
-        contentInset={SPARKLINE_CONTENT_INSET}
-        yMin={yMin}
-        yMax={yMax}
-        numberOfTicks={2}
-        curve={SPARKLINE_CURVE}
-      >
-        <TargetLine targetPrice={targetPrice} color={color} />
-      </LineChart>
+        <AnimatedPath
+          animatedProps={areaAnimatedProps}
+          fill="url(#cryptoFeedSparklineGradient)"
+        />
+        <AnimatedPath
+          animatedProps={lineAnimatedProps}
+          stroke={color}
+          strokeWidth={7}
+          strokeOpacity={0.14}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+        <AnimatedPath
+          animatedProps={lineAnimatedProps}
+          stroke={color}
+          strokeWidth={3.5}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+        <AnimatedLine
+          x1={56}
+          x2={82}
+          stroke={color}
+          strokeOpacity={0.7}
+          strokeWidth={1}
+          animatedProps={targetLineAnimatedProps}
+        />
+      </Svg>
     </Box>
   );
 };
@@ -471,20 +708,16 @@ const PredictCryptoUpDownMarketCard: React.FC<
     undefined,
     validatedTargetPrice,
   );
-  const sparklineData = useMemo(
-    () =>
-      chartData.data
-        .slice(-SPARKLINE_POINT_LIMIT)
-        .map((point) => point.value)
-        .filter((value) => Number.isFinite(value)),
-    [chartData.data],
-  );
+  const sparklinePoints = useMemo(() => chartData.data, [chartData.data]);
   const latestPrice =
     chartData.data.at(-1)?.value ??
     (chartData.value > 0 ? chartData.value : undefined);
   const targetLineTop = getTargetLineTop({
     targetPrice: validatedTargetPrice,
-    ...getSparklineRange(sparklineData, validatedTargetPrice),
+    ...getSparklineRange(
+      getSparklineDisplayPoints(sparklinePoints),
+      validatedTargetPrice,
+    ),
   });
   const targetLabelTop = clamp(
     targetLineTop - TARGET_LABEL_OFFSET,
@@ -578,7 +811,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
       >
         <Box twClassName="absolute left-[-2px] right-[-2px] top-0 opacity-100">
           <Sparkline
-            data={sparklineData}
+            points={sparklinePoints}
             color={accentColor}
             targetPrice={validatedTargetPrice}
           />
