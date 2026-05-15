@@ -45,7 +45,7 @@ jobs:
       CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
       YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
     outputs:
-      apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
+      apk-uploaded: ${{ steps.upload-apk-namespace.outcome == 'success' || steps.upload-apk.outcome == 'success' }}
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
       artifact_name: ${{ steps.determine-target-paths.outputs.artifact_name }}
@@ -452,8 +452,19 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
-      - name: Upload Android APK
+      - name: Upload Android APK (Namespace)
+        id: upload-apk-namespace
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Upload Android APK (current)
         id: upload-apk
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
@@ -461,8 +472,19 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-      - name: Upload Android Test APK
+      - name: Upload Android Test APK (Namespace)
+        id: upload-test-apk-namespace
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
+          path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Upload Android Test APK (current)
         id: upload-test-apk
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk

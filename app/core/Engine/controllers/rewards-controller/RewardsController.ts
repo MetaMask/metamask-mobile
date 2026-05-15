@@ -45,6 +45,7 @@ import {
   type LineaTokenRewardDto,
   type OffDeviceSubscriptionAccountsState,
   type ClientVersionRequirementDto,
+  type ClientVersionRequirementState,
   type CampaignState,
   type CampaignDtoState,
   type SubscriptionBenefitsState,
@@ -172,6 +173,9 @@ const PERPS_TRADING_CAMPAIGN_VOLUME_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 min
 // Perps Trading participant outcome cache threshold
 const PERPS_TRADING_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 
+// Client version requirements cache threshold
+const CLIENT_VERSION_REQUIREMENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 30; // 30 minutes
+
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
 const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
 
@@ -297,6 +301,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     usedInUi: true,
   },
   perpsTradingCampaignVolume: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  clientVersionRequirements: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
@@ -501,7 +511,6 @@ export class RewardsController extends BaseController<
     string,
     { payload: OndoGmCampaignParticipantOutcomeDto; lastFetched: number }
   > = new Map();
-  #clientVersionRequirements: ClientVersionRequirementDto | null = null;
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
@@ -4493,20 +4502,35 @@ export class RewardsController extends BaseController<
 
   /**
    * Fetch the minimum client version requirements from the public API.
-   * Cached in memory for the controller's lifetime (one fetch per app session).
+   * Cached for 30 minutes using controller state, matching other endpoint caches.
    * This is a public (unauthenticated) endpoint that does not require
    * the rewards feature to be enabled.
    */
   async getClientVersionRequirements(): Promise<ClientVersionRequirementDto> {
-    if (this.#clientVersionRequirements) {
-      return this.#clientVersionRequirements;
+    const cached = this.state.clientVersionRequirements;
+    if (
+      cached &&
+      Date.now() - cached.lastFetched <
+        CLIENT_VERSION_REQUIREMENTS_CACHE_THRESHOLD_MS
+    ) {
+      const { lastFetched, ...payload } = cached;
+      return payload;
     }
 
+    Logger.log(
+      'RewardsController: Fetching fresh client version requirements via API call',
+    );
     const result = (await this.messenger.call(
       'RewardsDataService:getClientVersionRequirements',
     )) as ClientVersionRequirementDto;
 
-    this.#clientVersionRequirements = result;
+    this.update((state) => {
+      state.clientVersionRequirements = {
+        ...result,
+        lastFetched: Date.now(),
+      } as ClientVersionRequirementState;
+    });
+
     return result;
   }
 
