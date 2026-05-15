@@ -336,99 +336,103 @@ describe('MoneyOnboardingCard', () => {
       expect(mockIncrementStep).toHaveBeenCalledTimes(1);
     });
   });
-});
 
-describe('step 2 — cardholder with no linked card', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('renders the unlinked-card title', () => {
-    setupDefaultMocks({
-      currentStep: 1,
-      isCardholder: true,
-      moneyAccountCardToken: null,
+  describe('step 2 — cardholder with no linked card', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
     });
 
-    const { getByTestId } = render(<MoneyOnboardingCard />);
+    it('renders the unlinked-card title', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardholder: true,
+        moneyAccountCardToken: null,
+      });
 
-    expect(getByTestId('money-onboarding-card-title')).toHaveTextContent(
-      strings('money.onboarding.step_2.unlinked_card_account.title'),
-    );
-  });
+      const { getByTestId } = render(<MoneyOnboardingCard />);
 
-  it('renders the unlinked-card description', () => {
-    setupDefaultMocks({
-      currentStep: 1,
-      isCardholder: true,
-      moneyAccountCardToken: null,
+      expect(getByTestId('money-onboarding-card-title')).toHaveTextContent(
+        strings('money.onboarding.step_2.unlinked_card_account.title'),
+      );
     });
 
-    const { getByTestId } = render(<MoneyOnboardingCard />);
+    it('renders the unlinked-card description', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardholder: true,
+        moneyAccountCardToken: null,
+      });
 
-    expect(getByTestId('money-onboarding-card-description')).toHaveTextContent(
-      strings('money.onboarding.step_2.unlinked_card_account.description'),
-    );
-  });
+      const { getByTestId } = render(<MoneyOnboardingCard />);
 
-  it('renders the Link card primary CTA', () => {
-    setupDefaultMocks({
-      currentStep: 1,
-      isCardholder: true,
-      moneyAccountCardToken: null,
+      expect(
+        getByTestId('money-onboarding-card-description'),
+      ).toHaveTextContent(
+        strings('money.onboarding.step_2.unlinked_card_account.description'),
+      );
     });
 
-    const { getByTestId } = render(<MoneyOnboardingCard />);
+    it('renders the Link card primary CTA', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardholder: true,
+        moneyAccountCardToken: null,
+      });
 
-    expect(getByTestId('money-onboarding-card-cta-button')).toHaveTextContent(
-      strings('money.onboarding.step_2.unlinked_card_account.cta_primary'),
-    );
-  });
+      const { getByTestId } = render(<MoneyOnboardingCard />);
 
-  it('calls openLinkCardSheet when Link card CTA is pressed and canLink is true', () => {
-    setupDefaultMocks({
-      currentStep: 1,
-      isCardholder: true,
-      moneyAccountCardToken: null,
-      canLink: true,
+      expect(getByTestId('money-onboarding-card-cta-button')).toHaveTextContent(
+        strings('money.onboarding.step_2.unlinked_card_account.cta_primary'),
+      );
     });
 
-    const { getByTestId } = render(<MoneyOnboardingCard />);
-    fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
+    it('calls openLinkCardSheet when Link card CTA is pressed and canLink is true', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardholder: true,
+        moneyAccountCardToken: null,
+        canLink: true,
+      });
 
-    expect(mockOpenLinkCardSheet).toHaveBeenCalledTimes(1);
-  });
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+      fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
 
-  it('navigates to CARD.ROOT with CARD.HOME when Link card CTA is pressed and canLink is false', () => {
-    setupDefaultMocks({
-      currentStep: 1,
-      isCardholder: true,
-      moneyAccountCardToken: null,
-      canLink: false,
+      expect(mockOpenLinkCardSheet).toHaveBeenCalledTimes(1);
     });
 
-    const { getByTestId } = render(<MoneyOnboardingCard />);
-    fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
+    it('navigates to CARD.ROOT with CARD.HOME when Link card CTA is pressed and canLink is false', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardholder: true,
+        moneyAccountCardToken: null,
+        canLink: false,
+      });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-      screen: Routes.CARD.HOME,
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+      fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+      });
     });
-  });
 
-  it('calls incrementStep when Skip CTA is pressed', () => {
-    setupDefaultMocks({
-      currentStep: 1,
-      isCardholder: true,
-      moneyAccountCardToken: null,
+    it('calls incrementStep when Skip CTA is pressed', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardholder: true,
+        moneyAccountCardToken: null,
+      });
+
+      const { getByText } = render(<MoneyOnboardingCard />);
+      fireEvent.press(
+        getByText(
+          strings(
+            'money.onboarding.step_2.unlinked_card_account.cta_secondary',
+          ),
+        ),
+      );
+
+      expect(mockIncrementStep).toHaveBeenCalledTimes(1);
     });
-
-    const { getByText } = render(<MoneyOnboardingCard />);
-    fireEvent.press(
-      getByText(
-        strings('money.onboarding.step_2.unlinked_card_account.cta_secondary'),
-      ),
-    );
-
-    expect(mockIncrementStep).toHaveBeenCalledTimes(1);
   });
 });
