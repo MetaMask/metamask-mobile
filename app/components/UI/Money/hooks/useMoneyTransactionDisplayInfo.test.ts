@@ -2,6 +2,7 @@ import {
   type TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
 import {
   renderHookWithProvider,
@@ -42,7 +43,10 @@ const ETH_ADDRESS: Hex = '0x0000000000000000000000000000000000000000';
 function makeState(
   overrides: {
     currentCurrency?: string;
-    currencyRates?: Record<string, { conversionRate: number }>;
+    currencyRates?: Record<
+      string,
+      { conversionRate?: number; usdConversionRate?: number }
+    >;
     tokenMarketData?: Record<string, unknown>;
     tokens?: TransactionMeta[];
   } = {},
@@ -83,22 +87,52 @@ function makeTx(
 }
 
 // ---------------------------------------------------------------------------
-// Label derivation
+// Label — titleKeyToLabel exhaustive coverage
 // ---------------------------------------------------------------------------
 
-describe('useMoneyTransactionDisplayInfo — label', () => {
-  it('uses moneyActivityTitleKey when present', () => {
-    const tx = makeTx(TransactionType.moneyAccountDeposit, {
-      moneyActivityTitleKey: 'added',
-    });
+describe('useMoneyTransactionDisplayInfo — titleKeyToLabel all keys', () => {
+  const cases: [string, string][] = [
+    ['added', 'money.transaction.added'],
+    ['deposited', 'money.transaction.deposited'],
+    ['received', 'money.transaction.received'],
+    ['card_transaction', 'money.transaction.card_transaction'],
+    ['converted', 'money.transaction.converted'],
+    ['sent', 'money.transaction.sent'],
+    ['transferred', 'money.transaction.transferred'],
+    // unknown key hits the default branch → 'received'
+    ['unknown_key_xyz', 'money.transaction.received'],
+  ];
+
+  it.each(cases)(
+    'moneyActivityTitleKey "%s" produces label "%s"',
+    (key, expected) => {
+      const tx = makeTx(TransactionType.moneyAccountDeposit, {
+        moneyActivityTitleKey: key,
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyTransactionDisplayInfo(tx, undefined),
+        { state: makeState() },
+      );
+      expect(result.current.label).toBe(expected);
+    },
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Label — getLabelForTransactionType exhaustive coverage
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => {
+  it('returns deposited when type is undefined', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, { type: undefined });
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
     );
-    expect(result.current.label).toBe('money.transaction.added');
+    expect(result.current.label).toBe('money.transaction.deposited');
   });
 
-  it('derives label from type for a direct deposit', () => {
+  it('returns deposited for moneyAccountDeposit type', () => {
     const tx = makeTx(TransactionType.moneyAccountDeposit);
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
@@ -107,13 +141,49 @@ describe('useMoneyTransactionDisplayInfo — label', () => {
     expect(result.current.label).toBe('money.transaction.deposited');
   });
 
-  it('derives label from type for a direct withdraw', () => {
+  it('returns deposited for incoming type', () => {
+    const tx = makeTx(TransactionType.incoming);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.deposited');
+  });
+
+  it('returns sent for moneyAccountWithdraw type', () => {
     const tx = makeTx(TransactionType.moneyAccountWithdraw);
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
     );
     expect(result.current.label).toBe('money.transaction.sent');
+  });
+
+  it('returns sent for simpleSend type', () => {
+    const tx = makeTx(TransactionType.simpleSend);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.sent');
+  });
+
+  it('returns converted for musdConversion type', () => {
+    const tx = makeTx(TransactionType.musdConversion);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.converted');
+  });
+
+  it('returns received (default) for unrecognised type', () => {
+    const tx = makeTx(TransactionType.swap);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.received');
   });
 
   it('derives label from nested type for an EIP-7702 batch deposit', () => {
@@ -136,6 +206,141 @@ describe('useMoneyTransactionDisplayInfo — label', () => {
       { state: makeState() },
     );
     expect(result.current.label).toBe('money.transaction.sent');
+  });
+
+  it('returns received for a batch tx with no money-type nested transaction', () => {
+    const tx = makeTx(TransactionType.batch, {
+      nestedTransactions: [{ type: TransactionType.swap }],
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    // batch with no money nested type hits getLabelForTransactionType(batch) → default → 'received'
+    expect(result.current.label).toBe('money.transaction.received');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Icon — titleKeyToIcon exhaustive coverage
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — titleKeyToIcon all keys', () => {
+  const cases: [string, IconName][] = [
+    ['added', IconName.Add],
+    ['deposited', IconName.Add],
+    ['received', IconName.Arrow2Down],
+    ['card_transaction', IconName.Card],
+    ['converted', IconName.Refresh],
+    ['sent', IconName.Arrow2UpRight],
+    ['transferred', IconName.SwapHorizontal],
+    // unknown key → default → Arrow2Down
+    ['unknown_key_xyz', IconName.Arrow2Down],
+  ];
+
+  it.each(cases)(
+    'moneyActivityTitleKey "%s" produces icon %s',
+    (key, expected) => {
+      const tx = makeTx(TransactionType.moneyAccountDeposit, {
+        moneyActivityTitleKey: key,
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyTransactionDisplayInfo(tx, undefined),
+        { state: makeState() },
+      );
+      expect(result.current.icon).toBe(expected);
+    },
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Icon — getIconForTransactionType exhaustive coverage
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — getIconForTransactionType', () => {
+  it('returns Arrow2Down when type is undefined', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, { type: undefined });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.icon).toBe(IconName.Arrow2Down);
+  });
+
+  it('returns Add for moneyAccountDeposit type', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.icon).toBe(IconName.Add);
+  });
+
+  it('returns Arrow2Down for incoming type', () => {
+    const tx = makeTx(TransactionType.incoming);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.icon).toBe(IconName.Arrow2Down);
+  });
+
+  it('returns Refresh for musdConversion type', () => {
+    const tx = makeTx(TransactionType.musdConversion);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.icon).toBe(IconName.Refresh);
+  });
+
+  it('returns SwapHorizontal for moneyAccountWithdraw type', () => {
+    const tx = makeTx(TransactionType.moneyAccountWithdraw);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.icon).toBe(IconName.SwapHorizontal);
+  });
+
+  it('returns Arrow2UpRight for simpleSend type', () => {
+    const tx = makeTx(TransactionType.simpleSend);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.icon).toBe(IconName.Arrow2UpRight);
+  });
+
+  it('returns Arrow2Down (default) for unrecognised type', () => {
+    const tx = makeTx(TransactionType.swap);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.icon).toBe(IconName.Arrow2Down);
+  });
+
+  it('returns Add for a batch tx with a nested moneyAccountDeposit', () => {
+    const tx = makeTx(TransactionType.batch, {
+      nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.icon).toBe(IconName.Add);
+  });
+
+  it('returns SwapHorizontal for a batch tx with a nested moneyAccountWithdraw', () => {
+    const tx = makeTx(TransactionType.batch, {
+      nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.icon).toBe(IconName.SwapHorizontal);
   });
 });
 
@@ -302,92 +507,6 @@ describe('useMoneyTransactionDisplayInfo — fiat amount fallback', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Label — titleKeyToLabel exhaustive coverage
-// ---------------------------------------------------------------------------
-
-describe('useMoneyTransactionDisplayInfo — titleKeyToLabel all keys', () => {
-  const cases: [string, string][] = [
-    ['added', 'money.transaction.added'],
-    ['deposited', 'money.transaction.deposited'],
-    ['received', 'money.transaction.received'],
-    ['card_transaction', 'money.transaction.card_transaction'],
-    ['converted', 'money.transaction.converted'],
-    ['sent', 'money.transaction.sent'],
-    ['transferred', 'money.transaction.transferred'],
-    // unknown key hits the default branch → 'received'
-    ['unknown_key_xyz', 'money.transaction.received'],
-  ];
-
-  it.each(cases)(
-    'moneyActivityTitleKey "%s" produces label "%s"',
-    (key, expected) => {
-      const tx = makeTx(TransactionType.moneyAccountDeposit, {
-        moneyActivityTitleKey: key,
-      });
-      const { result } = renderHookWithProvider(
-        () => useMoneyTransactionDisplayInfo(tx, undefined),
-        { state: makeState() },
-      );
-      expect(result.current.label).toBe(expected);
-    },
-  );
-});
-
-// ---------------------------------------------------------------------------
-// Label — getLabelForTransactionType exhaustive coverage
-// ---------------------------------------------------------------------------
-
-describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => {
-  it('returns deposited when type is undefined', () => {
-    const tx = makeTx(TransactionType.moneyAccountDeposit, { type: undefined });
-    const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(tx, undefined),
-      { state: makeState() },
-    );
-    expect(result.current.label).toBe('money.transaction.deposited');
-  });
-
-  it('returns deposited for incoming type', () => {
-    const tx = makeTx(TransactionType.incoming);
-    const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(tx, undefined),
-      { state: makeState() },
-    );
-    expect(result.current.label).toBe('money.transaction.deposited');
-  });
-
-  it('returns sent for simpleSend type', () => {
-    const tx = makeTx(TransactionType.simpleSend);
-    const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(tx, undefined),
-      { state: makeState() },
-    );
-    expect(result.current.label).toBe('money.transaction.sent');
-  });
-
-  it('returns received (default) for unrecognised type', () => {
-    const tx = makeTx(TransactionType.swap);
-    const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(tx, undefined),
-      { state: makeState() },
-    );
-    expect(result.current.label).toBe('money.transaction.received');
-  });
-
-  it('returns received for a batch tx with no money-type nested transaction', () => {
-    const tx = makeTx(TransactionType.batch, {
-      nestedTransactions: [{ type: TransactionType.swap }],
-    });
-    const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(tx, undefined),
-      { state: makeState() },
-    );
-    // batch is not in the switch → default → 'received'
-    expect(result.current.label).toBe('money.transaction.received');
-  });
-});
-
-// ---------------------------------------------------------------------------
 // Token resolution — catch branch and no-token fallback
 // ---------------------------------------------------------------------------
 
@@ -507,7 +626,7 @@ describe('useMoneyTransactionDisplayInfo — description', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Fiat formatting — mUSD via market rate (migrated from .tsx)
+// Fiat formatting — mUSD via market rate
 // ---------------------------------------------------------------------------
 
 const MUSD_CHECKSUM = safeToChecksumAddress(MUSD_TOKEN_ADDRESS) as string;

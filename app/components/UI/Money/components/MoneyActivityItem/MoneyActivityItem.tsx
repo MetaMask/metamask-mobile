@@ -1,6 +1,9 @@
-import React from 'react';
-import { type ImageSourcePropType, Pressable } from 'react-native';
+import React, { useMemo } from 'react';
+import { Pressable } from 'react-native';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Box,
   BoxAlignItems,
   FontWeight,
@@ -15,7 +18,6 @@ import {
 } from '@metamask/transaction-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
 import {
@@ -25,22 +27,14 @@ import {
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import { MUSD_TOKEN } from '../../../Earn/constants/musd';
 import { useMoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
 import { MoneyActivityItemTestIds } from './MoneyActivityItem.testIds';
-
-function toAvatarImageSource(source: unknown): ImageSourcePropType {
-  if (typeof source === 'string') {
-    return { uri: source };
-  }
-  return source as ImageSourcePropType;
-}
 
 export interface MoneyActivityItemProps {
   tx: TransactionMeta;
   moneyAddress: string | undefined;
   onPress?: (transactionId: string) => void;
-  /** When true, shows the chain network badge on the token avatar. Defaults to false. */
+  /** When true, shows the chain network badge on the icon avatar. Defaults to false. */
   showNetworkBadge?: boolean;
 }
 
@@ -54,18 +48,13 @@ const MoneyActivityItem = ({
 
   const display = useMoneyTransactionDisplayInfo(tx, moneyAddress);
 
-  const networkImageSource = showNetworkBadge
-    ? getNetworkImageSource({ chainId: tx.chainId })
-    : undefined;
-
-  // use the token's own image URI, or the source chain's network icon, or the mUSD icon
-  const tokenAvatarImageSource: ImageSourcePropType = display.sourceTokenImage
-    ? { uri: display.sourceTokenImage }
-    : display.sourceTokenChainId
-      ? toAvatarImageSource(
-          getNetworkImageSource({ chainId: display.sourceTokenChainId }),
-        )
-      : toAvatarImageSource(MUSD_TOKEN.imageSource);
+  const networkImageSource = useMemo(
+    () =>
+      showNetworkBadge
+        ? getNetworkImageSource({ chainId: tx.chainId })
+        : undefined,
+    [tx.chainId, showNetworkBadge],
+  );
 
   const isFailed = tx.status === TransactionStatus.failed;
 
@@ -100,18 +89,20 @@ const MoneyActivityItem = ({
             />
           }
         >
-          <AvatarToken
-            name={display.sourceTokenSymbol ?? MUSD_TOKEN.name}
-            imageSource={tokenAvatarImageSource}
-            size={AvatarSize.Lg}
+          <AvatarIcon
+            iconName={display.icon}
+            severity={AvatarIconSeverity.Neutral}
+            size={AvatarIconSize.Lg}
+            testID={MoneyActivityItemTestIds.ICON}
           />
         </BadgeWrapper>
       ) : (
         <Box twClassName="self-center">
-          <AvatarToken
-            name={display.sourceTokenSymbol ?? MUSD_TOKEN.name}
-            imageSource={tokenAvatarImageSource}
-            size={AvatarSize.Lg}
+          <AvatarIcon
+            iconName={display.icon}
+            severity={AvatarIconSeverity.Neutral}
+            size={AvatarIconSize.Lg}
+            testID={MoneyActivityItemTestIds.ICON}
           />
         </Box>
       )}

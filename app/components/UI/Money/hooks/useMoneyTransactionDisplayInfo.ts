@@ -8,6 +8,7 @@ import {
 import { type Hex } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { IconName } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 import {
@@ -36,6 +37,7 @@ export interface MoneyTransactionDisplayInfo {
   primaryAmount: string;
   fiatAmount: string;
   isIncoming: boolean;
+  icon: IconName;
   sourceTokenSymbol: string | undefined;
   sourceTokenImage: string | undefined;
   /** Set only for native tokens (e.g. ETH) so the item can render the network logo. */
@@ -74,6 +76,8 @@ function getLabelForTransactionType(type: TransactionType | undefined): string {
     case TransactionType.moneyAccountWithdraw:
     case TransactionType.simpleSend:
       return strings('money.transaction.sent');
+    case TransactionType.musdConversion:
+      return strings('money.transaction.converted');
     default:
       return strings('money.transaction.received');
   }
@@ -102,6 +106,69 @@ function getLabel(tx: TransactionMeta): string {
     }
   }
   return getLabelForTransactionType(tx.type);
+}
+
+function titleKeyToIcon(key: MoneyActivityTitleKey): IconName {
+  switch (key) {
+    case 'added':
+      return IconName.Add;
+    case 'deposited':
+      return IconName.Add;
+    case 'received':
+      return IconName.Arrow2Down;
+    case 'card_transaction':
+      return IconName.Card;
+    case 'converted':
+      return IconName.Refresh;
+    case 'sent':
+      return IconName.Arrow2UpRight;
+    case 'transferred':
+      return IconName.SwapHorizontal;
+    default:
+      return IconName.Arrow2Down;
+  }
+}
+
+function getIconForTransactionType(
+  type: TransactionType | undefined,
+): IconName {
+  if (!type) {
+    return IconName.Arrow2Down;
+  }
+  switch (type) {
+    case TransactionType.moneyAccountDeposit:
+      return IconName.Add;
+    case TransactionType.incoming:
+      return IconName.Arrow2Down;
+    case TransactionType.musdConversion:
+      return IconName.Refresh;
+    case TransactionType.moneyAccountWithdraw:
+      return IconName.SwapHorizontal;
+    case TransactionType.simpleSend:
+      return IconName.Arrow2UpRight;
+    default:
+      return IconName.Arrow2Down;
+  }
+}
+
+function getIcon(tx: TransactionMeta): IconName {
+  const extended = tx as MoneyActivityTransactionMeta;
+  if (extended.moneyActivityTitleKey) {
+    return titleKeyToIcon(extended.moneyActivityTitleKey);
+  }
+  // For EIP-7702 batch transactions, derive the icon from the most significant
+  // nested transaction type.
+  if (tx.type === TransactionType.batch) {
+    const moneyNestedType = tx.nestedTransactions?.find(
+      (nested) =>
+        nested.type === TransactionType.moneyAccountDeposit ||
+        nested.type === TransactionType.moneyAccountWithdraw,
+    )?.type;
+    if (moneyNestedType) {
+      return getIconForTransactionType(moneyNestedType);
+    }
+  }
+  return getIconForTransactionType(tx.type);
 }
 
 /**
@@ -257,6 +324,7 @@ export function useMoneyTransactionDisplayInfo(
       primaryAmount,
       fiatAmount,
       isIncoming: isIncomingMoneyTransactionMeta(tx),
+      icon: getIcon(tx),
       sourceTokenSymbol,
       sourceTokenImage,
       sourceTokenChainId,
