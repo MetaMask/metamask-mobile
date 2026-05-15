@@ -168,7 +168,15 @@ describe('StakeConfirmationView', () => {
     expect(getByText(strings('stake.stake'))).toBeOnTheScreen();
   });
 
-  it('calls navigation.goBack and tracks STAKE_CONFIRMATION_BACK_CLICKED on back press', () => {
+  it('calls navigation.goBack on back press', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(STAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks STAKE_CONFIRMATION_BACK_CLICKED on back press', () => {
     const { getByTestId } = renderView();
 
     fireEvent.press(getByTestId(STAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID));
@@ -181,6 +189,5 @@ describe('StakeConfirmationView', () => {
       location: EVENT_LOCATIONS.STAKE_CONFIRMATION_VIEW,
     });
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });
