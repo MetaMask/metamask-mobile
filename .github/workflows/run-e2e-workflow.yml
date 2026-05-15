@@ -375,6 +375,39 @@ jobs:
           path: tests/reports/
           retention-days: 7
 
+      - name: Archive E2E diagnostics
+        id: archive-e2e-diagnostics
+        if: failure()
+        shell: bash
+        run: |
+          diagnostics_dir="tests/artifacts/e2e-diagnostics"
+          diagnostics_zip="tests/artifacts/e2e-diagnostics.zip"
+
+          if [ ! -d "$diagnostics_dir" ]; then
+            echo "No E2E diagnostics directory found."
+            echo "has-diagnostics=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if command -v zip >/dev/null 2>&1; then
+            zip -r "$diagnostics_zip" "$diagnostics_dir"
+          else
+            tar -czf "${diagnostics_zip%.zip}.tar.gz" "$diagnostics_dir"
+            diagnostics_zip="${diagnostics_zip%.zip}.tar.gz"
+          fi
+
+          echo "Archived E2E diagnostics to $diagnostics_zip"
+          echo "has-diagnostics=true" >> "$GITHUB_OUTPUT"
+          echo "diagnostics-archive=$diagnostics_zip" >> "$GITHUB_OUTPUT"
+
+      - name: Upload E2E diagnostics
+        if: failure() && steps.archive-e2e-diagnostics.outputs.has-diagnostics == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-e2e-${{ inputs.artifact_name_prefix }}${{ inputs.test-suite-name }}-diagnostics
+          path: ${{ steps.archive-e2e-diagnostics.outputs.diagnostics-archive }}
+          retention-days: 7
+
       - name: Upload Screenshots
         if: failure()
         uses: actions/upload-artifact@v4

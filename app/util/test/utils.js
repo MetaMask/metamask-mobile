@@ -68,11 +68,13 @@ export const getE2ETestConfigDiagnostics = (extra = {}) => ({
   platform: extra.platform ?? 'unknown',
   fixtureServerPortInApp: getFixturesServerPortInApp(),
   commandQueueServerPortInApp: getCommandQueueServerPortInApp(),
-  fixtureServerPortRaw: formatE2EDiagnosticValue(testConfig.fixtureServerPort),
-  commandQueueServerPortRaw: formatE2EDiagnosticValue(
-    testConfig.commandQueueServerPort,
+  fixtureServerPortRaw: formatE2EDiagnosticValue(
+    testConfig.rawFixtureServerPort,
   ),
-  mockServerPortRaw: formatE2EDiagnosticValue(testConfig.mockServerPort),
+  commandQueueServerPortRaw: formatE2EDiagnosticValue(
+    testConfig.rawCommandQueueServerPort,
+  ),
+  mockServerPortRaw: formatE2EDiagnosticValue(testConfig.rawMockServerPort),
   hasGlobalE2EConfig:
     globalThis[E2E_TEST_CONFIG_GLOBAL_KEY] === testConfig ? 'true' : 'false',
   configKeys: Object.keys(testConfig).sort().join(',') || 'none',

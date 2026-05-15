@@ -62,6 +62,7 @@ import {
   setupAccountActivityMocks,
   resetAccountActivityMockState,
 } from '../../websocket/account-activity-mocks';
+import { captureE2EDiagnostics } from '../E2EDiagnostics';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -668,6 +669,45 @@ export async function withFixtures(
   } catch (error) {
     testError = error as Error;
     logger.error('Error in withFixtures:', error);
+    await captureE2EDiagnostics({
+      reason: 'withFixtures-test-failure',
+      error,
+      metadata: {
+        resources: {
+          fixtureServer: {
+            port: fixtureServer.getServerPort(),
+            url: fixtureServer.getServerUrl,
+            started: fixtureServer.isStarted(),
+            status: fixtureServer.getServerStatus(),
+          },
+          mockServer: {
+            port: mockServerPort,
+            started: mockServerInstance?.isStarted() ?? false,
+          },
+          commandQueueServer: {
+            port: commandQueueServer.getServerPort(),
+            started: commandQueueServer.isStarted(),
+            status: commandQueueServer.getServerStatus(),
+          },
+          accountActivityWsServer: {
+            port: accountActivityWsServer.getServerPort(),
+            started: accountActivityWsServer.isStarted(),
+            status: accountActivityWsServer.getServerStatus(),
+          },
+        },
+        options: {
+          restartDevice,
+          skipReactNativeReload,
+          disableSynchronization,
+          useCommandQueueServer,
+          hasLaunchArgs: Boolean(launchArgs),
+          launchArgs,
+          hasTestSpecificMock: Boolean(testSpecificMock),
+          hasDapps: Boolean(dapps?.length),
+          disableLocalNodes,
+        },
+      },
+    });
   } finally {
     const cleanupErrors: Error[] = [];
 
