@@ -137,6 +137,7 @@ const selectTokensStateForBalances = createSelector(
     ({
       allTokens: allTokens ?? {},
       allIgnoredTokens: {},
+      allDetectedTokens: {},
     }) as TokensControllerState,
 );
 
