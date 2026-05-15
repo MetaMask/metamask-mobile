@@ -10,14 +10,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../component-library/hooks';
-import AppConstants from '../../../../core/AppConstants';
 import { useMainNotificationToggle } from './MainNotificationToggle.hooks';
 import styleSheet from './NotificationsSettings.styles';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 
 export const MAIN_NOTIFICATION_TOGGLE_TEST_ID = 'main-notification-toggle';
-export const MAIN_NOTIFICATION_TOGGLE_LEARN_MORE_TEST_ID =
-  'main-notification-toggle--learn-more-button';
 
 export const MainNotificationToggle = () => {
   const theme = useTheme();
@@ -25,12 +22,11 @@ export const MainNotificationToggle = () => {
 
   const { onToggle, value } = useMainNotificationToggle();
 
-  const goToLearnMore = useCallback(() => {
-    Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
-  }, []);
-
   return (
     <>
+      <Text color={TextColor.TextAlternative} variant={TextVariant.BodySm}>
+        {strings('app_settings.allow_notifications_desc')}
+      </Text>
       <View
         style={styles.switchElement}
         testID={MAIN_NOTIFICATION_TOGGLE_TEST_ID}
@@ -54,19 +50,6 @@ export const MainNotificationToggle = () => {
           ios_backgroundColor={theme.colors.border.muted}
           testID={NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE}
         />
-      </View>
-      <View style={styles.setting}>
-        <Text color={TextColor.TextAlternative} variant={TextVariant.BodySm}>
-          {strings('app_settings.allow_notifications_desc')}{' '}
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.InfoDefault}
-            onPress={goToLearnMore}
-            testID={MAIN_NOTIFICATION_TOGGLE_LEARN_MORE_TEST_ID}
-          >
-            {strings('notifications.activation_card.learn_more')}
-          </Text>
-        </Text>
       </View>
     </>
   );
