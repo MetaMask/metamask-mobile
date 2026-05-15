@@ -25,10 +25,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  Toast,
-  ToastCloseButtonVariant,
-  ToastVariant,
-  IconName,
+  Toaster,
+  toast,
 } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
 import ClipboardManager from '../../../../core/ClipboardManager';
@@ -190,19 +188,11 @@ export const PrivateKeyList = () => {
             await ClipboardManager.setStringExpire(
               privateKeys[item.account.id],
             );
-            Toast.show({
-              variant: ToastVariant.Plain,
-              labelOptions: [
-                {
-                  label: strings('multichain_accounts.private_key_list.copied'),
-                },
-              ],
+            toast({
+              description: strings(
+                'multichain_accounts.private_key_list.copied',
+              ),
               hasNoTimeout: false,
-              closeButtonOptions: {
-                variant: ToastCloseButtonVariant.Icon,
-                iconName: IconName.Close,
-                onPress: () => Toast.hide(),
-              },
             });
           },
         }}
@@ -337,7 +327,7 @@ export const PrivateKeyList = () => {
       />
 
       {reveal ? renderPrivateKeyList() : renderPassword()}
-      <Toast />
+      <Toaster />
     </Box>
   );
 };

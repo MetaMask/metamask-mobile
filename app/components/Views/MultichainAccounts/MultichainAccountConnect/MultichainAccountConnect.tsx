@@ -14,10 +14,11 @@ import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 // External dependencies.
 import { strings } from '../../../../../locales/i18n.js';
 import {
+  AvatarFavicon,
+  AvatarFaviconSize,
   Box,
-  Toast,
-  ToastVariant,
-  type ToastOptions,
+  Toaster,
+  toast,
 } from '@metamask/design-system-react-native';
 import { USER_INTENT } from '../../../../constants/permissions.ts';
 import { MetaMetricsEvents } from '../../../../core/Analytics/index.ts';
@@ -713,15 +714,14 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
           .build(),
       );
 
-      const labelOptions: ToastOptions['labelOptions'] =
-        connectedAccountLength >= 1
-          ? [{ label: strings('toast.permissions_updated') }]
-          : [];
-
-      Toast.show({
-        variant: ToastVariant.App,
-        labelOptions,
-        appIconSource: faviconSource,
+      toast({
+        description:
+          connectedAccountLength >= 1
+            ? strings('toast.permissions_updated')
+            : undefined,
+        startAccessory: (
+          <AvatarFavicon src={faviconSource} size={AvatarFaviconSize.Sm} />
+        ),
         hasNoTimeout: false,
       });
     } catch (e) {
@@ -994,7 +994,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         </ScreenContainer>
       )}
       {renderPhishingModal()}
-      <Toast />
+      <Toaster />
     </Box>
   );
 };

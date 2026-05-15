@@ -7,12 +7,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useStyles } from '../../../hooks/useStyles';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../../selectors/multichainAccounts/accounts';
-import {
-  IconName,
-  Toast,
-  ToastCloseButtonVariant,
-  ToastVariant,
-} from '@metamask/design-system-react-native';
+import { IconName, Toaster, toast } from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
@@ -76,19 +71,11 @@ export const AddressList = () => {
             toastMessage: strings('notifications.address_copied_to_clipboard'),
             callback: async () => {
               await copyAddressToClipboard();
-              Toast.show({
-                variant: ToastVariant.Plain,
-                labelOptions: [
-                  {
-                    label: strings('notifications.address_copied_to_clipboard'),
-                  },
-                ],
+              toast({
+                description: strings(
+                  'notifications.address_copied_to_clipboard',
+                ),
                 hasNoTimeout: false,
-                closeButtonOptions: {
-                  variant: ToastCloseButtonVariant.Icon,
-                  iconName: IconName.Close,
-                  onPress: () => Toast.hide(),
-                },
               });
             },
           }}
@@ -141,7 +128,7 @@ export const AddressList = () => {
         renderItem={renderAddressItem}
         onLoad={onLoad}
       />
-      <Toast />
+      <Toaster />
     </View>
   );
 };

@@ -3,12 +3,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
-import {
-  IconName,
-  Toast,
-  ToastCloseButtonVariant,
-  ToastVariant,
-} from '@metamask/design-system-react-native';
+import { toast } from '@metamask/design-system-react-native';
 
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
@@ -80,13 +75,10 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...actualDesignSystem,
-    Toast: Object.assign(
-      jest.fn(() => null),
-      {
-        show: jest.fn(),
-        hide: jest.fn(),
-      },
-    ),
+    Toaster: jest.fn(() => null),
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
   };
 });
 
@@ -291,30 +283,12 @@ describe('PrivateKeyList', () => {
       );
     });
 
-    const toastShowMock = jest.mocked(Toast.show);
-
     await waitFor(() => {
-      expect(toastShowMock).toHaveBeenCalledWith({
-        variant: ToastVariant.Plain,
-        labelOptions: [
-          {
-            label: strings('multichain_accounts.private_key_list.copied'),
-          },
-        ],
+      expect(toast).toHaveBeenCalledWith({
+        description: strings('multichain_accounts.private_key_list.copied'),
         hasNoTimeout: false,
-        closeButtonOptions: {
-          variant: ToastCloseButtonVariant.Icon,
-          iconName: IconName.Close,
-          onPress: expect.any(Function),
-        },
       });
     });
-
-    const toastOptions = toastShowMock.mock.calls[0][0];
-    const closeToast = toastOptions.closeButtonOptions?.onPress as () => void;
-    closeToast();
-
-    expect(Toast.hide).toHaveBeenCalled();
   });
 
   it('clears wrong-password error and shows list when correct password is entered after wrong', async () => {

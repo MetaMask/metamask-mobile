@@ -2,12 +2,7 @@ import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
-import {
-  IconName,
-  Toast,
-  ToastCloseButtonVariant,
-  ToastVariant,
-} from '@metamask/design-system-react-native';
+import { IconName, toast } from '@metamask/design-system-react-native';
 
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -70,13 +65,10 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...actualDesignSystem,
-    Toast: Object.assign(
-      jest.fn(() => null),
-      {
-        show: jest.fn(),
-        hide: jest.fn(),
-      },
-    ),
+    Toaster: jest.fn(() => null),
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
   };
 });
 
@@ -354,7 +346,7 @@ describe('AddressList', () => {
       expect(addPropertiesCall).toHaveProperty('location', 'address-list');
     });
 
-    it('shows and dismisses the design system copy toast', async () => {
+    it('shows the design system copy toast', async () => {
       const { getAllByTestId } = renderWithAddressList();
 
       const copyButton = getAllByTestId(
@@ -362,30 +354,12 @@ describe('AddressList', () => {
       )[0];
       fireEvent.press(copyButton);
 
-      const toastShowMock = jest.mocked(Toast.show);
-
       await waitFor(() => {
-        expect(toastShowMock).toHaveBeenCalledWith({
-          variant: ToastVariant.Plain,
-          labelOptions: [
-            {
-              label: strings('notifications.address_copied_to_clipboard'),
-            },
-          ],
+        expect(toast).toHaveBeenCalledWith({
+          description: strings('notifications.address_copied_to_clipboard'),
           hasNoTimeout: false,
-          closeButtonOptions: {
-            variant: ToastCloseButtonVariant.Icon,
-            iconName: IconName.Close,
-            onPress: expect.any(Function),
-          },
         });
       });
-
-      const toastOptions = toastShowMock.mock.calls[0][0];
-      const closeToast = toastOptions.closeButtonOptions?.onPress as () => void;
-      closeToast();
-
-      expect(Toast.hide).toHaveBeenCalled();
     });
   });
 });
