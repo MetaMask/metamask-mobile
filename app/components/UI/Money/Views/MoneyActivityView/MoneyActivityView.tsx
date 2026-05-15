@@ -67,8 +67,13 @@ const MoneyActivityView = () => {
   const { colors } = useTheme();
   const [filter, setFilter] = useState(MoneyActivityFilter.All);
 
-  const { allTransactions, deposits, transfers, moneyAddress, mockDataEnabled } =
-    useMoneyAccountTransactions();
+  const {
+    allTransactions,
+    deposits,
+    transfers,
+    moneyAddress,
+    mockDataEnabled,
+  } = useMoneyAccountTransactions();
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
