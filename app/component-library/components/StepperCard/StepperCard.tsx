@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import {
   Box,
@@ -31,8 +31,15 @@ const StepperCard = ({
   const getTestId = (suffix: string) =>
     testID ? `${testID}-${suffix}` : undefined;
 
-  if (currentStep >= steps.length) {
-    onComplete?.();
+  const isComplete = currentStep >= steps.length;
+
+  useEffect(() => {
+    if (isComplete) {
+      onComplete?.();
+    }
+  }, [isComplete, onComplete]);
+
+  if (isComplete) {
     return null;
   }
 
