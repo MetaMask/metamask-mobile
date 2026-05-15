@@ -6,6 +6,7 @@ import {
 } from '@metamask/notification-services-controller/push-services';
 import I18n from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
+import { devApiEnv } from '../../../devApiEnv';
 import {
   createRegToken,
   createSubscribeToPushNotifications,
@@ -30,6 +31,7 @@ export const createNotificationServicesPushController = (props: {
           subscribeToPushNotifications: createSubscribeToPushNotifications(),
         },
         getLocale: () => I18n.locale,
+        env: devApiEnv() === 'dev' ? 'dev' : 'prd',
       },
     });
 
