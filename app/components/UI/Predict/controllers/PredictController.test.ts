@@ -288,6 +288,11 @@ describe('PredictController', () => {
       syncDepositWalletBalanceAllowanceForDepositTransaction: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
+    mockPolymarketProvider.getAccountState.mockResolvedValue({
+      address: '0xProxyAddress' as `0x${string}`,
+      isDeployed: true,
+      walletType: 'safe' as const,
+    });
     mockPolymarketProvider.beforePublishDepositWalletDeposit.mockResolvedValue(
       true,
     );
@@ -6071,6 +6076,54 @@ describe('PredictController', () => {
             disableSequential: true,
             requireApproval: true,
             transactions: [mockWithdrawResponse.transaction],
+          }),
+        );
+      });
+    });
+
+    it('sets gasFeeToken when account walletType is not deposit-wallet', async () => {
+      mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
+        mockWithdrawResponse,
+      );
+      mockPolymarketProvider.getAccountState.mockResolvedValue({
+        address: '0xProxyAddress' as `0x${string}`,
+        isDeployed: true,
+        walletType: 'safe' as const,
+      });
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'batch-safe',
+      });
+
+      await withController(async ({ controller }) => {
+        await controller.prepareWithdraw({});
+
+        expect(addTransactionBatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            gasFeeToken: MATIC_CONTRACTS_V2.collateral,
+          }),
+        );
+      });
+    });
+
+    it('omits gasFeeToken when account walletType is deposit-wallet', async () => {
+      mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
+        mockWithdrawResponse,
+      );
+      mockPolymarketProvider.getAccountState.mockResolvedValue({
+        address: '0xDepositWalletAddress' as `0x${string}`,
+        isDeployed: true,
+        walletType: 'deposit-wallet' as const,
+      });
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'batch-deposit',
+      });
+
+      await withController(async ({ controller }) => {
+        await controller.prepareWithdraw({});
+
+        expect(addTransactionBatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            gasFeeToken: undefined,
           }),
         );
       });
