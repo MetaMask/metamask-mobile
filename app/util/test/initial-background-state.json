@@ -698,9 +698,11 @@
     "assetExchangeRates": {},
     "minimumBalanceForRentExemptionInLamports": "0",
     "quoteFetchError": null,
-    "quoteRequest": {
-      "srcTokenAddress": "0x0000000000000000000000000000000000000000"
-    },
+    "quoteRequest": [
+      {
+        "srcTokenAddress": "0x0000000000000000000000000000000000000000"
+      }
+    ],
     "quotes": [],
     "quotesInitialLoadTime": null,
     "quotesLastFetched": null,
