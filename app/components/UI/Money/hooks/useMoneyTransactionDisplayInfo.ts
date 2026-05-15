@@ -37,7 +37,7 @@ export interface MoneyTransactionDisplayInfo {
   sourceTokenSymbol: string | undefined;
   sourceTokenImage: string | undefined;
   /** Set only for native tokens (e.g. ETH) so the item can render the network logo. */
-  sourceTokenChainId: string | undefined;
+  sourceTokenChainId: Hex | undefined;
 }
 
 function titleKeyToLabel(key: MoneyActivityTitleKey): string {
