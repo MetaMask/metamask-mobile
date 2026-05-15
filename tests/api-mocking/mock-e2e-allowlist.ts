@@ -7,6 +7,7 @@ export const ALLOWLISTED_HOSTS = [
   'localhost',
   '10.0.2.2', // Android emulator host
   'metamask.github.io', // Test-snaps and test-dapp pages loaded in browser
+  'bs-local.com', // BrowserStack Local tunnel — always maps to the test host machine, never an external server
 ];
 
 export const ALLOWLISTED_URLS: string[] = [];
