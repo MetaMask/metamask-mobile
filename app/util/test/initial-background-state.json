@@ -479,19 +479,19 @@
     "assetPreferences": {},
     "assetsBalance": {},
     "assetsInfo": {
-      "eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da": {
+      "eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
         "decimals": 6,
         "name": "MetaMask USD",
         "symbol": "mUSD",
         "type": "erc20"
       },
-      "eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da": {
+      "eip155:143/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
         "decimals": 6,
         "name": "MetaMask USD",
         "symbol": "mUSD",
         "type": "erc20"
       },
-      "eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da": {
+      "eip155:59144/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
         "decimals": 6,
         "name": "MetaMask USD",
         "symbol": "mUSD",
@@ -808,6 +808,7 @@
     "perpsTradingCampaignLeaderboard": {},
     "perpsTradingCampaignLeaderboardPositions": {},
     "perpsTradingCampaignVolume": {},
+    "clientVersionRequirements": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},

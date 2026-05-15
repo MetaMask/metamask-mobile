@@ -3585,14 +3585,29 @@ describe('Rewards selectors', () => {
       expect(selectVersionGuardMinimumMobileVersion(state)).toBeNull();
     });
 
+    it('selectVersionGuardMinimumMobileVersion falls back to null when missing from older state', () => {
+      const state = createMockRootState({});
+      expect(selectVersionGuardMinimumMobileVersion(state)).toBeNull();
+    });
+
     it('selectVersionGuardLoading returns loading state', () => {
       const state = createMockRootState({ versionGuardLoading: true });
       expect(selectVersionGuardLoading(state)).toBe(true);
     });
 
+    it('selectVersionGuardLoading falls back to false when missing from older state', () => {
+      const state = createMockRootState({});
+      expect(selectVersionGuardLoading(state)).toBe(false);
+    });
+
     it('selectVersionGuardError returns error state', () => {
       const state = createMockRootState({ versionGuardError: true });
       expect(selectVersionGuardError(state)).toBe(true);
+    });
+
+    it('selectVersionGuardError falls back to false when missing from older state', () => {
+      const state = createMockRootState({});
+      expect(selectVersionGuardError(state)).toBe(false);
     });
 
     describe('selectIsRewardsVersionBlocked', () => {

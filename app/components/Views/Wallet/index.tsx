@@ -165,7 +165,9 @@ import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithN
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
 import { useNftDetection } from '../../hooks/useNftDetection';
-import { Carousel } from '../../UI/Carousel';
+import BrazeBanner from '../../UI/BrazeBanner';
+import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
+import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from '../../../core/Braze/constants';
 import { TokenI } from '../../UI/Tokens/types';
 import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
 
@@ -202,7 +204,7 @@ import {
 import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
-import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
+import { Carousel } from '../../UI/Carousel';
 import { SolScope } from '@metamask/keyring-api';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
@@ -211,6 +213,7 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
 
 /** Reanimated layout when the top cluster height changes (e.g. checklist → balance). */
 const WALLET_HOME_MAIN_BELOW_CLUSTER_LAYOUT = LinearTransition.duration(
@@ -1068,7 +1071,7 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
-  const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
+  const homeGrowthBanner = useHomeGrowthBanner();
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -1441,6 +1444,23 @@ const Wallet = ({
     ],
   );
 
+  const handleBannerError = useCallback(() => {
+    // Log the error but don't block the UI
+    Logger.error(new Error('Banner rendering error in wallet home'));
+  }, []);
+
+  const homeGrowthBannerContent =
+    homeGrowthBanner === 'braze' ? (
+      <ComponentErrorBoundary
+        componentLabel="BrazeBanner"
+        onError={handleBannerError}
+      >
+        <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
+      </ComponentErrorBoundary>
+    ) : homeGrowthBanner === 'carousel' ? (
+      <Carousel style={styles.carousel} />
+    ) : null;
+
   const bannerContent = (
     <View style={styles.banner}>
       {!basicFunctionalityEnabled ? (
@@ -1488,7 +1508,7 @@ const Wallet = ({
       {bannerContent}
       <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       {walletHomeMainAssetDetailsActions}
-      {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+      {homeGrowthBannerContent}
       {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
     </>
   );
@@ -1500,7 +1520,7 @@ const Wallet = ({
         <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       </View>
       {walletHomeMainAssetDetailsActions}
-      {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+      {homeGrowthBannerContent}
       {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
     </>
   );
@@ -1539,7 +1559,7 @@ const Wallet = ({
           layout={WALLET_HOME_MAIN_BELOW_CLUSTER_LAYOUT}
           style={styles.walletPostOnboardingMainBelowCluster}
         >
-          {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+          {homeGrowthBannerContent}
 
           {isHomepageSectionsV1Enabled ? (
             <>
