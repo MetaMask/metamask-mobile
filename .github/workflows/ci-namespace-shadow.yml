@@ -20,12 +20,18 @@ name: CI (Namespace shadow)
 #   - The dispatcher job posts a GitHub Actions step summary linking the PR
 #     to the dispatched shadow run URL, reachable from the PR Checks tab.
 #
-# Authentication (GitHub App, not a PAT):
-#   - Repo variable: SHADOW_CI_DISPATCH_GITHUB_APP_CLIENT_ID (App "Client ID")
-#   - Repo secret: SHADOW_CI_DISPATCH_GITHUB_APP_PRIVATE_KEY (PEM private key)
-#   - App must be installed on MetaMask/metamask-mobile with at least:
-#     Metadata: Read, Contents: Read, Actions: Read and write (installation
-#     permissions must cover the token's permission-* inputs below).
+# Authentication: Token Exchange Service (same pattern as triage-forwarder.yml
+# and shared-services-workflows deploy.yml — OIDC → POST /api/exchange/token).
+#
+# Prerequisites:
+#   - Repo/org Actions variable: TOKEN_EXCHANGE_URL (already used elsewhere in
+#     metamask-mobile, e.g. triage-forwarder).
+#   - Rego policy in token-exchange-service: explicit policy
+#     mm-metamask-mobile-namespace-shadow-ci-token-exchange (matches OIDC
+#     `workflow_ref` claim for .github/workflows/ci-namespace-shadow.yml).
+#
+# Fork PRs: the job `if` below skips the entire job for fork head repos, so OIDC
+# exchange never runs for untrusted forks (same model as not exposing secrets).
 
 on:
   pull_request:
@@ -46,29 +52,60 @@ concurrency:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   dispatch-shadow:
     name: "[shadow] Dispatch"
     runs-on: ubuntu-latest
-    # Skip dispatch for fork PRs: App credentials are not exposed to fork workflows,
-    # and we don't want untrusted PRs consuming Namespace capacity.
+    # Fork PRs use head.repo != github.repository — skip (no shadow, no token exchange).
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
-      - name: Mint GitHub App installation token
-        id: shadow-dispatch-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
-        with:
-          client-id: ${{ vars.SHADOW_CI_DISPATCH_GITHUB_APP_CLIENT_ID }}
-          private-key: ${{ secrets.SHADOW_CI_DISPATCH_GITHUB_APP_PRIVATE_KEY }}
-          permission-metadata: read
-          permission-contents: read
-          permission-actions: write
+      - name: Get OIDC token for token-exchange-service
+        id: oidc
+        run: |
+          set -euo pipefail
+          OIDC_TOKEN=$(curl -sSf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=api://token-exchange-service" | jq -r '.value')
+          echo "::add-mask::$OIDC_TOKEN"
+          echo "oidc_token=$OIDC_TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Exchange for installation token (scoped permissions)
+        id: exchange
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.oidc_token }}
+          TOKEN_EXCHANGE_URL: ${{ vars.TOKEN_EXCHANGE_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TOKEN_EXCHANGE_URL}" ]; then
+            echo "::error::TOKEN_EXCHANGE_URL Actions variable is not set. Configure it at org or repo level (see triage-forwarder.yml)."
+            exit 1
+          fi
+          RESPONSE=$(curl -sSf -X POST "${TOKEN_EXCHANGE_URL}/api/exchange/token" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -cn \
+              --arg oidcToken "$OIDC_TOKEN" \
+              --arg targetRepo "${{ github.repository }}" \
+              '{oidcToken: $oidcToken, targetRepo: $targetRepo, requested_permissions: {metadata: "read", contents: "read", actions: "write"}}')")
+          STATUS=$(echo "$RESPONSE" | jq -r '.status // "ok"')
+          if [[ "$STATUS" == "fail" ]]; then
+            MSG=$(echo "$RESPONSE" | jq -r '.message // "unknown"')
+            echo "::error::Token exchange failed: ${MSG}"
+            echo "::notice::Ensure token-exchange-service policy mm-metamask-mobile-namespace-shadow-ci-token-exchange is deployed (INFRA-3631)."
+            exit 1
+          fi
+          TOKEN=$(echo "$RESPONSE" | jq -r '.token // empty')
+          if [[ -z "$TOKEN" || "$TOKEN" == "null" ]]; then
+            echo "::error::Token exchange returned no token"
+            exit 1
+          fi
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
       - name: Dispatch ci.yml on Namespace
         id: dispatch
         env:
-          GH_TOKEN: ${{ steps.shadow-dispatch-token.outputs.token }}
+          GH_TOKEN: ${{ steps.exchange.outputs.token }}
           REPO: ${{ github.repository }}
           REF: ${{ github.head_ref || github.ref_name }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
