@@ -20,7 +20,7 @@ on:
         type: string
         default: 'MetaMask BETA & Release Candidates'
       distribute_external:
-        description: 'Whether to distribute to external testers. Defaults to false; nightly-build.yml relies on the script default (true) so it always distributes externally.'
+        description: 'Whether to distribute to external testers. Defaults to false'
         required: false
         type: boolean
         default: false
