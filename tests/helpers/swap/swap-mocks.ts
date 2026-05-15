@@ -4,6 +4,7 @@ import { TestSpecificMock } from '../../framework';
 import {
   interceptProxyUrl,
   setupMockRequest,
+  setupMockPostRequest,
   setupSSEMockRequest,
 } from '../../api-mocking/helpers/mockHelpers';
 import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers';
@@ -21,6 +22,9 @@ import {
   GET_TOKENS_API_USDT_RESPONSE,
   GET_TOKENS_API_MUSD_RESPONSE,
   GET_QUOTE_USDC_GOOGLON_RESPONSE,
+  POST_SUBMIT_ORDER_USDC_GOOGLON_REQUEST,
+  POST_SUBMIT_ORDER_USDC_GOOGLON_RESPONSE,
+  GET_ORDER_STATUS_USDC_GOOGLON_RESPONSE,
   toSSEResponse,
 } from './constants';
 
@@ -250,9 +254,29 @@ export const testSpecificMock: TestSpecificMock = async (
   // Mock USDC->GOOGLON (SSE)
   await setupSSEMockRequest(
     mockServer,
-    /getQuoteStream.*srcTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*destTokenAddress=0xbA47214eDd2bb43099611b208f75E4b42FDcfED/i,
+    /getQuoteStream.*srcTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*destTokenAddress=0xba47214edd2bb43099611b208f75e4b42fdcfedc/i,
     toSSEResponse(GET_QUOTE_USDC_GOOGLON_RESPONSE),
   );
+
+  // Intent swap (CoW): approval is on-chain first, then POST submitOrder creates the
+  // synthetic swap activity row. Response must pass validateIntentStatusResponse.
+  await setupMockPostRequest(
+    mockServer,
+    /bridge\.(dev-api|api|uat-api)\.cx\.metamask\.io\/submitOrder$/i,
+    POST_SUBMIT_ORDER_USDC_GOOGLON_REQUEST,
+    POST_SUBMIT_ORDER_USDC_GOOGLON_RESPONSE,
+    {
+      statusCode: 200,
+      ignoreFields: ['signature', 'quoteId', 'order'],
+    },
+  );
+
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /bridge\.(dev-api|api|uat-api)\.cx\.metamask\.io\/getOrderStatus/i,
+    response: GET_ORDER_STATUS_USDC_GOOGLON_RESPONSE,
+    responseCode: 200,
+  });
 
   await interceptProxyUrl(
     mockServer,
