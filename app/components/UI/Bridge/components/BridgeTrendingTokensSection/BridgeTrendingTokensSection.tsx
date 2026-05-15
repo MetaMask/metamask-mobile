@@ -75,7 +75,7 @@ const BridgeTrendingTokensSection = ({
   );
 
   const { results, isLoading } = useTrendingRequest({
-    sortBy,
+    sort: sortBy,
     chainIds: selectedNetwork ?? undefined,
   });
 
