@@ -1,14 +1,13 @@
 // Third party dependencies
 import React, { useCallback } from 'react';
-import { ActivityIndicator, StyleSheet, Switch, View } from 'react-native';
+import { ActivityIndicator, Switch } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
-import {
-  FontWeight,
-  Text,
-  TextColor,
+// External dependencies
+import Text, {
   TextVariant,
-} from '@metamask/design-system-react-native';
+  TextColor,
+} from '../../../../../../component-library/components/Texts/Text';
 import {
   IconName,
   IconColor,
@@ -36,17 +35,6 @@ import ListItem from '../../../../../../component-library/components/List/ListIt
 import ListItemColumn, {
   WidthType,
 } from '../../../../../../component-library/components/List/ListItemColumn';
-
-const styles = StyleSheet.create({
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  titleLoader: {
-    marginLeft: 8,
-  },
-});
 
 function ActivationKeys() {
   const navigation = useNavigation();
@@ -103,24 +91,17 @@ function ActivationKeys() {
 
   return (
     <>
-      <View style={styles.titleRow}>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-        >
+      <Text>
+        <Text variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.fiat_on_ramp.sdk_activation_keys')}
         </Text>
-        {isLoadingKeys ? (
-          <ActivityIndicator size="small" style={styles.titleLoader} />
-        ) : null}
-      </View>
+        <Text>
+          {'  '}
+          {isLoadingKeys ? <ActivityIndicator size="small" /> : null}
+        </Text>
+      </Text>
       <Row>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-        >
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings('app_settings.fiat_on_ramp.activation_keys_description')}
         </Text>
       </Row>
@@ -148,11 +129,8 @@ function ActivationKeys() {
           <ListItemColumn widthType={WidthType.Fill}>
             {activationKey.label ? (
               <Text
-                variant={TextVariant.BodyMd}
                 color={
-                  activationKey.active
-                    ? TextColor.TextDefault
-                    : TextColor.TextAlternative
+                  activationKey.active ? TextColor.Default : TextColor.Muted
                 }
                 selectable
               >
@@ -160,12 +138,7 @@ function ActivationKeys() {
               </Text>
             ) : null}
             <Text
-              variant={TextVariant.BodyMd}
-              color={
-                activationKey.active
-                  ? TextColor.TextDefault
-                  : TextColor.TextAlternative
-              }
+              color={activationKey.active ? TextColor.Default : TextColor.Muted}
               selectable
             >
               {activationKey.key}

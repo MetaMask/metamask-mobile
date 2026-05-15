@@ -8,12 +8,9 @@ import useRampsUnifiedV2Enabled from '../../../hooks/useRampsUnifiedV2Enabled';
 import useRampsController from '../../../hooks/useRampsController';
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
-import {
-  FontWeight,
-  Text,
-  TextColor,
+import Text, {
   TextVariant,
-} from '@metamask/design-system-react-native';
+} from '../../../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -81,28 +78,16 @@ function Settings() {
             <ScreenLayout.Content>
               {isRampsUnifiedV2Enabled ? (
                 <Row first>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextDefault}
-                  >
+                  <Text variant={TextVariant.BodyLGMedium}>
                     {strings('app_settings.fiat_on_ramp.current_region')}
                   </Text>
 
                   <ListItem>
                     <ListItemColumn>
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.TextDefault}
-                      >
-                        {userRegion?.country?.flag || '🏳️'}
-                      </Text>
+                      <Text>{userRegion?.country?.flag || '🏳️'}</Text>
                     </ListItemColumn>
                     <ListItemColumn>
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.TextDefault}
-                      >
+                      <Text>
                         {userRegion?.state?.name ||
                           userRegion?.country?.name ||
                           strings(
@@ -112,7 +97,7 @@ function Settings() {
                     </ListItemColumn>
                   </ListItem>
                   <Button
-                    variant={ButtonVariants.Secondary}
+                    variant={ButtonVariants.Primary}
                     size={ButtonSize.Lg}
                     width={ButtonWidthTypes.Full}
                     onPress={handleChangeRegion}
@@ -121,28 +106,18 @@ function Settings() {
                 </Row>
               ) : (
                 <Row first>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextDefault}
-                  >
+                  <Text variant={TextVariant.BodyLGMedium}>
                     {strings('app_settings.fiat_on_ramp.current_region')}
                   </Text>
 
                   <ListItem>
                     <ListItemColumn>
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.TextDefault}
-                      >
+                      <Text>
                         {selectedRegion ? selectedRegion.emoji : '🏳️'}
                       </Text>
                     </ListItemColumn>
                     <ListItemColumn>
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.TextDefault}
-                      >
+                      <Text>
                         {selectedRegion
                           ? selectedRegion.name
                           : strings(
@@ -163,7 +138,7 @@ function Settings() {
                 </Row>
               )}
               {isInternalBuild ? (
-                <Row style={style.activationKeysRow}>
+                <Row>
                   <ActivationKeys />
                 </Row>
               ) : null}
