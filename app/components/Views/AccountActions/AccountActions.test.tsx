@@ -37,6 +37,7 @@ jest.mock('../confirmations/hooks/7702/useEIP7702Networks', () => ({
 // Mock the selectors
 jest.mock('../../../selectors/tokensController', () => ({
   selectTokens: jest.fn(),
+  selectTokensControllerState: jest.fn(),
   selectAllTokens: jest.fn(() => ({})),
 }));
 
