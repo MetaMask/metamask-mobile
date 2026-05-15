@@ -25,7 +25,7 @@ import MoneyActivityItem from '../../components/MoneyActivityItem';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { getMoneyActivityDateKeyUtc } from '../../constants/moneyActivityFilters';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
-import Routes from '../../../../../../constants/navigation/Routes';
+import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 
 const styles = StyleSheet.create({
@@ -76,10 +76,10 @@ const MoneyActivityView = () => {
 
   const handleItemPress = useCallback(
     (transactionId: string) => {
-      navigation.navigate(Routes.MONEY.MODALS.ROOT as never, {
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET,
         params: { transactionId },
-      } as never);
+      });
     },
     [navigation],
   );

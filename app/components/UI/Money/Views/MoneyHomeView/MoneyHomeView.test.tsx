@@ -236,6 +236,7 @@ describe('MoneyHomeView', () => {
       transfers: [],
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
+      mockDataEnabled: false,
     });
   });
 
@@ -432,6 +433,7 @@ describe('MoneyHomeView', () => {
       transfers: [],
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
+      mockDataEnabled: false,
     });
 
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -530,6 +532,7 @@ describe('MoneyHomeView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
       });
     });
 
@@ -591,6 +594,7 @@ describe('MoneyHomeView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
       });
       mockSelectIsCardholder.mockReturnValue(true);
       // Non-US so MetaMask card renders in link mode (manage mode is US-only).
@@ -774,6 +778,7 @@ describe('MoneyHomeView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
       });
     });
 
@@ -996,6 +1001,7 @@ describe('MoneyHomeView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
       });
     });
 

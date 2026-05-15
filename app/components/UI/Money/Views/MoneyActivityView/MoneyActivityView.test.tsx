@@ -74,6 +74,7 @@ describe('MoneyActivityView', () => {
       transfers: MOCK_TRANSFERS,
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
+      mockDataEnabled: false,
     });
   });
 
@@ -144,6 +145,7 @@ describe('MoneyActivityView', () => {
       transfers: [],
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
+      mockDataEnabled: false,
     });
 
     const { getByTestId } = renderWithProvider(<MoneyActivityView />);

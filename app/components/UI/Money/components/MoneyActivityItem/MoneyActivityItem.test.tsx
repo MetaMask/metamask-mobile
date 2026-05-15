@@ -83,6 +83,9 @@ describe('MoneyActivityItem', () => {
       primaryAmount: '+$0.00',
       fiatAmount: '$0.00',
       isIncoming: true,
+      sourceTokenSymbol: undefined,
+      sourceTokenImage: undefined,
+      sourceTokenChainId: undefined,
     });
   });
 
@@ -107,6 +110,9 @@ describe('MoneyActivityItem', () => {
       primaryAmount: '+$0.00',
       fiatAmount: '$0.00',
       isIncoming: false,
+      sourceTokenSymbol: undefined,
+      sourceTokenImage: undefined,
+      sourceTokenChainId: undefined,
     });
 
     const { queryByText } = renderWithProvider(
