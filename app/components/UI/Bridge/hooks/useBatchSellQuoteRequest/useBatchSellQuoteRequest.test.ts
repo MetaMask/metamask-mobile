@@ -222,10 +222,21 @@ describe('useBatchSellQuoteRequest', () => {
     ).toEqual(
       expect.objectContaining({
         stx_enabled: false,
-        token_symbol_source: 'ETH,UNI',
+        token_symbol_source: 'ETH',
         token_symbol_destination: 'USDC',
         token_security_type_destination: null,
-        usd_amount_source: 1750,
+        usd_amount_source: 1500,
+      }),
+    );
+    expect(
+      bridgeController.updateBridgeQuoteRequestParams.mock.calls[1][1],
+    ).toEqual(
+      expect.objectContaining({
+        stx_enabled: false,
+        token_symbol_source: 'UNI',
+        token_symbol_destination: 'USDC',
+        token_security_type_destination: null,
+        usd_amount_source: 250,
       }),
     );
   });

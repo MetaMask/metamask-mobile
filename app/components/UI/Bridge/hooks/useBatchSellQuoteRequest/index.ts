@@ -43,6 +43,17 @@ type BatchSellQuoteContext = Parameters<
   typeof Engine.context.BridgeController.updateBridgeQuoteRequestParams
 >[1];
 
+interface BatchSellQuoteRequestEntry {
+  quoteRequest: GenericQuoteRequest;
+  sourceAmount: string;
+  sourceToken: BridgeToken;
+}
+
+interface BatchSellQuoteRequestData {
+  quoteRequest: GenericQuoteRequest;
+  context: BatchSellQuoteContext;
+}
+
 export function getBatchSellTokenKey(token: BridgeToken) {
   return `${token.chainId}:${token.address}`;
 }
@@ -76,7 +87,16 @@ export function getBatchSellAtomicSourceAmount(
   return atomicAmount.toFixed(0);
 }
 
-export function buildBatchSellQuoteRequests({
+function getBatchSellUsdAmountSource(token: BridgeToken, sourceAmount: string) {
+  const balance = token.balance ? Number(token.balance) : 0;
+  const numericSourceAmount = Number(sourceAmount);
+
+  if (!Number.isFinite(numericSourceAmount) || balance <= 0) return 0;
+
+  return ((token.tokenFiatAmount ?? 0) * numericSourceAmount) / balance;
+}
+
+function buildBatchSellQuoteRequestEntries({
   batchSellSlippages,
   batchSellSourceTokenAmounts,
   destToken,
@@ -87,8 +107,8 @@ export function buildBatchSellQuoteRequests({
 }: BuildBatchSellQuoteRequestsParams) {
   if (!destToken || !walletAddress) return [];
 
-  return selectedTokens.reduce<GenericQuoteRequest[]>(
-    (quoteRequests, token) => {
+  return selectedTokens.reduce<BatchSellQuoteRequestEntry[]>(
+    (quoteRequestEntries, token) => {
       const assetId = getBridgeTokenAssetId(token);
       const sourceAmount = assetId
         ? batchSellSourceTokenAmounts[assetId]
@@ -98,46 +118,60 @@ export function buildBatchSellQuoteRequests({
         sourceAmount,
       );
 
-      if (!assetId || !srcTokenAmount) return quoteRequests;
+      if (!assetId || !srcTokenAmount || !sourceAmount)
+        return quoteRequestEntries;
 
       const slippage = getBatchSellSlippage(batchSellSlippages, assetId);
       const slippageNumber =
         slippage === undefined ? undefined : Number(slippage);
 
-      quoteRequests.push({
-        srcChainId: getDecimalChainId(token.chainId),
-        srcTokenAddress: formatAddressToCaipReference(token.address),
-        destChainId: getDecimalChainId(destToken.chainId),
-        destTokenAddress: formatAddressToCaipReference(destToken.address),
-        srcTokenAmount,
-        slippage:
-          slippageNumber === undefined || Number.isNaN(slippageNumber)
-            ? undefined
-            : slippageNumber,
-        walletAddress,
-        destWalletAddress: walletAddress,
-        gasIncluded,
-        gasIncluded7702,
+      quoteRequestEntries.push({
+        quoteRequest: {
+          srcChainId: getDecimalChainId(token.chainId),
+          srcTokenAddress: formatAddressToCaipReference(token.address),
+          destChainId: getDecimalChainId(destToken.chainId),
+          destTokenAddress: formatAddressToCaipReference(destToken.address),
+          srcTokenAmount,
+          slippage:
+            slippageNumber === undefined || Number.isNaN(slippageNumber)
+              ? undefined
+              : slippageNumber,
+          walletAddress,
+          destWalletAddress: walletAddress,
+          gasIncluded,
+          gasIncluded7702,
+        },
+        sourceAmount,
+        sourceToken: token,
       });
 
-      return quoteRequests;
+      return quoteRequestEntries;
     },
     [],
   );
 }
 
-async function updateBatchSellQuoteRequests(
-  quoteRequests: GenericQuoteRequest[],
-  context: BatchSellQuoteContext,
+export function buildBatchSellQuoteRequests(
+  params: BuildBatchSellQuoteRequestsParams,
 ) {
-  if (quoteRequests.length === 0) return;
+  return buildBatchSellQuoteRequestEntries(params).map(
+    ({ quoteRequest }) => quoteRequest,
+  );
+}
 
-  for (let index = 0; index < quoteRequests.length; index += 1) {
+async function updateBatchSellQuoteRequests(
+  quoteRequestData: BatchSellQuoteRequestData[],
+) {
+  if (quoteRequestData.length === 0) return;
+
+  for (let index = 0; index < quoteRequestData.length; index += 1) {
+    const { quoteRequest, context } = quoteRequestData[index];
+
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
-      quoteRequests[index],
+      quoteRequest,
       context,
       index,
-      quoteRequests.length,
+      quoteRequestData.length,
     );
   }
 }
@@ -155,18 +189,10 @@ export function useBatchSellQuoteRequest() {
   );
   const smartTransactionsEnabled = useSelector(selectShouldUseSmartTransaction);
 
-  const quoteRequests = useMemo(
-    () =>
-      buildBatchSellQuoteRequests({
-        batchSellSlippages,
-        batchSellSourceTokenAmounts,
-        destToken,
-        gasIncluded,
-        gasIncluded7702,
-        selectedTokens,
-        walletAddress,
-      }),
-    [
+  const quoteRequestData = useMemo(() => {
+    if (!destToken) return [];
+
+    const quoteRequestEntries = buildBatchSellQuoteRequestEntries({
       batchSellSlippages,
       batchSellSourceTokenAmounts,
       destToken,
@@ -174,45 +200,39 @@ export function useBatchSellQuoteRequest() {
       gasIncluded7702,
       selectedTokens,
       walletAddress,
-    ],
-  );
+    });
+    const securityWarnings = getSecurityWarnings(destToken);
 
-  const context = useMemo<BatchSellQuoteContext>(() => {
-    const usdAmountSource = selectedTokens.reduce((totalUsdValue, token) => {
-      const assetId = getBridgeTokenAssetId(token);
-      const sourceAmount = assetId
-        ? batchSellSourceTokenAmounts[assetId]
-        : undefined;
-      const balance = token.balance ? Number(token.balance) : 0;
-
-      if (!sourceAmount || balance <= 0) return totalUsdValue;
-
-      return (
-        totalUsdValue +
-        ((token.tokenFiatAmount ?? 0) * Number(sourceAmount)) / balance
-      );
-    }, 0);
-
-    return {
-      stx_enabled: smartTransactionsEnabled,
-      token_symbol_source: selectedTokens
-        .map((token) => token.symbol)
-        .join(','),
-      token_symbol_destination: destToken?.symbol ?? '',
-      token_security_type_destination: destToken?.securityData?.type ?? null,
-      security_warnings: getSecurityWarnings(destToken),
-      usd_amount_source: usdAmountSource,
-    };
+    return quoteRequestEntries.map(
+      ({ quoteRequest, sourceAmount, sourceToken }) => ({
+        quoteRequest,
+        context: {
+          stx_enabled: smartTransactionsEnabled,
+          token_symbol_source: sourceToken.symbol,
+          token_symbol_destination: destToken.symbol,
+          token_security_type_destination: destToken.securityData?.type ?? null,
+          security_warnings: securityWarnings,
+          usd_amount_source: getBatchSellUsdAmountSource(
+            sourceToken,
+            sourceAmount,
+          ),
+        },
+      }),
+    );
   }, [
+    batchSellSlippages,
     batchSellSourceTokenAmounts,
     destToken,
+    gasIncluded,
+    gasIncluded7702,
     selectedTokens,
+    walletAddress,
     smartTransactionsEnabled,
   ]);
 
   const updateQuoteParams = useCallback(
-    () => updateBatchSellQuoteRequests(quoteRequests, context),
-    [context, quoteRequests],
+    () => updateBatchSellQuoteRequests(quoteRequestData),
+    [quoteRequestData],
   );
 
   return useMemo(
