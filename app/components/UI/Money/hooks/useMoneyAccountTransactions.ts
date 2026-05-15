@@ -25,7 +25,7 @@ export interface UseMoneyAccountTransactionsResult {
   /** Transactions awaiting confirmation (not in a final on-chain state) */
   submittedTransactions: TransactionMeta[];
   moneyAddress: string | undefined;
-  /** True when the hook is returning static mock rows instead of live data. */
+  // TODO: remove this after design implementation of the activity view is done
   mockDataEnabled: boolean;
 }
 

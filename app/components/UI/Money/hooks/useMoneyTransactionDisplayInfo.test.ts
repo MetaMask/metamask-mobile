@@ -272,6 +272,151 @@ describe('useMoneyTransactionDisplayInfo — fiat amount fallback', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Label — titleKeyToLabel exhaustive coverage
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — titleKeyToLabel all keys', () => {
+  const cases: [string, string][] = [
+    ['added', 'money.transaction.added'],
+    ['deposited', 'money.transaction.deposited'],
+    ['received', 'money.transaction.received'],
+    ['card_transaction', 'money.transaction.card_transaction'],
+    ['converted', 'money.transaction.converted'],
+    ['sent', 'money.transaction.sent'],
+    ['transferred', 'money.transaction.transferred'],
+    // unknown key hits the default branch → 'received'
+    ['unknown_key_xyz', 'money.transaction.received'],
+  ];
+
+  it.each(cases)(
+    'moneyActivityTitleKey "%s" produces label "%s"',
+    (key, expected) => {
+      const tx = makeTx(TransactionType.moneyAccountDeposit, {
+        moneyActivityTitleKey: key,
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyTransactionDisplayInfo(tx, undefined),
+        { state: makeState() },
+      );
+      expect(result.current.label).toBe(expected);
+    },
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Label — getLabelForTransactionType exhaustive coverage
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => {
+  it('returns deposited when type is undefined', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, { type: undefined });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.deposited');
+  });
+
+  it('returns deposited for incoming type', () => {
+    const tx = makeTx(TransactionType.incoming);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.deposited');
+  });
+
+  it('returns sent for simpleSend type', () => {
+    const tx = makeTx(TransactionType.simpleSend);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.sent');
+  });
+
+  it('returns received (default) for unrecognised type', () => {
+    const tx = makeTx(TransactionType.swap);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.received');
+  });
+
+  it('returns received for a batch tx with no money-type nested transaction', () => {
+    const tx = makeTx(TransactionType.batch, {
+      nestedTransactions: [{ type: TransactionType.swap }],
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    // batch is not in the switch → default → 'received'
+    expect(result.current.label).toBe('money.transaction.received');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Token resolution — catch branch and no-token fallback
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — token resolution edge cases', () => {
+  it('leaves sourceTokenSymbol undefined when token is not in state and address is not native', () => {
+    // USDC address but NOT present in TokensController state → not native, not erc-20
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
+      requiredAssets: [{ address: USDC_ADDRESS, amount: '1000000' }],
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      // No token in allTokens — selectSingleTokenByAddressAndChainId returns undefined
+      { state: makeState() },
+    );
+
+    expect(result.current.sourceTokenSymbol).toBeUndefined();
+    expect(result.current.primaryAmount).toBe('');
+  });
+
+  it('leaves sourceTokenSymbol undefined when getNativeTokenAddress throws for unknown chainId', () => {
+    // Use a chainId our mock does not support → isNativeTokenAddress catch → returns false.
+    // We also include the chain in networkConfigurationsByChainId so that
+    // selectTickerByChainId does not error if the reselect stability check
+    // ever exercises that path.
+    const UNKNOWN_CHAIN: Hex = '0x89'; // Polygon (not in our mock)
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: UNKNOWN_CHAIN },
+      requiredAssets: [{ address: USDC_ADDRESS, amount: '1000000' }],
+    });
+
+    const stateWithPolygon = {
+      engine: {
+        backgroundState: {
+          CurrencyRateController: { currentCurrency: 'usd', currencyRates: {} },
+          TokenRatesController: { marketData: {} },
+          TokensController: { allTokens: {} },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [CHAIN_ID]: { nativeCurrency: 'ETH' },
+              [UNKNOWN_CHAIN]: { nativeCurrency: 'MATIC' },
+            },
+          },
+        },
+      },
+    } as unknown as import('../../../../util/test/renderWithProvider').ProviderValues['state'];
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: stateWithPolygon },
+    );
+
+    expect(result.current.sourceTokenSymbol).toBeUndefined();
+    expect(result.current.sourceTokenChainId).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Description
 // ---------------------------------------------------------------------------
 
@@ -287,5 +432,46 @@ describe('useMoneyTransactionDisplayInfo — description', () => {
     );
 
     expect(result.current.description).toBe('My custom subtitle');
+  });
+
+  it('falls back to sourceTokenSymbol as description when no moneySubtitle', () => {
+    // USDC in state so sourceTokenSymbol is 'USDC'
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
+    });
+    const stateWithUsdc = {
+      engine: {
+        backgroundState: {
+          CurrencyRateController: { currentCurrency: 'usd', currencyRates: {} },
+          TokenRatesController: { marketData: {} },
+          TokensController: {
+            allTokens: {
+              [CHAIN_ID]: {
+                '0xSomeWallet': [
+                  {
+                    address: USDC_ADDRESS,
+                    symbol: 'USDC',
+                    decimals: 6,
+                    image: undefined,
+                  },
+                ],
+              },
+            },
+          },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [CHAIN_ID]: { nativeCurrency: 'ETH' },
+            },
+          },
+        },
+      },
+    } as unknown as import('../../../../util/test/renderWithProvider').ProviderValues['state'];
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: stateWithUsdc },
+    );
+
+    expect(result.current.description).toBe('USDC');
   });
 });

@@ -98,6 +98,29 @@ describe('activityStyles', () => {
       expect(line.startsWith('-')).toBe(true);
       expect(line).toContain('mUSD');
     });
+
+    it('returns empty string when transferInformation has no symbol', () => {
+      expect(
+        getMusdDisplayAmountFromTransactionMeta(
+          makeTx(TransactionType.incoming, {
+            transferInformation: {
+              amount: '1000000',
+              symbol: '',
+              decimals: 6,
+              contractAddress: MUSD_TOKEN_ADDRESS,
+            } as unknown as NonNullable<TransactionMeta['transferInformation']>,
+          }),
+        ),
+      ).toBe('');
+    });
+
+    it('returns a formatted positive amount for incoming deposits', () => {
+      const line = getMusdDisplayAmountFromTransactionMeta(
+        makeTx(TransactionType.incoming),
+      );
+      expect(line.startsWith('+')).toBe(true);
+      expect(line).toContain('mUSD');
+    });
   });
 
   describe('isIncomingMoneyTransactionMeta', () => {

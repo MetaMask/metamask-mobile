@@ -11,6 +11,7 @@ import MoneyActivityView from './MoneyActivityView';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -18,7 +19,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       goBack: mockGoBack,
-      navigate: jest.fn(),
+      navigate: mockNavigate,
     }),
   };
 });
@@ -32,13 +33,26 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
 }));
 
 jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
-  const { View, Text } = jest.requireActual('react-native');
+  const {
+    View,
+    Text,
+    Pressable: RNPressable,
+  } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ tx }: { tx: { id: string } }) => (
-      <View testID={`activity-mock-tx-${tx.id}`}>
+    default: ({
+      tx,
+      onPress,
+    }: {
+      tx: { id: string };
+      onPress?: (id: string) => void;
+    }) => (
+      <RNPressable
+        testID={`activity-mock-tx-${tx.id}`}
+        onPress={() => onPress?.(tx.id)}
+      >
         <Text>{tx.id}</Text>
-      </View>
+      </RNPressable>
     ),
   };
 });
@@ -154,5 +168,13 @@ describe('MoneyActivityView', () => {
     expect(
       getByTestId(MoneyActivityViewTestIds.EMPTY_LIST_MESSAGE),
     ).toBeOnTheScreen();
+  });
+
+  it('pressing a row navigates to the transaction details sheet when mockDataEnabled is false', () => {
+    const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+    fireEvent.press(getByTestId('activity-mock-tx-money-tx-1'));
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 });

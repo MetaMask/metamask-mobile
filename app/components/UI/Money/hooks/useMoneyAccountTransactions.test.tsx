@@ -206,5 +206,30 @@ describe('useMoneyAccountTransactions', () => {
       );
       expect(result.current.allTransactions).toHaveLength(0);
     });
+
+    it('sorts correctly when one transaction has an undefined time (covers ?? 0 fallback)', () => {
+      const older = makeTx(TransactionType.moneyAccountDeposit, {
+        id: 'tx-older',
+        time: 1000,
+      });
+      const noTime = makeTx(TransactionType.moneyAccountWithdraw, {
+        id: 'tx-no-time',
+        time: undefined,
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        {
+          state: engineState({ moneyActivityMockDataEnabled: false }, [
+            noTime,
+            older,
+          ]),
+        },
+      );
+      // Both transactions should be included; the one with a real timestamp
+      // sorts before the one with undefined time (which sorts as 0).
+      expect(result.current.allTransactions).toHaveLength(2);
+      expect(result.current.allTransactions[0].id).toBe('tx-older');
+      expect(result.current.allTransactions[1].id).toBe('tx-no-time');
+    });
   });
 });
