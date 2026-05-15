@@ -7,6 +7,8 @@ import {
   renderHookWithProvider,
   type ProviderValues,
 } from '../../../../util/test/renderWithProvider';
+import { safeToChecksumAddress } from '../../../../util/address';
+import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import { useMoneyTransactionDisplayInfo } from './useMoneyTransactionDisplayInfo';
 
 // ---------------------------------------------------------------------------
@@ -473,5 +475,111 @@ describe('useMoneyTransactionDisplayInfo — description', () => {
     );
 
     expect(result.current.description).toBe('USDC');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Fiat formatting — mUSD via market rate (migrated from .tsx)
+// ---------------------------------------------------------------------------
+
+const MUSD_CHECKSUM = safeToChecksumAddress(MUSD_TOKEN_ADDRESS) as string;
+
+const musedTx: TransactionMeta = {
+  id: 'tx-musd',
+  type: TransactionType.incoming,
+  chainId: CHAIN_ID,
+  transferInformation: {
+    amount: '1000000000',
+    symbol: 'mUSD',
+    decimals: 6,
+    contractAddress: MUSD_TOKEN_ADDRESS,
+  },
+} as unknown as TransactionMeta;
+
+function musedMarketState(tokenPrice: number) {
+  return {
+    engine: {
+      backgroundState: {
+        CurrencyRateController: {
+          currentCurrency: 'usd',
+          currencyRates: {
+            ETH: {
+              conversionRate: 3000,
+              usdConversionRate: 3000,
+              conversionDate: null,
+            },
+          },
+        },
+        TokenRatesController: {
+          marketData: {
+            [CHAIN_ID]: {
+              [MUSD_CHECKSUM]: { price: tokenPrice },
+            },
+          },
+        },
+        TokensController: { allTokens: {} },
+        NetworkController: {
+          networkConfigurationsByChainId: {
+            [CHAIN_ID]: { nativeCurrency: 'ETH' },
+          },
+        },
+      },
+    },
+  } as unknown as ProviderValues['state'];
+}
+
+describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
+  it('formats fiat in USD via market rate', () => {
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(musedTx, undefined),
+      { state: musedMarketState(1 / 3000) },
+    );
+
+    expect(result.current.fiatAmount).toMatch(/^\+/);
+    expect(result.current.fiatAmount).toMatch(/1,000\.00/);
+    expect(result.current.primaryAmount).toMatch(/1,000\.00/);
+    expect(result.current.primaryAmount).toContain('mUSD');
+  });
+
+  it('uses market rate and ETH→fiat conversion for non-USD currencies', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          CurrencyRateController: {
+            currentCurrency: 'eur',
+            currencyRates: {
+              ETH: {
+                conversionRate: 2300,
+                usdConversionRate: 2500,
+                conversionDate: null,
+              },
+            },
+          },
+          TokenRatesController: {
+            marketData: {
+              [CHAIN_ID]: {
+                [MUSD_CHECKSUM]: { price: 0.0004 },
+              },
+            },
+          },
+          TokensController: { allTokens: {} },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [CHAIN_ID]: { nativeCurrency: 'ETH' },
+            },
+          },
+        },
+      },
+    } as unknown as ProviderValues['state'];
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(musedTx, undefined),
+      { state },
+    );
+
+    expect(result.current.fiatAmount).toMatch(/^\+/);
+    expect(result.current.fiatAmount).toMatch(/920/);
+    expect(result.current.primaryAmount).toMatch(/1,000\.00/);
+    expect(result.current.primaryAmount).toContain('mUSD');
   });
 });

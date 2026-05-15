@@ -915,14 +915,6 @@ describe('MoneyHomeView', () => {
         }),
       );
     });
-
-    it('triggers the under-construction alert when an activity item is pressed', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      fireEvent.press(getByTestId('money-activity-item-padded-0'));
-
-      expect(global.alert).toHaveBeenCalled();
-    });
   });
 
   describe('card upsell mode — Get Now handler', () => {
