@@ -1,9 +1,14 @@
 import React, { useCallback } from 'react';
 
 import { SwitchAccountModalSelectorIDs } from '../../../../../../components/Views/confirmations/components/modals/switch-account-type-modal/SwitchAccountModal.testIds';
-import Text, {
+import {
+  FontWeight,
+  Icon,
+  IconName,
+  IconSize,
+  Text,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import { strings } from '../../../../../../../locales/i18n';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -17,10 +22,6 @@ import styleSheet from './SmartAccount.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useNavigation } from '@react-navigation/native';
 import { TouchableOpacity } from 'react-native';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
 
 interface SmartAccountDetailsProps {
   account: InternalAccount;
@@ -49,7 +50,7 @@ export const SmartAccountDetails = ({ account }: SmartAccountDetailsProps) => {
         justifyContent={JustifyContent.spaceBetween}
         alignItems={AlignItems.center}
       >
-        <Text variant={TextVariant.BodyMDMedium}>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings('multichain_accounts.account_details.smart_account')}
         </Text>
         <Box
