@@ -26,7 +26,11 @@ describe(SmokeSwap('Bridge functionality'), () => {
     const sourceSymbol: string = 'ETH';
     const chainId = '0x1';
     const destChainId = '0x2105';
-    const FIRST_ROW: number = 0;
+
+    // Row 0 is a stale STX-shaped entry; the confirmed bridge tx is on row 1.
+    // TODO: stop merging SmartTransactionsController state into
+    // selectLocalTransactions / selectSortedTransactions, then assert row 0.
+    const BRIDGE_ROW: number = 1;
 
     await withFixtures(
       {
@@ -103,7 +107,7 @@ describe(SmokeSwap('Bridge functionality'), () => {
         );
 
         await Assertions.expectElementToHaveText(
-          ActivitiesView.transactionStatus(FIRST_ROW),
+          ActivitiesView.transactionStatus(BRIDGE_ROW),
           ActivitiesViewSelectorsText.CONFIRM_TEXT,
           {
             timeout: 120000,

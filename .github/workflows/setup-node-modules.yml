@@ -83,8 +83,16 @@ jobs:
     outputs:
       artifact-name: ${{ steps.set-artifact-name.outputs.artifact-name }}
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: ${{ inputs.fetch-depth }}
+          submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
+
       - name: Checkout repository
         uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
         with:
           ref: ${{ inputs.ref }}
           fetch-depth: ${{ inputs.fetch-depth }}
