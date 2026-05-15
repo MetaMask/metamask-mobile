@@ -817,7 +817,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       completeInFlight();
     } catch (error) {
       // If keyring is locked, don't cache so it retries when unlocked
-      if (ensureError(error).message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+      if (isKeyringLockedError(error)) {
         this.#deps.debugLogger.log(
           '[ensureUnifiedAccountEnabled] Keyring locked, will retry later',
         );
