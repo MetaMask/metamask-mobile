@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Wrapper for `yarn skills`. Picks a multi-source-aware tools/sync from
 // whichever skill repo is configured and delegates.
 //
@@ -8,20 +7,20 @@
 // Public is preferred when present (the multi-source tooling lives there);
 // private is the fallback when only the private checkout is configured.
 
-import { spawnSync } from 'child_process';
-import { statSync } from 'fs';
-import path from 'path';
+import { spawnSync } from 'node:child_process';
+import { statSync } from 'node:fs';
+import path from 'node:path';
 
 const REPO = 'metamask-mobile';
 
-function pickSync() {
+function pickSync(): string | null {
   for (const env of ['METAMASK_SKILLS_DIR', 'CONSENSYS_SKILLS_DIR']) {
     const dir = process.env[env];
     if (!dir) continue;
     const candidate = path.join(dir, 'tools', 'sync');
     try {
       if (statSync(candidate).isFile()) return candidate;
-    } catch (_) {
+    } catch {
       // ignored
     }
   }
