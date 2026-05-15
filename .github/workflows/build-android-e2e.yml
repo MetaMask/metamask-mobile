@@ -51,8 +51,12 @@ jobs:
       artifact_name: ${{ steps.determine-target-paths.outputs.artifact_name }}
 
     steps:
+      - name: Checkout repo (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - name: Checkout repo
         uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
 
       - name: Check force-builds override
         id: force-builds
@@ -120,7 +124,7 @@ jobs:
 
       - name: Check Namespace E2E APK cache
         id: namespace-apk-cache
-        if: ${{ inputs.runner_provider == 'namespace' && steps.force-builds.outputs.force != 'true' }}
+        if: ${{ inputs.runner_provider == 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
         shell: bash
         env:
           APK_TARGET: ${{ steps.determine-target-paths.outputs.apk-target-path }}
@@ -329,6 +333,14 @@ jobs:
           # sibling "Restore Gradle dependencies from branch cache" step above.
           key: gradle-main-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
+      - name: Configure Namespace Gradle remote cache
+        id: namespace-gradle-cache
+        if: ${{ inputs.runner_provider == 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
+        run: |
+          nsc cache gradle setup --init-gradle "$RUNNER_TEMP/namespace-gradle-init.gradle"
+          echo "init-script=$RUNNER_TEMP/namespace-gradle-init.gradle" >> "$GITHUB_OUTPUT"
+        shell: bash
+
       - name: Build Android E2E APKs
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         run: |
@@ -346,6 +358,7 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
+          GRADLE_INIT_SCRIPT: ${{ steps.namespace-gradle-cache.outputs.init-script }}
           NODE_OPTIONS: '--max-old-space-size=4096'
           # Limit Metro workers to prevent OOM (each worker uses ~3GB)
           METRO_MAX_WORKERS: '4'
@@ -379,7 +392,7 @@ jobs:
           MM_PREDICT_GTM_MODAL_ENABLED: 'false'
 
       - name: Record Namespace E2E APK cache marker
-        if: ${{ inputs.runner_provider == 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ inputs.runner_provider == 'namespace' && steps.gate.outputs.needs-native-build == 'true' && inputs.source-fingerprint != '' }}
         shell: bash
         env:
           APK_SOURCE: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
