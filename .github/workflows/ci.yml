@@ -124,6 +124,7 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
       - name: Post build-source-hash commit status
+        if: ${{ inputs.runner_provider != 'namespace' }}
         id: publish
         uses: ./.github/actions/post-build-source-hash
         with:
@@ -466,7 +467,7 @@ jobs:
           EOF
 
       - name: Post iOS JS bundle size to commit status
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'namespace' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
@@ -975,7 +976,7 @@ jobs:
           github-token: ${{ github.token }}
           pr-number: ${{ github.event.pull_request.number }}
           repository: ${{ github.repository }}
-          post-comment: 'true'
+          post-comment: ${{ inputs.runner_provider != 'namespace' }}
           base-ref: ${{ github.event.pull_request.base.ref }}
 
   build-android-apks:
@@ -1115,6 +1116,7 @@ jobs:
           path: fixture-results/
 
       - name: Report results
+        if: ${{ inputs.runner_provider != 'namespace' }}
         env:
           RESULTS_PATH: fixture-results
           VALIDATION_RESULT: ${{ needs.validate-e2e-fixtures.result }}
