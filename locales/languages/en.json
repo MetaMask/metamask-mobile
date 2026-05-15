@@ -8919,6 +8919,7 @@
       "musd_claim": "Claim mUSD",
       "perps_deposit": "Add funds",
       "perps_withdraw": "Withdrawal",
+      "predict_withdraw": "Withdraw {{sourceSymbol}} from {{sourceChain}}",
       "predict_deposit": "Add funds",
       "swap": "Swap tokens",
       "swap_approval": "Approve tokens",
