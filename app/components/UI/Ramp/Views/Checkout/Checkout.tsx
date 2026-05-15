@@ -30,8 +30,9 @@ import { useRampsOrders } from '../../hooks/useRampsOrders';
 import {
   BottomSheet,
   type BottomSheetRef,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+
 import {
   closeSession,
   failSession,
@@ -492,7 +493,7 @@ const Checkout = () => {
   );
 
   const sharedHeader = (
-    <HeaderCompactStandard
+    <HeaderStandard
       onClose={handleClosePress}
       closeButtonProps={{
         testID: CHECKOUT_TEST_IDS.CLOSE_BUTTON,

@@ -1,16 +1,11 @@
 import {
-  formatAddressToAssetId,
   formatChainIdToCaip,
   formatChainIdToHex,
 } from '@metamask/bridge-controller';
-import {
-  CaipAssetType,
-  CaipChainId,
-  parseCaipAssetType,
-} from '@metamask/utils';
+import { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 import { BridgeToken } from '../../types';
-import { BridgeTokenMetadata } from '../../constants/tokens';
+import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
 
 export const MAX_BATCH_SELL_SOURCE_TOKENS = 5;
 // TODO: The fetching of 7702 chains needs to be dynamic so there's no need for
@@ -26,7 +21,7 @@ export const SUPPORTED_BATCH_SELL_CHAIN_IDS: CaipChainId[] = [
   'eip155:137',
 ];
 
-export interface BatchSellEligibleChain {
+interface BatchSellEligibleChain {
   chainId: CaipChainId;
   name: string;
   tokenFiatAmount: number;
@@ -34,37 +29,18 @@ export interface BatchSellEligibleChain {
 
 export type BatchSellTokenSortDirection = 'asc' | 'desc';
 
-function getChecksummedEvmAssetId(assetId: CaipAssetType): CaipAssetType {
-  try {
-    const { assetNamespace, assetReference, chainId } =
-      parseCaipAssetType(assetId);
-
-    if (assetNamespace !== 'erc20' || !chainId.startsWith('eip155:')) {
-      return assetId;
-    }
-
-    return formatAddressToAssetId(assetReference, chainId) ?? assetId;
-  } catch {
-    return assetId;
-  }
-}
-
+/**
+ * Returns the first destination stablecoin for a chain that has local metadata.
+ */
 export function getBatchSellDestinationToken(
-  sourceToken: BridgeToken,
-  stablecoinsByChain: Record<CaipChainId, CaipAssetType[]>,
+  chainId: BridgeToken['chainId'],
+  stablecoins: BridgeToken[],
 ): BridgeToken | undefined {
-  const caipChainId = formatChainIdToCaip(sourceToken.chainId);
-  const stablecoinAssetIds = stablecoinsByChain[caipChainId] ?? [];
+  const caipChainId = formatChainIdToCaip(chainId);
 
-  for (const stablecoinAssetId of stablecoinAssetIds) {
-    const tokenMetadata = BridgeTokenMetadata[stablecoinAssetId];
-
-    if (tokenMetadata) {
-      return tokenMetadata;
-    }
-  }
-
-  return undefined;
+  return stablecoins.find(
+    (stablecoin) => formatChainIdToCaip(stablecoin.chainId) === caipChainId,
+  );
 }
 
 export function removeStablecoinsFromSourceTokens({
@@ -72,24 +48,34 @@ export function removeStablecoinsFromSourceTokens({
   stablecoinsByChain,
 }: {
   tokens: BridgeToken[];
-  stablecoinsByChain: Record<CaipChainId, CaipAssetType[]>;
+  stablecoinsByChain: Partial<Record<CaipChainId, BridgeToken[]>>;
 }): BridgeToken[] {
+  const stablecoinAssetIdsByChain = new Map(
+    Object.entries(stablecoinsByChain).map(([chainId, stablecoins]) => [
+      chainId as CaipChainId,
+      new Set(
+        (stablecoins ?? [])
+          .map((stablecoin) => getBridgeTokenAssetId(stablecoin))
+          .filter((assetId): assetId is CaipAssetType => Boolean(assetId)),
+      ),
+    ]),
+  );
+
   return tokens.filter((token) => {
     const caipChainId = formatChainIdToCaip(token.chainId);
-    const assetId = formatAddressToAssetId(token.address, token.chainId); // returns checksummed EVM asset IDs
+    const stablecoinAssetIds = stablecoinAssetIdsByChain.get(caipChainId);
+
+    if (!stablecoinAssetIds) {
+      return true;
+    }
+
+    const assetId = getBridgeTokenAssetId(token);
 
     if (!assetId) {
       return true;
     }
 
-    const stablecoinAssetIds = stablecoinsByChain[caipChainId] ?? [];
-    const checksummedStablecoinAssetIds = stablecoinAssetIds.map(
-      getChecksummedEvmAssetId,
-    );
-    const isDestinationStablecoin =
-      checksummedStablecoinAssetIds.includes(assetId);
-
-    return !isDestinationStablecoin;
+    return !stablecoinAssetIds.has(assetId);
   });
 }
 
@@ -111,6 +97,10 @@ export function sortBatchSellTokens(
   });
 }
 
+/**
+ * Groups sellable tokens by chain and totals their fiat value so the UI can
+ * show eligible network pills ordered by the user's highest-value networks.
+ */
 export function buildBatchSellEligibleChains(
   tokens: BridgeToken[],
 ): BatchSellEligibleChain[] {
