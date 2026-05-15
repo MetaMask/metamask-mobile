@@ -40,7 +40,7 @@ on:
         required: true
         type: string
       distribute_external:
-        description: 'Whether to distribute to external testers. Defaults to false'
+        description: 'Whether to distribute to external testers. (default: false)'
         required: false
         type: boolean
         default: false

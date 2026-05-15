@@ -20,7 +20,7 @@ on:
         type: string
         default: 'MetaMask BETA & Release Candidates'
       distribute_external:
-        description: 'Whether to distribute to external testers. Defaults to false'
+        description: 'Whether to distribute to external testers. (default: false)'
         required: false
         type: boolean
         default: false
@@ -55,7 +55,7 @@ on:
           - 'MM Card Team'
           - 'Ramp Provider Testing'
       distribute_external:
-        description: 'Whether to distribute to external testers'
+        description: 'Whether to distribute to external testers (default: false)'
         required: false
         type: boolean
         default: false
