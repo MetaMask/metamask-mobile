@@ -197,11 +197,21 @@ const MoneyOnboardingCard = () => {
     moneyAccountCardToken,
   ]);
 
+  /**
+   * Auto-skip step 2 ("Get/Link your MetaMask Card") when the user is already
+   * a cardholder AND has a linked card token
+   */
+  useEffect(() => {
+    if (currentStep === 1 && isCardholder && !!moneyAccountCardToken) {
+      incrementStep();
+    }
+  }, [currentStep, incrementStep, isCardholder, moneyAccountCardToken]);
+
   // REMINDER: To update MONEY_ONBOARDING_TOTAL_STEPS when the number of steps is changed.
-  const steps = useMemo(
-    () => [getStep1Content(), getStep2Content()],
-    [getStep1Content, getStep2Content],
-  );
+  const steps = useMemo(() => {
+    if (!isOnboardingCardVisible) return [];
+    return [getStep1Content(), getStep2Content()];
+  }, [isOnboardingCardVisible, getStep1Content, getStep2Content]);
 
   if (!isOnboardingCardVisible) {
     return null;

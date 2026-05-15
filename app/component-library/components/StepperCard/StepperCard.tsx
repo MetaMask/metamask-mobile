@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import {
   Box,
@@ -33,11 +33,17 @@ const StepperCard = ({
 
   const isComplete = currentStep >= steps.length;
 
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+
+  const hasFiredRef = useRef(false);
+
   useEffect(() => {
-    if (isComplete) {
-      onComplete?.();
+    if (isComplete && !hasFiredRef.current) {
+      hasFiredRef.current = true;
+      onCompleteRef.current?.();
     }
-  }, [isComplete, onComplete]);
+  }, [isComplete]);
 
   if (isComplete) {
     return null;

@@ -435,4 +435,68 @@ describe('MoneyOnboardingCard', () => {
       expect(mockIncrementStep).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('step 2 — cardholder with linked card (auto-skip)', () => {
+    it('calls incrementStep on mount when cardholder already has a linked card token', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardholder: true,
+        moneyAccountCardToken: 'tok_123',
+      });
+
+      render(<MoneyOnboardingCard />);
+
+      expect(mockIncrementStep).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call incrementStep when cardholder has no linked card token', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardholder: true,
+        moneyAccountCardToken: null,
+      });
+
+      render(<MoneyOnboardingCard />);
+
+      expect(mockIncrementStep).not.toHaveBeenCalled();
+    });
+
+    it('does not call incrementStep when user is not a cardholder', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardholder: false,
+        moneyAccountCardToken: 'tok_123',
+      });
+
+      render(<MoneyOnboardingCard />);
+
+      expect(mockIncrementStep).not.toHaveBeenCalled();
+    });
+
+    it('does not call incrementStep when currentStep is not 1', () => {
+      setupDefaultMocks({
+        currentStep: 0,
+        isCardholder: true,
+        moneyAccountCardToken: 'tok_123',
+      });
+
+      render(<MoneyOnboardingCard />);
+
+      expect(mockIncrementStep).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('steps memo guard — card hidden', () => {
+    it('renders null and shows no step content when currentStep equals MONEY_ONBOARDING_TOTAL_STEPS', () => {
+      setupDefaultMocks({ currentStep: MONEY_ONBOARDING_TOTAL_STEPS });
+
+      const { toJSON, queryByText } = render(<MoneyOnboardingCard />);
+
+      expect(toJSON()).toBeNull();
+      expect(queryByText(strings('money.onboarding.step_1.title'))).toBeNull();
+      expect(
+        queryByText(strings('money.onboarding.step_2.no_card_account.title')),
+      ).toBeNull();
+    });
+  });
 });
