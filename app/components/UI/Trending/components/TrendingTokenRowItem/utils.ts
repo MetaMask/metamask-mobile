@@ -65,9 +65,18 @@ export function formatCompactCurrency(
   if (isNaN(num)) return 'Invalid number';
 
   const absNum = Math.abs(num);
-  const symbol = getCurrencySymbol(
-    currencyCode.toLowerCase() as keyof typeof import('../../../../../util/currency-symbols.json'),
+  const lowercaseCode = currencyCode.toLowerCase();
+  // TypeScript doesn't know if lowercaseCode is a valid currency, but getCurrencySymbol handles unknown codes
+  const symbolFromMap = getCurrencySymbol(
+    lowercaseCode as Parameters<typeof getCurrencySymbol>[0],
   );
+
+  // If getCurrencySymbol returned the code itself (no symbol found), use uppercase
+  const symbol =
+    symbolFromMap === lowercaseCode
+      ? currencyCode.toUpperCase()
+      : symbolFromMap;
+
   let formatted: string;
 
   if (absNum >= 1_000_000_000) {
