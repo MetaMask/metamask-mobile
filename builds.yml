@@ -223,7 +223,7 @@ builds:
   # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
   main-e2e-bs-without-srp:
     github_environment: build-e2e
-    signing: *signing_rc
+    signing: *signing_uat
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'e2e'
@@ -244,7 +244,7 @@ builds:
   # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
   main-e2e-bs-with-srp:
     github_environment: build-e2e
-    signing: *signing_rc
+    signing: *signing_uat
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'e2e'
@@ -371,7 +371,7 @@ builds:
   # BrowserStack experimental builds — with pre-imported wallet
   main-exp-with-srp:
     github_environment: build-exp
-    signing: *signing_rc
+    signing: *signing_uat
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'exp'
@@ -390,7 +390,7 @@ builds:
   # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
   main-exp-without-srp:
     github_environment: build-exp
-    signing: *signing_rc
+    signing: *signing_uat
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'exp'
