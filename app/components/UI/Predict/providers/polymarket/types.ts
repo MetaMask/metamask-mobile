@@ -124,7 +124,7 @@ export interface PolymarketApiEvent {
   period?: PredictGamePeriod;
   live?: boolean;
   ended?: boolean;
-  parentEventId?: string | number;
+  parentEventId?: string | number | null;
 }
 
 export interface PolymarketApiActivity {
