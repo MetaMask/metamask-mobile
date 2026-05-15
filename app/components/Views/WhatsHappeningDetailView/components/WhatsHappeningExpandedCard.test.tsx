@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import WhatsHappeningExpandedCard from './WhatsHappeningExpandedCard';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();

@@ -29,11 +29,11 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
   IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
@@ -758,7 +758,7 @@ function BuildQuote() {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={
             selectedToken?.symbol
               ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })

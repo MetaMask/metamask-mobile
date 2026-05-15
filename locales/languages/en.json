@@ -120,6 +120,10 @@
     "account_no_funds": {
       "message": "No funds available. Use a different account."
     },
+    "headless_buy_error": {
+      "title": "Fiat purchase failed",
+      "message": "Something went wrong with your fiat purchase. Please try again."
+    },
     "mmpay_hardware_account": {
       "title": "Wallet not supported",
       "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."
@@ -133,8 +137,8 @@
       "message": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer."
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "Gas sponsorship isn't available for this transaction. You'll need to keep at least %{minBalance} %{nativeTokenSymbol} in your account.",
-      "title": "Gas sponsorship unavailable"
+      "message": "This specific network requires to maintain a reserve of %{minBalance} %{nativeTokenSymbol} in your account.",
+      "title": "Reserve balance is required"
     },
     "token_trust_signal": {
       "malicious": {
@@ -2941,6 +2945,17 @@
     "pna25_confirm_button": "Accept and close",
     "pna25_open_settings_button": "Open Settings"
   },
+  "onboarding_interest_questionnaire": {
+    "title": "What do you want to do with MetaMask?",
+    "description": "Select all that apply.",
+    "option_buy_and_sell_crypto": "Buy and sell crypto",
+    "option_consolidate_wallets": "Consolidate your wallets",
+    "option_advanced_trades": "Make advanced trades",
+    "option_predict_sports_events": "Predict sports and events",
+    "option_crypto_as_money": "Use crypto as money",
+    "option_connect_apps_sites": "Connect to apps or sites",
+    "continue": "Continue"
+  },
   "template_confirmation": {
     "ok": "OK",
     "cancel": "Cancel"
@@ -3640,7 +3655,10 @@
       "card": {
         "title": "Card",
         "reset_onboarding_description": "Reset Card onboarding state to start the onboarding flow from the beginning.",
-        "reset_onboarding_button": "Reset Onboarding State"
+        "reset_onboarding_button": "Reset Onboarding State",
+        "unlink_money_account_description": "Revoke the USDC spending-limit allowance that authorises Card to spend from your Money Account. This submits an approve(0) transaction and marks the Money Account as not-delegated on the Card backend.",
+        "unlink_money_account_button": "Unlink Money Account from Card",
+        "unlink_money_account_disabled_hint": "No active linkage to remove."
       },
       "haptics": {
         "title": "Haptics",
@@ -5205,6 +5223,34 @@
       "manage_preferences_2": "Settings > Notifications.",
       "cancel": "Cancel",
       "cta": "Turn on"
+    },
+    "push_onboarding": {
+      "new_user": {
+        "title": "Never miss a move",
+        "body": "Get real-time alerts when prices hit your targets, your trades confirm, and your portfolio moves. Plus product updates and rewards along the way. We'll share updates based on your interactions with MetaMask.",
+        "button_yes": "Yes",
+        "button_not_now": "Not now",
+        "preview_card_1": {
+          "eyebrow": "METAMASK",
+          "time": "now",
+          "title": "ETH is up 4.2% today",
+          "message": "Now at $2,668.51 — above your price alert"
+        },
+        "preview_card_2": {
+          "eyebrow": "METAMASK",
+          "time": "1h ago",
+          "title": "Received 0.25 ETH",
+          "message": "From 0x9a21…4f8c · $640.29"
+        }
+      },
+      "existing_user": {
+        "title": "Introducing personalized alerts",
+        "body": "Get notifications that match how you trade. Update anytime.",
+        "card_title": "What you'll get",
+        "card_description": "Personalized alerts and updates tailored to your trading activity.",
+        "button_confirm": "Confirm",
+        "button_not_now": "Not now"
+      }
     }
   },
   "protect_your_wallet_modal": {
@@ -6521,6 +6567,8 @@
       "convert_to_musd": "Convert to mUSD",
       "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
+      "confirm": "Confirm",
+      "convert_tooltip_description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily. Powered by Relay.",
       "fetching_quote": "Fetching quote...",
       "you_convert": "You convert",
       "network_fee": "Network fee",
@@ -6598,13 +6646,26 @@
       "step_progress": "Step {{current}} of {{total}}",
       "title": "Add money",
       "description": "Fund your account and start earning APY.",
-      "add": "Add",
+      "add": "Add funds",
       "step2_title": "Get your MetaMask Card",
       "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
       "step2_cta": "Get card",
       "link_card_title": "Link your MetaMask Card",
       "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
       "link_card_cta": "Link card"
+    },
+    "rive_onboarding": {
+      "step1_title": "Money accounts are here",
+      "step1_body": "Earn up to {{percentage}}% APY on your balance, available across your entire wallet.",
+      "step1_footer_text": "APY is variable and may change at any time.",
+      "step2_title": "Earn automatically",
+      "step2_body": "Move stablecoins with no exchange fees. Funds start earning right away.",
+      "step2_footer_text": "APY is variable and may change at any time.",
+      "step3_title": "Spend anywhere",
+      "step3_body": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask card.",
+      "step4_title": "Trade and earn in one place",
+      "step4_body": "Use your Money balance to trade across MetaMask while still earning yield.",
+      "continue": "Continue"
     },
     "action": {
       "add": "Add",
@@ -6659,6 +6720,9 @@
       "link_success_title": "Card linked successfully",
       "link_success_description": "You can now spend while you earn",
       "link_error": "Couldn't link card",
+      "link_card_sheet_title": "Spend and earn",
+      "link_card_sheet_description": "Link your card so you can spend your Money balance while it earns {{apy}}% APY.",
+      "link_card_sheet_cta": "Link card",
       "manage_card": "Manage",
       "avail_balance": "Avail. balance"
     },
@@ -7032,6 +7096,7 @@
     "pay_with_bottom_sheet": {
       "title": "Pay with",
       "last_used": "Last used",
+      "bank_and_card": "Bank and card",
       "crypto": "Crypto",
       "available_balance": "{{balance}} available",
       "other_assets": "Other assets",
@@ -7261,6 +7326,12 @@
     "batch_sell_single_token_dialog_title": "High rate alert",
     "batch_sell_single_token_dialog_description": "Batch selling one token could lead to a higher rate. Want to do a swap instead?",
     "batch_sell_swap_instead": "Yes, swap",
+    "batch_sell_review_title": "Batch Sell Review",
+    "batch_sell_select_stablecoin": "Select a stablecoin",
+    "batch_sell_total_received": "Total received",
+    "batch_sell_review": "Review",
+    "batch_sell_customize_token": "Customize {{tokenSymbol}}",
+    "batch_sell_remove_token": "Remove {{tokenSymbol}}",
     "batch_sell_checkbox_label": "Batch Sell token",
     "sort_balance": "Balance",
     "next": "Next",
@@ -7333,6 +7404,7 @@
     "price_impact_execution_description": "You'll lose approximately {{priceImpact}} of your token's value on this swap. Try lowering the amount or choosing a more liquid route.",
     "proceed": "Proceed",
     "cancel": "Cancel",
+    "close": "Close",
     "slippage_info_title": "Slippage",
     "slippage_info_description": "The % change in price you're willing to allow before your transaction is canceled.",
     "blockaid_error_title": "This transaction will be reverted",
@@ -8563,7 +8635,8 @@
       "title_claim": "Claim Benefit",
       "action": "Claim",
       "empty-list": "You don’t have any benefits right now.",
-      "powered_by": "Powered by"
+      "powered_by": "Powered by",
+      "available_count": "{{count}} available"
     },
     "end_of_season_rewards": {
       "confirm_label_default": "Confirm",
@@ -8696,6 +8769,7 @@
       "label_your_rank": "Your rank",
       "label_portfolio": "Portfolio",
       "label_net_inflow": "Net inflow",
+      "label_total_inflow": "Total inflow",
       "label_outflow": "Outflow",
       "label_days_held": "Days held",
       "qualified_title": "You're qualified",
@@ -8880,9 +8954,11 @@
       "musd_claim": "Claim mUSD",
       "perps_deposit": "Add funds",
       "perps_withdraw": "Withdrawal",
+      "predict_withdraw": "Withdraw {{sourceSymbol}} from {{sourceChain}}",
       "predict_deposit": "Add funds",
       "swap": "Swap tokens",
-      "swap_approval": "Approve tokens"
+      "swap_approval": "Approve tokens",
+      "fiat_purchase": "Buy {{token}} with {{paymentMethod}}"
     },
     "perps_deposit_solution": "You now have {{fiat}} of USDC on Arbitrum. Try your deposit again."
   },
@@ -9143,22 +9219,7 @@
       "related_assets": "Related Assets",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
-      "whats_happening": "What's happening",
-      "whats_happening_ai": "AI",
-      "whats_happening_impact": {
-        "bullish": "Bullish",
-        "bearish": "Bearish",
-        "neutral": "Neutral"
-      },
       "top_traders": "Top Traders",
-      "whats_happening_categories": {
-        "geopolitical": "Geopolitical",
-        "macro": "Macro",
-        "regulatory": "Regulatory",
-        "technical": "Technical",
-        "social": "Social",
-        "other": "Other"
-      },
       "defi": "DeFi",
       "nfts": "NFTs",
       "trending_tokens": "Trending",
@@ -9178,5 +9239,22 @@
   },
   "sites": {
     "popular": "Popular"
+  },
+  "whats_happening": {
+    "title": "What's happening",
+    "ai": "AI",
+    "impact": {
+      "bullish": "Bullish",
+      "bearish": "Bearish",
+      "neutral": "Neutral"
+    },
+    "categories": {
+      "geopolitical": "Geopolitical",
+      "macro": "Macro",
+      "regulatory": "Regulatory",
+      "technical": "Technical",
+      "social": "Social",
+      "other": "Other"
+    }
   }
 }

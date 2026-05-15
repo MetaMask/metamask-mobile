@@ -40,6 +40,7 @@ import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNud
 import useRewardsToast from './hooks/useRewardsToast';
 import { strings } from '../../../../locales/i18n';
 import PerpsTradingCampaignWinningView from './Views/PerpsTradingCampaignWinningView';
+import { getActiveRouteNameFromNavigationState } from './utils';
 
 let sessionNotificationsNudgeShown = false;
 const Stack = createStackNavigator();
@@ -62,7 +63,11 @@ const RewardsNavigator: React.FC = () => {
   // available regardless of mount status.
   const skipNextEffectRef = useRef(false);
 
-  useRewardsVersionGuard();
+  const activeRewardsRoute = useNavigationState(
+    getActiveRouteNameFromNavigationState,
+  );
+
+  useRewardsVersionGuard({ refreshKey: activeRewardsRoute });
 
   // Set candidate subscription ID in Redux state when component mounts and account changes
   useCandidateSubscriptionId();
@@ -93,14 +98,6 @@ const RewardsNavigator: React.FC = () => {
         ),
       );
     },
-  });
-
-  const activeRewardsRoute = useNavigationState((state) => {
-    const currentTabRoute = state.routes[state.index];
-    const stackState = currentTabRoute?.state;
-    const stackIndex =
-      typeof stackState?.index === 'number' ? stackState.index : 0;
-    return stackState?.routes[stackIndex]?.name;
   });
 
   useEffect(() => {
