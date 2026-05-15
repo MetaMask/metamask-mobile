@@ -3,14 +3,22 @@ import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import { useWhatsHappeningAssetPrices } from '../../../Views/WhatsHappeningDetailView/hooks/useWhatsHappeningAssetPrices';
+import type { WhatsHappeningItem } from '../types';
+import type { WhatsHappeningSourceValue } from '../constants';
 import WhatsHappeningAssetPill from './WhatsHappeningAssetPill';
 
 export interface WhatsHappeningAssetSliderProps {
   assets: RelatedAsset[];
+  item: WhatsHappeningItem;
+  cardIndex: number;
+  source: WhatsHappeningSourceValue;
 }
 
 const WhatsHappeningAssetSlider: React.FC<WhatsHappeningAssetSliderProps> = ({
   assets,
+  item,
+  cardIndex,
+  source,
 }) => {
   const tw = useTailwind();
 
@@ -37,6 +45,9 @@ const WhatsHappeningAssetSlider: React.FC<WhatsHappeningAssetSliderProps> = ({
           key={asset.sourceAssetId}
           asset={asset}
           perpsPriceEntry={perpsPriceBySymbol[asset.hlPerpsMarket?.[0] ?? '']}
+          item={item}
+          cardIndex={cardIndex}
+          source={source}
         />
       ))}
     </ScrollView>

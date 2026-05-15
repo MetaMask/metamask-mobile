@@ -123,7 +123,12 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
         </Box>
 
         {item.relatedAssets.length > 0 ? (
-          <WhatsHappeningAssetSlider assets={item.relatedAssets} />
+          <WhatsHappeningAssetSlider
+            assets={item.relatedAssets}
+            item={item}
+            cardIndex={cardIndex}
+            source={source}
+          />
         ) : null}
       </TouchableOpacity>
     </View>

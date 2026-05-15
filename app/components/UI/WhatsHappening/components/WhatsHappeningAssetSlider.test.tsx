@@ -3,6 +3,16 @@ import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import WhatsHappeningAssetSlider from './WhatsHappeningAssetSlider';
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({ build: jest.fn(() => ({})) })),
+      build: jest.fn(() => ({})),
+    })),
+  }),
+}));
+
 const mockUseWhatsHappeningAssetPrices = jest.fn();
 
 jest.mock(
@@ -63,6 +73,22 @@ const noPerpsAsset = {
   caip19: ['eip155:1/erc20:0xfoo'],
 };
 
+const baseItem = {
+  id: 'trend-0',
+  title: 'Test headline',
+  description: 'Test description',
+  date: '2026-01-01T00:00:00.000Z',
+  impact: 'positive' as const,
+  relatedAssets: [btcAsset, ethAsset],
+  articles: [],
+};
+
+const sharedProps = {
+  item: baseItem,
+  cardIndex: 0,
+  source: 'homepage' as const,
+};
+
 describe('WhatsHappeningAssetSlider', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -73,7 +99,10 @@ describe('WhatsHappeningAssetSlider', () => {
 
   it('renders a pill per perps asset', () => {
     renderWithProvider(
-      <WhatsHappeningAssetSlider assets={[btcAsset, ethAsset]} />,
+      <WhatsHappeningAssetSlider
+        {...sharedProps}
+        assets={[btcAsset, ethAsset]}
+      />,
     );
     expect(screen.getByText('BTC')).toBeOnTheScreen();
     expect(screen.getByText('ETH')).toBeOnTheScreen();
@@ -81,7 +110,10 @@ describe('WhatsHappeningAssetSlider', () => {
 
   it('filters out non-perps assets', () => {
     renderWithProvider(
-      <WhatsHappeningAssetSlider assets={[btcAsset, noPerpsAsset]} />,
+      <WhatsHappeningAssetSlider
+        {...sharedProps}
+        assets={[btcAsset, noPerpsAsset]}
+      />,
     );
     expect(screen.getByText('BTC')).toBeOnTheScreen();
     expect(screen.queryByText('FOO')).toBeNull();
@@ -89,14 +121,17 @@ describe('WhatsHappeningAssetSlider', () => {
 
   it('calls useWhatsHappeningAssetPrices only with perps assets', () => {
     renderWithProvider(
-      <WhatsHappeningAssetSlider assets={[btcAsset, noPerpsAsset]} />,
+      <WhatsHappeningAssetSlider
+        {...sharedProps}
+        assets={[btcAsset, noPerpsAsset]}
+      />,
     );
     expect(mockUseWhatsHappeningAssetPrices).toHaveBeenCalledWith([btcAsset]);
   });
 
   it('returns null when all assets are non-perps', () => {
     const { toJSON } = renderWithProvider(
-      <WhatsHappeningAssetSlider assets={[noPerpsAsset]} />,
+      <WhatsHappeningAssetSlider {...sharedProps} assets={[noPerpsAsset]} />,
     );
     expect(toJSON()).toBeNull();
   });
@@ -107,7 +142,9 @@ describe('WhatsHappeningAssetSlider', () => {
         BTC: { price: 95000, percentChange24h: 1.23 },
       },
     });
-    renderWithProvider(<WhatsHappeningAssetSlider assets={[btcAsset]} />);
+    renderWithProvider(
+      <WhatsHappeningAssetSlider {...sharedProps} assets={[btcAsset]} />,
+    );
     expect(screen.getByText('+1.23%')).toBeOnTheScreen();
   });
 
@@ -119,7 +156,10 @@ describe('WhatsHappeningAssetSlider', () => {
       },
     });
     renderWithProvider(
-      <WhatsHappeningAssetSlider assets={[btcAsset, ethAsset]} />,
+      <WhatsHappeningAssetSlider
+        {...sharedProps}
+        assets={[btcAsset, ethAsset]}
+      />,
     );
     expect(screen.getByText('-2.50%')).toBeOnTheScreen();
     expect(screen.queryByText('undefined')).toBeNull();

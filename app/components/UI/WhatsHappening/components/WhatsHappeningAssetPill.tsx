@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { RelatedAsset } from '@metamask/ai-controllers';
@@ -18,20 +18,36 @@ import { getRelatedAssetImageSource } from '../../../Views/WhatsHappeningDetailV
 import useTradeNavigation from '../../../Views/WhatsHappeningDetailView/hooks/useTradeNavigation';
 import { formatPercentageChange } from '../../../Views/WhatsHappeningDetailView/utils/formatAssetPrice';
 import type { PerpsPriceEntry } from '../../../Views/WhatsHappeningDetailView/hooks/useWhatsHappeningAssetPrices';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  WhatsHappeningInteractionType,
+  WhatsHappeningView,
+  type WhatsHappeningSourceValue,
+} from '../constants';
+import { getWhatsHappeningEventProps } from '../eventProperties';
+import type { WhatsHappeningItem } from '../types';
 
 const AVATAR_SIZE = 16;
 
 export interface WhatsHappeningAssetPillProps {
   asset: RelatedAsset;
   perpsPriceEntry?: PerpsPriceEntry;
+  item: WhatsHappeningItem;
+  cardIndex: number;
+  source: WhatsHappeningSourceValue;
 }
 
 const WhatsHappeningAssetPill: React.FC<WhatsHappeningAssetPillProps> = ({
   asset,
   perpsPriceEntry,
+  item,
+  cardIndex,
+  source,
 }) => {
   const tw = useTailwind();
   const { handleTrade, canTrade } = useTradeNavigation(asset);
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const image = useMemo(() => getRelatedAssetImageSource(asset), [asset]);
   const displaySymbol = useMemo(
     () => getPerpsDisplaySymbol(asset.symbol),
@@ -41,6 +57,32 @@ const WhatsHappeningAssetPill: React.FC<WhatsHappeningAssetPillProps> = ({
     () => formatPercentageChange(perpsPriceEntry?.percentChange24h),
     [perpsPriceEntry?.percentChange24h],
   );
+
+  const handlePressWithTracking = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTED)
+        .addProperties({
+          ...getWhatsHappeningEventProps(item, cardIndex, source),
+          interaction_type: WhatsHappeningInteractionType.RelatedAssetPressed,
+          view: WhatsHappeningView.Carousel,
+          asset_symbol: asset.symbol,
+          perps_market: asset.hlPerpsMarket?.[0],
+          asset_caip19: asset.caip19?.[0],
+        })
+        .build(),
+    );
+    handleTrade();
+  }, [
+    trackEvent,
+    createEventBuilder,
+    item,
+    cardIndex,
+    source,
+    asset.symbol,
+    asset.hlPerpsMarket,
+    asset.caip19,
+    handleTrade,
+  ]);
 
   const inner = (
     <Box
@@ -77,7 +119,7 @@ const WhatsHappeningAssetPill: React.FC<WhatsHappeningAssetPillProps> = ({
   if (canTrade) {
     return (
       <Pressable
-        onPress={handleTrade}
+        onPress={handlePressWithTracking}
         accessibilityRole="button"
         accessibilityLabel={displaySymbol}
         style={({ pressed }) => tw.style('shrink', pressed && 'opacity-80')}
