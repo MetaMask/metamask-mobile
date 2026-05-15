@@ -13,16 +13,16 @@ const GET_ACTION =
 const PUT_ACTION =
   'AuthenticatedUserStorageService:putNotificationPreferences' as const;
 
-type NotificationStoragePreferencesResponse = Awaited<
+type NotificationStoragePreferencesResult = Awaited<
   ReturnType<
     AuthenticatedUserStorageServiceGetNotificationPreferencesAction['handler']
   >
 >;
 export type NotificationStoragePreferences =
-  NonNullable<NotificationStoragePreferencesResponse>;
-export type NotificationStoragePreferenceType =
+  NonNullable<NotificationStoragePreferencesResult>;
+export type NotificationStoragePreferenceSection =
   keyof NotificationStoragePreferences;
-export type NotificationStoragePreferenceKey =
+export type NotificationStoragePreferenceChannelKey =
   | 'pushNotificationsEnabled'
   | 'inAppNotificationsEnabled';
 
@@ -31,18 +31,26 @@ export const useNotificationStoragePreferences = () => {
     useSelector(selectSelectedInternalAccountId) ?? 'anonymous';
 
   const { data, isLoading, error, refetch } =
-    useQuery<NotificationStoragePreferencesResponse>({
+    useQuery<NotificationStoragePreferencesResult>({
       queryKey: [GET_ACTION, selectedAccountId],
     });
   const queryClient = useQueryClient();
 
   const enqueuePersist = useCallback(
-    async (nextPreferences: NotificationStoragePreferences) => {
+    async <
+      PreferenceType extends NotificationStoragePreferenceSection =
+        NotificationStoragePreferenceSection,
+    >(
+      nextPreferences: NotificationStoragePreferences,
+      updatedType?: PreferenceType,
+    ) => {
       try {
         const latest = await Engine.controllerMessenger.call(GET_ACTION);
         const preferencesToPersist: NotificationStoragePreferences = {
           ...(latest ?? nextPreferences),
-          ...nextPreferences,
+          ...(updatedType
+            ? { [updatedType]: nextPreferences[updatedType] }
+            : nextPreferences),
         };
 
         await Engine.controllerMessenger.call(
@@ -61,45 +69,69 @@ export const useNotificationStoragePreferences = () => {
     [],
   );
 
-  const updatePreference = useCallback(
-    async (
-      type: NotificationStoragePreferenceType,
-      key: NotificationStoragePreferenceKey,
-      value: boolean,
+  const updatePreferencesSection = useCallback(
+    async <PreferenceType extends NotificationStoragePreferenceSection>(
+      type: PreferenceType,
+      nextSectionPreferences: NotificationStoragePreferences[PreferenceType],
     ) => {
       if (!data) {
         Logger.error(
-          new Error('No notification preferences found, enable notifications first'),
+          new Error(`No notification preferences found when updating ${type} section, enable notifications first`),
         );
         return;
       }
 
       const nextPreferences = {
         ...data,
-        [type]: {
-          ...data[type],
-          [key]: value,
-        },
-      };
+        [type]: nextSectionPreferences,
+      } as NotificationStoragePreferences;
 
-      queryClient.setQueryData<NotificationStoragePreferencesResponse>(
+      queryClient.setQueryData<NotificationStoragePreferencesResult>(
         [GET_ACTION, selectedAccountId],
-        nextPreferences,
+        (previousPreferences) =>
+          ({
+            ...(previousPreferences ?? nextPreferences),
+            [type]: nextSectionPreferences,
+          } as NotificationStoragePreferences),
       );
 
       try {
-        await enqueuePersist(nextPreferences);
+        await enqueuePersist(nextPreferences, type);
       } catch (err) {
         refetch();
+        throw err;
       }
     },
     [data, enqueuePersist, queryClient, selectedAccountId, refetch],
   );
 
+  const updatePreference = useCallback(
+    async (
+      type: NotificationStoragePreferenceSection,
+      key: NotificationStoragePreferenceChannelKey,
+      value: boolean,
+    ) => {
+      if (!data) {
+        Logger.error(
+          new Error('No notification preferences found when updating preference, enable notifications first'),
+        );
+        return;
+      }
+
+      await updatePreferencesSection(type, {
+        ...data[type],
+        [key]: value,
+      });
+    },
+    [data, updatePreferencesSection],
+  );
+
   return {
     preferences: data,
+    hasNotificationPreferences: data !== null && data !== undefined,
     isLoading,
     error,
     updatePreference,
+    updatePreferencesSection,
   };
 };

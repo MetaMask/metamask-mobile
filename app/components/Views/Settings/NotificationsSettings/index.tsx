@@ -21,7 +21,7 @@ import styleSheet from './NotificationsSettings.styles';
 import {
   useNotificationStoragePreferences,
   type NotificationStoragePreferences,
-  type NotificationStoragePreferenceType,
+  type NotificationStoragePreferenceSection,
 } from './hooks/useNotificationStoragePreferences';
 
 import {
@@ -74,7 +74,7 @@ const NotificationRow = ({
 };
 
 type NotificationPreferenceStatus =
-  NotificationStoragePreferences[NotificationStoragePreferenceType];
+  NotificationStoragePreferences[NotificationStoragePreferenceSection];
 
 const getStatusText = (prefs?: NotificationPreferenceStatus | null) => {
   const active = [];
@@ -99,7 +99,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
   const { preferences } = useNotificationStoragePreferences();
 
   const navigateToSection = (
-    type: NotificationStoragePreferenceType,
+    type: NotificationStoragePreferenceSection,
     title: string,
     description: string,
   ) => {
@@ -153,10 +153,9 @@ const NotificationsSettings = ({ navigation }: Props) => {
               }
             />
 
-            {/* Temporarily disabled until we match/replace social AI preferences
             <NotificationRow
               title={strings('app_settings.notifications_opts.social_ai_title')}
-              status={getStatusText(preferences.socialAI)}
+              status={getStatusText(preferences?.socialAI)}
               iconName={IconName.Ai}
               onPress={() =>
                 navigateToSection(
@@ -165,7 +164,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
                   strings('app_settings.notifications_opts.social_ai_desc'),
                 )
               }
-            /> */}
+            />
 
             <NotificationRow
               title={strings('app_settings.notifications_opts.marketing_title')}

@@ -35,6 +35,7 @@ import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFla
 import { fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
 import { useTheme } from '../../../../util/theme';
+import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
 import {
   TraderRow,
   TraderRowSkeleton,
@@ -128,6 +129,10 @@ const TopTradersView = () => {
   const { colors } = useTheme();
   const { height: windowHeight } = useWindowDimensions();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const {
+    hasNotificationPreferences,
+    isLoading: isLoadingNotificationPreferences,
+  } = useNotificationStoragePreferences();
 
   const [selectedChain, setSelectedChain] = useState<ChainFilter>('all');
   const [refreshing, setRefreshing] = useState(false);
@@ -169,8 +174,30 @@ const TopTradersView = () => {
   }, [navigation]);
 
   const handleNotificationPreferencesPress = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL_LEADERBOARD.NOTIFICATION_PREFERENCES);
-  }, [navigation]);
+    if (isLoadingNotificationPreferences) {
+      return;
+    }
+
+    if (!hasNotificationPreferences) {
+      navigation.navigate(Routes.SETTINGS_VIEW, {
+        screen: Routes.SETTINGS.NOTIFICATIONS,
+      });
+      return;
+    }
+
+    navigation.navigate(Routes.SETTINGS_VIEW, {
+      screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
+      params: {
+        type: 'socialAI',
+        title: strings('app_settings.notifications_opts.social_ai_title'),
+        description: strings('app_settings.notifications_opts.social_ai_desc'),
+      },
+    });
+  }, [
+    hasNotificationPreferences,
+    isLoadingNotificationPreferences,
+    navigation,
+  ]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);

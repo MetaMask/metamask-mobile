@@ -373,7 +373,6 @@ const Routes = {
     VIEW: 'TopTradersView',
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',
-    NOTIFICATION_PREFERENCES: 'NotificationPreferencesView',
   },
   PREDICT: {
     ROOT: 'Predict',

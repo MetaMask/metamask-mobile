@@ -28,8 +28,8 @@ import {
   playImpact,
   ImpactMoment,
 } from '../../../../../../util/haptics';
-import type { SocialAIPreference } from '../../../NotificationPreferencesView/hooks';
-import AllowPushNotificationsRow from '../../../NotificationPreferencesView/components/AllowPushNotificationsRow';
+import { useNotificationPreferences } from '../../../NotificationPreferences/hooks';
+import AllowPushNotificationsRow from '../../../NotificationPreferences/components/AllowPushNotificationsRow';
 import { TraderNotificationsBottomSheetSelectorsIDs } from './TraderNotificationsBottomSheet.testIds';
 import {
   useControllableBottomSheet,
@@ -41,9 +41,6 @@ export type TraderNotificationsBottomSheetRef = ControllableBottomSheetRef;
 interface TraderNotificationsBottomSheetProps {
   traderId: string;
   traderName: string;
-  preferences: SocialAIPreference;
-  isTraderNotificationEnabled: (traderId: string) => boolean;
-  toggleTraderNotification: (traderId: string) => void | Promise<void>;
   onDismiss?: () => void;
 }
 
@@ -52,16 +49,15 @@ const TraderNotificationsBottomSheet = forwardRef<
   TraderNotificationsBottomSheetProps
 >(
   (
-    {
-      traderId,
-      traderName,
-      preferences,
-      isTraderNotificationEnabled,
-      toggleTraderNotification,
-      onDismiss,
-    },
+    { traderId, traderName, onDismiss },
     ref,
   ) => {
+    const {
+      preferences,
+      hasNotificationPreferences,
+      isTraderNotificationEnabled,
+      toggleTraderNotification,
+    } = useNotificationPreferences();
     const [localEnabled, setLocalEnabled] = useState(() =>
       isTraderNotificationEnabled(traderId),
     );
@@ -71,7 +67,8 @@ const TraderNotificationsBottomSheet = forwardRef<
     const { sheetRef, isVisible, closeSheet, handleSheetClosed } =
       useControllableBottomSheet({ ref, onDismiss });
 
-    const globalOff = !preferences.enabled;
+    const pushNotificationsOff =
+      !hasNotificationPreferences || !preferences.pushNotificationsEnabled;
 
     // Snapshot the remote value each time the sheet opens so the toggle
     // always starts from the authoritative server state.
@@ -84,9 +81,23 @@ const TraderNotificationsBottomSheet = forwardRef<
 
     const handleManageTradersPress = useCallback(() => {
       sheetRef.current?.onCloseBottomSheet(() => {
-        navigation.navigate(Routes.SOCIAL_LEADERBOARD.NOTIFICATION_PREFERENCES);
+        if (!hasNotificationPreferences) {
+          navigation.navigate(Routes.SETTINGS_VIEW, {
+            screen: Routes.SETTINGS.NOTIFICATIONS,
+          });
+          return;
+        }
+
+        navigation.navigate(Routes.SETTINGS_VIEW, {
+          screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
+          params: {
+            type: 'socialAI',
+            title: strings('app_settings.notifications_opts.social_ai_title'),
+            description: strings('app_settings.notifications_opts.social_ai_desc'),
+          },
+        });
       });
-    }, [navigation, sheetRef]);
+    }, [hasNotificationPreferences, navigation, sheetRef]);
 
     // Only persist when the user explicitly confirms with Save.
     // If the local draft differs from the remote value, issue one toggle call.
@@ -142,7 +153,7 @@ const TraderNotificationsBottomSheet = forwardRef<
           )}
           value={localEnabled}
           onValueChange={(next: boolean) => {
-            if (globalOff) {
+            if (pushNotificationsOff) {
               return;
             }
             // Subordinate switch: rely on iOS UISwitch's native tick on iOS,
@@ -150,7 +161,7 @@ const TraderNotificationsBottomSheet = forwardRef<
             fireSwitchHaptic(ImpactFeedbackStyle.Light);
             setLocalEnabled(next);
           }}
-          disabled={globalOff}
+          disabled={pushNotificationsOff}
           toggleTestID={TraderNotificationsBottomSheetSelectorsIDs.TOGGLE}
         />
 

@@ -2,10 +2,12 @@ import {
   NavigationProp,
   ParamListBase,
   RouteProp,
+  StackActions,
 } from '@react-navigation/native';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ScrollView, Switch, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './NotificationsSettings.styles';
@@ -17,10 +19,13 @@ import {
 } from '@metamask/design-system-react-native';
 import {
   useNotificationStoragePreferences,
-  type NotificationStoragePreferenceType,
+  type NotificationStoragePreferenceSection,
 } from './hooks/useNotificationStoragePreferences';
 import { AccountsList } from './AccountsList';
 import { strings } from '../../../../../locales/i18n';
+import SocialAINotificationPreferencesContent from './SocialAINotificationPreferencesContent';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import Routes from '../../../../constants/navigation/Routes';
 
 type NotificationSettingsStyles = ReturnType<typeof styleSheet>;
 
@@ -43,13 +48,21 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => (
   </>
 );
 
+const SocialAISectionContent = () => (
+  <SocialAINotificationPreferencesContent
+    showPushToggle={false}
+    withHorizontalPadding={false}
+  />
+);
+
 const SECTION_CONTENT_BY_TYPE: Partial<
   Record<
-    NotificationStoragePreferenceType,
+    NotificationStoragePreferenceSection,
     React.ComponentType<SectionContentProps>
   >
 > = {
   walletActivity: WalletActivitySectionContent,
+  socialAI: SocialAISectionContent,
 };
 
 export interface NotificationSettingsSectionProps {
@@ -57,7 +70,7 @@ export interface NotificationSettingsSectionProps {
   route: RouteProp<
     {
       params: {
-        type: NotificationStoragePreferenceType;
+        type: NotificationStoragePreferenceSection;
         title: string;
         description: string;
       };
@@ -74,9 +87,18 @@ const NotificationSettingsSection = ({
   const { styles } = useStyles(styleSheet, { theme });
   const { type, title, description } = route.params;
 
+  const isMetamaskNotificationsEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
   const { preferences, updatePreference } = useNotificationStoragePreferences();
 
-  if (!preferences) {
+  useEffect(() => {
+    if (!isMetamaskNotificationsEnabled) {
+      navigation.dispatch(StackActions.replace(Routes.SETTINGS.NOTIFICATIONS));
+    }
+  }, [isMetamaskNotificationsEnabled, navigation]);
+
+  if (!isMetamaskNotificationsEnabled || !preferences) {
     return null;
   }
 

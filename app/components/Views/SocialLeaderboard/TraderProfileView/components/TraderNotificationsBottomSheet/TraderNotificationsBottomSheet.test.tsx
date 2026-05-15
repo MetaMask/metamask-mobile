@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Platform } from 'react-native';
 import { screen, fireEvent, act } from '@testing-library/react-native';
+import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
 import {
   ImpactFeedbackStyle,
   ImpactMoment,
@@ -13,11 +14,13 @@ import TraderNotificationsBottomSheet, {
 import { TraderNotificationsBottomSheetSelectorsIDs } from './TraderNotificationsBottomSheet.testIds';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
-import type { SocialAIPreference } from '../../../NotificationPreferencesView/hooks';
+import type { SocialAIPreference } from '../../../NotificationPreferences/hooks';
 
 const mockNavigate = jest.fn();
 const mockToggleTraderNotification = jest.fn();
 const mockIsTraderNotificationEnabled = jest.fn().mockReturnValue(true);
+let mockPreferences: SocialAIPreference;
+const mockHasNotificationPreferences = jest.fn(() => true);
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -26,6 +29,20 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({ navigate: mockNavigate }),
   };
 });
+
+jest.mock('../../../NotificationPreferences/hooks', () => ({
+  ...jest.requireActual('../../../NotificationPreferences/hooks'),
+  useNotificationPreferences: () => ({
+    preferences: mockPreferences,
+    hasNotificationPreferences: mockHasNotificationPreferences(),
+    isLoading: false,
+    error: null,
+    setPushNotificationsEnabled: jest.fn(),
+    setTxAmountLimit: jest.fn(),
+    toggleTraderNotification: mockToggleTraderNotification,
+    isTraderNotificationEnabled: mockIsTraderNotificationEnabled,
+  }),
+}));
 
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
@@ -92,25 +109,22 @@ jest.mock(
 const makePreferences = (
   overrides: Partial<SocialAIPreference> = {},
 ): SocialAIPreference => ({
-  enabled: true,
-  txAmountLimit: 500,
-  mutedTraderProfileIds: [],
+  ...DEFAULT_SOCIAL_AI_PREFERENCES,
+  mutedTraderProfileIds: [
+    ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+  ],
   ...overrides,
 });
 
 interface OpenedSheetProps {
   traderId?: string;
   traderName?: string;
-  preferences?: SocialAIPreference;
-  isTraderNotificationEnabled?: (id: string) => boolean;
   onDismiss?: () => void;
 }
 
 const OpenedSheet: React.FC<OpenedSheetProps> = ({
   traderId = 'trader-1',
   traderName = 'dutchiono',
-  preferences = makePreferences(),
-  isTraderNotificationEnabled = mockIsTraderNotificationEnabled,
   onDismiss,
 }) => {
   const ref = useRef<TraderNotificationsBottomSheetRef>(null);
@@ -124,17 +138,34 @@ const OpenedSheet: React.FC<OpenedSheetProps> = ({
       ref={ref}
       traderId={traderId}
       traderName={traderName}
-      preferences={preferences}
-      isTraderNotificationEnabled={isTraderNotificationEnabled}
-      toggleTraderNotification={mockToggleTraderNotification}
       onDismiss={onDismiss}
     />
   );
 };
 
+const renderOpenedSheet = ({
+  preferences = makePreferences(),
+  isTraderNotificationEnabled = mockIsTraderNotificationEnabled,
+  ...props
+}: OpenedSheetProps & {
+  preferences?: SocialAIPreference;
+  isTraderNotificationEnabled?: (id: string) => boolean;
+} = {}) => {
+  mockPreferences = preferences;
+  if (isTraderNotificationEnabled !== mockIsTraderNotificationEnabled) {
+    mockIsTraderNotificationEnabled.mockImplementation(
+      isTraderNotificationEnabled,
+    );
+  }
+
+  return renderWithProvider(<OpenedSheet {...props} />);
+};
+
 describe('TraderNotificationsBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPreferences = makePreferences();
+    mockHasNotificationPreferences.mockReturnValue(true);
     mockIsTraderNotificationEnabled.mockReturnValue(true);
   });
 
@@ -146,9 +177,6 @@ describe('TraderNotificationsBottomSheet', () => {
           ref={ref}
           traderId="trader-1"
           traderName="dutchiono"
-          preferences={makePreferences()}
-          isTraderNotificationEnabled={mockIsTraderNotificationEnabled}
-          toggleTraderNotification={mockToggleTraderNotification}
         />,
       );
 
@@ -160,7 +188,7 @@ describe('TraderNotificationsBottomSheet', () => {
     });
 
     it('renders the container when opened', () => {
-      renderWithProvider(<OpenedSheet />);
+      renderOpenedSheet();
 
       expect(
         screen.getByTestId(
@@ -170,7 +198,7 @@ describe('TraderNotificationsBottomSheet', () => {
     });
 
     it('renders the title interpolated with trader name', () => {
-      renderWithProvider(<OpenedSheet traderName="dutchiono" />);
+      renderOpenedSheet({ traderName: 'dutchiono' });
 
       expect(
         screen.getByText(
@@ -182,7 +210,7 @@ describe('TraderNotificationsBottomSheet', () => {
     });
 
     it('renders the notification description with trader name', () => {
-      renderWithProvider(<OpenedSheet traderName="dutchiono" />);
+      renderOpenedSheet({ traderName: 'dutchiono' });
 
       expect(
         screen.getByText(
@@ -195,7 +223,7 @@ describe('TraderNotificationsBottomSheet', () => {
     });
 
     it('renders the manage traders row', () => {
-      renderWithProvider(<OpenedSheet />);
+      renderOpenedSheet();
 
       expect(
         screen.getByTestId(
@@ -205,7 +233,7 @@ describe('TraderNotificationsBottomSheet', () => {
     });
 
     it('renders the save button', () => {
-      renderWithProvider(<OpenedSheet />);
+      renderOpenedSheet();
 
       expect(
         screen.getByTestId(
@@ -217,12 +245,10 @@ describe('TraderNotificationsBottomSheet', () => {
 
   describe('toggle', () => {
     it('renders the toggle as on when isTraderNotificationEnabled returns true', () => {
-      renderWithProvider(
-        <OpenedSheet
-          traderId="trader-1"
-          isTraderNotificationEnabled={() => true}
-        />,
-      );
+      renderOpenedSheet({
+        traderId: 'trader-1',
+        isTraderNotificationEnabled: () => true,
+      });
 
       const toggle = screen.getByTestId(
         TraderNotificationsBottomSheetSelectorsIDs.TOGGLE,
@@ -232,12 +258,10 @@ describe('TraderNotificationsBottomSheet', () => {
     });
 
     it('renders the toggle as off when isTraderNotificationEnabled returns false', () => {
-      renderWithProvider(
-        <OpenedSheet
-          traderId="trader-1"
-          isTraderNotificationEnabled={() => false}
-        />,
-      );
+      renderOpenedSheet({
+        traderId: 'trader-1',
+        isTraderNotificationEnabled: () => false,
+      });
 
       const toggle = screen.getByTestId(
         TraderNotificationsBottomSheetSelectorsIDs.TOGGLE,
@@ -247,12 +271,10 @@ describe('TraderNotificationsBottomSheet', () => {
     });
 
     it('flips the toggle value locally but does NOT call toggleTraderNotification immediately', () => {
-      renderWithProvider(
-        <OpenedSheet
-          traderId="trader-1"
-          isTraderNotificationEnabled={() => true}
-        />,
-      );
+      renderOpenedSheet({
+        traderId: 'trader-1',
+        isTraderNotificationEnabled: () => true,
+      });
 
       fireEvent(
         screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
@@ -267,13 +289,11 @@ describe('TraderNotificationsBottomSheet', () => {
       ).toBe(false);
     });
 
-    it('disables the toggle when global notifications are off', () => {
-      renderWithProvider(
-        <OpenedSheet
-          traderId="trader-1"
-          preferences={makePreferences({ enabled: false })}
-        />,
-      );
+    it('disables the toggle when push notifications are off', () => {
+      renderOpenedSheet({
+        traderId: 'trader-1',
+        preferences: makePreferences({ pushNotificationsEnabled: false }),
+      });
 
       const toggle = screen.getByTestId(
         TraderNotificationsBottomSheetSelectorsIDs.TOGGLE,
@@ -282,13 +302,11 @@ describe('TraderNotificationsBottomSheet', () => {
       expect(toggle.props.disabled).toBe(true);
     });
 
-    it('does not call toggleTraderNotification when global is off and toggle fires a change event', () => {
-      renderWithProvider(
-        <OpenedSheet
-          traderId="trader-1"
-          preferences={makePreferences({ enabled: false })}
-        />,
-      );
+    it('does not call toggleTraderNotification when push notifications are off and toggle fires a change event', () => {
+      renderOpenedSheet({
+        traderId: 'trader-1',
+        preferences: makePreferences({ pushNotificationsEnabled: false }),
+      });
 
       fireEvent(
         screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
@@ -301,8 +319,8 @@ describe('TraderNotificationsBottomSheet', () => {
   });
 
   describe('manage traders row', () => {
-    it('navigates to notification preferences when manage traders row is pressed', () => {
-      renderWithProvider(<OpenedSheet />);
+    it('navigates to the socialAI notification settings section when manage traders row is pressed', () => {
+      renderOpenedSheet();
 
       fireEvent.press(
         screen.getByTestId(
@@ -311,19 +329,42 @@ describe('TraderNotificationsBottomSheet', () => {
       );
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.SOCIAL_LEADERBOARD.NOTIFICATION_PREFERENCES,
+        Routes.SETTINGS_VIEW,
+        {
+          screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
+          params: {
+            type: 'socialAI',
+            title: strings('app_settings.notifications_opts.social_ai_title'),
+            description: strings(
+              'app_settings.notifications_opts.social_ai_desc',
+            ),
+          },
+        },
       );
+    });
+
+    it('navigates to notification settings when preferences do not exist yet', () => {
+      mockHasNotificationPreferences.mockReturnValue(false);
+      renderOpenedSheet();
+
+      fireEvent.press(
+        screen.getByTestId(
+          TraderNotificationsBottomSheetSelectorsIDs.MANAGE_TRADERS_ROW,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
+        screen: Routes.SETTINGS.NOTIFICATIONS,
+      });
     });
   });
 
   describe('save button', () => {
     it('calls toggleTraderNotification when the toggle was changed before saving', () => {
-      renderWithProvider(
-        <OpenedSheet
-          traderId="trader-1"
-          isTraderNotificationEnabled={() => true}
-        />,
-      );
+      renderOpenedSheet({
+        traderId: 'trader-1',
+        isTraderNotificationEnabled: () => true,
+      });
 
       fireEvent(
         screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
@@ -343,12 +384,10 @@ describe('TraderNotificationsBottomSheet', () => {
     });
 
     it('does not call toggleTraderNotification when the toggle was not changed before saving', () => {
-      renderWithProvider(
-        <OpenedSheet
-          traderId="trader-1"
-          isTraderNotificationEnabled={() => true}
-        />,
-      );
+      renderOpenedSheet({
+        traderId: 'trader-1',
+        isTraderNotificationEnabled: () => true,
+      });
 
       act(() => {
         fireEvent.press(
@@ -362,12 +401,10 @@ describe('TraderNotificationsBottomSheet', () => {
     });
 
     it('does not call toggleTraderNotification when the toggle was changed and then reverted before saving', () => {
-      renderWithProvider(
-        <OpenedSheet
-          traderId="trader-1"
-          isTraderNotificationEnabled={() => true}
-        />,
-      );
+      renderOpenedSheet({
+        traderId: 'trader-1',
+        isTraderNotificationEnabled: () => true,
+      });
 
       fireEvent(
         screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
@@ -394,7 +431,7 @@ describe('TraderNotificationsBottomSheet', () => {
     it('closes the sheet and calls onDismiss when save is pressed', () => {
       const mockOnDismiss = jest.fn();
 
-      renderWithProvider(<OpenedSheet onDismiss={mockOnDismiss} />);
+      renderOpenedSheet({ onDismiss: mockOnDismiss });
 
       act(() => {
         fireEvent.press(
@@ -418,12 +455,10 @@ describe('TraderNotificationsBottomSheet', () => {
 
     it('fires a medium impact when pressing save', () => {
       Platform.OS = 'ios';
-      renderWithProvider(
-        <OpenedSheet
-          traderId="trader-1"
-          isTraderNotificationEnabled={() => true}
-        />,
-      );
+      renderOpenedSheet({
+        traderId: 'trader-1',
+        isTraderNotificationEnabled: () => true,
+      });
 
       fireEvent(
         screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
@@ -447,12 +482,10 @@ describe('TraderNotificationsBottomSheet', () => {
 
     it('fires a medium impact when pressing save even if the value did not change', () => {
       Platform.OS = 'ios';
-      renderWithProvider(
-        <OpenedSheet
-          traderId="trader-1"
-          isTraderNotificationEnabled={() => true}
-        />,
-      );
+      renderOpenedSheet({
+        traderId: 'trader-1',
+        isTraderNotificationEnabled: () => true,
+      });
 
       act(() => {
         fireEvent.press(
@@ -469,12 +502,10 @@ describe('TraderNotificationsBottomSheet', () => {
 
     it('fires a light impact when toggling the local switch on Android', () => {
       Platform.OS = 'android';
-      renderWithProvider(
-        <OpenedSheet
-          traderId="trader-1"
-          isTraderNotificationEnabled={() => true}
-        />,
-      );
+      renderOpenedSheet({
+        traderId: 'trader-1',
+        isTraderNotificationEnabled: () => true,
+      });
 
       fireEvent(
         screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
@@ -488,12 +519,10 @@ describe('TraderNotificationsBottomSheet', () => {
 
     it('does not fire a haptic when toggling the local switch on iOS', () => {
       Platform.OS = 'ios';
-      renderWithProvider(
-        <OpenedSheet
-          traderId="trader-1"
-          isTraderNotificationEnabled={() => true}
-        />,
-      );
+      renderOpenedSheet({
+        traderId: 'trader-1',
+        isTraderNotificationEnabled: () => true,
+      });
 
       fireEvent(
         screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
@@ -505,14 +534,12 @@ describe('TraderNotificationsBottomSheet', () => {
       expect(mockPlayImpact).not.toHaveBeenCalled();
     });
 
-    it('does not fire a haptic when toggling the local switch while the global toggle is off', () => {
+    it('does not fire a haptic when toggling the local switch while push notifications are off', () => {
       Platform.OS = 'android';
-      renderWithProvider(
-        <OpenedSheet
-          traderId="trader-1"
-          preferences={makePreferences({ enabled: false })}
-        />,
-      );
+      renderOpenedSheet({
+        traderId: 'trader-1',
+        preferences: makePreferences({ pushNotificationsEnabled: false }),
+      });
 
       fireEvent(
         screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
@@ -525,7 +552,7 @@ describe('TraderNotificationsBottomSheet', () => {
     });
 
     it('does not fire a haptic when pressing the close button', () => {
-      renderWithProvider(<OpenedSheet />);
+      renderOpenedSheet();
 
       fireEvent.press(
         screen.getByTestId(
@@ -538,7 +565,7 @@ describe('TraderNotificationsBottomSheet', () => {
     });
 
     it('does not fire a haptic when pressing the manage traders row', () => {
-      renderWithProvider(<OpenedSheet />);
+      renderOpenedSheet();
 
       fireEvent.press(
         screen.getByTestId(
