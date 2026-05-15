@@ -67,7 +67,7 @@ const MoneyHomeView = () => {
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { initiateCustomConversion } = useMusdConversion();
-  const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
+  const { allTransactions, moneyAddress, mockDataEnabled } = useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
   const { canLink, linkInBackground } = useMoneyAccountCardLinkage();
@@ -310,7 +310,7 @@ const MoneyHomeView = () => {
                   : handleViewAllActivityPress
               }
               onHeaderPress={handleActivityHeaderPress}
-              onItemPress={handleActivityItemPress}
+              onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
             />
             <Divider />
           </>

@@ -25,6 +25,8 @@ export interface UseMoneyAccountTransactionsResult {
   /** Transactions awaiting confirmation (not in a final on-chain state) */
   submittedTransactions: TransactionMeta[];
   moneyAddress: string | undefined;
+  /** True when the hook is returning static mock rows instead of live data. */
+  mockDataEnabled: boolean;
 }
 
 /**
@@ -52,6 +54,7 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
         transfers: allTransactions.filter(isMoneyActivityTransfer),
         submittedTransactions: [],
         moneyAddress,
+        mockDataEnabled: true,
       };
     }
 
@@ -85,6 +88,7 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
       transfers: moneyTransactions.filter(isMoneyActivityTransfer),
       submittedTransactions,
       moneyAddress,
+      mockDataEnabled: false,
     };
   }, [mockDataEnabled, moneyAddress, nonReplacedTransactions]);
 }

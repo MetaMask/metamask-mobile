@@ -25,7 +25,7 @@ import MoneyActivityItem from '../../components/MoneyActivityItem';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { getMoneyActivityDateKeyUtc } from '../../constants/moneyActivityFilters';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
-import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMoneyActivityUnderConstructionAlert';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 
 const styles = StyleSheet.create({
@@ -67,16 +67,22 @@ const MoneyActivityView = () => {
   const { colors } = useTheme();
   const [filter, setFilter] = useState(MoneyActivityFilter.All);
 
-  const { allTransactions, deposits, transfers, moneyAddress } =
+  const { allTransactions, deposits, transfers, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleItemPress = useCallback(() => {
-    showMoneyActivityUnderConstructionAlert();
-  }, []);
+  const handleItemPress = useCallback(
+    (transactionId: string) => {
+      navigation.navigate(Routes.MONEY.MODALS.ROOT as never, {
+        screen: Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET,
+        params: { transactionId },
+      } as never);
+    },
+    [navigation],
+  );
 
   const filtered = useMemo(() => {
     if (filter === MoneyActivityFilter.All) {
@@ -110,7 +116,7 @@ const MoneyActivityView = () => {
     <MoneyActivityItem
       tx={item}
       moneyAddress={moneyAddress}
-      onPress={handleItemPress}
+      onPress={mockDataEnabled ? undefined : handleItemPress}
     />
   );
 
