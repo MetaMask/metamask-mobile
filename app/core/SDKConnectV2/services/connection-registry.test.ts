@@ -497,7 +497,9 @@ describe('ConnectionRegistry', () => {
 
         // Sanity: the rest of the happy path still ran.
         expect(mockStore.save).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.syncConnectionList).toHaveBeenCalledTimes(1);
+        expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([
+          mockConnection,
+        ]);
       });
 
       it('does NOT dismiss the loading toast for QR flows even when connect() fails', async () => {
