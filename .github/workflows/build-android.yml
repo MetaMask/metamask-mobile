@@ -12,7 +12,7 @@ on:
         required: true
         type: string
       environment:
-        description: 'Build environment / track (exp, beta, rc)'
+        description: 'Build environment / track. Must be one of: exp, beta, rc (enforced by validate-inputs).'
         required: true
         type: string
       upload_to_sentry:
@@ -73,7 +73,24 @@ permissions:
   id-token: write
 
 jobs:
+  # workflow_call inputs cannot use `type: choice` in GitHub Actions, so we enforce
+  # the allowed `environment` values at runtime to prevent other workflows from
+  # invoking this wrapper with arbitrary build tracks.
+  validate-inputs:
+    name: Validate inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate environment input
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          case "$ENVIRONMENT" in
+            exp|beta|rc) echo "✅ environment=$ENVIRONMENT is allowed" ;;
+            *) echo "::error::Invalid environment '$ENVIRONMENT'. Must be one of: exp, beta, rc"; exit 1 ;;
+          esac
+
   prepare-build-branch:
+    needs: [validate-inputs]
     uses: ./.github/workflows/create-build-branch.yml
     with:
       source_branch: ${{ inputs.source_branch }}
