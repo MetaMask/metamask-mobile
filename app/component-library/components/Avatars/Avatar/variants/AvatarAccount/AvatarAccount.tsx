@@ -32,7 +32,8 @@ function getJazziconSeed(address: string) {
 /**
  * @deprecated Please update your code to use `AvatarAccount` from `@metamask/design-system-react-native`.
  * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarAccount/README.md}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Jazzicon/README.md MMDS README}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#jazzicon-temp-component Migration Guide}
  */
 const AvatarAccount = ({
   type: avatarType = DEFAULT_AVATARACCOUNT_TYPE,
