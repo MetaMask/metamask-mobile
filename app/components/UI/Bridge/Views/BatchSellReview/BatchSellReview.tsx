@@ -29,6 +29,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
+  resetBridgeState,
   selectBatchSellSlippages,
   selectBatchSellDestToken,
   selectBatchSellDestStablecoins,
@@ -124,6 +125,14 @@ export function BatchSellReview() {
       }, {}),
     );
   }, [selectedTokens]);
+
+  // Reset bridge state when component unmounts.
+  useEffect(
+    () => () => {
+      dispatch(resetBridgeState());
+    },
+    [dispatch],
+  );
 
   useEffect(() => {
     // Keep Redux slippages aligned with selected tokens when the user removes tokens.

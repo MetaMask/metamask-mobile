@@ -61,6 +61,9 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  resetBridgeState: jest.fn(() => ({
+    type: 'bridge/resetBridgeState',
+  })),
   selectBatchSellSourceTokens: jest.fn(() => mockSelectedTokens),
   selectBatchSellDestStablecoins: jest.fn(() => mockDestinationTokens),
   selectBatchSellDestToken: jest.fn(() => mockSelectedDestinationToken),
@@ -231,6 +234,17 @@ describe('BatchSellReview', () => {
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'bridge/setBatchSellDestToken',
       payload: usdcToken,
+    });
+  });
+
+  it('resets bridge state on unmount', () => {
+    const { unmount } = render(<BatchSellReview />);
+
+    mockDispatch.mockClear();
+    unmount();
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'bridge/resetBridgeState',
     });
   });
 
