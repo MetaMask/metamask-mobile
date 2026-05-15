@@ -19,8 +19,9 @@ _skill_name=$(printf '%s' "$_payload" \
 
 [ -z "${_skill_name:-}" ] && exit 0
 
-# Only log skills shipped in this repo
-_repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+# Only log skills shipped in this repo.
+# TOOL_USAGE_REPO_ROOT can be overridden in tests to avoid a real git lookup.
+_repo_root="${TOOL_USAGE_REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null)}"
 _is_known_skill=0
 for _dir in \
   "${_repo_root}/.claude/skills" \

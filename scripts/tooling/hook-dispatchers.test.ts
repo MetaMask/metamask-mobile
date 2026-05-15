@@ -303,10 +303,9 @@ describe('Cursor slash command prompt payload', () => {
     runDispatcher(CURSOR_PROMPT_DISPATCHER, {
       stdin: slashCommandPayload,
       env: {
-        CI: '',                                   // opt-in to collection
-        HOME: tmpDir,                             // resolve SKILL.md via the stub created in beforeEach
-        GIT_DIR: '/dev/null',                     // prevent git rev-parse from resolving the real repo root
-        TOOL_USAGE_COLLECTION_LOG_PATH: logFile,  // write to the per-test temp file
+        CI: '',                                        // opt-in to collection
+        TOOL_USAGE_REPO_ROOT: tmpDir,                  // resolve SKILL.md via the stub created in beforeEach
+        TOOL_USAGE_COLLECTION_LOG_PATH: logFile,       // write to the per-test temp file
       },
     });
 
@@ -328,10 +327,9 @@ describe('Cursor slash command prompt payload', () => {
     const result = runDispatcher(CURSOR_PROMPT_DISPATCHER, {
       stdin: JSON.stringify({ prompt: '/totally-fake-skill', session_id: 's' }),
       env: {
-        CI: '',                                   // opt-in to collection
-        HOME: tmpDir,                             // resolve SKILL.md via the stub created in beforeEach
-        GIT_DIR: '/dev/null',                     // prevent git rev-parse from resolving the real repo root
-        TOOL_USAGE_COLLECTION_LOG_PATH: logFile,  // write to the per-test temp file
+        CI: '',                                        // opt-in to collection
+        TOOL_USAGE_REPO_ROOT: tmpDir,                  // resolve SKILL.md via the stub created in beforeEach
+        TOOL_USAGE_COLLECTION_LOG_PATH: logFile,       // write to the per-test temp file
       },
     });
     expect(result.stdout.trim()).toBe('{"permission":"allow"}');
@@ -366,10 +364,9 @@ describe('Cursor slash command prompt payload', () => {
     runDispatcher(CURSOR_PROMPT_DISPATCHER, {
       stdin: slashCommandPayload,
       env: {
-        CI: '',                                   // opt-in to collection
-        HOME: tmpDir,                             // resolve SKILL.md via the stub created in beforeEach
-        GIT_DIR: '/dev/null',                     // prevent git rev-parse from resolving the real repo root
-        TOOL_USAGE_COLLECTION_LOG_PATH: logFile,  // write to the per-test temp file
+        CI: '',                                        // opt-in to collection
+        TOOL_USAGE_REPO_ROOT: tmpDir,                  // resolve SKILL.md via the stub created in beforeEach
+        TOOL_USAGE_COLLECTION_LOG_PATH: logFile,       // write to the per-test temp file
       },
     });
 
