@@ -1,15 +1,15 @@
 import {
-  BadgeCount,
-  BadgeCountSize,
   Box,
   BoxAlignItems,
-  BoxBackgroundColor,
   BoxFlexDirection,
+  BoxJustifyContent,
   Icon,
   IconColor,
   IconName,
   IconSize,
   Skeleton,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -42,15 +42,18 @@ const BenefitsPreview = () => {
   const hasBenefits = benefits.length > 0;
   const topBenefits = benefits.slice(0, 3);
 
+  const benefitsCountLabel =
+    benefits.length > 99 ? '99+' : String(benefits.length);
+
   const benefitsCountBadge =
     benefits.length > 0 ? (
-      <BadgeCount
-        count={benefits.length}
-        max={99}
-        size={BadgeCountSize.Lg}
-        twClassName={`${BoxBackgroundColor.BackgroundMuted} min-w-6 h-6 ml-1`}
-        textProps={{ color: TextColor.TextDefault }}
-      />
+      <Tag severity={TagSeverity.Neutral}>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {strings('rewards.benefits.available_count', {
+            count: benefitsCountLabel,
+          })}
+        </Text>
+      </Tag>
     ) : null;
 
   const displayHeader = hasBenefits ? (
@@ -58,17 +61,24 @@ const BenefitsPreview = () => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="w-full"
       >
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.benefits.title')}
-        </Text>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+        >
+          <Text variant={TextVariant.HeadingMd}>
+            {strings('rewards.benefits.title')}
+          </Text>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Md}
+            color={IconColor.IconAlternative}
+          />
+        </Box>
         {benefitsCountBadge}
-        <Icon
-          name={IconName.ArrowRight}
-          size={IconSize.Md}
-          color={IconColor.IconAlternative}
-        />
       </Box>
     </Pressable>
   ) : (
@@ -80,7 +90,6 @@ const BenefitsPreview = () => {
       <Text variant={TextVariant.HeadingMd}>
         {strings('rewards.benefits.title')}
       </Text>
-      {benefitsCountBadge}
     </Box>
   );
 

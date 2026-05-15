@@ -12,7 +12,7 @@ import {
   WhatsHappeningInteractionType,
   WhatsHappeningSource,
   WhatsHappeningView,
-} from '../Homepage/Sections/WhatsHappening/constants';
+} from '../../UI/WhatsHappening/constants';
 
 const GAP = 12;
 const SNAP_INTERVAL_FOR_TEST = CARD_WIDTH + GAP;
@@ -50,7 +50,7 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../Homepage/Sections/WhatsHappening/hooks', () => ({
+jest.mock('../../UI/WhatsHappening/hooks', () => ({
   useWhatsHappening: jest.fn(() => ({
     items: [],
     isLoading: false,
@@ -78,7 +78,7 @@ jest.mock(
 );
 
 const mockUseWhatsHappening = jest.requireMock(
-  '../Homepage/Sections/WhatsHappening/hooks',
+  '../../UI/WhatsHappening/hooks',
 ).useWhatsHappening;
 
 const mockNav = jest.requireMock('@react-navigation/native');

@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { useWhatsHappeningAssetPrices } from './useWhatsHappeningAssetPrices';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
