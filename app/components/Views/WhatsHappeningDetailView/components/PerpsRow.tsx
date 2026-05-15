@@ -1,11 +1,14 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { WhatsHappeningInteractionType } from '../../Homepage/Sections/WhatsHappening/constants';
-import { getWhatsHappeningEventProps } from '../../Homepage/Sections/WhatsHappening/eventProperties';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
+import {
+  WhatsHappeningInteractionType,
+  type WhatsHappeningSourceValue,
+} from '../../../UI/WhatsHappening/constants';
+import { getWhatsHappeningEventProps } from '../../../UI/WhatsHappening/eventProperties';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
 import { formatAssetPrice } from '../utils/formatAssetPrice';
 import type { PerpsPriceEntry } from '../hooks/useWhatsHappeningAssetPrices';
 import AssetRow from './AssetRow';
@@ -15,6 +18,7 @@ interface PerpsRowProps {
   asset: RelatedAsset;
   item: WhatsHappeningItem;
   cardIndex: number;
+  source: WhatsHappeningSourceValue;
   /** Map from perps symbol → live price data, resolved by the parent card hook. */
   perpsPriceBySymbol: Record<string, PerpsPriceEntry>;
 }
@@ -29,6 +33,7 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
   asset,
   item,
   cardIndex,
+  source,
   perpsPriceBySymbol,
 }) => {
   const { handleTrade } = useTradeNavigation(asset);
@@ -49,9 +54,9 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
       return;
     }
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTION)
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTED)
         .addProperties({
-          ...getWhatsHappeningEventProps(item, cardIndex),
+          ...getWhatsHappeningEventProps(item, cardIndex, source),
           interaction_type: WhatsHappeningInteractionType.TradePressed,
           asset_symbol: asset.symbol,
           perps_market: perpsMarket,
@@ -65,6 +70,7 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
     asset.hlPerpsMarket,
     item,
     cardIndex,
+    source,
     trackEvent,
     createEventBuilder,
   ]);
@@ -86,4 +92,4 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
   );
 };
 
-export default PerpsRow;
+export default memo(PerpsRow);

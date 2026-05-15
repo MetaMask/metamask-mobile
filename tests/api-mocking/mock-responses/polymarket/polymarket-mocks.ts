@@ -42,6 +42,7 @@ import { POLYMARKET_NEW_FEED } from './market-feed-responses/polymarket-new-feed
 import {
   PROXY_WALLET_ADDRESS,
   USER_WALLET_ADDRESS,
+  LEGACY_SAFE_WALLET_ADDRESS,
   SAFE_FACTORY_ADDRESS,
   USDC_CONTRACT_ADDRESS,
   POLYGON_PUSD_TOKEN_ADDRESS,
@@ -659,6 +660,25 @@ export const POLYMARKET_FEE_RATE_MOCKS = async (mockServer: Mockttp) => {
     .thenReply(200, JSON.stringify({ base_fee: 0 }), {
       'content-type': 'application/json',
     });
+};
+
+export const POLYMARKET_CLOB_MARKET_INFO_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /^https:\/\/clob\.polymarket\.com\/clob-markets\/0x[a-fA-F0-9]+$/,
+    responseCode: 200,
+    response: {
+      fd: {
+        r: 0,
+        e: 0,
+        to: false,
+      },
+      mts: 0.01,
+      mos: 5,
+    },
+  });
 };
 
 /**
@@ -2139,6 +2159,55 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
 };
 
 /**
+ * Marks the default fixture account's computed Polymarket legacy Safe as deployed.
+ * Use this for E2E flows that must exercise the legacy Safe path.
+ * @param mockServer - The mockttp server instance
+ */
+export const POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  await mockServer
+    .forPost('/proxy')
+    .matching(async (request) => {
+      const urlParam = new URL(request.url).searchParams.get('url');
+      const isPolygonRPC = Boolean(
+        urlParam?.includes('polygon') || urlParam?.includes('infura'),
+      );
+
+      if (!isPolygonRPC) {
+        return false;
+      }
+
+      try {
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : undefined;
+
+        return (
+          body?.method === 'eth_getCode' &&
+          body?.params?.[0]?.toLowerCase() ===
+            LEGACY_SAFE_WALLET_ADDRESS.toLowerCase()
+        );
+      } catch (error) {
+        return false;
+      }
+    })
+    .asPriority(PRIORITY.API_OVERRIDE)
+    .thenCallback(async (request) => {
+      const bodyText = await safeGetBodyText(request);
+      const body = bodyText ? JSON.parse(bodyText) : undefined;
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          id: body?.id ?? 1,
+          jsonrpc: '2.0',
+          result: MOCK_RPC_RESPONSES.CONTRACT_CODE_RESULT,
+        }),
+      };
+    });
+};
+
+/**
  * Dedicated mock for loading USDC balance specifically for withdraw flow
  * This ensures balance refresh for withdraw/deposit flows doesn't interfere with cash-out
  * @param mockServer - The mockttp server instance
@@ -2470,6 +2539,7 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_PRICES_HISTORY_MOCKS(mockServer); // Mock for CLOB prices-history API (chart series)
   await POLYMARKET_TEAMS_MOCKS(mockServer); // Mock for gamma-api /teams (sports league team metadata)
   await POLYMARKET_FEE_RATE_MOCKS(mockServer);
+  await POLYMARKET_CLOB_MARKET_INFO_MOCKS(mockServer);
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   await POLYMARKET_CLOB_AUTH_MOCKS(mockServer);
 };

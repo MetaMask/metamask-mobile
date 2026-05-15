@@ -189,27 +189,25 @@ const TrendingTokenRowItem = ({
       onPress={handlePress}
       testID={rowTestId}
     >
-      <View>
-        <BadgeWrapper
-          style={styles.badge}
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            <Badge
-              size={AvatarSize.Xs}
-              variant={BadgeVariant.Network}
-              imageSource={networkBadgeImageSource}
-              isScaled={false}
-            />
-          }
-        >
-          <TrendingTokenLogo
-            assetId={token.assetId}
-            symbol={token.symbol}
-            size={40}
-            recyclingKey={token.assetId}
+      <BadgeWrapper
+        style={styles.badge}
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          <Badge
+            size={AvatarSize.Xs}
+            variant={BadgeVariant.Network}
+            imageSource={networkBadgeImageSource}
+            isScaled={false}
           />
-        </BadgeWrapper>
-      </View>
+        }
+      >
+        <TrendingTokenLogo
+          assetId={token.assetId}
+          symbol={token.symbol}
+          size={40}
+          recyclingKey={token.assetId}
+        />
+      </BadgeWrapper>
       <View style={styles.leftContainer}>
         <View style={styles.tokenHeaderRow}>
           <Text

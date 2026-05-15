@@ -19,6 +19,7 @@ describe(SmokeSnaps('Get Preferences Snap Tests'), () => {
           .build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
