@@ -8,6 +8,7 @@ import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
+import { TELEGRAM_BLUE } from '../../../constants/telegram';
 import {
   Box,
   BoxAlignItems,
@@ -41,9 +42,6 @@ type OnboardingSheetRouteProp = RouteProp<
   { OnboardingSheet: OnboardingSheetParams },
   'OnboardingSheet'
 >;
-
-// eslint-disable-next-line @metamask/design-tokens/color-no-hex -- Telegram brand blue does not exist as a design token.
-const TELEGRAM_BLUE = '#29B6F6';
 
 const OnboardingSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
