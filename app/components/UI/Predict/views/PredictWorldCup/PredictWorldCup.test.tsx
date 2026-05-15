@@ -12,6 +12,25 @@ const mockCanGoBack = jest.fn(() => true);
 let mockRouteParams: { entryPoint?: string; initialTab?: string } | undefined;
 let mockIsScreenEnabled = true;
 let mockConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
+let mockAvailableTabs = [
+  { key: 'all', label: 'All' },
+  { key: 'live', label: 'Live', isLive: true },
+  { key: 'props', label: 'Props' },
+];
+let mockAvailability = {
+  live: true,
+  props: true,
+  stages: {},
+};
+const mockUsePredictWorldCupMarkets: jest.Mock = jest.fn((_args: unknown) => ({
+  marketData: [],
+  isFetching: false,
+  isFetchingMore: false,
+  error: null,
+  hasMore: false,
+  refetch: jest.fn(),
+  fetchMore: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -42,6 +61,72 @@ jest.mock('../../selectors/featureFlags', () => ({
     'selectPredictWorldCupScreenEnabledFlag',
 }));
 
+jest.mock('@shopify/flash-list', () => {
+  const { View } = jest.requireActual('react-native');
+
+  interface MockItem {
+    id: string;
+  }
+  interface MockFlashListProps {
+    data?: MockItem[];
+    renderItem: (info: { item: MockItem; index: number }) => React.ReactNode;
+    keyExtractor?: (item: MockItem, index: number) => string;
+    ListFooterComponent?: React.ComponentType | React.ReactNode;
+    testID?: string;
+  }
+
+  const FlashList = ({
+    data = [],
+    renderItem,
+    keyExtractor,
+    ListFooterComponent,
+    testID,
+  }: MockFlashListProps) => (
+    <View testID={testID}>
+      {data.map((item, index) => (
+        <View key={keyExtractor ? keyExtractor(item, index) : item.id}>
+          {renderItem({ item, index })}
+        </View>
+      ))}
+      {typeof ListFooterComponent === 'function' ? (
+        <ListFooterComponent />
+      ) : (
+        ListFooterComponent
+      )}
+    </View>
+  );
+
+  return { FlashList };
+});
+
+jest.mock('../../components/PredictMarket', () => {
+  const { Text } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: ({
+      market,
+      testID,
+    }: {
+      market: { title: string };
+      testID: string;
+    }) => <Text testID={testID}>{market.title}</Text>,
+  };
+});
+
+jest.mock('../../hooks', () => ({
+  usePredictWorldCupAvailableTabs: () => ({
+    tabs: mockAvailableTabs,
+    availability: mockAvailability,
+    isFetching: false,
+    isLoading: false,
+    errors: [],
+    refetch: jest.fn(),
+  }),
+  usePredictWorldCupMarkets: (args: unknown) =>
+    mockUsePredictWorldCupMarkets(args),
+}));
+
 describe('PredictWorldCup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -53,6 +138,25 @@ describe('PredictWorldCup', () => {
       enabled: true,
       showWorldCupScreen: true,
     };
+    mockAvailableTabs = [
+      { key: 'all', label: 'All' },
+      { key: 'live', label: 'Live', isLive: true },
+      { key: 'props', label: 'Props' },
+    ];
+    mockAvailability = {
+      live: true,
+      props: true,
+      stages: {},
+    };
+    mockUsePredictWorldCupMarkets.mockReturnValue({
+      marketData: [],
+      isFetching: false,
+      isFetchingMore: false,
+      error: null,
+      hasMore: false,
+      refetch: jest.fn(),
+      fetchMore: jest.fn(),
+    });
   });
 
   it('renders the screen scaffold with All selected by default', () => {
@@ -66,7 +170,7 @@ describe('PredictWorldCup', () => {
     ).toHaveTextContent('all');
   });
 
-  it('renders fixed tabs and an empty content area', () => {
+  it('renders available tabs and an empty content area', () => {
     render(<PredictWorldCup />);
 
     expect(
@@ -78,6 +182,9 @@ describe('PredictWorldCup', () => {
     expect(
       screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-props`),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-group-a`),
+    ).toBeNull();
     expect(
       screen.getByTestId(PREDICT_WORLD_CUP_SCREEN_TEST_IDS.EMPTY_STATE),
     ).toBeOnTheScreen();
@@ -93,7 +200,7 @@ describe('PredictWorldCup', () => {
     ).toHaveTextContent('props');
   });
 
-  it('updates active tab when a tab is pressed', () => {
+  it('updates active tab and tab content when a tab is pressed', () => {
     render(<PredictWorldCup />);
 
     fireEvent.press(
@@ -103,20 +210,79 @@ describe('PredictWorldCup', () => {
     expect(
       screen.getByTestId(PREDICT_WORLD_CUP_SCREEN_TEST_IDS.INITIAL_TAB),
     ).toHaveTextContent('live');
+    expect(mockUsePredictWorldCupMarkets).toHaveBeenLastCalledWith({
+      tabKey: 'live',
+      config: mockConfig,
+    });
   });
 
-  it('uses a configured stage initial tab', () => {
+  it('uses a configured available stage initial tab', () => {
     mockRouteParams = { initialTab: 'group-stage' };
     mockConfig = {
       ...mockConfig,
       stages: [{ key: 'group-stage', eventIds: ['1'] }],
     };
+    mockAvailability = {
+      ...mockAvailability,
+      stages: { 'group-stage': true },
+    };
+    mockAvailableTabs = [
+      ...mockAvailableTabs,
+      { key: 'group-stage', label: 'Group Stage' },
+    ];
 
     render(<PredictWorldCup />);
 
     expect(
       screen.getByTestId(PREDICT_WORLD_CUP_SCREEN_TEST_IDS.INITIAL_TAB),
     ).toHaveTextContent('group-stage');
+  });
+
+  it('renders market content for the active tab', () => {
+    mockUsePredictWorldCupMarkets.mockReturnValue({
+      marketData: [
+        {
+          id: 'market-1',
+          title: 'World Cup winner',
+        },
+      ],
+      isFetching: false,
+      isFetchingMore: false,
+      error: null,
+      hasMore: false,
+      refetch: jest.fn(),
+      fetchMore: jest.fn(),
+    });
+
+    render(<PredictWorldCup />);
+
+    expect(
+      screen.getByTestId(PREDICT_WORLD_CUP_SCREEN_TEST_IDS.MARKET_LIST),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.MARKET_CARD}-1`),
+    ).toHaveTextContent('World Cup winner');
+  });
+
+  it('does not render tabs hidden by availability', () => {
+    mockAvailableTabs = [{ key: 'all', label: 'All' }];
+    mockAvailability = {
+      live: false,
+      props: false,
+      stages: {},
+    };
+
+    render(<PredictWorldCup />);
+
+    expect(
+      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-all`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-live`),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-props`),
+    ).toBeNull();
   });
 
   it('falls back to All for an invalid requested initial tab', () => {
