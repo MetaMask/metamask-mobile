@@ -1,11 +1,12 @@
 import {
   HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS,
+  PUSH_PRE_PROMPT_SHOWN,
   RESUBSCRIBE_NOTIFICATIONS_EXPIRY,
   TRUE,
 } from '../../../constants/storage';
 import storageWrapper from '../../../store/storage-wrapper';
 
-export const PUSH_PRE_PROMPT_SHOWN = '@MetaMask:PUSH_PRE_PROMPT_SHOWN';
+export { PUSH_PRE_PROMPT_SHOWN };
 
 /**
  * Used to track when/how often we should re-subscribe users to notifications.
