@@ -402,6 +402,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'main'
+      MM_DEV_API_ENV: 'dev'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
