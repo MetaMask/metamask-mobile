@@ -94,18 +94,6 @@ jobs:
             .metamask
             .yarn/cache
 
-      - name: Configure Namespace cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
-        with:
-          cache: |
-            cocoapods
-            xcode
-          path: |
-            ~/.cache/yarn
-            .metamask
-            .yarn/cache
-
       - name: Check force-builds override
         id: force-builds
         uses: ./.github/actions/check-force-builds
