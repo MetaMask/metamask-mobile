@@ -16,6 +16,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import {
   useNotificationStoragePreferences,
@@ -37,7 +38,11 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => (
   <>
     <View style={styles.line} />
     <View style={styles.setting}>
-      <Text color={TextColor.TextDefault} variant={TextVariant.BodyMd}>
+      <Text
+        color={TextColor.TextDefault}
+        variant={TextVariant.HeadingMd}
+        fontWeight={FontWeight.Medium}
+      >
         {strings('app_settings.notifications_opts.select_accounts_title')}
       </Text>
       <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
@@ -48,11 +53,26 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => (
   </>
 );
 
-const SocialAISectionContent = () => (
-  <SocialAINotificationPreferencesContent
-    showPushToggle={false}
-    withHorizontalPadding={false}
-  />
+const SocialAISectionContent = ({ styles }: SectionContentProps) => (
+  <>
+    <View style={styles.line} />
+    <SocialAINotificationPreferencesContent
+      showPushToggle={false}
+      withHorizontalPadding={false}
+    />
+  </>
+);
+
+const MarketingSectionContent = ({ styles }: SectionContentProps) => (
+  <View style={styles.marketingDisclaimer}>
+    <Text
+      color={TextColor.TextAlternative}
+      variant={TextVariant.BodySm}
+      style={styles.marketingDisclaimerText}
+    >
+      {strings('app_settings.notifications_opts.marketing_disclaimer')}
+    </Text>
+  </View>
 );
 
 const SECTION_CONTENT_BY_TYPE: Partial<
@@ -63,6 +83,7 @@ const SECTION_CONTENT_BY_TYPE: Partial<
 > = {
   walletActivity: WalletActivitySectionContent,
   socialAI: SocialAISectionContent,
+  marketing: MarketingSectionContent,
 };
 
 export interface NotificationSettingsSectionProps {
@@ -107,11 +128,17 @@ const NotificationSettingsSection = ({
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <HeaderCompactStandard title={title} onBack={() => navigation.goBack()} />
-      <ScrollView style={styles.container}>
+      <HeaderCompactStandard
+        title={strings('app_settings.notifications_title')}
+        onBack={() => navigation.goBack()}
+      />
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+      >
         <View style={styles.setting}>
           <Text color={TextColor.TextDefault} variant={TextVariant.HeadingLg}>
-            {strings('app_settings.notifications_opts.preferences_title')}
+            {title}
           </Text>
           <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
             {description}
@@ -119,7 +146,11 @@ const NotificationSettingsSection = ({
         </View>
 
         <View style={styles.switchElement}>
-          <Text color={TextColor.TextDefault} variant={TextVariant.BodyMd}>
+          <Text
+            color={TextColor.TextDefault}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+          >
             {strings('app_settings.notifications_opts.push_recommended')}
           </Text>
           <Switch
@@ -142,7 +173,11 @@ const NotificationSettingsSection = ({
         </View>
 
         <View style={styles.switchElement}>
-          <Text color={TextColor.TextDefault} variant={TextVariant.BodyMd}>
+          <Text
+            color={TextColor.TextDefault}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+          >
             {strings('app_settings.notifications_opts.in_app')}
           </Text>
           <Switch

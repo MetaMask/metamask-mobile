@@ -272,8 +272,6 @@ const SocialAINotificationPreferencesContent = ({
         </>
       )}
 
-      <View style={[separatorStyle, tw.style('mt-2')]} />
-
       <Box
         twClassName={`${horizontalPaddingClassName} pt-5 pb-2`}
         testID={NotificationPreferencesSelectorsIDs.TRADERS_SECTION}
