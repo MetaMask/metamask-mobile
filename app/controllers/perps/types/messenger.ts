@@ -2,6 +2,7 @@ import type {
   AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
   AccountTreeControllerSelectedAccountGroupChangeEvent,
 } from '@metamask/account-tree-controller';
+import type { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
 import type { GeolocationControllerGetGeolocationAction } from '@metamask/geolocation-controller';
 import type {
   KeyringControllerGetStateAction,
@@ -32,6 +33,7 @@ export type PerpsControllerAllowedActions =
   | KeyringControllerSignTypedMessageAction
   | TransactionControllerAddTransactionAction
   | RemoteFeatureFlagControllerGetStateAction
+  | AccountsControllerGetSelectedAccountAction
   | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction;
 

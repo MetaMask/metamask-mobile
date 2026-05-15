@@ -5,6 +5,7 @@
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import type { PerpsControllerMessenger } from '../PerpsController';
 import type { AccountState, PerpsInternalAccount } from '../types';
 import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
 
@@ -35,6 +36,32 @@ export function getSelectedEvmAccount(
   accounts: (InternalAccount | PerpsInternalAccount)[],
 ): { address: string } | undefined {
   return getEvmAccountFromAccountGroup(accounts);
+}
+
+export function getSelectedEvmAccountFromMessenger(
+  messenger: Pick<PerpsControllerMessenger, 'call'>,
+): { address: string } | undefined {
+  try {
+    const selectedAccount = messenger.call(
+      'AccountsController:getSelectedAccount',
+    );
+    const evmAccount = findEvmAccount([selectedAccount]);
+    if (evmAccount) {
+      return { address: evmAccount.address };
+    }
+  } catch {
+    // Fall back to the selected account group if the direct lookup is unavailable.
+  }
+
+  try {
+    return getSelectedEvmAccount(
+      messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ),
+    );
+  } catch {
+    return undefined;
+  }
 }
 
 export type ReturnOnEquityInput = {
