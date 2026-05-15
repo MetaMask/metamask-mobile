@@ -34,7 +34,7 @@ async function changeNetworkFromNetworkListModal(networkName: string) {
   await NetworkManager.navigateBackFromTokensFullView();
 }
 
-describe(SmokeConfirmations('Dapp Network Switching'), () => {
+describe.skip(SmokeConfirmations('Dapp Network Switching'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,

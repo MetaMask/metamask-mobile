@@ -16,14 +16,14 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { Article, MarketInsightsSource } from '@metamask/ai-controllers';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
-import type { WhatsHappeningSourceValue } from '../../Homepage/Sections/WhatsHappening/constants';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
+import type { WhatsHappeningSourceValue } from '../../../UI/WhatsHappening/constants';
 import { strings } from '../../../../../locales/i18n';
 import {
   getImpactLabel,
   getImpactBackgroundClass,
   getImpactTextColor,
-} from '../../Homepage/Sections/WhatsHappening/util/impact';
+} from '../../../UI/WhatsHappening/util/impact';
 import {
   formatRelativeTime,
   getUniqueSourcesByFavicon,
@@ -42,7 +42,7 @@ interface WhatsHappeningExpandedCardProps {
   cardHeight: number;
   source: WhatsHappeningSourceValue;
   /**
-   * Called when the user taps the sources footer row. The parent is responsible
+   * Called when the user taps the sources row. The parent is responsible
    * for rendering the bottom sheet so it is anchored to the screen root rather
    * than the card's positioning context.
    */
@@ -81,6 +81,11 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
     return remaining > 0 ? `${first.name} +${remaining}` : first.name;
   }, [uniqueSources]);
 
+  const formattedDate = useMemo(
+    () => (item.date ? formatRelativeTime(item.date, { nowLabel: 'now' }) : ''),
+    [item.date],
+  );
+
   const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(item);
 
   const scrollBottomFadeColors = useMemo((): string[] => {
@@ -95,7 +100,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   }, [tw, isDarkMode, colors.background.muted]);
 
   const aiPillContainerClass = isDarkMode
-    ? 'bg-icon-default rounded px-1.5 py-1 self-start'
+    ? 'bg-icon-default rounded px-1.5 py-1 self-start border border-transparent'
     : 'bg-default rounded px-1.5 py-1 self-start border border-text-default';
   const aiPillForegroundClass = isDarkMode
     ? 'text-icon-inverse'
@@ -143,12 +148,12 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                     fontWeight={FontWeight.Medium}
                     twClassName={aiPillForegroundClass}
                   >
-                    {strings('homepage.sections.whats_happening_ai')}
+                    {strings('whats_happening.ai')}
                   </Text>
                 </Box>
 
                 <Box
-                  twClassName={`${impactBgClass} rounded px-2 py-1 self-start`}
+                  twClassName={`${impactBgClass} rounded px-2 py-1 self-start border border-transparent`}
                 >
                   <Text variant={TextVariant.BodySm} color={impactTextColor}>
                     {impactLabel}
@@ -159,21 +164,73 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
 
             {/* Title */}
             <Text
-              variant={TextVariant.HeadingLg}
+              variant={TextVariant.HeadingMd}
               fontWeight={FontWeight.Bold}
               color={TextColor.TextDefault}
             >
               {item.title}
             </Text>
 
-            {/* Description */}
-            {item.description && (
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {item.description}
-              </Text>
+            {/* Description + sources */}
+            {(item.description || uniqueSources.length > 0) && (
+              <Box>
+                {item.description && (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {item.description}
+                  </Text>
+                )}
+
+                {uniqueSources.length > 0 && (
+                  <Pressable
+                    onPress={() => onSourcesPress?.(item.articles)}
+                    accessibilityRole="button"
+                  >
+                    {({ pressed }) => (
+                      <Box
+                        flexDirection={BoxFlexDirection.Row}
+                        alignItems={BoxAlignItems.Center}
+                        justifyContent={BoxJustifyContent.Between}
+                        gap={2}
+                        twClassName={
+                          pressed ? 'pt-2 pb-4 opacity-60' : 'pt-2 pb-4'
+                        }
+                      >
+                        <Box
+                          flexDirection={BoxFlexDirection.Row}
+                          alignItems={BoxAlignItems.Center}
+                          gap={2}
+                          twClassName="flex-shrink"
+                        >
+                          <SourceLogoGroup sources={uniqueSources} />
+                          {sourceLabel ? (
+                            <Text
+                              variant={TextVariant.BodySm}
+                              color={TextColor.TextAlternative}
+                              numberOfLines={1}
+                            >
+                              {sourceLabel}
+                            </Text>
+                          ) : null}
+                        </Box>
+
+                        {formattedDate ? (
+                          <Text
+                            variant={TextVariant.BodySm}
+                            color={TextColor.TextAlternative}
+                            numberOfLines={1}
+                            twClassName="shrink-0"
+                          >
+                            {formattedDate}
+                          </Text>
+                        ) : null}
+                      </Box>
+                    )}
+                  </Pressable>
+                )}
+              </Box>
             )}
 
             {/* Related assets section */}
@@ -207,50 +264,6 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
             style={tw.style('absolute left-0 right-0 bottom-0 h-10')}
           />
         </Box>
-
-        {/* Fixed sources footer */}
-        {uniqueSources.length > 0 && (
-          <Box twClassName="px-5 pb-5 pt-4" gap={4}>
-            <Pressable
-              onPress={() => onSourcesPress?.(item.articles)}
-              accessibilityRole="button"
-            >
-              {({ pressed }) => (
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Between}
-                  twClassName={pressed ? 'opacity-60' : ''}
-                >
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    gap={2}
-                  >
-                    <SourceLogoGroup sources={uniqueSources} />
-                    {sourceLabel ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.TextAlternative}
-                      >
-                        {sourceLabel}
-                      </Text>
-                    ) : null}
-                  </Box>
-
-                  {item.date ? (
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {formatRelativeTime(item.date, { nowLabel: 'now' })}
-                    </Text>
-                  ) : null}
-                </Box>
-              )}
-            </Pressable>
-          </Box>
-        )}
       </Box>
     </Box>
   );

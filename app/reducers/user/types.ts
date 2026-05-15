@@ -23,5 +23,6 @@ export interface UserState {
   multichainAccountsIntroModalSeen: boolean;
   musdConversionEducationSeen: boolean;
   musdConversionAssetDetailCtasSeen: Record<string, boolean>;
+  moneyOnboardingSeen: boolean;
   tokenOverviewChartType: ChartType;
 }

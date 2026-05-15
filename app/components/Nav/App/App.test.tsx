@@ -123,6 +123,9 @@ jest.mock('../../Views/QRTabSwitcher', () => () => (
 jest.mock('../../UI/OptinMetrics', () => () => (
   <MockView testID="mock-optin" />
 ));
+jest.mock('../../Views/OnboardingInterestQuestionnaire', () => () => (
+  <MockView testID="mock-onboarding-interest-questionnaire" />
+));
 jest.mock('../../Views/AccountStatus', () => () => (
   <MockView testID="mock-account-status" />
 ));
@@ -1722,7 +1725,43 @@ describe('App', () => {
       const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(getByTestId('mock-onboarding')).toBeTruthy();
+        expect(getByTestId('mock-onboarding')).toBeOnTheScreen();
+      });
+    });
+
+    it('renders OnboardingInterestQuestionnaire when it is the active OnboardingNav route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingRootNav',
+            state: {
+              index: 0,
+              routes: [
+                {
+                  name: 'OnboardingNav',
+                  state: {
+                    index: 0,
+                    routes: [
+                      {
+                        name: Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+                        params: { onComplete: jest.fn() },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId('mock-onboarding-interest-questionnaire'),
+        ).toBeOnTheScreen();
       });
     });
 

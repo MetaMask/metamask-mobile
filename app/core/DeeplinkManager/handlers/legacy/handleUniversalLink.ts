@@ -31,6 +31,7 @@ import { handleCardOnboarding } from './handleCardOnboarding';
 import { handleCardHome } from './handleCardHome';
 import { handleCardKycNotification } from './handleCardKycNotification';
 import { handleTrendingUrl } from './handleTrendingUrl';
+import { handleWhatsHappeningUrl } from './handleWhatsHappeningUrl';
 import { handleSocialLeaderboardUrl } from './handleSocialLeaderboardUrl';
 import { handleSocialTraderPositionUrl } from './handleSocialTraderPositionUrl';
 import { handleEarnMusd } from './handleEarnMusd';
@@ -87,6 +88,7 @@ const SUPPORTED_ACTIONS = {
   CARD_HOME: ACTIONS.CARD_HOME,
   CARD_KYC_NOTIFICATION: ACTIONS.CARD_KYC_NOTIFICATION,
   TRENDING: ACTIONS.TRENDING,
+  WHATS_HAPPENING: ACTIONS.WHATS_HAPPENING,
   SOCIAL_LEADERBOARD: ACTIONS.SOCIAL_LEADERBOARD,
   SOCIAL_TRADER_POSITION: ACTIONS.SOCIAL_TRADER_POSITION,
   SHIELD: ACTIONS.SHIELD,
@@ -122,6 +124,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.SELL,
   SUPPORTED_ACTIONS.SELL_CRYPTO,
   SUPPORTED_ACTIONS.TRENDING,
+  SUPPORTED_ACTIONS.WHATS_HAPPENING,
   SUPPORTED_ACTIONS.SOCIAL_LEADERBOARD,
   SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION,
   SUPPORTED_ACTIONS.SHIELD,
@@ -644,6 +647,10 @@ async function handleUniversalLink({
       handleTrendingUrl({
         actionPath: actionBasedRampPath,
       });
+      break;
+    }
+    case SUPPORTED_ACTIONS.WHATS_HAPPENING: {
+      handleWhatsHappeningUrl();
       break;
     }
     case SUPPORTED_ACTIONS.SOCIAL_LEADERBOARD: {

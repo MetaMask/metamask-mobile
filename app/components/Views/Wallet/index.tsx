@@ -153,7 +153,6 @@ import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccoun
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import Logger from '../../../util/Logger';
 import { useNftDetection } from '../../hooks/useNftDetection';
-import { Carousel } from '../../UI/Carousel';
 import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
 
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
@@ -189,7 +188,7 @@ import {
 import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
-import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
+import { Carousel } from '../../UI/Carousel';
 import { SolScope } from '@metamask/keyring-api';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
@@ -198,6 +197,7 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
 
 /** Reanimated layout when the top cluster height changes (e.g. checklist → balance). */
 const WALLET_HOME_MAIN_BELOW_CLUSTER_LAYOUT = LinearTransition.duration(
@@ -397,6 +397,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'tokens-tab',
       tabLabel: strings('wallet.tokens'),
+      testID: WalletViewSelectorsIDs.TOKENS_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -406,6 +407,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'perps-tab',
       tabLabel: strings('wallet.perps'),
+      testID: WalletViewSelectorsIDs.PERPS_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -415,6 +417,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'predict-tab',
       tabLabel: strings('wallet.predict'),
+      testID: WalletViewSelectorsIDs.PREDICT_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -424,6 +427,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'defi-tab',
       tabLabel: strings('wallet.defi'),
+      testID: WalletViewSelectorsIDs.DEFI_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -433,6 +437,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'nfts-tab',
       tabLabel: strings('wallet.collectibles'),
+      testID: WalletViewSelectorsIDs.NFTS_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -603,6 +608,7 @@ const WalletTokensTabView = forwardRef<
         ref={tabsListRef}
         onChangeTab={handleTabChange}
         tabsListContentTwClassName={'!flex-initial'}
+        testID={WalletViewSelectorsIDs.WALLET_TABS}
       >
         {tabsToRender}
       </TabsList>
@@ -733,6 +739,16 @@ const Wallet = ({
     sourcePage: 'MainView',
   });
 
+  /** Trade checklist primary — Segment location per TMCU-680. */
+  const goToSwapsFromOnboardingChecklist = useCallback(() => {
+    goToSwaps(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      ActionLocation.ONBOARDING_CHECKLIST,
+    );
+  }, [goToSwaps]);
   const handleWalletHomeOnboardingNotificationsPrimary = useCallback(() => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.NOTIFICATIONS,
@@ -1032,7 +1048,7 @@ const Wallet = ({
     getMetamaskNotificationsUnreadCount,
   );
 
-  const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
+  const homeGrowthBanner = useHomeGrowthBanner();
 
   const { detectNfts } = useNftDetection();
 
@@ -1300,6 +1316,23 @@ const Wallet = ({
     ],
   );
 
+  const handleBannerError = useCallback(() => {
+    // Log the error but don't block the UI
+    Logger.error(new Error('Banner rendering error in wallet home'));
+  }, []);
+
+  const homeGrowthBannerContent =
+    homeGrowthBanner === 'braze' ? (
+      <ComponentErrorBoundary
+        componentLabel="BrazeBanner"
+        onError={handleBannerError}
+      >
+        <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
+      </ComponentErrorBoundary>
+    ) : homeGrowthBanner === 'carousel' ? (
+      <Carousel style={styles.carousel} />
+    ) : null;
+
   const bannerContent = (
     <View style={styles.banner}>
       {!basicFunctionalityEnabled ? (
@@ -1320,31 +1353,34 @@ const Wallet = ({
     </View>
   );
 
+  /** Same wiring as legacy `content` cluster — homepage v1 header paths must hide main actions and pass checklist callbacks. */
+  const walletHomeAccountGroupBalanceProps = {
+    onCoordinatedFlowExit: runWalletHomePostOnboardingComplete,
+    suspendRiveForCurtain: postOnboardingExitAnimating,
+    onTradePrimaryPress: goToSwapsFromOnboardingChecklist,
+    onNotificationsPrimaryPress: handleWalletHomeOnboardingNotificationsPrimary,
+  };
+
+  const walletHomeMainAssetDetailsActions = showWalletHomeMainActions ? (
+    <AssetDetailsActions
+      displayBuyButton={displayBuyButton}
+      displaySwapsButton={displaySwapsButton}
+      goToSwaps={goToSwaps}
+      onReceive={onReceive}
+      onSend={onSend}
+      buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+      swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+      sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+      receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+    />
+  ) : null;
+
   const portfolioHeaderBase = (
     <>
       {bannerContent}
-      <AccountGroupBalance
-        onCoordinatedFlowExit={runWalletHomePostOnboardingComplete}
-        suspendRiveForCurtain={postOnboardingExitAnimating}
-        onTradePrimaryPress={goToSwaps}
-        onNotificationsPrimaryPress={
-          handleWalletHomeOnboardingNotificationsPrimary
-        }
-      />
-      {showWalletHomeMainActions ? (
-        <AssetDetailsActions
-          displayBuyButton={displayBuyButton}
-          displaySwapsButton={displaySwapsButton}
-          goToSwaps={goToSwaps}
-          onReceive={onReceive}
-          onSend={onSend}
-          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-        />
-      ) : null}
-      {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+      <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
+      {walletHomeMainAssetDetailsActions}
+      {homeGrowthBannerContent}
       {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
     </>
   );
@@ -1353,29 +1389,10 @@ const Wallet = ({
     <>
       {bannerContent}
       <View style={styles.accountGroupBalanceContainer}>
-        <AccountGroupBalance
-          onCoordinatedFlowExit={runWalletHomePostOnboardingComplete}
-          suspendRiveForCurtain={postOnboardingExitAnimating}
-          onTradePrimaryPress={goToSwaps}
-          onNotificationsPrimaryPress={
-            handleWalletHomeOnboardingNotificationsPrimary
-          }
-        />
+        <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       </View>
-      {showWalletHomeMainActions ? (
-        <AssetDetailsActions
-          displayBuyButton={displayBuyButton}
-          displaySwapsButton={displaySwapsButton}
-          goToSwaps={goToSwaps}
-          onReceive={onReceive}
-          onSend={onSend}
-          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-        />
-      ) : null}
-      {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+      {walletHomeMainAssetDetailsActions}
+      {homeGrowthBannerContent}
       {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
     </>
   );
@@ -1383,7 +1400,7 @@ const Wallet = ({
   // Legacy scroll view content — used only when the sections redesign is off.
   const content = (
     <>
-      <View style={styles.banner}>
+      <View style={styles.banner} accessible={false}>
         {!basicFunctionalityEnabled ? (
           <BannerAlert
             severity={BannerAlertSeverity.Error}
@@ -1405,37 +1422,16 @@ const Wallet = ({
           testID={WalletViewSelectorsIDs.WALLET_TOP_CLUSTER_INNER}
           style={styles.walletTopCluster}
         >
-          <AccountGroupBalance
-            onCoordinatedFlowExit={runWalletHomePostOnboardingComplete}
-            suspendRiveForCurtain={postOnboardingExitAnimating}
-            onTradePrimaryPress={goToSwaps}
-            onNotificationsPrimaryPress={
-              handleWalletHomeOnboardingNotificationsPrimary
-            }
-          />
+          <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
 
-          {showWalletHomeMainActions ? (
-            <AssetDetailsActions
-              displayBuyButton={displayBuyButton}
-              displaySwapsButton={displaySwapsButton}
-              goToSwaps={goToSwaps}
-              onReceive={onReceive}
-              onSend={onSend}
-              buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-              swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-              sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-              receiveButtonActionID={
-                WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
-              }
-            />
-          ) : null}
+          {walletHomeMainAssetDetailsActions}
         </View>
 
         <Reanimated.View
           layout={WALLET_HOME_MAIN_BELOW_CLUSTER_LAYOUT}
           style={styles.walletPostOnboardingMainBelowCluster}
         >
-          {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+          {homeGrowthBannerContent}
 
           {isHomepageSectionsV1Enabled ? (
             <>

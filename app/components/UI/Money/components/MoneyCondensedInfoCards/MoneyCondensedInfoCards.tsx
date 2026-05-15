@@ -15,9 +15,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyCondensedInfoCardsTestIds } from './MoneyCondensedInfoCards.testIds';
-import ethTreeImage from '../../../../../images/eth-tree.png';
-import musdCoinImage from '../../../../../images/musd-icon-no-background-2x.png';
-import purpleOrangeRibbonImage from '../../../../../images/purple-orange-ribbon.png';
+import howItWorksImage from '../../../../../images/mm_how_it_works.png';
+import musdCoinImage from '../../../../../images/mm_usd.png';
+import whatYouGetImage from '../../../../../images/mm_what_you_get.png';
 import { Image, ImageProps } from 'expo-image';
 
 interface MoneyCondensedInfoCardsProps {
@@ -64,11 +64,11 @@ const CondensedCard = ({
         )}
       </Box>
       <Box twClassName="flex-1 gap-1">
-        <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {title}
         </Text>
         <Text
-          variant={TextVariant.BodyXs}
+          variant={TextVariant.BodySm}
           fontWeight={FontWeight.Regular}
           color={TextColor.TextAlternative}
         >
@@ -90,8 +90,8 @@ const MoneyCondensedInfoCards = ({
   >
     <CondensedCard
       image={{
-        source: ethTreeImage,
-        style: { height: 50, width: 64 },
+        source: howItWorksImage,
+        style: { height: 58, width: 58 },
         testID: MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_IMAGE,
       }}
       title={strings('money.condensed_cards.how_it_works_title')}
@@ -102,7 +102,7 @@ const MoneyCondensedInfoCards = ({
     <CondensedCard
       image={{
         source: musdCoinImage,
-        style: { height: 50, width: 50 },
+        style: { height: 48, width: 48 },
         testID: MoneyCondensedInfoCardsTestIds.MUSD_IMAGE,
       }}
       title={strings('money.condensed_cards.musd_title')}
@@ -112,8 +112,8 @@ const MoneyCondensedInfoCards = ({
     />
     <CondensedCard
       image={{
-        source: purpleOrangeRibbonImage,
-        style: { height: 64, width: 64 },
+        source: whatYouGetImage,
+        style: { height: 66, width: 66 },
         testID: MoneyCondensedInfoCardsTestIds.WHAT_YOU_GET_IMAGE,
       }}
       title={strings('money.condensed_cards.what_you_get_title')}

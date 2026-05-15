@@ -8,6 +8,11 @@ import WhatsHappeningDetailView, {
   CARD_WIDTH,
 } from './WhatsHappeningDetailView';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import {
+  WhatsHappeningInteractionType,
+  WhatsHappeningSource,
+  WhatsHappeningView,
+} from '../../UI/WhatsHappening/constants';
 
 const GAP = 12;
 const SNAP_INTERVAL_FOR_TEST = CARD_WIDTH + GAP;
@@ -45,7 +50,7 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../Homepage/Sections/WhatsHappening/hooks', () => ({
+jest.mock('../../UI/WhatsHappening/hooks', () => ({
   useWhatsHappening: jest.fn(() => ({
     items: [],
     isLoading: false,
@@ -73,7 +78,7 @@ jest.mock(
 );
 
 const mockUseWhatsHappening = jest.requireMock(
-  '../Homepage/Sections/WhatsHappening/hooks',
+  '../../UI/WhatsHappening/hooks',
 ).useWhatsHappening;
 
 const mockNav = jest.requireMock('@react-navigation/native');
@@ -95,7 +100,7 @@ describe('WhatsHappeningDetailView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRoute.mockReturnValue({
-      params: { initialIndex: 0, source: 'homepage' },
+      params: { source: 'homepage' },
     });
     mockUseNavigation.mockReturnValue({ goBack: mockGoBack });
 
@@ -312,6 +317,63 @@ describe('WhatsHappeningDetailView', () => {
     expect(mockCreateEventBuilder).not.toHaveBeenCalled();
   });
 
+  it('tracks WHATS_HAPPENING_INTERACTED pan event when swiping to a new card', () => {
+    const secondItem = {
+      ...mockItem,
+      id: 'trend-1',
+      title: 'Second trend',
+      category: 'social' as const,
+      impact: 'negative' as const,
+    };
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem, secondItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: SNAP_INTERVAL_FOR_TEST, y: 0 } },
+    });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+        properties: expect.objectContaining({
+          interaction_type: WhatsHappeningInteractionType.Pan,
+          view: WhatsHappeningView.Expanded,
+          trend_id: secondItem.id,
+          card_index: 1,
+          source: WhatsHappeningSource.Homepage,
+        }),
+      }),
+    );
+  });
+
+  it('does not track pan event when momentum scroll resolves to the same card index', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 0, y: 0 } },
+    });
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+    );
+  });
+
   it('tracks Whats Happening Closed with the visible card when back is pressed', () => {
     mockUseWhatsHappening.mockReturnValue({
       items: [mockItem],
@@ -395,7 +457,9 @@ describe('WhatsHappeningDetailView', () => {
   });
 
   it('scrolls to initialIndex once content is wide enough', () => {
-    mockUseRoute.mockReturnValue({ params: { initialIndex: 1 } });
+    mockUseRoute.mockReturnValue({
+      params: { initialIndex: 1, source: 'homepage' },
+    });
     mockUseWhatsHappening.mockReturnValue({
       items: [mockItem, { ...mockItem, id: 'trend-1' }],
       isLoading: false,
@@ -410,5 +474,116 @@ describe('WhatsHappeningDetailView', () => {
     expect(() =>
       fireEvent(carousel, 'contentSizeChange', 700, 600),
     ).not.toThrow();
+  });
+
+  describe('Whats Happening Details Opened event', () => {
+    it('fires once on mount during cold start when data has not resolved', () => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [],
+        isLoading: true,
+        error: null,
+        refresh: mockRefresh,
+      });
+      renderWithProvider(<WhatsHappeningDetailView />);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+          properties: expect.objectContaining({
+            source: 'homepage',
+            initial_index: 0,
+          }),
+        }),
+      );
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
+      );
+    });
+
+    it('fires with source deeplink when route params carry the deeplink source', () => {
+      mockUseRoute.mockReturnValue({
+        params: { initialIndex: 0, source: WhatsHappeningSource.Deeplink },
+      });
+      mockUseWhatsHappening.mockReturnValue({
+        items: [],
+        isLoading: true,
+        error: null,
+        refresh: mockRefresh,
+      });
+      renderWithProvider(<WhatsHappeningDetailView />);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+          properties: expect.objectContaining({
+            source: 'deeplink',
+            initial_index: 0,
+          }),
+        }),
+      );
+    });
+
+    it('fires once on mount and VIEWED also fires when data is already loaded', () => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [mockItem],
+        isLoading: false,
+        error: null,
+        refresh: mockRefresh,
+      });
+      renderWithProvider(<WhatsHappeningDetailView />);
+      const openedCalls = mockCreateEventBuilder.mock.calls.filter(
+        ([name]) =>
+          name ===
+          (MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED as unknown as string),
+      );
+      const viewedCalls = mockCreateEventBuilder.mock.calls.filter(
+        ([name]) =>
+          name ===
+          (MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED as unknown as string),
+      );
+      expect(openedCalls).toHaveLength(1);
+      expect(viewedCalls).toHaveLength(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+          properties: expect.objectContaining({ source: 'homepage' }),
+        }),
+      );
+    });
+
+    it('fires only once across re-renders', () => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [mockItem],
+        isLoading: false,
+        error: null,
+        refresh: mockRefresh,
+      });
+      const { rerender } = renderWithProvider(<WhatsHappeningDetailView />);
+      rerender(<WhatsHappeningDetailView />);
+      const openedCalls = mockCreateEventBuilder.mock.calls.filter(
+        ([name]) =>
+          name ===
+          (MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED as unknown as string),
+      );
+      expect(openedCalls).toHaveLength(1);
+    });
+
+    it('does not include trend_id or asset_symbols in the payload', () => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [mockItem],
+        isLoading: false,
+        error: null,
+        refresh: mockRefresh,
+      });
+      renderWithProvider(<WhatsHappeningDetailView />);
+      const openedCall = mockTrackEvent.mock.calls.find(
+        ([event]) =>
+          event.category === MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+      );
+      expect(openedCall).toBeDefined();
+      expect(openedCall?.[0].properties).not.toHaveProperty('trend_id');
+      expect(openedCall?.[0].properties).not.toHaveProperty('asset_symbols');
+    });
   });
 });
