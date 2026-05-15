@@ -45,7 +45,7 @@ const MoneyOnboardingCard = () => {
   const isCardholder = useSelector(selectIsCardholder);
 
   // Note: moneyAccountCardToken is null if the card is not linked.
-  const { moneyAccountCardToken, canLink, linkInBackground } =
+  const { moneyAccountCardToken, canLink, openLinkCardSheet } =
     useMoneyAccountCardLinkage();
 
   const conversionTokensFiatTotal = tokens.reduce(
@@ -73,6 +73,20 @@ const MoneyOnboardingCard = () => {
       params: { apy: apyPercent },
     });
   }, [navigation, apyPercent]);
+
+  const handleLinkCardPress = useCallback(() => {
+    if (isCardholder && canLink) {
+      openLinkCardSheet();
+      return;
+    }
+    navigation.navigate(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+    });
+  }, [isCardholder, canLink, openLinkCardSheet, navigation]);
+
+  const handleSkipPress = useCallback(() => {
+    incrementStep();
+  }, [incrementStep]);
 
   const getStep1Content = useCallback((): StepperCardStep => {
     const aggregatedMusdBalanceBN = new BigNumber(musdTokenBalanceAcrossChains);
@@ -136,16 +150,6 @@ const MoneyOnboardingCard = () => {
     handleApyInfoPress,
     musdTokenBalanceAcrossChains,
   ]);
-
-  const handleLinkCardPress = useCallback(() => {
-    if (canLink) {
-      linkInBackground();
-    }
-  }, [canLink, linkInBackground]);
-
-  const handleSkipPress = useCallback(() => {
-    incrementStep();
-  }, [incrementStep]);
 
   const handleGetCardPress = useCallback(() => {
     navigation.navigate(Routes.CARD.ROOT);

@@ -95,7 +95,7 @@ const StepperCard = ({
                   name={IconName.Info}
                   color={IconColor.IconAlternative}
                   size={IconSize.Sm}
-                  style={tw.style('top-0.75 left-1')}
+                  style={tw.style('top-0.8 left-1')}
                 />
               </TouchableOpacity>
             )}
