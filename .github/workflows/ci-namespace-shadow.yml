@@ -1,5 +1,25 @@
 name: CI (Namespace shadow)
 
+# Fire-and-forget dispatcher for the Namespace shadow benchmark (INFRA-3631).
+#
+# This workflow does NOT use `workflow_call`. Instead, it dispatches `ci.yml`
+# as a separate `workflow_dispatch` run with `runner_provider=namespace`.
+#
+# Why a dispatch instead of a call:
+#   - `workflow_call` nests the called workflow's jobs into THIS workflow's
+#     check suite on the PR. With the repo's merge queue ALLGREEN policy,
+#     any shadow flake would block merges.
+#   - `workflow_dispatch` runs live in the Actions tab only -- invisible to
+#     PR checks. The shadow can fail freely; it never blocks the queue,
+#     never duplicates commit statuses, never posts PR comments.
+#
+# Correlation back to the originating PR:
+#   - The dispatched run's display name is set via `run-name` in ci.yml to
+#     `ci [shadow PR #<num> @ <sha>]`, so it's identifiable in the Actions
+#     tab at a glance.
+#   - The dispatcher job posts a GitHub Actions step summary linking the PR
+#     to the dispatched shadow run URL, reachable from the PR Checks tab.
+
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
@@ -17,17 +37,78 @@ concurrency:
   group: ns-shadow-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
-  shadow-ci:
-    name: '[shadow] CI'
-    permissions:
-      actions: read
-      contents: read
-      id-token: write
-      issues: write
-      pull-requests: write
-      statuses: write
-    uses: ./.github/workflows/ci.yml
-    with:
-      runner_provider: namespace
-    secrets: inherit
+  dispatch-shadow:
+    name: '[shadow] Dispatch'
+    runs-on: ubuntu-latest
+    # Skip dispatch for fork PRs: ACTIONS_WRITE_TOKEN is not exposed to forks,
+    # and we don't want untrusted PRs consuming Namespace capacity.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    steps:
+      - name: Dispatch ci.yml on Namespace
+        id: dispatch
+        env:
+          GH_TOKEN: ${{ secrets.ACTIONS_WRITE_TOKEN }}
+          REPO: ${{ github.repository }}
+          REF: ${{ github.head_ref || github.ref_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          echo "Dispatching ci.yml on ref='${REF}' (PR='${PR_NUMBER:-none}', sha='${HEAD_SHA}')"
+          gh workflow run ci.yml \
+            --repo "$REPO" \
+            --ref "$REF" \
+            -f runner_provider=namespace \
+            -f pr_number="$PR_NUMBER" \
+            -f head_sha="$HEAD_SHA"
+
+          # gh workflow run returns immediately with no run ID. Find the run
+          # we just created so we can link to it from the step summary.
+          # Best-effort: poll briefly for a queued/in_progress dispatch on this ref.
+          RUN_URL=""
+          for _ in $(seq 1 10); do
+            RUN_URL=$(gh run list \
+              --repo "$REPO" \
+              --workflow ci.yml \
+              --event workflow_dispatch \
+              --branch "$REF" \
+              --limit 1 \
+              --json url,createdAt \
+              --jq '.[0].url' 2>/dev/null || true)
+            if [ -n "$RUN_URL" ] && [ "$RUN_URL" != "null" ]; then
+              break
+            fi
+            sleep 2
+          done
+          echo "run_url=${RUN_URL}" >> "$GITHUB_OUTPUT"
+
+      - name: Step summary
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          PR_URL: ${{ github.event.pull_request.html_url || '' }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          REF: ${{ github.head_ref || github.ref_name }}
+          RUN_URL: ${{ steps.dispatch.outputs.run_url }}
+        run: |
+          {
+            echo "## Namespace shadow CI dispatched"
+            echo
+            echo "| Field | Value |"
+            echo "|---|---|"
+            if [ -n "$PR_NUMBER" ]; then
+              echo "| PR | [#${PR_NUMBER}](${PR_URL}) |"
+            fi
+            echo "| Ref | \`${REF}\` |"
+            echo "| Head SHA | \`${HEAD_SHA}\` |"
+            if [ -n "${RUN_URL}" ]; then
+              echo "| Shadow run | ${RUN_URL} |"
+            else
+              echo "| Shadow run | (not yet visible — check the Actions tab) |"
+            fi
+            echo
+            echo "_Shadow CI runs **fire-and-forget**: it does not appear in this PR's checks and never blocks the merge queue. Benchmark data is collected by \`scripts/namespace-benchmark.sh\`._"
+          } >> "$GITHUB_STEP_SUMMARY"

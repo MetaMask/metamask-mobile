@@ -1,5 +1,8 @@
 name: ci
 
+run-name: >-
+  ${{ inputs.pr_number && format('ci [shadow PR #{0} @ {1}]', inputs.pr_number, inputs.head_sha) || '' }}
+
 on:
   push:
     branches: [main]
@@ -19,6 +22,14 @@ on:
         type: string
         required: false
         default: current
+      pr_number:
+        description: "PR number (shadow correlation, optional)"
+        type: string
+        required: false
+      head_sha:
+        description: "PR head SHA (shadow correlation, optional)"
+        type: string
+        required: false
   workflow_dispatch:
     inputs:
       runner_provider:
@@ -29,6 +40,14 @@ on:
           - current
           - namespace
         default: current
+      pr_number:
+        description: "PR number (shadow correlation, optional)"
+        required: false
+        type: string
+      head_sha:
+        description: "PR head SHA (shadow correlation, optional)"
+        required: false
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
@@ -516,7 +535,9 @@ jobs:
     name: Ship JS bundle size check
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [js-bundle-size-check]
-    if: ${{ github.ref == 'refs/heads/main' }}
+    # Skip on Namespace shadow runs: hourly cron against main would otherwise
+    # push duplicate entries to the external mobile_bundlesize_stats repo.
+    if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'namespace' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
