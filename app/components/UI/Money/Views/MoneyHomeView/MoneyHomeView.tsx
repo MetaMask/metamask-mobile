@@ -217,26 +217,6 @@ const MoneyHomeView = () => {
     [navigation],
   );
 
-  const handleOnboardingCtaPress = useCallback(() => {
-    if (isCardholderWithMilestone) {
-      handleLinkCardPress();
-      return;
-    }
-
-    if (isMilestone) {
-      handleCardPress();
-      return;
-    }
-
-    handleAddPress();
-  }, [
-    isCardholderWithMilestone,
-    isMilestone,
-    handleLinkCardPress,
-    handleCardPress,
-    handleAddPress,
-  ]);
-
   let metamaskCardMode: 'upsell' | 'link' | 'manage';
   if (isCardholderWithMilestone && isUS) {
     metamaskCardMode = 'manage';

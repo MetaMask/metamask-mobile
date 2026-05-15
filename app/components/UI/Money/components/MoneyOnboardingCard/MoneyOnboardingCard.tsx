@@ -39,9 +39,13 @@ const MoneyOnboardingCard = () => {
   const { moneyAccountCardToken, canLink, openLinkCardSheet } =
     useMoneyAccountCardLinkage();
 
-  const conversionTokensFiatTotal = tokens.reduce(
-    (acc, token) => acc.plus(new BigNumber(token.fiat?.balance ?? 0)),
-    new BigNumber(0),
+  const conversionTokensFiatTotal = useMemo(
+    () =>
+      tokens.reduce(
+        (acc, token) => acc.plus(new BigNumber(token.fiat?.balance ?? 0)),
+        new BigNumber(0),
+      ),
+    [tokens],
   );
 
   const conversionTokensFiatTotalFormatted = moneyFormatFiat(
