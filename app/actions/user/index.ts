@@ -26,6 +26,7 @@ import {
   type SetMusdConversionEducationSeenAction,
   type SetMusdConversionAssetDetailCtaSeenAction,
   type ClearMusdConversionAssetDetailCtasSeenAction,
+  type SetMoneyOnboardingSeenAction,
   type SetTokenOverviewChartTypeAction,
   UserActionType,
 } from './types';
@@ -223,6 +224,18 @@ export function setMusdConversionAssetDetailCtaSeen(
 export function clearMusdConversionAssetDetailCtasSeen(): ClearMusdConversionAssetDetailCtasSeenAction {
   return {
     type: UserActionType.CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN,
+  };
+}
+
+/**
+ * Action to set Money onboarding as seen
+ */
+export function setMoneyOnboardingSeen(
+  seen: boolean,
+): SetMoneyOnboardingSeenAction {
+  return {
+    type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
+    payload: { seen },
   };
 }
 

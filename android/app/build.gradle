@@ -167,14 +167,6 @@ def reactNativeArchitectures() {
 }
 
 
-/**
-* Adding function that will retuen the Bitrise ndkPath if it is a Production Build
-*/
-def ndkPath() {
-    return System.getenv('METAMASK_ENVIRONMENT') == 'production' ? rootProject.ext.bitriseNdkPath : ""
-}
-
-
 android {
     ndkVersion rootProject.ext.ndkVersion
 
@@ -187,7 +179,7 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "7.78.0"
+        versionName "7.79.0"
         versionCode 4532
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
