@@ -450,6 +450,30 @@ if (enableApiCallLogs || isTest) {
         console.log(`[WS Patch] Routes: ${JSON.stringify(wsRoutes)}`);
       }
 
+      // Patch react-native-blob-util so snap tarball downloads (npm.ts) and
+      // any other consumer of its `fetch` / `config(...).fetch` API route
+      // through the mock proxy. These calls originate in JS but the HTTP
+      // request is performed by the native bridge (OkHttp on Android,
+      // NSURLSession on iOS), which bypasses fetch/XHR/expo-fetch patching.
+      try {
+        const RNBlobUtil = require('react-native-blob-util').default;
+        const {
+          patchReactNativeBlobUtilForE2E,
+        } = require('./app/util/test/blobUtilShim');
+        const mockHost = MOCKTTP_URL.replace(/^https?:\/\//, '').split(':')[0];
+        patchReactNativeBlobUtilForE2E(RNBlobUtil, mockServerPort, mockHost);
+        // eslint-disable-next-line no-console
+        console.log(
+          `[E2E SHIM] react-native-blob-util patched → ${MOCKTTP_URL}/proxy?url=...`,
+        );
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          '[E2E SHIM] Failed to patch react-native-blob-util:',
+          err?.message ?? err,
+        );
+      }
+
       // Patch expo/fetch so its native networking routes through the mock
       // proxy. Bridge-controller's SSE `getQuoteStream` (and any other expo
       // fetch consumer) MUST hit the mock or the swap/bridge E2E quote
