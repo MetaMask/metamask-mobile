@@ -19,18 +19,25 @@ name: CI (Namespace shadow)
 #     tab at a glance.
 #   - The dispatcher job posts a GitHub Actions step summary linking the PR
 #     to the dispatched shadow run URL, reachable from the PR Checks tab.
+#
+# Authentication (GitHub App, not a PAT):
+#   - Repo variable: SHADOW_CI_DISPATCH_GITHUB_APP_CLIENT_ID (App "Client ID")
+#   - Repo secret: SHADOW_CI_DISPATCH_GITHUB_APP_PRIVATE_KEY (PEM private key)
+#   - App must be installed on MetaMask/metamask-mobile with at least:
+#     Metadata: Read, Contents: Read, Actions: Read and write (installation
+#     permissions must cover the token's permission-* inputs below).
 
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore:
-      - 'docs/**'
-      - '**/*.md'
-      - '.github/CODEOWNERS'
+      - "docs/**"
+      - "**/*.md"
+      - ".github/CODEOWNERS"
   push:
     branches: [main]
   schedule:
-    - cron: '0 * * * *'
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 concurrency:
@@ -42,16 +49,26 @@ permissions:
 
 jobs:
   dispatch-shadow:
-    name: '[shadow] Dispatch'
+    name: "[shadow] Dispatch"
     runs-on: ubuntu-latest
-    # Skip dispatch for fork PRs: ACTIONS_WRITE_TOKEN is not exposed to forks,
+    # Skip dispatch for fork PRs: App credentials are not exposed to fork workflows,
     # and we don't want untrusted PRs consuming Namespace capacity.
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
+      - name: Mint GitHub App installation token
+        id: shadow-dispatch-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.SHADOW_CI_DISPATCH_GITHUB_APP_CLIENT_ID }}
+          private-key: ${{ secrets.SHADOW_CI_DISPATCH_GITHUB_APP_PRIVATE_KEY }}
+          permission-metadata: read
+          permission-contents: read
+          permission-actions: write
+
       - name: Dispatch ci.yml on Namespace
         id: dispatch
         env:
-          GH_TOKEN: ${{ secrets.ACTIONS_WRITE_TOKEN }}
+          GH_TOKEN: ${{ steps.shadow-dispatch-token.outputs.token }}
           REPO: ${{ github.repository }}
           REF: ${{ github.head_ref || github.ref_name }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
