@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Pressable } from 'react-native';
 import {
   Box,
@@ -9,7 +9,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  type TransactionMeta,
+  TransactionStatus,
+} from '@metamask/transaction-controller';
+import { strings } from '../../../../../../locales/i18n';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
@@ -28,7 +32,7 @@ import { MoneyActivityItemTestIds } from './MoneyActivityItem.testIds';
 export interface MoneyActivityItemProps {
   tx: TransactionMeta;
   moneyAddress: string | undefined;
-  onPress?: () => void;
+  onPress?: (transactionId: string) => void;
   /** When true, shows the chain network badge on the token avatar. Defaults to false. */
   showNetworkBadge?: boolean;
 }
@@ -43,22 +47,29 @@ const MoneyActivityItem = ({
 
   const display = useMoneyTransactionDisplayInfo(tx, moneyAddress);
 
-  const networkImageSource = useMemo(
-    () =>
-      showNetworkBadge
-        ? getNetworkImageSource({ chainId: tx.chainId })
-        : undefined,
-    [tx.chainId, showNetworkBadge],
-  );
+  const networkImageSource = showNetworkBadge
+    ? getNetworkImageSource({ chainId: tx.chainId })
+    : undefined;
 
-  const amountColor = display.isIncoming
+  // use the token's own image URI, or the source chain's network icon, or the mUSD icon
+  const tokenAvatarImageSource = display.sourceTokenImage
+    ? { uri: display.sourceTokenImage }
+    : display.sourceTokenChainId
+    ? getNetworkImageSource({ chainId: display.sourceTokenChainId })
+    : MUSD_TOKEN.imageSource;
+
+  const isFailed = tx.status === TransactionStatus.failed;
+
+  const amountColor = isFailed
+    ? TextColor.TextAlternative
+    : display.isIncoming
     ? TextColor.SuccessDefault
     : TextColor.TextDefault;
 
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={onPress}
+      onPress={onPress ? () => onPress(tx.id) : undefined}
       testID={`${MoneyActivityItemTestIds.ROW}-${tx.id}`}
       style={({ pressed }) =>
         tw.style(
@@ -81,16 +92,16 @@ const MoneyActivityItem = ({
           }
         >
           <AvatarToken
-            name={MUSD_TOKEN.name}
-            imageSource={MUSD_TOKEN.imageSource}
+            name={display.sourceTokenSymbol ?? MUSD_TOKEN.name}
+            imageSource={tokenAvatarImageSource}
             size={AvatarSize.Lg}
           />
         </BadgeWrapper>
       ) : (
         <Box twClassName="self-center">
           <AvatarToken
-            name={MUSD_TOKEN.name}
-            imageSource={MUSD_TOKEN.imageSource}
+            name={display.sourceTokenSymbol ?? MUSD_TOKEN.name}
+            imageSource={tokenAvatarImageSource}
             size={AvatarSize.Lg}
           />
         </Box>
@@ -104,7 +115,16 @@ const MoneyActivityItem = ({
         >
           {display.label}
         </Text>
-        {display.description ? (
+        {isFailed ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.ErrorDefault}
+            numberOfLines={1}
+          >
+            {strings('money.transaction.failed')}
+          </Text>
+        ) : display.description ? (
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
