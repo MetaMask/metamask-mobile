@@ -10,6 +10,7 @@ import {
   getNpmCanonicalBasePath,
   TARBALL_SIZE_SAFETY_LIMIT,
 } from '@metamask/snaps-controllers';
+import { isE2E, getMockServerPortInApp } from '../../../util/test/utils';
 
 const { RNTar } = NativeModules;
 
@@ -50,7 +51,17 @@ export class NpmLocation extends BaseNpmLocation {
     let response: FetchBlobResponse | null = null;
     let untarPath: string | null = null;
     try {
-      response = await this.#blobFetch('GET', tarballUrl.toString());
+      // In E2E tests, route the tarball download through MockServerE2E's /proxy
+      // endpoint so test-specific mocks can intercept it. ReactNativeBlobUtil's
+      // native fetch bypasses shim.js's JS-layer fetch/XHR patches, so the
+      // redirect must happen here at the source URL.
+      const fetchUrl = isE2E
+        ? `http://localhost:${getMockServerPortInApp()}/proxy?url=${encodeURIComponent(
+            tarballUrl.toString(),
+          )}`
+        : tarballUrl.toString();
+
+      response = await this.#blobFetch('GET', fetchUrl);
 
       const responseInfo = response.respInfo;
 
