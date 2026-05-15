@@ -174,6 +174,7 @@
     ]
   },
   "resolutions": {
+    "@metamask/network-controller": "^30.0.0",
     "@appium/schema/json-schema": "^0.4.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
     "@unrs/resolver-binding-wasm32-wasi": "npm:npm-empty-package@1.0.0",
