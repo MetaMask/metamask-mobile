@@ -42,8 +42,14 @@ import { CaipAssetType, Hex } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
-import { selectMultichainAssets } from '../../../../../selectors/multichain/multichain';
+import {
+  selectTokensByChainIdAndAddress,
+  selectIgnoreTokens,
+} from '../../../../../selectors/tokensController';
+import {
+  selectMultichainAssets,
+  selectMultichainAssetsAllIgnoredAssets,
+} from '../../../../../selectors/multichain/multichain';
 import { RootState } from '../../../../../reducers';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
@@ -59,6 +65,7 @@ import {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
 import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import useAssetVisibility from '../../../../UI/TokenDetails/components/useAssetVisibility';
 
 interface Props {
   /**
@@ -118,6 +125,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   const isAssetsUnifyStateEnabled = useSelector(
     selectIsAssetsUnifyStateEnabled,
   );
+  const { handleAddCustomAsset } = useAssetVisibility();
 
   // Get already added EVM tokens for the selected chain
   const addedEvmTokens = useSelector((state: RootState) =>
@@ -126,8 +134,23 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       : {},
   );
 
+  // Ignored/hidden tokens for the active chain+account — these should remain
+  // importable even if they appear in allTokens.
+  const ignoredTokenAddresses = useSelector(selectIgnoreTokens);
+  const ignoredTokenSet = useMemo(
+    () =>
+      new Set((ignoredTokenAddresses ?? []).map((addr) => addr.toLowerCase())),
+    [ignoredTokenAddresses],
+  );
+
   // Get already added non-EVM tokens
   const multichainAssets = useSelector(selectMultichainAssets);
+
+  // Ignored/hidden non-EVM assets — keyed by accountId, value is array of CAIP asset IDs.
+  // These should remain importable even if they appear in accountsAssets.
+  const allIgnoredNonEvmAssets = useSelector(
+    selectMultichainAssetsAllIgnoredAssets,
+  );
 
   // Create a Set of already added token addresses for quick lookup
   const alreadyAddedTokens = useMemo(() => {
@@ -145,17 +168,25 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         if (selectedNonEvmAccount?.id) {
           const accountAssets =
             multichainAssets?.[selectedNonEvmAccount.id] || [];
-          // accountAssets is an array of CAIP asset address strings
+          const ignoredNonEvmSet = new Set(
+            (allIgnoredNonEvmAssets[selectedNonEvmAccount.id] ?? []).map((a) =>
+              a.toLowerCase(),
+            ),
+          );
+          // Exclude ignored/hidden assets so the user can re-import them.
           accountAssets.forEach((assetAddress: string) => {
-            // Extract the token address from CAIP format (e.g., "bip122:..." or "solana:...")
-            // The address is already the full identifier, just normalize it
-            addresses.add(assetAddress.toLowerCase());
+            if (!ignoredNonEvmSet.has(assetAddress.toLowerCase())) {
+              addresses.add(assetAddress.toLowerCase());
+            }
           });
         }
       } else {
-        // For EVM chains
+        // For EVM chains — exclude tokens that are ignored/hidden so the user
+        // can re-import them from the search UI.
         Object.keys(addedEvmTokens).forEach((address) => {
-          addresses.add(address.toLowerCase());
+          if (!ignoredTokenSet.has(address.toLowerCase())) {
+            addresses.add(address.toLowerCase());
+          }
         });
       }
     }
@@ -164,7 +195,9 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   }, [
     selectedChainId,
     addedEvmTokens,
+    ignoredTokenSet,
     multichainAssets,
+    allIgnoredNonEvmAssets,
     selectInternalAccountByScope,
   ]);
 
@@ -247,6 +280,21 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         addresses as CaipAssetType[],
         selectedNonEvmAccount.id,
       );
+
+      if (isAssetsUnifyStateEnabled) {
+        try {
+          await Promise.all(
+            (addresses as CaipAssetType[]).map((assetId) =>
+              handleAddCustomAsset(assetId),
+            ),
+          );
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'SearchTokenAutoComplete: addCustomAsset failed for non-EVM',
+          );
+        }
+      }
     } else {
       const caipChainId = formatChainIdToCaip(
         selectedChainId as SupportedCaipChainId,
@@ -272,30 +320,19 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       await TokensController.addTokens(selectedAssets, networkClient);
 
       if (isAssetsUnifyStateEnabled) {
-        const selectedEvmAccount = selectInternalAccountByScope(
-          caipChainId as SupportedCaipChainId,
-        );
+        const caipAssetTypes = addresses
+          .map((address) => toAssetId(address, caipChainId))
+          .filter((assetId): assetId is CaipAssetType => Boolean(assetId));
 
-        if (!selectedEvmAccount) {
-          Logger.log('SearchTokenAutoComplete: No EVM account ID found');
-        } else {
-          const { AssetsController } = Engine.context;
-          const caipAssetTypes = addresses
-            .map((address) => toAssetId(address, caipChainId))
-            .filter((assetId): assetId is CaipAssetType => Boolean(assetId));
-
-          try {
-            await Promise.all(
-              caipAssetTypes.map((assetId) =>
-                AssetsController.addCustomAsset(selectedEvmAccount.id, assetId),
-              ),
-            );
-          } catch (error) {
-            Logger.error(
-              error as Error,
-              'SearchTokenAutoComplete: addCustomAsset failed',
-            );
-          }
+        try {
+          await Promise.all(
+            caipAssetTypes.map((assetId) => handleAddCustomAsset(assetId)),
+          );
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'SearchTokenAutoComplete: addCustomAsset failed',
+          );
         }
       }
     }
@@ -322,6 +359,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     selectedAssets,
     selectedChainId,
     isAssetsUnifyStateEnabled,
+    handleAddCustomAsset,
   ]);
 
   /**
