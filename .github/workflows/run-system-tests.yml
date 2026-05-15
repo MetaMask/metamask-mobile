@@ -1,0 +1,521 @@
+# Nightly System Tests
+#
+# Runs the 18 performance test specs as functional system tests (no quality gates,
+# no Sentry, no performance metrics). Validates that core user flows (login,
+# onboarding, swaps, etc.) work on real devices via BrowserStack.
+#
+# Builds are produced via GitHub Actions (same pipeline as performance tests) and
+# uploaded to BrowserStack automatically.
+#
+# Triggers:
+#   - Daily at 5 AM UTC (1 hour after nightly build starts)
+#   - Manually via workflow_dispatch (optionally with pre-built BrowserStack URLs)
+
+name: Nightly System Tests
+
+on:
+  schedule:
+    - cron: '0 5 * * *' # 5 AM UTC daily
+  workflow_dispatch:
+    inputs:
+      browserstack_app_url_android:
+        description: 'BrowserStack Android App URL for login tests — with-SRP build (bs://...)'
+        required: false
+        type: string
+      browserstack_app_url_ios:
+        description: 'BrowserStack iOS App URL for login tests — with-SRP build (bs://...)'
+        required: false
+        type: string
+      browserstack_clean_app_url_android:
+        description: 'BrowserStack Android Clean App URL for onboarding tests (bs://...)'
+        required: false
+        type: string
+      browserstack_clean_app_url_ios:
+        description: 'BrowserStack iOS Clean App URL for onboarding tests (bs://...)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: system-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trigger-android-dual-versions:
+    name: Build Android (BrowserStack)
+    uses: ./.github/workflows/build-android-upload-to-browserstack.yml
+    if: >-
+      github.event_name != 'workflow_dispatch'
+        || (!inputs.browserstack_app_url_android
+            && !inputs.browserstack_clean_app_url_android)
+    with:
+      branch_name: ${{ github.ref_name }}
+      build_variant: 'rc'
+    secrets: inherit
+
+  trigger-ios-dual-versions:
+    name: Build iOS (BrowserStack)
+    uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
+    if: >-
+      github.event_name != 'workflow_dispatch'
+        || (!inputs.browserstack_app_url_ios
+            && !inputs.browserstack_clean_app_url_ios)
+    with:
+      branch_name: ${{ github.ref_name }}
+      build_variant: 'rc'
+    secrets: inherit
+
+  run-android-login-tests:
+    name: Android Login Tests
+    needs: [trigger-android-dual-versions]
+    if: >-
+      always() && !cancelled()
+        && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success')
+        && (needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '' || inputs.browserstack_app_url_android != '')
+    runs-on: ubuntu-latest
+    env:
+      BROWSERSTACK_ANDROID_APP_URL: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn --immutable
+
+      - name: Restore .metamask folder
+        id: restore-metamask
+        uses: actions/cache@v6
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+      - name: Install Foundry if cache missed
+        if: steps.restore-metamask.outputs.cache-hit != 'true'
+        run: yarn install:foundryup
+
+      - name: Setup project
+        run: yarn setup:github-ci
+
+      - name: BrowserStack Env Setup
+        uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          username: ${{ secrets.BROWSERSTACK_USERNAME }}
+          access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          project-name: ${{ github.repository }}
+
+      - name: Compute BrowserStack Local Identifier
+        id: bs-local-id
+        run: echo "value=${{ github.run_id }}-android-login" >> "$GITHUB_OUTPUT"
+
+      - name: Setup BrowserStack Local
+        uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          local-testing: start
+          local-identifier: ${{ steps.bs-local-id.outputs.value }}
+          local-args: '--force-local --verbose'
+
+      - name: Wait for BrowserStack Local
+        run: sleep 10
+
+      - name: Set test environment
+        run: |
+          {
+            echo "BROWSERSTACK_LOCAL=true"
+            echo "BROWSERSTACK_LOCAL_IDENTIFIER=${{ steps.bs-local-id.outputs.value }}"
+            echo "BROWSERSTACK_BUILD_NAME=system-test-android-login-${{ github.run_id }}"
+            echo "MM_TEST_ACCOUNT_SRP=${{ secrets.MM_TEST_ACCOUNT_SRP }}"
+            echo "TEST_SRP_1=${{ secrets.TEST_SRP_1 }}"
+            echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
+            echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
+            echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
+          } >> "$GITHUB_ENV"
+
+      - name: Run Android login system tests
+        run: yarn run-system-tests:android-login
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v8
+        if: always()
+        with:
+          name: system-test-report-android-login
+          path: tests/test-reports/system-test-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  run-android-onboarding-tests:
+    name: Android Onboarding Tests
+    needs: [trigger-android-dual-versions]
+    if: >-
+      always() && !cancelled()
+        && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success')
+        && (needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != '' || inputs.browserstack_clean_app_url_android != '')
+    runs-on: ubuntu-latest
+    env:
+      BROWSERSTACK_ANDROID_CLEAN_APP_URL: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_clean_app_url_android }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn --immutable
+
+      - name: Restore .metamask folder
+        id: restore-metamask
+        uses: actions/cache@v6
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+      - name: Install Foundry if cache missed
+        if: steps.restore-metamask.outputs.cache-hit != 'true'
+        run: yarn install:foundryup
+
+      - name: Setup project
+        run: yarn setup:github-ci
+
+      - name: BrowserStack Env Setup
+        uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          username: ${{ secrets.BROWSERSTACK_USERNAME }}
+          access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          project-name: ${{ github.repository }}
+
+      - name: Compute BrowserStack Local Identifier
+        id: bs-local-id
+        run: echo "value=${{ github.run_id }}-android-onboarding" >> "$GITHUB_OUTPUT"
+
+      - name: Setup BrowserStack Local
+        uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          local-testing: start
+          local-identifier: ${{ steps.bs-local-id.outputs.value }}
+          local-args: '--force-local --verbose'
+
+      - name: Wait for BrowserStack Local
+        run: sleep 10
+
+      - name: Set test environment
+        run: |
+          {
+            echo "BROWSERSTACK_LOCAL=true"
+            echo "BROWSERSTACK_LOCAL_IDENTIFIER=${{ steps.bs-local-id.outputs.value }}"
+            echo "BROWSERSTACK_BUILD_NAME=system-test-android-onboarding-${{ github.run_id }}"
+            echo "MM_TEST_ACCOUNT_SRP=${{ secrets.MM_TEST_ACCOUNT_SRP }}"
+            echo "TEST_SRP_1=${{ secrets.TEST_SRP_1 }}"
+            echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
+            echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
+            echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
+          } >> "$GITHUB_ENV"
+
+      - name: Run Android onboarding system tests
+        run: yarn run-system-tests:android-onboarding
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v8
+        if: always()
+        with:
+          name: system-test-report-android-onboarding
+          path: tests/test-reports/system-test-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  run-ios-login-tests:
+    name: iOS Login Tests
+    needs: [trigger-ios-dual-versions]
+    if: >-
+      always() && !cancelled()
+        && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success')
+        && (needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url != '' || inputs.browserstack_app_url_ios != '')
+    runs-on: ubuntu-latest
+    env:
+      BROWSERSTACK_IOS_APP_URL: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn --immutable
+
+      - name: Restore .metamask folder
+        id: restore-metamask
+        uses: actions/cache@v6
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+      - name: Install Foundry if cache missed
+        if: steps.restore-metamask.outputs.cache-hit != 'true'
+        run: yarn install:foundryup
+
+      - name: Setup project
+        run: yarn setup:github-ci
+
+      - name: BrowserStack Env Setup
+        uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          username: ${{ secrets.BROWSERSTACK_USERNAME }}
+          access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          project-name: ${{ github.repository }}
+
+      - name: Compute BrowserStack Local Identifier
+        id: bs-local-id
+        run: echo "value=${{ github.run_id }}-ios-login" >> "$GITHUB_OUTPUT"
+
+      - name: Setup BrowserStack Local
+        uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          local-testing: start
+          local-identifier: ${{ steps.bs-local-id.outputs.value }}
+          local-args: '--force-local --verbose'
+
+      - name: Wait for BrowserStack Local
+        run: sleep 10
+
+      - name: Set test environment
+        run: |
+          {
+            echo "BROWSERSTACK_LOCAL=true"
+            echo "BROWSERSTACK_LOCAL_IDENTIFIER=${{ steps.bs-local-id.outputs.value }}"
+            echo "BROWSERSTACK_BUILD_NAME=system-test-ios-login-${{ github.run_id }}"
+            echo "MM_TEST_ACCOUNT_SRP=${{ secrets.MM_TEST_ACCOUNT_SRP }}"
+            echo "TEST_SRP_1=${{ secrets.TEST_SRP_1 }}"
+            echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
+            echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
+            echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
+          } >> "$GITHUB_ENV"
+
+      - name: Run iOS login system tests
+        run: yarn run-system-tests:ios-login
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v8
+        if: always()
+        with:
+          name: system-test-report-ios-login
+          path: tests/test-reports/system-test-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  run-ios-onboarding-tests:
+    name: iOS Onboarding Tests
+    needs: [trigger-ios-dual-versions]
+    if: >-
+      always() && !cancelled()
+        && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success')
+        && (needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != '' || inputs.browserstack_clean_app_url_ios != '')
+    runs-on: ubuntu-latest
+    env:
+      BROWSERSTACK_IOS_CLEAN_APP_URL: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_clean_app_url_ios }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn --immutable
+
+      - name: Restore .metamask folder
+        id: restore-metamask
+        uses: actions/cache@v6
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+      - name: Install Foundry if cache missed
+        if: steps.restore-metamask.outputs.cache-hit != 'true'
+        run: yarn install:foundryup
+
+      - name: Setup project
+        run: yarn setup:github-ci
+
+      - name: BrowserStack Env Setup
+        uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          username: ${{ secrets.BROWSERSTACK_USERNAME }}
+          access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          project-name: ${{ github.repository }}
+
+      - name: Compute BrowserStack Local Identifier
+        id: bs-local-id
+        run: echo "value=${{ github.run_id }}-ios-onboarding" >> "$GITHUB_OUTPUT"
+
+      - name: Setup BrowserStack Local
+        uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          local-testing: start
+          local-identifier: ${{ steps.bs-local-id.outputs.value }}
+          local-args: '--force-local --verbose'
+
+      - name: Wait for BrowserStack Local
+        run: sleep 10
+
+      - name: Set test environment
+        run: |
+          {
+            echo "BROWSERSTACK_LOCAL=true"
+            echo "BROWSERSTACK_LOCAL_IDENTIFIER=${{ steps.bs-local-id.outputs.value }}"
+            echo "BROWSERSTACK_BUILD_NAME=system-test-ios-onboarding-${{ github.run_id }}"
+            echo "MM_TEST_ACCOUNT_SRP=${{ secrets.MM_TEST_ACCOUNT_SRP }}"
+            echo "TEST_SRP_1=${{ secrets.TEST_SRP_1 }}"
+            echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
+            echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
+            echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
+          } >> "$GITHUB_ENV"
+
+      - name: Run iOS onboarding system tests
+        run: yarn run-system-tests:ios-onboarding
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v8
+        if: always()
+        with:
+          name: system-test-report-ios-onboarding
+          path: tests/test-reports/system-test-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  report:
+    name: System Test Summary
+    needs:
+      - run-android-login-tests
+      - run-android-onboarding-tests
+      - run-ios-login-tests
+      - run-ios-onboarding-tests
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all test reports
+        uses: actions/download-artifact@v8
+        with:
+          pattern: system-test-report-*
+          path: all-reports
+          merge-multiple: false
+
+      - name: Generate summary
+        run: |
+          STATUS_ANDROID_LOGIN="${{ needs.run-android-login-tests.result }}"
+          STATUS_ANDROID_ONBOARDING="${{ needs.run-android-onboarding-tests.result }}"
+          STATUS_IOS_LOGIN="${{ needs.run-ios-login-tests.result }}"
+          STATUS_IOS_ONBOARDING="${{ needs.run-ios-onboarding-tests.result }}"
+
+          format_status() {
+            case "$1" in
+              success)  echo "passed" ;;
+              failure)  echo "FAILED" ;;
+              skipped)  echo "skipped" ;;
+              cancelled) echo "cancelled" ;;
+              *)        echo "$1" ;;
+            esac
+          }
+
+          {
+            echo "## Nightly System Test Results"
+            echo ""
+            echo "| Project | Status |"
+            echo "|---------|--------|"
+            echo "| Android Login | $(format_status "$STATUS_ANDROID_LOGIN") |"
+            echo "| Android Onboarding | $(format_status "$STATUS_ANDROID_ONBOARDING") |"
+            echo "| iOS Login | $(format_status "$STATUS_IOS_LOGIN") |"
+            echo "| iOS Onboarding | $(format_status "$STATUS_IOS_ONBOARDING") |"
+            echo ""
+            echo "**Trigger:** ${{ github.event_name }}"
+            echo "**Branch:** ${{ github.ref_name }}"
+            echo "**Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Fail the report job if any test job failed
+          if [[ "$STATUS_ANDROID_LOGIN" == "failure" || "$STATUS_ANDROID_ONBOARDING" == "failure" || "$STATUS_IOS_LOGIN" == "failure" || "$STATUS_IOS_ONBOARDING" == "failure" ]]; then
+            echo ""
+            echo "::error::One or more system test projects failed"
+            exit 1
+          fi

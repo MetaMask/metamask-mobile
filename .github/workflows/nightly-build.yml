@@ -31,6 +31,7 @@ jobs:
       source_branch: main
       environment: exp
       testflight_group: 'MetaMask BETA & Release Candidates'
+      distribute_external: true
     secrets: inherit
 
   # ── iOS rc: build + TestFlight upload (after exp for sequential versions) ─
@@ -42,6 +43,7 @@ jobs:
       source_branch: main
       environment: rc
       testflight_group: 'MetaMask BETA & Release Candidates'
+      distribute_external: false
     secrets: inherit
 
   # ── Android exp: ephemeral branch + build ──────────────────────────────

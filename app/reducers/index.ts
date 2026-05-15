@@ -44,6 +44,7 @@ import sampleCounterReducer from '../features/SampleFeature/reducers/sample-coun
 import cardReducer from '../core/redux/slices/card';
 import rewardsReducer, { RewardsState } from './rewards';
 import { isTest } from '../util/test/utils';
+import attributionReducer from '../core/redux/slices/attribution';
 
 /**
  * Infer state from a reducer
@@ -132,6 +133,7 @@ export interface RootState {
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
   networkConnectionBanner: NetworkConnectionBannerState;
+  attribution: StateFromReducer<typeof attributionReducer>;
 }
 
 const baseReducers = {
@@ -185,6 +187,9 @@ if (isTest) {
 // TypeScript reducers have invalid actions
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rootReducer = combineReducers<RootState, any>(baseReducers);
+const rootReducer = combineReducers<RootState, any>({
+  ...baseReducers,
+  attribution: attributionReducer,
+});
 
 export default rootReducer;

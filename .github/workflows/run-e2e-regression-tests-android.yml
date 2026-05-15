@@ -32,7 +32,6 @@ jobs:
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
-      keystore_target: 'qa'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
@@ -188,8 +187,13 @@ jobs:
       - regression-ux-android
 
     steps:
+      - name: Checkout (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+
       - name: Checkout
         uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
 
       - name: Download shards test artifacts (XMLs + Screenshots)
         uses: actions/download-artifact@v4

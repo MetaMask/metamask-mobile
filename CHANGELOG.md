@@ -7,6 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.76.3]
+
+### Added
+
+- Added Predict transaction publishing hooks to support the Polymarket Deposit Wallet flow. (#29914)
+- Added support for depositing to a Polymarket Deposit Wallet in Predict, while preserving legacy Safe behavior for users with existing Polymarket activity. (#29917)
+- Added Polymarket Deposit Wallet order placement support in Predict. (#29933)
+- Added support for claiming Predict positions through the Polymarket Deposit Wallet. (#29936)
+
+### Fixed
+
+- Disabled Predict withdrawals for Polymarket Deposit Wallet users with a temporary "withdrawals unavailable" bottom sheet, while legacy Safe users keep the existing flow. (#29941)
+
+## [7.76.0]
+
+### Added
+
+- Added the Tempo chain to the additional networks list. (#29515)
+- Added security trust badges in the token list. (#29509)
+- Added a new "Add money" bottom sheet to the Money Account homepage with Convert crypto, Deposit funds, Move mUSD, and Receive from external wallet options. (#29336)
+- Added a developer options button to clear dismissed mUSD conversion asset details CTAs. (#29510)
+- Added a quickbuy smart default. (#29472)
+- Added SOL as a "Pay with" option on Quickbuy. (#29424)
+- Added a transaction fees expandable section to Quickbuy. (#29321)
+- Added a General Settings toggle for haptic feedback and centralized in-app haptics behind a single module, with an optional remote kill switch. (#28975)
+- Added haptic feedback across Top Traders surfaces (Follow, Buy, notification preferences, per-trader notifications). (#29467)
+- Added support for additional sports market types (spreads, totals, halftime result, exact score, player props) on prediction market event detail screens. (#29216)
+- Added inline error banners in the Predict buy bottom sheet for price-changed and order-failed scenarios, replacing the secondary retry sheet and failure toast when the predictBottomSheet flag is enabled. (#29184)
+- Added a Quickbuy half sheet. (#28863)
+- Added a warning flow in bridge quotes when token price data is unavailable. (#29250)
+
+### Changed
+
+- Enabled Suspicious and Malicious security badges on tokens in the Swaps/Bridge asset picker. (#29570)
+- Updated the description under the "Smart account requests from dapps" setting to clarify that MetaMask will only upgrade to our audited smart account. (#29211)
+- Updated Predict confirmations to display pUSD as the Predict token. (#29450)
+- Updated the token details security trust designs. (#29230)
+- Polished the social leaderboard with podium decorations on the top 3 traders, a tighter loading skeleton, and a chain icon overlay on token avatars in the trader position and quick buy views. (#29408)
+- QR wallet now shares the signing flow with Ledger. (#29087)
+- In-app browser sessions opened from MetaMask Card (manage card and travel) now return to Card Home on close instead of the Explore tab. (#29218)
+- Updated the Bridge/Swaps token warning modal to match the new design and fixed swapped warning/malicious icons in the token selector. (#29197)
+- Updated the account selector to use the full-page list for all users and removed the dropdown arrow from the wallet account picker. (#28701)
+- Refined section and header styles for Perps. (#29009)
+- Refined explore page design patterns. (#29396)
+- Adjusted spacing for money activity filters. (#29463)
+
+### Fixed
+
+- Fixed a bug where the -1%/-2% limit price preset buttons only applied on the first press. (#29373)
+- Fixed Card Home flickering during refresh and kept Add funds available for frozen cards. (#29513)
+- Fixed a bug that caused the MetaMask Card spending limit screen to default to full access when a custom limit was already set. (#29517)
+- Fixed cashback redemption to require an approved Linea funding source. (#29489)
+- Fixed UB2 Transak order details to hide interim provider messages during processing states. (#29131)
+- Fixed a bug where a stale secondary minimum purchase message could briefly appear after entering a valid buy amount. (#29365)
+- Fixed a bug that caused live Predict sports scores to appear in reverse order for some leagues. (#29453)
+- Fixed Ledger BLE transport that prevented reconnecting to a Ledger device after a timeout or completed signing flow. (#29367)
+- Fixed chart re-rendering and flickering. (#29344)
+- Fixed excessive red flashing while entering buy amounts near minimum and maximum provider limits. (#29360)
+- Fixed stale unauthenticated MetaMask Card data after login by refetching when card feature flags change. (#29350)
+- Prevented invalid bridge transaction hashes from being persisted in transaction history. (#29136)
+- Fixed WalletConnect sign requests occasionally displaying a garbled string in the "Request from" field instead of the dapp's domain. (#29102)
+- Fixed Perps Withdraw Max so users actually withdraw their full HyperLiquid balance; replaced 90% with a Max button and aligned Perps home and Withdraw to show the same balance. (#29257)
+- Hid the sponsored label on cross-chain bridge with insufficient balance. (#29490)
+
 ## [7.75.1]
 
 ### Fixed
@@ -11371,7 +11435,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.75.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.76.3...HEAD
+[7.76.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.76.0...v7.76.3
+[7.76.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.75.1...v7.76.0
 [7.75.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.75.0...v7.75.1
 [7.75.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.74.3...v7.75.0
 [7.74.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.74.2...v7.74.3
