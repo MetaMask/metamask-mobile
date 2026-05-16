@@ -15,11 +15,12 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 const HANDLE_SIZE = 24;
 const MARKER_SIZE = 4;
 const PERCENTAGE_STEP = 25;
-export const SNAP_POINTS = [0, 25, 50, 75, 100];
+export const SNAP_POINTS = [25, 50, 75, 100];
+const MIN_PERCENTAGE = SNAP_POINTS[0];
 
 export function snapToPercentageStep(value: number): number {
   const snappedValue = Math.round(value / PERCENTAGE_STEP) * PERCENTAGE_STEP;
-  return Math.max(0, Math.min(100, snappedValue));
+  return Math.max(MIN_PERCENTAGE, Math.min(100, snappedValue));
 }
 
 interface BatchSellPercentageSliderProps {
@@ -34,14 +35,15 @@ export function BatchSellPercentageSlider({
   testID,
 }: BatchSellPercentageSliderProps) {
   const tw = useTailwind();
+  const snappedValue = snapToPercentageStep(value);
   const sliderWidth = useSharedValue(0);
   const translateX = useSharedValue(0);
   const widthRef = useRef(0);
 
   const updatePosition = useCallback(
     (nextValue: number, width = widthRef.current) => {
-      const snappedValue = snapToPercentageStep(nextValue);
-      translateX.value = (snappedValue / 100) * width;
+      const nextSnappedValue = snapToPercentageStep(nextValue);
+      translateX.value = (nextSnappedValue / 100) * width;
     },
     [translateX],
   );
@@ -66,14 +68,14 @@ export function BatchSellPercentageSlider({
       const { width } = event.nativeEvent.layout;
       widthRef.current = width;
       sliderWidth.value = width;
-      updatePosition(value, width);
+      updatePosition(snappedValue, width);
     },
-    [sliderWidth, updatePosition, value],
+    [sliderWidth, snappedValue, updatePosition],
   );
 
   useEffect(() => {
-    updatePosition(value);
-  }, [updatePosition, value]);
+    updatePosition(snappedValue);
+  }, [snappedValue, updatePosition]);
 
   const progressStyle = useAnimatedStyle(() => ({
     width: translateX.value,
@@ -106,19 +108,24 @@ export function BatchSellPercentageSlider({
     (event: AccessibilityActionEvent) => {
       const nextValue =
         event.nativeEvent.actionName === 'increment'
-          ? snapToPercentageStep(value + PERCENTAGE_STEP)
-          : snapToPercentageStep(value - PERCENTAGE_STEP);
+          ? snapToPercentageStep(snappedValue + PERCENTAGE_STEP)
+          : snapToPercentageStep(snappedValue - PERCENTAGE_STEP);
 
       onValueChange(nextValue);
     },
-    [onValueChange, value],
+    [onValueChange, snappedValue],
   );
 
   return (
     <GestureHandlerRootView
       testID={testID}
       accessibilityRole="adjustable"
-      accessibilityValue={{ min: 0, max: 100, now: value, text: `${value}%` }}
+      accessibilityValue={{
+        min: MIN_PERCENTAGE,
+        max: 100,
+        now: snappedValue,
+        text: `${snappedValue}%`,
+      }}
       accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
       onAccessibilityAction={handleAccessibilityAction}
       style={tw.style('h-6 w-full')}

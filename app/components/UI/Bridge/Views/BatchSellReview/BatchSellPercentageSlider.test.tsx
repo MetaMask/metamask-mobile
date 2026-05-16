@@ -35,9 +35,9 @@ jest.mock('react-native-gesture-handler', () => {
 
 describe('BatchSellPercentageSlider', () => {
   it.each([
-    [-10, 0],
-    [0, 0],
-    [12, 0],
+    [-10, 25],
+    [0, 25],
+    [12, 25],
     [13, 25],
     [37, 25],
     [38, 50],
@@ -74,6 +74,23 @@ describe('BatchSellPercentageSlider', () => {
     const { getByTestId } = render(
       <BatchSellPercentageSlider
         value={50}
+        onValueChange={onValueChange}
+        testID={SLIDER_TEST_ID}
+      />,
+    );
+
+    fireEvent(getByTestId(SLIDER_TEST_ID), 'accessibilityAction', {
+      nativeEvent: { actionName: 'decrement' },
+    });
+
+    expect(onValueChange).toHaveBeenCalledWith(25);
+  });
+
+  it('does not decrement below the minimum snap point', () => {
+    const onValueChange = jest.fn();
+    const { getByTestId } = render(
+      <BatchSellPercentageSlider
+        value={25}
         onValueChange={onValueChange}
         testID={SLIDER_TEST_ID}
       />,
