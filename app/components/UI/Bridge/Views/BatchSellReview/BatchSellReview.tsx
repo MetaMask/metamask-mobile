@@ -324,7 +324,7 @@ export function BatchSellReview() {
         twClassName="flex-1 bg-default"
       >
         <HeaderStandard title="" onBack={handleBackPress} includesTopInset />
-        <Box twClassName="px-4 pb-6">
+        <Box twClassName="gap-1 px-4 pb-6">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -349,7 +349,7 @@ export function BatchSellReview() {
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="mt-2"
+            gap={1}
           >
             {batchSellQuoteData.isLoading ? (
               <Skeleton
@@ -360,9 +360,9 @@ export function BatchSellReview() {
               />
             ) : (
               <Text
-                variant={TextVariant.HeadingLg}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
+                variant={TextVariant.DisplayLg}
+                color={TextColor.SuccessDefault}
+                twClassName="min-w-0 flex-1 font-semibold"
               >
                 {batchSellQuoteData.totalReceivedFiat}
               </Text>
