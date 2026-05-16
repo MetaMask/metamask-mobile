@@ -27,6 +27,8 @@ interface BatchSellReviewTokenRowProps {
   token: BridgeToken;
   tokenKey: string;
   percent: number;
+  receivedAmount: string;
+  isLoading?: boolean;
   onPercentChange: (tokenKey: string, percent: number) => void;
   onSlippagePress?: (token: BridgeToken) => void;
   onRemovePress?: (token: BridgeToken) => void;
@@ -45,6 +47,8 @@ export function BatchSellReviewTokenRow({
   token,
   tokenKey,
   percent,
+  receivedAmount,
+  isLoading = false,
   onPercentChange,
   onSlippagePress,
   onRemovePress,
@@ -85,12 +89,23 @@ export function BatchSellReviewTokenRow({
           size={AvatarTokenSize.Lg}
         />
         <Box twClassName="min-w-0 flex-1 gap-0.5">
-          <Skeleton
-            width={114}
-            height={24}
-            style={tw.style('rounded-lg')}
-            testID={`${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-${tokenKey}`}
-          />
+          {isLoading ? (
+            <Skeleton
+              width={114}
+              height={24}
+              style={tw.style('rounded-lg')}
+              testID={`${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-${tokenKey}`}
+            />
+          ) : (
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              numberOfLines={1}
+            >
+              {receivedAmount}
+            </Text>
+          )}
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}

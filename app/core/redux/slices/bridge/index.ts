@@ -18,6 +18,7 @@ import {
   formatChainIdToCaip,
   isSolanaChainId,
   selectBridgeQuotes as selectBridgeQuotesBase,
+  selectBatchSellQuotes as selectBatchSellQuotesBase,
   SortOrder,
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
@@ -673,6 +674,15 @@ export const selectBridgeQuotes = createSelector(
     // If not found, return default result
     return allQuotesResult;
   },
+);
+
+export const selectBatchSellQuotes = createSelector(
+  selectControllerFields,
+  (requiredControllerFields) =>
+    selectBatchSellQuotesBase(requiredControllerFields, {
+      sortOrder: SortOrder.COST_ASC,
+      requestCount: requiredControllerFields.quoteRequest.length,
+    }),
 );
 
 export const selectIsSolanaSourced = createSelector(

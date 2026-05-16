@@ -35,7 +35,7 @@ interface BuildBatchSellQuoteRequestsParams {
   destToken: BridgeToken | undefined;
   gasIncluded: boolean;
   gasIncluded7702: boolean;
-  selectedTokens: BridgeToken[];
+  sourceTokens: BridgeToken[];
   walletAddress: string | undefined;
 }
 
@@ -52,10 +52,6 @@ interface BatchSellQuoteRequestEntry {
 interface BatchSellQuoteRequestData {
   quoteRequest: GenericQuoteRequest;
   context: BatchSellQuoteContext;
-}
-
-export function getBatchSellTokenKey(token: BridgeToken) {
-  return `${token.chainId}:${token.address}`;
 }
 
 export function getBatchSellSourceTokenAmount(
@@ -102,23 +98,23 @@ function buildBatchSellQuoteRequestEntries({
   destToken,
   gasIncluded,
   gasIncluded7702,
-  selectedTokens,
+  sourceTokens,
   walletAddress,
 }: BuildBatchSellQuoteRequestsParams) {
   if (!destToken || !walletAddress) return [];
 
-  return selectedTokens.reduce<BatchSellQuoteRequestEntry[]>(
-    (quoteRequestEntries, token) => {
-      const assetId = getBridgeTokenAssetId(token);
+  return sourceTokens.reduce<BatchSellQuoteRequestEntry[]>(
+    (quoteRequestEntries, sourceToken) => {
+      const assetId = getBridgeTokenAssetId(sourceToken);
       const sourceAmount = assetId
         ? batchSellSourceTokenAmounts[assetId]
         : undefined;
       const srcTokenAmount = getBatchSellAtomicSourceAmount(
-        token,
+        sourceToken,
         sourceAmount,
       );
 
-      if (!assetId || !srcTokenAmount || !sourceAmount)
+      if (!assetId || !sourceAmount || !srcTokenAmount)
         return quoteRequestEntries;
 
       const slippage = getBatchSellSlippage(batchSellSlippages, assetId);
@@ -127,8 +123,8 @@ function buildBatchSellQuoteRequestEntries({
 
       quoteRequestEntries.push({
         quoteRequest: {
-          srcChainId: getDecimalChainId(token.chainId),
-          srcTokenAddress: formatAddressToCaipReference(token.address),
+          srcChainId: getDecimalChainId(sourceToken.chainId),
+          srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
           destChainId: getDecimalChainId(destToken.chainId),
           destTokenAddress: formatAddressToCaipReference(destToken.address),
           srcTokenAmount,
@@ -142,7 +138,7 @@ function buildBatchSellQuoteRequestEntries({
           gasIncluded7702,
         },
         sourceAmount,
-        sourceToken: token,
+        sourceToken,
       });
 
       return quoteRequestEntries;
@@ -177,7 +173,7 @@ async function updateBatchSellQuoteRequests(
 }
 
 export function useBatchSellQuoteRequest() {
-  const selectedTokens = useSelector(selectBatchSellSourceTokens);
+  const sourceTokens = useSelector(selectBatchSellSourceTokens);
   const batchSellSourceTokenAmounts = useSelector(
     selectBatchSellSourceTokenAmounts,
   );
@@ -198,7 +194,7 @@ export function useBatchSellQuoteRequest() {
       destToken,
       gasIncluded,
       gasIncluded7702,
-      selectedTokens,
+      sourceTokens,
       walletAddress,
     });
     const securityWarnings = getSecurityWarnings(destToken);
@@ -225,7 +221,7 @@ export function useBatchSellQuoteRequest() {
     destToken,
     gasIncluded,
     gasIncluded7702,
-    selectedTokens,
+    sourceTokens,
     walletAddress,
     smartTransactionsEnabled,
   ]);

@@ -130,7 +130,7 @@ describe('useBatchSellQuoteRequest', () => {
       destToken: usdcToken,
       gasIncluded: false,
       gasIncluded7702: false,
-      selectedTokens: [ethToken, uniToken],
+      sourceTokens: [ethToken, uniToken],
       walletAddress: mockWalletAddress,
     });
 

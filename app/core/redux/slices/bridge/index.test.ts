@@ -31,6 +31,7 @@ import reducer, {
   selectBatchSellDestToken,
   selectBatchSellDestStablecoins,
   selectBatchSellDestStablecoinsByChain,
+  selectBatchSellQuotes,
   selectBatchSellSlippages,
   setBatchSellTokenSlippage,
   setBatchSellTokenSlippages,
@@ -904,6 +905,20 @@ describe('bridge slice', () => {
       const state = reducer(stateWithFilter, action);
 
       expect(state.tokenSelectorNetworkFilter).toBe('eip155:137');
+    });
+  });
+
+  describe('selectBatchSellQuotes', () => {
+    it('uses the BridgeController quote request count', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.BridgeController.quoteRequest = [
+        { srcTokenAddress: '0x1111111111111111111111111111111111111111' },
+        { srcTokenAddress: '0x2222222222222222222222222222222222222222' },
+      ] as unknown as typeof mockState.engine.backgroundState.BridgeController.quoteRequest;
+
+      const result = selectBatchSellQuotes(mockState as unknown as RootState);
+
+      expect(result.recommendedQuotes).toHaveLength(2);
     });
   });
 

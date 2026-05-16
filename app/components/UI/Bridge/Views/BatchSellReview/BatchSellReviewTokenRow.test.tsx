@@ -119,6 +119,8 @@ describe('BatchSellReviewTokenRow', () => {
         token={mockToken}
         tokenKey={mockTokenKey}
         percent={100}
+        receivedAmount="123.45 USDC"
+        isLoading
         onPercentChange={mockOnPercentChange}
         onSlippagePress={mockOnSlippagePress}
         onRemovePress={mockOnRemovePress}
@@ -136,12 +138,32 @@ describe('BatchSellReviewTokenRow', () => {
     expect(getByText('1.49812 ETH • 100%')).toBeOnTheScreen();
   });
 
+  it('renders the received amount when loaded', () => {
+    const { getByText, queryByTestId } = render(
+      <BatchSellReviewTokenRow
+        token={mockToken}
+        tokenKey={mockTokenKey}
+        percent={100}
+        receivedAmount="123.45 USDC"
+        onPercentChange={mockOnPercentChange}
+      />,
+    );
+
+    expect(getByText('123.45 USDC')).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-${mockTokenKey}`,
+      ),
+    ).toBeNull();
+  });
+
   it('matches token picker balance formatting for tiny balances', () => {
     const { getByText } = render(
       <BatchSellReviewTokenRow
         token={{ ...mockToken, balance: '0.000001' }}
         tokenKey={mockTokenKey}
         percent={100}
+        receivedAmount="123.45 USDC"
         onPercentChange={mockOnPercentChange}
       />,
     );
@@ -155,6 +177,7 @@ describe('BatchSellReviewTokenRow', () => {
         token={mockToken}
         tokenKey={mockTokenKey}
         percent={100}
+        receivedAmount="123.45 USDC"
         onPercentChange={mockOnPercentChange}
       />,
     );
@@ -174,6 +197,7 @@ describe('BatchSellReviewTokenRow', () => {
         token={mockToken}
         tokenKey={mockTokenKey}
         percent={100}
+        receivedAmount="123.45 USDC"
         onPercentChange={mockOnPercentChange}
         onSlippagePress={mockOnSlippagePress}
         onRemovePress={mockOnRemovePress}
@@ -201,6 +225,7 @@ describe('BatchSellReviewTokenRow', () => {
         token={mockToken}
         tokenKey={mockTokenKey}
         percent={100}
+        receivedAmount="123.45 USDC"
         onPercentChange={mockOnPercentChange}
         onRemovePress={mockOnRemovePress}
         isRemoveTokenDisabled

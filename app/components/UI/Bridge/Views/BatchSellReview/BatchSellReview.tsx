@@ -43,11 +43,7 @@ import {
 import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
 import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
-import {
-  DEFAULT_BATCH_SELL_SLIPPAGE,
-  getBatchSellSlippage,
-  getSlippageDisplayValue,
-} from '../../components/SlippageModal/utils';
+import { getBatchSellSlippage } from '../../components/SlippageModal/utils';
 import { BatchSellFinalReviewSourceTokenData } from '../../components/BatchSellFinalReviewModal/BatchSellFinalReviewModal.types';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
@@ -56,13 +52,10 @@ import {
   getBatchSellSourceTokenAmount,
   useBatchSellQuoteRequest,
 } from '../../hooks/useBatchSellQuoteRequest';
+import { useBatchSellQuoteData } from '../../hooks/useBatchSellQuoteData';
 
 const DEFAULT_PERCENT = 100;
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
-const HAS_QUOTES = true;
-const QUOTE_DETAILS_PLACEHOLDER_AMOUNT = '--';
-const NETWORK_FEE_PLACEHOLDER = '1.20 USDC';
-const NETWORK_FEE_FIAT_PLACEHOLDER = '$1.20';
 const METAMASK_FEE_PERCENT = '0.875';
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
@@ -116,6 +109,14 @@ export function BatchSellReview() {
     Record<string, number>
   >({});
   const updateBatchSellQuoteParams = useBatchSellQuoteRequest();
+  const batchSellQuoteData = useBatchSellQuoteData();
+  const quoteDetailsTokenData = useMemo(
+    () =>
+      batchSellQuoteData.tokenData.map(
+        ({ isLoading: _isLoading, ...data }) => data,
+      ),
+    [batchSellQuoteData.tokenData],
+  );
   const hasValidBatchSellInputs = useMemo(
     () =>
       Boolean(selectedDestinationToken) &&
@@ -247,30 +248,20 @@ export function BatchSellReview() {
     });
   }, [navigation]);
 
-  const getQuoteDetailsParams = useCallback(() => {
-    const destinationTokenSymbol =
-      selectedDestinationToken?.symbol ?? UNKNOWN_DESTINATION_TOKEN_SYMBOL;
-    const placeholderAmount = `${QUOTE_DETAILS_PLACEHOLDER_AMOUNT} ${destinationTokenSymbol}`;
-
-    return {
-      tokenData: selectedTokens.map((token) => {
-        const assetId = getBridgeTokenAssetId(token);
-        const slippage = assetId
-          ? getBatchSellSlippage(batchSellSlippages, assetId)
-          : DEFAULT_BATCH_SELL_SLIPPAGE;
-
-        return {
-          key: getTokenKey(token),
-          tokenSymbol: token.symbol,
-          slippage: getSlippageDisplayValue(slippage),
-          receivedAmount: placeholderAmount,
-        };
-      }),
-      totalReceived: placeholderAmount,
-      minimumReceived: placeholderAmount,
-      isLoading: !HAS_QUOTES,
-    };
-  }, [batchSellSlippages, selectedDestinationToken?.symbol, selectedTokens]);
+  const getQuoteDetailsParams = useCallback(
+    () => ({
+      tokenData: quoteDetailsTokenData,
+      totalReceived: batchSellQuoteData.totalReceived,
+      minimumReceived: batchSellQuoteData.minimumReceived,
+      isLoading: batchSellQuoteData.isLoading,
+    }),
+    [
+      batchSellQuoteData.isLoading,
+      batchSellQuoteData.minimumReceived,
+      batchSellQuoteData.totalReceived,
+      quoteDetailsTokenData,
+    ],
+  );
 
   const handleOpenQuoteDetails = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -285,12 +276,18 @@ export function BatchSellReview() {
       params: {
         ...getQuoteDetailsParams(),
         sourceTokens: selectedTokens.map(getSourceTokenData),
-        networkFee: NETWORK_FEE_PLACEHOLDER,
-        networkFeeFiat: NETWORK_FEE_FIAT_PLACEHOLDER,
+        networkFee: batchSellQuoteData.networkFee,
+        networkFeeFiat: batchSellQuoteData.networkFeeFiat,
         metamaskFeePercent: METAMASK_FEE_PERCENT,
       },
     });
-  }, [getQuoteDetailsParams, navigation, selectedTokens]);
+  }, [
+    batchSellQuoteData.networkFee,
+    batchSellQuoteData.networkFeeFiat,
+    getQuoteDetailsParams,
+    navigation,
+    selectedTokens,
+  ]);
 
   const handleSlippagePress = useCallback(
     (token: BridgeToken) => {
@@ -361,12 +358,22 @@ export function BatchSellReview() {
             justifyContent={BoxJustifyContent.Between}
             twClassName="mt-2"
           >
-            <Skeleton
-              width={195}
-              height={50}
-              style={tw.style('rounded-lg')}
-              testID={BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_SKELETON}
-            />
+            {batchSellQuoteData.isLoading ? (
+              <Skeleton
+                width={195}
+                height={50}
+                style={tw.style('rounded-lg')}
+                testID={BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_SKELETON}
+              />
+            ) : (
+              <Text
+                variant={TextVariant.HeadingLg}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {batchSellQuoteData.totalReceived}
+              </Text>
+            )}
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
@@ -407,7 +414,7 @@ export function BatchSellReview() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-4')}
         >
-          {selectedTokens.map((token) => {
+          {selectedTokens.map((token, index) => {
             const tokenKey = getTokenKey(token);
 
             return (
@@ -416,6 +423,13 @@ export function BatchSellReview() {
                 token={token}
                 tokenKey={tokenKey}
                 percent={percentsByTokenKey[tokenKey] ?? DEFAULT_PERCENT}
+                receivedAmount={
+                  batchSellQuoteData.tokenData[index]?.receivedAmount ?? ''
+                }
+                isLoading={
+                  batchSellQuoteData.tokenData[index]?.isLoading ??
+                  batchSellQuoteData.isLoading
+                }
                 onPercentChange={handlePercentChange}
                 onSlippagePress={handleSlippagePress}
                 onRemovePress={handleRemoveToken}
@@ -429,7 +443,7 @@ export function BatchSellReview() {
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            isDisabled={!HAS_QUOTES}
+            isDisabled={!batchSellQuoteData.hasCompleteQuoteSet}
             onPress={handleOpenFinalReview}
             testID={BatchSellReviewSelectorsIDs.REVIEW_BUTTON}
           >
