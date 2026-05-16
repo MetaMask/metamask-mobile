@@ -310,6 +310,7 @@ const Routes = {
     BRIDGE_VIEW: 'BridgeView',
     TOKEN_SELECTOR: 'BridgeTokenSelector',
     BATCH_SELL_TOKEN_SELECT: 'BatchSellTokenSelect',
+    BATCH_SELL_REVIEW: 'BatchSellReview',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     MODALS: {
       ROOT: 'BridgeModals',
@@ -324,6 +325,8 @@ const Routes = {
       MISSING_PRICE_MODAL: 'MissingPriceModal',
       TOKEN_WARNING_MODAL: 'TokenWarningModal',
       HIGH_RATE_ALERT_MODAL: 'HighRateAlertModal',
+      BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL:
+        'BatchSellDestinationTokenSelectorModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },

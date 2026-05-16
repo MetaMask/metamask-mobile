@@ -324,7 +324,7 @@ export const initialState: RewardsState = {
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
   payload?: {
-    rewards?: RewardsState;
+    rewards?: Partial<RewardsState>;
   };
 }
 

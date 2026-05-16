@@ -22,6 +22,7 @@ import {
 } from '../../../../../util/analytics/actionButtonTracking';
 import { useAddNetwork } from '../../../../hooks/useAddNetwork';
 import {
+  selectAllowedChainRanking,
   selectIsBridgeEnabledSourceFactory,
   setSourceToken,
   setDestToken,
@@ -40,7 +41,7 @@ import {
 import { areAddressesEqual } from '../../../../../util/address';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
-import { useInitialBridgeTokens } from '../useInitialBridgeTokens';
+import { useFetchPopularTokens } from '../useFetchPopularTokens';
 
 /**
  * When navigating to the Asset view from trending tokens list, we add a property
@@ -158,7 +159,20 @@ export const useSwapBridgeNavigation = ({
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
-  const { fetchPopularTokens } = useInitialBridgeTokens();
+
+  const enabledChainRanking = useSelector(selectAllowedChainRanking);
+
+  const fetchPopularTokens = useFetchPopularTokens();
+  const prefetchPopularTokens = useCallback(() => {
+    if (!enabledChainRanking?.length) {
+      return;
+    }
+    fetchPopularTokens({
+      chainIds: enabledChainRanking.map(
+        (chain: { chainId: CaipChainId }) => chain.chainId,
+      ),
+    }).catch(() => undefined);
+  }, [enabledChainRanking, fetchPopularTokens]);
 
   // Unified swaps/bridge UI
   const goToNativeBridge = useCallback(
@@ -307,7 +321,7 @@ export const useSwapBridgeNavigation = ({
 
       // Prefetch popular tokens
       if (isBasicFunctionalityEnabled) {
-        fetchPopularTokens();
+        prefetchPopularTokens();
       }
       // Navigate before Redux bridge updates so the Wallet tab does not repaint from slice
       // dispatches while still visible (e.g. checklist trade primary → swaps).
@@ -377,7 +391,7 @@ export const useSwapBridgeNavigation = ({
       swapButtonEventLocationOverride,
       transactionActiveAbTests,
       isBasicFunctionalityEnabled,
-      fetchPopularTokens,
+      prefetchPopularTokens,
     ],
   );
   const { networkModal } = useAddNetwork();
