@@ -20,6 +20,7 @@ const defaultQuoteData = {
       tokenSymbol: 'ETH',
       slippage: '2%',
       receivedAmount: '3,456.78 USDC',
+      receivedAmountFiat: '$3,456.78',
       isLoading: false,
     },
     {
@@ -27,10 +28,12 @@ const defaultQuoteData = {
       tokenSymbol: 'UNI',
       slippage: '2%',
       receivedAmount: '500 USDC',
+      receivedAmountFiat: '$500.00',
       isLoading: false,
     },
   ],
   totalReceived: '3,956.78 USDC',
+  totalReceivedFiat: '$3,956.78',
   minimumReceived: '3,900 USDC',
   isLoading: false,
   hasCompleteQuoteSet: true,
@@ -158,56 +161,6 @@ jest.mock('../../hooks/useBatchSellQuoteData', () => ({
   useBatchSellQuoteData: () => mockBatchSellQuoteData,
 }));
 
-jest.mock('./BatchSellReviewTokenRow', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Pressable, Text, View } = jest.requireActual('react-native');
-
-  return {
-    BatchSellReviewTokenRow: ({
-      isRemoveTokenDisabled,
-      onRemovePress,
-      onSlippagePress,
-      percent,
-      receivedAmount,
-      isLoading,
-      token,
-      tokenKey,
-    }: {
-      isRemoveTokenDisabled?: boolean;
-      onRemovePress: (token: BridgeToken) => void;
-      onSlippagePress: (token: BridgeToken) => void;
-      percent: number;
-      receivedAmount: string;
-      isLoading?: boolean;
-      token: BridgeToken;
-      tokenKey: string;
-    }) =>
-      ReactActual.createElement(
-        View,
-        { testID: `batch-sell-review-token-row-${tokenKey}` },
-        ReactActual.createElement(Text, null, token.symbol),
-        isLoading
-          ? ReactActual.createElement(View, {
-              testID: `batch-sell-review-token-amount-skeleton-${tokenKey}`,
-            })
-          : ReactActual.createElement(Text, null, receivedAmount),
-        ReactActual.createElement(Text, null, `${percent}%`),
-        ReactActual.createElement(Pressable, {
-          onPress: () => onSlippagePress(token),
-          testID: `batch-sell-review-customize-button-${tokenKey}`,
-        }),
-        ReactActual.createElement(Pressable, {
-          accessibilityState: { disabled: Boolean(isRemoveTokenDisabled) },
-          disabled: isRemoveTokenDisabled,
-          onPress: isRemoveTokenDisabled
-            ? undefined
-            : () => onRemovePress(token),
-          testID: `batch-sell-review-remove-button-${tokenKey}`,
-        }),
-      ),
-  };
-});
-
 describe('BatchSellReview', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -229,15 +182,15 @@ describe('BatchSellReview', () => {
       getByTestId(BatchSellReviewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     expect(getByText('Total received')).toBeOnTheScreen();
-    expect(getByText('3,956.78 USDC')).toBeOnTheScreen();
+    expect(getByText('$3,956.78')).toBeOnTheScreen();
     expect(
       getByTestId(BatchSellReviewSelectorsIDs.DESTINATION_TOKEN_PILL),
     ).toBeOnTheScreen();
     expect(getByText('USDC')).toBeOnTheScreen();
-    expect(getByText('ETH')).toBeOnTheScreen();
-    expect(getByText('UNI')).toBeOnTheScreen();
-    expect(getByText('3,456.78 USDC')).toBeOnTheScreen();
-    expect(getByText('500 USDC')).toBeOnTheScreen();
+    expect(getByText('1.498 ETH • 100%')).toBeOnTheScreen();
+    expect(getByText('154.297 UNI • 100%')).toBeOnTheScreen();
+    expect(getByText('$3,456.78')).toBeOnTheScreen();
+    expect(getByText('$500.00')).toBeOnTheScreen();
   });
 
   it('renders the quote loading screen', () => {
@@ -265,9 +218,10 @@ describe('BatchSellReview', () => {
   });
 
   it('sets selected token percents to 100% on entry', () => {
-    const { getAllByText } = render(<BatchSellReview />);
+    const { getByText } = render(<BatchSellReview />);
 
-    expect(getAllByText('100%')).toHaveLength(mockSelectedTokens.length);
+    expect(getByText('1.498 ETH • 100%')).toBeOnTheScreen();
+    expect(getByText('154.297 UNI • 100%')).toBeOnTheScreen();
   });
 
   it('enables the review button when quotes are available', () => {
@@ -317,12 +271,16 @@ describe('BatchSellReview', () => {
             tokenSymbol: 'ETH',
             slippage: '2%',
             receivedAmount: '3,456.78 USDC',
+            receivedAmountFiat: '$3,456.78',
+            isLoading: false,
           },
           {
             key: '0x1:0x2222222222222222222222222222222222222222',
             tokenSymbol: 'UNI',
             slippage: '2%',
             receivedAmount: '500 USDC',
+            receivedAmountFiat: '$500.00',
+            isLoading: false,
           },
         ],
         totalReceived: '3,956.78 USDC',
@@ -346,12 +304,16 @@ describe('BatchSellReview', () => {
             tokenSymbol: 'ETH',
             slippage: '2%',
             receivedAmount: '3,456.78 USDC',
+            receivedAmountFiat: '$3,456.78',
+            isLoading: false,
           },
           {
             key: '0x1:0x2222222222222222222222222222222222222222',
             tokenSymbol: 'UNI',
             slippage: '2%',
             receivedAmount: '500 USDC',
+            receivedAmountFiat: '$500.00',
+            isLoading: false,
           },
         ],
         totalReceived: '3,956.78 USDC',

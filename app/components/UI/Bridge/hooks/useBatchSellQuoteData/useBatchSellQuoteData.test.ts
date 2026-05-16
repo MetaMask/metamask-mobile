@@ -47,18 +47,20 @@ let mockBatchSellSourceTokenAmounts: Partial<
   [uniAssetId]: '2',
 };
 let mockBatchSellQuotes: {
-  recommendedQuotes: ({ toTokenAmount: { amount: string } } | null)[];
-  totalReceived: { amount: string };
-  minimumReceived: { amount: string };
+  recommendedQuotes: ({
+    toTokenAmount: { amount: string; valueInCurrency: string | null };
+  } | null)[];
+  totalReceived: { amount: string; valueInCurrency: string | null };
+  minimumReceived: { amount: string; valueInCurrency: string | null };
   totalNetworkFee: { amount: string; valueInCurrency: string };
   isLoading: boolean;
 } = {
   recommendedQuotes: [
-    { toTokenAmount: { amount: '123' } },
-    { toTokenAmount: { amount: '77' } },
+    { toTokenAmount: { amount: '123', valueInCurrency: '123.45' } },
+    { toTokenAmount: { amount: '77', valueInCurrency: '77.89' } },
   ],
-  totalReceived: { amount: '200' },
-  minimumReceived: { amount: '190' },
+  totalReceived: { amount: '200', valueInCurrency: '201.34' },
+  minimumReceived: { amount: '190', valueInCurrency: '191.23' },
   totalNetworkFee: { amount: '1.2', valueInCurrency: '1.25' },
   isLoading: false,
 };
@@ -90,11 +92,11 @@ describe('useBatchSellQuoteData', () => {
     };
     mockBatchSellQuotes = {
       recommendedQuotes: [
-        { toTokenAmount: { amount: '123' } },
-        { toTokenAmount: { amount: '77' } },
+        { toTokenAmount: { amount: '123', valueInCurrency: '123.45' } },
+        { toTokenAmount: { amount: '77', valueInCurrency: '77.89' } },
       ],
-      totalReceived: { amount: '200' },
-      minimumReceived: { amount: '190' },
+      totalReceived: { amount: '200', valueInCurrency: '201.34' },
+      minimumReceived: { amount: '190', valueInCurrency: '191.23' },
       totalNetworkFee: { amount: '1.2', valueInCurrency: '1.25' },
       isLoading: false,
     };
@@ -106,6 +108,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.hasCompleteQuoteSet).toBe(true);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.totalReceived).toBe('200 USDC');
+    expect(result.current.totalReceivedFiat).toBe('$201.34');
     expect(result.current.minimumReceived).toBe('190 USDC');
     expect(result.current.networkFee).toBe('1.2 USDC');
     expect(result.current.networkFeeFiat).toBe('$1.25');
@@ -114,12 +117,14 @@ describe('useBatchSellQuoteData', () => {
         key: ethAssetId,
         tokenSymbol: 'ETH',
         receivedAmount: '123 USDC',
+        receivedAmountFiat: '$123.45',
         isLoading: false,
       }),
       expect.objectContaining({
         key: uniAssetId,
         tokenSymbol: 'UNI',
         receivedAmount: '77 USDC',
+        receivedAmountFiat: '$77.89',
         isLoading: false,
       }),
     ]);
@@ -128,7 +133,10 @@ describe('useBatchSellQuoteData', () => {
   it('marks rows without recommended quotes as loading', () => {
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
-      recommendedQuotes: [{ toTokenAmount: { amount: '123' } }, null],
+      recommendedQuotes: [
+        { toTokenAmount: { amount: '123', valueInCurrency: '123.45' } },
+        null,
+      ],
     };
 
     const { result } = renderHook(() => useBatchSellQuoteData());

@@ -110,13 +110,6 @@ export function BatchSellReview() {
   >({});
   const updateBatchSellQuoteParams = useBatchSellQuoteRequest();
   const batchSellQuoteData = useBatchSellQuoteData();
-  const quoteDetailsTokenData = useMemo(
-    () =>
-      batchSellQuoteData.tokenData.map(
-        ({ isLoading: _isLoading, ...data }) => data,
-      ),
-    [batchSellQuoteData.tokenData],
-  );
   const hasValidBatchSellInputs = useMemo(
     () =>
       Boolean(selectedDestinationToken) &&
@@ -250,7 +243,7 @@ export function BatchSellReview() {
 
   const getQuoteDetailsParams = useCallback(
     () => ({
-      tokenData: quoteDetailsTokenData,
+      tokenData: batchSellQuoteData.tokenData,
       totalReceived: batchSellQuoteData.totalReceived,
       minimumReceived: batchSellQuoteData.minimumReceived,
       isLoading: batchSellQuoteData.isLoading,
@@ -258,8 +251,8 @@ export function BatchSellReview() {
     [
       batchSellQuoteData.isLoading,
       batchSellQuoteData.minimumReceived,
+      batchSellQuoteData.tokenData,
       batchSellQuoteData.totalReceived,
-      quoteDetailsTokenData,
     ],
   );
 
@@ -371,7 +364,7 @@ export function BatchSellReview() {
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
               >
-                {batchSellQuoteData.totalReceived}
+                {batchSellQuoteData.totalReceivedFiat}
               </Text>
             )}
             <Button
@@ -424,7 +417,7 @@ export function BatchSellReview() {
                 tokenKey={tokenKey}
                 percent={percentsByTokenKey[tokenKey] ?? DEFAULT_PERCENT}
                 receivedAmount={
-                  batchSellQuoteData.tokenData[index]?.receivedAmount ?? ''
+                  batchSellQuoteData.tokenData[index]?.receivedAmountFiat ?? ''
                 }
                 isLoading={
                   batchSellQuoteData.tokenData[index]?.isLoading ??

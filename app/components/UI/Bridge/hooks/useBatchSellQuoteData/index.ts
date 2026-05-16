@@ -6,7 +6,6 @@ import {
   selectBatchSellDestToken,
   selectBatchSellQuotes,
   selectBatchSellSlippages,
-  selectBatchSellSourceTokenAmounts,
   selectBatchSellSourceTokens,
 } from '../../../../../core/redux/slices/bridge';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -27,6 +26,7 @@ interface BatchSellQuoteTokenData {
   tokenSymbol: string;
   slippage: string;
   receivedAmount: string;
+  receivedAmountFiat: string;
   isLoading: boolean;
 }
 
@@ -51,9 +51,6 @@ function formatFiatValue(
 
 export function useBatchSellQuoteData() {
   const sourceTokens = useSelector(selectBatchSellSourceTokens);
-  const batchSellSourceTokenAmounts = useSelector(
-    selectBatchSellSourceTokenAmounts,
-  );
   const selectedDestinationToken = useSelector(selectBatchSellDestToken);
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
   const batchSellQuotes = useSelector(selectBatchSellQuotes);
@@ -82,12 +79,17 @@ export function useBatchSellQuoteData() {
             recommendedQuote?.toTokenAmount.amount,
             destinationTokenSymbol,
           ),
+          receivedAmountFiat: formatFiatValue(
+            recommendedQuote?.toTokenAmount.valueInCurrency,
+            currentCurrency,
+          ),
           isLoading: !recommendedQuote,
         };
       }),
     [
       batchSellSlippages,
       destinationTokenSymbol,
+      currentCurrency,
       recommendedQuotes,
       sourceTokens,
     ],
@@ -103,6 +105,12 @@ export function useBatchSellQuoteData() {
       hasCompleteQuoteSet ? batchSellQuotes.totalReceived.amount : undefined,
       destinationTokenSymbol,
     ),
+    totalReceivedFiat: hasCompleteQuoteSet
+      ? formatFiatValue(
+          batchSellQuotes.totalReceived.valueInCurrency,
+          currentCurrency,
+        )
+      : '-',
     minimumReceived: formatTokenAmountWithSymbol(
       hasCompleteQuoteSet ? batchSellQuotes.minimumReceived.amount : undefined,
       destinationTokenSymbol,
