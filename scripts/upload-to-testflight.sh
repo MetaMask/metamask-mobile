@@ -10,7 +10,7 @@
 #   branch              - Git branch name (required)
 #   ipa_path            - Optional: Direct path to IPA file (if not provided, uses find-ipa-file.sh)
 #   testflight_group    - Optional: TestFlight external testing group name (default: MetaMask BETA & Release Candidates)
-#   distribute_external - Optional: Whether to distribute to external testers (default: true)
+#   distribute_external - Optional: Whether to distribute to external testers (default: false)
 #
 # Environment variables:
 #   IPA_PATH - IPA path (set by find-ipa-file.sh if not provided as argument)
@@ -27,7 +27,7 @@ PIPELINE_NAME="$1"
 BRANCH="$2"
 LOCAL_IPA_PATH="$3"
 TESTFLIGHT_GROUP="${4:-MetaMask BETA & Release Candidates}"
-DISTRIBUTE_EXTERNAL="${5:-true}"
+DISTRIBUTE_EXTERNAL="${5:-false}"
 
 # Get IPA path: use argument if provided, otherwise use find-ipa-file.sh
 if [ -n "$LOCAL_IPA_PATH" ]; then

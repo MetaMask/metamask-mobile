@@ -6,6 +6,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/EnterEmail/EnterEmail.styles';
@@ -18,7 +19,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { createV2OtpCodeNavDetails } from './OtpCode';
 import { validateEmail } from '../../Deposit/utils';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar/DepositProgressBar';
@@ -137,7 +137,7 @@ const V2EnterEmail = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('deposit.enter_email.navbar_title')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}
