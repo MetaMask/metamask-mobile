@@ -219,3 +219,6 @@ release-signoffs.json
 
 # Build environment validation
 build-env.json
+
+# Messenger docs
+.messenger-docs/
