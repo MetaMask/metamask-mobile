@@ -6,6 +6,7 @@ import { BridgeToken } from '../../types';
 import { BatchSellReview } from './BatchSellReview';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -93,6 +94,17 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     setOptions: jest.fn(),
   }),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      BridgeController: {
+        resetState: jest.fn(),
+      },
+    },
+  },
 }));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
@@ -392,12 +404,13 @@ describe('BatchSellReview', () => {
     expect(mockCancelBatchSellQuoteParams).toHaveBeenCalled();
   });
 
-  it('leaves bridge state intact on unmount', () => {
+  it('resets controller quote state but leaves Redux bridge state intact on unmount', () => {
     const { unmount } = render(<BatchSellReview />);
 
     mockDispatch.mockClear();
     unmount();
 
+    expect(Engine.context.BridgeController.resetState).toHaveBeenCalledTimes(1);
     expect(mockDispatch).not.toHaveBeenCalledWith({
       type: 'bridge/resetBridgeState',
     });

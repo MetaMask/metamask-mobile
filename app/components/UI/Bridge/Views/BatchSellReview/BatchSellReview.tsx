@@ -41,6 +41,7 @@ import {
   setBatchSellTokenSlippages,
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
+import Engine from '../../../../../core/Engine';
 import { BridgeToken } from '../../types';
 import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
 import { getBatchSellSlippage } from '../../components/SlippageModal/utils';
@@ -153,6 +154,14 @@ export function BatchSellReview() {
       updateBatchSellQuoteParams.cancel();
     };
   }, [hasValidBatchSellInputs, updateBatchSellQuoteParams]);
+
+  useEffect(
+    () => () => {
+      // Clear controller quote state so returning to review does not show stale quotes.
+      Engine.context.BridgeController?.resetState?.();
+    },
+    [],
+  );
 
   useEffect(() => {
     const nextSourceTokenAmounts = selectedTokens.reduce<
