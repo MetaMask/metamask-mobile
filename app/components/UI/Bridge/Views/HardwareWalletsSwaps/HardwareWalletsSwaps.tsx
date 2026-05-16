@@ -284,6 +284,28 @@ export function HardwareWalletsSwaps() {
   const hasAutoNavigatedRef = useRef(false);
   const hasInitialSubmissionRef = useRef(false);
   const submissionGenerationRef = useRef(0);
+  const isRetryingRef = useRef(false);
+  const publishCompleteRef = useRef(false);
+
+  const navigateToTransactions = useCallback(() => {
+    if (hasAutoNavigatedRef.current) return;
+    hasAutoNavigatedRef.current = true;
+    console.log(
+      '[HW-Swaps] Navigating to transactions view — submission published',
+    );
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: ToastIconName.Check,
+      hasNoTimeout: false,
+      labelOptions: [
+        {
+          label: strings('bridge.hardware_wallet_progress.submitted_title'),
+        },
+      ],
+    });
+    dispatch(resetHardwareWalletsSwaps());
+    navigation.navigate(Routes.TRANSACTIONS_VIEW as never);
+  }, [dispatch, navigation, toastRef]);
 
   useEffect(() => {
     console.log(
@@ -314,32 +336,12 @@ export function HardwareWalletsSwaps() {
   useEffect(() => {
     if (progress.status !== HardwareWalletsSwapsStatus.Submitted) return;
     if (hasAutoNavigatedRef.current) return;
+    if (!hasInitialSubmissionRef.current) return;
 
-    console.log(
-      '[HW-Swaps] Status=Submitted — scheduling auto-navigate to transactions view',
-    );
-    hasAutoNavigatedRef.current = true;
-
-    const timer = setTimeout(() => {
-      console.log(
-        '[HW-Swaps] Auto-navigating to transactions view after submission',
-      );
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: ToastIconName.Check,
-        hasNoTimeout: false,
-        labelOptions: [
-          {
-            label: strings('bridge.hardware_wallet_progress.submitted_title'),
-          },
-        ],
-      });
-      dispatch(resetHardwareWalletsSwaps());
-      navigation.navigate(Routes.TRANSACTIONS_VIEW as never);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [progress.status, navigation, dispatch, toastRef]);
+    if (publishCompleteRef.current) {
+      navigateToTransactions();
+    }
+  }, [progress.status, navigateToTransactions]);
 
   const submitWithDeviceReady = useCallback(async () => {
     console.log('[HW-Swaps] submitWithDeviceReady called');
@@ -370,10 +372,19 @@ export function HardwareWalletsSwaps() {
       walletAddress,
     });
     const myGeneration = submissionGenerationRef.current;
+    publishCompleteRef.current = false;
     try {
       await submitBridgeTx(cachedParams);
       console.log('[HW-Swaps] submitBridgeTx completed successfully');
+      publishCompleteRef.current = true;
+      if (
+        progressRef.current.status === HardwareWalletsSwapsStatus.Submitted &&
+        !hasAutoNavigatedRef.current
+      ) {
+        navigateToTransactions();
+      }
     } catch (error) {
+      publishCompleteRef.current = true;
       if (submissionGenerationRef.current !== myGeneration) {
         console.log(
           '[HW-Swaps] Stale submission — ignoring error from cancelled batch',
@@ -387,7 +398,10 @@ export function HardwareWalletsSwaps() {
         '[HW-Swaps] Error caught — current status:',
         currentProgress.status,
       );
-      if (currentProgress.status === HardwareWalletsSwapsStatus.Waiting) {
+      if (
+        currentProgress.status === HardwareWalletsSwapsStatus.Waiting ||
+        currentProgress.status === HardwareWalletsSwapsStatus.Submitted
+      ) {
         console.log('[HW-Swaps] Dispatching TRANSACTION_FAILED after error');
         dispatch(
           updateHardwareWalletsSwaps({
@@ -396,7 +410,7 @@ export function HardwareWalletsSwaps() {
         );
       }
     }
-  }, [dispatch, submitBridgeTx, walletAddress]);
+  }, [dispatch, submitBridgeTx, walletAddress, navigateToTransactions]);
 
   useEffect(() => {
     if (progress.status !== HardwareWalletsSwapsStatus.Waiting) return;
@@ -496,24 +510,44 @@ export function HardwareWalletsSwaps() {
     console.log(
       '[HW-Swaps] handleTryAgain — cancelling current batch and retrying submission',
     );
-    submissionGenerationRef.current += 1;
-    await cancelCurrentBatch();
-    dispatch(
-      updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.Retry }),
-    );
-    await submitWithDeviceReady();
+    if (isRetryingRef.current) return;
+    isRetryingRef.current = true;
+    hasAutoNavigatedRef.current = false;
+    publishCompleteRef.current = false;
+
+    try {
+      submissionGenerationRef.current += 1;
+      await cancelCurrentBatch();
+      submissionGenerationRef.current += 1;
+      dispatch(
+        updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.Retry }),
+      );
+      await submitWithDeviceReady();
+    } finally {
+      isRetryingRef.current = false;
+    }
   }, [dispatch, cancelCurrentBatch, submitWithDeviceReady]);
 
   const handleReconnect = useCallback(async () => {
     console.log(
       '[HW-Swaps] handleReconnect — cancelling stale batch and retrying submission',
     );
-    submissionGenerationRef.current += 1;
-    await cancelCurrentBatch();
-    dispatch(
-      updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.Retry }),
-    );
-    await submitWithDeviceReady();
+    if (isRetryingRef.current) return;
+    isRetryingRef.current = true;
+    hasAutoNavigatedRef.current = false;
+    publishCompleteRef.current = false;
+
+    try {
+      submissionGenerationRef.current += 1;
+      await cancelCurrentBatch();
+      submissionGenerationRef.current += 1;
+      dispatch(
+        updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.Retry }),
+      );
+      await submitWithDeviceReady();
+    } finally {
+      isRetryingRef.current = false;
+    }
   }, [dispatch, cancelCurrentBatch, submitWithDeviceReady]);
 
   const handleDone = useCallback(() => {

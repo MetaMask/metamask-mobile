@@ -282,7 +282,7 @@ describe('hardwareWalletsSwapsReducer', () => {
     expect(result).toBe(state);
   });
 
-  it('does not overwrite Submitted status with TRANSACTION_FAILED', () => {
+  it('transitions from Submitted to Failed on TRANSACTION_FAILED (publish failure)', () => {
     const started = hardwareWalletsSwapsReducer(
       initialHardwareWalletsSwapsState,
       { type: HardwareWalletsSwapsEventType.Start, payload: { totalSteps: 1 } },
@@ -297,7 +297,7 @@ describe('hardwareWalletsSwapsReducer', () => {
       type: HardwareWalletsSwapsEventType.TransactionFailed,
     });
 
-    expect(result.status).toBe(HardwareWalletsSwapsStatus.Submitted);
+    expect(result.status).toBe(HardwareWalletsSwapsStatus.Failed);
   });
 
   it('does not overwrite Disconnected status with TRANSACTION_FAILED', () => {
@@ -531,6 +531,41 @@ describe('hardwareWalletsSwapsReducer', () => {
     expect(result.status).toBe(HardwareWalletsSwapsStatus.Waiting);
     expect(result.currentStep).toBe(1);
     expect(result.steps[0].status).toBe(HardwareWalletsSwapsStepStatus.Waiting);
+    expect(result.disconnectedStep).toBeNull();
+  });
+
+  it('retries from disconnected at step 2 resets all steps to waiting', () => {
+    let state = hardwareWalletsSwapsReducer(initialHardwareWalletsSwapsState, {
+      type: HardwareWalletsSwapsEventType.Start,
+      payload: { totalSteps: 2 },
+    });
+    state = hardwareWalletsSwapsReducer(state, {
+      type: HardwareWalletsSwapsEventType.Signing,
+      payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
+    });
+    state = hardwareWalletsSwapsReducer(state, {
+      type: HardwareWalletsSwapsEventType.Signed,
+      payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
+    });
+    state = hardwareWalletsSwapsReducer(state, {
+      type: HardwareWalletsSwapsEventType.Signing,
+      payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
+    });
+    state = hardwareWalletsSwapsReducer(state, {
+      type: HardwareWalletsSwapsEventType.DeviceDisconnected,
+    });
+
+    expect(state.disconnectedStep).toBe(2);
+    expect(state.steps[0].status).toBe(HardwareWalletsSwapsStepStatus.Signed);
+
+    const result = hardwareWalletsSwapsReducer(state, {
+      type: HardwareWalletsSwapsEventType.Retry,
+    });
+
+    expect(result.status).toBe(HardwareWalletsSwapsStatus.Waiting);
+    expect(result.currentStep).toBe(1);
+    expect(result.steps[0].status).toBe(HardwareWalletsSwapsStepStatus.Waiting);
+    expect(result.steps[1].status).toBe(HardwareWalletsSwapsStepStatus.Waiting);
     expect(result.disconnectedStep).toBeNull();
   });
 

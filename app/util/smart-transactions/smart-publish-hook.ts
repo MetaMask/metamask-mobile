@@ -172,11 +172,15 @@ class SmartTransactionHook {
 
   async submitBatch() {
     this.#validateSubmitBatch();
-    Logger.log(
+    const txIds = this.#transactions?.map((tx) => tx.id) ?? [];
+    console.log(
       LOG_PREFIX,
-      'Started submit batch hook',
-      'Transaction IDs:',
-      (this.#transactions?.map((tx) => tx.id) ?? []).join(', '),
+      'submitBatch START — txIds:',
+      txIds,
+      'signedTx count:',
+      this.#transactions?.filter((tx) => tx.signedTx).length ?? 0,
+      'chainId:',
+      this.#chainId,
     );
 
     try {
@@ -184,22 +188,60 @@ class SmartTransactionHook {
         this.#featureFlags?.batchStatusPollingInterval ??
         DEFAULT_BATCH_STATUS_POLLING_INTERVAL;
       if (batchStatusPollingInterval) {
-        // if the interval if undefined, the controller will set 5 seconds by default.
-        // Better to make sure it's set to something lower.
         this.#smartTransactionsController.setStatusRefreshInterval(
           batchStatusPollingInterval,
         );
       }
 
+      console.log(
+        LOG_PREFIX,
+        'submitBatch — calling #signAndSubmitTransactions...',
+      );
       const submitTransactionResponse = await this.#signAndSubmitTransactions();
       const uuid = submitTransactionResponse?.uuid;
+      console.log(
+        LOG_PREFIX,
+        'submitBatch — #signAndSubmitTransactions returned, uuid:',
+        uuid,
+        'txHashes:',
+        submitTransactionResponse?.txHashes,
+      );
       if (!uuid) {
         throw new Error('No smart transaction UUID');
       }
 
+      let stxStatusResolved = false;
+      this.#controllerMessenger.subscribe(
+        'SmartTransactionsController:smartTransaction',
+        (stx: any) => {
+          if (stxStatusResolved) return;
+          if (stx.uuid === uuid) {
+            console.log(
+              LOG_PREFIX,
+              'submitBatch — STX STATUS UPDATE for uuid:',
+              uuid,
+              'status:', stx.status,
+              'minedTx:', stx.statusMetadata?.minedTx,
+              'cancellationReason:', stx.statusMetadata?.cancellationReason,
+              'isSettled:', stx.statusMetadata?.isSettled,
+              'minedHash:', stx.statusMetadata?.minedHash,
+              'originalTransactionStatus:', stx.statusMetadata?.originalTransactionStatus,
+            );
+            if (stx.status && stx.status !== 'pending') {
+              stxStatusResolved = true;
+            }
+          }
+        },
+      );
+
       const transactionHash = await this.#getTransactionHash(
         submitTransactionResponse,
         uuid,
+      );
+      console.log(
+        LOG_PREFIX,
+        'submitBatch — got transactionHash:',
+        transactionHash,
       );
       if (transactionHash === null) {
         throw new Error(
@@ -220,9 +262,22 @@ class SmartTransactionHook {
         };
       }
 
+      console.log(
+        LOG_PREFIX,
+        'submitBatch SUCCESS — returning',
+        submitBatchResponse.results.length,
+        'results',
+      );
       return submitBatchResponse;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
+      console.error(
+        LOG_PREFIX,
+        'submitBatch FAILED — error:',
+        error?.message ?? error,
+        'txIds:',
+        txIds,
+      );
       Logger.error(
         error,
         `${LOG_PREFIX} Error in smart transaction publish batch hook`,
@@ -312,7 +367,15 @@ class SmartTransactionHook {
       Array.isArray(this.#transactions) &&
       this.#transactions.length > 0
     ) {
-      // Batch transaction mode - extract signed transactions from this.#transactions[].signedTx
+      console.log(
+        LOG_PREFIX,
+        '#signAndSubmitTransactions — BATCH MODE, tx count:',
+        this.#transactions.length,
+        'txIds:',
+        this.#transactions.map((t) => t.id),
+        'with signedTx:',
+        this.#transactions.filter((t) => t.signedTx).length,
+      );
       signedTransactionsWithMetadata = this.#transactions
         .filter((tx) => tx?.signedTx)
         .map((tx) => {
@@ -320,6 +383,14 @@ class SmartTransactionHook {
             tx.id ?? '',
             this.#transactionController,
           );
+          if (!transactionMeta) {
+            console.warn(
+              LOG_PREFIX,
+              '#signAndSubmitTransactions — txMeta NOT FOUND for id:',
+              tx.id,
+              '(metadata will be missing)',
+            );
+          }
           const signedTx: SignedTransactionWithMetadata = { tx: tx.signedTx };
           if (transactionMeta) {
             signedTx.metadata = {
@@ -331,7 +402,10 @@ class SmartTransactionHook {
           return signedTx;
         });
     } else if (this.#signedTransactionInHex) {
-      // Single transaction mode with pre-signed transaction
+      console.log(
+        LOG_PREFIX,
+        '#signAndSubmitTransactions — SINGLE TX MODE (signedTransactionInHex)',
+      );
       signedTransactionsWithMetadata = [
         {
           tx: this.#signedTransactionInHex,
@@ -343,6 +417,10 @@ class SmartTransactionHook {
         },
       ];
     } else if (getFeesResponse) {
+      console.log(
+        LOG_PREFIX,
+        '#signAndSubmitTransactions — FEES MODE (creating signed txs from getFeesResponse)',
+      );
       const signed = await this.#createSignedTransactions(
         getFeesResponse.tradeTxFees?.fees ?? [],
         false,
@@ -357,14 +435,72 @@ class SmartTransactionHook {
       }));
     }
     signedTransactions = signedTransactionsWithMetadata.map((tx) => tx.tx);
-    return await this.#smartTransactionsController.submitSignedTransactions({
-      signedTransactions,
-      signedTransactionsWithMetadata,
-      signedCanceledTransactions: [],
-      txParams: this.#txParams,
-      transactionMeta: this.#transactionMeta,
-      networkClientId: this.#transactionMeta.networkClientId,
-    });
+    console.log(
+      LOG_PREFIX,
+      '#signAndSubmitTransactions — submitting',
+      signedTransactions.length,
+      'signed txs to STX controller, hasMetadata:',
+      signedTransactionsWithMetadata.filter((t) => t.metadata).length,
+    );
+    for (const [i, stx] of this.#transactions?.entries() ?? []) {
+      const meta = stx?.id
+        ? getTransactionById(stx.id, this.#transactionController)
+        : undefined;
+      if (meta) {
+        console.log(
+          LOG_PREFIX,
+          `#signAndSubmitTransactions — txMeta[${i}]`,
+          'id:', meta.id,
+          'type:', meta.type,
+          'nonce:', meta.txParams.nonce,
+          'maxFeePerGas:', meta.txParams.maxFeePerGas,
+          'maxPriorityFeePerGas:', meta.txParams.maxPriorityFeePerGas,
+          'gas:', meta.txParams.gas,
+          'to:', meta.txParams.to,
+          'value:', meta.txParams.value,
+          'chainId:', meta.chainId,
+          'status:', meta.status,
+        );
+      }
+    }
+    try {
+      console.log(
+        LOG_PREFIX,
+        '#signAndSubmitTransactions — txParams passed to submitSignedTransactions:',
+        'nonce:', this.#txParams.nonce,
+        'from:', this.#txParams.from,
+        'maxFeePerGas:', this.#txParams.maxFeePerGas,
+        'maxPriorityFeePerGas:', this.#txParams.maxPriorityFeePerGas,
+        'gas:', this.#txParams.gas,
+        'to:', this.#txParams.to,
+        'value:', this.#txParams.value,
+        'chainId:', this.#chainId,
+        'requiresNonceCheck:', !this.#txParams.nonce ? 'YES - STX controller will acquire nonce lock' : 'NO - nonce already set',
+      );
+      const response = await this.#smartTransactionsController.submitSignedTransactions({
+        signedTransactions,
+        signedTransactionsWithMetadata,
+        signedCanceledTransactions: [],
+        txParams: this.#txParams,
+        transactionMeta: this.#transactionMeta,
+        networkClientId: this.#transactionMeta.networkClientId,
+      });
+      console.log(
+        LOG_PREFIX,
+        '#signAndSubmitTransactions — submitSignedTransactions returned, uuid:',
+        response?.uuid,
+        'txHashes:',
+        response?.txHashes,
+      );
+      return response;
+    } catch (error) {
+      console.error(
+        LOG_PREFIX,
+        '#signAndSubmitTransactions — submitSignedTransactions THREW:',
+        error,
+      );
+      throw error;
+    }
   };
 
   #waitForTransactionHash = ({

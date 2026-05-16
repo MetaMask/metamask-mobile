@@ -19,6 +19,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     TransactionController: {
       abortTransactionSigning: jest.fn(),
+      update: jest.fn(),
       state: {
         transactions: [],
       },
@@ -27,6 +28,16 @@ jest.mock('../../../../core/Engine', () => ({
       acceptRequest: jest.fn().mockResolvedValue(undefined),
       state: {
         pendingApprovals: {},
+      },
+    },
+    SmartTransactionsController: {
+      cancelSmartTransaction: jest.fn().mockResolvedValue(undefined),
+      update: jest.fn(),
+      getTransactions: jest.fn().mockReturnValue([]),
+      state: {
+        smartTransactionsState: {
+          smartTransactions: {},
+        },
       },
     },
   },
@@ -80,6 +91,35 @@ function makeTransactionMeta(
     txParams: { from },
     batchId,
   } as any;
+}
+
+function resolveAbortWait(txId: string) {
+  const statusUpdatedCalls = mockSubscribe.mock.calls.filter(
+    (call: [string, Function]) =>
+      call[0] === 'TransactionController:transactionStatusUpdated',
+  );
+  const abortWaitHandler = statusUpdatedCalls[statusUpdatedCalls.length - 1]?.[1];
+  if (abortWaitHandler) {
+    abortWaitHandler({
+      transactionMeta: {
+        id: txId,
+        status: TransactionStatus.failed,
+        type: TransactionType.bridgeApproval,
+        txParams: { from: FROM_ADDRESS },
+      },
+    });
+  }
+}
+
+async function cancelBatchWithAbortResolve(
+  cancelFn: () => Promise<void>,
+  txId: string,
+) {
+  const cancelPromise = cancelFn();
+  await Promise.resolve();
+  await Promise.resolve();
+  resolveAbortWait(txId);
+  await cancelPromise;
 }
 
 describe('useHwBatchSignTracker', () => {
@@ -450,21 +490,24 @@ describe('useHwBatchSignTracker', () => {
           event === 'TransactionController:transactionRejected',
       )?.[1];
 
+      const txMeta = makeTransactionMeta(
+        TransactionType.bridgeApproval,
+        TransactionStatus.approved,
+        FROM_ADDRESS,
+        'batch-old',
+      );
+
       act(() => {
-        statusHandler!({
-          transactionMeta: makeTransactionMeta(
-            TransactionType.bridgeApproval,
-            TransactionStatus.approved,
-            FROM_ADDRESS,
-            'batch-old',
-          ),
-        });
+        statusHandler!({ transactionMeta: txMeta });
       });
 
       (updateHardwareWalletsSwaps as unknown as jest.Mock).mockClear();
 
       await act(async () => {
-        await result.current.cancelCurrentBatch();
+        await cancelBatchWithAbortResolve(
+          result.current.cancelCurrentBatch,
+          txMeta.id,
+        );
       });
 
       act(() => {
@@ -503,10 +546,57 @@ describe('useHwBatchSignTracker', () => {
       });
 
       await act(async () => {
-        await result.current.cancelCurrentBatch();
+        await cancelBatchWithAbortResolve(
+          result.current.cancelCurrentBatch,
+          txMeta.id,
+        );
       });
 
       expect(mockAbortTransactionSigning).toHaveBeenCalledWith(txMeta.id);
+    });
+
+    it('filters stale batch IDs after cancelCurrentBatch', async () => {
+      const { result } = renderHook(() =>
+        useHwBatchSignTracker({ fromAddress: FROM_ADDRESS, isEnabled: true }),
+      );
+
+      const statusHandler = mockSubscribe.mock.calls.find(
+        ([event]: [string]) =>
+          event === 'TransactionController:transactionStatusUpdated',
+      )?.[1];
+
+      const txMeta = makeTransactionMeta(
+        TransactionType.bridgeApproval,
+        TransactionStatus.approved,
+        FROM_ADDRESS,
+        'batch-stale',
+      );
+
+      act(() => {
+        statusHandler!({ transactionMeta: txMeta });
+      });
+
+      (updateHardwareWalletsSwaps as unknown as jest.Mock).mockClear();
+
+      await act(async () => {
+        await cancelBatchWithAbortResolve(
+          result.current.cancelCurrentBatch,
+          txMeta.id,
+        );
+      });
+
+      act(() => {
+        statusHandler!({
+          transactionMeta: makeTransactionMeta(
+            TransactionType.bridge,
+            TransactionStatus.signed,
+            FROM_ADDRESS,
+            'batch-stale',
+          ),
+        });
+      });
+
+      expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
     });
 
     it('returns cancelCurrentBatch function', () => {
@@ -574,24 +664,162 @@ describe('useHwBatchSignTracker', () => {
           event === 'TransactionController:transactionStatusUpdated',
       )?.[1];
 
+      const txMeta = makeTransactionMeta(
+        TransactionType.bridgeApproval,
+        TransactionStatus.approved,
+        FROM_ADDRESS,
+        'batch-cancel',
+      );
+
       act(() => {
-        statusHandler!({
-          transactionMeta: makeTransactionMeta(
-            TransactionType.bridgeApproval,
-            TransactionStatus.approved,
-            FROM_ADDRESS,
-            'batch-cancel',
-          ),
-        });
+        statusHandler!({ transactionMeta: txMeta });
       });
 
       expect(result.current.confirmationTxId).toBeDefined();
 
       await act(async () => {
-        await result.current.cancelCurrentBatch();
+        await cancelBatchWithAbortResolve(
+          result.current.cancelCurrentBatch,
+          txMeta.id,
+        );
       });
 
       expect(result.current.confirmationTxId).toBeUndefined();
+    });
+
+    it('removes approved txs from TC state on cancelCurrentBatch', async () => {
+      const txId = 'tx-approved-remove-001';
+      const mockTx = {
+        id: txId,
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS },
+      };
+      (Engine.context.TransactionController.state as any).transactions = [mockTx];
+
+      const { result } = renderHook(() =>
+        useHwBatchSignTracker({ fromAddress: FROM_ADDRESS, isEnabled: true }),
+      );
+
+      const statusHandler = mockSubscribe.mock.calls.find(
+        ([event]: [string]) =>
+          event === 'TransactionController:transactionStatusUpdated',
+      )?.[1];
+
+      act(() => {
+        statusHandler!({
+          transactionMeta: {
+            ...mockTx,
+            batchId: 'batch-approved-remove',
+          },
+        });
+      });
+
+      const mockUpdate = Engine.context.TransactionController.update as jest.Mock;
+      mockUpdate.mockClear();
+
+      await act(async () => {
+        await cancelBatchWithAbortResolve(
+          result.current.cancelCurrentBatch,
+          txId,
+        );
+      });
+
+      expect(mockUpdate).toHaveBeenCalledWith(expect.any(Function));
+      const updateFn = mockUpdate.mock.calls[mockUpdate.mock.calls.length - 1]?.[0];
+      if (updateFn) {
+        const state = { transactions: [mockTx] };
+        updateFn(state);
+        expect(state.transactions).toEqual([]);
+      }
+    });
+
+    it('removes straggler signed bridge txs not tracked in allBatchTxIdsRef', async () => {
+      const stragglerTx = {
+        id: 'straggler-tx-001',
+        type: TransactionType.bridge,
+        status: TransactionStatus.signed,
+        txParams: { from: FROM_ADDRESS },
+      };
+      (Engine.context.TransactionController.state as any).transactions = [stragglerTx];
+
+      const { result } = renderHook(() =>
+        useHwBatchSignTracker({ fromAddress: FROM_ADDRESS, isEnabled: true }),
+      );
+
+      const mockUpdate = Engine.context.TransactionController.update as jest.Mock;
+      mockUpdate.mockClear();
+
+      await act(async () => {
+        await result.current.cancelCurrentBatch();
+      });
+
+      expect(mockUpdate).toHaveBeenCalledWith(expect.any(Function));
+      const updateFn = mockUpdate.mock.calls[mockUpdate.mock.calls.length - 1]?.[0];
+      if (updateFn) {
+        const state = { transactions: [stragglerTx] };
+        updateFn(state);
+        expect(state.transactions).toEqual([]);
+      }
+    });
+
+    it('does not remove submitted or confirmed txs from TC state', async () => {
+      const submittedTx = {
+        id: 'submitted-tx-001',
+        type: TransactionType.bridge,
+        status: TransactionStatus.submitted,
+        txParams: { from: FROM_ADDRESS },
+      };
+      const confirmedTx = {
+        id: 'confirmed-tx-001',
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.confirmed,
+        txParams: { from: FROM_ADDRESS },
+      };
+      (Engine.context.TransactionController.state as any).transactions = [submittedTx, confirmedTx];
+
+      const { result } = renderHook(() =>
+        useHwBatchSignTracker({ fromAddress: FROM_ADDRESS, isEnabled: true }),
+      );
+
+      const statusHandler = mockSubscribe.mock.calls.find(
+        ([event]: [string]) =>
+          event === 'TransactionController:transactionStatusUpdated',
+      )?.[1];
+
+      const trackedTx = makeTransactionMeta(
+        TransactionType.bridgeApproval,
+        TransactionStatus.approved,
+        FROM_ADDRESS,
+        'batch-protect',
+      );
+      act(() => {
+        statusHandler!({ transactionMeta: trackedTx });
+      });
+
+      (Engine.context.TransactionController.state as any).transactions = [
+        { ...trackedTx, status: TransactionStatus.submitted },
+        submittedTx,
+        confirmedTx,
+      ];
+
+      const mockUpdate = Engine.context.TransactionController.update as jest.Mock;
+      mockUpdate.mockClear();
+
+      await act(async () => {
+        await cancelBatchWithAbortResolve(
+          result.current.cancelCurrentBatch,
+          trackedTx.id,
+        );
+      });
+
+      const allUpdateFns = mockUpdate.mock.calls.map((call: [Function]) => call[0]);
+      for (const updateFn of allUpdateFns) {
+        const state = { transactions: [submittedTx, confirmedTx] };
+        updateFn(state);
+        expect(state.transactions).toContainEqual(submittedTx);
+        expect(state.transactions).toContainEqual(confirmedTx);
+      }
     });
   });
 

@@ -11,10 +11,12 @@ import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsStepKind,
   HardwareWalletsSwapsStepStatus,
+  HardwareWalletsSwapsEventType,
 } from './HardwareWalletsSwaps.state';
 import { HardwareWalletsSwaps } from './HardwareWalletsSwaps';
 import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import { updateHardwareWalletsSwaps } from '../../../../../core/redux/slices/bridge';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -531,37 +533,40 @@ describe('HardwareWalletsSwaps', () => {
     expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
 
-  it('auto-navigates to transactions view after Submitted with timeout', () => {
-    const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
-
-    renderScreen({
-      status: HardwareWalletsSwapsStatus.Submitted,
-      currentStep: 2,
-      steps: [
-        {
-          kind: HardwareWalletsSwapsStepKind.Approval,
-              status: HardwareWalletsSwapsStepStatus.Signed,
-        },
-        {
-          kind: HardwareWalletsSwapsStepKind.Transaction,
-              status: HardwareWalletsSwapsStepStatus.Signed,
-        },
-      ],
+  it('auto-navigates to transactions view when Submitted and submission has completed', async () => {
+    const cachedParams = {
+      quoteResponse: { id: 'test' } as any,
+      location: undefined,
+      transactionActiveAbTests: undefined,
+    };
+    const { getBridgeSubmissionCache } = jest.requireMock(
+      '../../hooks/bridgeSubmissionCache',
+    );
+    getBridgeSubmissionCache.mockReturnValue(cachedParams);
+    mockSubmitBridgeTx.mockImplementation(async () => {
+      return { success: true };
     });
 
-    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 1000);
+    const { store } = renderScreen({});
 
-    const autoNavCallback = setTimeoutSpy.mock.calls.find(
-      (call) => call[1] === 1000,
-    )?.[0];
-    expect(autoNavCallback).toBeDefined();
+    await act(async () => {
+      await Promise.resolve();
+    });
 
-    act(() => {
-      autoNavCallback?.();
+    expect(mockSubmitBridgeTx).toHaveBeenCalled();
+
+    store.dispatch(
+      updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.Signed, payload: { stepKind: HardwareWalletsSwapsStepKind.Approval } }),
+    );
+    store.dispatch(
+      updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.Signed, payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction } }),
+    );
+
+    await act(async () => {
+      await Promise.resolve();
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-    setTimeoutSpy.mockRestore();
   });
 
   it('clears cache when cancel is pressed', () => {
@@ -917,7 +922,10 @@ describe('HardwareWalletsSwaps', () => {
     const activityIndicators = UNSAFE_root.findAllByType(
       require('react-native').ActivityIndicator,
     );
-    expect(activityIndicators.length).toBeGreaterThanOrEqual(2);
+    expect(activityIndicators.length).toBeGreaterThanOrEqual(1);
+    expect(
+      getByTestId(HardwareWalletsSwapsSelectorsIDs.TITLE).props.children,
+    ).toContain('(1/2)');
   });
 
   it('renders the rejected state title', () => {
