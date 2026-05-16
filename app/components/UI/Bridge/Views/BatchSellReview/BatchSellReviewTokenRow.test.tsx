@@ -171,6 +171,20 @@ describe('BatchSellReviewTokenRow', () => {
     expect(getByText('< 0.00001 ETH • 100%')).toBeOnTheScreen();
   });
 
+  it('renders the source amount used in the quote request', () => {
+    const { getByText } = render(
+      <BatchSellReviewTokenRow
+        token={mockToken}
+        tokenKey={mockTokenKey}
+        percent={50}
+        receivedAmount="123.45 USDC"
+        onPercentChange={mockOnPercentChange}
+      />,
+    );
+
+    expect(getByText('0.74906 ETH • 50%')).toBeOnTheScreen();
+  });
+
   it('forwards slider percent changes', () => {
     const { getByTestId } = render(
       <BatchSellReviewTokenRow

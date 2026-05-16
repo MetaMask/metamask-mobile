@@ -22,6 +22,7 @@ import { formatTokenBalance } from '../../utils';
 import { BridgeToken } from '../../types';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellPercentageSlider } from './BatchSellPercentageSlider';
+import { getBatchSellSourceTokenAmount } from '../../hooks/useBatchSellQuoteRequest';
 
 interface BatchSellReviewTokenRowProps {
   token: BridgeToken;
@@ -36,8 +37,9 @@ interface BatchSellReviewTokenRowProps {
 }
 
 function getTokenBalanceText(token: BridgeToken, percent: number) {
-  const balanceText = token.balance
-    ? `${formatTokenBalance(token.balance)} ${token.symbol}`
+  const sourceAmount = getBatchSellSourceTokenAmount(token, percent);
+  const balanceText = sourceAmount
+    ? `${formatTokenBalance(sourceAmount)} ${token.symbol}`
     : token.symbol;
 
   return `${balanceText} • ${percent}%`;
