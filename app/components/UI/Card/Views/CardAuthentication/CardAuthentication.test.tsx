@@ -24,6 +24,20 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+const mockNavigationServiceNavigate = jest.fn();
+const mockNavigationServiceGoBack = jest.fn();
+jest.mock('../../../../../core/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    get navigation() {
+      return {
+        navigate: mockNavigationServiceNavigate,
+        goBack: mockNavigationServiceGoBack,
+      };
+    },
+  },
+}));
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
@@ -440,6 +454,35 @@ describe('CardAuthentication Component', () => {
           routes: [{ name: Routes.CARD.HOME }],
         });
       });
+    });
+
+    it('pops Card.ROOT off the root navigator on successful login when postAuthRedirect is set (no inner Card-stack reset, no cross-stack navigate)', async () => {
+      mockRouteParams = {
+        postAuthRedirect: {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+      };
+      mockSubmitMutateAsync.mockResolvedValue({ done: true });
+      render();
+      const emailInput = screen.getByTestId('email-field');
+      const passwordInput = screen.getByTestId('password-field');
+      const loginButton = screen.getByTestId(
+        CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
+      );
+
+      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.changeText(passwordInput, 'password123');
+      fireEvent.press(loginButton);
+
+      await waitFor(() => {
+        expect(mockNavigationServiceGoBack).toHaveBeenCalledTimes(1);
+      });
+      // The origin (e.g. the Money tab) lives below Card.ROOT in the outer
+      // navigator — popping reveals it without touching its own state or
+      // doing a cross-stack navigate.
+      expect(mockNavigationServiceNavigate).not.toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalled();
     });
 
     it('does not navigate when login error exists', () => {

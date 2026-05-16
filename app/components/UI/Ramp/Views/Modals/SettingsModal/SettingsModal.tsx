@@ -10,6 +10,7 @@ import {
   BottomSheet,
   type BottomSheetRef,
   IconName,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import {
   IconName as ComponentLibraryIconName,
@@ -24,7 +25,6 @@ import {
   ToastVariants,
 } from '../../../../../../component-library/components/Toast';
 import Logger from '../../../../../../util/Logger';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import MenuItem from '../../../components/MenuItem';
 import { useRampsProviders } from '../../../hooks/useRampsProviders';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -197,7 +197,7 @@ function SettingsModal() {
 
   return (
     <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('fiat_on_ramp.build_quote_settings_modal.title')}
         onClose={handleClosePress}
       />
