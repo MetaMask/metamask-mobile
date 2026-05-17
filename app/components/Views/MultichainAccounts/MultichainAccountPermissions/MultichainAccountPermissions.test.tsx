@@ -13,6 +13,12 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
+import { toast } from '@metamask/design-system-react-native';
+import Routes from '../../../../constants/navigation/Routes';
+import { strings } from '../../../../../locales/i18n';
+import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../AccountConnect/ConnectAccountBottomSheet.testIds';
+import { NetworkConnectMultiSelectorSelectorsIDs } from '../../NetworkConnect/NetworkConnectMultiSelector.testIds';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actualDesignSystem = jest.requireActual(
@@ -81,7 +87,9 @@ jest.mock('../../../../core/Engine', () => ({
     },
     PermissionController: {
       updateCaveat: jest.fn(),
+      hasPermissions: jest.fn(),
       revokeAllPermissions: jest.fn(),
+      revokePermissions: jest.fn(),
       state: {
         subjects: {
           'test.com': {
@@ -445,6 +453,68 @@ describe('MultichainAccountPermissions', () => {
           }),
         );
       });
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: strings('toast.accounts_permissions_updated'),
+          hasNoTimeout: false,
+          startAccessory: expect.any(Object),
+        }),
+      );
+      expect(mockedNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME);
+    });
+  });
+
+  describe('handleRevokeAll', () => {
+    it('revokes CAIP-25 permissions from the disconnect all confirmation callback', async () => {
+      const mockHasPermissions = Engine.context.PermissionController
+        .hasPermissions as jest.Mock;
+      const mockRevokeAllPermissions = Engine.context.PermissionController
+        .revokeAllPermissions as jest.Mock;
+      const mockRevokePermissions = Engine.context.PermissionController
+        .revokePermissions as jest.Mock;
+      mockHasPermissions.mockResolvedValue(true);
+      mockRevokeAllPermissions.mockResolvedValue(undefined);
+      mockRevokePermissions.mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountPermissions
+          route={{
+            params: {
+              hostInfo: { metadata: { origin: 'test.com' } },
+            },
+          }}
+        />,
+        { state: mockInitialStateWithTestComPermissions() },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
+          ),
+        );
+      });
+      const revokeAllParams = mockedNavigate.mock.calls.find(
+        ([route, params]) =>
+          route === Routes.MODAL.ROOT_MODAL_FLOW &&
+          params?.screen === Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
+      )?.[1]?.params;
+      expect(revokeAllParams).toBeDefined();
+
+      await act(async () => {
+        await revokeAllParams.onRevokeAll();
+      });
+
+      expect(mockHasPermissions).toHaveBeenCalledWith('test.com');
+      expect(mockRevokeAllPermissions).toHaveBeenCalledWith('test.com');
+      expect(mockRevokePermissions).toHaveBeenCalledWith({
+        'test.com': [Caip25EndowmentPermissionName],
+      });
+      expect(toast).toHaveBeenCalledWith({
+        description: strings('toast.disconnected_all'),
+        hasNoTimeout: false,
+      });
+      expect(mockedNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME);
     });
   });
 
@@ -466,6 +536,32 @@ describe('MultichainAccountPermissions', () => {
 
       expect(getByTestId('cancel-button')).toBeDefined();
       expect(getByTestId('connect-button')).toBeDefined();
+    });
+
+    it('returns to the connected screen after account permissions are updated', async () => {
+      const { findByTestId, getByTestId } = renderWithProvider(
+        <MultichainAccountPermissions
+          route={{
+            params: {
+              hostInfo: { metadata: { origin: 'test.com' } },
+            },
+          }}
+        />,
+        { state: mockInitialState() },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('account-list-bottom-sheet'));
+      });
+      const updateButton = await findByTestId(
+        ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(updateButton);
+      });
+
+      expect(getByTestId('cancel-button')).toBeDefined();
     });
   });
 
@@ -531,6 +627,62 @@ describe('MultichainAccountPermissions', () => {
       // Assert - The component renders correctly and handles network selection
       // The console log shows the correct chain IDs are being passed to onSubmit
       expect(updateButton).toBeDefined();
+    });
+
+    it('switches the active dapp network when the current EVM network is removed', async () => {
+      const mockSetNetworkClientIdForDomain = Engine.context
+        .SelectedNetworkController.setNetworkClientIdForDomain as jest.Mock;
+      const mockUpdate = Engine.context.SelectedNetworkController
+        .update as jest.Mock;
+
+      const { getByText, getByTestId } = renderWithProvider(
+        <MultichainAccountPermissions
+          route={{
+            params: {
+              hostInfo: { metadata: { origin: 'test.com' } },
+            },
+          }}
+        />,
+        { state: mockInitialStateWithTestComPermissions() },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
+          ),
+        );
+      });
+      expect(getByTestId(`${MAINNET_DISPLAY_NAME}-selected`)).toBeDefined();
+
+      await act(async () => {
+        fireEvent.press(getByText(MAINNET_DISPLAY_NAME));
+      });
+      await waitFor(() => {
+        expect(
+          getByTestId(`${MAINNET_DISPLAY_NAME}-not-selected`),
+        ).toBeDefined();
+      });
+      await act(async () => {
+        fireEvent.press(getByText('Sepolia'));
+      });
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
+          ),
+        );
+      });
+
+      expect(mockSetNetworkClientIdForDomain).toHaveBeenCalledWith(
+        'test.com',
+        'sepolia',
+      );
+      const updateActiveDappNetwork = mockUpdate.mock.calls[0][0];
+      const selectedNetworkState = { activeDappNetwork: null };
+      updateActiveDappNetwork(selectedNetworkState);
+      expect(selectedNetworkState.activeDappNetwork).toBe('sepolia');
+      expect(getByTestId('cancel-button')).toBeDefined();
     });
   });
 
@@ -613,6 +765,30 @@ describe('MultichainAccountPermissions', () => {
       expect(getByTestId('sheet-header-back-button')).toBeDefined();
 
       const backButton = getByTestId('sheet-header-back-button');
+      await act(async () => {
+        fireEvent.press(backButton);
+      });
+
+      expect(getByTestId('cancel-button')).toBeDefined();
+    });
+
+    it('returns to the connected screen from the edit accounts back button', async () => {
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountPermissions
+          route={{
+            params: {
+              hostInfo: { metadata: { origin: 'test.com' } },
+            },
+          }}
+        />,
+        { state: mockInitialState() },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('account-list-bottom-sheet'));
+      });
+      const backButton = getByTestId('sheet-header-back-button');
+
       await act(async () => {
         fireEvent.press(backButton);
       });
